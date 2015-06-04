@@ -1,0 +1,15 @@
+Please see https://alembic.readthedocs.org/en/latest/index.html for general documentation
+
+To create alembic migrations use:
+$ watcher-db-manage revision --message "description of revision" --autogenerate
+
+Stamp db with most recent migration version, without actually running migrations
+$ watcher-db-manage stamp head
+
+Upgrade can be performed by:
+$ watcher-db-manage upgrade
+$ watcher-db-manage upgrade head
+
+Downgrading db:
+$ watcher-db-manage downgrade
+$ watcher-db-manage downgrade base

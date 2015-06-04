@@ -1,0 +1,61 @@
+=====================
+ RESTful Web API (v1)
+=====================
+
+Audit Templates
+===============
+
+.. rest-controller:: watcher.api.controllers.v1.audit_template:AuditTemplatesController
+   :webprefix: /v1/audit_template
+
+.. autotype:: watcher.api.controllers.v1.audit_template.AuditTemplateCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.audit_template.AuditTemplate
+   :members:
+
+
+Audits
+======
+
+.. rest-controller:: watcher.api.controllers.v1.audit:AuditsController
+   :webprefix: /v1/audits
+
+.. autotype:: watcher.api.controllers.v1.audit.AuditCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.audit.Audit
+   :members:
+
+
+Links
+=====
+
+.. autotype:: watcher.api.controllers.link.Link
+   :members:
+
+
+ActionPlans
+===========
+
+.. rest-controller:: watcher.api.controllers.v1.action_plan:ActionPlansController
+   :webprefix: /v1/action_plans
+
+.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlan
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlanCollection
+   :members:
+
+
+Actions
+=======
+
+.. rest-controller:: watcher.api.controllers.v1.action:ActionsController
+   :webprefix: /v1/actions
+
+.. autotype:: watcher.api.controllers.v1.action.ActionCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.action.Action
+   :members:

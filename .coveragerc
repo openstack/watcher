@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = watcher
+omit = watcher/tests/*,watcher/openstack/*
+
+[report]
+ignore-errors = True
