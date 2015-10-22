@@ -253,6 +253,9 @@
 # Verify HTTPS connections. (boolean value)
 #insecure = false
 
+# The region in which the identity server can be found. (string value)
+#region_name = <None>
+
 # Directory used to cache files related to PKI tokens. (string value)
 #signing_dir = <None>
 
@@ -430,6 +433,45 @@
 #goals = BALANCE_LOAD:basic,MINIMIZE_ENERGY_CONSUMPTION:basic,MINIMIZE_LICENSING_COST:basic,PREPARE_PLANNED_OPERATION:basic,SERVERS_CONSOLIDATION:basic
 
 
+[watcher_influxdb_collector]
+
+#
+# From watcher
+#
+
+# The hostname to connect to InfluxDB (string value)
+#hostname = localhost
+
+# port to connect to InfluxDB, defaults to 8086 (integer value)
+#port = 8086
+
+# user to connect, defaults to root (string value)
+#username = root
+
+# password of the user, defaults to root (string value)
+#password = root
+
+# database name to connect to (string value)
+#database = indeed
+
+# use https instead of http to connect to InfluxDB (boolean value)
+#param ssl = false
+
+# number of seconds Requestswill wait for your client to establish a
+# connection (integer value)
+#timeout = 5
+
+# number of seconds Requestswill wait for your client to establish a
+# connection (integer value)
+#timeout = 5
+
+# use UDP to connect to InfluxDB (boolean value)
+#use_udp = false
+
+#  UDP port to connect to InfluxDB (integer value)
+#udp_port = 4444
+
+
 [watcher_messaging]
 
 #
@@ -461,6 +503,17 @@
 
 # The virtual host used by the message broker (string value)
 #virtual_host =
+
+
+[watcher_metrics_collector]
+
+#
+# From watcher
+#
+
+# The driver that collect measurementsof the utilizationof the
+# physical and virtual resources (string value)
+#metrics_resource = influxdb
 
 
 [watcher_strategies]
