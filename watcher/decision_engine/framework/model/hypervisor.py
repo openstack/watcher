@@ -21,11 +21,30 @@ from watcher.decision_engine.framework.model.power_state import PowerState
 
 class Hypervisor(NamedElement):
     def __init__(self):
-        self.state = HypervisorState.ONLINE
-        self.power_state = PowerState.g0
+        self._state = HypervisorState.ONLINE
+        self._status = HypervisorState.ENABLED
+        self._power_state = PowerState.g0
 
-    def set_state(self, state):
-        self.state = state
+    @property
+    def state(self):
+        return self._state
 
-    def get_state(self):
-        return self.state
+    @state.setter
+    def state(self, state):
+        self._state = state
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, s):
+        self._status = s
+
+    @property
+    def powerstate(self):
+        return self._power_state
+
+    @powerstate.setter
+    def powerstate(self, p):
+        self._power_state = p

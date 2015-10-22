@@ -31,7 +31,7 @@ from watcher.tests.objects import utils as obj_utils
 def post_get_test_action(**kw):
     action = api_utils.action_post_data(**kw)
     action_plan = db_utils.get_test_action_plan()
-    action['action_plan_id'] = None
+    del action['action_plan_id']
     action['action_plan_uuid'] = kw.get('action_plan_uuid',
                                         action_plan['uuid'])
     action['next'] = None

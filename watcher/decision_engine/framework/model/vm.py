@@ -19,10 +19,12 @@ from watcher.decision_engine.framework.model.vm_state import VMState
 
 class VM(NamedElement):
     def __init__(self):
-        self.state = VMState.INIT
+        self._state = VMState.ACTIVE.value
 
-    def set_state(self, state):
-        self.state = state
+    @property
+    def state(self):
+        return self._state
 
-    def get_state(self):
-        return self.state
+    @state.setter
+    def state(self, state):
+        self._state = state

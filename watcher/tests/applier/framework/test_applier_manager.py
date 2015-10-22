@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at

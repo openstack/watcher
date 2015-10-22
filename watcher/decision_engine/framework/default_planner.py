@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -88,11 +90,11 @@ class DefaultPlanner(Planner):
                 # TODO(jed) type
                 primitive = self.create_action(action_plan.id,
                                                Primitives.LIVE_MIGRATE.value,
-                                               action.get_vm().get_uuid(),
+                                               action.get_vm().uuid,
                                                action.get_source_hypervisor().
-                                               get_uuid(),
+                                               uuid,
                                                action.get_dest_hypervisor().
-                                               get_uuid(),
+                                               uuid,
                                                description=str(action)
                                                )
 
@@ -100,18 +102,16 @@ class DefaultPlanner(Planner):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
                                                POWER_STATE.value,
-                                               applies_to=action.target.
-                                               get_uuid(),
+                                               applies_to=action.target.uuid,
                                                parameter=action.
-                                               get_power_state().
+                                               powerstate.
                                                value, description=str(action))
             elif isinstance(action, ChangeHypervisorState):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
                                                HYPERVISOR_STATE.value,
-                                               applies_to=action.target.
-                                               get_uuid(),
-                                               parameter=action.get_state().
+                                               applies_to=action.target.uuid,
+                                               parameter=action.state.
                                                value,
                                                description=str(action))
 

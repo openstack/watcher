@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,7 +15,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-# jed <jean-emile.dartois@b-com.com>
+#
 from watcher.decision_engine.api.solution.solution import Solution
 from watcher.openstack.common import log
 

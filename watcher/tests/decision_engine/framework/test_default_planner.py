@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import mock
+from watcher.common.exception import MetaActionNotFound
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.decision_engine.framework.default_planner import DefaultPlanner
@@ -37,6 +38,17 @@ class SolutionFaker(object):
         sercon = BasicConsolidation("basic", "Basic offline consolidation")
         sercon.set_metrics_resource_collector(metrics)
         return sercon.execute(current_state_cluster.generate_scenario_1())
+
+
+class SolutionFakerSingleHyp(object):
+    @staticmethod
+    def build():
+        metrics = FakerMetricsCollector()
+        current_state_cluster = FakerStateCollector()
+        sercon = BasicConsolidation("basic", "Basic offline consolidation")
+        sercon.set_metrics_resource_collector(metrics)
+        return sercon.execute(
+            current_state_cluster.generate_scenario_4_with_2_hypervisors())
 
 
 class TestDefaultPlanner(base.DbTestCase):
@@ -71,5 +83,25 @@ class TestDefaultPlanner(base.DbTestCase):
         fake_solution = SolutionFaker.build()
         action_plan = self.default_planner.schedule(self.context,
                                                     audit.id, fake_solution)
+        self.assertIsNotNone(action_plan.uuid)
 
+    def test_schedule_raise(self):
+        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        fake_solution = SolutionFaker.build()
+        fake_solution._meta_actions[0] = "valeur_qcq"
+        self.assertRaises(MetaActionNotFound, self.default_planner.schedule,
+                          self.context, audit.id, fake_solution)
+
+    def test_schedule_scheduled_empty(self):
+        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        fake_solution = SolutionFakerSingleHyp.build()
+        action_plan = self.default_planner.schedule(self.context,
+                                                    audit.id, fake_solution)
+        self.assertIsNotNone(action_plan.uuid)
+
+    def test_scheduler_warning_empty_action_plan(self):
+        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        fake_solution = SolutionFaker.build()
+        action_plan = self.default_planner.schedule(self.context,
+                                                    audit.id, fake_solution)
         self.assertIsNotNone(action_plan.uuid)

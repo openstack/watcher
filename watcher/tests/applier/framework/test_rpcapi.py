@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,6 +15,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 import mock
 import oslo.messaging as om
@@ -42,12 +45,6 @@ class TestApplierAPI(base.TestCase):
                 'check_api_version',
                 api_version=ApplierAPI().API_VERSION)
 
-    def test_execute_action_plan_throw_exception(self):
-        action_plan_uuid = "uuid"
-        self.assertRaises(exception.InvalidUuidOrName,
-                          self.api.launch_action_plan,
-                          action_plan_uuid)
-
     def test_execute_audit_without_error(self):
         with mock.patch.object(om.RPCClient, 'call') as mock_call:
             action_plan_uuid = utils.generate_uuid()
@@ -56,3 +53,9 @@ class TestApplierAPI(base.TestCase):
                 self.context.to_dict(),
                 'launch_action_plan',
                 action_plan_uuid=action_plan_uuid)
+
+    def test_execute_action_plan_throw_exception(self):
+        action_plan_uuid = "uuid"
+        self.assertRaises(exception.InvalidUuidOrName,
+                          self.api.launch_action_plan,
+                          action_plan_uuid)

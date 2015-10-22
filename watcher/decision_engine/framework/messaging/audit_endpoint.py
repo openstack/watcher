@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,13 +15,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+#
 from watcher.decision_engine.framework.command.trigger_audit_command import \
     TriggerAuditCommand
-from watcher.decision_engine.framework.ressourcedb_collector import RessourceDB
-from watcher.decision_engine.framework.statedb_collector import NovaCollector
+from watcher.metrics_engine.framework.collector_manager import CollectorManager
 from watcher.openstack.common import log
-
 
 LOG = log.getLogger(__name__)
 
@@ -27,10 +27,12 @@ LOG = log.getLogger(__name__)
 class AuditEndpoint(object):
     def __init__(self, de):
         self.de = de
+        self.manager = CollectorManager()
 
     def do_trigger_audit(self, context, audit_uuid):
-        statedb = NovaCollector()
-        ressourcedb = RessourceDB()
+        statedb = self.manager.get_statedb_collector()
+        ressourcedb = self.manager.get_metric_collector()
+
         audit = TriggerAuditCommand(self.de, statedb,
                                     ressourcedb)
         audit.execute(audit_uuid, context)
