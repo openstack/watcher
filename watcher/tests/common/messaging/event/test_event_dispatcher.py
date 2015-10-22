@@ -59,7 +59,7 @@ class TestEventDispatcher(base.TestCase):
                                                  listener)
 
         self.event_dispatcher.dispatch_event(event)
-        listener.assert_has_calls(call(event))
+        listener.assert_has_calls(calls=[call(event)])
 
     def test_dispatch_event_to_all_listener(self):
         event = self.fake_event(Events.ACTION_PLAN)
@@ -75,6 +75,6 @@ class TestEventDispatcher(base.TestCase):
                                                  listener_trigger_audit)
 
         self.event_dispatcher.dispatch_event(event)
-        listener_all.assert_has_calls(call(event))
-        listener_action_plan.assert_has_calls(call(event))
+        listener_all.assert_has_calls(calls=[call(event)])
+        listener_action_plan.assert_has_calls(calls=[call(event)])
         listener_trigger_audit.assert_has_calls([])

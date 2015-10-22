@@ -4,4 +4,4 @@ source = watcher
 omit = watcher/tests/*,watcher/openstack/*
 
 [report]
-ignore-errors = True
+ignore_errors = True 

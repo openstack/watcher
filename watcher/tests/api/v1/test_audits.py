@@ -33,7 +33,7 @@ from watcher.tests.objects import utils as obj_utils
 def post_get_test_audit(**kw):
     audit = api_utils.audit_post_data(**kw)
     audit_template = db_utils.get_test_audit_template()
-    audit['audit_template_id'] = None
+    del audit['audit_template_id']
     audit['audit_template_uuid'] = kw.get('audit_template_uuid',
                                           audit_template['uuid'])
     return audit
