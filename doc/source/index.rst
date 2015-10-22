@@ -2,10 +2,10 @@
 Welcome to Watcher's developer documentation
 ============================================
 
-Introduction
-============
+Mission
+=======
 
-Watcher is an OpenStack project ...
+Provide an auditing service for OpenStack to improve workload placement on-the-go.
 
 The developer documentation provided here is continually kept up-to-date based
 on the latest code, and may not represent the state of the project at any
