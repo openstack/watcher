@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,10 +15,15 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+from watcher.decision_engine.framework.model.vm_state import VMState
+from watcher.metrics_engine.api.metrics_resource_collector import \
+    AggregationFunction
 
 from watcher.common.exception import ClusterEmpty
 from watcher.common.exception import ClusteStateNotDefined
 from watcher.common.exception import MetricCollectorNotDefined
+from watcher.common.exception import NoDataFound
 from watcher.decision_engine.api.strategy.strategy import Strategy
 from watcher.decision_engine.api.strategy.strategy import StrategyLevel
 from watcher.decision_engine.framework.meta_actions.hypervisor_state import \
@@ -78,8 +85,8 @@ class BasicConsolidation(Strategy):
         self.efficiency = 100
 
         # TODO(jed) improve threshold overbooking ?,...
-        self.threshold_mem = 0.90
-        self.threshold_disk = 0.80
+        self.threshold_mem = 1
+        self.threshold_disk = 1
         self.threshold_cores = 1
 
         # TODO(jed) target efficiency
@@ -114,6 +121,11 @@ class BasicConsolidation(Strategy):
         '''
         if src_hypervisor == dest_hypervisor:
             return False
+
+        LOG.debug('Migrate VM %s from %s to  %s  ',
+                  str(src_hypervisor),
+                  str(dest_hypervisor),
+                  str(vm_to_mig))
 
         total_cores = 0
         total_disk = 0
@@ -162,6 +174,13 @@ class BasicConsolidation(Strategy):
         cores_available = cap_cores.get_capacity(dest_hypervisor)
         disk_available = cap_disk.get_capacity(dest_hypervisor)
         mem_available = cap_mem.get_capacity(dest_hypervisor)
+        LOG.debug("VCPU %s/%s ", str(total_cores * self.threshold_cores),
+                  str(cores_available), )
+        LOG.debug("DISK %s/%s ", str(total_disk * self.threshold_disk),
+                  str(disk_available), )
+        LOG.debug("MEM %s/%s ", str(total_mem * self.threshold_mem),
+                  str(mem_available))
+
         if cores_available >= total_cores * self.threshold_cores \
                 and disk_available >= total_disk * self.threshold_disk \
                 and mem_available >= total_mem * self.threshold_mem:
@@ -232,21 +251,25 @@ class BasicConsolidation(Strategy):
         metrics_collector = self.get_metrics_resource_collector()
         if metrics_collector is None:
             raise MetricCollectorNotDefined()
-        total_cores_used = 0
-        total_memory_used = 0
-        total_disk_used = 0
 
-        for vm_id in model.get_mapping().get_node_vms(hypervisor):
-            total_cores_used += metrics_collector.get_average_usage_vm_cpu(
-                vm_id)
-            total_memory_used += metrics_collector.get_average_usage_vm_memory(
-                vm_id)
-            total_disk_used += metrics_collector.get_average_usage_vm_disk(
-                vm_id)
+        cpu_compute_mean_16h = metrics_collector.get_measurement(
+            metric='compute_cpu_user_percent_gauge',
+            aggregation_function=AggregationFunction.MEAN,
+            start_time="16 hours before now",
+            filters=["resource_id=" + hypervisor.uuid + ""])
+        if len(cpu_compute_mean_16h) > 0:
+            cpu_capacity = model.get_resource_from_id(
+                ResourceType.cpu_cores).get_capacity(hypervisor)
+            cpu_utilization = float(cpu_compute_mean_16h[0].value)
+            total_cores_used = cpu_capacity * (cpu_utilization / 100)
+        else:
+            raise NoDataFound(
+                "No values returned for " + str(hypervisor.uuid) +
+                " compute_cpu_percent_gauge")
 
         return self.calculate_weight(model, hypervisor, total_cores_used,
-                                     total_disk_used,
-                                     total_memory_used)
+                                     0,
+                                     0)
 
     def calculate_migration_efficiency(self):
         """Calculate migration efficiency
@@ -275,15 +298,25 @@ class BasicConsolidation(Strategy):
         if model is None:
             raise ClusteStateNotDefined()
 
-        vm = model.get_vm_from_id(vm.get_uuid())
-        cores_used = metric_collector.get_average_usage_vm_cpu(vm.get_uuid())
-        memory_used = metric_collector.get_average_usage_vm_memory(
-            vm.get_uuid())
-        disk_used = metric_collector.get_average_usage_vm_disk(vm.get_uuid())
+        vm = model.get_vm_from_id(vm.uuid)
+        instance_cpu_mean_16 = metric_collector.get_measurement(
+            metric='instance_cpu_percent_gauge',
+            aggregation_function=AggregationFunction.MEAN,
+            start_time="16 hours before now",
+            filters=["resource_id=" + vm.uuid + ""])
 
-        return self.calculate_weight(model, vm, cores_used,
-                                     disk_used,
-                                     memory_used)
+        if len(instance_cpu_mean_16) > 0:
+            cpu_capacity = model.get_resource_from_id(
+                ResourceType.cpu_cores).get_capacity(vm)
+            vm_cpu_utilization = instance_cpu_mean_16[0].value
+            total_cores_used = cpu_capacity * (vm_cpu_utilization / 100)
+        else:
+            raise NoDataFound("No values returned for " + str(vm.uuid) +
+                              " instance_cpu_percent_gauge")
+
+        return self.calculate_weight(model, vm, total_cores_used,
+                                     0,
+                                     0)
 
     def print_utilization(self, model):
         if model is None:
@@ -308,12 +341,26 @@ class BasicConsolidation(Strategy):
         unsuccessful_migration = 0
 
         first = True
-        self.print_utilization(current_model)
         size_cluster = len(current_model.get_all_hypervisors())
         if size_cluster == 0:
             raise ClusterEmpty()
 
         self.compute_attempts(size_cluster)
+
+        for hypevisor_id in current_model.get_all_hypervisors():
+            hypervisor = current_model.get_hypervisor_from_id(hypevisor_id)
+            count = current_model.get_mapping(). \
+                get_node_vms_from_id(hypevisor_id)
+            if len(count) == 0:
+                change_power = ChangePowerState(hypervisor)
+                change_power.powerstate = PowerState.g1_S1
+                change_power.set_level(StrategyLevel.conservative)
+                self.solution.add_change_request(change_power)
+                if hypervisor.state == HypervisorState.ONLINE:
+                    h = ChangeHypervisorState(hypervisor)
+                    h.set_level(StrategyLevel.aggressive)
+                    h.state = HypervisorState.OFFLINE
+                    self.solution.add_change_request(h)
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:
             if first is not True:
@@ -325,9 +372,16 @@ class BasicConsolidation(Strategy):
 
             ''' calculate score of nodes based on load by VMs '''
             for hypevisor_id in current_model.get_all_hypervisors():
-                hypevisor = current_model.get_hypervisor_from_id(hypevisor_id)
-                result = self.calculate_score_node(hypevisor, current_model)
-                if result != 0:
+                hypervisor = current_model.get_hypervisor_from_id(hypevisor_id)
+                count = current_model.get_mapping(). \
+                    get_node_vms_from_id(hypevisor_id)
+                if len(count) > 0:
+                    result = self.calculate_score_node(hypervisor,
+                                                       current_model)
+                else:
+                    ''' the hypervisor has not VMs '''
+                    result = 0
+                if len(count) > 0:
                     score.append((hypevisor_id, result))
 
             ''' sort compute nodes by Score decreasing '''''
@@ -350,8 +404,9 @@ class BasicConsolidation(Strategy):
             vm_score = []
             for vm_id in vms_to_mig:
                 vm = current_model.get_vm_from_id(vm_id)
-                vm_score.append(
-                    (vm_id, self.calculate_score_vm(vm, current_model)))
+                if vm.state == VMState.ACTIVE.value:
+                    vm_score.append(
+                        (vm_id, self.calculate_score_vm(vm, current_model)))
 
             ''' sort VM's by Score '''
             v = sorted(vm_score, reverse=True, key=lambda x: (x[1]))
@@ -392,7 +447,7 @@ class BasicConsolidation(Strategy):
                             # TODO(jed) how to manage strategy level
                             # from conservative to aggressive
                             change_power = ChangePowerState(mig_src_hypervisor)
-                            change_power.set_power_state(PowerState.g1_S1)
+                            change_power.powerstate = PowerState.g1_S1
                             change_power.set_level(
                                 StrategyLevel.conservative)
                             tmp_vm_migration_schedule.append(change_power)
@@ -400,7 +455,7 @@ class BasicConsolidation(Strategy):
                             h = ChangeHypervisorState(mig_src_hypervisor)
                             h.set_level(StrategyLevel.aggressive)
 
-                            h.set_state(HypervisorState.OFFLINE)
+                            h.state = HypervisorState.OFFLINE
                             tmp_vm_migration_schedule.append(h)
 
                             self.number_of_released_nodes += 1
@@ -414,7 +469,7 @@ class BasicConsolidation(Strategy):
                     self.solution.add_change_request(a)
             else:
                 unsuccessful_migration += 1
-        self.print_utilization(current_model)
+        # self.print_utilization(current_model)
         infos = {
             "number_of_migrations": self.number_of_migrations,
             "number_of_nodes_released": self.number_of_released_nodes,

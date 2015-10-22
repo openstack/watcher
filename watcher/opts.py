@@ -20,10 +20,14 @@ import itertools
 import watcher.api.app
 from watcher.applier.framework import manager_applier
 import watcher.common.messaging.messaging_core
+
+import watcher.openstack.common.log
+
 from watcher.decision_engine.framework import manager_decision_engine
 from watcher.decision_engine.framework.strategy import strategy_loader
 from watcher.decision_engine.framework.strategy import strategy_selector
-import watcher.openstack.common.log
+from watcher.metrics_engine.framework import collector_manager
+from watcher.metrics_engine.framework.datasources import influxdb_collector
 
 
 def list_opts():
@@ -42,5 +46,9 @@ def list_opts():
         ('watcher_decision_engine',
          manager_decision_engine.WATCHER_DECISION_ENGINE_OPTS),
         ('watcher_applier',
-         manager_applier.APPLIER_MANAGER_OPTS)
+         manager_applier.APPLIER_MANAGER_OPTS),
+        ('watcher_influxdb_collector',
+         influxdb_collector.WATCHER_INFLUXDB_COLLECTOR_OPTS),
+        ('watcher_metrics_collector',
+         collector_manager.WATCHER_METRICS_COLLECTOR_OPTS)
     ]

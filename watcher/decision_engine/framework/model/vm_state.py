@@ -18,9 +18,17 @@ from enum import Enum
 
 
 class VMState(Enum):
-    INIT = 1,
-    READY = 2,
-    RUNNING = 3,
-    SLEEPING = 4,
-    KILLED = 5,
-    LIVE_MIGRATION = 6
+    ACTIVE = 'active'  # VM is running
+    BUILDING = 'building'  # VM only exists in DB
+    PAUSED = 'paused'
+    SUSPENDED = 'suspended'  # VM is suspended to disk.
+    STOPPED = 'stopped'  # VM is powered off, the disk image is still there.
+    RESCUED = 'rescued'  # A rescue image is running with the original VM image
+    # attached.
+    RESIZED = 'resized'  # a VM with the new size is active.
+
+    SOFT_DELETED = 'soft-delete'
+    # still available to restore.
+    DELETED = 'deleted'  # VM is permanently deleted.
+
+    ERROR = 'error'

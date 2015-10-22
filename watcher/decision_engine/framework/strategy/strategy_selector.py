@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from watcher.decision_engine.api.strategy.selector import Selector
 from watcher.decision_engine.framework.strategy.strategy_loader import \
     StrategyLoader
 from watcher.objects.audit_template import Goal
@@ -40,7 +41,7 @@ CONF.register_group(goals_opt_group)
 CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
 
 
-class StrategySelector(object):
+class StrategySelector(Selector):
 
     def __init__(self):
         self.strategy_loader = StrategyLoader()

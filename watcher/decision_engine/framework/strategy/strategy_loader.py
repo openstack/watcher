@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,7 +15,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 from oslo_config import cfg
+from stevedore import driver
 from watcher.decision_engine.strategies.basic_consolidation import \
     BasicConsolidation
 from watcher.openstack.common import log
@@ -51,6 +55,14 @@ class StrategyLoader(object):
                 "basic",
                 "Basic offline consolidation")
         }
+
+    def load_driver(self, algo):
+        _algo = driver.DriverManager(
+            namespace='watcher_strategies',
+            name=algo,
+            invoke_on_load=True,
+        )
+        return _algo
 
     def load(self, model):
         return self.strategies[model]

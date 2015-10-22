@@ -37,15 +37,15 @@ class Mapping(object):
             self.lock.acquire()
 
             # init first
-            if hypervisor.get_uuid() not in self._mapping_hypervisors.keys():
-                self._mapping_hypervisors[hypervisor.get_uuid()] = []
+            if hypervisor.uuid not in self._mapping_hypervisors.keys():
+                self._mapping_hypervisors[hypervisor.uuid] = []
 
             # map node => vms
-            self._mapping_hypervisors[hypervisor.get_uuid()].append(
-                vm.get_uuid())
+            self._mapping_hypervisors[hypervisor.uuid].append(
+                vm.uuid)
 
             # map vm => node
-            self.mapping_vm[vm.get_uuid()] = hypervisor.get_uuid()
+            self.mapping_vm[vm.uuid] = hypervisor.uuid
 
         finally:
             self.lock.release()
@@ -56,16 +56,23 @@ class Mapping(object):
         :param hypervisor: the hypervisor
         :param vm: the virtual machine or instance
         """
-        self.unmap_from_id(hypervisor.get_uuid(), vm.get_uuid())
+        self.unmap_from_id(hypervisor.uuid, vm.uuid)
 
     def unmap_from_id(self, node_uuid, vm_uuid):
+        """
+
+        :rtype : object
+        """
         try:
             self.lock.acquire()
             if str(node_uuid) in self._mapping_hypervisors:
                 self._mapping_hypervisors[str(node_uuid)].remove(str(vm_uuid))
+                # remove vm
+                self.mapping_vm.pop(vm_uuid)
             else:
                 LOG.warn("trying to delete the virtual machine " + str(
-                    vm_uuid) + " but it was not found")
+                    vm_uuid) + " but it was not found on hypervisor" + str(
+                    node_uuid))
         finally:
             self.lock.release()
 
@@ -76,7 +83,7 @@ class Mapping(object):
         return self.mapping_vm
 
     def get_node_from_vm(self, vm):
-        return self.get_node_from_vm_id(vm.get_uuid())
+        return self.get_node_from_vm_id(vm.uuid)
 
     def get_node_from_vm_id(self, vm_uuid):
         """Getting host information from the guest VM
@@ -93,7 +100,7 @@ class Mapping(object):
         :param hypervisor:
         :return:
         """
-        return self.get_node_vms_from_id(hypervisor.get_uuid())
+        return self.get_node_vms_from_id(hypervisor.uuid)
 
     def get_node_vms_from_id(self, node_uuid):
         if str(node_uuid) in self._mapping_hypervisors.keys():

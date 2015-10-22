@@ -29,7 +29,6 @@ from watcher.common.i18n import _
 from watcher.common.i18n import _LE
 from watcher.openstack.common import log as logging
 
-
 LOG = logging.getLogger(__name__)
 
 exc_log_opts = [
@@ -226,6 +225,61 @@ class PatchError(Invalid):
 
 
 # decision engine
+
+
+class BaseException(Exception):
+
+    def __init__(self, desc=""):
+        if (not isinstance(desc, basestring)):
+            raise IllegalArgumentException(
+                "Description must be an instance of str")
+
+        desc = desc.strip()
+
+        self._desc = desc
+
+    def get_description(self):
+        return self._desc
+
+    def get_message(self):
+        return "An exception occurred without a description."
+
+    def __str__(self):
+        return self.get_message()
+
+
+class IllegalArgumentException(BaseException):
+    def __init__(self, desc):
+        BaseException.__init__(self, desc)
+
+        if self._desc == "":
+            raise IllegalArgumentException("Description cannot be empty")
+
+    def get_message(self):
+        return self._desc
+
+
+class NoSuchMetric(BaseException):
+    def __init__(self, desc):
+        BaseException.__init__(self, desc)
+
+        if self._desc == "":
+            raise NoSuchMetric("No such metric")
+
+    def get_message(self):
+        return self._desc
+
+
+class NoDataFound(BaseException):
+    def __init__(self, desc):
+        BaseException.__init__(self, desc)
+
+        if self._desc == "":
+            raise NoSuchMetric("no rows were returned")
+
+    def get_message(self):
+        return self._desc
+
 
 class ClusterEmpty(WatcherException):
     message = _("The list of hypervisor(s) in the cluster is empty.'")

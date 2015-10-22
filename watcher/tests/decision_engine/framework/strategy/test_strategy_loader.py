@@ -34,3 +34,7 @@ class TestStrategySelector(base.BaseTestCase):
             selected_strategy.get_name(),
             exptected_strategy,
             'The default strategy should be basic')
+
+    def test_load_driver(self):
+        algo = self.strategy_loader.load_driver("basic")
+        self.assertEqual(algo._names[0], "basic")

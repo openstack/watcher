@@ -48,25 +48,44 @@ class Audit(base.APIBase):
     between the internal object model and the API representation of a audit.
     """
     _audit_template_uuid = None
+    _audit_template_name = None
+
+    def _get_audit_template(self, value):
+        if value == wtypes.Unset:
+            return None
+        audit_template = None
+        try:
+            if utils.is_uuid_like(value) or utils.is_int_like(value):
+                audit_template = objects.AuditTemplate.get(
+                    pecan.request.context, value)
+            else:
+                audit_template = objects.AuditTemplate.get_by_name(
+                    pecan.request.context, value)
+        except exception.AuditTemplateNotFound:
+            pass
+        if audit_template:
+            self.audit_template_id = audit_template.id
+        return audit_template
 
     def _get_audit_template_uuid(self):
         return self._audit_template_uuid
 
     def _set_audit_template_uuid(self, value):
-        if value == wtypes.Unset:
-            self._audit_template_uuid = wtypes.Unset
-        elif value and self._audit_template_uuid != value:
-            try:
-                if utils.is_uuid_like(value) or utils.is_int_like(value):
-                    audit_template = objects.AuditTemplate.get(
-                        pecan.request.context, value)
-                else:
-                    audit_template = objects.AuditTemplate.get_by_name(
-                        pecan.request.context, value)
+        if value and self._audit_template_uuid != value:
+            self._audit_template_uuid = None
+            audit_template = self._get_audit_template(value)
+            if audit_template:
                 self._audit_template_uuid = audit_template.uuid
-                self.audit_template_id = audit_template.id
-            except exception.AuditTemplateNotFound:
-                self._audit_template_uuid = None
+
+    def _get_audit_template_name(self):
+        return self._audit_template_name
+
+    def _set_audit_template_name(self, value):
+        if value and self._audit_template_name != value:
+            self._audit_template_name = None
+            audit_template = self._get_audit_template(value)
+            if audit_template:
+                self._audit_template_name = audit_template.name
 
     uuid = types.uuid
     """Unique UUID for this audit"""
@@ -84,7 +103,13 @@ class Audit(base.APIBase):
                                           _get_audit_template_uuid,
                                           _set_audit_template_uuid,
                                           mandatory=True)
-    """The UUID of the node this port belongs to"""
+    """The UUID of the audit template this audit refers to"""
+
+    audit_template_name = wsme.wsproperty(wtypes.text,
+                                          _get_audit_template_name,
+                                          _set_audit_template_name,
+                                          mandatory=False)
+    """The name of the audit template this audit refers to"""
 
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit links"""
@@ -92,9 +117,7 @@ class Audit(base.APIBase):
     def __init__(self, **kwargs):
         self.fields = []
         fields = list(objects.Audit.fields)
-        # audit_template_uuid is not part of objects.Audit.fields
-        # because it's an API-only attribute.
-        fields.append('audit_template_uuid')
+
         for k in fields:
             # Skip fields we do not expose.
             if not hasattr(self, k):
@@ -103,14 +126,22 @@ class Audit(base.APIBase):
             setattr(self, k, kwargs.get(k, wtypes.Unset))
 
         self.fields.append('audit_template_id')
+
+        # audit_template_uuid & audit_template_name are not part of
+        # objects.Audit.fields because they're API-only attributes.
+        fields.append('audit_template_uuid')
         setattr(self, 'audit_template_uuid', kwargs.get('audit_template_id',
+                wtypes.Unset))
+        fields.append('audit_template_name')
+        setattr(self, 'audit_template_name', kwargs.get('audit_template_id',
                 wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(audit, url, expand=True):
         if not expand:
             audit.unset_fields_except(['uuid', 'type', 'deadline',
-                                       'state', 'audit_template_uuid'])
+                                       'state', 'audit_template_uuid',
+                                       'audit_template_name'])
 
         # The numeric ID should not be exposed to
         # the user, it's internal only.
@@ -237,7 +268,7 @@ class AuditsController(rest.RestController):
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
-        :param audit_template: Optional UUID or description of an audit
+        :param audit_template: Optional UUID or name of an audit
          template, to get only audits for that audit template.
         """
         return self._get_audits_collection(marker, limit, sort_key,

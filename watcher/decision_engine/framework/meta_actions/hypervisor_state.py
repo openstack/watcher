@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,6 +15,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 from watcher.decision_engine.api.strategy.meta_action import MetaAction
 from watcher.decision_engine.framework.model.hypervisor_state import \
     HypervisorState
@@ -26,14 +29,24 @@ class ChangeHypervisorState(MetaAction):
         :param target:
         :return:
         '''
-        self.target = target
-        self.state = HypervisorState.ONLINE
+        self._target = target
+        self._state = HypervisorState.ONLINE
 
-    def set_state(self, state):
-        self.state = state
+    @property
+    def state(self):
+        return self._state
 
-    def get_state(self):
-        return self.state
+    @state.setter
+    def state(self, state):
+        self._state = state
+
+    @property
+    def target(self):
+        return self._target
+
+    @target.setter
+    def target(self, p):
+        self._target = p
 
     def __str__(self):
         return MetaAction.__str__(self) + " ChangeHypervisorState" + str(

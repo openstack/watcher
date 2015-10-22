@@ -18,13 +18,24 @@
 class NamedElement(object):
 
     def __init__(self):
-        self.uuid = ""
+        self._uuid = ""
+        self._human_id = ""
 
-    def set_uuid(self, uuid):
-        self.uuid = uuid
+    @property
+    def uuid(self):
+        return self._uuid
 
-    def get_uuid(self):
-        return self.uuid
+    @uuid.setter
+    def uuid(self, u):
+        self._uuid = u
+
+    @property
+    def human_id(self):
+        return self._human_id
+
+    @human_id.setter
+    def human_id(self, h):
+        self._human_id = h
 
     def __str__(self):
         return "[" + str(self.uuid) + "]"

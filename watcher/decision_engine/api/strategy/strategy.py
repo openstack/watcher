@@ -24,8 +24,6 @@ from watcher.decision_engine.framework.default_solution import DefaultSolution
 
 LOG = log.getLogger(__name__)
 
-# todo(jed) add interface
-
 
 @six.add_metaclass(abc.ABCMeta)
 class Strategy(object):

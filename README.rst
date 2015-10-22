@@ -1,6 +1,6 @@
-===============================
-watcher
-===============================
+=======
+Watcher
+=======
 
 OpenStack Watcher provides a flexible and scalable resource optimization service for multi-tenant OpenStack-based clouds.
 Watcher provides a complete optimization loop—including everything from a metrics receiver, complex event processor and profiler,
@@ -11,4 +11,4 @@ including the reduction of data center operating costs, increased system perform
 * Wiki: http://wiki.openstack.org/wiki/Watcher
 * Source: http://git.openstack.org/cgit/stackforge/watcher
 * Bugs: http://bugs.launchpad.net/watcher
-
+* Documentation: http://factory.b-com.com/www/watcher/watcher/doc/build/html/

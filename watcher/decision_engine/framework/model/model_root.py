@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from watcher.common.exception import HypervisorNotFound
+from watcher.common.exception import IllegalArgumentException
 from watcher.common.exception import VMNotFound
 from watcher.decision_engine.framework.model.hypervisor import Hypervisor
 from watcher.decision_engine.framework.model.mapping import Mapping
@@ -33,26 +34,28 @@ class ModelRoot(object):
 
     def assert_hypervisor(self, hypervisor):
         if not isinstance(hypervisor, Hypervisor):
-            raise Exception("assert_vm")
+            raise IllegalArgumentException(
+                "Hypervisor must be an instance of hypervisor")
 
     def assert_vm(self, vm):
         if not isinstance(vm, VM):
-            raise Exception("assert_vm")
+            raise IllegalArgumentException(
+                "VM must be an instance of VM")
 
     def add_hypervisor(self, hypervisor):
         self.assert_hypervisor(hypervisor)
-        self._hypervisors[hypervisor.get_uuid()] = hypervisor
+        self._hypervisors[hypervisor.uuid] = hypervisor
 
     def remove_hypervisor(self, hypervisor):
         self.assert_hypervisor(hypervisor)
-        if str(hypervisor.get_uuid()) not in self._hypervisors.keys():
-            raise HypervisorNotFound(hypervisor.get_uuid())
+        if str(hypervisor.uuid) not in self._hypervisors.keys():
+            raise HypervisorNotFound(hypervisor.uuid)
         else:
-            del self._hypervisors[hypervisor.get_uuid()]
+            del self._hypervisors[hypervisor.uuid]
 
     def add_vm(self, vm):
         self.assert_vm(vm)
-        self._vms[vm.get_uuid()] = vm
+        self._vms[vm.uuid] = vm
 
     def get_all_hypervisors(self):
         return self._hypervisors

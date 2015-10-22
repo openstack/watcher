@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -568,7 +570,7 @@ class NovaWrapper(object):
     def create_instance(self, hypervisor_id, inst_name="test", image_id=None,
                         flavor_name="m1.tiny",
                         sec_group_list=["default"],
-                        network_names_list=["private"], keypair_name="mykeys",
+                        network_names_list=["demo-net"], keypair_name="mykeys",
                         create_new_floating_ip=True,
                         block_device_mapping_v2=None):
         """This method creates a new instance.
@@ -623,15 +625,16 @@ class NovaWrapper(object):
                 return
             net_obj = {"net-id": nic_id}
             net_list.append(net_obj)
-        s = self.nova.servers
-        instance = s.create(inst_name,
-                            image, flavor=flavor,
-                            key_name=keypair_name,
-                            security_groups=sec_group_list,
-                            nics=net_list,
-                            block_device_mapping_v2=block_device_mapping_v2,
-                            availability_zone="nova:" +
-                                              hypervisor_id)
+
+        instance = self.nova.servers. \
+            create(inst_name,
+                   image, flavor=flavor,
+                   key_name=keypair_name,
+                   security_groups=sec_group_list,
+                   nics=net_list,
+                   block_device_mapping_v2=block_device_mapping_v2,
+                   availability_zone="nova:" +
+                                     hypervisor_id)
 
         # Poll at 5 second intervals, until the status is no longer 'BUILD'
         if instance:

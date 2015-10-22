@@ -31,7 +31,6 @@ class TestTransportUrlBuilder(base.TestCase):
 
     def test_transport_url_not_none(self):
         url = TransportUrlBuilder().url
-        print(url)
         self.assertIsNotNone(url, "The transport url must not be none")
 
     def test_transport_url_valid_pattern(self):

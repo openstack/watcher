@@ -18,5 +18,7 @@ from enum import Enum
 
 
 class HypervisorState(Enum):
-    ONLINE = 'ONLINE'
-    OFFLINE = 'OFFLINE'
+    ONLINE = 'up'
+    OFFLINE = 'down'
+    ENABLED = 'enabled'
+    DISABLED = 'disabled'

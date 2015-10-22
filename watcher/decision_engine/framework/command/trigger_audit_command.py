@@ -45,41 +45,42 @@ class TriggerAuditCommand(DecisionEngineCommand):
         self.messaging.topic_status.publish_event(event.get_type().name,
                                                   payload)
 
-    # todo(jed) remove params
+    def update_audit(self, request_context, audit_uuid, state):
+        LOG.debug("update audit " + str(state))
+        audit = Audit.get_by_uuid(request_context, audit_uuid)
+        audit.state = state
+        audit.save()
+        self.notify(audit_uuid, Events.TRIGGER_AUDIT, state)
+        return audit
 
     def execute(self, audit_uuid, request_context):
-        LOG.debug("Execute TriggerAuditCommand ")
+        try:
+            LOG.debug("Execute TriggerAuditCommand ")
 
-        # 1 - change status to ONGOING
-        audit = Audit.get_by_uuid(request_context, audit_uuid)
-        audit.state = AuditStatus.ONGOING
-        audit.save()
+            # 1 - change status to ONGOING
+            audit = self.update_audit(request_context, audit_uuid,
+                                      AuditStatus.ONGOING)
 
-        # 2 - notify the others components of the system
-        self.notify(audit_uuid, Events.TRIGGER_AUDIT, AuditStatus.ONGOING)
+            # 3 - Retrieve metrics
+            cluster = self.statedb.get_latest_state_cluster()
 
-        # 3 - Retrieve metrics
-        cluster = self.statedb.get_latest_state_cluster()
+            # 4 - Select appropriate strategy
+            audit_template = AuditTemplate.get_by_id(request_context,
+                                                     audit.audit_template_id)
 
-        # 4 - Select appropriate strategy
-        audit_template = AuditTemplate.get_by_id(request_context,
-                                                 audit.audit_template_id)
+            self.strategy_context.set_goal(audit_template.goal)
+            self.strategy_context.set_metrics_resource_collector(
+                self.ressourcedb)
 
-        self.strategy_context.set_goal(audit_template.goal)
-        self.strategy_context.set_metrics_resource_collector(self.ressourcedb)
+            # 5 - compute change requests
+            solution = self.strategy_context.execute_strategy(cluster)
 
-        # 5 - compute change requests
-        solution = self.strategy_context.execute_strategy(cluster)
+            # 6 - create an action plan
+            planner = DefaultPlanner()
+            planner.schedule(request_context, audit.id, solution)
 
-        # 6 - create an action plan
-        planner = DefaultPlanner()
-        planner.schedule(request_context, audit.id, solution)
-
-        # 7 - change status to SUCCESS
-        audit = Audit.get_by_uuid(request_context, audit_uuid)
-        audit.state = AuditStatus.SUCCESS
-        audit.save()
-
-        # 8 - notify the others components of the system
-        self.notify(audit_uuid, Events.TRIGGER_AUDIT,
-                    AuditStatus.SUCCESS)
+            # 7 - change status to SUCCESS and notify
+            self.update_audit(request_context, audit_uuid, AuditStatus.SUCCESS)
+        except Exception as e:
+            self.update_audit(request_context, audit_uuid, AuditStatus.FAILED)
+            LOG.error(" " + unicode(e))
