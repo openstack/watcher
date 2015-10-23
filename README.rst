@@ -9,6 +9,6 @@ including the reduction of data center operating costs, increased system perform
 
 * Free software: Apache license
 * Wiki: http://wiki.openstack.org/wiki/Watcher
-* Source: http://git.openstack.org/cgit/stackforge/watcher
+* Source:  http://git.openstack.org/cgit/openstack/watcher
 * Bugs: http://bugs.launchpad.net/watcher
 * Documentation: http://factory.b-com.com/www/watcher/watcher/doc/build/html/

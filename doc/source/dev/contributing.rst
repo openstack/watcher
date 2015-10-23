@@ -49,8 +49,8 @@ Wiki
     http://wiki.openstack.org/Watcher
 
 Code Hosting
-    https://git.openstack.org/cgit/stackforge/watcher
+    https://git.openstack.org/cgit/openstack/watcher
 
 Code Review
-    https://review.openstack.org/#/q/status:open+project:stackforge/watcher,n,z
+    https://review.openstack.org/#/q/status:open+project:openstack/watcher,n,z
 
