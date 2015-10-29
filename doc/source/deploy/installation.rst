@@ -1,184 +1,96 @@
-.. _installation:
-
-Quick installation
+==================
+Installing Watcher
 ==================
 
-#. Install the prerequisite packages.
+This document describes how to install Watcher in order to use it. If you are
+intending to develop on or with Watcher, please read :doc:`../dev/environment`.
 
-    On Ubuntu (tested on 14.04-64)::
-    
-      sudo apt-get install python-dev libssl-dev python-pip git-core libmysqlclient-dev libffi-dev
-    
-    On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux (tested on CentOS 6.5)::
-    
-      sudo yum install python-virtualenv openssl-devel python-pip git gcc libffi-devel mysql-devel postgresql-devel
-    
-    On openSUSE-based distributions (SLES 12, openSUSE 13.1, Factory or Tumbleweed)::
-    
-      sudo zypper install gcc git libmysqlclient-devel libopenssl-devel postgresql-devel python-devel python-pip
+Prerequisites
+-------------
 
-#. Install watcher modules from pip::
+The source install instructions specifically avoid using platform specific
+packages, instead using the source for the code and the Python Package Index
+(PyPi_).
 
-    sudo pip install python-watcher
+.. _PyPi: http://pypi.python.org/pypi
 
-Configure Watcher
-=================
+It's expected that your system already has python2.7_, latest version of pip_, and git_ available.
 
-Configure Identity Service for Watcher
---------------------------------------
+.. _python2.7: http://www.python.org
+.. _pip: http://www.pip-installer.org/en/latest/installing.html
+.. _git: http://git-scm.com/
 
-#. Create the Watcher service user (eg ``watcher``) and set a password. The service uses it to
-   authenticate with the Identity Service. Set KEYSTONE_SERVICE_PROJECT_NAME, your Keystone `service project name`_ and
-   give the user the ``admin`` role::
+Your system shall also have some additional system libraries:
 
-    keystone user-create --name=watcher --pass=WATCHER_PASSWORD --email=watcher@example.com
-    keystone user-role-add --user=watcher --tenant=KEYSTONE_SERVICE_PROJECT_NAME --role=admin
+  On Ubuntu (tested on 14.04LTS):
 
-   or::
+  .. code-block:: bash
 
-    openstack user create  --password WATCHER_PASSWORD --enable --email watcher@example.com watcher
-    openstack role add --project services --user watcher admin
+    $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
 
-#. You must register the Watcher Service with the Identity Service so that
-   other OpenStack services can locate it. To register the service::
+  On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux (tested on CentOS 7.1):
 
-           keystone service-create --name=watcher --type=infra-optim --description="Infrastructure Optimization service"    
-        
-   or::
-        
-         openstack service create --name watcher infra-optim 
+  .. code-block:: bash
 
-#. Create the endpoints by replacing YOUR_REGION and WATCHER_API_IP with your region and your Watcher Service's API node URLs::
-
-    keystone endpoint-create \
-    --service-id=the_service_id_above \
-    --publicurl=http://WATCHER_API_IP:9322 \
-    --internalurl=http://WATCHER_API_IP:9322 \
-    --adminurl=http://WATCHER_API_IP:9322 
- 
-   or::
-
-    openstack endpoint create --region YOUR_REGION watcher public http://WATCHER_API_IP:9322
-    openstack endpoint create --region YOUR_REGION watcher admin http://WATCHER_API_IP:9322
-    openstack endpoint create --region YOUR_REGION watcher internal http://WATCHER_API_IP:9322
-
-.. _`service project name`: http://docs.openstack.org/developer/keystone/configuringservices.html
-
-Set up the Database for Watcher
--------------------------------
-
-The Watcher Service stores information in a database. This guide uses the
-MySQL database that is used by other OpenStack services.
-
-#. In MySQL, create a ``watcher`` database that is accessible by the
-   ``watcher`` user. Replace WATCHER_DBPASSWORD
-   with the real password::
-
-    # mysql -u root -p
-    mysql> CREATE DATABASE watcher CHARACTER SET utf8;
-    mysql> GRANT ALL PRIVILEGES ON watcher.* TO 'watcher'@'localhost' \
-    IDENTIFIED BY 'WATCHER_DBPASSWORD';
-    mysql> GRANT ALL PRIVILEGES ON watcher.* TO 'watcher'@'%' \
-    IDENTIFIED BY 'WATCHER_DBPASSWORD';
+    $ sudo yum install gcc python-devel openssl-devel libffi-devel mysql-devel
 
 
-Configure the Watcher Service
------------------------------
+Installing from Source
+----------------------
 
-The Watcher Service is configured via its configuration file. This file
-is typically located at ``/etc/watcher/watcher.conf``. You can copy the file ``etc/watcher/watcher.conf.sample`` from the GIT repo to your server and update it.
+Clone the Watcher repository:
 
-Although some configuration options are mentioned here, it is recommended that
-you review all the available options so that the Watcher Service is
-configured for your needs.
+.. code-block:: bash
 
-#. The Watcher Service stores information in a database. This guide uses the
-   MySQL database that is used by other OpenStack services.
+    $ git clone https://git.openstack.org/openstack/watcher.git
+    $ cd watcher
 
-   Configure the location of the database via the ``connection`` option. In the
-   following, replace WATCHER_DBPASSWORD with the password of your ``watcher``
-   user, and replace DB_IP with the IP address where the DB server is located::
+Install the Watcher modules:
 
-    [database]
-    ...
+.. code-block:: bash
 
-    # The SQLAlchemy connection string used to connect to the
-    # database (string value)
-    #connection=<None>
-    connection = mysql://watcher:WATCHER_DBPASSWORD@DB_IP/watcher?charset=utf8
+    # python setup.py install
 
-#. Configure the Watcher Service to use the RabbitMQ message broker by
-   setting one or more of these options. Replace RABBIT_HOST with the
-   address of the RabbitMQ server::
+The following commands should be available on the command-line path:
 
-    [DEFAULT]
-    ...
-    # The RabbitMQ broker address where a single node is used
-    # (string value)
-    rabbit_host=RABBIT_HOST
+* ``watcher-api`` the Watcher Web service used to handle RESTful requests
+* ``watcher-decision-engine`` the Watcher Decision Engine used to build action plans, according to optimization goals to achieve.
+* ``watcher-applier`` the Watcher Applier module, used to apply action plan
+* ``watcher-db-manage`` used to bootstrap Watcher data
 
-    # The RabbitMQ userid (string value)
-    #rabbit_userid=guest
+You will find sample configuration files in ``etc/``:
 
-    # The RabbitMQ password (string value)
-    #rabbit_password=guest
+* ``watcher.conf.sample``
 
-    # The RabbitMQ virtual host (string value)
-    #rabbit_virtual_host=/
+Install the Watcher modules dependencies:
 
-#. Configure the Watcher Service to use these credentials with the Identity Service. 
+.. code-block:: bash
 
-   Replace IDENTITY_IP with the address of the Keystone Identity server, KEYSTONE_SERVICE_PROJECT_NAME by the Keystone service project name, and WATCHER_PASSWORD with the password you chose for the ``watcher``
-   user in the Identity Service::
+    # pip install -r requirements.txt
 
-    [DEFAULT]
-    ...
-    # Method to use for authentication: noauth or keystone.
-    # (string value)
-    auth_strategy=keystone
+From here, refer to :doc:`configuration` to declare Watcher as a new service into Keystone and to configure its different modules. Once configured, you should be able to run Watcher by issuing these commands:
 
-    ...
-    [keystone_authtoken]
+.. code-block:: bash
 
-    # Complete public Identity API endpoint (string value)
-    #auth_uri=<None>
-    auth_uri=http://IDENTITY_IP:5000/v3
+    $ watcher-api
+    $ watcher-decision-engine
+    $ watcher-applier
 
-    # Complete admin Identity API endpoint. This should specify the
-    # unversioned root endpoint e.g. https://localhost:35357/ (string
-    # value)
-    #identity_uri = <None>
-    identity_uri = http://IDENTITY_IP:5000
+By default, this will show logging on the console from which it was started.
+Once started, you can use the `Watcher Client`_ to play with Watcher service.
 
-    # Keystone account username (string value)
-    #admin_user=<None>
-    admin_user=watcher
+.. _`Watcher Client`: https://git.openstack.org/openstack/python-watcherclient.git
 
-    # Keystone account password (string value)
-    #admin_password=<None>
-    admin_password=WATCHER_PASSWORD
+Installing from packages: PyPI
+--------------------------------
 
-    # Keystone service account tenant name to validate user tokens
-    # (string value)
-    #admin_tenant_name=admin
-    admin_tenant_name=KEYSTONE_SERVICE_PROJECT_NAME
+Watcher package is available on PyPI repository. To install Watcher on your system
+:
 
-    # Directory used to cache files related to PKI tokens (string
-    # value)
-    #signing_dir=<None>
+.. code-block:: bash
 
+    $ sudo pip install python-watcher
 
-#. Create the Watcher Service database tables::
+Watcher modules and its dependencies will be automatically installed on your system.
 
-    watcher-db-manage --config-file /etc/watcher/watcher.conf create_schema
-
-Development installation
-========================
-
-We propose different ways to quickly install Watcher for development:
-
-* `DevStack and Docker`_ 
-* `Virtualenv`_
-
-.. _DevStack and Docker: ./install-devstack-docker.rst
-.. _Virtualenv: ./virtualenv.rst
+Once installed, you still need to declare Watcher as a new service into Keystone and to configure its different modules, which you can find described in :doc:`configuration`.
