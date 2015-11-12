@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.openstack.common import log
+from oslo_log import log
+
 LOG = log.getLogger(__name__)
 
 

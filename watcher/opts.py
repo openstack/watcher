@@ -16,12 +16,12 @@
 # limitations under the License.
 
 import itertools
+from oslo_log import _options
 
 import watcher.api.app
 from watcher.applier.framework import manager_applier
 import watcher.common.messaging.messaging_core
 
-import watcher.openstack.common.log
 
 from watcher.decision_engine.framework import manager_decision_engine
 from watcher.decision_engine.framework.strategy import strategy_loader
@@ -33,10 +33,10 @@ from watcher.metrics_engine.framework.datasources import influxdb_collector
 def list_opts():
     return [
         ('DEFAULT', itertools.chain(
-            watcher.openstack.common.log.generic_log_opts,
-            watcher.openstack.common.log.log_opts,
-            watcher.openstack.common.log.common_cli_opts,
-            watcher.openstack.common.log.logging_cli_opts
+            _options.generic_log_opts,
+            _options.log_opts,
+            _options.common_cli_opts,
+            _options.logging_cli_opts
         )),
         ('api', watcher.api.app.API_SERVICE_OPTS),
         ('watcher_messaging',

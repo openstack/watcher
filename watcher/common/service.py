@@ -19,6 +19,8 @@ import socket
 
 from oslo import messaging
 from oslo_config import cfg
+from oslo_log import _options
+from oslo_log import log
 from oslo_utils import importutils
 
 from watcher.common import config
@@ -27,7 +29,6 @@ from watcher.common.i18n import _LI
 from watcher.common import rpc
 from watcher.objects import base as objects_base
 from watcher.openstack.common import context
-from watcher.openstack.common import log
 from watcher.openstack.common import service
 
 
@@ -115,22 +116,16 @@ class RPCService(service.Service):
         signal.signal(signal.SIGUSR1, self._handle_signal)
 
 
+_DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
+                       'oslo.messaging=INFO', 'sqlalchemy=WARN',
+                       'keystoneclient=INFO', 'stevedore=INFO',
+                       'eventlet.wsgi.server=WARN', 'iso8601=WARN',
+                       'paramiko=WARN', 'requests=WARN', 'neutronclient=WARN',
+                       'glanceclient=WARN', 'watcher.openstack.common=WARN']
+
+
 def prepare_service(argv=[]):
     config.parse_args(argv)
-    cfg.set_defaults(log.log_opts,
-                     default_log_levels=['amqp=WARN',
-                                         'amqplib=WARN',
-                                         'qpid.messaging=INFO',
-                                         'oslo.messaging=INFO',
-                                         'sqlalchemy=WARN',
-                                         'keystoneclient=INFO',
-                                         'stevedore=INFO',
-                                         'eventlet.wsgi.server=WARN',
-                                         'iso8601=WARN',
-                                         'paramiko=WARN',
-                                         'requests=WARN',
-                                         'neutronclient=WARN',
-                                         'glanceclient=WARN',
-                                         'watcher.openstack.common=WARN',
-                                         ])
-    log.setup('watcher')
+    cfg.set_defaults(_options.log_opts,
+                     default_log_levels=_DEFAULT_LOG_LEVELS)
+    log.setup(cfg.CONF, 'watcher')

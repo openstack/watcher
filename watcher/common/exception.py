@@ -23,11 +23,12 @@ SHOULD include dedicated exception logging.
 """
 
 from oslo_config import cfg
+from oslo_log import log as logging
+
 import six
 
 from watcher.common.i18n import _
 from watcher.common.i18n import _LE
-from watcher.openstack.common import log as logging
 
 LOG = logging.getLogger(__name__)
 

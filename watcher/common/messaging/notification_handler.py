@@ -16,10 +16,10 @@
 
 import eventlet
 from oslo import messaging
+from oslo_log import log
 
 from watcher.common.messaging.utils.observable import \
     Observable
-from watcher.openstack.common import log
 
 
 eventlet.monkey_patch()

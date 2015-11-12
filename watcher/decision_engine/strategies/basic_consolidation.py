@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
+
 from watcher.decision_engine.framework.model.vm_state import VMState
 from watcher.metrics_engine.api.metrics_resource_collector import \
     AggregationFunction
@@ -38,7 +40,6 @@ from watcher.decision_engine.framework.meta_actions.power_state import \
 from watcher.decision_engine.framework.model.hypervisor_state import \
     HypervisorState
 from watcher.decision_engine.framework.model.resource import ResourceType
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

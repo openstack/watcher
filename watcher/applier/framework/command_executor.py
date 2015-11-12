@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
+
 from watcher.applier.framework.default_command_mapper import \
     DefaultCommandMapper
 
@@ -24,7 +26,6 @@ from watcher.applier.framework.messaging.events import Events
 from watcher.common.messaging.events.event import Event
 from watcher.objects import Action
 from watcher.objects.action_plan import Status
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

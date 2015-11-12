@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from oslo_log import log
 
 from watcher.common.exception import HypervisorNotFound
 from watcher.common.exception import IllegalArgumentException
@@ -20,7 +21,6 @@ from watcher.common.exception import VMNotFound
 from watcher.decision_engine.framework.model.hypervisor import Hypervisor
 from watcher.decision_engine.framework.model.mapping import Mapping
 from watcher.decision_engine.framework.model.vm import VM
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

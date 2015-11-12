@@ -16,13 +16,13 @@
 
 import eventlet
 from oslo_config import cfg
+from oslo_log import log
 import oslo_messaging as om
 from threading import Thread
 from watcher.common.messaging.utils.transport_url_builder import \
     TransportUrlBuilder
 from watcher.common.rpc import JsonPayloadSerializer
 from watcher.common.rpc import RequestContextSerializer
-from watcher.openstack.common import log
 
 eventlet.monkey_patch()
 LOG = log.getLogger(__name__)

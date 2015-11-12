@@ -26,9 +26,10 @@ from xml import etree as et
 
 import webob
 
+from oslo_log import log
+
 from watcher.common.i18n import _
 from watcher.common.i18n import _LE
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

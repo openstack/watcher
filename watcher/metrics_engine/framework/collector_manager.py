@@ -20,11 +20,11 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 
 from oslo_config import cfg
+from oslo_log import log
 from stevedore import driver
 from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
 
 from watcher.metrics_engine.framework.statedb_collector import NovaCollector
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

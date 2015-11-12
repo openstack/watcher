@@ -16,10 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
 
 from watcher.applier.framework.messaging.launch_action_plan import \
     LaunchActionPlanCommand
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

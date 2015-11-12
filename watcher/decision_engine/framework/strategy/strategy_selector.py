@@ -15,11 +15,11 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from oslo_log import log
 from watcher.decision_engine.api.strategy.selector import Selector
 from watcher.decision_engine.framework.strategy.strategy_loader import \
     StrategyLoader
 from watcher.objects.audit_template import Goal
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

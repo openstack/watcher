@@ -15,12 +15,13 @@
 
 import re
 
+from oslo_log import log
+
 from keystonemiddleware import auth_token
 
 from watcher.common import exception
 from watcher.common.i18n import _
 from watcher.common import utils
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

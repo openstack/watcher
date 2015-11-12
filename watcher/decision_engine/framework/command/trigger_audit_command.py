@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from oslo_log import log
 
 from watcher.common.messaging.events.event import Event
 from watcher.decision_engine.api.messaging.decision_engine_command import \
@@ -24,7 +25,6 @@ from watcher.decision_engine.framework.strategy.StrategyManagerImpl import \
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
 from watcher.objects.audit_template import AuditTemplate
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

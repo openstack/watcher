@@ -19,6 +19,7 @@
 
 
 from oslo_config import cfg
+from oslo_log import log
 import oslo_messaging as om
 
 from watcher.common import exception
@@ -37,8 +38,6 @@ from watcher.decision_engine.framework.manager_decision_engine import \
     WATCHER_DECISION_ENGINE_OPTS
 
 from watcher.decision_engine.framework.messaging.events import Events
-
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

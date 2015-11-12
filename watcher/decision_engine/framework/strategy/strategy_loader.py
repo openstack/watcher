@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 from oslo_config import cfg
+from oslo_log import log
 from stevedore import driver
 from watcher.decision_engine.strategies.basic_consolidation import \
     BasicConsolidation
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

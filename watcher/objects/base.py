@@ -17,6 +17,7 @@
 import collections
 import copy
 
+from oslo_log import log as logging
 import oslo_messaging as messaging
 import six
 
@@ -24,7 +25,6 @@ from watcher.common import exception
 from watcher.common.i18n import _
 from watcher.common.i18n import _LE
 from watcher.objects import utils as obj_utils
-from watcher.openstack.common import log as logging
 from watcher.openstack.common import versionutils
 
 

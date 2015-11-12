@@ -22,14 +22,15 @@ import os
 from wsgiref import simple_server
 
 from oslo_config import cfg
+from oslo_log import log as logging
 
 from watcher.api import app as api_app
 from watcher.common.i18n import _
-from watcher.openstack.common import log as logging
 from watcher import service
 
 
 LOG = logging.getLogger(__name__)
+CONF = cfg.CONF
 
 
 def main():
@@ -41,7 +42,7 @@ def main():
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
     srv = simple_server.make_server(host, port, app)
 
-    logging.setup('watcher')
+    logging.setup(CONF, 'watcher')
     LOG.info(_('Starting server in PID %s') % os.getpid())
     LOG.debug("Watcher configuration:")
     cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)

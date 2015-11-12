@@ -16,10 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
+
 from watcher.decision_engine.framework.command.trigger_audit_command import \
     TriggerAuditCommand
 from watcher.metrics_engine.framework.collector_manager import CollectorManager
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

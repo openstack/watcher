@@ -19,6 +19,7 @@
 from concurrent.futures import ThreadPoolExecutor
 
 from oslo_config import cfg
+from oslo_log import log
 
 from watcher.decision_engine.framework.events.event_consumer_factory import \
     EventConsumerFactory
@@ -33,7 +34,6 @@ from watcher.common.messaging.notification_handler import \
     NotificationHandler
 from watcher.decision_engine.framework.strategy.StrategyManagerImpl import \
     StrategyContextImpl
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

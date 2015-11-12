@@ -17,6 +17,7 @@
 """Utilities and helper functions."""
 
 from oslo_config import cfg
+from oslo_log import log as logging
 
 import re
 import six
@@ -24,7 +25,6 @@ import uuid
 
 
 from watcher.common.i18n import _LW
-from watcher.openstack.common import log as logging
 
 UTILS_OPTS = [
     cfg.StrOpt('rootwrap_config',

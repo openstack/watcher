@@ -22,22 +22,23 @@ import os
 import sys
 
 from oslo_config import cfg
+from oslo_log import log as logging
 
 from watcher.decision_engine.framework.manager_decision_engine import \
     DecisionEngineManager
 from watcher.openstack.common._i18n import _LI
-from watcher.openstack.common import log as logging
 cfg.CONF.import_opt('hostname',
                     'watcher.metrics_engine.framework.'
                     'datasources.influxdb_collector',
                     group='watcher_influxdb_collector')
 
 LOG = logging.getLogger(__name__)
+CONF = cfg.CONF
 
 
 def main():
     cfg.CONF(sys.argv[1:], project='watcher')
-    logging.setup('watcher')
+    logging.setup(CONF, 'watcher')
 
     LOG.info(_LI('Starting server in PID %s') % os.getpid())
     LOG.debug("Configuration:")

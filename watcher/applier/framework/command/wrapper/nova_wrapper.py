@@ -20,6 +20,8 @@
 import random
 import time
 
+from oslo_log import log
+
 import cinderclient.exceptions as ciexceptions
 import cinderclient.v2.client as ciclient
 import glanceclient.v2.client as glclient
@@ -27,7 +29,6 @@ import keystoneclient.v3.client as ksclient
 import neutronclient.neutron.client as netclient
 import novaclient.exceptions as nvexceptions
 import novaclient.v2.client as nvclient
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

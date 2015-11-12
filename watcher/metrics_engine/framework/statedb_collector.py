@@ -19,6 +19,8 @@
 
 
 from oslo_config import cfg
+from oslo_log import log
+
 from watcher.decision_engine.framework.model.hypervisor import Hypervisor
 from watcher.decision_engine.framework.model.model_root import ModelRoot
 from watcher.decision_engine.framework.model.resource import Resource
@@ -26,7 +28,6 @@ from watcher.decision_engine.framework.model.resource import ResourceType
 from watcher.decision_engine.framework.model.vm import VM
 from watcher.metrics_engine.api.cluster_state_collector import \
     ClusterStateCollector
-from watcher.openstack.common import log
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

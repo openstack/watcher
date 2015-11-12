@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 from oslo_config import cfg
+from oslo_log import log
 import oslo_messaging as om
 
 
@@ -30,7 +31,6 @@ from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.common.messaging.utils.transport_url_builder import \
     TransportUrlBuilder
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

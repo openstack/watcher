@@ -23,6 +23,7 @@ import parsedatetime
 
 from influxdb import InfluxDBClient
 from oslo_config import cfg
+from oslo_log import log
 from watcher.metrics_engine.api.metrics_resource_collector import \
     AggregationFunction
 from watcher.metrics_engine.api.metrics_resource_collector import Measure
@@ -33,7 +34,6 @@ from watcher.metrics_engine.framework.datasources.sql_ast.build_db_query import 
 from watcher.metrics_engine.framework.datasources.sql_ast.sql_ast import And
 from watcher.metrics_engine.framework.datasources.sql_ast.sql_ast import \
     Condition
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

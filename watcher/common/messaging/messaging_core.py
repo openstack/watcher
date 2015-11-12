@@ -16,7 +16,7 @@
 
 
 from oslo_config import cfg
-
+from oslo_log import log
 from watcher.common.messaging.events.event_dispatcher import \
     EventDispatcher
 from watcher.common.messaging.messaging_handler import \
@@ -24,7 +24,6 @@ from watcher.common.messaging.messaging_handler import \
 from watcher.common.rpc import RequestContextSerializer
 
 from watcher.objects.base import WatcherObjectSerializer
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF

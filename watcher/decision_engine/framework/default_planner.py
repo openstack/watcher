@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
 
 from enum import Enum
 from watcher.common.exception import MetaActionNotFound
@@ -31,7 +32,6 @@ from watcher.decision_engine.framework.meta_actions.power_state import \
     ChangePowerState
 from watcher.objects.action import Status as AStatus
 from watcher.objects.action_plan import Status as APStatus
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

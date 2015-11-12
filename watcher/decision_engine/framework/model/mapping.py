@@ -13,9 +13,8 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from oslo_log import log
 from threading import Lock
-
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

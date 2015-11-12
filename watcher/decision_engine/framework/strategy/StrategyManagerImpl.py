@@ -13,13 +13,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from oslo_log import log
 
 from watcher.decision_engine.api.strategy.strategy_context import \
     StrategyContext
 from watcher.decision_engine.framework.default_planner import DefaultPlanner
 from watcher.decision_engine.framework.strategy.strategy_selector import \
     StrategySelector
-from watcher.openstack.common import log
 
 LOG = log.getLogger(__name__)
 

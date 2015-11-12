@@ -15,7 +15,7 @@
 # limitations under the License.
 
 from oslo_config import cfg
-from watcher.openstack.common import log
+from oslo_log import log
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
