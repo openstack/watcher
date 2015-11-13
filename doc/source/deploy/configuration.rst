@@ -194,22 +194,36 @@ so that the watcher service is configured for your needs.
 
 #. Configure the Watcher Service to use the RabbitMQ message broker by
    setting one or more of these options. Replace RABBIT_HOST with the
-   address of the RabbitMQ server.::
+   IP address of the RabbitMQ server, RABBITMQ_USER and RABBITMQ_PASSWORD
+   by the RabbitMQ server login credentials ::
 
-    [DEFAULT]
-    ...
-    # The RabbitMQ broker address where a single node is used
+    [watcher_messaging]
+
+    # The name of the driver used by oslo messaging (string value)
+    #notifier_driver = messaging
+
+    # The name of a message executor, forexample: eventlet, blocking
     # (string value)
-    rabbit_host=RABBIT_HOST
+    #executor = blocking
 
-    # The RabbitMQ userid (string value)
-    #rabbit_userid=guest
+    # The protocol used by the message broker, for example rabbit (string
+    # value)
+    #protocol = rabbit
 
-    # The RabbitMQ password (string value)
-    #rabbit_password=guest
+    # The username used by the message broker (string value)
+    user = RABBITMQ_USER
 
-    # The RabbitMQ virtual host (string value)
-    #rabbit_virtual_host=/
+    # The password of user used by the message broker (string value)
+    password = RABBITMQ_PASSWORD
+
+    # The host where the message brokeris installed (string value)
+    host = RABBIT_HOST
+
+    # The port used bythe message broker (string value)
+    #port = 5672
+
+    # The virtual host used by the message broker (string value)
+    #virtual_host =
 
 #. Configure the Watcher Service to use these credentials with the Identity
    Service. Replace IDENTITY_IP with the IP of the Identity server, and
