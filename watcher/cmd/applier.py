@@ -25,11 +25,11 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from watcher.applier.framework.manager_applier import ApplierManager
-
-from watcher.openstack.common._i18n import _LI
+from watcher import i18n
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
+_LI = i18n._LI
 
 
 def main():

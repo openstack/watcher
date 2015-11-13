@@ -26,7 +26,8 @@ from oslo_log import log as logging
 
 from watcher.decision_engine.framework.manager_decision_engine import \
     DecisionEngineManager
-from watcher.openstack.common._i18n import _LI
+from watcher import i18n
+
 cfg.CONF.import_opt('hostname',
                     'watcher.metrics_engine.framework.'
                     'datasources.influxdb_collector',
@@ -34,6 +35,7 @@ cfg.CONF.import_opt('hostname',
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
+_LI = i18n._LI
 
 
 def main():

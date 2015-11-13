@@ -29,13 +29,12 @@ from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
+from watcher import i18n
 from watcher.objects.audit import AuditStatus
-from watcher.openstack.common._i18n import _
 
 CONF = cfg.CONF
-
 LOG = log.getLogger(__name__)
-
+_ = i18n._
 
 _FACADE = None
 
