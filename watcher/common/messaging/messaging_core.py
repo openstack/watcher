@@ -33,7 +33,7 @@ WATCHER_MESSAGING_OPTS = [
                default='messaging', help='The name of the driver used by'
                                          ' oslo messaging'),
     cfg.StrOpt('executor',
-               default='eventlet', help='The name of a message executor, for'
+               default='blocking', help='The name of a message executor, for'
                                         'example: eventlet, blocking'),
     cfg.StrOpt('protocol',
                default='rabbit', help='The protocol used by the message'
