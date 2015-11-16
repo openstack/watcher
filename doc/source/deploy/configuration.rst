@@ -75,7 +75,7 @@ Configure the Identity service for the Watcher service
       $ keystone user-role-add --user=watcher --tenant=service --role=admin
       $ keystone user-role-add --user=watcher --tenant=admin --role=admin
 
-   or
+   or (by using python-openstackclient 1.8.0+)
 
      .. code-block:: bash
 
@@ -92,30 +92,32 @@ Configure the Identity service for the Watcher service
       $ keystone service-create --name=watcher --type=infra-optim \
         --description="Infrastructure Optimization service"
 
-   or
+   or (by using python-openstackclient 1.8.0+)
 
     .. code-block:: bash
 
       $ openstack service create --name watcher infra-optim
 
-#. Create the endpoints by replacing YOUR_REGION and WATCHER_API_IP with your region and your
-   Watcher Service's API node IP address (or FQDN):
+#. Create the endpoints by replacing YOUR_REGION and
+   WATCHER_API_[PUBLIC|ADMIN|INTERNAL]_IP with your region and your
+   Watcher Service's API node IP addresses (or FQDN):
 
     .. code-block:: bash
 
       $ keystone endpoint-create \
       --service-id=the_service_id_above \
-      --publicurl=http://WATCHER_API_IP:9322 \
-      --internalurl=http://WATCHER_API_IP:9322 \
-      --adminurl=http://WATCHER_API_IP:9322
+      --publicurl=http://WATCHER_API_PUBLIC_IP:9322 \
+      --internalurl=http://WATCHER_API_INTERNAL_IP:9322 \
+      --adminurl=http://WATCHER_API_ADMIN_IP:9322
 
-  or
+   or (by using python-openstackclient 1.8.0+)
 
     .. code-block:: bash
 
-      $ openstack endpoint create --region YOUR_REGION watcher public http://WATCHER_API_IP:9322
-      $ openstack endpoint create --region YOUR_REGION watcher admin http://WATCHER_API_IP:9322
-      $ openstack endpoint create --region YOUR_REGION watcher internal http://WATCHER_API_IP:9322
+      $ openstack endpoint create --region YOUR_REGION watcher \
+        --publicurl http://WATCHER_API_PUBLIC_IP:9322 \
+        --internalurl http://WATCHER_API_INTERNAL_IP:9322 \
+        --adminurl http://WATCHER_API_ADMIN_IP:9322
 
 Set up the database for Watcher
 -------------------------------
@@ -171,7 +173,8 @@ configuration file, in order:
 
 
 Although some configuration options are mentioned here, it is recommended that
-you review all the `available options <https://git.openstack.org/cgit/openstack/watcher/tree/etc/watcher/watcher.conf.sample>`_
+you review all the
+`available options <https://git.openstack.org/cgit/openstack/watcher/tree/etc/watcher/watcher.conf.sample>`_
 so that the watcher service is configured for your needs.
 
 #. The Watcher Service stores information in a database. This guide uses the
