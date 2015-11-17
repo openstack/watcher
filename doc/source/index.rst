@@ -20,6 +20,7 @@ Introduction
 .. toctree::
   :maxdepth: 1
 
+  dev/glossary
   dev/architecture
   dev/contributing
 
@@ -51,6 +52,7 @@ Commands
   :maxdepth: 1
 
   cmds/watcher-db-manage
+
 
 Indices and tables
 ==================
