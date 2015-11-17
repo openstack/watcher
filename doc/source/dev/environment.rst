@@ -16,7 +16,8 @@ Documentation`_.
 Prerequisites
 =============
 
-This document assumes you are using Ubuntu or Fedora, and that you have the following tools available on your system:
+This document assumes you are using Ubuntu or Fedora, and that you have the
+following tools available on your system:
 
 - Python_ 2.7 and 3.4
 - git_
@@ -56,7 +57,9 @@ Watcher maintains two lists of dependencies::
     requirements.txt
     test-requirements.txt
 
-The first is the list of dependencies needed for running Watcher, the second list includes dependencies used for active development and testing of Watcher itself.
+The first is the list of dependencies needed for running Watcher, the second
+list includes dependencies used for active development and testing of Watcher
+itself.
 
 These dependencies can be installed from PyPi_ using the Python tool pip_.
 
@@ -142,7 +145,9 @@ If you can import watcher without a traceback, you should be ready to develop.
 
 Run Watcher unit tests
 ======================
-All unit tests should be run using tox. To run the unit tests under py27 and also run the pep8 tests:
+
+All unit tests should be run using tox. To run the unit tests under py27 and
+also run the pep8 tests:
 
 .. code-block:: bash
 
@@ -152,7 +157,9 @@ All unit tests should be run using tox. To run the unit tests under py27 and als
     (watcher) $ cd watcher
     (watcher) $ tox -epep8 -epy27
 
-You may pass options to the test programs using positional arguments. To run a specific unit test, this passes the -r option and desired test (regex string) to os-testr:
+You may pass options to the test programs using positional arguments. To run a
+specific unit test, this passes the -r option and desired test (regex string)
+to os-testr:
 
 .. code-block:: bash
 
@@ -167,7 +174,9 @@ When you're done, deactivate the virtualenv:
 
 Build the Watcher documentation
 ===============================
-you can easily build the HTML documentation from ``doc/source`` files, by using tox:
+
+You can easily build the HTML documentation from ``doc/source`` files, by using
+``tox``:
 
 .. code-block:: bash
 
@@ -179,19 +188,37 @@ you can easily build the HTML documentation from ``doc/source`` files, by using 
 The HTML files are available into ``doc/build`` directory.
 
 
-Configure the Watcher modules
-=============================
-Watcher modules requires a configuration file. There is a sample configuration file that can be used to get started:
+Configure the Watcher services
+==============================
+
+Watcher services require a configuration file. There is a sample configuration
+file that can be used to get started:
 
 .. code-block:: bash
 
   $ cp etc/watcher.conf.sample etc/watcher.conf
 
-The defaults are enough to get you going, but you can make any changes if needed.
+Most of the default configuration should be enough to get you going, but you
+still need to configure the following sections:
+
+- The ``[database]`` section to configure the
+  :ref:`Watcher database <watcher-db_configuration>`
+- The  ``[keystone_authtoken]`` section to configure the
+  :ref:`Identity service <identity-service_configuration>` i.e. Keystone
+- The ``[watcher_messaging]`` section to configure the OpenStack AMQP-based
+  message bus
+
+So if you need some more details on how to configure one or more of these
+sections, please do have a look at :doc:`../deploy/configuration` before
+continuing.
+
 
 Create Watcher SQL database
 ===========================
-When initially getting set up, after you've configured which databases to use, you're probably going to need to run the following to your database schema in place:
+
+When initially getting set up, after you've configured which databases to use,
+you're probably going to need to run the following to your database schema in
+place:
 
 .. code-block:: bash
 
@@ -199,9 +226,11 @@ When initially getting set up, after you've configured which databases to use, y
 
     (watcher) $ watcher-db-manage --create_schema
 
-Running Watcher modules
-=======================
-To run Watcher API server instance, use:
+
+Running Watcher services
+========================
+
+To run the Watcher API service, use:
 
 .. code-block:: bash
 
@@ -209,7 +238,7 @@ To run Watcher API server instance, use:
 
     (watcher) $ watcher-api
 
-To run Watcher Decision Engine instance, use:
+To run the Watcher Decision Engine service, use:
 
 .. code-block:: bash
 
@@ -217,7 +246,7 @@ To run Watcher Decision Engine instance, use:
 
     (watcher) $ watcher-decision-engine
 
-To run Watcher Applier instance, use:
+To run the Watcher Applier service, use:
 
 .. code-block:: bash
 
@@ -225,24 +254,33 @@ To run Watcher Applier instance, use:
 
     (watcher) $ watcher-applier
 
-Default configuration of these modules are available into ``/etc/watcher`` directory. See :doc:`../deploy/configuration` for details on how Watcher is configured. By default, Watcher is configured with SQL backends.
+Default configuration of these services are available into ``/etc/watcher``
+directory. See :doc:`../deploy/configuration` for details on how Watcher is
+configured. By default, Watcher is configured with SQL backends.
 
 
 Interact with Watcher
 =====================
 
-You can also interact with Watcher through its REST API. There is a Python Watcher client library `python-watcherclient`_ which interacts exclusively through the REST API, and which Watcher itself uses to provide its command-line interface.
-
-When initially getting set up, after you've configured which databases to use, you're probably going to need to run the following to your database schema in place:
+You can also interact with Watcher through its REST API. There is a Python
+Watcher client library `python-watcherclient`_ which interacts exclusively
+through the REST API, and which Watcher itself uses to provide its command-line
+interface.
 
 .. _`python-watcherclient`: https://github.com/openstack/python-watcherclient
 
-Exercising the Watcher Services Locally
+
+Exercising the Watcher Services locally
 =======================================
 
-If you would like to exercise the Watcher services in isolation within a local virtual environment, you can do this without starting any other OpenStack services. For example, this is useful for rapidly prototyping and debugging interactions over the RPC channel, testing database migrations, and so forth.
+If you would like to exercise the Watcher services in isolation within a local
+virtual environment, you can do this without starting any other OpenStack
+services. For example, this is useful for rapidly prototyping and debugging
+interactions over the RPC channel, testing database migrations, and so forth.
 
-You will find in the `watcher-tools`_ project, Ansible playbooks and Docker template files to easily play with Watcher modules within a minimal OpenStack isolated environment (Identity, Message Bus, SQL database, Horizon, ...).
+You will find in the `watcher-tools`_ project, Ansible playbooks and Docker
+template files to easily play with Watcher services within a minimal OpenStack
+isolated environment (Identity, Message Bus, SQL database, Horizon, ...).
 
 .. _`watcher-tools`: https://github.com/b-com/watcher-tools
 

@@ -14,7 +14,8 @@ packages, instead using the source for the code and the Python Package Index
 
 .. _PyPi: http://pypi.python.org/pypi
 
-It's expected that your system already has python2.7_, latest version of pip_, and git_ available.
+It's expected that your system already has python2.7_, latest version of pip_,
+and git_ available.
 
 .. _python2.7: http://www.python.org
 .. _pip: http://www.pip-installer.org/en/latest/installing.html
@@ -28,7 +29,8 @@ Your system shall also have some additional system libraries:
 
     $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
 
-  On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux (tested on CentOS 7.1):
+  On Fedora-based distributions e.g., Fedora/RHEL/CentOS/Scientific Linux
+  (tested on CentOS 7.1):
 
   .. code-block:: bash
 
@@ -54,11 +56,12 @@ Install the Watcher modules:
 The following commands should be available on the command-line path:
 
 * ``watcher-api`` the Watcher Web service used to handle RESTful requests
-* ``watcher-decision-engine`` the Watcher Decision Engine used to build action plans, according to optimization goals to achieve.
+* ``watcher-decision-engine`` the Watcher Decision Engine used to build action
+  plans, according to optimization goals to achieve.
 * ``watcher-applier`` the Watcher Applier module, used to apply action plan
 * ``watcher-db-manage`` used to bootstrap Watcher data
 
-You will find sample configuration files in ``etc/``:
+You will find sample configuration files in ``etc/watcher``:
 
 * ``watcher.conf.sample``
 
@@ -68,7 +71,9 @@ Install the Watcher modules dependencies:
 
     # pip install -r requirements.txt
 
-From here, refer to :doc:`configuration` to declare Watcher as a new service into Keystone and to configure its different modules. Once configured, you should be able to run Watcher by issuing these commands:
+From here, refer to :doc:`configuration` to declare Watcher as a new service
+into Keystone and to configure its different modules. Once configured, you
+should be able to run the Watcher services by issuing these commands:
 
 .. code-block:: bash
 
@@ -84,13 +89,16 @@ Once started, you can use the `Watcher Client`_ to play with Watcher service.
 Installing from packages: PyPI
 --------------------------------
 
-Watcher package is available on PyPI repository. To install Watcher on your system
-:
+Watcher package is available on PyPI repository. To install Watcher on your
+system:
 
 .. code-block:: bash
 
     $ sudo pip install python-watcher
 
-Watcher modules and its dependencies will be automatically installed on your system.
+The Watcher services along with its dependencies should then be automatically
+installed on your system.
 
-Once installed, you still need to declare Watcher as a new service into Keystone and to configure its different modules, which you can find described in :doc:`configuration`.
+Once installed, you still need to declare Watcher as a new service into
+Keystone and to configure its different modules, which you can find described
+in :doc:`configuration`.

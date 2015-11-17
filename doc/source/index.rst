@@ -5,7 +5,8 @@ Welcome to Watcher's developer documentation
 Mission
 =======
 
-Provide an auditing service for OpenStack to improve workload placement on-the-go.
+Provide an auditing service for OpenStack to improve workload placement
+on-the-go.
 
 The developer documentation provided here is continually kept up-to-date based
 on the latest code, and may not represent the state of the project at any
@@ -21,6 +22,7 @@ Introduction
   :maxdepth: 1
 
   dev/architecture
+  dev/environment
   dev/contributing
   dev/plugins
 

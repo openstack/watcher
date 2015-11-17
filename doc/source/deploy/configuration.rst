@@ -10,37 +10,39 @@ available code of the Watcher service.
 Service overview
 ================
 
-The Watcher service is a collection of modules that provides support to
-optimize your IAAS plateform. The Watcher service may, depending
-upon configuration, interact with several other OpenStack services. This
-includes:
+The Watcher system is a collection of services that provides support to
+optimize your IAAS plateform. The Watcher service may, depending upon
+configuration, interact with several other OpenStack services. This includes:
 
-- the OpenStack Identity service (`keystone`_) for request authentication and to
-  locate other OpenStack services
-- the OpenStack Telemetry module (`ceilometer`_) for consuming the resources metrics
-- the OpenStack Compute service (`nova`_) works with the Watcher service and acts as
-  a user-facing API for instance migration.
+- the OpenStack Identity service (`keystone`_) for request authentication and
+  to locate other OpenStack services
+- the OpenStack Telemetry service (`ceilometer`_) for consuming the resources
+  metrics
+- the OpenStack Compute service (`nova`_) works with the Watcher service and
+  acts as a user-facing API for instance migration.
 
 The Watcher service includes the following components:
 
-- ``watcher-decision-engine``: runs audit on part of your IAAS and return an action plan in order to optimize resource placement.
+- ``watcher-decision-engine``: runs audit on part of your IAAS and return an
+  action plan in order to optimize resource placement.
 - ``watcher-api``: A RESTful API that processes application requests by sending
   them to the watcher-decision-engine over RPC.
 - ``watcher-applier``: applies the action plan.
 - `python-watcherclient`_: A command-line interface (CLI) for interacting with
   the Watcher service.
 
-Additionally, the Bare Metal service has certain external dependencies, which are
-very similar to other OpenStack services:
+Additionally, the Bare Metal service has certain external dependencies, which
+are very similar to other OpenStack services:
 
-- A database to store audit and action plan information and state. You can set the database
-  back-end type and location.
+- A database to store audit and action plan information and state. You can set
+  the database back-end type and location.
 - A queue. A central hub for passing messages, such as `RabbitMQ`_.
 
 Optionally, one may wish to utilize the following associated projects for
 additional functionality:
 
-- `watcher metering`_: an alternative of Ceilometer project to collect real-time metering data.
+- `watcher metering`_: an alternative to collect and push metrics to the
+  Telemetry service.
 
 .. _`keystone`: https://github.com/openstack/keystone
 .. _`ceilometer`: https://github.com/openstack/ceilometer
@@ -52,35 +54,42 @@ additional functionality:
 Install and configure prerequisites
 ===================================
 
-You can configure Watcher modules to run on separate nodes or the same node.
+You can configure Watcher services to run on separate nodes or the same node.
 In this guide, the components run on one node, typically the Controller node.
 
-This section shows you how to install and configure the modules.
+This section shows you how to install and configure the services.
 
 It assumes that the Identity, Image, Compute, and Networking services
 have already been set up.
 
-
+.. _identity-service_configuration:
 
 Configure the Identity service for the Watcher service
 ------------------------------------------------------
 
 #. Create the Watcher service user (eg ``watcher``). The service uses this to
-   authenticate with the Identity Service. Use the ``service`` project and
-   give the user the ``admin`` role:
+   authenticate with the Identity Service. Use the
+   ``KEYSTONE_SERVICE_PROJECT_NAME`` project (named ``service`` by default in
+   devstack) and give the user the ``admin`` role:
 
     .. code-block:: bash
 
-      $ keystone user-create --name=watcher --pass=WATCHER_PASSWORD --email=watcher@example.com
-      $ keystone user-role-add --user=watcher --tenant=service --role=admin
+      $ keystone user-create --name=watcher --pass=WATCHER_PASSWORD \
+        --email=watcher@example.com \
+        --tenant=KEYSTONE_SERVICE_PROJECT_NAME
+      $ keystone user-role-add --user=watcher \
+        --tenant=KEYSTONE_SERVICE_PROJECT_NAME --role=admin
       $ keystone user-role-add --user=watcher --tenant=admin --role=admin
 
    or (by using python-openstackclient 1.8.0+)
 
      .. code-block:: bash
 
-      $ openstack user create  --password WATCHER_PASSWORD --enable --email watcher@example.com watcher
-      $ openstack role add --project service --user watcher admin
+      $ openstack user create  --password WATCHER_PASSWORD --enable \
+        --email watcher@example.com watcher \
+        --project=KEYSTONE_SERVICE_PROJECT_NAME
+      $ openstack role add --project KEYSTONE_SERVICE_PROJECT_NAME \
+        --user watcher admin
       $ openstack role add --user watcher --project admin admin
 
 
@@ -96,10 +105,11 @@ Configure the Identity service for the Watcher service
 
     .. code-block:: bash
 
-      $ openstack service create --name watcher infra-optim
+      $ openstack service create --name watcher infra-optim \
+        --description="Infrastructure Optimization service"
 
 #. Create the endpoints by replacing YOUR_REGION and
-   WATCHER_API_[PUBLIC|ADMIN|INTERNAL]_IP with your region and your
+   ``WATCHER_API_[PUBLIC|ADMIN|INTERNAL]_IP`` with your region and your
    Watcher Service's API node IP addresses (or FQDN):
 
     .. code-block:: bash
@@ -118,6 +128,8 @@ Configure the Identity service for the Watcher service
         --publicurl http://WATCHER_API_PUBLIC_IP:9322 \
         --internalurl http://WATCHER_API_INTERNAL_IP:9322 \
         --adminurl http://WATCHER_API_ADMIN_IP:9322
+
+.. _watcher-db_configuration:
 
 Set up the database for Watcher
 -------------------------------
@@ -153,10 +165,7 @@ The configuration file is organized into the following sections:
 * ``[watcher_applier]`` - Watcher Applier module configuration
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
 * ``[watcher_goals]`` - Goals mapping configuration
-* ``[watcher_influxdb_collector]`` - influxDB driver configuration
 * ``[watcher_messaging]`` -Messaging driver configuration
-* ``[watcher_metrics_collector]`` - Metric collector driver configuration
-* ``[watcher_metrics_collector]`` - Metric collector driver configuration
 * ``[watcher_strategies]`` - Strategy configuration
 
 
@@ -173,8 +182,8 @@ configuration file, in order:
 
 
 Although some configuration options are mentioned here, it is recommended that
-you review all the
-`available options <https://git.openstack.org/cgit/openstack/watcher/tree/etc/watcher/watcher.conf.sample>`_
+you review all the `available options
+<https://git.openstack.org/cgit/openstack/watcher/tree/etc/watcher/watcher.conf.sample>`_
 so that the watcher service is configured for your needs.
 
 #. The Watcher Service stores information in a database. This guide uses the
@@ -202,7 +211,7 @@ so that the watcher service is configured for your needs.
     # The name of the driver used by oslo messaging (string value)
     #notifier_driver = messaging
 
-    # The name of a message executor, forexample: eventlet, blocking
+    # The name of a message executor, for example: eventlet, blocking
     # (string value)
     #executor = blocking
 
@@ -230,13 +239,6 @@ so that the watcher service is configured for your needs.
    replace WATCHER_PASSWORD with the password you chose for the ``watcher``
    user in the Identity Service::
 
-    [DEFAULT]
-    ...
-    # Method to use for authentication: noauth or keystone.
-    # (string value)
-    auth_strategy=keystone
-
-    ...
     [keystone_authtoken]
 
     # Complete public Identity API endpoint (string value)
@@ -277,7 +279,8 @@ so that the watcher service is configured for your needs.
 Configure Nova compute
 ======================
 
-Please check your hypervisor configuration to correctly handle `instance migration`_.
+Please check your hypervisor configuration to correctly handle
+`instance migration`_.
 
 .. _`instance migration`: http://docs.openstack.org/admin-guide-cloud/compute-configuring-migrations.html
 
