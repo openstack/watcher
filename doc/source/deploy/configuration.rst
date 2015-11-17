@@ -80,7 +80,7 @@ Configure the Identity service for the Watcher service
      .. code-block:: bash
 
       $ openstack user create  --password WATCHER_PASSWORD --enable --email watcher@example.com watcher
-      $ openstack role add --project services --user watcher admin
+      $ openstack role add --project service --user watcher admin
       $ openstack role add --user watcher --project admin admin
 
 
