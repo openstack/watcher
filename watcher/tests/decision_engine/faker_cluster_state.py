@@ -336,3 +336,49 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_hypervisor(node)
 
         return current_state_cluster
+
+    def generate_scenario_5_with_vm_disk_0(self):
+        vms = []
+        current_state_cluster = ModelRoot()
+        # number of nodes
+        count_node = 1
+        # number of vms
+        count_vm = 1
+
+        # define ressouce ( CPU, MEM disk, ... )
+        mem = Resource(ResourceType.memory)
+        # 2199.954 Mhz
+        num_cores = Resource(ResourceType.cpu_cores)
+        disk = Resource(ResourceType.disk)
+
+        current_state_cluster.create_resource(mem)
+        current_state_cluster.create_resource(num_cores)
+        current_state_cluster.create_resource(disk)
+
+        for i in range(0, count_node):
+            node_uuid = "Node_" + str(i)
+            node = Hypervisor()
+            node.uuid = node_uuid
+
+            mem.set_capacity(node, 4)
+            disk.set_capacity(node, 4)
+            num_cores.set_capacity(node, 4)
+            # print("create "+str(node))
+            current_state_cluster.add_hypervisor(node)
+
+        for i in range(0, count_vm):
+            vm_uuid = "VM_" + str(i)
+            vm = VM()
+            vm.uuid = vm_uuid
+            # print("create "+str(vm))
+            mem.set_capacity(vm, 2)
+            disk.set_capacity(vm, 0)
+            num_cores.set_capacity(vm, 4)
+            vms.append(vm)
+            current_state_cluster.add_vm(vm)
+
+        current_state_cluster.get_mapping().map(
+            current_state_cluster.get_hypervisor_from_id("Node_0"),
+            current_state_cluster.get_vm_from_id("VM_0"))
+
+        return current_state_cluster

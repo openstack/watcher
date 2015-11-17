@@ -233,8 +233,12 @@ class BasicConsolidation(Strategy):
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
                        float(cpu_capacity))
 
-        score_disk = (1 - (float(disk_capacity) - float(total_disk_used)) /
-                      float(disk_capacity))
+        # It's possible that disk_capacity is 0, e.g. m1.nano.disk = 0
+        if disk_capacity == 0:
+            score_disk = 0
+        else:
+            score_disk = (1 - (float(disk_capacity) - float(total_disk_used)) /
+                          float(disk_capacity))
 
         score_memory = (
             1 - (float(memory_capacity) - float(total_memory_used)) /
