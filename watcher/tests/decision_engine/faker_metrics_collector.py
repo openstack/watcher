@@ -19,93 +19,22 @@
 
 import random
 
-from watcher.metrics_engine.api.metrics_resource_collector import Measure
-from watcher.metrics_engine.api.metrics_resource_collector import \
-    MetricsResourceCollector
 
-
-class FakerMetricsCollector(MetricsResourceCollector):
+class FakerMetricsCollector(object):
     def __init__(self):
         self.emptytype = ""
 
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    def get_measurement(self,
-                        metric,
-                        callback=None,
-                        start_time=None,
-                        end_time=None,
-                        filters=None,
-                        aggregation_function=None,
-                        intervals=None):
-
-        results = []
-        if metric == "compute_cpu_user_percent_gauge":
-            if self.emptytype == "CPU_COMPUTE":
-                pass
-            else:
-                results.append(Measure(0, 5))
-        elif metric == "instance_cpu_percent_gauge":
-            results.append(
-                self.get_average_usage_vm_cpu(filters[0].split('=')[1]))
-        elif metric == "instance_memory_resident_used_bytes_gauge":
-            results.append(
-                self.get_average_usage_vm_memory(filters[0].split('=')[1]))
-        elif metric == "instance_disk_used_bytes_gauge":
-            if self.emptytype == "DISK_COMPUTE":
-                pass
-            else:
-                results.append(
-                    self.get_average_usage_vm_disk(filters[0].split('=')[1]))
-        elif metric == "compute_memory_used_bytes_gauge":
-            if self.emptytype == "MEM_COMPUTE":
-                pass
-            else:
-                results.append(self.get_usage_node_cpu(
-                    filters[0].split('=')[1]))
-        elif metric == "compute_disk_size_used_bytes_gauge":
-            if self.emptytype == "DISK_COMPUTE":
-                pass
-            else:
-                results.append(self.get_usage_node_disk(
-                    filters[0].split('=')[1]))
-        else:
-            results.append(Measure(0, 0))
-        return results
-
-    def get_usage_node_disk(self, uuid):
-        """The last VM CPU usage values to average
-
-            :param uuid:00
-            :return:
-            """
-        # query influxdb stream
-
-        # compute in stream
-
-        # Normalize
-        mock = {}
-        # node 0
-        mock['Node_0'] = Measure(0, 7)
-        mock['Node_1'] = Measure(0, 100)
-        # node 1
-        mock['Node_2'] = Measure(0, 10)
-        # node 2
-        mock['Node_3'] = Measure(0, 5)
-        mock['Node_4'] = Measure(0, 5)
-        mock['Node_5'] = Measure(0, 10)
-
-        # node 3
-        mock['Node_6'] = Measure(0, 8)
-
-        # node 4
-        mock['VM_7'] = Measure(0, 4)
-        if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = Measure(0, 8)
-
-        return mock[str(uuid)]
+    def mock_get_statistics(self, resource_id, meter_name, period,
+                            aggregate='avg'):
+        result = 0
+        if meter_name == "compute.node.cpu.percent":
+            result = self.get_usage_node_cpu(resource_id)
+        elif meter_name == "cpu_util":
+            result = self.get_average_usage_vm_cpu(resource_id)
+        return result
 
     def get_usage_node_cpu(self, uuid):
         """The last VM CPU usage values to average
@@ -120,25 +49,26 @@ class FakerMetricsCollector(MetricsResourceCollector):
         # Normalize
         mock = {}
         # node 0
-        mock['Node_0'] = Measure(0, 7)
-        mock['Node_1'] = Measure(0, 7)
+        mock['Node_0'] = 7
+        mock['Node_1'] = 7
         # node 1
-        mock['Node_2'] = Measure(0, 80)
+        mock['Node_2'] = 80
         # node 2
-        mock['Node_3'] = Measure(0, 5)
-        mock['Node_4'] = Measure(0, 5)
-        mock['Node_5'] = Measure(0, 10)
+        mock['Node_3'] = 5
+        mock['Node_4'] = 5
+        mock['Node_5'] = 10
 
         # node 3
-        mock['Node_6'] = Measure(0, 8)
-
+        mock['Node_6'] = 8
+        mock['Node_19'] = 10
         # node 4
-        mock['VM_7'] = Measure(0, 4)
+        mock['VM_7'] = 4
+
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = Measure(0, 8)
+            mock[uuid] = 8
 
-        return mock[str(uuid)]
+        return float(mock[str(uuid)])
 
     def get_average_usage_vm_cpu(self, uuid):
         """The last VM CPU usage values to average
@@ -153,70 +83,70 @@ class FakerMetricsCollector(MetricsResourceCollector):
         # Normalize
         mock = {}
         # node 0
-        mock['VM_0'] = Measure(0, 7)
-        mock['VM_1'] = Measure(0, 7)
+        mock['VM_0'] = 7
+        mock['VM_1'] = 7
         # node 1
-        mock['VM_2'] = Measure(0, 10)
+        mock['VM_2'] = 10
         # node 2
-        mock['VM_3'] = Measure(0, 5)
-        mock['VM_4'] = Measure(0, 5)
-        mock['VM_5'] = Measure(0, 10)
+        mock['VM_3'] = 5
+        mock['VM_4'] = 5
+        mock['VM_5'] = 10
 
         # node 3
-        mock['VM_6'] = Measure(0, 8)
+        mock['VM_6'] = 8
 
         # node 4
-        mock['VM_7'] = Measure(0, 4)
+        mock['VM_7'] = 4
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = Measure(0, 8)
+            mock[uuid] = 8
 
         return mock[str(uuid)]
 
     def get_average_usage_vm_memory(self, uuid):
         mock = {}
         # node 0
-        mock['VM_0'] = Measure(0, 2)
-        mock['VM_1'] = Measure(0, 5)
+        mock['VM_0'] = 2
+        mock['VM_1'] = 5
         # node 1
-        mock['VM_2'] = Measure(0, 5)
+        mock['VM_2'] = 5
         # node 2
-        mock['VM_3'] = Measure(0, 8)
-        mock['VM_4'] = Measure(0, 5)
-        mock['VM_5'] = Measure(0, 16)
+        mock['VM_3'] = 8
+        mock['VM_4'] = 5
+        mock['VM_5'] = 16
 
         # node 3
-        mock['VM_6'] = Measure(0, 8)
+        mock['VM_6'] = 8
 
         # node 4
-        mock['VM_7'] = Measure(0, 4)
+        mock['VM_7'] = 4
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = Measure(0, 10)
+            mock[uuid] = 10
 
         return mock[str(uuid)]
 
     def get_average_usage_vm_disk(self, uuid):
         mock = {}
         # node 0
-        mock['VM_0'] = Measure(0, 2)
-        mock['VM_1'] = Measure(0, 2)
+        mock['VM_0'] = 2
+        mock['VM_1'] = 2
         # node 1
-        mock['VM_2'] = Measure(0, 2)
+        mock['VM_2'] = 2
         # node 2
-        mock['VM_3'] = Measure(0, 10)
-        mock['VM_4'] = Measure(0, 15)
-        mock['VM_5'] = Measure(0, 20)
+        mock['VM_3'] = 10
+        mock['VM_4'] = 15
+        mock['VM_5'] = 20
 
         # node 3
-        mock['VM_6'] = Measure(0, 8)
+        mock['VM_6'] = 8
 
         # node 4
-        mock['VM_7'] = Measure(0, 4)
+        mock['VM_7'] = 4
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = Measure(0, 4)
+            mock[uuid] = 4
 
         return mock[str(uuid)]
 

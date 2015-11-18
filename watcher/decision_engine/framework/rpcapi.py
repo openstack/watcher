@@ -32,9 +32,9 @@ from watcher.common.messaging.utils.transport_url_builder import \
     TransportUrlBuilder
 from watcher.decision_engine.framework.events.event_consumer_factory import \
     EventConsumerFactory
-from watcher.decision_engine.framework.manager_decision_engine import \
+from watcher.decision_engine.framework.manager import \
     decision_engine_opt_group
-from watcher.decision_engine.framework.manager_decision_engine import \
+from watcher.decision_engine.framework.manager import \
     WATCHER_DECISION_ENGINE_OPTS
 
 from watcher.decision_engine.framework.messaging.events import Events

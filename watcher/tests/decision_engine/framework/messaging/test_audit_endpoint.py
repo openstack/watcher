@@ -15,17 +15,17 @@
 # limitations under the License.
 import mock
 from mock import MagicMock
+
 from watcher.common import utils
 from watcher.decision_engine.framework.command.trigger_audit_command import \
     TriggerAuditCommand
 from watcher.decision_engine.framework.messaging.audit_endpoint import \
     AuditEndpoint
-from watcher.metrics_engine.framework.collector_manager import CollectorManager
+from watcher.metrics_engine.cluster_model_collector.manager import \
+    CollectorManager
 from watcher.tests import base
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
-from watcher.tests.decision_engine.faker_metrics_collector import \
-    FakerMetricsCollector
+    FakerModelCollector
 
 
 class TriggerAuditCommandWithExecutor(TriggerAuditCommand):
@@ -43,12 +43,11 @@ class TestAuditEndpoint(base.TestCase):
 
     def test_do_trigger_audit(self):
         audit_uuid = utils.generate_uuid()
-        statedb = FakerStateCollector()
-        ressourcedb = FakerMetricsCollector()
-        command = TriggerAuditCommand(MagicMock(), statedb, ressourcedb)
+        model_collector = FakerModelCollector()
+        command = TriggerAuditCommand(MagicMock(), model_collector)
         endpoint = AuditEndpoint(command)
 
-        with mock.patch.object(CollectorManager, 'get_statedb_collector') \
+        with mock.patch.object(CollectorManager, 'get_cluster_model_collector') \
                 as mock_call2:
             mock_call2.return_value = 0
 
@@ -61,10 +60,9 @@ class TestAuditEndpoint(base.TestCase):
 
     def test_trigger_audit(self):
         audit_uuid = utils.generate_uuid()
-        statedb = FakerStateCollector()
-        ressourcedb = FakerMetricsCollector()
+        model_collector = FakerModelCollector()
         command = TriggerAuditCommandWithExecutor(MagicMock(),
-                                                  statedb, ressourcedb)
+                                                  model_collector)
         endpoint = AuditEndpoint(command)
 
         with mock.patch.object(TriggerAuditCommandWithExecutor, 'executor') \

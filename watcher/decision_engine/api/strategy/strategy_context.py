@@ -16,11 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
-class StrategyContext(object):
-    def __init__(self):
-        pass
-
+@six.add_metaclass(abc.ABCMeta)
+class BaseStrategyContext(object):
+    @abc.abstractmethod
     def execute_strategy(self, model):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

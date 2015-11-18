@@ -24,15 +24,15 @@ from watcher.decision_engine.framework.model.model_root import ModelRoot
 from watcher.decision_engine.framework.model.resource import Resource
 from watcher.decision_engine.framework.model.resource import ResourceType
 from watcher.decision_engine.framework.model.vm import VM
-from watcher.metrics_engine.api.cluster_state_collector import \
-    ClusterStateCollector
+from watcher.metrics_engine.cluster_model_collector.api import \
+    BaseClusterModelCollector
 
 
-class FakerStateCollector(ClusterStateCollector):
+class FakerModelCollector(BaseClusterModelCollector):
     def __init__(self):
         pass
 
-    def get_latest_state_cluster(self):
+    def get_latest_cluster_data_model(self):
         return self.generate_scenario_1()
 
     def generate_random(self, count_nodes, number_of_vm_per_node):
@@ -57,7 +57,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             hypervisor = Hypervisor()
             hypervisor.uuid = node_uuid
             mem.set_capacity(hypervisor, 132)
@@ -67,7 +67,7 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_hypervisor(hypervisor)
 
         for i in range(0, count_vm):
-            vm_uuid = "VM_" + str(i)
+            vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
             # print("create "+str(vm))
@@ -108,7 +108,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
 
@@ -119,7 +119,7 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
-            vm_uuid = "VM_" + str(i)
+            vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
             # print("create "+str(vm))
@@ -179,7 +179,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
             mem.set_capacity(node, 132)
@@ -216,7 +216,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
             mem.set_capacity(node, 132)
@@ -226,7 +226,7 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
-            vm_uuid = "VM_" + str(i)
+            vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
             # print("create "+str(vm))
@@ -237,21 +237,21 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_vm(vm)
         indice = 0
         for j in range(0, 2):
-            node_uuid = "Node_" + str(j)
+            node_uuid = "Node_{0}".format(j)
             for i in range(indice, 3):
-                vm_uuid = "VM_" + str(i)
+                vm_uuid = "VM_{0}".format(i)
                 self.map(current_state_cluster, node_uuid, vm_uuid)
 
         for j in range(2, 5):
-            node_uuid = "Node_" + str(j)
+            node_uuid = "Node_{0}".format(j)
             for i in range(indice, 4):
-                vm_uuid = "VM_" + str(i)
+                vm_uuid = "VM_{0}".format(i)
                 self.map(current_state_cluster, node_uuid, vm_uuid)
 
         for j in range(5, 10):
-            node_uuid = "Node_" + str(j)
+            node_uuid = "Node_{0}".format(j)
             for i in range(indice, 4):
-                vm_uuid = "VM_" + str(i)
+                vm_uuid = "VM_{0}".format(i)
                 self.map(current_state_cluster, node_uuid, vm_uuid)
 
         return current_state_cluster
@@ -278,7 +278,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
 
@@ -289,7 +289,7 @@ class FakerStateCollector(ClusterStateCollector):
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
-            vm_uuid = "VM_" + str(i)
+            vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
             # print("create "+str(vm))
@@ -325,7 +325,7 @@ class FakerStateCollector(ClusterStateCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
 

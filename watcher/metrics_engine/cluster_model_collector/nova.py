@@ -26,18 +26,18 @@ from watcher.decision_engine.framework.model.model_root import ModelRoot
 from watcher.decision_engine.framework.model.resource import Resource
 from watcher.decision_engine.framework.model.resource import ResourceType
 from watcher.decision_engine.framework.model.vm import VM
-from watcher.metrics_engine.api.cluster_state_collector import \
-    ClusterStateCollector
+from watcher.metrics_engine.cluster_model_collector.api import \
+    BaseClusterModelCollector
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class NovaCollector(ClusterStateCollector):
+class NovaClusterModelCollector(BaseClusterModelCollector):
     def __init__(self, wrapper):
         self.wrapper = wrapper
 
-    def get_latest_state_cluster(self):
+    def get_latest_cluster_data_model(self):
 
         cluster = ModelRoot()
         mem = Resource(ResourceType.memory)
@@ -51,7 +51,7 @@ class NovaCollector(ClusterStateCollector):
         hypervisors = self.wrapper.get_hypervisors_list()
         for h in hypervisors:
             service = self.wrapper.nova.services.find(id=h.service['id'])
-            # create hypervisor in stateDB
+            # create hypervisor in cluster_model_collector
             hypervisor = Hypervisor()
             hypervisor.uuid = service.host
             # set capacity
@@ -63,7 +63,7 @@ class NovaCollector(ClusterStateCollector):
             cluster.add_hypervisor(hypervisor)
             vms = self.wrapper.get_vms_by_hypervisor(str(service.host))
             for v in vms:
-                # create VM in stateDB
+                # create VM in cluster_model_collector
                 vm = VM()
                 vm.uuid = v.id
                 # nova/nova/compute/vm_states.py
@@ -74,7 +74,7 @@ class NovaCollector(ClusterStateCollector):
                 mem.set_capacity(vm, v.flavor['ram'])
                 disk.set_capacity(vm, v.flavor['disk'])
                 num_cores.set_capacity(vm, v.flavor['vcpus'])
-                # print(dir(v))
+
                 cluster.get_mapping().map(hypervisor, vm)
                 cluster.add_vm(vm)
         return cluster

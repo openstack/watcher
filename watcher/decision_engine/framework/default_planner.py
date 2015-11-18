@@ -28,12 +28,14 @@ from watcher import objects
 from watcher.decision_engine.framework.meta_actions.hypervisor_state import \
     ChangeHypervisorState
 from watcher.decision_engine.framework.meta_actions.migrate import Migrate
+from watcher.decision_engine.framework.meta_actions.nop import Nop
 from watcher.decision_engine.framework.meta_actions.power_state import \
     ChangePowerState
 from watcher.objects.action import Status as AStatus
 from watcher.objects.action_plan import Status as APStatus
 
 LOG = log.getLogger(__name__)
+
 
 # TODO(jed) The default planner is a very simple planner
 # https://wiki.openstack.org/wiki/NovaOrchestration/WorkflowEngines​
@@ -95,7 +97,8 @@ class DefaultPlanner(Planner):
                                                uuid,
                                                action.get_dest_hypervisor().
                                                uuid,
-                                               description=str(action)
+                                               description="{0}".format(
+                                                   action)
                                                )
 
             elif isinstance(action, ChangePowerState):
@@ -105,7 +108,9 @@ class DefaultPlanner(Planner):
                                                applies_to=action.target.uuid,
                                                parameter=action.
                                                powerstate.
-                                               value, description=str(action))
+                                               value,
+                                               description="{0}".format(
+                                                   action))
             elif isinstance(action, ChangeHypervisorState):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
@@ -113,8 +118,14 @@ class DefaultPlanner(Planner):
                                                applies_to=action.target.uuid,
                                                parameter=action.state.
                                                value,
-                                               description=str(action))
-
+                                               description="{0}".format(
+                                                   action))
+            elif isinstance(action, Nop):
+                primitive = self.create_action(action_plan_id=action_plan.id,
+                                               action_type=Primitives.
+                                               NOP.value,
+                                               description="{0}".format(
+                                                   action))
             else:
                 raise MetaActionNotFound()
             priority = priority_primitives[primitive['action_type']]

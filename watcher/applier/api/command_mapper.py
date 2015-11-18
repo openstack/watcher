@@ -17,7 +17,13 @@
 # limitations under the License.
 #
 
+import abc
+import six
 
+
+@six.add_metaclass(abc.ABCMeta)
 class CommandMapper(object):
+    @abc.abstractmethod
     def build_primitive_command(self, action):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

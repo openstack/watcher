@@ -16,15 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
-class EventConsumer(object):
+@six.add_metaclass(abc.ABCMeta)
+class BaseEventConsumer(object):
 
     def __init__(self):
-        self.messaging = None
+        self._messaging = None
 
-    def set_messaging(self, messaging):
-        self.messaging = messaging
+    @property
+    def messaging(self):
+        return self._messaging
 
+    @messaging.setter
+    def messaging(self, e):
+        self._messaging = e
+
+    @abc.abstractmethod
     def execute(self, request_id, context, data):
-        raise NotImplementedError('Not implemented ...')
+        raise NotImplementedError('Not implemented ...')  # pragma:no cover

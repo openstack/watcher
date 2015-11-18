@@ -16,7 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from collections import Counter
+
 import mock
+from mock import MagicMock
+
 from watcher.common import exception
 
 from watcher.decision_engine.framework.meta_actions.hypervisor_state import \
@@ -30,11 +34,9 @@ from watcher.decision_engine.strategies.basic_consolidation import \
     BasicConsolidation
 from watcher.tests import base
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
+    FakerModelCollector
 from watcher.tests.decision_engine.faker_metrics_collector import \
     FakerMetricsCollector
-# from watcher.tests.decision_engine.faker_metrics_collector import \
-#    FakerMetricsCollectorEmptyType
 
 
 class TestBasicConsolidation(base.BaseTestCase):
@@ -42,7 +44,7 @@ class TestBasicConsolidation(base.BaseTestCase):
     fake_metrics = FakerMetricsCollector()
 
     # fake cluster
-    fake_cluster = FakerStateCollector()
+    fake_cluster = FakerModelCollector()
 
     def test_cluster_size(self):
         size_cluster = len(
@@ -53,18 +55,20 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_basic_consolidation_score_hypervisor(self):
         cluster = self.fake_cluster.generate_scenario_1()
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(self.fake_metrics)
-        node_1_score = 0.01666666666666668
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+
+        node_1_score = 0.023333333333333317
         self.assertEqual(
             sercon.calculate_score_node(
                 cluster.get_hypervisor_from_id("Node_1"),
                 cluster), node_1_score)
-        node_2_score = 0.01666666666666668
+        node_2_score = 0.26666666666666666
         self.assertEqual(
             sercon.calculate_score_node(
                 cluster.get_hypervisor_from_id("Node_2"),
                 cluster), node_2_score)
-        node_0_score = 0.01666666666666668
+        node_0_score = 0.023333333333333317
         self.assertEqual(
             sercon.calculate_score_node(
                 cluster.get_hypervisor_from_id("Node_0"),
@@ -73,7 +77,8 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_basic_consolidation_score_vm(self):
         cluster = self.fake_cluster.generate_scenario_1()
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(self.fake_metrics)
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
         vm_0_score = 0.0
         self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
@@ -95,7 +100,8 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_basic_consolidation_score_vm_disk(self):
         cluster = self.fake_cluster.generate_scenario_5_with_vm_disk_0()
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(self.fake_metrics)
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
         vm_0_score = 0.0
         self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
@@ -103,7 +109,8 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_basic_consolidation_weight(self):
         cluster = self.fake_cluster.generate_scenario_1()
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(self.fake_metrics)
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
         cores = 16
         # 80 Go
@@ -130,16 +137,13 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertRaises(exception.ClusterEmpty, sercon.execute,
                           model)
 
-    def test_calculate_score_vm_raise_metric_collector(self):
-        sercon = BasicConsolidation()
-        self.assertRaises(exception.MetricCollectorNotDefined,
-                          sercon.calculate_score_vm, "VM_1", None)
-
     def test_calculate_score_vm_raise_cluster_state_not_found(self):
         metrics = FakerMetricsCollector()
         metrics.empty_one_metric("CPU_COMPUTE")
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(metrics)
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+
         self.assertRaises(exception.ClusteStateNotDefined,
                           sercon.calculate_score_vm, "VM_1", None)
 
@@ -168,7 +172,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_check_migration(self):
         sercon = BasicConsolidation()
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         all_vms = model.get_all_vms()
@@ -180,7 +184,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_threshold(self):
         sercon = BasicConsolidation()
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         all_hyps = model.get_all_hypervisors()
@@ -197,122 +201,48 @@ class TestBasicConsolidation(base.BaseTestCase):
         sercon.get_number_of_released_nodes()
         sercon.get_number_of_migrations()
 
-    def test_calculate_score_node_raise_1(self):
-        sercon = BasicConsolidation()
-        metrics = FakerStateCollector()
-
-        model = metrics.generate_scenario_4_with_2_hypervisors()
-        all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[all_hyps.keys()[0]]
-
-        self.assertRaises(exception.MetricCollectorNotDefined,
-                          sercon.calculate_score_node, hyp0, model)
-
-    def test_calculate_score_node_raise_cpu_compute(self):
-        metrics = FakerMetricsCollector()
-        metrics.empty_one_metric("CPU_COMPUTE")
-        sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(metrics)
-        current_state_cluster = FakerStateCollector()
-        model = current_state_cluster.generate_scenario_4_with_2_hypervisors()
-
-        all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[all_hyps.keys()[0]]
-
-        self.assertRaises(exception.NoDataFound,
-                          sercon.calculate_score_node, hyp0, model)
-
-    """
-    def test_calculate_score_node_raise_memory_compute(self):
-        metrics = FakerMetricsCollector()
-        metrics.empty_one_metric("MEM_COMPUTE")
-        sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(metrics)
-        current_state_cluster = FakerStateCollector()
-        model = current_state_cluster.generate_scenario_4_with_2_hypervisors()
-
-        all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[all_hyps.keys()[0]]
-        self.assertRaises(exception.NoDataFound,
-                          sercon.calculate_score_node, hyp0, model)
-
-    def test_calculate_score_node_raise_disk_compute(self):
-        metrics = FakerMetricsCollector()
-        metrics.empty_one_metric("DISK_COMPUTE")
-        sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(metrics)
-        current_state_cluster = FakerStateCollector()
-        model = current_state_cluster.generate_scenario_4_with_2_hypervisors()
-
-        all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[all_hyps.keys()[0]]
-
-        self.assertRaises(exception.NoDataFound,
-                          sercon.calculate_score_node, hyp0, model)
-    """
-
     def test_basic_consolidation_migration(self):
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(FakerMetricsCollector())
-        solution = None
-        solution = sercon.execute(FakerStateCollector().generate_scenario_1())
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
-        count_migration = 0
-        change_hypervisor_state = 0
-        change_power_state = 0
-        migrate = []
-        for action in solution.meta_actions:
-            if isinstance(action, Migrate):
-                count_migration += 1
-                migrate.append(action)
-            if isinstance(action, ChangeHypervisorState):
-                change_hypervisor_state += 1
-            if isinstance(action, ChangePowerState):
-                change_power_state += 1
+        solution = sercon.execute(
+            self.fake_cluster.generate_scenario_3())
 
-        # self.assertEqual(change_hypervisor_state, 1)
-        # self.assertEqual(count_migration, 2)
+        actions_counter = Counter(
+            [type(action) for action in solution.meta_actions])
+
+        expected_num_migrations = 0
+        expected_power_state = 0
+        expected_change_hypervisor_state = 0
+
+        num_migrations = actions_counter.get(Migrate, 0)
+        num_hypervisor_state_change = actions_counter.get(
+            ChangeHypervisorState, 0)
+        num_power_state_change = actions_counter.get(
+            ChangePowerState, 0)
+
+        self.assertEqual(num_migrations, expected_num_migrations)
+        self.assertEqual(num_hypervisor_state_change, expected_power_state)
+        self.assertEqual(num_power_state_change,
+                         expected_change_hypervisor_state)
 
     def test_execute_cluster_empty(self):
-        metrics = FakerMetricsCollector()
-        current_state_cluster = FakerStateCollector()
-
+        current_state_cluster = FakerModelCollector()
         sercon = BasicConsolidation("sercon", "Basic offline consolidation")
-        sercon.set_metrics_resource_collector(metrics)
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
         model = current_state_cluster.generate_random(0, 0)
         self.assertRaises(exception.ClusterEmpty, sercon.execute, model)
 
-    def test_basic_consolidation_random(self):
-        metrics = FakerMetricsCollector()
-        current_state_cluster = FakerStateCollector()
-
-        sercon = BasicConsolidation("sercon", "Basic offline consolidation")
-        sercon.set_metrics_resource_collector(metrics)
-
-        solution = sercon.execute(
-            current_state_cluster.generate_random(25, 2))
-        solution.__str__()
-
-        count_migration = 0
-        change_hypervisor_state = 0
-        change_power_state = 0
-        migrate = []
-        for action in solution.meta_actions:
-            if isinstance(action, Migrate):
-                count_migration += 1
-                migrate.append(action)
-            if isinstance(action, ChangeHypervisorState):
-                change_hypervisor_state += 1
-            if isinstance(action, ChangePowerState):
-                change_power_state += 1
-
     # calculate_weight
     def test_execute_no_workload(self):
-        metrics = FakerMetricsCollector()
         sercon = BasicConsolidation()
-        sercon.set_metrics_resource_collector(metrics)
-        current_state_cluster = FakerStateCollector()
-        model = current_state_cluster.\
+        sercon.ceilometer = MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+
+        current_state_cluster = FakerModelCollector()
+        model = current_state_cluster. \
             generate_scenario_5_with_1_hypervisor_no_vm()
 
         with mock.patch.object(BasicConsolidation, 'calculate_weight') \

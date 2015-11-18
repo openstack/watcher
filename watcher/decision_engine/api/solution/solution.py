@@ -16,22 +16,47 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Solution(object):
     def __init__(self):
-        self.modelOrigin = None
-        self.currentModel = None
-        self.efficiency = 0
+        self._origin = None
+        self._model = None
+        self._efficiency = 0
 
-    def get_efficiency(self):
-        return self.efficiency
+    @property
+    def efficiency(self):
+        return self._efficiency
 
-    def set_efficiency(self, efficiency):
-        self.efficiency = efficiency
+    @efficiency.setter
+    def efficiency(self, e):
+        self._efficiency = e
 
-    def set_model(self, current_model):
-        self.currentModel = current_model
+    @property
+    def model(self):
+        return self._model
 
-    def get_model(self):
-        return self.currentModel
+    @model.setter
+    def model(self, m):
+        self._model = m
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @origin.setter
+    def origin(self, m):
+        self._origin = m
+
+    @abc.abstractmethod
+    def add_change_request(self, r):
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover
+
+    @abc.abstractproperty
+    def meta_actions(self):
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

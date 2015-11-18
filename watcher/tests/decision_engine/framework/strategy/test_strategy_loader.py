@@ -31,7 +31,7 @@ class TestStrategySelector(base.BaseTestCase):
         exptected_strategy = 'basic'
         selected_strategy = self.strategy_loader.load(exptected_strategy)
         self.assertEqual(
-            selected_strategy.get_name(),
+            selected_strategy.name,
             exptected_strategy,
             'The default strategy should be basic')
 

@@ -16,26 +16,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 from watcher.decision_engine.api.strategy.strategy import StrategyLevel
 
 
+@six.add_metaclass(abc.ABCMeta)
 class MetaAction(object):
     def __init__(self):
-        self.level = StrategyLevel.conservative
-        self.priority = 0
+        self._level = StrategyLevel.conservative
+        self._priority = 0
 
-    def get_level(self):
-        return self.level
+    @property
+    def level(self):
+        return self._level
 
-    def set_level(self, level):
-        self.level = level
+    @level.setter
+    def level(self, l):
+        self._level = l
 
-    def set_priority(self, priority):
-        self.priority = priority
+    @property
+    def priority(self):
+        return self._priority
 
-    def get_priority(self):
-        return self.priority
+    @priority.setter
+    def priority(self, p):
+        self._priority = p
 
     def __str__(self):
         return "  "

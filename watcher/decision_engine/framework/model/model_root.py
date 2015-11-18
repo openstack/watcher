@@ -77,7 +77,7 @@ class ModelRoot(object):
         return self.mapping
 
     def create_resource(self, r):
-        self.resource[str(r.get_name())] = r
+        self.resource[str(r.name)] = r
 
     def get_resource_from_id(self, id):
         return self.resource[str(id)]

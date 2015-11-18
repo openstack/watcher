@@ -32,8 +32,8 @@ from watcher.decision_engine.framework.messaging.events import Events
 
 from watcher.common.messaging.notification_handler import \
     NotificationHandler
-from watcher.decision_engine.framework.strategy.StrategyManagerImpl import \
-    StrategyContextImpl
+from watcher.decision_engine.framework.strategy.strategy_context import \
+    StrategyContext
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -76,7 +76,7 @@ class DecisionEngineManager(MessagingCore):
         # todo(jed) oslo_conf
         self.executor = ThreadPoolExecutor(max_workers=2)
         self.topic_control.add_endpoint(AuditEndpoint(self))
-        self.context = StrategyContextImpl(self)
+        self.context = StrategyContext(self)
 
     def join(self):
         self.topic_control.join()
@@ -93,7 +93,7 @@ class DecisionEngineManager(MessagingCore):
             LOG.debug("data       => %s" % str(data))
 
             event_consumer = EventConsumerFactory().factory(event_type)
-            event_consumer.set_messaging(self)
+            event_consumer.messaging = self
             event_consumer.execute(request_id, data)
         except Exception as e:
             LOG.error("evt %s" % e.message)

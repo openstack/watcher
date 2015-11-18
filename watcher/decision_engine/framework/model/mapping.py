@@ -69,9 +69,10 @@ class Mapping(object):
                 # remove vm
                 self.mapping_vm.pop(vm_uuid)
             else:
-                LOG.warn("trying to delete the virtual machine " + str(
-                    vm_uuid) + " but it was not found on hypervisor" + str(
-                    node_uuid))
+                LOG.warn(
+                    "trying to delete the virtual machine {0}  but it was not "
+                    "found on hypervisor {1}".format(
+                        vm_uuid, node_uuid))
         finally:
             self.lock.release()
 

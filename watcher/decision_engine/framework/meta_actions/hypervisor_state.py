@@ -49,5 +49,5 @@ class ChangeHypervisorState(MetaAction):
         self._target = p
 
     def __str__(self):
-        return MetaAction.__str__(self) + " ChangeHypervisorState" + str(
-            self.target) + " =>" + str(self.state)
+        return "{0} {1} ChangeHypervisorState => {2}".format(
+            MetaAction.__str__(self), self.target, self.state)

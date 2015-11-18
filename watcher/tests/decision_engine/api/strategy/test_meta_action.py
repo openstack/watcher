@@ -20,11 +20,11 @@ from watcher.tests import base
 
 class TestMetaAction(base.TestCase):
     def test_get_priority(self):
-        MA = MetaAction()
-        MA.set_priority(3)
-        self.assertEqual(MA.get_priority(), 3)
+        ma = MetaAction()
+        ma.priority = 3
+        self.assertEqual(ma.priority, 3)
 
     def test_get_level(self):
-        MA = MetaAction()
-        MA.set_level(5)
-        self.assertEqual(MA.get_level(), 5)
+        ma = MetaAction()
+        ma.level = 5
+        self.assertEqual(ma.level, 5)

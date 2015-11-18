@@ -21,12 +21,12 @@ from watcher.decision_engine.framework.model.hypervisor import Hypervisor
 from watcher.decision_engine.framework.model.vm_state import VMState
 from watcher.tests import base
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
+    FakerModelCollector
 
 
 class TestMapping(base.BaseTestCase):
     def test_get_node_from_vm(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         vms = model.get_all_vms()
@@ -38,14 +38,14 @@ class TestMapping(base.BaseTestCase):
         self.assertEqual(node.uuid, 'Node_0')
 
     def test_get_node_from_vm_id(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         hyps = model.mapping.get_node_vms_from_id("BLABLABLA")
         self.assertEqual(hyps.__len__(), 0)
 
     def test_get_all_vms(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         vms = model.get_all_vms()
@@ -56,7 +56,7 @@ class TestMapping(base.BaseTestCase):
         self.assertEqual(vms['VM_1'].uuid, 'VM_1')
 
     def test_get_mapping(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         mapping_vm = model.mapping.get_mapping_vm()
@@ -65,7 +65,7 @@ class TestMapping(base.BaseTestCase):
         self.assertEqual(mapping_vm['VM_1'], 'Node_1')
 
     def test_migrate_vm(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = vms.keys()
@@ -80,12 +80,12 @@ class TestMapping(base.BaseTestCase):
         self.assertEqual(model.mapping.migrate_vm(vm1, hyp0, hyp1), True)
 
     def test_unmap_from_id_log_warning(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = vms.keys()
         vm0 = vms[keys[0]]
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
 
@@ -94,7 +94,7 @@ class TestMapping(base.BaseTestCase):
         # hypervisor.uuid)), 1)
 
     def test_unmap_from_id(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = vms.keys()

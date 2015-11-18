@@ -31,12 +31,17 @@ class Resource(object):
         :param capacity: max
         :return:
         """
-        self.name = name
+        self._name = name
         self.capacity = capacity
         self.mapping = {}
 
-    def get_name(self):
-        return self.name
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, n):
+        self._name = n
 
     def set_capacity(self, element, value):
         self.mapping[element.uuid] = value

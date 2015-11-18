@@ -16,8 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Selector(object):
+    @abc.abstractmethod
     def define_from_goal(self, goal_name):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

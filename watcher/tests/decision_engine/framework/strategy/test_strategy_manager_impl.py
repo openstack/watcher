@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.framework.strategy.StrategyManagerImpl import \
-    StrategyContextImpl
+from watcher.decision_engine.framework.strategy.strategy_context import \
+    StrategyContext
 from watcher.tests import base
 
 
@@ -27,6 +27,6 @@ class FakeStrategy(object):
 class TestStrategyContextImpl(base.BaseTestCase):
     def test_add_remove_strategy(self):
         strategy = FakeStrategy()
-        strategy_context = StrategyContextImpl()
+        strategy_context = StrategyContext()
         strategy_context.add_strategy(strategy)
         strategy_context.remove_strategy(strategy)

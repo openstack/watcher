@@ -38,4 +38,4 @@ class NamedElement(object):
         self._human_id = h
 
     def __str__(self):
-        return "[" + str(self.uuid) + "]"
+        return "[{0}]".format(self.uuid)

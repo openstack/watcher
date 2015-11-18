@@ -70,6 +70,7 @@ class Migrate(MetaAction):
         return self.dest_hypervisor
 
     def __str__(self):
-        return MetaAction.__str__(self) + " Migrate " + str(
-            self.vm) + " from " + str(
-            self.source_hypervisor) + " to " + str(self.dest_hypervisor)
+        return "{0} Migrate {1} from {2} to {3}".format(
+            MetaAction.__str__(self), self.vm,
+            self.source_hypervisor,
+            self.dest_hypervisor)

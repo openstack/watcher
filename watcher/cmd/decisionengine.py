@@ -23,10 +23,10 @@ import sys
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from watcher.decision_engine.framework.manager import DecisionEngineManager
 
-from watcher.decision_engine.framework.manager_decision_engine import \
-    DecisionEngineManager
 from watcher import i18n
+
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF

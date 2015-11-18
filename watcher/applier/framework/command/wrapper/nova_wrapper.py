@@ -355,10 +355,10 @@ class NovaWrapper(object):
                     and retry:
                 instance = self.nova.servers.get(instance.id)
                 LOG.debug(
-                    "Waiting the migration of " + str(
-                        instance.human_id) + " to " +
-                    getattr(instance,
-                            'OS-EXT-SRV-ATTR:host'))
+                    'Waiting the migration of {0}  to {1}'.format(
+                        instance,
+                        getattr(instance,
+                                'OS-EXT-SRV-ATTR:host')))
                 time.sleep(1)
                 retry -= 1
 

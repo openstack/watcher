@@ -16,9 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Planner(object):
+    @abc.abstractmethod
     def schedule(self, context, audit_uuid, solution):
         """The  planner receives a solution to schedule
 
@@ -29,4 +33,5 @@ class Planner(object):
         and performance requirements are met.
         """
         # example: directed acyclic graph
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

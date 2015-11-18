@@ -15,16 +15,18 @@
 # limitations under the License.
 
 import mock
+from mock import MagicMock
 from watcher.common.exception import MetaActionNotFound
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.decision_engine.framework.default_planner import DefaultPlanner
 from watcher.decision_engine.strategies.basic_consolidation import \
     BasicConsolidation
+
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
+    FakerModelCollector
 from watcher.tests.decision_engine.faker_metrics_collector import \
     FakerMetricsCollector
 from watcher.tests.objects import utils as obj_utils
@@ -34,9 +36,10 @@ class SolutionFaker(object):
     @staticmethod
     def build():
         metrics = FakerMetricsCollector()
-        current_state_cluster = FakerStateCollector()
+        current_state_cluster = FakerModelCollector()
         sercon = BasicConsolidation("basic", "Basic offline consolidation")
-        sercon.set_metrics_resource_collector(metrics)
+        sercon.ceilometer = MagicMock(
+            get_statistics=metrics.mock_get_statistics)
         return sercon.execute(current_state_cluster.generate_scenario_1())
 
 
@@ -44,9 +47,11 @@ class SolutionFakerSingleHyp(object):
     @staticmethod
     def build():
         metrics = FakerMetricsCollector()
-        current_state_cluster = FakerStateCollector()
+        current_state_cluster = FakerModelCollector()
         sercon = BasicConsolidation("basic", "Basic offline consolidation")
-        sercon.set_metrics_resource_collector(metrics)
+        sercon.ceilometer = MagicMock(
+            get_statistics=metrics.mock_get_statistics)
+
         return sercon.execute(
             current_state_cluster.generate_scenario_4_with_2_hypervisors())
 

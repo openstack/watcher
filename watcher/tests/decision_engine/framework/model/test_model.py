@@ -24,14 +24,14 @@ from watcher.decision_engine.framework.model.hypervisor_state import \
     HypervisorState
 from watcher.decision_engine.framework.model.model_root import ModelRoot
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
+    FakerModelCollector
 
 from watcher.tests import base
 
 
 class TestModel(base.BaseTestCase):
     def test_model(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
 
         self.assertEqual(len(model._hypervisors), 5)
@@ -40,7 +40,7 @@ class TestModel(base.BaseTestCase):
 
     def test_add_hypervisor(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
@@ -48,7 +48,7 @@ class TestModel(base.BaseTestCase):
 
     def test_delete_hypervisor(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
@@ -60,7 +60,7 @@ class TestModel(base.BaseTestCase):
     def test_get_all_hypervisors(self):
         model = ModelRoot()
         for i in range(10):
-            id = str(uuid.uuid4())
+            id = "{0}".format(uuid.uuid4())
             hypervisor = Hypervisor()
             hypervisor.uuid = id
             model.add_hypervisor(hypervisor)
@@ -71,7 +71,7 @@ class TestModel(base.BaseTestCase):
 
     def test_set_get_state_hypervisors(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
@@ -95,23 +95,23 @@ class TestModel(base.BaseTestCase):
     #        self.assert(len(model._vms))
     def test_hypervisor_from_id_raise(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
 
-        id2 = str(uuid.uuid4())
+        id2 = "{0}".format(uuid.uuid4())
         self.assertRaises(exception.HypervisorNotFound,
                           model.get_hypervisor_from_id, id2)
 
     def test_remove_hypervisor_raise(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
 
-        id2 = str(uuid.uuid4())
+        id2 = "{0}".format(uuid.uuid4())
         hypervisor2 = Hypervisor()
         hypervisor2.uuid = id2
 
@@ -120,7 +120,7 @@ class TestModel(base.BaseTestCase):
 
     def test_assert_hypervisor_raise(self):
         model = ModelRoot()
-        id = str(uuid.uuid4())
+        id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
@@ -128,7 +128,7 @@ class TestModel(base.BaseTestCase):
                           model.assert_hypervisor, "objet_qcq")
 
     def test_vm_from_id_raise(self):
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
         self.assertRaises(exception.VMNotFound,
                           model.get_vm_from_id, "valeur_qcq")

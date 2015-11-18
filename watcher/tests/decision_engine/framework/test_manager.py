@@ -22,7 +22,7 @@ from watcher.decision_engine.framework.events.event_consumer_factory import \
     EventConsumerFactory
 
 from watcher.common.messaging.events.event import Event
-from watcher.decision_engine.framework.manager_decision_engine import \
+from watcher.decision_engine.framework.manager import \
     DecisionEngineManager
 
 from watcher.decision_engine.framework.messaging.events import Events

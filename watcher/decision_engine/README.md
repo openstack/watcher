@@ -46,7 +46,7 @@ This component pushes the new predicted metrics to the CEP in order to trigger n
 
 ## Watcher Cluster State Collector
 
-This module of the Decision Engine provides a high level API for requesting status information from the InfluxDb database.
+This module of the Decision Engine provides a high level API for requesting status information from the Nova API.
 
 A DSL will be provided in order to ease the development of new optimization strategies.
 
@@ -54,14 +54,6 @@ Example of high level requests that may be provided :
 * get the difference between current cluster state and cluster state yesterday at the same time
 * get the state evolution in time of a group of instances from 9 AM to 10 AM for every day of the week
 * ... 
-
-## Watcher Resource Metrics Collector
-
-This module of the Decision Engine provides a high level API for requesting metrics information from the InfluxDb database.
-
-A DSL will be provided in order to ease the development of new optimization strategies.
-
-This component is distinct from the Cluster State Collector because it will probably have to deal with a much more important set of data and it may need a specific DSL for applying mathematical computes on metrics (min, max, average, ...).
 
 
 ## Watcher Actions Planner

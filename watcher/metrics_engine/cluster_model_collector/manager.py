@@ -16,9 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.tests import base
+
+from oslo_config import cfg
+from oslo_log import log
+
+from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.common.keystone import Client
+from watcher.metrics_engine.cluster_model_collector.nova import \
+    NovaClusterModelCollector
+
+LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
-class TestPlanner(base.BaseTestCase):
-    def test_planner(self):
-        pass
+class CollectorManager(object):
+    def get_cluster_model_collector(self):
+        keystone = Client()
+        wrapper = NovaWrapper(keystone.get_credentials(),
+                              session=keystone.get_session())
+        return NovaClusterModelCollector(wrapper=wrapper)

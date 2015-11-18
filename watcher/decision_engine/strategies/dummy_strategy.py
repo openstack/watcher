@@ -19,10 +19,13 @@
 from oslo_log import log
 
 from watcher.decision_engine.api.strategy.strategy import Strategy
+from watcher.decision_engine.framework.meta_actions.nop import Nop
 
 LOG = log.getLogger(__name__)
 
 
 class DummyStrategy(Strategy):
     def execute(self, model):
-        return self.get_solution()
+        n = Nop()
+        self.solution.add_change_request(n)
+        return self.solution

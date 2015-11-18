@@ -19,8 +19,9 @@
 
 
 import mock
-from watcher.metrics_engine.framework.statedb_collector import NovaCollector
 
+from watcher.metrics_engine.cluster_model_collector.nova import \
+    NovaClusterModelCollector
 from watcher.tests import base
 
 
@@ -29,7 +30,7 @@ class TestNovaCollector(base.TestCase):
     def setUp(self, mock_ksclient):
         super(TestNovaCollector, self).setUp()
         self.wrapper = mock.MagicMock()
-        self.nova_collector = NovaCollector(self.wrapper)
+        self.nova_collector = NovaClusterModelCollector(self.wrapper)
 
     def test_nova_collector(self):
         hypervisor = mock.Mock()
@@ -39,5 +40,5 @@ class TestNovaCollector(base.TestCase):
         service.host = ""
         self.wrapper.get_hypervisors_list.return_value = {hypervisor}
         self.wrapper.nova.services.find.get.return_value = service
-        model = self.nova_collector.get_latest_state_cluster()
+        model = self.nova_collector.get_latest_cluster_data_model()
         self.assertIsNotNone(model)

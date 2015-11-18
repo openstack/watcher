@@ -23,14 +23,11 @@ from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
 from watcher.tests.db.base import DbTestCase
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
-from watcher.tests.decision_engine.faker_metrics_collector import \
-    FakerMetricsCollector
+    FakerModelCollector
 from watcher.tests.objects import utils as obj_utils
 
 
 class TestTriggerAuditCommand(DbTestCase):
-
     def setUp(self):
         super(TestTriggerAuditCommand, self).setUp()
         self.audit_template = obj_utils.create_test_audit_template(
@@ -41,33 +38,26 @@ class TestTriggerAuditCommand(DbTestCase):
 
     def test_trigger_audit_without_errors(self):
         try:
-            statedb = FakerStateCollector()
-            ressourcedb = FakerMetricsCollector()
-            command = TriggerAuditCommand(MagicMock(), statedb, ressourcedb)
+            model_collector = FakerModelCollector()
+            command = TriggerAuditCommand(MagicMock(), model_collector)
             command.execute(self.audit.uuid, self.context)
         except Exception:
             self.fail("The audit should be trigged without error")
 
-    def test_trigger_audit_with_errors(self):
-        try:
-            command = TriggerAuditCommand(MagicMock(), 0, 0)
-            command.execute(self.audit.uuid, self.context)
-        except Exception:
-            self.fail("The audit should be trigged with error")
-
-    def test_trigger_audit_state_succes(self):
-        statedb = FakerStateCollector()
-        ressourcedb = FakerMetricsCollector()
-        command = TriggerAuditCommand(MagicMock(), statedb, ressourcedb)
+    def test_trigger_audit_state_success(self):
+        model_collector = FakerModelCollector()
+        command = TriggerAuditCommand(MagicMock(), model_collector)
+        command.strategy_context.execute_strategy = MagicMock()
         command.execute(self.audit.uuid, self.context)
         audit = Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(AuditStatus.SUCCESS, audit.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = MagicMock()
-        statedb = FakerStateCollector()
-        ressourcedb = FakerMetricsCollector()
-        command = TriggerAuditCommand(messaging, statedb, ressourcedb)
+        model_collector = FakerModelCollector()
+        command = TriggerAuditCommand(messaging, model_collector)
+        command.strategy_context.execute_strategy = MagicMock()
+
         command.execute(self.audit.uuid, self.context)
 
         call_on_going = call(Events.TRIGGER_AUDIT.name, {

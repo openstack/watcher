@@ -16,8 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
-class DecisionEngineCommand(object):
+@six.add_metaclass(abc.ABCMeta)
+class BaseDecisionEngineCommand(object):
+    @abc.abstractmethod
     def execute(self):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

@@ -18,13 +18,12 @@
 #
 
 
-from keystoneclient.auth.identity import v3
-from keystoneclient import session
 from oslo_config import cfg
 
 from watcher.applier.api.primitive_command import PrimitiveCommand
 from watcher.applier.api.promise import Promise
 from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.common.keystone import Client
 from watcher.decision_engine.framework.model.hypervisor_state import \
     HypervisorState
 
@@ -37,25 +36,9 @@ class HypervisorStateCommand(PrimitiveCommand):
         self.status = status
 
     def nova_manage_service(self, status):
-        creds = \
-            {'auth_url': CONF.keystone_authtoken.auth_uri,
-             'username': CONF.keystone_authtoken.admin_user,
-             'password': CONF.keystone_authtoken.admin_password,
-             'project_name': CONF.keystone_authtoken.admin_tenant_name,
-             'user_domain_name': "default",
-             'project_domain_name': "default"}
-
-        auth = v3.Password(auth_url=creds['auth_url'],
-                           username=creds['username'],
-                           password=creds['password'],
-                           project_name=creds['project_name'],
-                           user_domain_name=creds[
-                               'user_domain_name'],
-                           project_domain_name=creds[
-                               'project_domain_name'])
-        sess = session.Session(auth=auth)
-        # todo(jed) refactoring
-        wrapper = NovaWrapper(creds, session=sess)
+        keystone = Client()
+        wrapper = NovaWrapper(keystone.get_credentials(),
+                              session=keystone.get_session())
         if status is True:
             return wrapper.enable_service_nova_compute(self.host)
         else:

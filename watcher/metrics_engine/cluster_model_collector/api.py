@@ -1,6 +1,8 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,12 +15,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+import abc
+import six
 
-from watcher.decision_engine.api.strategy.selector import Selector
-from watcher.tests import base
 
-
-class TestSelector(base.TestCase):
-    def test_define_from_goal(self):
-        Sel = Selector()
-        self.assertRaises(NotImplementedError, Sel.define_from_goal, None)
+@six.add_metaclass(abc.ABCMeta)
+class BaseClusterModelCollector(object):
+    @abc.abstractmethod
+    def get_latest_cluster_data_model(self):
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma: nocover

@@ -16,8 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import abc
+import six
 
 
+@six.add_metaclass(abc.ABCMeta)
 class Solution(object):
+    @abc.abstractmethod
     def compare(self, sol1, sol2):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

@@ -18,19 +18,27 @@
 #
 import abc
 import six
-from watcher.applier.api.promise import Promise
+
+""" Work in progress Helper to query metrics """
 
 
 @six.add_metaclass(abc.ABCMeta)
-class PrimitiveCommand(object):
-    @Promise
+class BaseClusterHistory(object):
     @abc.abstractmethod
-    def execute(self):
+    def statistic_aggregation(self, resource_id, meter_name, period,
+                              aggregate='avg'):
         raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+            "Should have implemented this")  # pragma: nocover
 
-    @Promise
     @abc.abstractmethod
-    def undo(self):
+    def get_last_sample_values(self, resource_id, meter_name, limit=1):
         raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+            "Should have implemented this")  # pragma: nocover
+
+    def query_sample(self, meter_name, query, limit=1):
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma: nocover
+
+    def statistic_list(self, meter_name, query=None, period=None):
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma: nocover

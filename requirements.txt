@@ -28,5 +28,4 @@ python-cinderclient==1.4.0
 
 # Collector
 python-ceilometerclient==1.5.0
-influxdb==2.9.1
 parsedatetime==1.5

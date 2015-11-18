@@ -17,8 +17,13 @@
 # limitations under the License.
 #
 
+from oslo_log import log
+
 from watcher.applier.api.primitive_command import PrimitiveCommand
 from watcher.applier.api.promise import Promise
+
+
+LOG = log.getLogger(__name__)
 
 
 class NopCommand(PrimitiveCommand):
@@ -27,8 +32,10 @@ class NopCommand(PrimitiveCommand):
 
     @Promise
     def execute(self):
+        LOG.debug("executing NOP command")
         return True
 
     @Promise
     def undo(self):
+        LOG.debug("undo NOP command")
         return True

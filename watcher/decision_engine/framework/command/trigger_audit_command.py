@@ -17,11 +17,11 @@ from oslo_log import log
 
 from watcher.common.messaging.events.event import Event
 from watcher.decision_engine.api.messaging.decision_engine_command import \
-    DecisionEngineCommand
+    BaseDecisionEngineCommand
 from watcher.decision_engine.framework.default_planner import DefaultPlanner
 from watcher.decision_engine.framework.messaging.events import Events
-from watcher.decision_engine.framework.strategy.StrategyManagerImpl import \
-    StrategyContextImpl
+from watcher.decision_engine.framework.strategy.strategy_context import \
+    StrategyContext
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
 from watcher.objects.audit_template import AuditTemplate
@@ -29,12 +29,11 @@ from watcher.objects.audit_template import AuditTemplate
 LOG = log.getLogger(__name__)
 
 
-class TriggerAuditCommand(DecisionEngineCommand):
-    def __init__(self, messaging, statedb, ressourcedb):
+class TriggerAuditCommand(BaseDecisionEngineCommand):
+    def __init__(self, messaging, model_collector):
         self.messaging = messaging
-        self.statedb = statedb
-        self.ressourcedb = ressourcedb
-        self.strategy_context = StrategyContextImpl()
+        self.model_collector = model_collector
+        self.strategy_context = StrategyContext()
 
     def notify(self, audit_uuid, event_type, status):
         event = Event()
@@ -46,7 +45,7 @@ class TriggerAuditCommand(DecisionEngineCommand):
                                                   payload)
 
     def update_audit(self, request_context, audit_uuid, state):
-        LOG.debug("update audit " + str(state))
+        LOG.debug("update audit {0} ".format(state))
         audit = Audit.get_by_uuid(request_context, audit_uuid)
         audit.state = state
         audit.save()
@@ -61,16 +60,14 @@ class TriggerAuditCommand(DecisionEngineCommand):
             audit = self.update_audit(request_context, audit_uuid,
                                       AuditStatus.ONGOING)
 
-            # 3 - Retrieve metrics
-            cluster = self.statedb.get_latest_state_cluster()
+            # 3 - Retrieve cluster-data-model
+            cluster = self.model_collector.get_latest_cluster_data_model()
 
             # 4 - Select appropriate strategy
             audit_template = AuditTemplate.get_by_id(request_context,
                                                      audit.audit_template_id)
 
             self.strategy_context.set_goal(audit_template.goal)
-            self.strategy_context.set_metrics_resource_collector(
-                self.ressourcedb)
 
             # 5 - compute change requests
             solution = self.strategy_context.execute_strategy(cluster)
@@ -83,4 +80,4 @@ class TriggerAuditCommand(DecisionEngineCommand):
             self.update_audit(request_context, audit_uuid, AuditStatus.SUCCESS)
         except Exception as e:
             self.update_audit(request_context, audit_uuid, AuditStatus.FAILED)
-            LOG.error(" " + unicode(e))
+            LOG.error("Execute audit command {0} ".format(unicode(e)))

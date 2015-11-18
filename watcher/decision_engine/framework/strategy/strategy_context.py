@@ -15,8 +15,8 @@
 # limitations under the License.
 from oslo_log import log
 
-from watcher.decision_engine.api.strategy.strategy_context import \
-    StrategyContext
+from watcher.decision_engine.api.strategy.strategy_context import\
+    BaseStrategyContext
 from watcher.decision_engine.framework.default_planner import DefaultPlanner
 from watcher.decision_engine.framework.strategy.strategy_selector import \
     StrategySelector
@@ -24,7 +24,7 @@ from watcher.decision_engine.framework.strategy.strategy_selector import \
 LOG = log.getLogger(__name__)
 
 
-class StrategyContextImpl(StrategyContext):
+class StrategyContext(BaseStrategyContext):
     def __init__(self, broker=None):
         LOG.debug("Initializing decision_engine Engine API ")
         self.strategies = {}
@@ -33,7 +33,6 @@ class StrategyContextImpl(StrategyContext):
         self.planner = DefaultPlanner()
         self.strategy_selector = StrategySelector()
         self.goal = None
-        self.metrics_resource_collector = None
 
     def add_strategy(self, strategy):
         self.strategies[strategy.name] = strategy
@@ -45,12 +44,7 @@ class StrategyContextImpl(StrategyContext):
     def set_goal(self, goal):
         self.goal = goal
 
-    def set_metrics_resource_collector(self, metrics_resource_collector):
-        self.metrics_resource_collector = metrics_resource_collector
-
     def execute_strategy(self, model):
         # todo(jed) create thread + refactoring
         selected_strategy = self.strategy_selector.define_from_goal(self.goal)
-        selected_strategy.set_metrics_resource_collector(
-            self.metrics_resource_collector)
         return selected_strategy.execute(model)

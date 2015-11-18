@@ -280,3 +280,21 @@ Configure Nova compute
 Please check your hypervisor configuration to correctly handle `instance migration`_.
 
 .. _`instance migration`: http://docs.openstack.org/admin-guide-cloud/compute-configuring-migrations.html
+
+Configure Ceilometer
+====================
+
+The default strategy 'basic_consolidation' provided by watcher requires
+Ceilometer to collect the "compute.node.cpu.*." and "cpu_util" measurements
+
+#. Add/Update the following lines into the /etc/nova/nova.conf configuration file:
+
+
+    .. code-block:: bash
+
+      $ compute_available_monitors=nova.compute.monitors.all_monitors
+      $ compute_monitors=ComputeDriverCPUMonitor
+
+#. Restart the Nova compute service and the Nova scheduler after completing the above configuration.
+
+#. For more information: `Integrating your metrics plug-in with Nova <http://www-01.ibm.com/support/knowledgecenter/SS8MU9_2.2.0/Admin/tasks/integratingplugin.dita>`_

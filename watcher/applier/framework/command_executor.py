@@ -66,9 +66,12 @@ class CommandExecutor(object):
                     self.deploy.populate(primitive)
                     self.notify(action, Status.SUCCESS)
             except Exception as e:
-                LOG.error(
-                    "The applier module failed to execute the action" + str(
-                        action) + " with the exception : " + unicode(e))
+                LOG.debug(
+                    'The applier module failed to execute the action{0}  with '
+                    'the exception {1} '.format(
+                        action,
+                        unicode(e)))
+
                 LOG.error("Trigger a rollback")
                 self.notify(action, Status.FAILED)
                 self.deploy.rollback()

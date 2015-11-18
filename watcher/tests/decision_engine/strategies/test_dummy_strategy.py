@@ -16,12 +16,12 @@
 from watcher.decision_engine.strategies.dummy_strategy import DummyStrategy
 from watcher.tests import base
 from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerStateCollector
+    FakerModelCollector
 
 
 class TestDummyStrategy(base.TestCase):
     def test_dummy_strategy(self):
         tactique = DummyStrategy("basic", "Basic offline consolidation")
-        fake_cluster = FakerStateCollector()
+        fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         tactique.execute(model)

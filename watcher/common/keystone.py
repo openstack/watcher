@@ -16,31 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import datetime
+
 from keystoneclient.auth.identity import v3
 from keystoneclient import session
-
+import keystoneclient.v3.client as ksclient
 from oslo_config import cfg
 from oslo_log import log
-from stevedore import driver
-from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
-
-from watcher.metrics_engine.framework.statedb_collector import NovaCollector
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
-
-WATCHER_METRICS_COLLECTOR_OPTS = [
-    cfg.StrOpt('metrics_resource',
-               default="influxdb",
-               help='The driver that collect measurements'
-                    'of the utilization'
-                    'of the physical and virtual resources')
-]
-metrics_collector_opt_group = cfg.OptGroup(
-    name='watcher_collector',
-    title='Defines Metrics collector available')
-CONF.register_group(metrics_collector_opt_group)
-CONF.register_opts(WATCHER_METRICS_COLLECTOR_OPTS, metrics_collector_opt_group)
 
 CONF.import_opt('admin_user', 'keystonemiddleware.auth_token',
                 group='keystone_authtoken')
@@ -52,16 +37,28 @@ CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',
                 group='keystone_authtoken')
 
 
-class CollectorManager(object):
-    def get_metric_collector(self):
-        manager = driver.DriverManager(
-            namespace='watcher_metrics_collector',
-            name=CONF.watcher_collector.metrics_resource,
-            invoke_on_load=True,
-        )
-        return manager.driver
+class Client(object):
+    def __init__(self):
+        ks_args = self.get_credentials()
+        self.ks_client = ksclient.Client(**ks_args)
 
-    def get_statedb_collector(self):
+    def get_endpoint(self, **kwargs):
+        attr = None
+        filter_value = None
+        if kwargs.get('region_name'):
+            attr = 'region'
+            filter_value = kwargs.get('region_name')
+        return self.ks_client.service_catalog.url_for(
+            service_type=kwargs.get('service_type') or 'metering',
+            attr=attr,
+            filter_value=filter_value,
+            endpoint_type=kwargs.get('endpoint_type') or 'publicURL')
+
+    def get_token(self):
+        return self.ks_client.auth_token
+
+    @staticmethod
+    def get_credentials():
         creds = \
             {'auth_url': CONF.keystone_authtoken.auth_uri,
              'username': CONF.keystone_authtoken.admin_user,
@@ -69,15 +66,15 @@ class CollectorManager(object):
              'project_name': CONF.keystone_authtoken.admin_tenant_name,
              'user_domain_name': "default",
              'project_domain_name': "default"}
+        LOG.debug(creds)
+        return creds
 
-        auth = v3.Password(auth_url=creds['auth_url'],
-                           username=creds['username'],
-                           password=creds['password'],
-                           project_name=creds['project_name'],
-                           user_domain_name=creds[
-                               'user_domain_name'],
-                           project_domain_name=creds[
-                               'project_domain_name'])
-        sess = session.Session(auth=auth)
-        wrapper = NovaWrapper(creds, session=sess)
-        return NovaCollector(wrapper=wrapper)
+    def get_session(self):
+        creds = self.get_credentials()
+        auth = v3.Password(**creds)
+        return session.Session(auth=auth)
+
+    def is_token_expired(self, token):
+        expires = datetime.datetime.strptime(token['expires'],
+                                             '%Y-%m-%dT%H:%M:%SZ')
+        return datetime.datetime.now() >= expires

@@ -18,16 +18,11 @@
 #
 from oslo_log import log
 
-from watcher.decision_engine.framework.model.vm_state import VMState
-from watcher.metrics_engine.api.metrics_resource_collector import \
-    AggregationFunction
-
 from watcher.common.exception import ClusterEmpty
 from watcher.common.exception import ClusteStateNotDefined
-from watcher.common.exception import MetricCollectorNotDefined
-from watcher.common.exception import NoDataFound
 from watcher.decision_engine.api.strategy.strategy import Strategy
 from watcher.decision_engine.api.strategy.strategy import StrategyLevel
+
 from watcher.decision_engine.framework.meta_actions.hypervisor_state import \
     ChangeHypervisorState
 from watcher.decision_engine.framework.meta_actions.migrate import Migrate
@@ -40,6 +35,9 @@ from watcher.decision_engine.framework.meta_actions.power_state import \
 from watcher.decision_engine.framework.model.hypervisor_state import \
     HypervisorState
 from watcher.decision_engine.framework.model.resource import ResourceType
+from watcher.decision_engine.framework.model.vm_state import VMState
+from watcher.metrics_engine.cluster_history.ceilometer import \
+    CeilometerClusterHistory
 
 LOG = log.getLogger(__name__)
 
@@ -73,7 +71,7 @@ class BasicConsolidation(Strategy):
         :param name: the name of the strategy
         :param description: a description of the strategy
         """
-        Strategy.__init__(self, name, description)
+        super(BasicConsolidation, self).__init__(name, description)
 
         # set default value for the number of released nodes
         self.number_of_released_nodes = 0
@@ -84,6 +82,8 @@ class BasicConsolidation(Strategy):
 
         # set default value for the efficiency
         self.efficiency = 100
+
+        self._ceilometer = None
 
         # TODO(jed) improve threshold overbooking ?,...
         self.threshold_mem = 1
@@ -100,6 +100,16 @@ class BasicConsolidation(Strategy):
 
         # TODO(jed) bound migration attempts (80 %)
         self.bound_migration = 0.80
+
+    @property
+    def ceilometer(self):
+        if self._ceilometer is None:
+            self._ceilometer = CeilometerClusterHistory()
+        return self._ceilometer
+
+    @ceilometer.setter
+    def ceilometer(self, c):
+        self._ceilometer = c
 
     def compute_attempts(self, size_cluster):
         """Upper bound of the number of migration
@@ -123,10 +133,10 @@ class BasicConsolidation(Strategy):
         if src_hypervisor == dest_hypervisor:
             return False
 
-        LOG.debug('Migrate VM %s from %s to  %s  ',
-                  str(src_hypervisor),
-                  str(dest_hypervisor),
-                  str(vm_to_mig))
+        LOG.debug('Migrate VM {0} from {1} to  {2} '.format(vm_to_mig,
+                                                            src_hypervisor,
+                                                            dest_hypervisor,
+                                                            ))
 
         total_cores = 0
         total_disk = 0
@@ -175,12 +185,6 @@ class BasicConsolidation(Strategy):
         cores_available = cap_cores.get_capacity(dest_hypervisor)
         disk_available = cap_disk.get_capacity(dest_hypervisor)
         mem_available = cap_mem.get_capacity(dest_hypervisor)
-        LOG.debug("VCPU %s/%s ", str(total_cores * self.threshold_cores),
-                  str(cores_available), )
-        LOG.debug("DISK %s/%s ", str(total_disk * self.threshold_disk),
-                  str(disk_available), )
-        LOG.debug("MEM %s/%s ", str(total_mem * self.threshold_mem),
-                  str(mem_available))
 
         if cores_available >= total_cores * self.threshold_cores \
                 and disk_available >= total_disk * self.threshold_disk \
@@ -213,7 +217,6 @@ class BasicConsolidation(Strategy):
     def calculate_weight(self, model, element, total_cores_used,
                          total_disk_used, total_memory_used):
         """Calculate weight of every
-
         :param model:
         :param element:
         :param total_cores_used:
@@ -253,24 +256,22 @@ class BasicConsolidation(Strategy):
             :param model:
             :return:
             """
-        metrics_collector = self.get_metrics_resource_collector()
-        if metrics_collector is None:
-            raise MetricCollectorNotDefined()
+        cpu_avg_vm = self.ceilometer. \
+            statistic_aggregation(resource_id=hypervisor.uuid,
+                                  meter_name='compute.node.cpu.percent',
+                                  period="7200",
+                                  aggregate='avg'
+                                  )
+        if cpu_avg_vm is None:
+            LOG.error(
+                "No values returned for {0} compute.node.cpu.percent".format(
+                    hypervisor.uuid))
+            cpu_avg_vm = 100
 
-        cpu_compute_mean_16h = metrics_collector.get_measurement(
-            metric='compute_cpu_user_percent_gauge',
-            aggregation_function=AggregationFunction.MEAN,
-            start_time="16 hours before now",
-            filters=["resource_id=" + hypervisor.uuid + ""])
-        if len(cpu_compute_mean_16h) > 0:
-            cpu_capacity = model.get_resource_from_id(
-                ResourceType.cpu_cores).get_capacity(hypervisor)
-            cpu_utilization = float(cpu_compute_mean_16h[0].value)
-            total_cores_used = cpu_capacity * (cpu_utilization / 100)
-        else:
-            raise NoDataFound(
-                "No values returned for " + str(hypervisor.uuid) +
-                " compute_cpu_percent_gauge")
+        cpu_capacity = model.get_resource_from_id(
+            ResourceType.cpu_cores).get_capacity(hypervisor)
+
+        total_cores_used = cpu_capacity * (cpu_avg_vm / 100)
 
         return self.calculate_weight(model, hypervisor, total_cores_used,
                                      0,
@@ -295,29 +296,30 @@ class BasicConsolidation(Strategy):
         :param model: the model
         :return: score
         """
-        # todo(jed) inject ressource metric
-        metric_collector = self.get_metrics_resource_collector()
-        if metric_collector is None:
-            raise MetricCollectorNotDefined()
-
         if model is None:
             raise ClusteStateNotDefined()
 
         vm = model.get_vm_from_id(vm.uuid)
-        instance_cpu_mean_16 = metric_collector.get_measurement(
-            metric='instance_cpu_percent_gauge',
-            aggregation_function=AggregationFunction.MEAN,
-            start_time="16 hours before now",
-            filters=["resource_id=" + vm.uuid + ""])
 
-        if len(instance_cpu_mean_16) > 0:
-            cpu_capacity = model.get_resource_from_id(
-                ResourceType.cpu_cores).get_capacity(vm)
-            vm_cpu_utilization = instance_cpu_mean_16[0].value
-            total_cores_used = cpu_capacity * (vm_cpu_utilization / 100)
-        else:
-            raise NoDataFound("No values returned for " + str(vm.uuid) +
-                              " instance_cpu_percent_gauge")
+        vm_cpu_utilization = self.ceilometer. \
+            statistic_aggregation(resource_id=vm.uuid,
+                                  meter_name='cpu_util',
+                                  period="7200",
+                                  aggregate='avg'
+                                  )
+        if vm_cpu_utilization is None:
+            LOG.error(
+                "No values returned for {0} cpu_util".format(vm.uuid))
+            vm_cpu_utilization = 100
+
+        cpu_capacity = model.get_resource_from_id(
+            ResourceType.cpu_cores).get_capacity(vm)
+
+        total_cores_used = cpu_capacity * (vm_cpu_utilization / 100)
+
+        return self.calculate_weight(model, vm, total_cores_used,
+                                     0,
+                                     0)
 
         return self.calculate_weight(model, vm, total_cores_used,
                                      0,
@@ -327,11 +329,12 @@ class BasicConsolidation(Strategy):
         if model is None:
             raise ClusteStateNotDefined()
         for node_id in model.get_all_hypervisors():
-            builder = node_id + " utilization  " + str(
-                (self.calculate_score_node(
-                    model.get_hypervisor_from_id(node_id),
-                    model)) * 100) + " %"
-            LOG.debug(builder)
+            LOG.debug("{0} utilization {1} % ".
+                      format(node_id,
+                             self.calculate_score_node(
+                                 model.get_hypervisor_from_id(
+                                     node_id),
+                                 model)))
 
     def execute(self, orign_model):
         LOG.debug("initialize Sercon Consolidation")
@@ -352,18 +355,18 @@ class BasicConsolidation(Strategy):
 
         self.compute_attempts(size_cluster)
 
-        for hypevisor_id in current_model.get_all_hypervisors():
-            hypervisor = current_model.get_hypervisor_from_id(hypevisor_id)
+        for hypervisor_id in current_model.get_all_hypervisors():
+            hypervisor = current_model.get_hypervisor_from_id(hypervisor_id)
             count = current_model.get_mapping(). \
-                get_node_vms_from_id(hypevisor_id)
+                get_node_vms_from_id(hypervisor_id)
             if len(count) == 0:
                 change_power = ChangePowerState(hypervisor)
                 change_power.powerstate = PowerState.g1_S1
-                change_power.set_level(StrategyLevel.conservative)
+                change_power.level = StrategyLevel.conservative
                 self.solution.add_change_request(change_power)
                 if hypervisor.state == HypervisorState.ONLINE:
                     h = ChangeHypervisorState(hypervisor)
-                    h.set_level(StrategyLevel.aggressive)
+                    h.level = StrategyLevel.aggressive
                     h.state = HypervisorState.OFFLINE
                     self.solution.add_change_request(h)
 
@@ -376,10 +379,11 @@ class BasicConsolidation(Strategy):
             score = []
 
             ''' calculate score of nodes based on load by VMs '''
-            for hypevisor_id in current_model.get_all_hypervisors():
-                hypervisor = current_model.get_hypervisor_from_id(hypevisor_id)
+            for hypervisor_id in current_model.get_all_hypervisors():
+                hypervisor = current_model.get_hypervisor_from_id(
+                    hypervisor_id)
                 count = current_model.get_mapping(). \
-                    get_node_vms_from_id(hypevisor_id)
+                    get_node_vms_from_id(hypervisor_id)
                 if len(count) > 0:
                     result = self.calculate_score_node(hypervisor,
                                                        current_model)
@@ -387,11 +391,11 @@ class BasicConsolidation(Strategy):
                     ''' the hypervisor has not VMs '''
                     result = 0
                 if len(count) > 0:
-                    score.append((hypevisor_id, result))
+                    score.append((hypervisor_id, result))
 
             ''' sort compute nodes by Score decreasing '''''
             s = sorted(score, reverse=True, key=lambda x: (x[1]))
-            LOG.debug("Hypervisor(s) BFD {0}".format(str(s)))
+            LOG.debug("Hypervisor(s) BFD {0}".format(s))
 
             ''' get Node to be released '''
             if len(score) == 0:
@@ -415,7 +419,7 @@ class BasicConsolidation(Strategy):
 
             ''' sort VM's by Score '''
             v = sorted(vm_score, reverse=True, key=lambda x: (x[1]))
-            LOG.debug("VM(s) BFD {0}".format(str(v)))
+            LOG.debug("VM(s) BFD {0}".format(v))
 
             m = 0
             tmp_vm_migration_schedule = []
@@ -442,8 +446,7 @@ class BasicConsolidation(Strategy):
                             # live migration
                             live_migrate.set_migration_type(
                                 MigrationType.pre_copy)
-                            live_migrate.set_level(
-                                StrategyLevel.conservative)
+                            live_migrate.level = StrategyLevel.conservative
 
                             tmp_vm_migration_schedule.append(live_migrate)
 
@@ -453,12 +456,11 @@ class BasicConsolidation(Strategy):
                             # from conservative to aggressive
                             change_power = ChangePowerState(mig_src_hypervisor)
                             change_power.powerstate = PowerState.g1_S1
-                            change_power.set_level(
-                                StrategyLevel.conservative)
+                            change_power.level = StrategyLevel.conservative
                             tmp_vm_migration_schedule.append(change_power)
 
                             h = ChangeHypervisorState(mig_src_hypervisor)
-                            h.set_level(StrategyLevel.aggressive)
+                            h.level = StrategyLevel.aggressive
 
                             h.state = HypervisorState.OFFLINE
                             tmp_vm_migration_schedule.append(h)
@@ -481,6 +483,6 @@ class BasicConsolidation(Strategy):
             "efficiency": self.efficiency
         }
         LOG.debug(infos)
-        self.solution.set_model(current_model)
-        self.solution.set_efficiency(self.efficiency)
+        self.solution.model = current_model
+        self.solution.efficiency = self.efficiency
         return self.solution

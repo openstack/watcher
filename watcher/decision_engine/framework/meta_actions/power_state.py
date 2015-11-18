@@ -48,5 +48,6 @@ class ChangePowerState(MetaAction):
         self._target = p
 
     def __str__(self):
-        return MetaAction.__str__(self) + "ChangePowerState " + str(
-            self.target) + " => " + str(self.powerstate)
+        return "{0} ChangePowerState {1} => {2} ".format(
+            MetaAction.__str__(self),
+            self.target, self.powerstate)

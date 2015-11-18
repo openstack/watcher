@@ -24,6 +24,7 @@ from oslo_config import cfg
 from watcher.applier.api.primitive_command import PrimitiveCommand
 from watcher.applier.api.promise import Promise
 from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.common.keystone import Client
 from watcher.decision_engine.framework.default_planner import Primitives
 
 CONF = cfg.CONF
@@ -40,25 +41,9 @@ class MigrateCommand(PrimitiveCommand):
         self.destination_hypervisor = destination_hypervisor
 
     def migrate(self, destination):
-
-        creds = \
-            {'auth_url': CONF.keystone_authtoken.auth_uri,
-             'username': CONF.keystone_authtoken.admin_user,
-             'password': CONF.keystone_authtoken.admin_password,
-             'project_name': CONF.keystone_authtoken.admin_tenant_name,
-             'user_domain_name': "default",
-             'project_domain_name': "default"}
-        auth = v3.Password(auth_url=creds['auth_url'],
-                           username=creds['username'],
-                           password=creds['password'],
-                           project_name=creds['project_name'],
-                           user_domain_name=creds[
-                               'user_domain_name'],
-                           project_domain_name=creds[
-                               'project_domain_name'])
-        sess = session.Session(auth=auth)
-        # todo(jed) add class
-        wrapper = NovaWrapper(creds, session=sess)
+        keystone = Client()
+        wrapper = NovaWrapper(keystone.get_credentials(),
+                              session=keystone.get_session())
         instance = wrapper.find_instance(self.instance_uuid)
         if instance:
             project_id = getattr(instance, "tenant_id")

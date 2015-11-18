@@ -17,7 +17,13 @@
 # limitations under the License.
 #
 
+import abc
+import six
 
+
+@six.add_metaclass(abc.ABCMeta)
 class Applier(object):
+    @abc.abstractmethod
     def execute(self, action_plan_uuid):
-        raise NotImplementedError("Should have implemented this")
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover
