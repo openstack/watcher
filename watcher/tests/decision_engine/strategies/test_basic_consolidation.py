@@ -92,6 +92,14 @@ class TestBasicConsolidation(base.BaseTestCase):
         vm_7_score = 0.0
         self.assertEqual(sercon.calculate_score_vm(vm_7, cluster), vm_7_score)
 
+    def test_basic_consolidation_score_vm_disk(self):
+        cluster = self.fake_cluster.generate_scenario_5_with_vm_disk_0()
+        sercon = BasicConsolidation()
+        sercon.set_metrics_resource_collector(self.fake_metrics)
+        vm_0 = cluster.get_vm_from_id("VM_0")
+        vm_0_score = 0.0
+        self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
+
     def test_basic_consolidation_weight(self):
         cluster = self.fake_cluster.generate_scenario_1()
         sercon = BasicConsolidation()
