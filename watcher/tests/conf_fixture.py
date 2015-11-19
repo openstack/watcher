@@ -19,7 +19,10 @@ from oslo_config import cfg
 
 from watcher.common import config
 
-cfg.CONF.register_opt(cfg.StrOpt('host', default='localhost', help='host'))
+CONF = cfg.CONF
+CONF.import_opt('host', 'watcher.common.service')
+CONF.import_opt('connection', 'oslo_db.options', group='database')
+CONF.import_opt('sqlite_synchronous', 'oslo_db.options', group='database')
 
 
 class ConfFixture(fixtures.Fixture):

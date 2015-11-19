@@ -27,9 +27,9 @@ from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.decision_engine.framework.messaging.events import Events
 
-CONF = cfg.CONF
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 # Register options
 APPLIER_MANAGER_OPTS = [
@@ -51,7 +51,7 @@ APPLIER_MANAGER_OPTS = [
                help='The identifier used by watcher '
                     'module on the message broker')
 ]
-CONF = cfg.CONF
+
 opt_group = cfg.OptGroup(name='watcher_applier',
                          title='Options for the Applier messaging'
                                'core')

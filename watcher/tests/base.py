@@ -42,7 +42,7 @@ class BaseTestCase(testscenarios.WithScenarios, base.BaseTestCase):
         self.addCleanup(cfg.CONF.reset)
 
 
-class TestCase(base.BaseTestCase):
+class TestCase(BaseTestCase):
     """Test case base class for all unit tests."""
 
     def setUp(self):

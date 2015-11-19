@@ -49,8 +49,7 @@ CONF.register_opts(strategy_selector.WATCHER_GOALS_OPTS)
 
 def get_pecan_config():
     # Set up the pecan configuration
-    filename = api_config.__file__.replace('.pyc', '.py')
-    return pecan.configuration.conf_from_file(filename)
+    return pecan.configuration.conf_from_dict(api_config.PECAN_CONFIG)
 
 
 def setup_app(config=None):

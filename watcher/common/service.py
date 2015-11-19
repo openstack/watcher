@@ -128,4 +128,4 @@ def prepare_service(argv=[]):
     config.parse_args(argv)
     cfg.set_defaults(_options.log_opts,
                      default_log_levels=_DEFAULT_LOG_LEVELS)
-    log.setup(cfg.CONF, 'watcher')
+    log.setup(cfg.CONF, 'python-watcher')

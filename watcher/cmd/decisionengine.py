@@ -28,18 +28,13 @@ from watcher.decision_engine.framework.manager_decision_engine import \
     DecisionEngineManager
 from watcher import i18n
 
-cfg.CONF.import_opt('hostname',
-                    'watcher.metrics_engine.framework.'
-                    'datasources.influxdb_collector',
-                    group='watcher_influxdb_collector')
-
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
 _LI = i18n._LI
 
 
 def main():
-    cfg.CONF(sys.argv[1:], project='watcher')
+    cfg.CONF(sys.argv[1:], project='python-watcher')
     logging.setup(CONF, 'watcher')
 
     LOG.info(_LI('Starting server in PID %s') % os.getpid())

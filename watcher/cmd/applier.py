@@ -33,7 +33,7 @@ _LI = i18n._LI
 
 
 def main():
-    cfg.CONF(sys.argv[1:], project='watcher')
+    cfg.CONF(sys.argv[1:], project='python-watcher')
     logging.setup(CONF, 'watcher')
 
     LOG.info(_LI('Starting server in PID %s') % os.getpid())

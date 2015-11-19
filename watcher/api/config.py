@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import unicode_literals
+
 from oslo_config import cfg
 from watcher.api import hooks
 
@@ -42,5 +44,11 @@ app = {
 # WSME Configurations
 # See https://wsme.readthedocs.org/en/latest/integrate.html#configuration
 wsme = {
-    'debug': cfg.CONF.debug,
+    'debug': cfg.CONF.get("debug") if "debug" in cfg.CONF else False,
+}
+
+PECAN_CONFIG = {
+    "server": server,
+    "app": app,
+    "wsme": wsme,
 }

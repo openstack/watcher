@@ -32,34 +32,38 @@ CONF = cfg.CONF
 
 class DBCommand(object):
 
-    def upgrade(self):
+    @staticmethod
+    def upgrade():
         migration.upgrade(CONF.command.revision)
 
-    def downgrade(self):
+    @staticmethod
+    def downgrade():
         migration.downgrade(CONF.command.revision)
 
-    def revision(self):
+    @staticmethod
+    def revision():
         migration.revision(CONF.command.message, CONF.command.autogenerate)
 
-    def stamp(self):
+    @staticmethod
+    def stamp():
         migration.stamp(CONF.command.revision)
 
-    def version(self):
+    @staticmethod
+    def version():
         print(migration.version())
 
-    def create_schema(self):
+    @staticmethod
+    def create_schema():
         migration.create_schema()
 
 
 def add_command_parsers(subparsers):
-    command_object = DBCommand()
-
     parser = subparsers.add_parser(
         'upgrade',
         help="Upgrade the database schema to the latest version. "
              "Optionally, use --revision to specify an alembic revision "
              "string to upgrade to.")
-    parser.set_defaults(func=command_object.upgrade)
+    parser.set_defaults(func=DBCommand.upgrade)
     parser.add_argument('--revision', nargs='?')
 
     parser = subparsers.add_parser(
@@ -67,12 +71,12 @@ def add_command_parsers(subparsers):
         help="Downgrade the database schema to the oldest revision. "
              "While optional, one should generally use --revision to "
              "specify the alembic revision string to downgrade to.")
-    parser.set_defaults(func=command_object.downgrade)
+    parser.set_defaults(func=DBCommand.downgrade)
     parser.add_argument('--revision', nargs='?')
 
     parser = subparsers.add_parser('stamp')
     parser.add_argument('--revision', nargs='?')
-    parser.set_defaults(func=command_object.stamp)
+    parser.set_defaults(func=DBCommand.stamp)
 
     parser = subparsers.add_parser(
         'revision',
@@ -80,17 +84,17 @@ def add_command_parsers(subparsers):
              "Use --message to set the message string.")
     parser.add_argument('-m', '--message')
     parser.add_argument('--autogenerate', action='store_true')
-    parser.set_defaults(func=command_object.revision)
+    parser.set_defaults(func=DBCommand.revision)
 
     parser = subparsers.add_parser(
         'version',
         help="Print the current version information and exit.")
-    parser.set_defaults(func=command_object.version)
+    parser.set_defaults(func=DBCommand.version)
 
     parser = subparsers.add_parser(
         'create_schema',
         help="Create the database schema.")
-    parser.set_defaults(func=command_object.create_schema)
+    parser.set_defaults(func=DBCommand.create_schema)
 
 
 command_opt = cfg.SubCommandOpt('command',
@@ -98,17 +102,20 @@ command_opt = cfg.SubCommandOpt('command',
                                 help='Available commands',
                                 handler=add_command_parsers)
 
-CONF.register_cli_opt(command_opt)
+
+def register_sub_command_opts():
+    cfg.CONF.register_cli_opt(command_opt)
 
 
 def main():
+    register_sub_command_opts()
     # this is hack to work with previous usage of watcher-dbsync
     # pls change it to watcher-dbsync upgrade
     valid_commands = set([
         'upgrade', 'downgrade', 'revision',
         'version', 'stamp', 'create_schema',
     ])
-    if not set(sys.argv) & valid_commands:
+    if not set(sys.argv).intersection(valid_commands):
         sys.argv.append('upgrade')
 
     service.prepare_service(sys.argv)
