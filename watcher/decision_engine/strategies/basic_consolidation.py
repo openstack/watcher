@@ -20,7 +20,7 @@ from oslo_log import log
 
 from watcher.common.exception import ClusterEmpty
 from watcher.common.exception import ClusteStateNotDefined
-from watcher.decision_engine.api.strategy.strategy import Strategy
+from watcher.decision_engine.api.strategy.strategy import BaseStrategy
 from watcher.decision_engine.api.strategy.strategy import StrategyLevel
 
 from watcher.decision_engine.framework.meta_actions.hypervisor_state import \
@@ -42,8 +42,12 @@ from watcher.metrics_engine.cluster_history.ceilometer import \
 LOG = log.getLogger(__name__)
 
 
-class BasicConsolidation(Strategy):
-    def __init__(self, name=None, description=None):
+class BasicConsolidation(BaseStrategy):
+
+    DEFAULT_NAME = "basic"
+    DEFAULT_DESCRIPTION = "Basic offline consolidation"
+
+    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         """Basic offline Consolidation using live migration
 
     The basic consolidation algorithm has several limitations.
@@ -217,6 +221,7 @@ class BasicConsolidation(Strategy):
     def calculate_weight(self, model, element, total_cores_used,
                          total_disk_used, total_memory_used):
         """Calculate weight of every
+
         :param model:
         :param element:
         :param total_cores_used:

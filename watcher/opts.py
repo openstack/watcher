@@ -23,7 +23,6 @@ from watcher.applier.framework import manager_applier
 import watcher.common.messaging.messaging_core
 
 from watcher.decision_engine.framework import manager
-from watcher.decision_engine.framework.strategy import strategy_loader
 from watcher.decision_engine.framework.strategy import strategy_selector
 
 
@@ -38,7 +37,6 @@ def list_opts():
         ('api', watcher.api.app.API_SERVICE_OPTS),
         ('watcher_messaging',
          watcher.common.messaging.messaging_core.WATCHER_MESSAGING_OPTS),
-        ('watcher_strategies', strategy_loader.WATCHER_STRATEGY_OPTS),
         ('watcher_goals', strategy_selector.WATCHER_GOALS_OPTS),
         ('watcher_decision_engine',
          manager.WATCHER_DECISION_ENGINE_OPTS),

@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from watcher.decision_engine.api.strategy.strategy import BaseStrategy
 from watcher.decision_engine.framework.strategy.strategy_loader import \
     StrategyLoader
 from watcher.tests import base
@@ -26,6 +27,7 @@ class TestStrategySelector(base.BaseTestCase):
         selected_strategy = self.strategy_loader.load(None)
         self.assertIsNotNone(selected_strategy,
                              'The default strategy be must not none')
+        self.assertIsInstance(selected_strategy, BaseStrategy)
 
     def test_load_strategy_is_basic(self):
         exptected_strategy = 'basic'
@@ -34,7 +36,3 @@ class TestStrategySelector(base.BaseTestCase):
             selected_strategy.name,
             exptected_strategy,
             'The default strategy should be basic')
-
-    def test_load_driver(self):
-        algo = self.strategy_loader.load_driver("basic")
-        self.assertEqual(algo._names[0], "basic")

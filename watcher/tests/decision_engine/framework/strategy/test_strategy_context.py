@@ -24,7 +24,7 @@ class FakeStrategy(object):
         self.name = "BALANCE_LOAD"
 
 
-class TestStrategyContextImpl(base.BaseTestCase):
+class TestStrategyContext(base.BaseTestCase):
     def test_add_remove_strategy(self):
         strategy = FakeStrategy()
         strategy_context = StrategyContext()

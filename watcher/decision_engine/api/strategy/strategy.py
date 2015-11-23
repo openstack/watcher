@@ -26,7 +26,7 @@ LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Strategy(object):
+class BaseStrategy(object):
     def __init__(self, name=None, description=None):
         self._name = name
         self.description = description
@@ -40,8 +40,10 @@ class Strategy(object):
     def execute(self, model):
         """Execute a strategy
 
-        :param model:
-        :return:
+        :param model: The name of the strategy to execute (loaded dynamically)
+        :type model: str
+        :return: A computed solution (via a placement algorithm)
+        :rtype: :class:`watcher.decision_engine.api.strategy.solution.Solution`
         """
 
     @property

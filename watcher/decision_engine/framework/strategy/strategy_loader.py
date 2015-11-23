@@ -16,53 +16,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from oslo_config import cfg
+
+from __future__ import unicode_literals
+
 from oslo_log import log
-from stevedore import driver
+from stevedore import ExtensionManager
 from watcher.decision_engine.strategies.basic_consolidation import \
     BasicConsolidation
 
 LOG = log.getLogger(__name__)
-CONF = cfg.CONF
-
-strategies = {
-    'basic': 'watcher.decision_engine.strategies.'
-             'basic_consolidation::BasicConsolidation'
-}
-WATCHER_STRATEGY_OPTS = [
-    cfg.DictOpt('strategies',
-                default=strategies,
-                help='Strategies used for the optimization ')
-]
-strategies_opt_group = cfg.OptGroup(
-    name='watcher_strategies',
-    title='Defines strategies available for the optimization')
-CONF.register_group(strategies_opt_group)
-CONF.register_opts(WATCHER_STRATEGY_OPTS, strategies_opt_group)
 
 
 class StrategyLoader(object):
 
-    def __init__(self):
-        '''Stevedor loader
+    default_strategy_cls = BasicConsolidation
 
-        :return:
-        '''
-
-        self.strategies = {
-            None: BasicConsolidation("basic", "Basic offline consolidation"),
-            "basic": BasicConsolidation(
-                "basic",
-                "Basic offline consolidation")
-        }
-
-    def load_driver(self, algo):
-        _algo = driver.DriverManager(
+    def load_strategies(self):
+        extension_manager = ExtensionManager(
             namespace='watcher_strategies',
-            name=algo,
             invoke_on_load=True,
         )
-        return _algo
+        return {ext.name: ext.plugin for ext in extension_manager.extensions}
 
     def load(self, model):
-        return self.strategies[model]
+        strategy = None
+        try:
+            available_strategies = self.load_strategies()
+            strategy_cls = available_strategies.get(
+                model, self.default_strategy_cls
+            )
+            strategy = strategy_cls()
+        except Exception as exc:
+            LOG.exception(exc)
+
+        return strategy
