@@ -22,6 +22,7 @@ Introduction
 
   dev/architecture
   dev/contributing
+  dev/plugins
 
 
 API References

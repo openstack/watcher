@@ -27,6 +27,10 @@ LOG = log.getLogger(__name__)
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseStrategy(object):
+    """A Strategy is an algorithm implementation which is able to find a
+    Solution for a given Goal.
+    """
+
     def __init__(self, name=None, description=None):
         self._name = name
         self.description = description
