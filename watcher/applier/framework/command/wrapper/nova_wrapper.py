@@ -27,19 +27,22 @@ import cinderclient.v2.client as ciclient
 import glanceclient.v2.client as glclient
 import keystoneclient.v3.client as ksclient
 import neutronclient.neutron.client as netclient
+import novaclient.client as nvclient
 import novaclient.exceptions as nvexceptions
-import novaclient.v2.client as nvclient
 
 LOG = log.getLogger(__name__)
 
 
 class NovaWrapper(object):
+    NOVA_CLIENT_API_VERSION = "2"
+
     def __init__(self, creds, session):
         self.user = creds['username']
         self.session = session
         self.neutron = None
         self.cinder = None
-        self.nova = nvclient.Client("3", session=session)
+        self.nova = nvclient.Client(self.NOVA_CLIENT_API_VERSION,
+                                    session=session)
         self.keystone = ksclient.Client(**creds)
         self.glance = None
 

@@ -19,13 +19,13 @@ import copy
 
 from oslo_log import log as logging
 import oslo_messaging as messaging
+from oslo_utils import versionutils
 import six
 
 from watcher.common import exception
 from watcher.common.i18n import _
 from watcher.common.i18n import _LE
 from watcher.objects import utils as obj_utils
-from watcher.openstack.common import versionutils
 
 
 LOG = logging.getLogger('object')

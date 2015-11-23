@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import eventlet
-from oslo import messaging
 from oslo_log import log
+import oslo_messaging as messaging
 
 from watcher.common.messaging.utils.observable import \
     Observable
