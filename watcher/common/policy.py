@@ -18,7 +18,7 @@
 from oslo_concurrency import lockutils
 from oslo_config import cfg
 
-from watcher.openstack.common import policy
+from oslo_policy import policy
 
 _ENFORCER = None
 CONF = cfg.CONF

@@ -21,14 +21,6 @@ from oslo_log import log
 
 LOG = log.getLogger(__name__)
 
-service_opts = [
-    cfg.StrOpt('dummy',
-               default="dummy string",
-               help='help dummy')
-]
-
-cfg.CONF.register_opts(service_opts)
-
 
 def prepare_service(args=None, conf=cfg.CONF):
     log.register_options(conf)

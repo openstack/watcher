@@ -15,9 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-from oslo_log import _options
-
 import watcher.api.app
 from watcher.applier.framework import manager_applier
 import watcher.common.messaging.messaging_core
@@ -29,12 +26,6 @@ from watcher.decision_engine.strategy.selector import default \
 
 def list_opts():
     return [
-        ('DEFAULT', itertools.chain(
-            _options.generic_log_opts,
-            _options.log_opts,
-            _options.common_cli_opts,
-            _options.logging_cli_opts
-        )),
         ('api', watcher.api.app.API_SERVICE_OPTS),
         ('watcher_messaging',
          watcher.common.messaging.messaging_core.WATCHER_MESSAGING_OPTS),
