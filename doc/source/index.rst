@@ -22,7 +22,7 @@ Introduction
   :maxdepth: 1
 
   dev/glossary
-  dev/architecture
+  architecture
   dev/environment
   dev/contributing
   dev/plugins
