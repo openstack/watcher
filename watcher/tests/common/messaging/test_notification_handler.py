@@ -16,7 +16,7 @@
 
 
 import mock
-from oslo import messaging
+import oslo_messaging as messaging
 from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.common.messaging.utils.observable import Observable
 from watcher.tests import base

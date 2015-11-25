@@ -18,7 +18,7 @@
 #
 
 import mock
-import oslo.messaging as om
+import oslo_messaging as om
 from watcher.applier.framework.rpcapi import ApplierAPI
 
 from watcher.common import exception

@@ -15,7 +15,7 @@
 # limitations under the License.
 
 import mock
-import oslo.messaging as om
+import oslo_messaging as om
 from watcher.common import exception
 from watcher.common import utils
 from watcher.decision_engine.framework.rpcapi import DecisionEngineAPI

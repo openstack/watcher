@@ -17,10 +17,11 @@
 import signal
 import socket
 
-from oslo import messaging
 from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
+import oslo_messaging as messaging
+from oslo_service import service
 from oslo_utils import importutils
 
 from watcher.common import config
@@ -29,7 +30,6 @@ from watcher.common.i18n import _LE
 from watcher.common.i18n import _LI
 from watcher.common import rpc
 from watcher.objects import base as objects_base
-from watcher.openstack.common import service
 
 
 service_opts = [
@@ -125,6 +125,7 @@ _DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
 
 
 def prepare_service(argv=[]):
+    log.register_options(cfg.CONF)
     config.parse_args(argv)
     cfg.set_defaults(_options.log_opts,
                      default_log_levels=_DEFAULT_LOG_LEVELS)

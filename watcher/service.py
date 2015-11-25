@@ -31,7 +31,7 @@ cfg.CONF.register_opts(service_opts)
 
 
 def prepare_service(args=None, conf=cfg.CONF):
-    # log.register_options(conf)
+    log.register_options(conf)
     log.setup(conf, 'watcher')
     conf(args, project='python-watcher')
     conf.log_opt_values(LOG, logging.DEBUG)

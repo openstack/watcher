@@ -23,6 +23,7 @@ import sys
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from watcher.common import service
 from watcher.decision_engine.framework.manager import DecisionEngineManager
 
 from watcher import i18n
@@ -34,8 +35,7 @@ _LI = i18n._LI
 
 
 def main():
-    cfg.CONF(sys.argv[1:], project='python-watcher')
-    logging.setup(CONF, 'watcher')
+    service.prepare_service(sys.argv)
 
     LOG.info(_LI('Starting server in PID %s') % os.getpid())
     LOG.debug("Configuration:")
