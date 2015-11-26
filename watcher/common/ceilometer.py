@@ -16,34 +16,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from urlparse import urlparse
 
 from ceilometerclient import client
 from ceilometerclient.exc import HTTPUnauthorized
 from watcher.common import keystone
 
 
-class Client(object):
-    # todo olso conf: this must be sync with ceilometer
-    CEILOMETER_API_VERSION = '2'
+class CeilometerClient(object):
+    def __init__(self, api_version='2'):
+        self._cmclient = None
+        self._api_version = api_version
 
-    def __init__(self):
-        ksclient = keystone.Client()
-        self.creds = ksclient.get_credentials()
-        self.creds['os_auth_token'] = ksclient.get_token()
-        self.creds['token'] = ksclient.get_token()
-        self.creds['ceilometer_url'] = "http://" + urlparse(
-            ksclient.get_endpoint(
-                service_type='metering',
-                endpoint_type='publicURL')).netloc
-        self.connect()
-
-    def connect(self):
+    @property
+    def cmclient(self):
         """Initialization of Ceilometer client."""
-        self.cmclient = client.get_client(self.CEILOMETER_API_VERSION,
-                                          **self.creds)
+        if not self._cmclient:
+            ksclient = keystone.KeystoneClient()
+            creds = ksclient.get_credentials()
+            endpoint = ksclient.get_endpoint(
+                service_type='metering',
+                endpoint_type='publicURL')
+            self._cmclient = client.get_client(self._api_version,
+                                               ceilometer_url=endpoint,
+                                               **creds)
+        return self._cmclient
 
-    def build_query(user_id=None, tenant_id=None, resource_id=None,
+    def build_query(self, user_id=None, tenant_id=None, resource_id=None,
                     user_ids=None, tenant_ids=None, resource_ids=None):
         """Returns query built from given parameters.
         This query can be then used for querying resources, meters and
@@ -78,37 +76,32 @@ class Client(object):
 
         return query
 
-    def query_sample(self, meter_name, query, limit=1):
+    def query_retry(self, f, *args, **kargs):
         try:
-            samples = self.ceilometerclient().samples.list(
-                meter_name=meter_name,
-                limit=limit,
-                q=query)
+            return f(*args, **kargs)
         except HTTPUnauthorized:
-            self.connect()
-            samples = self.ceilometerclient().samples.list(
-                meter_name=meter_name,
-                limit=limit,
-                q=query)
+            self.reset_client()
+            return f(*args, **kargs)
         except Exception:
             raise
-        return samples
 
-    def get_endpoint(self, service_type, endpoint_type=None):
-        ksclient = keystone.Client()
-        endpoint = ksclient.get_endpoint(service_type=service_type,
-                                         endpoint_type=endpoint_type)
-        return endpoint
+    def query_sample(self, meter_name, query, limit=1):
+        return self.query_retry(f=self.cmclient.samples.list,
+                                meter_name=meter_name,
+                                limit=limit,
+                                q=query)
 
     def statistic_list(self, meter_name, query=None, period=None):
         """List of statistics."""
-        statistics = self.ceilometerclient().statistics.list(
-            meter_name=meter_name, q=query, period=period)
+        statistics = self.cmclient.statistics.list(
+            meter_name=meter_name,
+            q=query,
+            period=period)
         return statistics
 
     def meter_list(self, query=None):
         """List the user's meters."""
-        meters = self.ceilometerclient().meters.list(query)
+        meters = self.query_retry(f=self.cmclient.meters.list, query=query)
         return meters
 
     def statistic_aggregation(self,
@@ -129,25 +122,14 @@ class Client(object):
         """Representing a statistic aggregate by operators"""
 
         query = self.build_query(resource_id=resource_id)
-        try:
-            statistic = self.cmclient.statistics.list(
-                meter_name=meter_name,
-                q=query,
-                period=period,
-                aggregates=[
-                    {'func': aggregate}],
-                groupby=['resource_id'])
-        except HTTPUnauthorized:
-            self.connect()
-            statistic = self.cmclient.statistics.list(
-                meter_name=meter_name,
-                q=query,
-                period=period,
-                aggregates=[
-                    {'func': aggregate}],
-                groupby=['resource_id'])
-        except Exception:
-            raise
+        statistic = self.query_retry(f=self.cmclient.statistics.list,
+                                     meter_name=meter_name,
+                                     q=query,
+                                     period=period,
+                                     aggregates=[
+                                         {'func': aggregate}],
+                                     groupby=['resource_id'])
+
         item_value = None
         if statistic:
             item_value = statistic[-1]._info.get('aggregate').get('avg')
@@ -171,3 +153,6 @@ class Client(object):
             return samples[-1]._info['counter_volume']
         else:
             return False
+
+    def reset_client(self):
+        self._cmclient = None
