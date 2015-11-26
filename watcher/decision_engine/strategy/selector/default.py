@@ -16,23 +16,21 @@
 
 from oslo_config import cfg
 from oslo_log import log
+from watcher.common.exception import WatcherException
 from watcher.decision_engine.strategy.loader import StrategyLoader
 from watcher.decision_engine.strategy.selector.base import Selector
-from watcher.objects.audit_template import Goal
-
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
-goals = {
-    'SERVERS_CONSOLIDATION': 'basic',
-    'MINIMIZE_ENERGY_CONSUMPTION': 'basic',
-    'BALANCE_LOAD': 'basic',
-    'MINIMIZE_LICENSING_COST': 'basic',
-    'PREPARE_PLANNED_OPERATION': 'basic'
-}
+default_goals = {'DUMMY': 'dummy'}
+
 WATCHER_GOALS_OPTS = [
-    cfg.DictOpt('goals',
-                default=goals, help='Goals used for the optimization ')
+    cfg.DictOpt(
+        'goals',
+        default=default_goals,
+        help='Goals used for the optimization. '
+             'Maps each goal to an associated strategy (for example: '
+             'BASIC_CONSOLIDATION:basic, MY_GOAL:my_strategy_1)'),
 ]
 goals_opt_group = cfg.OptGroup(name='watcher_goals',
                                title='Goals available for the optimization')
@@ -46,8 +44,13 @@ class StrategySelector(Selector):
         self.strategy_loader = StrategyLoader()
 
     def define_from_goal(self, goal_name):
-        if goal_name is None:
-            goal_name = Goal.SERVERS_CONSOLIDATION
-
-        strategy_to_load = CONF.watcher_goals.goals[goal_name]
-        return self.strategy_loader.load(strategy_to_load)
+        strategy_to_load = None
+        try:
+            strategy_to_load = CONF.watcher_goals.goals[goal_name]
+            return self.strategy_loader.load(strategy_to_load)
+        except KeyError as exc:
+            LOG.exception(exc)
+            raise WatcherException(
+                "Incorrect mapping: could not find "
+                "associated strategy for '%s'" % goal_name
+            )

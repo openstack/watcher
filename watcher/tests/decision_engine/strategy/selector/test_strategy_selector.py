@@ -13,33 +13,37 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import mock
+from mock import patch
 from oslo_config import cfg
+from watcher.common.exception import WatcherException
 from watcher.decision_engine.strategy.loader import StrategyLoader
 from watcher.decision_engine.strategy.selector.default import StrategySelector
-from watcher.objects.audit_template import Goal
-from watcher.tests import base
-
+from watcher.tests.base import TestCase
 CONF = cfg.CONF
 
 
-class TestStrategySelector(base.BaseTestCase):
+class TestStrategySelector(TestCase):
 
     strategy_selector = StrategySelector()
 
-    def test_define_from_with_empty(self):
-        expected_goal = None
-        expected_strategy = \
-            CONF.watcher_goals.goals[Goal.SERVERS_CONSOLIDATION]
-        with mock.patch.object(StrategyLoader, 'load') as \
-                mock_call:
-                self.strategy_selector.define_from_goal(expected_goal)
-                mock_call.assert_called_once_with(expected_strategy)
-
-    def test_define_from_goal(self):
-        expected_goal = Goal.BALANCE_LOAD
+    @patch.object(StrategyLoader, 'load')
+    def test_define_from_goal(self, mock_call):
+        cfg.CONF.set_override(
+            'goals', {"DUMMY": "fake"}, group='watcher_goals'
+        )
+        expected_goal = 'DUMMY'
         expected_strategy = CONF.watcher_goals.goals[expected_goal]
-        with mock.patch.object(StrategyLoader, 'load') as \
-                mock_call:
-                self.strategy_selector.define_from_goal(expected_goal)
-                mock_call.assert_called_once_with(expected_strategy)
+        self.strategy_selector.define_from_goal(expected_goal)
+        mock_call.assert_called_once_with(expected_strategy)
+
+    @patch.object(StrategyLoader, 'load')
+    def test_define_from_goal_with_incorrect_mapping(self, mock_call):
+        cfg.CONF.set_override(
+            'goals', {}, group='watcher_goals'
+        )
+        self.assertRaises(
+            WatcherException,
+            self.strategy_selector.define_from_goal,
+            "DUMMY"
+        )
+        self.assertEqual(mock_call.call_count, 0)

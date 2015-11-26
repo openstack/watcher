@@ -379,7 +379,7 @@ class TestPost(api_base.FunctionalTest):
             wraps=self.dbapi.create_audit_template
         ) as cn_mock:
             audit_template_dict = api_utils.audit_template_post_data(
-                goal='SERVERS_CONSOLIDATION')
+                goal='DUMMY')
             response = self.post_json('/audit_templates', audit_template_dict)
             self.assertEqual(audit_template_dict['goal'],
                              response.json['goal'])
