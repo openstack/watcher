@@ -21,7 +21,7 @@ from six.moves.urllib import parse as urlparse
 from watcher.api.controllers.v1 import audit as api_audit
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher.decision_engine.framework import rpcapi as deapi
+from watcher.decision_engine import rpcapi as deapi
 from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils

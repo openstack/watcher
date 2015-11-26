@@ -19,16 +19,14 @@ from __future__ import unicode_literals
 from mock import patch
 from stevedore.extension import Extension
 from stevedore.extension import ExtensionManager
-from watcher.decision_engine.framework.strategy.strategy_loader import \
-    StrategyLoader
-from watcher.decision_engine.strategies.dummy_strategy import DummyStrategy
+from watcher.decision_engine.strategy.dummy_strategy import DummyStrategy
+from watcher.decision_engine.strategy.loader import StrategyLoader
 from watcher.tests import base
 
 
 class TestLoader(base.BaseTestCase):
 
-    @patch("watcher.decision_engine.framework.strategy."
-           "strategy_loader.ExtensionManager")
+    @patch("watcher.decision_engine.strategy.loader.ExtensionManager")
     def test_strategy_loader(self, m_extension_manager):
         dummy_strategy_name = "dummy"
         m_extension_manager.return_value = ExtensionManager.make_test_instance(

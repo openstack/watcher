@@ -30,7 +30,7 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.framework.rpcapi import DecisionEngineAPI
+from watcher.decision_engine.rpcapi import DecisionEngineAPI
 from watcher import objects
 
 

@@ -21,7 +21,7 @@ import types
 
 from mock import patch
 from oslo_config import cfg
-from watcher.decision_engine.framework.manager import DecisionEngineManager
+from watcher.decision_engine.manager import DecisionEngineManager
 from watcher.tests.base import BaseTestCase
 
 from watcher.cmd import decisionengine

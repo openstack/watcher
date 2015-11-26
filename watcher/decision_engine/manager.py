@@ -21,81 +21,73 @@ from concurrent.futures import ThreadPoolExecutor
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.applier.framework.messaging.trigger_action_plan import \
-    TriggerActionPlan
 from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
+from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
+from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
 from watcher.decision_engine.messaging.events import Events
-
+from watcher.decision_engine.strategy.context.default import StrategyContext
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
-# Register options
-APPLIER_MANAGER_OPTS = [
-    cfg.IntOpt('applier_worker', default='1', help='The number of worker'),
+WATCHER_DECISION_ENGINE_OPTS = [
     cfg.StrOpt('topic_control',
-               default='watcher.applier.control',
+               default='watcher.decision.control',
                help='The topic name used for'
                     'control events, this topic '
                     'used for rpc call '),
     cfg.StrOpt('topic_status',
-               default='watcher.applier.status',
+               default='watcher.decision.status',
                help='The topic name used for '
                     'status events, this topic '
                     'is used so as to notify'
                     'the others components '
                     'of the system'),
     cfg.StrOpt('publisher_id',
-               default='watcher.applier.api',
+               default='watcher.decision.api',
                help='The identifier used by watcher '
                     'module on the message broker')
 ]
-
-opt_group = cfg.OptGroup(name='watcher_applier',
-                         title='Options for the Applier messaging'
-                               'core')
-CONF.register_group(opt_group)
-CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
-
-CONF.import_opt('admin_user', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('admin_tenant_name', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('admin_password', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
+decision_engine_opt_group = cfg.OptGroup(
+    name='watcher_decision_engine',
+    title='Defines the parameters of the module decision engine')
+CONF.register_group(decision_engine_opt_group)
+CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class ApplierManager(MessagingCore):
+class DecisionEngineManager(MessagingCore):
     API_VERSION = '1.0'
-    # todo(jed) need workflow
 
     def __init__(self):
-        MessagingCore.__init__(self, CONF.watcher_applier.publisher_id,
-                               CONF.watcher_applier.topic_control,
-                               CONF.watcher_applier.topic_status)
-        # shared executor of the workflow
-        self.executor = ThreadPoolExecutor(max_workers=1)
+        MessagingCore.__init__(self, CONF.watcher_decision_engine.publisher_id,
+                               CONF.watcher_decision_engine.topic_control,
+                               CONF.watcher_decision_engine.topic_status)
         self.handler = NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.add_event_listener(Events.ALL, self.event_receive)
-        # trigger action_plan
-        self.topic_control.add_endpoint(TriggerActionPlan(self))
+        # todo(jed) oslo_conf
+        self.executor = ThreadPoolExecutor(max_workers=2)
+        self.topic_control.add_endpoint(AuditEndpoint(self))
+        self.context = StrategyContext(self)
 
     def join(self):
         self.topic_control.join()
         self.topic_status.join()
 
+    # TODO(ebe): Producer / consumer
     def event_receive(self, event):
         try:
             request_id = event.get_request_id()
             event_type = event.get_type()
             data = event.get_data()
-            LOG.debug("request id => %s" % request_id)
-            LOG.debug("type_event => %s" % str(event_type))
+            LOG.debug("request id => %s" % event.get_request_id())
+            LOG.debug("type_event => %s" % str(event.get_type()))
             LOG.debug("data       => %s" % str(data))
+
+            event_consumer = EventConsumerFactory().factory(event_type)
+            event_consumer.messaging = self
+            event_consumer.execute(request_id, data)
         except Exception as e:
             LOG.error("evt %s" % e.message)
             raise e

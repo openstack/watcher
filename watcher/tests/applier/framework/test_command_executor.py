@@ -22,7 +22,7 @@ from watcher.applier.framework.command_executor import CommandExecutor
 from watcher import objects
 
 from watcher.common import utils
-from watcher.decision_engine.framework.default_planner import Primitives
+from watcher.decision_engine.planner.default import Primitives
 from watcher.objects.action import Action
 from watcher.objects.action import Status
 from watcher.tests.db.base import DbTestCase

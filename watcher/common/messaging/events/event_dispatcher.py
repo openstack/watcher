@@ -16,7 +16,7 @@
 
 from oslo_log import log
 
-from watcher.decision_engine.framework.messaging.events import Events
+from watcher.decision_engine.messaging.events import Events
 
 LOG = log.getLogger(__name__)
 

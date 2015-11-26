@@ -26,7 +26,7 @@ from watcher.applier.framework.command.nop_command import NopCommand
 from watcher.applier.framework.command.power_state_command import \
     PowerStateCommand
 from watcher.common.exception import ActionNotFound
-from watcher.decision_engine.framework.default_planner import Primitives
+from watcher.decision_engine.planner.default import Primitives
 
 
 class DefaultCommandMapper(CommandMapper):

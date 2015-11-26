@@ -24,7 +24,7 @@ import sys
 from oslo_config import cfg
 from oslo_log import log as logging
 from watcher.common import service
-from watcher.decision_engine.framework.manager import DecisionEngineManager
+from watcher.decision_engine.manager import DecisionEngineManager
 
 from watcher import i18n
 

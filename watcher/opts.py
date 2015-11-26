@@ -22,8 +22,9 @@ import watcher.api.app
 from watcher.applier.framework import manager_applier
 import watcher.common.messaging.messaging_core
 
-from watcher.decision_engine.framework import manager
-from watcher.decision_engine.framework.strategy import strategy_selector
+from watcher.decision_engine import manager
+from watcher.decision_engine.strategy.selector import default \
+    as strategy_selector
 
 
 def list_opts():

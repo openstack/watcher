@@ -17,7 +17,7 @@ from mock import call
 from mock import MagicMock
 from watcher.common.messaging.events.event import Event
 from watcher.common.messaging.events.event_dispatcher import EventDispatcher
-from watcher.decision_engine.framework.messaging.events import Events
+from watcher.decision_engine.messaging.events import Events
 from watcher.tests import base
 
 

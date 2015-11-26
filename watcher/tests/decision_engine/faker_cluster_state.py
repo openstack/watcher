@@ -19,11 +19,11 @@
 
 import random
 
-from watcher.decision_engine.framework.model.hypervisor import Hypervisor
-from watcher.decision_engine.framework.model.model_root import ModelRoot
-from watcher.decision_engine.framework.model.resource import Resource
-from watcher.decision_engine.framework.model.resource import ResourceType
-from watcher.decision_engine.framework.model.vm import VM
+from watcher.decision_engine.model.hypervisor import Hypervisor
+from watcher.decision_engine.model.model_root import ModelRoot
+from watcher.decision_engine.model.resource import Resource
+from watcher.decision_engine.model.resource import ResourceType
+from watcher.decision_engine.model.vm import VM
 from watcher.metrics_engine.cluster_model_collector.api import \
     BaseClusterModelCollector
 

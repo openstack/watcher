@@ -25,7 +25,7 @@ from watcher.applier.api.primitive_command import PrimitiveCommand
 from watcher.applier.api.promise import Promise
 from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
 from watcher.common.keystone import Client
-from watcher.decision_engine.framework.default_planner import Primitives
+from watcher.decision_engine.planner.default import Primitives
 
 CONF = cfg.CONF
 

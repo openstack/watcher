@@ -19,7 +19,7 @@
 import mock
 from watcher.applier.framework.default_command_mapper import \
     DefaultCommandMapper
-from watcher.decision_engine.framework.default_planner import Primitives
+from watcher.decision_engine.planner.default import Primitives
 from watcher.tests import base
 
 
