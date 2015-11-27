@@ -119,3 +119,65 @@ there are no guarantees that utilizing them as is will be supported, as
 they may require a set of metrics which is not yet available within the
 Telemetry service. In such a case, please do make sure that you first
 check/configure the latter so your new strategy can be fully functional.
+
+Querying metrics
+~~~~~~~~~~~~~~~~
+
+The metrics available depend on the hypervisors that OpenStack manages on
+the specific implementation. You can find the metrics available per hypervisor
+and OpenStack release on the OpenStack site.
+
+There are different possible ways to obtain usage metrics in Watcher, you can
+use the default Ceilometer API or our Helper.
+The Helper attempted to make the Ceilometer API more reusable and easy to use.
+
+Read usage metrics using the Python binding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can find the information about the Ceilometer Python binding on the
+OpenStack `ceilometer client python API documentation
+<http://docs.openstack.org/developer/python-ceilometerclient/api.html>`_
+
+The first step is to authenticate against the Ceilometer service
+(assuming that you already imported the Ceilometer client for Python)
+with this call:
+
+.. code-block:: py
+
+ cclient = ceilometerclient.client.get_client(VERSION, os_username=USERNAME,
+  os_password=PASSWORD, os_tenant_name=PROJECT_NAME, os_auth_url=AUTH_URL)
+
+Using that you can now query the values for that specific metric:
+
+.. code-block:: py
+
+ value_cpu = cclient.samples.list(meter_name='cpu_util', limit=10, q=query)
+
+Read usage metrics using the Watcher Cluster History Helper
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here below is the abstract ``BaseClusterHistory`` class of the Helper.
+
+.. automodule:: watcher.metrics_engine.cluster_history.api
+    :noindex:
+
+.. autoclass:: BaseClusterHistory
+    :members:
+
+
+The following snippet code shows how to create a Cluster History class:
+
+.. code-block:: py
+
+    query_history  = CeilometerClusterHistory()
+
+Using that you can now query the values for that specific metric:
+
+.. code-block:: py
+
+    query_history.statistic_aggregation(resource_id=hypervisor.uuid,
+                                  meter_name='compute.node.cpu.percent',
+                                  period="7200",
+                                  aggregate='avg'
+                                  )
+
