@@ -16,16 +16,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.applier.framework.manager_applier import ApplierManager
-from watcher.common.messaging.events.event import Event
-from watcher.tests import base
+from watcher.applier.primitive.base import PrimitiveCommand
+from watcher.applier.promise import Promise
 
 
-class TestApplierManager(base.TestCase):
-    def setUp(self):
-        super(TestApplierManager, self).setUp()
-        self.applier = ApplierManager()
+class PowerStateCommand(PrimitiveCommand):
+    def __init__(self):
+        pass
 
-    def test_evt(self):
-        e = Event()
-        self.applier.event_receive(e)
+    @Promise
+    def execute(self):
+        pass
+
+    @Promise
+    def undo(self):
+        # TODO(jde): migrate VM from  target_hypervisor
+        # to current_hypervisor in model
+        return True

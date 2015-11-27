@@ -20,9 +20,9 @@
 
 from oslo_config import cfg
 
-from watcher.applier.api.primitive_command import PrimitiveCommand
-from watcher.applier.api.promise import Promise
-from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.applier.primitive.base import PrimitiveCommand
+from watcher.applier.primitive.wrapper.nova_wrapper import NovaWrapper
+from watcher.applier.promise import Promise
 
 from watcher.common.keystone import KeystoneClient
 from watcher.decision_engine.model.hypervisor_state import HypervisorState

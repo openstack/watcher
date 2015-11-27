@@ -18,8 +18,7 @@
 #
 from oslo_log import log
 
-from watcher.applier.framework.messaging.launch_action_plan import \
-    LaunchActionPlanCommand
+from watcher.applier.messaging.launcher import LaunchActionPlanCommand
 
 LOG = log.getLogger(__name__)
 

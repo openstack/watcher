@@ -24,7 +24,7 @@ import sys
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from watcher.applier.framework.manager_applier import ApplierManager
+from watcher.applier.manager import ApplierManager
 from watcher.common import service
 from watcher import i18n
 

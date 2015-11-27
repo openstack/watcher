@@ -21,8 +21,8 @@ from oslo_log import log
 import oslo_messaging as om
 
 
-from watcher.applier.framework.manager_applier import APPLIER_MANAGER_OPTS
-from watcher.applier.framework.manager_applier import opt_group
+from watcher.applier.manager import APPLIER_MANAGER_OPTS
+from watcher.applier.manager import opt_group
 from watcher.common import exception
 from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler

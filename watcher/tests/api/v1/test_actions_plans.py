@@ -17,7 +17,7 @@ from oslo_utils import timeutils
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action_plan as api_action_plan
-from watcher.applier.framework import rpcapi as aapi
+from watcher.applier import rpcapi as aapi
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher import objects

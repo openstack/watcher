@@ -18,7 +18,7 @@
 #
 import mock
 
-from watcher.applier.framework.command_executor import CommandExecutor
+from watcher.applier.execution.executor import CommandExecutor
 from watcher import objects
 
 from watcher.common import utils

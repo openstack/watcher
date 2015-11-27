@@ -19,8 +19,7 @@
 
 
 from mock import MagicMock
-from watcher.applier.framework.messaging.trigger_action_plan import \
-    TriggerActionPlan
+from watcher.applier.messaging.trigger import TriggerActionPlan
 from watcher.common import utils
 from watcher.tests import base
 

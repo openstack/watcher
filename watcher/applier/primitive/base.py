@@ -18,7 +18,7 @@
 #
 import abc
 import six
-from watcher.applier.api.promise import Promise
+from watcher.applier.promise import Promise
 
 
 @six.add_metaclass(abc.ABCMeta)

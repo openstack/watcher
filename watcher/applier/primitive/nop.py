@@ -16,20 +16,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.applier.api.primitive_command import PrimitiveCommand
-from watcher.applier.api.promise import Promise
+
+from oslo_log import log
+
+from watcher.applier.primitive.base import PrimitiveCommand
+from watcher.applier.promise import Promise
 
 
-class PowerStateCommand(PrimitiveCommand):
+LOG = log.getLogger(__name__)
+
+
+class NopCommand(PrimitiveCommand):
     def __init__(self):
         pass
 
     @Promise
     def execute(self):
-        pass
+        LOG.debug("executing NOP command")
+        return True
 
     @Promise
     def undo(self):
-        # TODO(jde): migrate VM from  target_hypervisor
-        # to current_hypervisor in model
+        LOG.debug("undo NOP command")
         return True
