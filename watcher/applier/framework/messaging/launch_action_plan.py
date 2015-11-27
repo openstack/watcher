@@ -30,6 +30,7 @@ LOG = log.getLogger(__name__)
 
 class LaunchActionPlanCommand(ApplierCommand):
     def __init__(self, context, manager_applier, action_plan_uuid):
+        super(LaunchActionPlanCommand, self).__init__()
         self.ctx = context
         self.action_plan_uuid = action_plan_uuid
         self.manager_applier = manager_applier
