@@ -75,8 +75,9 @@ class TriggerAuditCommand(BaseDecisionEngineCommand):
             planner = DefaultPlanner()
             planner.schedule(request_context, audit.id, solution)
 
-            # 7 - change status to SUCCESS and notify
-            self.update_audit(request_context, audit_uuid, AuditStatus.SUCCESS)
+            # 7 - change status to SUCCEEDED and notify
+            self.update_audit(request_context, audit_uuid,
+                              AuditStatus.SUCCEEDED)
         except Exception as e:
             self.update_audit(request_context, audit_uuid, AuditStatus.FAILED)
             LOG.error("Execute audit command {0} ".format(unicode(e)))

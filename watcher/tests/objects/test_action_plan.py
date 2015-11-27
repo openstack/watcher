@@ -97,13 +97,13 @@ class TestActionPlanObject(base.DbTestCase):
                                    autospec=True) as mock_update_action_plan:
                 action_plan = objects.ActionPlan.get_by_uuid(
                     self.context, uuid)
-                action_plan.state = 'SUCCESS'
+                action_plan.state = 'SUCCEEDED'
                 action_plan.save()
 
                 mock_get_action_plan.assert_called_once_with(
                     self.context, uuid)
                 mock_update_action_plan.assert_called_once_with(
-                    uuid, {'state': 'SUCCESS'})
+                    uuid, {'state': 'SUCCEEDED'})
                 self.assertEqual(self.context, action_plan._context)
 
     def test_refresh(self):

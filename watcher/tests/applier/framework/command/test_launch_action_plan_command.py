@@ -52,7 +52,7 @@ class TestLaunchActionPlanCommand(DbTestCase):
         command.execute()
         action_plan = ActionPlan.get_by_uuid(self.context,
                                              self.action_plan.uuid)
-        self.assertEqual(Status.SUCCESS, action_plan.state)
+        self.assertEqual(Status.SUCCEEDED, action_plan.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = MagicMock()
@@ -63,10 +63,10 @@ class TestLaunchActionPlanCommand(DbTestCase):
         call_on_going = call(Events.LAUNCH_ACTION_PLAN.name, {
             'action_plan_status': Status.ONGOING,
             'action_plan__uuid': self.action_plan.uuid})
-        call_success = call(Events.LAUNCH_ACTION_PLAN.name, {
-            'action_plan_status': Status.SUCCESS,
+        call_succeeded = call(Events.LAUNCH_ACTION_PLAN.name, {
+            'action_plan_status': Status.SUCCEEDED,
             'action_plan__uuid': self.action_plan.uuid})
 
-        calls = [call_on_going, call_success]
+        calls = [call_on_going, call_succeeded]
         messaging.topic_status.publish_event.assert_has_calls(calls)
         self.assertEqual(2, messaging.topic_status.publish_event.call_count)

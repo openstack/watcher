@@ -93,12 +93,12 @@ class TestActionObject(base.DbTestCase):
             with mock.patch.object(self.dbapi, 'update_action',
                                    autospec=True) as mock_update_action:
                 action = objects.Action.get_by_uuid(self.context, uuid)
-                action.state = 'SUCCESS'
+                action.state = 'SUCCEEDED'
                 action.save()
 
                 mock_get_action.assert_called_once_with(self.context, uuid)
                 mock_update_action.assert_called_once_with(
-                    uuid, {'state': 'SUCCESS'})
+                    uuid, {'state': 'SUCCEEDED'})
                 self.assertEqual(self.context, action._context)
 
     def test_refresh(self):

@@ -64,7 +64,7 @@ class CommandExecutor(object):
                     return False
                 else:
                     self.deploy.populate(primitive)
-                    self.notify(action, Status.SUCCESS)
+                    self.notify(action, Status.SUCCEEDED)
             except Exception as e:
                 LOG.debug(
                     'The applier module failed to execute the action{0}  with '

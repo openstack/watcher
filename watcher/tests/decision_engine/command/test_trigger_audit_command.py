@@ -49,7 +49,7 @@ class TestTriggerAuditCommand(DbTestCase):
         command.strategy_context.execute_strategy = MagicMock()
         command.execute(self.audit.uuid, self.context)
         audit = Audit.get_by_uuid(self.context, self.audit.uuid)
-        self.assertEqual(AuditStatus.SUCCESS, audit.state)
+        self.assertEqual(AuditStatus.SUCCEEDED, audit.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = MagicMock()
@@ -62,10 +62,10 @@ class TestTriggerAuditCommand(DbTestCase):
         call_on_going = call(Events.TRIGGER_AUDIT.name, {
             'audit_status': AuditStatus.ONGOING,
             'audit_uuid': self.audit.uuid})
-        call_success = call(Events.TRIGGER_AUDIT.name, {
-            'audit_status': AuditStatus.SUCCESS,
+        call_succeeded = call(Events.TRIGGER_AUDIT.name, {
+            'audit_status': AuditStatus.SUCCEEDED,
             'audit_uuid': self.audit.uuid})
 
-        calls = [call_on_going, call_success]
+        calls = [call_on_going, call_succeeded]
         messaging.topic_status.publish_event.assert_has_calls(calls)
         self.assertEqual(2, messaging.topic_status.publish_event.call_count)

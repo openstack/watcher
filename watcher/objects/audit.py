@@ -24,7 +24,7 @@ from watcher.objects import utils as obj_utils
 
 class AuditStatus(object):
     ONGOING = 'ONGOING'
-    SUCCESS = 'SUCCESS'
+    SUCCEEDED = 'SUCCEEDED'
     SUBMITTED = 'SUBMITTED'
     FAILED = 'FAILED'
     CANCELLED = 'CANCELLED'

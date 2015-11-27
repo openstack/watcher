@@ -26,7 +26,7 @@ class Status(object):
     PENDING = 'PENDING'
     ONGOING = 'ONGOING'
     FAILED = 'FAILED'
-    SUCCESS = 'SUCCESS'
+    SUCCEEDED = 'SUCCEEDED'
     DELETED = 'DELETED'
     CANCELLED = 'CANCELLED'
 
