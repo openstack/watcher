@@ -24,6 +24,7 @@ from watcher.objects import ActionPlan
 
 class DefaultApplier(Applier):
     def __init__(self, manager_applier, context):
+        super(DefaultApplier, self).__init__()
         self.manager_applier = manager_applier
         self.context = context
         self.executor = CommandExecutor(manager_applier, context)
