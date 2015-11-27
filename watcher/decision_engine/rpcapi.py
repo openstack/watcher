@@ -58,6 +58,7 @@ class DecisionEngineAPI(MessagingCore):
 
         transport = om.get_transport(CONF, TransportUrlBuilder().url)
         target = om.Target(
+            exchange='watcher',
             topic=CONF.watcher_decision_engine.topic_control,
             version=MessagingCore.API_VERSION)
 
