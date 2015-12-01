@@ -21,14 +21,15 @@ from stevedore.extension import Extension
 from stevedore.extension import ExtensionManager
 from watcher.decision_engine.strategy.dummy_strategy import DummyStrategy
 from watcher.decision_engine.strategy.loader import StrategyLoader
-from watcher.tests import base
+from watcher.tests.base import TestCase
 
 
-class TestLoader(base.BaseTestCase):
+class TestStrategyLoader(TestCase):
 
     @patch("watcher.decision_engine.strategy.loader.ExtensionManager")
     def test_strategy_loader(self, m_extension_manager):
         dummy_strategy_name = "dummy"
+        # Set up the fake Stevedore extensions
         m_extension_manager.return_value = ExtensionManager.make_test_instance(
             extensions=[Extension(
                 name=dummy_strategy_name,
@@ -39,7 +40,13 @@ class TestLoader(base.BaseTestCase):
             )],
             namespace="watcher_strategies",
         )
-        # Set up the fake Stevedore extensions
+        strategy_loader = StrategyLoader()
+        loaded_strategy = strategy_loader.load("dummy")
+
+        self.assertEqual("dummy", loaded_strategy.name)
+        self.assertEqual("Dummy Strategy", loaded_strategy.description)
+
+    def test_load_dummy_strategy(self):
         strategy_loader = StrategyLoader()
         loaded_strategy = strategy_loader.load("dummy")
 

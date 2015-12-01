@@ -454,8 +454,10 @@
 # From watcher
 #
 
-# Goals used for the optimization  (dict value)
-#goals = BALANCE_LOAD:basic,MINIMIZE_ENERGY_CONSUMPTION:basic,MINIMIZE_LICENSING_COST:basic,PREPARE_PLANNED_OPERATION:basic,SERVERS_CONSOLIDATION:basic
+# Goals used for the optimization. Maps each goal to an associated
+# strategy (for example: BASIC_CONSOLIDATION:basic,
+# MY_GOAL:my_strategy_1) (dict value)
+#goals = DUMMY:dummy
 
 
 [watcher_messaging]

@@ -36,12 +36,9 @@ class TestTriggerAuditCommand(DbTestCase):
             audit_template_id=self.audit_template.id)
 
     def test_trigger_audit_without_errors(self):
-        try:
-            model_collector = FakerModelCollector()
-            command = TriggerAuditCommand(MagicMock(), model_collector)
-            command.execute(self.audit.uuid, self.context)
-        except Exception:
-            self.fail("The audit should be trigged without error")
+        model_collector = FakerModelCollector()
+        command = TriggerAuditCommand(MagicMock(), model_collector)
+        command.execute(self.audit.uuid, self.context)
 
     def test_trigger_audit_state_success(self):
         model_collector = FakerModelCollector()

@@ -23,14 +23,6 @@ from watcher.objects import base
 from watcher.objects import utils as obj_utils
 
 
-class Goal(object):
-    SERVERS_CONSOLIDATION = 'SERVERS_CONSOLIDATION'
-    MINIMIZE_ENERGY_CONSUMPTION = 'MINIMIZE_ENERGY_CONSUMPTION'
-    BALANCE_LOAD = 'BALANCE_LOAD'
-    MINIMIZE_LICENSING_COST = 'MINIMIZE_LICENSING_COST'
-    PREPARE_PLANNED_OPERATION = 'PREPARE_PLANNED_OPERATION'
-
-
 class AuditTemplate(base.WatcherObject):
     # Version 1.0: Initial version
     VERSION = '1.0'
