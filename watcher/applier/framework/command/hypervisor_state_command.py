@@ -23,9 +23,9 @@ from oslo_config import cfg
 from watcher.applier.api.primitive_command import PrimitiveCommand
 from watcher.applier.api.promise import Promise
 from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
-from watcher.common.keystone import Client
-from watcher.decision_engine.model.hypervisor_state import \
-    HypervisorState
+
+from watcher.common.keystone import KeystoneClient
+from watcher.decision_engine.model.hypervisor_state import HypervisorState
 
 CONF = cfg.CONF
 
@@ -36,7 +36,7 @@ class HypervisorStateCommand(PrimitiveCommand):
         self.status = status
 
     def nova_manage_service(self, status):
-        keystone = Client()
+        keystone = KeystoneClient()
         wrapper = NovaWrapper(keystone.get_credentials(),
                               session=keystone.get_session())
         if status is True:

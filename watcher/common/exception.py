@@ -282,6 +282,10 @@ class NoDataFound(BaseException):
         return self._desc
 
 
+class KeystoneFailure(WatcherException):
+    message = _("'Keystone API endpoint is missing''")
+
+
 class ClusterEmpty(WatcherException):
     message = _("The list of hypervisor(s) in the cluster is empty.'")
 
