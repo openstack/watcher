@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from oslo_config import cfg
 from oslo_log import log
 from watcher.common.messaging.events.event_dispatcher import \
@@ -28,60 +27,33 @@ from watcher.objects.base import WatcherObjectSerializer
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
-WATCHER_MESSAGING_OPTS = [
-    cfg.StrOpt('notifier_driver',
-               default='messaging', help='The name of the driver used by'
-                                         ' oslo messaging'),
-    cfg.StrOpt('executor',
-               default='blocking', help='The name of a message executor, for'
-                                        'example: eventlet, blocking'),
-    cfg.StrOpt('protocol',
-               default='rabbit', help='The protocol used by the message'
-                                      ' broker, for example rabbit'),
-    cfg.StrOpt('user',
-               default='guest', help='The username used by the message '
-                                     'broker'),
-    cfg.StrOpt('password',
-               default='guest', help='The password of user used by the '
-                                     'message broker'),
-    cfg.StrOpt('host',
-               default='localhost', help='The host where the message broker'
-                                         'is installed'),
-    cfg.StrOpt('port',
-               default='5672', help='The port used bythe message broker'),
-    cfg.StrOpt('virtual_host',
-               default='', help='The virtual host used by the message '
-                                'broker')
-]
-
-CONF = cfg.CONF
-opt_group = cfg.OptGroup(name='watcher_messaging',
-                         title='Options for the messaging core')
-CONF.register_group(opt_group)
-CONF.register_opts(WATCHER_MESSAGING_OPTS, opt_group)
-
 
 class MessagingCore(EventDispatcher):
+
     API_VERSION = '1.0'
 
-    def __init__(self, publisher_id, topic_control, topic_status):
-        EventDispatcher.__init__(self)
+    def __init__(self, publisher_id, topic_control, topic_status,
+                 api_version=API_VERSION):
+        super(MessagingCore, self).__init__()
         self.serializer = RequestContextSerializer(WatcherObjectSerializer())
         self.publisher_id = publisher_id
+        self.api_version = api_version
         self.topic_control = self.build_topic(topic_control)
         self.topic_status = self.build_topic(topic_status)
 
     def build_topic(self, topic_name):
         return MessagingHandler(self.publisher_id, topic_name, self,
-                                self.API_VERSION, self.serializer)
+                                self.api_version, self.serializer)
 
     def connect(self):
-        LOG.debug("connecting to rabbitMQ broker")
+        LOG.debug("Connecting to '%s' (%s)",
+                  CONF.transport_url, CONF.rpc_backend)
         self.topic_control.start()
         self.topic_status.start()
 
     def disconnect(self):
-        LOG.debug("Disconnect to rabbitMQ broker")
+        LOG.debug("Disconnecting from '%s' (%s)",
+                  CONF.transport_url, CONF.rpc_backend)
         self.topic_control.stop()
         self.topic_status.stop()
 
@@ -92,12 +64,12 @@ class MessagingCore(EventDispatcher):
         return self.topic_status.publish_event(event, payload, request_id)
 
     def get_version(self):
-        return self.API_VERSION
+        return self.api_version
 
     def check_api_version(self, context):
         api_manager_version = self.client.call(
             context.to_dict(), 'check_api_version',
-            api_version=self.API_VERSION)
+            api_version=self.api_version)
         return api_manager_version
 
     def response(self, evt, ctx, message):

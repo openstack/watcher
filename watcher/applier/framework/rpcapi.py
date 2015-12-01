@@ -24,13 +24,10 @@ import oslo_messaging as om
 from watcher.applier.framework.manager_applier import APPLIER_MANAGER_OPTS
 from watcher.applier.framework.manager_applier import opt_group
 from watcher.common import exception
-from watcher.common import utils
-
-
 from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
-from watcher.common.messaging.utils.transport_url_builder import \
-    TransportUrlBuilder
+from watcher.common import utils
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -39,19 +36,23 @@ CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
 class ApplierAPI(MessagingCore):
-    MessagingCore.API_VERSION = '1.0'
 
     def __init__(self):
-        MessagingCore.__init__(self, CONF.watcher_applier.publisher_id,
-                               CONF.watcher_applier.topic_control,
-                               CONF.watcher_applier.topic_status)
+        super(ApplierAPI, self).__init__(
+            CONF.watcher_applier.publisher_id,
+            CONF.watcher_applier.topic_control,
+            CONF.watcher_applier.topic_status,
+            api_version=self.API_VERSION,
+        )
         self.handler = NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.topic_status.add_endpoint(self.handler)
-        transport = om.get_transport(CONF, TransportUrlBuilder().url)
+        transport = om.get_transport(CONF)
+
         target = om.Target(
             topic=CONF.watcher_applier.topic_control,
-            version=MessagingCore.API_VERSION)
+            version=self.API_VERSION,
+        )
 
         self.client = om.RPCClient(transport, target,
                                    serializer=self.serializer)

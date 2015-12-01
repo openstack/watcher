@@ -57,12 +57,14 @@ CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
 class DecisionEngineManager(MessagingCore):
-    API_VERSION = '1.0'
 
     def __init__(self):
-        MessagingCore.__init__(self, CONF.watcher_decision_engine.publisher_id,
-                               CONF.watcher_decision_engine.topic_control,
-                               CONF.watcher_decision_engine.topic_status)
+        super(DecisionEngineManager, self).__init__(
+            CONF.watcher_decision_engine.publisher_id,
+            CONF.watcher_decision_engine.topic_control,
+            CONF.watcher_decision_engine.topic_status,
+            api_version=self.API_VERSION,
+        )
         self.handler = NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.add_event_listener(Events.ALL, self.event_receive)

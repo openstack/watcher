@@ -17,19 +17,14 @@
 # limitations under the License.
 #
 
-
 from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as om
 
 from watcher.common import exception
-from watcher.common import utils
-
-
 from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
-from watcher.common.messaging.utils.transport_url_builder import \
-    TransportUrlBuilder
+from watcher.common import utils
 from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.manager import decision_engine_opt_group
 from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
@@ -44,23 +39,24 @@ CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
 class DecisionEngineAPI(MessagingCore):
-    # This must be in sync with manager.DecisionEngineManager's.
-    MessagingCore.API_VERSION = '1.0'
 
     def __init__(self):
-        MessagingCore.__init__(self, CONF.watcher_decision_engine.publisher_id,
-                               CONF.watcher_decision_engine.topic_control,
-                               CONF.watcher_decision_engine.topic_status)
+        super(DecisionEngineAPI, self).__init__(
+            CONF.watcher_decision_engine.publisher_id,
+            CONF.watcher_decision_engine.topic_control,
+            CONF.watcher_decision_engine.topic_status,
+            api_version=self.API_VERSION,
+        )
         self.handler = NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.add_event_listener(Events.ALL, self.event_receive)
         self.topic_status.add_endpoint(self.handler)
 
-        transport = om.get_transport(CONF, TransportUrlBuilder().url)
+        transport = om.get_transport(CONF)
         target = om.Target(
-            exchange='watcher',
             topic=CONF.watcher_decision_engine.topic_control,
-            version=MessagingCore.API_VERSION)
+            version=self.API_VERSION,
+        )
 
         self.client = om.RPCClient(transport, target,
                                    serializer=self.serializer)

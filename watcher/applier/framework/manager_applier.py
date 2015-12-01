@@ -69,13 +69,15 @@ CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',
 
 
 class ApplierManager(MessagingCore):
-    API_VERSION = '1.0'
     # todo(jed) need workflow
 
     def __init__(self):
-        MessagingCore.__init__(self, CONF.watcher_applier.publisher_id,
-                               CONF.watcher_applier.topic_control,
-                               CONF.watcher_applier.topic_status)
+        super(ApplierManager, self).__init__(
+            CONF.watcher_applier.publisher_id,
+            CONF.watcher_applier.topic_control,
+            CONF.watcher_applier.topic_status,
+            api_version=self.API_VERSION,
+        )
         # shared executor of the workflow
         self.executor = ThreadPoolExecutor(max_workers=1)
         self.handler = NotificationHandler(self.publisher_id)
