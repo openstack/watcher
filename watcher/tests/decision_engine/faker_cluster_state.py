@@ -58,8 +58,11 @@ class FakerModelCollector(BaseClusterModelCollector):
 
         for i in range(0, count_node):
             node_uuid = "Node_{0}".format(i)
+
             hypervisor = Hypervisor()
             hypervisor.uuid = node_uuid
+            hypervisor.hostname = "host_{0}".format(i)
+
             mem.set_capacity(hypervisor, 132)
             disk.set_capacity(hypervisor, 250)
             num_cores.set_capacity(hypervisor, 40)
@@ -111,6 +114,7 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
@@ -182,6 +186,7 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
@@ -219,6 +224,8 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
+
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
@@ -281,6 +288,7 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
@@ -328,6 +336,7 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 1)
             disk.set_capacity(node, 1)
@@ -359,6 +368,7 @@ class FakerModelCollector(BaseClusterModelCollector):
             node_uuid = "Node_" + str(i)
             node = Hypervisor()
             node.uuid = node_uuid
+            node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 4)
             disk.set_capacity(node, 4)

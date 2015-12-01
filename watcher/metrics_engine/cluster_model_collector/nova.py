@@ -54,6 +54,7 @@ class NovaClusterModelCollector(BaseClusterModelCollector):
             # create hypervisor in cluster_model_collector
             hypervisor = Hypervisor()
             hypervisor.uuid = service.host
+            hypervisor.hostname = h.hypervisor_hostname
             # set capacity
             mem.set_capacity(hypervisor, h.memory_mb)
             disk.set_capacity(hypervisor, h.free_disk_gb)

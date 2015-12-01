@@ -13,12 +13,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from watcher.decision_engine.model.named_element import NamedElement
+from watcher.decision_engine.model.compute_resource import ComputeResource
 from watcher.decision_engine.model.vm_state import VMState
 
 
-class VM(NamedElement):
+class VM(ComputeResource):
     def __init__(self):
+        super(VM, self).__init__()
         self._state = VMState.ACTIVE.value
 
     @property

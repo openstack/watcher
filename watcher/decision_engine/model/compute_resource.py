@@ -15,11 +15,12 @@
 # limitations under the License.
 
 
-class NamedElement(object):
+class ComputeResource(object):
 
     def __init__(self):
         self._uuid = ""
         self._human_id = ""
+        self._hostname = ""
 
     @property
     def uuid(self):
@@ -28,6 +29,14 @@ class NamedElement(object):
     @uuid.setter
     def uuid(self, u):
         self._uuid = u
+
+    @property
+    def hostname(self):
+        return self._hostname
+
+    @hostname.setter
+    def hostname(self, h):
+        self._hostname = h
 
     @property
     def human_id(self):

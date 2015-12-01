@@ -257,8 +257,10 @@ class BasicConsolidation(BaseStrategy):
             :param model:
             :return:
             """
+        resource_id = "{0}_{1}".format(hypervisor.uuid,
+                                       hypervisor.hostname)
         cpu_avg_vm = self.ceilometer. \
-            statistic_aggregation(resource_id=hypervisor.uuid,
+            statistic_aggregation(resource_id=resource_id,
                                   meter_name='compute.node.cpu.percent',
                                   period="7200",
                                   aggregate='avg'
@@ -266,7 +268,7 @@ class BasicConsolidation(BaseStrategy):
         if cpu_avg_vm is None:
             LOG.error(
                 "No values returned for {0} compute.node.cpu.percent".format(
-                    hypervisor.uuid))
+                    resource_id))
             cpu_avg_vm = 100
 
         cpu_capacity = model.get_resource_from_id(

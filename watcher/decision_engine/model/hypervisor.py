@@ -13,13 +13,15 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from watcher.decision_engine.model.compute_resource import ComputeResource
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
-from watcher.decision_engine.model.named_element import NamedElement
 from watcher.decision_engine.model.power_state import PowerState
 
 
-class Hypervisor(NamedElement):
+class Hypervisor(ComputeResource):
     def __init__(self):
+        super(Hypervisor, self).__init__()
         self._state = HypervisorState.ONLINE
         self._status = HypervisorState.ENABLED
         self._power_state = PowerState.g0

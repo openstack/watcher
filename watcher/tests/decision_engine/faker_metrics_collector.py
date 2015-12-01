@@ -49,20 +49,20 @@ class FakerMetricsCollector(object):
         # Normalize
         mock = {}
         # node 0
-        mock['Node_0'] = 7
-        mock['Node_1'] = 7
+        mock['Node_0_hostname_0'] = 7
+        mock['Node_1_hostname_1'] = 7
         # node 1
-        mock['Node_2'] = 80
+        mock['Node_2_hostname_2'] = 80
         # node 2
-        mock['Node_3'] = 5
-        mock['Node_4'] = 5
-        mock['Node_5'] = 10
+        mock['Node_3_hostname_3'] = 5
+        mock['Node_4_hostname_4'] = 5
+        mock['Node_5_hostname_5'] = 10
 
         # node 3
-        mock['Node_6'] = 8
-        mock['Node_19'] = 10
+        mock['Node_6_hostname_6'] = 8
+        mock['Node_19_hostname_19'] = 10
         # node 4
-        mock['VM_7'] = 4
+        mock['VM_7_hostname_7'] = 4
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
