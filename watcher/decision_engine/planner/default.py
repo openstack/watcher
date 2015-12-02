@@ -49,10 +49,11 @@ class Primitives(Enum):
 
 
 priority_primitives = {
-    Primitives.HYPERVISOR_STATE.value: 0,
-    Primitives.LIVE_MIGRATE.value: 1,
-    Primitives.COLD_MIGRATE.value: 2,
-    Primitives.POWER_STATE.value: 3
+    Primitives.NOP.value: 0,
+    Primitives.HYPERVISOR_STATE.value: 1,
+    Primitives.LIVE_MIGRATE.value: 2,
+    Primitives.COLD_MIGRATE.value: 3,
+    Primitives.POWER_STATE.value: 4,
 }
 
 
