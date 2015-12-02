@@ -40,7 +40,7 @@ class TestDecisionEngineAPI(base.TestCase):
             mock_call.assert_called_once_with(
                 expected_context.to_dict(),
                 'check_api_version',
-                api_version=DecisionEngineAPI().API_VERSION)
+                api_version=DecisionEngineAPI().api_version)
 
     def test_execute_audit_throw_exception(self):
         audit_uuid = "uuid"

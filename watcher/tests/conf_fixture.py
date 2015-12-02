@@ -34,7 +34,6 @@ class ConfFixture(fixtures.Fixture):
     def setUp(self):
         super(ConfFixture, self).setUp()
 
-        self.conf.set_default('host', 'fake-mini')
         self.conf.set_default('connection', "sqlite://", group='database')
         self.conf.set_default('sqlite_synchronous', False, group='database')
         self.conf.set_default('verbose', True)

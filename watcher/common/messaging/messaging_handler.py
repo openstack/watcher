@@ -14,35 +14,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import socket
+
 import eventlet
 from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as om
 from threading import Thread
-from watcher.common.messaging.utils.transport_url_builder import \
-    TransportUrlBuilder
 from watcher.common.rpc import JsonPayloadSerializer
 from watcher.common.rpc import RequestContextSerializer
 
+# NOTE:
+# Ubuntu 14.04 forces librabbitmq when kombu is used
+# Unfortunately it forces a version that has a crash
+# bug.  Calling eventlet.monkey_patch() tells kombu
+# to use libamqp instead.
 eventlet.monkey_patch()
-LOG = log.getLogger(__name__)
 
+LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
 class MessagingHandler(Thread):
+
     def __init__(self, publisher_id, topic_watcher, endpoint, version,
                  serializer=None):
-        Thread.__init__(self)
+        super(MessagingHandler, self).__init__()
+        self.publisher_id = publisher_id
+        self.topic_watcher = topic_watcher
+        self.__endpoints = []
+        self.__serializer = serializer
+        self.__version = version
+
         self.__server = None
         self.__notifier = None
-        self.__endpoints = []
-        self.__topics = []
-        self._publisher_id = publisher_id
-        self._topic_watcher = topic_watcher
-        self.__endpoints.append(endpoint)
-        self.__version = version
-        self.__serializer = serializer
+        self.__transport = None
+        self.add_endpoint(endpoint)
 
     def add_endpoint(self, endpoint):
         self.__endpoints.append(endpoint)
@@ -51,47 +58,50 @@ class MessagingHandler(Thread):
         if endpoint in self.__endpoints:
             self.__endpoints.remove(endpoint)
 
+    @property
+    def endpoints(self):
+        return self.__endpoints
+
+    @property
+    def transport(self):
+        return self.__transport
+
     def build_notifier(self):
         serializer = RequestContextSerializer(JsonPayloadSerializer())
         return om.Notifier(
-            self.transport,
-            driver=CONF.watcher_messaging.notifier_driver,
-            publisher_id=self._publisher_id,
-            topic=self._topic_watcher,
-            serializer=serializer)
+            self.__transport,
+            publisher_id=self.publisher_id,
+            topic=self.topic_watcher,
+            serializer=serializer
+        )
 
-    def build_server(self, targets):
-
-        return om.get_rpc_server(self.transport, targets,
+    def build_server(self, target):
+        return om.get_rpc_server(self.__transport, target,
                                  self.__endpoints,
-                                 executor=CONF.
-                                 watcher_messaging.executor,
                                  serializer=self.__serializer)
 
-    def __build_transport_url(self):
-        return TransportUrlBuilder().url
-
-    def __config(self):
+    def _configure(self):
         try:
-            self.transport = om.get_transport(
-                cfg.CONF,
-                url=self.__build_transport_url())
+            self.__transport = om.get_transport(CONF)
             self.__notifier = self.build_notifier()
-            if 0 < len(self.__endpoints):
-                targets = om.Target(
-                    topic=self._topic_watcher,
-                    server=CONF.watcher_messaging.host,
-                    version=self.__version)
-                self.__server = self.build_server(targets)
+            if len(self.__endpoints):
+                target = om.Target(
+                    topic=self.topic_watcher,
+                    # For compatibility, we can override it with 'host' opt
+                    server=CONF.host or socket.getfqdn(),
+                    version=self.__version,
+                )
+                self.__server = self.build_server(target)
             else:
-                LOG.warn("you have no defined endpoint, \
-                so you can only publish events")
+                LOG.warn("you have no defined endpoint, "
+                         "so you can only publish events")
         except Exception as e:
+            LOG.exception(e)
             LOG.error("configure : %s" % str(e.message))
 
     def run(self):
-        LOG.debug("configure MessagingHandler for %s" % self._topic_watcher)
-        self.__config()
+        LOG.debug("configure MessagingHandler for %s" % self.topic_watcher)
+        self._configure()
         if len(self.__endpoints) > 0:
             LOG.debug("Starting up server")
             self.__server.start()
@@ -102,6 +112,8 @@ class MessagingHandler(Thread):
         self.__server.stop()
 
     def publish_event(self, event_type, payload, request_id=None):
-        self.__notifier.info({'version_api': self.__version,
-                              'request_id': request_id},
-                             {'event_id': event_type}, payload)
+        self.__notifier.info(
+            {'version_api': self.__version,
+             'request_id': request_id},
+            {'event_id': event_type}, payload
+        )
