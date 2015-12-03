@@ -47,7 +47,7 @@ class BaseStrategy(object):
         :param model: The name of the strategy to execute (loaded dynamically)
         :type model: str
         :return: A computed solution (via a placement algorithm)
-        :rtype: :class:`watcher.decision_engine.api.strategy.solution.Solution`
+        :rtype: :class:`watcher.decision_engine.solution.base.Solution`
         """
 
     @property

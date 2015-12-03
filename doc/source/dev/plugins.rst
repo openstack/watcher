@@ -64,7 +64,7 @@ Abstract Plugin Class
 Here below is the abstract ``BaseStrategy`` class that every single strategy
 should implement:
 
-.. automodule:: watcher.decision_engine.api.strategy.strategy
+.. automodule:: watcher.decision_engine.strategy.base
     :noindex:
 
 .. autoclass:: BaseStrategy
