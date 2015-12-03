@@ -20,7 +20,7 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.applier.primitive.wrapper.nova_wrapper import NovaWrapper
 from watcher.common.keystone import KeystoneClient
 from watcher.metrics_engine.cluster_model_collector.nova import \
     NovaClusterModelCollector

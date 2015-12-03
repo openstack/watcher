@@ -18,11 +18,10 @@
 #
 from oslo_log import log
 
-from watcher.applier.framework.default_command_mapper import \
-    DefaultCommandMapper
+from watcher.applier.mapper.default import DefaultCommandMapper
 
-from watcher.applier.framework.deploy_phase import DeployPhase
-from watcher.applier.framework.messaging.events import Events
+from watcher.applier.execution.deploy_phase import DeployPhase
+from watcher.applier.messaging.events import Events
 from watcher.common.messaging.events.event import Event
 from watcher.objects import Action
 from watcher.objects.action_plan import Status

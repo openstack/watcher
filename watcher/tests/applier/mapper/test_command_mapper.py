@@ -17,8 +17,7 @@
 # limitations under the License.
 #
 import mock
-from watcher.applier.framework.default_command_mapper import \
-    DefaultCommandMapper
+from watcher.applier.mapper.default import DefaultCommandMapper
 from watcher.decision_engine.planner.default import Primitives
 from watcher.tests import base
 

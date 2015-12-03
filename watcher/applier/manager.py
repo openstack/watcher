@@ -21,8 +21,7 @@ from concurrent.futures import ThreadPoolExecutor
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.applier.framework.messaging.trigger_action_plan import \
-    TriggerActionPlan
+from watcher.applier.messaging.trigger import TriggerActionPlan
 from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.decision_engine.messaging.events import Events

@@ -20,9 +20,8 @@ from mock import call
 from mock import MagicMock
 
 
-from watcher.applier.framework.messaging.events import Events
-from watcher.applier.framework.messaging.launch_action_plan import \
-    LaunchActionPlanCommand
+from watcher.applier.messaging.events import Events
+from watcher.applier.messaging.launcher import LaunchActionPlanCommand
 
 from watcher.objects.action_plan import Status
 from watcher.objects import ActionPlan

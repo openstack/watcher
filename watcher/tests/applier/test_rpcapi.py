@@ -19,7 +19,7 @@
 
 import mock
 import oslo_messaging as om
-from watcher.applier.framework.rpcapi import ApplierAPI
+from watcher.applier.rpcapi import ApplierAPI
 
 from watcher.common import exception
 from watcher.common import utils

@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.applier.api.applier import Applier
-from watcher.applier.framework.command_executor import CommandExecutor
+from watcher.applier.base import Applier
+from watcher.applier.execution.executor import CommandExecutor
 from watcher.objects import Action
 from watcher.objects import ActionPlan
 

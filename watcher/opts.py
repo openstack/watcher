@@ -16,7 +16,7 @@
 # limitations under the License.
 
 import watcher.api.app
-from watcher.applier.framework import manager_applier
+from watcher.applier import manager_applier
 from watcher.decision_engine import manager
 from watcher.decision_engine.strategy.selector import default \
     as strategy_selector

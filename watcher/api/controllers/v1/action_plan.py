@@ -28,7 +28,7 @@ from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
-from watcher.applier.framework.rpcapi import ApplierAPI
+from watcher.applier.rpcapi import ApplierAPI
 from watcher.common import exception
 from watcher import objects
 

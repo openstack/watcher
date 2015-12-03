@@ -16,26 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from oslo_log import log
-
-from watcher.applier.api.primitive_command import PrimitiveCommand
-from watcher.applier.api.promise import Promise
+from watcher.applier.manager import ApplierManager
+from watcher.common.messaging.events.event import Event
+from watcher.tests import base
 
 
-LOG = log.getLogger(__name__)
+class TestApplierManager(base.TestCase):
+    def setUp(self):
+        super(TestApplierManager, self).setUp()
+        self.applier = ApplierManager()
 
-
-class NopCommand(PrimitiveCommand):
-    def __init__(self):
-        pass
-
-    @Promise
-    def execute(self):
-        LOG.debug("executing NOP command")
-        return True
-
-    @Promise
-    def undo(self):
-        LOG.debug("undo NOP command")
-        return True
+    def test_evt(self):
+        e = Event()
+        self.applier.event_receive(e)

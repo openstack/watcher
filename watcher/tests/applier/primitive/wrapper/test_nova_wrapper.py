@@ -18,7 +18,7 @@
 #
 import mock
 import time
-from watcher.applier.framework.command.wrapper.nova_wrapper import NovaWrapper
+from watcher.applier.primitive.wrapper.nova_wrapper import NovaWrapper
 from watcher.common import utils
 from watcher.tests import base
 

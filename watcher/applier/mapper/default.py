@@ -18,13 +18,11 @@
 #
 
 
-from watcher.applier.api.command_mapper import CommandMapper
-from watcher.applier.framework.command.hypervisor_state_command import \
-    HypervisorStateCommand
-from watcher.applier.framework.command.migrate_command import MigrateCommand
-from watcher.applier.framework.command.nop_command import NopCommand
-from watcher.applier.framework.command.power_state_command import \
-    PowerStateCommand
+from watcher.applier.mapper.base import CommandMapper
+from watcher.applier.primitive.hypervisor_state import HypervisorStateCommand
+from watcher.applier.primitive.migration import MigrateCommand
+from watcher.applier.primitive.nop import NopCommand
+from watcher.applier.primitive.power_state import PowerStateCommand
 from watcher.common.exception import ActionNotFound
 from watcher.decision_engine.planner.default import Primitives
 

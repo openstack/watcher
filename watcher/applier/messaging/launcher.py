@@ -18,9 +18,9 @@
 #
 from oslo_log import log
 
-from watcher.applier.api.messaging.applier_command import ApplierCommand
-from watcher.applier.framework.default_applier import DefaultApplier
-from watcher.applier.framework.messaging.events import Events
+from watcher.applier.default import DefaultApplier
+from watcher.applier.messaging.applier_command import ApplierCommand
+from watcher.applier.messaging.events import Events
 from watcher.common.messaging.events.event import Event
 from watcher.objects.action_plan import ActionPlan
 from watcher.objects.action_plan import Status

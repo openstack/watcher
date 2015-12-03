@@ -21,7 +21,7 @@ import types
 
 from mock import patch
 from oslo_config import cfg
-from watcher.applier.framework.manager_applier import ApplierManager
+from watcher.applier.manager import ApplierManager
 from watcher.cmd import applier
 from watcher.tests.base import BaseTestCase
 
