@@ -360,7 +360,7 @@ class TestPatch(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
     def test_add_ok(self):
-        new_state = 'SUCCESS'
+        new_state = 'SUCCEEDED'
         response = self.patch_json(
             '/audits/%s' % self.audit.uuid,
             [{'path': '/state', 'value': new_state, 'op': 'add'}])

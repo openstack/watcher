@@ -60,7 +60,7 @@ class LaunchActionPlanCommand(ApplierCommand):
             LOG.error("Launch Action Plan " + unicode(e))
         finally:
             if result is True:
-                status = Status.SUCCESS
+                status = Status.SUCCEEDED
             else:
                 status = Status.FAILED
             # update state
