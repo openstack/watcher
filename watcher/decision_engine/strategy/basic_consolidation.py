@@ -80,8 +80,8 @@ class BasicConsolidation(BaseStrategy):
         # set default value for number of allowed migration attempts
         self.migration_attempts = 0
 
-        # set default value for the efficiency
-        self.efficiency = 100
+        # set default value for the efficacy
+        self.efficacy = 100
 
         self._ceilometer = None
 
@@ -90,8 +90,8 @@ class BasicConsolidation(BaseStrategy):
         self.threshold_disk = 1
         self.threshold_cores = 1
 
-        # TODO(jed) target efficiency
-        self.target_efficiency = 60
+        # TODO(jed) target efficacy
+        self.target_efficacy = 60
 
         # TODO(jed) weight
         self.weight_cpu = 1
@@ -280,10 +280,10 @@ class BasicConsolidation(BaseStrategy):
                                      0,
                                      0)
 
-    def calculate_migration_efficiency(self):
-        """Calculate migration efficiency
+    def calculate_migration_efficacy(self):
+        """Calculate migration efficacy
 
-        :return: The efficiency tells us that every VM migration resulted
+        :return: The efficacy tells us that every VM migration resulted
          in releasing on node
         """
         if self.number_of_migrations > 0:
@@ -348,7 +348,7 @@ class BasicConsolidation(BaseStrategy):
         # todo(jed) clone model
         current_model = orign_model
 
-        self.efficiency = 100
+        self.efficacy = 100
         unsuccessful_migration = 0
 
         first = True
@@ -375,8 +375,8 @@ class BasicConsolidation(BaseStrategy):
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:
             if first is not True:
-                self.efficiency = self.calculate_migration_efficiency()
-                if self.efficiency < float(self.target_efficiency):
+                self.efficacy = self.calculate_migration_efficacy()
+                if self.efficacy < float(self.target_efficacy):
                     break
             first = False
             score = []
@@ -483,9 +483,9 @@ class BasicConsolidation(BaseStrategy):
         infos = {
             "number_of_migrations": self.number_of_migrations,
             "number_of_nodes_released": self.number_of_released_nodes,
-            "efficiency": self.efficiency
+            "efficacy": self.efficacy
         }
         LOG.debug(infos)
         self.solution.model = current_model
-        self.solution.efficiency = self.efficiency
+        self.solution.efficacy = self.efficacy
         return self.solution

@@ -121,9 +121,9 @@ class TestBasicConsolidation(base.BaseTestCase):
                                                  mem),
                          vm_0_weight_assert)
 
-    def test_calculate_migration_efficiency(self):
+    def test_calculate_migration_efficacy(self):
         sercon = BasicConsolidation()
-        sercon.calculate_migration_efficiency()
+        sercon.calculate_migration_efficacy()
 
     def test_exception_model(self):
         sercon = BasicConsolidation()
@@ -248,4 +248,4 @@ class TestBasicConsolidation(base.BaseTestCase):
                 as mock_score_call:
             mock_score_call.return_value = 0
             solution = sercon.execute(model)
-            self.assertEqual(solution.efficiency, 100)
+            self.assertEqual(solution.efficacy, 100)
