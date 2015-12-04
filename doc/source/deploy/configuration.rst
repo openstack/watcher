@@ -284,20 +284,34 @@ Please check your hypervisor configuration to correctly handle
 
 .. _`instance migration`: http://docs.openstack.org/admin-guide-cloud/compute-configuring-migrations.html
 
-Configure Ceilometer
-====================
+Configure Measurements
+======================
 
-The default strategy 'basic_consolidation' provided by watcher requires
-Ceilometer to collect the "compute.node.cpu.*." and "cpu_util" measurements
+You can configure and install Ceilometer by following the documentation below :
 
-#. Add/Update the following lines into the /etc/nova/nova.conf configuration file:
+#. http://docs.openstack.org/developer/ceilometer
+#. http://docs.openstack.org/kilo/install-guide/install/apt/content/ceilometer-nova.html
 
+The built-in strategy 'basic_consolidation' provided by watcher requires
+"**compute.node.cpu.percent**" and "**cpu_util**" measurements to be collected
+by Ceilometer.
+The measurements available depend on the hypervisors that OpenStack manages on
+the specific implementation.
+You can find the measurements available per hypervisor and OpenStack release on
+the OpenStack site.
+You can use 'ceilometer meter-list' to list the available meters.
 
-    .. code-block:: bash
+For more information:
+http://docs.openstack.org/developer/ceilometer/measurements.html
 
-      $ compute_available_monitors=nova.compute.monitors.all_monitors
-      $ compute_monitors=ComputeDriverCPUMonitor
+Ceilometer is designed to collect measurements from OpenStack services and from
+other external components. If you would like to add new meters to the currently
+existing ones, you need to follow the documentation below:
 
-#. Restart the Nova compute service and the Nova scheduler after completing the above configuration.
+#. http://docs.openstack.org/developer/ceilometer/new_meters.html
 
-#. For more information: `Integrating your metrics plug-in with Nova <http://www-01.ibm.com/support/knowledgecenter/SS8MU9_2.2.0/Admin/tasks/integratingplugin.dita>`_
+The Ceilometer collector uses a pluggable storage system, meaning that you can
+pick any database system you prefer.
+The original implementation has been based on MongoDB but you can create your
+own storage driver using whatever technology you want.
+For more information : https://wiki.openstack.org/wiki/Gnocchi
