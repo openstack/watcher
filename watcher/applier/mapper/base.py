@@ -22,8 +22,13 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class CommandMapper(object):
+class BaseActionMapper(object):
     @abc.abstractmethod
-    def build_primitive_command(self, action):
+    def build_primitive_from_action(self, action):
+        """Transform an action to a primitive
+
+        :type action: watcher.decision_engine.action.BaseAction
+        :return: the associated Primitive
+        """
         raise NotImplementedError(
             "Should have implemented this")  # pragma:no cover

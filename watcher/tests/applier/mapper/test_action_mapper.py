@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 import mock
-from watcher.applier.mapper.default import DefaultCommandMapper
+from watcher.applier.mapper.default import DefaultActionMapper
 from watcher.decision_engine.planner.default import Primitives
 from watcher.tests import base
 
@@ -25,33 +25,34 @@ from watcher.tests import base
 class TestCommandMapper(base.TestCase):
     def setUp(self):
         super(TestCommandMapper, self).setUp()
-        self.mapper = DefaultCommandMapper()
+        self.mapper = DefaultActionMapper()
 
     def test_build_command_cold(self):
         action = mock.MagicMock()
         action.action_type = Primitives.COLD_MIGRATE.value
-        cmd = self.mapper.build_primitive_command(action)
+        cmd = self.mapper.build_primitive_from_action(action)
         self.assertIsNotNone(cmd)
 
     def test_build_command_live(self):
         action = mock.MagicMock()
         action.action_type = Primitives.LIVE_MIGRATE.value
-        cmd = self.mapper.build_primitive_command(action)
+        cmd = self.mapper.build_primitive_from_action(action)
         self.assertIsNotNone(cmd)
 
     def test_build_command_h_s(self):
         action = mock.MagicMock()
         action.action_type = Primitives.HYPERVISOR_STATE.value
-        cmd = self.mapper.build_primitive_command(action)
+        cmd = self.mapper.build_primitive_from_action(action)
         self.assertIsNotNone(cmd)
 
     def test_build_command_p_s(self):
         action = mock.MagicMock()
         action.action_type = Primitives.POWER_STATE.value
-        cmd = self.mapper.build_primitive_command(action)
+        cmd = self.mapper.build_primitive_from_action(action)
         self.assertIsNotNone(cmd)
 
     def test_build_command_exception_attribute(self):
         action = mock.MagicMock
-        self.assertRaises(AttributeError, self.mapper.build_primitive_command,
+        self.assertRaises(AttributeError,
+                          self.mapper.build_primitive_from_action,
                           action)

@@ -24,19 +24,31 @@ LOG = log.getLogger(__name__)
 class DeployPhase(object):
     def __init__(self, executor):
         # todo(jed) oslo_conf 10 secondes
-        self.max_timeout = 100000
-        self.commands = []
-        self.executor = executor
+        self._max_timeout = 100000
+        self._actions = []
+        self._executor = executor
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @property
+    def max_timeout(self):
+        return self._max_timeout
+
+    @max_timeout.setter
+    def max_timeout(self, m):
+        self._max_timeout = m
 
     def populate(self, action):
-        self.commands.append(action)
+        self._actions.append(action)
 
     def execute_primitive(self, primitive):
         future = primitive.execute(primitive)
         return future.result(self.max_timeout)
 
     def rollback(self):
-        reverted = sorted(self.commands, reverse=True)
+        reverted = sorted(self.actions, reverse=True)
         for primitive in reverted:
             try:
                 self.execute_primitive(primitive)

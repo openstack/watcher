@@ -18,7 +18,7 @@
 #
 import mock
 
-from watcher.applier.execution.executor import CommandExecutor
+from watcher.applier.execution.executor import ActionPlanExecutor
 from watcher import objects
 
 from watcher.common import utils
@@ -32,7 +32,7 @@ class TestCommandExecutor(DbTestCase):
     def setUp(self):
         super(TestCommandExecutor, self).setUp()
         self.applier = mock.MagicMock()
-        self.executor = CommandExecutor(self.applier, self.context)
+        self.executor = ActionPlanExecutor(self.applier, self.context)
 
     def test_execute(self):
         actions = mock.MagicMock()
