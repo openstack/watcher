@@ -16,18 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.decision_engine.meta_action.base import MetaAction
+from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.model.power_state import PowerState
 
 
-class ChangePowerState(MetaAction):
+class ChangePowerState(BaseAction):
     def __init__(self, target):
-        MetaAction.__init__(self)
         """The target host to change the power
 
         :param target:
-        :return:
         """
+        super(ChangePowerState, self).__init__()
         self._target = target
         self._power_state = PowerState.g0
 
@@ -44,10 +43,9 @@ class ChangePowerState(MetaAction):
         return self._target
 
     @target.setter
-    def target(self, p):
-        self._target = p
+    def target(self, t):
+        self._target = t
 
     def __str__(self):
-        return "{0} ChangePowerState {1} => {2} ".format(
-            MetaAction.__str__(self),
+        return "ChangePowerState {} => {} ".format(
             self.target, self.powerstate)

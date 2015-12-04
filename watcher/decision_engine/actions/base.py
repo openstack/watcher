@@ -23,7 +23,7 @@ from watcher.decision_engine.strategy.level import StrategyLevel
 
 
 @six.add_metaclass(abc.ABCMeta)
-class MetaAction(object):
+class BaseAction(object):
     def __init__(self):
         self._level = StrategyLevel.conservative
         self._priority = 0
@@ -43,6 +43,3 @@ class MetaAction(object):
     @priority.setter
     def priority(self, p):
         self._priority = p
-
-    def __str__(self):
-        return "  "

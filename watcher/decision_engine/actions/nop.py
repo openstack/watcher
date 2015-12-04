@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 
-from watcher.decision_engine.meta_action.base import MetaAction
+from watcher.decision_engine.actions.base import BaseAction
 
 
-class Nop(MetaAction):
+class Nop(BaseAction):
     def __str__(self):
-        return "{0} Nop".format(MetaAction.__str__(self))
+        return "Nop"

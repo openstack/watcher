@@ -57,6 +57,6 @@ class Solution(object):
             "Should have implemented this")  # pragma:no cover
 
     @abc.abstractproperty
-    def meta_actions(self):
+    def actions(self):
         raise NotImplementedError(
             "Should have implemented this")  # pragma:no cover

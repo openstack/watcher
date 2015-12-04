@@ -21,4 +21,4 @@ class TestDefaultSolution(base.BaseTestCase):
     def test_default_solution(self):
         solution = DefaultSolution()
         solution.add_change_request("BLA")
-        self.assertEqual(solution.meta_actions[0], "BLA")
+        self.assertEqual(solution.actions[0], "BLA")
