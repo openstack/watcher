@@ -165,9 +165,8 @@ The configuration file is organized into the following sections:
 * ``[watcher_applier]`` - Watcher Applier module configuration
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
 * ``[watcher_goals]`` - Goals mapping configuration
-* ``[watcher_messaging]`` -Messaging driver configuration
 * ``[watcher_strategies]`` - Strategy configuration
-
+* ``[oslo_messaging_rabbit]`` - Oslo Messaging RabbitMQ driver configuration
 
 The Watcher configuration file is expected to be named
 ``watcher.conf``. When starting Watcher, you can specify a different
@@ -206,33 +205,33 @@ so that the watcher service is configured for your needs.
    IP address of the RabbitMQ server, RABBITMQ_USER and RABBITMQ_PASSWORD
    by the RabbitMQ server login credentials ::
 
-    [watcher_messaging]
+    [DEFAULT]
 
-    # The name of the driver used by oslo messaging (string value)
-    #notifier_driver = messaging
+    # The messaging driver to use, defaults to rabbit. Other drivers
+    # include qpid and zmq. (string value)
+    #rpc_backend = rabbit
 
-    # The name of a message executor, for example: eventlet, blocking
-    # (string value)
-    #executor = blocking
+    # The default exchange under which topics are scoped. May be
+    # overridden by an exchange name specified in the transport_url
+    # option. (string value)
+    control_exchange = watcher
 
-    # The protocol used by the message broker, for example rabbit (string
-    # value)
-    #protocol = rabbit
+    ...
+
+    [oslo_messaging_rabbit]
 
     # The username used by the message broker (string value)
-    user = RABBITMQ_USER
+    rabbit_userid = RABBITMQ_USER
 
     # The password of user used by the message broker (string value)
-    password = RABBITMQ_PASSWORD
+    rabbit_password = RABBITMQ_PASSWORD
 
     # The host where the message brokeris installed (string value)
-    host = RABBIT_HOST
+    rabbit_host = RABBIT_HOST
 
     # The port used bythe message broker (string value)
-    #port = 5672
+    #rabbit_port = 5672
 
-    # The virtual host used by the message broker (string value)
-    #virtual_host =
 
 #. Configure the Watcher Service to use these credentials with the Identity
    Service. Replace IDENTITY_IP with the IP of the Identity server, and
