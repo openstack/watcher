@@ -54,7 +54,8 @@ Usage
 =====
 
 Options for the various :ref:`commands <db-manage_cmds>` for
-:command:`watcher-db-manage` are listed when the :option:`-h` or :option:`--help`
+:command:`watcher-db-manage` are listed when the :option:`-h` or
+:option:`--help`
 option is used after the command.
 
 For example::
@@ -81,8 +82,9 @@ If no configuration file is specified with the :option:`--config-file` option,
 Command Options
 ===============
 
-:command:`watcher-db-manage` is given a command that tells the utility what actions
-to perform. These commands can take arguments. Several commands are available:
+:command:`watcher-db-manage` is given a command that tells the utility
+what actions to perform.
+These commands can take arguments. Several commands are available:
 
 .. _create_schema:
 
