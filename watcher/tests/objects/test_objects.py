@@ -79,7 +79,7 @@ class MyObj2(object):
         pass
 
 
-class TestSubclassedObject(MyObj):
+class DummySubclassedObject(MyObj):
     fields = {'new_field': str}
 
 
@@ -438,13 +438,13 @@ class _TestObject(object):
         base_fields = base.WatcherObject.fields.keys()
         myobj_fields = ['foo', 'bar', 'missing'] + base_fields
         myobj3_fields = ['new_field']
-        self.assertTrue(issubclass(TestSubclassedObject, MyObj))
+        self.assertTrue(issubclass(DummySubclassedObject, MyObj))
         self.assertEqual(len(myobj_fields), len(MyObj.fields))
         self.assertEqual(set(myobj_fields), set(MyObj.fields.keys()))
         self.assertEqual(len(myobj_fields) + len(myobj3_fields),
-                         len(TestSubclassedObject.fields))
+                         len(DummySubclassedObject.fields))
         self.assertEqual(set(myobj_fields) | set(myobj3_fields),
-                         set(TestSubclassedObject.fields.keys()))
+                         set(DummySubclassedObject.fields.keys()))
 
     def test_get_changes(self):
         obj = MyObj(self.context)

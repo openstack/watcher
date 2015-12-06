@@ -14,19 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_log import log
-
-from watcher.common.messaging.utils.synchronization import \
-    Synchronization
-
-LOG = log.getLogger(__name__)
+from watcher.common.messaging.utils import synchronization
 
 
-class Observable(Synchronization):
+class Observable(synchronization.Synchronization):
     def __init__(self):
+        super(Observable, self).__init__()
         self.__observers = []
         self.changed = 0
-        Synchronization.__init__(self)
 
     def set_changed(self):
         self.changed = 1

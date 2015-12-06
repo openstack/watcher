@@ -39,17 +39,17 @@ class ApplierAPI(messaging_core.MessagingCore):
     def __init__(self):
         super(ApplierAPI, self).__init__(
             CONF.watcher_applier.publisher_id,
-            CONF.watcher_applier.topic_control,
-            CONF.watcher_applier.topic_status,
+            CONF.watcher_applier.conductor_topic,
+            CONF.watcher_applier.status_topic,
             api_version=self.API_VERSION,
         )
         self.handler = notification.NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
-        self.topic_status.add_endpoint(self.handler)
+        self.status_topic_handler.add_endpoint(self.handler)
         transport = om.get_transport(CONF)
 
         target = om.Target(
-            topic=CONF.watcher_applier.topic_control,
+            topic=CONF.watcher_applier.conductor_topic,
             version=self.API_VERSION,
         )
 

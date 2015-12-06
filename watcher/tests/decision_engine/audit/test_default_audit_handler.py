@@ -63,5 +63,6 @@ class TestDefaultAuditHandler(base.DbTestCase):
             'audit_uuid': self.audit.uuid})
 
         calls = [call_on_going, call_succeeded]
-        messaging.topic_status.publish_event.assert_has_calls(calls)
-        self.assertEqual(2, messaging.topic_status.publish_event.call_count)
+        messaging.status_topic_handler.publish_event.assert_has_calls(calls)
+        self.assertEqual(
+            2, messaging.status_topic_handler.publish_event.call_count)

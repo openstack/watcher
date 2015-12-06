@@ -38,11 +38,11 @@ CONF = cfg.CONF
 
 class MessagingHandler(threading.Thread):
 
-    def __init__(self, publisher_id, topic_watcher, endpoint, version,
+    def __init__(self, publisher_id, topic_name, endpoint, version,
                  serializer=None):
         super(MessagingHandler, self).__init__()
         self.publisher_id = publisher_id
-        self.topic_watcher = topic_watcher
+        self.topic_name = topic_name
         self.__endpoints = []
         self.__serializer = serializer
         self.__version = version
@@ -72,7 +72,7 @@ class MessagingHandler(threading.Thread):
         return om.Notifier(
             self.__transport,
             publisher_id=self.publisher_id,
-            topic=self.topic_watcher,
+            topic=self.topic_name,
             serializer=serializer
         )
 
@@ -87,7 +87,7 @@ class MessagingHandler(threading.Thread):
             self.__notifier = self.build_notifier()
             if len(self.__endpoints):
                 target = om.Target(
-                    topic=self.topic_watcher,
+                    topic=self.topic_name,
                     # For compatibility, we can override it with 'host' opt
                     server=CONF.host or socket.getfqdn(),
                     version=self.__version,
@@ -101,7 +101,7 @@ class MessagingHandler(threading.Thread):
             LOG.error(_LE("Messaging configuration error"))
 
     def run(self):
-        LOG.debug("configure MessagingHandler for %s" % self.topic_watcher)
+        LOG.debug("configure MessagingHandler for %s" % self.topic_name)
         self._configure()
         if len(self.__endpoints) > 0:
             LOG.debug("Starting up server")
