@@ -42,7 +42,6 @@ def main():
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
     srv = simple_server.make_server(host, port, app)
 
-    logging.setup(CONF, 'watcher')
     LOG.info(_('Starting server in PID %s') % os.getpid())
     LOG.debug("Watcher configuration:")
     cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)
