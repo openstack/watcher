@@ -24,22 +24,16 @@ LOG = log.getLogger(__name__)
 class DeployPhase(object):
     def __init__(self, executor):
         # todo(jed) oslo_conf 10 secondes
-        self.maxTimeout = 100000
+        self.max_timeout = 100000
         self.commands = []
         self.executor = executor
-
-    def set_max_time(self, mt):
-        self.maxTimeout = mt
-
-    def get_max_time(self):
-        return self.maxTimeout
 
     def populate(self, action):
         self.commands.append(action)
 
     def execute_primitive(self, primitive):
-        futur = primitive.execute(primitive)
-        return futur.result(self.get_max_time())
+        future = primitive.execute(primitive)
+        return future.result(self.max_timeout)
 
     def rollback(self):
         reverted = sorted(self.commands, reverse=True)
