@@ -18,8 +18,8 @@
 #
 from oslo_log import log
 
+from watcher.applier.action_plan.base import BaseActionPlanHandler
 from watcher.applier.default import DefaultApplier
-from watcher.applier.messaging.applier_command import ApplierCommand
 from watcher.applier.messaging.events import Events
 from watcher.common.messaging.events.event import Event
 from watcher.objects.action_plan import ActionPlan
@@ -28,9 +28,9 @@ from watcher.objects.action_plan import Status
 LOG = log.getLogger(__name__)
 
 
-class LaunchActionPlanCommand(ApplierCommand):
+class DefaultActionPlanHandler(BaseActionPlanHandler):
     def __init__(self, context, manager_applier, action_plan_uuid):
-        super(LaunchActionPlanCommand, self).__init__()
+        super(DefaultActionPlanHandler, self).__init__()
         self.ctx = context
         self.action_plan_uuid = action_plan_uuid
         self.manager_applier = manager_applier

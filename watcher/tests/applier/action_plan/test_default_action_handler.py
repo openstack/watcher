@@ -19,35 +19,33 @@
 from mock import call
 from mock import MagicMock
 
-
+from watcher.applier.action_plan.default import DefaultActionPlanHandler
 from watcher.applier.messaging.events import Events
-from watcher.applier.messaging.launcher import LaunchActionPlanCommand
-
 from watcher.objects.action_plan import Status
 from watcher.objects import ActionPlan
 from watcher.tests.db.base import DbTestCase
 from watcher.tests.objects import utils as obj_utils
 
 
-class TestLaunchActionPlanCommand(DbTestCase):
+class TestDefaultActionPlanHandler(DbTestCase):
     def setUp(self):
-        super(TestLaunchActionPlanCommand, self).setUp()
+        super(TestDefaultActionPlanHandler, self).setUp()
         self.action_plan = obj_utils.create_test_action_plan(
             self.context)
 
     def test_launch_action_plan_wihout_errors(self):
         try:
 
-            command = LaunchActionPlanCommand(self.context, MagicMock(),
-                                              self.action_plan.uuid)
+            command = DefaultActionPlanHandler(self.context, MagicMock(),
+                                               self.action_plan.uuid)
             command.execute()
         except Exception as e:
             self.fail(
                 "The ActionPlan should be trigged wihtour error" + unicode(e))
 
     def test_launch_action_plan_state_failed(self):
-        command = LaunchActionPlanCommand(self.context, MagicMock(),
-                                          self.action_plan.uuid)
+        command = DefaultActionPlanHandler(self.context, MagicMock(),
+                                           self.action_plan.uuid)
         command.execute()
         action_plan = ActionPlan.get_by_uuid(self.context,
                                              self.action_plan.uuid)
@@ -55,8 +53,8 @@ class TestLaunchActionPlanCommand(DbTestCase):
 
     def test_trigger_audit_send_notification(self):
         messaging = MagicMock()
-        command = LaunchActionPlanCommand(self.context, messaging,
-                                          self.action_plan.uuid)
+        command = DefaultActionPlanHandler(self.context, messaging,
+                                           self.action_plan.uuid)
         command.execute()
 
         call_on_going = call(Events.LAUNCH_ACTION_PLAN.name, {
