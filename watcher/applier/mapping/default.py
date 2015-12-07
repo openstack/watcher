@@ -16,15 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-
-from watcher.applier.mapper.base import BaseActionMapper
+from watcher.applier.mapping.base import BaseActionMapper
 from watcher.applier.primitives.change_nova_service_state import \
     ChangeNovaServiceState
 from watcher.applier.primitives.migration import Migrate
 from watcher.applier.primitives.nop import Nop
 from watcher.applier.primitives.power_state import ChangePowerState
-
 from watcher.common.exception import ActionNotFound
 from watcher.decision_engine.planner.default import Primitives
 

@@ -17,10 +17,8 @@
 # limitations under the License.
 #
 from oslo_log import log
-
-from watcher.applier.mapper.default import DefaultActionMapper
-
 from watcher.applier.execution.deploy_phase import DeployPhase
+from watcher.applier.mapping.default import DefaultActionMapper
 from watcher.applier.messaging.events import Events
 from watcher.common.messaging.events.event import Event
 from watcher.objects import Action

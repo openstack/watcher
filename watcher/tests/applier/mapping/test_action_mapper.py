@@ -17,14 +17,15 @@
 # limitations under the License.
 #
 import mock
-from watcher.applier.mapper.default import DefaultActionMapper
+
+from watcher.applier.mapping.default import DefaultActionMapper
 from watcher.decision_engine.planner.default import Primitives
 from watcher.tests import base
 
 
-class TestCommandMapper(base.TestCase):
+class TestDefaultActionMapper(base.TestCase):
     def setUp(self):
-        super(TestCommandMapper, self).setUp()
+        super(TestDefaultActionMapper, self).setUp()
         self.mapper = DefaultActionMapper()
 
     def test_build_command_cold(self):
