@@ -16,20 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.applier.primitive.base import PrimitiveCommand
+import abc
+import six
 from watcher.applier.promise import Promise
 
 
-class PowerStateCommand(PrimitiveCommand):
-    def __init__(self):
-        pass
-
+@six.add_metaclass(abc.ABCMeta)
+class BasePrimitive(object):
     @Promise
+    @abc.abstractmethod
     def execute(self):
-        pass
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover
 
     @Promise
+    @abc.abstractmethod
     def undo(self):
-        # TODO(jde): migrate VM from  target_hypervisor
-        # to current_hypervisor in model
-        return True
+        raise NotImplementedError(
+            "Should have implemented this")  # pragma:no cover

@@ -19,10 +19,12 @@
 
 
 from watcher.applier.mapper.base import BaseActionMapper
-from watcher.applier.primitive.hypervisor_state import HypervisorStateCommand
-from watcher.applier.primitive.migration import MigrateCommand
-from watcher.applier.primitive.nop import NopCommand
-from watcher.applier.primitive.power_state import PowerStateCommand
+from watcher.applier.primitives.change_nova_service_state import \
+    ChangeNovaServiceState
+from watcher.applier.primitives.migration import Migrate
+from watcher.applier.primitives.nop import Nop
+from watcher.applier.primitives.power_state import ChangePowerState
+
 from watcher.common.exception import ActionNotFound
 from watcher.decision_engine.planner.default import Primitives
 
@@ -30,18 +32,18 @@ from watcher.decision_engine.planner.default import Primitives
 class DefaultActionMapper(BaseActionMapper):
     def build_primitive_from_action(self, action):
         if action.action_type == Primitives.COLD_MIGRATE.value:
-            return MigrateCommand(action.applies_to, Primitives.COLD_MIGRATE,
-                                  action.src,
-                                  action.dst)
+            return Migrate(action.applies_to, Primitives.COLD_MIGRATE,
+                           action.src,
+                           action.dst)
         elif action.action_type == Primitives.LIVE_MIGRATE.value:
-            return MigrateCommand(action.applies_to, Primitives.COLD_MIGRATE,
-                                  action.src,
-                                  action.dst)
+            return Migrate(action.applies_to, Primitives.COLD_MIGRATE,
+                           action.src,
+                           action.dst)
         elif action.action_type == Primitives.HYPERVISOR_STATE.value:
-            return HypervisorStateCommand(action.applies_to, action.parameter)
+            return ChangeNovaServiceState(action.applies_to, action.parameter)
         elif action.action_type == Primitives.POWER_STATE.value:
-            return PowerStateCommand()
+            return ChangePowerState()
         elif action.action_type == Primitives.NOP.value:
-            return NopCommand()
+            return Nop()
         else:
             raise ActionNotFound()

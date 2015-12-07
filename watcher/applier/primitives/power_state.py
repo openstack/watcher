@@ -16,21 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import abc
-import six
+from watcher.applier.primitives.base import BasePrimitive
 from watcher.applier.promise import Promise
 
 
-@six.add_metaclass(abc.ABCMeta)
-class PrimitiveCommand(object):
-    @Promise
-    @abc.abstractmethod
-    def execute(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+class ChangePowerState(BasePrimitive):
 
     @Promise
-    @abc.abstractmethod
+    def execute(self):
+        raise NotImplementedError  # pragma:no cover
+
+    @Promise
     def undo(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError  # pragma:no cover

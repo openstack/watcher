@@ -21,8 +21,8 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from oslo_config import cfg
 
-from watcher.applier.primitive.base import PrimitiveCommand
-from watcher.applier.primitive.wrapper.nova_wrapper import NovaWrapper
+from watcher.applier.primitives.base import BasePrimitive
+from watcher.applier.primitives.wrapper.nova_wrapper import NovaWrapper
 from watcher.applier.promise import Promise
 from watcher.common.keystone import KeystoneClient
 from watcher.decision_engine.planner.default import Primitives
@@ -30,11 +30,12 @@ from watcher.decision_engine.planner.default import Primitives
 CONF = cfg.CONF
 
 
-class MigrateCommand(PrimitiveCommand):
+class Migrate(BasePrimitive):
     def __init__(self, vm_uuid=None,
                  migration_type=None,
                  source_hypervisor=None,
                  destination_hypervisor=None):
+        super(BasePrimitive, self).__init__()
         self.instance_uuid = vm_uuid
         self.migration_type = migration_type
         self.source_hypervisor = source_hypervisor

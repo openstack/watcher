@@ -19,16 +19,14 @@
 
 from oslo_log import log
 
-from watcher.applier.primitive.base import PrimitiveCommand
+from watcher.applier.primitives.base import BasePrimitive
 from watcher.applier.promise import Promise
 
 
 LOG = log.getLogger(__name__)
 
 
-class NopCommand(PrimitiveCommand):
-    def __init__(self):
-        pass
+class Nop(BasePrimitive):
 
     @Promise
     def execute(self):
