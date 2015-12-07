@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Solution(object):
+class BaseSolutionComparator(object):
     @abc.abstractmethod
     def compare(self, sol1, sol2):
         raise NotImplementedError(

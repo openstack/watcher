@@ -319,7 +319,7 @@ class TestPatch(api_base.FunctionalTest):
         super(TestPatch, self).setUp()
         obj_utils.create_test_audit_template(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
-        p = mock.patch.object(db_api.Connection, 'update_audit')
+        p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update
         self.addCleanup(p.stop)
@@ -414,7 +414,7 @@ class TestPost(api_base.FunctionalTest):
     def setUp(self):
         super(TestPost, self).setUp()
         obj_utils.create_test_audit_template(self.context)
-        p = mock.patch.object(db_api.Connection, 'create_audit')
+        p = mock.patch.object(db_api.BaseConnection, 'create_audit')
         self.mock_create_audit = p.start()
         self.mock_create_audit.side_effect = (
             self._simulate_rpc_audit_create)
@@ -520,7 +520,7 @@ class TestDelete(api_base.FunctionalTest):
         super(TestDelete, self).setUp()
         obj_utils.create_test_audit_template(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
-        p = mock.patch.object(db_api.Connection, 'update_audit')
+        p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update
         self.addCleanup(p.stop)

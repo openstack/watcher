@@ -21,7 +21,7 @@ from oslo_log import log
 from enum import Enum
 from watcher.common.exception import MetaActionNotFound
 from watcher.common import utils
-from watcher.decision_engine.planner.base import Planner
+from watcher.decision_engine.planner.base import BasePlanner
 
 from watcher import objects
 
@@ -57,7 +57,7 @@ priority_primitives = {
 }
 
 
-class DefaultPlanner(Planner):
+class DefaultPlanner(BasePlanner):
     def create_action(self, action_plan_id, action_type, applies_to=None,
                       src=None,
                       dst=None,

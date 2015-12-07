@@ -16,13 +16,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.applier.base import Applier
+
+from watcher.applier.base import BaseApplier
 from watcher.applier.execution.executor import ActionPlanExecutor
 from watcher.objects import Action
 from watcher.objects import ActionPlan
 
 
-class DefaultApplier(Applier):
+class DefaultApplier(BaseApplier):
     def __init__(self, manager_applier, context):
         super(DefaultApplier, self).__init__()
         self.manager_applier = manager_applier

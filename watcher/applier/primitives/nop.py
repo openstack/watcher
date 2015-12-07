@@ -19,6 +19,7 @@
 
 from oslo_log import log
 
+
 from watcher.applier.primitives.base import BasePrimitive
 from watcher.applier.promise import Promise
 

@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
 

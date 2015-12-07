@@ -213,7 +213,7 @@ class TestPatch(api_base.FunctionalTest):
         super(TestPatch, self).setUp()
         self.audit_template = obj_utils.create_test_audit_template(
             self.context)
-        p = mock.patch.object(db_api.Connection, 'update_audit_template')
+        p = mock.patch.object(db_api.BaseConnection, 'update_audit_template')
         self.mock_audit_template_update = p.start()
         self.mock_audit_template_update.side_effect = \
             self._simulate_rpc_audit_template_update
@@ -340,7 +340,7 @@ class TestPost(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPost, self).setUp()
-        p = mock.patch.object(db_api.Connection, 'create_audit_template')
+        p = mock.patch.object(db_api.BaseConnection, 'create_audit_template')
         self.mock_create_audit_template = p.start()
         self.mock_create_audit_template.side_effect = (
             self._simulate_rpc_audit_template_create)
@@ -417,7 +417,7 @@ class TestDelete(api_base.FunctionalTest):
         super(TestDelete, self).setUp()
         self.audit_template = obj_utils.create_test_audit_template(
             self.context)
-        p = mock.patch.object(db_api.Connection, 'update_audit_template')
+        p = mock.patch.object(db_api.BaseConnection, 'update_audit_template')
         self.mock_audit_template_update = p.start()
         self.mock_audit_template_update.side_effect = \
             self._simulate_rpc_audit_template_update

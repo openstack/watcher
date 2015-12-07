@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Planner(object):
+class BasePlanner(object):
     @abc.abstractmethod
     def schedule(self, context, audit_uuid, solution):
         """The  planner receives a solution to schedule
