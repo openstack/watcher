@@ -19,6 +19,7 @@
 
 from ceilometerclient import client
 from ceilometerclient.exc import HTTPUnauthorized
+
 from watcher.common import keystone
 
 

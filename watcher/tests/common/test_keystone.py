@@ -17,23 +17,26 @@
 from __future__ import absolute_import
 from __future__ import unicode_literals
 from keystoneclient.auth.identity import Password
-
 from keystoneclient.session import Session
 from mock import mock
-
+from oslo_config import cfg
 from watcher.common.keystone import KeystoneClient
-
 from watcher.tests.base import BaseTestCase
 
+CONF = cfg.CONF
 
-class TestKeyStone(BaseTestCase):
+
+class TestKeystone(BaseTestCase):
     def setUp(self):
-        super(TestKeyStone, self).setUp()
+        super(TestKeystone, self).setUp()
         self.ckeystone = KeystoneClient()
 
-    @mock.patch('keystoneclient.client.Client')
-    def test_get_endpoint(self, keystone):
-        expected_endpoint = "http://IP:PORT"
+    @mock.patch('keystoneclient.v2_0.client.Client', autospec=True)
+    def test_get_endpoint_v2(self, keystone):
+        expected_endpoint = "http://ip:port/v2"
+        cfg.CONF.set_override(
+            'auth_uri', expected_endpoint, group="keystone_authtoken"
+        )
         ks = mock.Mock()
         ks.service_catalog.url_for.return_value = expected_endpoint
         keystone.return_value = ks

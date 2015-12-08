@@ -19,10 +19,11 @@ from __future__ import unicode_literals
 
 from mock import MagicMock
 from mock import mock
-
+from oslo_config import cfg
 from watcher.common.ceilometer import CeilometerClient
 
 from watcher.tests.base import BaseTestCase
+CONF = cfg.CONF
 
 
 class TestCeilometer(BaseTestCase):
@@ -44,8 +45,12 @@ class TestCeilometer(BaseTestCase):
                                     resource_ids=["resource_ids"])
         self.assertEqual(query, expected)
 
-    @mock.patch("watcher.common.keystone.Keystoneclient")
-    def test_get_ceilometer_v2(self, mock_keystone):
+    @mock.patch('keystoneclient.v2_0.client.Client', autospec=True)
+    @mock.patch('ceilometerclient.v2.client.Client', autospec=True)
+    def test_get_ceilometer_v2(self, mock_keystone, mock_ceilometer):
+        cfg.CONF.set_override(
+            'auth_uri', "http://127.0.0.1:9898/v2", group="keystone_authtoken"
+        )
         c = CeilometerClient(api_version='2')
         from ceilometerclient.v2 import Client
         self.assertIsInstance(c.cmclient, Client)
@@ -77,8 +82,8 @@ class TestCeilometer(BaseTestCase):
 
     @mock.patch.object(CeilometerClient, "cmclient")
     def test_get_last_sample_none(self, mock_keystone):
-        expected = False
-        mock_keystone.samples.list.return_value = None
+        expected = []
+        mock_keystone.samples.list.return_value = expected
         val = self.cm.get_last_sample_values(
             resource_id="id",
             meter_name="compute.node.percent"
