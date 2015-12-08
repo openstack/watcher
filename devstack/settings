@@ -1,0 +1,9 @@
+# DevStack settings
+
+# Make sure rabbit is enabled
+enable_service rabbit
+
+# Enable Watcher services
+enable_service watcher-api
+enable_service watcher-decision-engine
+enable_service watcher-applier

@@ -1,0 +1,258 @@
+#!/bin/bash
+#
+# lib/watcher
+# Functions to control the configuration and operation of the watcher services
+
+# Dependencies:
+#
+# - ``functions`` file
+# - ``SERVICE_{TENANT_NAME|PASSWORD}`` must be defined
+# - ``DEST``, ``DATA_DIR``, ``STACK_USER`` must be defined
+
+# ``stack.sh`` calls the entry points in this order:
+#
+# - is_watcher_enabled
+# - install_watcher
+# - configure_watcher
+# - create_watcher_conf
+# - init_watcher
+# - start_watcher
+# - stop_watcher
+# - cleanup_watcher
+
+# Save trace setting
+_XTRACE_WATCHER=$(set +o | grep xtrace)
+set +o xtrace
+
+
+# Defaults
+# --------
+
+# Set up default directories
+WATCHER_REPO=${WATCHER_REPO:-${GIT_BASE}/openstack/watcher.git}
+WATCHER_BRANCH=${WATCHER_BRANCH:-master}
+WATCHER_DIR=$DEST/watcher
+
+GITREPO["python-watcherclient"]=${WATCHERCLIENT_REPO:-${GIT_BASE}/openstack/python-watcherclient.git}
+GITBRANCH["python-watcherclient"]=${WATCHERCLIENT_BRANCH:-master}
+GITDIR["python-watcherclient"]=$DEST/python-watcherclient
+
+WATCHER_STATE_PATH=${WATCHER_STATE_PATH:=$DATA_DIR/watcher}
+WATCHER_AUTH_CACHE_DIR=${WATCHER_AUTH_CACHE_DIR:-/var/cache/watcher}
+
+WATCHER_CONF_DIR=/etc/watcher
+WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
+WATCHER_POLICY_JSON=$WATCHER_CONF_DIR/policy.json
+
+if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
+    WATCHER_SERVICE_PROTOCOL="https"
+fi
+
+# Public facing bits
+WATCHER_SERVICE_HOST=${WATCHER_SERVICE_HOST:-$HOST_IP}
+WATCHER_SERVICE_PORT=${WATCHER_SERVICE_PORT:-9322}
+WATCHER_SERVICE_PORT_INT=${WATCHER_SERVICE_PORT_INT:-19322}
+WATCHER_SERVICE_PROTOCOL=${WATCHER_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
+
+# Support entry points installation of console scripts
+if [[ -d $WATCHER_DIR/bin ]]; then
+    WATCHER_BIN_DIR=$WATCHER_DIR/bin
+else
+    WATCHER_BIN_DIR=$(get_python_exec_prefix)
+fi
+
+# Entry Points
+# ------------
+
+# Test if any watcher services are enabled
+# is_watcher_enabled
+function is_watcher_enabled {
+    [[ ,${ENABLED_SERVICES} =~ ,"watcher-" ]] && return 0
+    return 1
+}
+
+# cleanup_watcher() - Remove residual data files, anything left over from previous
+# runs that a clean run would need to clean up
+function cleanup_watcher {
+    sudo rm -rf $WATCHER_STATE_PATH $WATCHER_AUTH_CACHE_DIR
+}
+
+# configure_watcher() - Set config files, create data dirs, etc
+function configure_watcher {
+    # Put config files in ``/etc/watcher`` for everyone to find
+    if [[  ! -d $WATCHER_CONF_DIR  ]]; then
+        sudo mkdir -p $WATCHER_CONF_DIR
+        sudo chown $STACK_USER $WATCHER_CONF_DIR
+    fi
+
+    install_default_policy watcher
+
+    # Rebuild the config file from scratch
+    create_watcher_conf
+}
+
+# create_watcher_accounts() - Set up common required watcher accounts
+#
+# Project              User         Roles
+# ------------------------------------------------------------------
+# SERVICE_TENANT_NAME  watcher      service
+function create_watcher_accounts {
+    create_service_user "watcher" "admin"
+
+    if [[ "$KEYSTONE_CATALOG_BACKEND" = 'sql' ]]; then
+        local watcher_service=$(get_or_create_service "watcher" \
+            "infra-optim" "Watcher Infrastructure Optimization Service")
+        get_or_create_endpoint $watcher_service \
+            "$REGION_NAME" \
+            "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT" \
+            "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT" \
+            "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT"
+    fi
+}
+
+# create_watcher_conf() - Create a new watcher.conf file
+function create_watcher_conf {
+    # (Re)create ``watcher.conf``
+    rm -f $WATCHER_CONF
+
+    iniset $WATCHER_CONF DEFAULT debug "$ENABLE_DEBUG_LOG_LEVEL"
+    iniset $WATCHER_CONF DEFAULT control_exchange watcher
+
+    iniset $WATCHER_CONF database connection $(database_connection_url watcher)
+    iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
+    iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
+
+    iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_JSON
+
+    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
+    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
+    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
+
+    iniset $WATCHER_CONF keystone_authtoken admin_user watcher
+    iniset $WATCHER_CONF keystone_authtoken admin_password $SERVICE_PASSWORD
+    iniset $WATCHER_CONF keystone_authtoken admin_tenant_name $SERVICE_TENANT_NAME
+
+    configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
+
+    iniset $WATCHER_CONF keystone_authtoken auth_uri $KEYSTONE_SERVICE_URI/v3
+    iniset $WATCHER_CONF keystone_authtoken auth_version v3
+
+    if is_fedora || is_suse; then
+        # watcher defaults to /usr/local/bin, but fedora and suse pip like to
+        # install things in /usr/bin
+        iniset $WATCHER_CONF DEFAULT bindir "/usr/bin"
+    fi
+
+    if [ -n "$WATCHER_STATE_PATH" ]; then
+        iniset $WATCHER_CONF DEFAULT state_path "$WATCHER_STATE_PATH"
+        iniset $WATCHER_CONF oslo_concurrency lock_path "$WATCHER_STATE_PATH"
+    fi
+
+    if [ "$SYSLOG" != "False" ]; then
+        iniset $WATCHER_CONF DEFAULT use_syslog "True"
+    fi
+
+    # Format logging
+    if [ "$LOG_COLOR" == "True" ] && [ "$SYSLOG" == "False" ]; then
+        setup_colorized_logging $WATCHER_CONF DEFAULT
+    else
+        # Show user_name and project_name instead of user_id and project_id
+        iniset $WATCHER_CONF DEFAULT logging_context_format_string "%(asctime)s.%(msecs)03d %(levelname)s %(name)s [%(request_id)s %(user_name)s %(project_name)s] %(instance)s%(message)s"
+    fi
+
+    # Register SSL certificates if provided
+    if is_ssl_enabled_service watcher; then
+        ensure_certificates WATCHER
+
+        iniset $WATCHER_CONF DEFAULT ssl_cert_file "$WATCHER_SSL_CERT"
+        iniset $WATCHER_CONF DEFAULT ssl_key_file "$WATCHER_SSL_KEY"
+
+        iniset $WATCHER_CONF DEFAULT enabled_ssl_apis "$WATCHER_ENABLED_APIS"
+    fi
+
+    if is_service_enabled ceilometer; then
+        iniset $WATCHER_CONF watcher_messaging notifier_driver "messaging"
+    fi
+}
+
+# create_watcher_cache_dir() - Part of the init_watcher() process
+function create_watcher_cache_dir {
+    # Create cache dir
+    sudo mkdir -p $WATCHER_AUTH_CACHE_DIR
+    sudo chown $STACK_USER $WATCHER_AUTH_CACHE_DIR
+    rm -f $WATCHER_AUTH_CACHE_DIR/*
+}
+
+# init_watcher() - Initialize databases, etc.
+function init_watcher {
+    # clean up from previous (possibly aborted) runs
+    # create required data files
+    if is_service_enabled $DATABASE_BACKENDS && is_service_enabled watcher-api; then
+        # (Re)create watcher database
+        recreate_database watcher
+
+        # Create watcher schema
+        $WATCHER_BIN_DIR/watcher-db-manage --config-file $WATCHER_CONF create_schema
+    fi
+    create_watcher_cache_dir
+}
+
+# install_watcherclient() - Collect source and prepare
+function install_watcherclient {
+    if use_library_from_git "python-watcherclient"; then
+        git_clone_by_name "python-watcherclient"
+        setup_dev_lib "python-watcherclient"
+    fi
+}
+
+# install_watcher() - Collect source and prepare
+function install_watcher {
+    git_clone $WATCHER_REPO $WATCHER_DIR $WATCHER_BRANCH
+    setup_develop $WATCHER_DIR
+}
+
+# start_watcher_api() - Start the API process ahead of other things
+function start_watcher_api {
+    # Get right service port for testing
+    local service_port=$WATCHER_SERVICE_PORT
+    local service_protocol=$WATCHER_SERVICE_PROTOCOL
+    if is_service_enabled tls-proxy; then
+        service_port=$WATCHER_SERVICE_PORT_INT
+        service_protocol="http"
+    fi
+
+    run_process watcher-api "$WATCHER_BIN_DIR/watcher-api --config-file $WATCHER_CONF"
+    echo "Waiting for watcher-api to start..."
+    if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$WATCHER_SERVICE_HOST:$service_port; then
+        die $LINENO "watcher-api did not start"
+    fi
+
+    # Start proxies if enabled
+    if is_service_enabled tls-proxy; then
+        start_tls_proxy '*' $WATCHER_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT &
+        start_tls_proxy '*' $EC2_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT &
+    fi
+}
+
+# start_watcher() - Start running processes, including screen
+function start_watcher {
+    # ``run_process`` checks ``is_service_enabled``, it is not needed here
+    start_watcher_api
+    run_process watcher-decision-engine "$WATCHER_BIN_DIR/watcher-decision-engine --config-file $WATCHER_CONF"
+    run_process watcher-applier "$WATCHER_BIN_DIR/watcher-applier --config-file $WATCHER_CONF"
+}
+
+# stop_watcher() - Stop running processes (non-screen)
+function stop_watcher {
+    for serv in watcher-api watcher-decision-engine watcher-applier; do
+        stop_process $serv
+    done
+}
+
+# Restore xtrace
+$_XTRACE_WATCHER
+
+# Tell emacs to use shell-script-mode
+## Local variables:
+## mode: shell-script
+## End:

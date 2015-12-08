@@ -1,0 +1,48 @@
+# Sample ``local.conf`` for controller node for Watcher development
+# NOTE: Copy this file to the root DevStack directory for it to work properly.
+
+[[local|localrc]]
+
+ADMIN_PASSWORD=nomoresecrete
+DATABASE_PASSWORD=stackdb
+RABBIT_PASSWORD=stackqueue
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+SERVICE_TOKEN=azertytoken
+
+HOST_IP=192.168.42.1 # Change this to your controller node IP address
+FLAT_INTERFACE=eth0
+
+FIXED_RANGE=10.254.1.0/24 # Change this to whatever your network is
+NETWORK_GATEWAY=10.254.1.1 # Change this for your network
+
+MULTI_HOST=1
+
+# This is the controller node, so disable nova-compute
+disable_service n-cpu
+
+# Disable nova-network and use neutron instead
+disable_service n-net
+ENABLED_SERVICES+=,q-svc,q-dhcp,q-meta,q-agt,q-l3,neutron
+
+# Enable remote console access
+enable_service n-cauth
+
+# Enable the Watcher plugin
+enable_plugin watcher git://git.openstack.org/openstack/watcher
+
+# Enable the Ceilometer plugin
+enable_plugin ceilometer git://git.openstack.org/openstack/ceilometer
+
+# This is the controller node, so disable the ceilometer compute agent
+disable_service ceilometer-acompute
+
+LOGFILE=$DEST/logs/stack.sh.log
+LOGDAYS=2
+
+[[post-config|$NOVA_CONF]]
+[DEFAULT]
+compute_monitors=cpu.virt_driver
+
+[[post-config|$WATCHER_CONF]]
+[watcher_goals]
+goals=BASIC_CONSOLIDATION:basic,DUMMY:dummy
