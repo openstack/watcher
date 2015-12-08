@@ -36,4 +36,4 @@ class BaseEventConsumer(object):
 
     @abc.abstractmethod
     def execute(self, request_id, context, data):
-        raise NotImplementedError('Not implemented ...')  # pragma:no cover
+        raise NotImplementedError()

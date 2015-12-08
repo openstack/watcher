@@ -5,3 +5,5 @@ omit = watcher/tests/*
 
 [report]
 ignore_errors = True 
+exclude_lines =
+    @abstract

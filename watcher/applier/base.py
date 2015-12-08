@@ -25,5 +25,4 @@ import six
 class BaseApplier(object):
     @abc.abstractmethod
     def execute(self, action_plan_uuid):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

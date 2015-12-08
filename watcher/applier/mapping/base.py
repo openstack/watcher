@@ -30,5 +30,4 @@ class BaseActionMapper(object):
         :type action: watcher.decision_engine.action.BaseAction
         :return: the associated Primitive
         """
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

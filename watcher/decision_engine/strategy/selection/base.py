@@ -24,5 +24,4 @@ import six
 class BaseSelector(object):
     @abc.abstractmethod
     def define_from_goal(self, goal_name):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

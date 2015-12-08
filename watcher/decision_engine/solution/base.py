@@ -53,10 +53,8 @@ class BaseSolution(object):
 
     @abc.abstractmethod
     def add_change_request(self, r):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def actions(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

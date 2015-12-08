@@ -27,18 +27,14 @@ class BaseClusterHistory(object):
     @abc.abstractmethod
     def statistic_aggregation(self, resource_id, meter_name, period,
                               aggregate='avg'):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma: nocover
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def get_last_sample_values(self, resource_id, meter_name, limit=1):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma: nocover
+        raise NotImplementedError()
 
     def query_sample(self, meter_name, query, limit=1):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma: nocover
+        raise NotImplementedError()
 
     def statistic_list(self, meter_name, query=None, period=None):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma: nocover
+        raise NotImplementedError()

@@ -24,5 +24,4 @@ import six
 class BaseStrategyContext(object):
     @abc.abstractmethod
     def execute_strategy(self, model):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

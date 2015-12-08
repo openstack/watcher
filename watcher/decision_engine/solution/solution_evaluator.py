@@ -24,5 +24,4 @@ import six
 class BaseSolutionEvaluator(object):
     @abc.abstractmethod
     def evaluate(self, solution):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

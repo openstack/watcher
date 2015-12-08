@@ -24,5 +24,4 @@ import six
 class BaseSolutionComparator(object):
     @abc.abstractmethod
     def compare(self, sol1, sol2):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

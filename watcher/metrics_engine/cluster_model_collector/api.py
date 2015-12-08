@@ -24,5 +24,4 @@ import six
 class BaseClusterModelCollector(object):
     @abc.abstractmethod
     def get_latest_cluster_data_model(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma: nocover
+        raise NotImplementedError()

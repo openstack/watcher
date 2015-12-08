@@ -26,11 +26,9 @@ class BasePrimitive(object):
     @Promise
     @abc.abstractmethod
     def execute(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()
 
     @Promise
     @abc.abstractmethod
     def undo(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

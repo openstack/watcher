@@ -33,5 +33,4 @@ class BasePlanner(object):
         and performance requirements are met.
         """
         # example: directed acyclic graph
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()

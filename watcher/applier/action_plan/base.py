@@ -25,5 +25,4 @@ import six
 class BaseActionPlanHandler(object):
     @abc.abstractmethod
     def execute(self):
-        raise NotImplementedError(
-            "Should have implemented this")  # pragma:no cover
+        raise NotImplementedError()
