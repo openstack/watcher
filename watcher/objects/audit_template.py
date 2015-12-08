@@ -58,8 +58,7 @@ class AuditTemplate(base.WatcherObject):
 
     @classmethod
     def get(cls, context, audit_template_id):
-        """Find a audit template based on its id or uuid and return an
-            :class:`AuditTemplate` object.
+        """Find an audit template based on its id or uuid
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
@@ -80,8 +79,7 @@ class AuditTemplate(base.WatcherObject):
 
     @classmethod
     def get_by_id(cls, context, audit_template_id):
-        """Find an audit template based on its integer id and return a
-            :class:`AuditTemplate` object.
+        """Find an audit template based on its integer id
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
@@ -102,8 +100,7 @@ class AuditTemplate(base.WatcherObject):
 
     @classmethod
     def get_by_uuid(cls, context, uuid):
-        """Find an audit template based on uuid and return a
-            :class:`AuditTemplate` object.
+        """Find an audit template based on uuid
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
@@ -122,13 +119,13 @@ class AuditTemplate(base.WatcherObject):
 
     @classmethod
     def get_by_name(cls, context, name):
-        """Find an audit template based on name and return a
-            :class:`AuditTemplate` object.
+        """Find an audit template based on name
 
         :param name: the logical name of a audit_template.
         :param context: Security context
         :returns: a :class:`AuditTemplate` object.
         """
+
         db_audit_template = cls.dbapi.get_audit_template_by_name(context, name)
         audit_template = AuditTemplate._from_db_object(cls(context),
                                                        db_audit_template)
@@ -170,8 +167,8 @@ class AuditTemplate(base.WatcherObject):
                         argument, even though we don't use it.
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
-
         """
+
         values = self.obj_get_changes()
         goal = values['goal']
         if goal not in cfg.CONF.watcher_goals.goals.keys():
@@ -189,6 +186,7 @@ class AuditTemplate(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
         """
+
         self.dbapi.destroy_audit_template(self.uuid)
         self.obj_reset_changes()
 
@@ -205,6 +203,7 @@ class AuditTemplate(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
         """
+
         updates = self.obj_get_changes()
         self.dbapi.update_audit_template(self.uuid, updates)
 
@@ -224,6 +223,7 @@ class AuditTemplate(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
         """
+
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
         for field in self.fields:
             if (hasattr(self, base.get_attrname(field)) and
@@ -240,4 +240,5 @@ class AuditTemplate(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
         """
+
         self.dbapi.soft_delete_audit_template(self.uuid)

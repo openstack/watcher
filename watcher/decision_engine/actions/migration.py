@@ -32,6 +32,7 @@ class MigrationType(Enum):
 class Migrate(BaseAction):
     def __init__(self, vm, src_hypervisor, dest_hypervisor):
         """Request to migrate a virtual machine from a host to another
+
         :param vm: the virtual machine uuid to migrate
         :param src_hypervisor: uuid
         :param dest_hypervisor: uuid

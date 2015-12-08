@@ -14,9 +14,7 @@ from tempest.services.infra_optim import base
 
 
 class InfraOptimClientJSON(base.InfraOptimClient):
-    """
-    Base Tempest REST client for Watcher API v1.
-    """
+    """Base Tempest REST client for Watcher API v1."""
     version = '1'
     uri_prefix = 'v1'
 
@@ -40,45 +38,41 @@ class InfraOptimClientJSON(base.InfraOptimClient):
 
     @base.handle_errors
     def show_audit_template(self, uuid):
-        """
-        Gets a specific audit template.
+        """Gets a specific audit template.
 
         :param uuid: Unique identifier of the audit template in UUID format.
         :return: Serialized audit template as a dictionary.
-
         """
+
         return self._show_request('audit_templates', uuid)
 
     @base.handle_errors
     def show_audit_template_by_host_agregate(self, host_agregate_id):
-        """
-        Gets an audit template associated with given host agregate ID.
+        """Gets an audit template associated with given host agregate ID.
 
         :param uuid: Unique identifier of the audit_template in UUID format.
         :return: Serialized audit_template as a dictionary.
-
         """
+
         uri = '/audit_templates/detail?host_agregate=%s' % host_agregate_id
 
         return self._show_request('audit_templates', uuid=None, uri=uri)
 
     @base.handle_errors
     def show_audit_template_by_goal(self, goal):
-        """
-        Gets an audit template associated with given goal.
+        """Gets an audit template associated with given goal.
 
         :param uuid: Unique identifier of the audit_template in UUID format.
         :return: Serialized audit_template as a dictionary.
-
         """
+
         uri = '/audit_templates/detail?goal=%s' % goal
 
         return self._show_request('audit_templates', uuid=None, uri=uri)
 
     @base.handle_errors
     def create_audit_template(self, **kwargs):
-        """
-        Creates an audit template with the specified parameters.
+        """Creates an audit template with the specified parameters.
 
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
@@ -91,8 +85,8 @@ class InfraOptimClientJSON(base.InfraOptimClient):
             Default: {}
         :return: A tuple with the server response and the created audit
             template.
-
         """
+
         audit_template = {
             'name': kwargs.get('name', 'My Audit Template'),
             'description': kwargs.get('description', 'AT Description'),
@@ -127,25 +121,22 @@ class InfraOptimClientJSON(base.InfraOptimClient):
 
     @base.handle_errors
     def delete_audit_template(self, uuid):
-        """
-        Deletes an audit template having the specified UUID.
+        """Deletes an audit template having the specified UUID.
 
         :param uuid: The unique identifier of the audit template.
         :return: A tuple with the server response and the response body.
-
         """
+
         return self._delete_request('audit_templates', uuid)
 
     @base.handle_errors
     def update_audit_template(self, uuid, patch):
-        """
-        Update the specified audit template.
+        """Update the specified audit template.
 
         :param uuid: The unique identifier of the audit template.
         :param patch: List of dicts representing json patches.
         :return: A tuple with the server response and the updated audit
             template.
-
         """
 
         return self._patch_request('audit_templates', uuid, patch)
