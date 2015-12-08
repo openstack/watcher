@@ -20,8 +20,8 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from urlparse import urljoin
-from urlparse import urlparse
+from six.moves.urllib.parse import urljoin
+from six.moves.urllib.parse import urlparse
 
 from keystoneclient.auth.identity import generic
 from keystoneclient import session as keystone_session

@@ -123,7 +123,7 @@ class TestJsonPatchType(base.TestCase):
                           'value': {'cat': 'meow'}}]
         ret = self._patch_json(valid_patches, False)
         self.assertEqual(200, ret.status_int)
-        self.assertEqual(sorted(valid_patches), sorted(ret.json))
+        self.assertEqual(valid_patches, ret.json)
 
     def test_cannot_update_internal_attr(self):
         patch = [{'path': '/internal', 'op': 'replace', 'value': 'foo'}]
@@ -244,7 +244,6 @@ class TestJsonType(base.TestCase):
         vts = str(types.jsontype)
         self.assertIn(str(wtypes.text), vts)
         self.assertIn(str(int), vts)
-        self.assertIn(str(long), vts)
         self.assertIn(str(float), vts)
         self.assertIn(str(types.BooleanType), vts)
         self.assertIn(str(list), vts)

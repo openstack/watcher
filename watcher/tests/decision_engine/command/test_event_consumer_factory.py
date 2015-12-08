@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import exceptions
-
 from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.messaging.events import Events
 from watcher.tests import base
@@ -26,6 +24,6 @@ class TestEventConsumerFactory(base.TestCase):
     event_consumer_factory = EventConsumerFactory()
 
     def test_factory_with_unknown_type(self):
-        self.assertRaises(exceptions.AssertionError,
+        self.assertRaises(AssertionError,
                           self.event_consumer_factory.factory,
                           Events.ALL)

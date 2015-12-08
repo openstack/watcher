@@ -13,7 +13,6 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-
 """
 Middleware to replace the plain text message body of an error
 response with one formatted so the client can parse it.
@@ -24,9 +23,9 @@ Based on pecan.middleware.errordocument
 import json
 from xml import etree as et
 
-import webob
-
 from oslo_log import log
+import six
+import webob
 
 from watcher.common.i18n import _
 from watcher.common.i18n import _LE
@@ -69,8 +68,9 @@ class ParsableErrorMiddleware(object):
         app_iter = self.app(environ, replacement_start_response)
         if (state['status_code'] // 100) not in (2, 3):
             req = webob.Request(environ)
-            if (req.accept.best_match(['application/json', 'application/xml'])
-                    == 'application/xml'):
+            if (req.accept.best_match(['application/json', 'application/xml']
+                                      ) == 'application/xml'
+                ):
                 try:
                     # simple check xml is valid
                     body = [et.ElementTree.tostring(
@@ -83,9 +83,13 @@ class ParsableErrorMiddleware(object):
                             + '</error_message>']
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
+                if six.PY3:
+                    app_iter = [i.decode('utf-8') for i in app_iter]
                 body = [json.dumps({'error_message': '\n'.join(app_iter)})]
+                if six.PY3:
+                    body = [item.encode('utf-8') for item in body]
                 state['headers'].append(('Content-Type', 'application/json'))
-            state['headers'].append(('Content-Length', len(body[0])))
+            state['headers'].append(('Content-Length', str(len(body[0]))))
         else:
             body = app_iter
         return body

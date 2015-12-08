@@ -38,19 +38,19 @@ class TestListGoal(api_base.FunctionalTest):
         self._assert_goal_fields(response['goals'][0])
 
     def test_get_one(self):
-        goal_name = CONF.watcher_goals.goals.keys()[0]
+        goal_name = list(CONF.watcher_goals.goals.keys())[0]
         response = self.get_json('/goals/%s' % goal_name)
         self.assertEqual(goal_name, response['name'])
         self._assert_goal_fields(response)
 
     def test_detail(self):
-        goal_name = CONF.watcher_goals.goals.keys()[0]
+        goal_name = list(CONF.watcher_goals.goals.keys())[0]
         response = self.get_json('/goals/detail')
         self.assertEqual(goal_name, response['goals'][0]["name"])
         self._assert_goal_fields(response['goals'][0])
 
     def test_detail_against_single(self):
-        goal_name = CONF.watcher_goals.goals.keys()[0]
+        goal_name = list(CONF.watcher_goals.goals.keys())[0]
         response = self.get_json('/goals/%s/detail' % goal_name,
                                  expect_errors=True)
         self.assertEqual(404, response.status_int)

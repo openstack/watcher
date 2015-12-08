@@ -266,7 +266,7 @@ class _TestObject(object):
         self.assertEqual([('bar', 'bar'), ('foo', 123)],
                          sorted(obj.items(), key=lambda x: x[0]))
         self.assertEqual([('bar', 'bar'), ('foo', 123)],
-                         sorted(list(obj.iteritems()), key=lambda x: x[0]))
+                         sorted(list(obj.items()), key=lambda x: x[0]))
 
     def test_load(self):
         obj = MyObj(self.context)

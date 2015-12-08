@@ -199,7 +199,7 @@ class ActionCollection(collection.Collection):
                     reverse = True if kwargs['sort_dir'] == 'desc' else False
                 collection.actions = sorted(
                     collection.actions,
-                    key=lambda action: action.next_uuid,
+                    key=lambda action: action.next_uuid or '',
                     reverse=reverse)
 
         collection.next = collection.get_next(limit, url=url, **kwargs)
@@ -229,7 +229,6 @@ class ActionsController(rest.RestController):
                                 sort_key, sort_dir, expand=False,
                                 resource_url=None,
                                 action_plan_uuid=None, audit_uuid=None):
-
         limit = api_utils.validate_limit(limit)
         sort_dir = api_utils.validate_sort_dir(sort_dir)
 

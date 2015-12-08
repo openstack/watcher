@@ -313,7 +313,7 @@ class BasicConsolidation(BaseStrategy):
         cpu_capacity = model.get_resource_from_id(
             ResourceType.cpu_cores).get_capacity(vm)
 
-        total_cores_used = cpu_capacity * (vm_cpu_utilization / 100)
+        total_cores_used = cpu_capacity * (vm_cpu_utilization / 100.0)
 
         return self.calculate_weight(model, vm, total_cores_used,
                                      0,

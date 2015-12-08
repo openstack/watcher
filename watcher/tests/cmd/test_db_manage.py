@@ -44,7 +44,7 @@ class TestDBManageRunApp(TestCase):
         cfg.CONF.register_opt(cfg.Opt("func"), group="command")
         cfg.CONF.set_override("func", m_func, group="command")
         # Only append if the command is not None
-        m_sys.argv = filter(None, ["watcher-db-manage", self.command])
+        m_sys.argv = list(filter(None, ["watcher-db-manage", self.command]))
 
         dbmanage.main()
         self.assertEqual(m_func.call_count, 1)

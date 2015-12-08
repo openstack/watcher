@@ -79,21 +79,21 @@ class TestBasicConsolidation(base.BaseTestCase):
         sercon.ceilometer = MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
-        vm_0_score = 0.0
+        vm_0_score = 0.023333333333333317
         self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
 
         vm_1 = cluster.get_vm_from_id("VM_1")
-        vm_1_score = 0.0
+        vm_1_score = 0.023333333333333317
         self.assertEqual(sercon.calculate_score_vm(vm_1, cluster),
                          vm_1_score)
         vm_2 = cluster.get_vm_from_id("VM_2")
-        vm_2_score = 0.0
+        vm_2_score = 0.033333333333333326
         self.assertEqual(sercon.calculate_score_vm(vm_2, cluster), vm_2_score)
         vm_6 = cluster.get_vm_from_id("VM_6")
-        vm_6_score = 0.0
+        vm_6_score = 0.02666666666666669
         self.assertEqual(sercon.calculate_score_vm(vm_6, cluster), vm_6_score)
         vm_7 = cluster.get_vm_from_id("VM_7")
-        vm_7_score = 0.0
+        vm_7_score = 0.013333333333333345
         self.assertEqual(sercon.calculate_score_vm(vm_7, cluster), vm_7_score)
 
     def test_basic_consolidation_score_vm_disk(self):
@@ -102,7 +102,7 @@ class TestBasicConsolidation(base.BaseTestCase):
         sercon.ceilometer = MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
-        vm_0_score = 0.0
+        vm_0_score = 0.023333333333333355
         self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
 
     def test_basic_consolidation_weight(self):
@@ -158,8 +158,8 @@ class TestBasicConsolidation(base.BaseTestCase):
 
         all_vms = model.get_all_vms()
         all_hyps = model.get_all_hypervisors()
-        vm0 = all_vms[all_vms.keys()[0]]
-        hyp0 = all_hyps[all_hyps.keys()[0]]
+        vm0 = all_vms[list(all_vms.keys())[0]]
+        hyp0 = all_hyps[list(all_hyps.keys())[0]]
 
         sercon.check_migration(model, hyp0, hyp0, vm0)
 
@@ -169,7 +169,7 @@ class TestBasicConsolidation(base.BaseTestCase):
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[all_hyps.keys()[0]]
+        hyp0 = all_hyps[list(all_hyps.keys())[0]]
 
         sercon.check_threshold(model, hyp0, 1000, 1000, 1000)
 

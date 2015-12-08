@@ -11,6 +11,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import six
+
 from tempest_lib import exceptions as lib_exc
 
 from tempest.api.infra_optim.admin import base
@@ -27,7 +29,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
     def _assertExpected(self, expected, actual):
         # Check if not expected keys/values exists in actual response body
-        for key, value in expected.iteritems():
+        for key, value in six.iteritems(expected):
             if key not in ('created_at', 'updated_at', 'deleted_at'):
                 self.assertIn(key, actual)
                 self.assertEqual(value, actual[key])

@@ -30,7 +30,7 @@ class TestMapping(base.BaseTestCase):
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
 
         vms = model.get_all_vms()
-        keys = vms.keys()
+        keys = list(vms.keys())
         vm = vms[keys[0]]
         if vm.uuid != 'VM_0':
             vm = vms[keys[1]]
@@ -68,7 +68,7 @@ class TestMapping(base.BaseTestCase):
         fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
-        keys = vms.keys()
+        keys = list(vms.keys())
         vm0 = vms[keys[0]]
         hyp0 = model.mapping.get_node_from_vm_id(vm0.uuid)
         vm1 = vms[keys[1]]
@@ -83,7 +83,7 @@ class TestMapping(base.BaseTestCase):
         fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
-        keys = vms.keys()
+        keys = list(vms.keys())
         vm0 = vms[keys[0]]
         id = "{0}".format(uuid.uuid4())
         hypervisor = Hypervisor()
@@ -97,7 +97,7 @@ class TestMapping(base.BaseTestCase):
         fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_4_with_2_hypervisors()
         vms = model.get_all_vms()
-        keys = vms.keys()
+        keys = list(vms.keys())
         vm0 = vms[keys[0]]
         hyp0 = model.mapping.get_node_from_vm_id(vm0.uuid)
 

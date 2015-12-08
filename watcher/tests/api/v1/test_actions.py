@@ -367,20 +367,21 @@ class TestListAction(api_base.FunctionalTest):
                                          uuid=utils.generate_uuid(),
                                          next=id_ + 1)
         response = self.get_json('/actions/')
-        reference_uuids = [(s['next_uuid'] if 'next_uuid' in s else None)
-                           for s in response['actions']]
+        reference_uuids = [
+            s.get('next_uuid', '') for s in response['actions']
+        ]
 
         response = self.get_json('/actions/?sort_key=next_uuid')
 
         self.assertEqual(5, len(response['actions']))
-        uuids = [(s['next_uuid'] if 'next_uuid' in s else None)
+        uuids = [(s['next_uuid'] if 'next_uuid' in s else '')
                  for s in response['actions']]
         self.assertEqual(sorted(reference_uuids), uuids)
 
         response = self.get_json('/actions/?sort_key=next_uuid&sort_dir=desc')
 
         self.assertEqual(5, len(response['actions']))
-        uuids = [(s['next_uuid'] if 'next_uuid' in s else None)
+        uuids = [(s['next_uuid'] if 'next_uuid' in s else '')
                  for s in response['actions']]
         self.assertEqual(sorted(reference_uuids, reverse=True), uuids)
 

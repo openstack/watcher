@@ -53,7 +53,7 @@ def make_class_properties(cls):
         for name, field in supercls.fields.items():
             if name not in cls.fields:
                 cls.fields[name] = field
-    for name, typefn in cls.fields.iteritems():
+    for name, typefn in six.iteritems(cls.fields):
 
         def getter(self, name=name):
             attrname = get_attrname(name)
@@ -351,12 +351,13 @@ class WatcherObject(object):
 
         NOTE(danms): May be removed in the future.
         """
-        for name in self.fields.keys() + self.obj_extra_fields:
+        for name in list(self.fields.keys()) + self.obj_extra_fields:
             if (hasattr(self, get_attrname(name)) or
                     name in self.obj_extra_fields):
                 yield name, getattr(self, name)
 
-    items = lambda self: list(self.iteritems())
+    def items(self):
+        return list(self.iteritems())
 
     def __getitem__(self, name):
         """For backwards-compatibility with dict-based objects.
@@ -540,7 +541,7 @@ def obj_to_primitive(obj):
         return [obj_to_primitive(x) for x in obj]
     elif isinstance(obj, WatcherObject):
         result = {}
-        for key, value in obj.iteritems():
+        for key, value in six.iteritems(obj):
             result[key] = obj_to_primitive(value)
         return result
     else:

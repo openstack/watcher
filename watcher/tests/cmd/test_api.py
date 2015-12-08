@@ -16,7 +16,7 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from SocketServer import BaseServer
+from six.moves.socketserver import BaseServer
 
 
 import types
