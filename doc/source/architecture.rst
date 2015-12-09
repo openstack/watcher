@@ -68,8 +68,9 @@ You can also read the detailed description of `Watcher API`_.
 Watcher Applier
 ---------------
 
-This component is in charge of executing the :ref:`Action Plan <action_plan_definition>`
-built by the :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`.
+This component is in charge of executing the
+:ref:`Action Plan <action_plan_definition>` built by the
+:ref:`Watcher Decision Engine <watcher_decision_engine_definition>`.
 
 It connects to the :ref:`message bus <amqp_bus_definition>` and launches the
 :ref:`Action Plan <action_plan_definition>` whenever a triggering message is
@@ -93,9 +94,11 @@ handling a given :ref:`Action <action_definition>` from the list, a
 notification message is sent on the :ref:`message bus <amqp_bus_definition>`
 indicating that the state of the action has changed to **ONGOING**.
 
-If the :ref:`Action <action_definition>` is successful, the :ref:`Watcher Applier <watcher_applier_definition>`
-sends a notification message on :ref:`the bus <amqp_bus_definition>` informing
-the other components of this.
+If the :ref:`Action <action_definition>` is successful,
+the :ref:`Watcher Applier <watcher_applier_definition>` sends a notification
+message on :ref:`the bus <amqp_bus_definition>` informing the other components
+of this.
+
 
 If the :ref:`Action <action_definition>` fails, the
 :ref:`Watcher Applier <watcher_applier_definition>` tries to rollback to the
@@ -136,8 +139,8 @@ Watcher Decision Engine
 -----------------------
 
 This component is responsible for computing a set of potential optimization
-:ref:`Actions <action_definition>` in order to fulfill the :ref:`Goal <goal_definition>`
-of an :ref:`Audit <audit_definition>`.
+:ref:`Actions <action_definition>` in order to fulfill
+the :ref:`Goal <goal_definition>` of an :ref:`Audit <audit_definition>`.
 
 It first reads the parameters of the :ref:`Audit <audit_definition>` from the
 associated :ref:`Audit Template <audit_template_definition>` and knows the
@@ -159,10 +162,13 @@ These :ref:`Actions <action_definition>` are scheduled in time by the
 In order to compute the potential :ref:`Solution <solution_definition>` for the
 Audit, the :ref:`Strategy <strategy_definition>` relies on two sets of data:
 
--   the current state of the :ref:`Managed resources <managed_resource_definition>`
-    (e.g., the data stored in the Nova database)
--   the data stored in the :ref:`Cluster History Database <cluster_history_db_definition>`
-    which provides information about the past of the :ref:`Cluster <cluster_definition>`
+-   the current state of the
+:ref:`Managed resources <managed_resource_definition>`
+(e.g., the data stored in the Nova database)
+-   the data stored in the
+:ref:`Cluster History Database <cluster_history_db_definition>`
+    which provides information about the past of the
+    :ref:`Cluster <cluster_definition>`
 
 So far, only one :ref:`Strategy <strategy_definition>` can be associated to a
 given :ref:`Goal <goal_definition>` via the main Watcher configuration file.
