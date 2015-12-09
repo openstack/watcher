@@ -25,15 +25,15 @@ class Solution(object):
     def __init__(self):
         self._origin = None
         self._model = None
-        self._efficiency = 0
+        self._efficacy = 0
 
     @property
-    def efficiency(self):
-        return self._efficiency
+    def efficacy(self):
+        return self._efficacy
 
-    @efficiency.setter
-    def efficiency(self, e):
-        self._efficiency = e
+    @efficacy.setter
+    def efficacy(self, e):
+        self._efficacy = e
 
     @property
     def model(self):
