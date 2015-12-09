@@ -33,14 +33,14 @@ from sqlalchemy.types import TypeDecorator, TEXT
 
 from watcher.common import paths
 
-
 sql_opts = [
     cfg.StrOpt('mysql_engine',
                default='InnoDB',
                help='MySQL engine to use.')
 ]
 
-_DEFAULT_SQL_CONNECTION = 'sqlite:///' + paths.state_path_def('watcher.sqlite')
+_DEFAULT_SQL_CONNECTION = 'sqlite:///{0}'.format(
+    paths.state_path_def('watcher.sqlite'))
 
 cfg.CONF.register_opts(sql_opts, 'database')
 db_options.set_defaults(cfg.CONF, _DEFAULT_SQL_CONNECTION, 'watcher.sqlite')

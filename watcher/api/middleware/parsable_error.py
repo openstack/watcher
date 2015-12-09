@@ -74,13 +74,13 @@ class ParsableErrorMiddleware(object):
                 try:
                     # simple check xml is valid
                     body = [et.ElementTree.tostring(
-                            et.ElementTree.fromstring('<error_message>'
-                                                      + '\n'.join(app_iter)
-                                                      + '</error_message>'))]
+                            et.ElementTree.Element('error_message',
+                                                   text='\n'.join(app_iter)))]
                 except et.ElementTree.ParseError as err:
                     LOG.error(_LE('Error parsing HTTP response: %s'), err)
-                    body = ['<error_message>%s' % state['status_code']
-                            + '</error_message>']
+                    body = [et.ElementTree.tostring(
+                            et.ElementTree.Element('error_message',
+                                                   text=state['status_code']))]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
                 if six.PY3:
