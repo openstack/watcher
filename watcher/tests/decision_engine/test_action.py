@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.meta_action.base import MetaAction
+from watcher.decision_engine.actions.base import BaseAction
 from watcher.tests import base
 
 
-class TestMetaAction(base.TestCase):
+class TestAction(base.TestCase):
     def test_get_priority(self):
-        ma = MetaAction()
+        ma = BaseAction()
         ma.priority = 3
         self.assertEqual(ma.priority, 3)
 
     def test_get_level(self):
-        ma = MetaAction()
+        ma = BaseAction()
         ma.level = 5
         self.assertEqual(ma.level, 5)

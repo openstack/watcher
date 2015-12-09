@@ -16,18 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.decision_engine.meta_action.base import MetaAction
+from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
 
 
-class ChangeHypervisorState(MetaAction):
+class ChangeHypervisorState(BaseAction):
     def __init__(self, target):
-        MetaAction.__init__(self)
-        '''The target host to change the power
+        '''The target host to change the state
 
-        :param target:
-        :return:
+        :param target: the target hypervisor uuid
         '''
+        super(ChangeHypervisorState, self).__init__()
         self._target = target
         self._state = HypervisorState.ONLINE
 
@@ -48,5 +47,5 @@ class ChangeHypervisorState(MetaAction):
         self._target = p
 
     def __str__(self):
-        return "{0} {1} ChangeHypervisorState => {2}".format(
-            MetaAction.__str__(self), self.target, self.state)
+        return "{} ChangeHypervisorState => {}".format(self.target,
+                                                       self.state)

@@ -45,7 +45,7 @@ Here is an example showing how you can write a plugin called ``DummyStrategy``:
 
         def execute(self, model):
             self.solution.add_change_request(
-                Migrate(vm=my_vm, source_hypervisor=src, dest_hypervisor=dest)
+                Migrate(vm=my_vm, src_hypervisor=src, dest_hypervisor=dest)
             )
             # Do some more stuff here ...
             return self.solution

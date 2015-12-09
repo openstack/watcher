@@ -23,11 +23,11 @@ from mock import MagicMock
 
 from watcher.common import exception
 
-from watcher.decision_engine.meta_action.hypervisor_state import \
+from watcher.decision_engine.actions.hypervisor_state import \
     ChangeHypervisorState
-from watcher.decision_engine.meta_action.power_state import ChangePowerState
+from watcher.decision_engine.actions.power_state import ChangePowerState
 
-from watcher.decision_engine.meta_action.migrate import Migrate
+from watcher.decision_engine.actions.migration import Migrate
 from watcher.decision_engine.model.model_root import ModelRoot
 from watcher.decision_engine.strategy.basic_consolidation import \
     BasicConsolidation
@@ -151,24 +151,6 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertRaises(exception.ClusteStateNotDefined,
                           sercon.print_utilization, None)
 
-    def check_migration(self, array, indice, vm, src, dest):
-        """Helper to check migration
-
-        :param array:
-        :param indice:
-        :param vm:
-        :param src:
-        :param dest:
-        :return:
-        """
-        self.assertEqual(array[indice].get_vm().uuid, vm)
-        self.assertEqual(array[indice].get_source_hypervisor().uuid, src)
-        self.assertEqual(array[indice].get_dest_hypervisor().uuid, dest)
-
-        self.assertEqual(array[indice].get_bandwidth(), 0)
-        array[indice].set_bandwidth(5)
-        self.assertEqual(array[indice].get_bandwidth(), 5)
-
     def test_check_migration(self):
         sercon = BasicConsolidation()
         fake_cluster = FakerModelCollector()
@@ -209,7 +191,7 @@ class TestBasicConsolidation(base.BaseTestCase):
             self.fake_cluster.generate_scenario_3())
 
         actions_counter = Counter(
-            [type(action) for action in solution.meta_actions])
+            [type(action) for action in solution.actions])
 
         expected_num_migrations = 0
         expected_power_state = 0

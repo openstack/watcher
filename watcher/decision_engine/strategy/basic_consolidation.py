@@ -17,21 +17,19 @@
 # limitations under the License.
 #
 from oslo_log import log
-
 from watcher.common.exception import ClusterEmpty
 from watcher.common.exception import ClusteStateNotDefined
-from watcher.decision_engine.strategy.base import BaseStrategy
-from watcher.decision_engine.strategy.level import StrategyLevel
-
-from watcher.decision_engine.meta_action.hypervisor_state import \
+from watcher.decision_engine.actions.hypervisor_state import \
     ChangeHypervisorState
-from watcher.decision_engine.meta_action.migrate import Migrate
-from watcher.decision_engine.meta_action.migrate import MigrationType
-from watcher.decision_engine.meta_action.power_state import ChangePowerState
-from watcher.decision_engine.meta_action.power_state import PowerState
+from watcher.decision_engine.actions.migration import Migrate
+from watcher.decision_engine.actions.migration import MigrationType
+from watcher.decision_engine.actions.power_state import ChangePowerState
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
+from watcher.decision_engine.model.power_state import PowerState
 from watcher.decision_engine.model.resource import ResourceType
 from watcher.decision_engine.model.vm_state import VMState
+from watcher.decision_engine.strategy.base import BaseStrategy
+from watcher.decision_engine.strategy.level import StrategyLevel
 from watcher.metrics_engine.cluster_history.ceilometer import \
     CeilometerClusterHistory
 
@@ -39,7 +37,6 @@ LOG = log.getLogger(__name__)
 
 
 class BasicConsolidation(BaseStrategy):
-
     DEFAULT_NAME = "basic"
     DEFAULT_DESCRIPTION = "Basic offline consolidation"
 
@@ -447,8 +444,8 @@ class BasicConsolidation(BaseStrategy):
                                                    mig_src_hypervisor,
                                                    mig_dst_hypervisor)
                             # live migration
-                            live_migrate.set_migration_type(
-                                MigrationType.pre_copy)
+                            live_migrate.migration_type = \
+                                MigrationType.pre_copy
                             live_migrate.level = StrategyLevel.conservative
 
                             tmp_vm_migration_schedule.append(live_migrate)

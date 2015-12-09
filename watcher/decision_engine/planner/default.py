@@ -25,11 +25,11 @@ from watcher.decision_engine.planner.base import Planner
 
 from watcher import objects
 
-from watcher.decision_engine.meta_action.hypervisor_state import \
+from watcher.decision_engine.actions.hypervisor_state import \
     ChangeHypervisorState
-from watcher.decision_engine.meta_action.migrate import Migrate
-from watcher.decision_engine.meta_action.nop import Nop
-from watcher.decision_engine.meta_action.power_state import ChangePowerState
+from watcher.decision_engine.actions.migration import Migrate
+from watcher.decision_engine.actions.nop import Nop
+from watcher.decision_engine.actions.power_state import ChangePowerState
 from watcher.objects.action import Status as AStatus
 from watcher.objects.action_plan import Status as APStatus
 
@@ -84,7 +84,7 @@ class DefaultPlanner(Planner):
         LOG.debug('Create an action plan for the audit uuid')
         action_plan = self._create_action_plan(context, audit_id)
 
-        actions = list(solution.meta_actions)
+        actions = list(solution.actions)
         to_schedule = []
 
         for action in actions:
@@ -92,10 +92,10 @@ class DefaultPlanner(Planner):
                 # TODO(jed) type
                 primitive = self.create_action(action_plan.id,
                                                Primitives.LIVE_MIGRATE.value,
-                                               action.get_vm().uuid,
-                                               action.get_source_hypervisor().
+                                               action.vm.uuid,
+                                               action.src_hypervisor.
                                                uuid,
-                                               action.get_dest_hypervisor().
+                                               action.dest_hypervisor.
                                                uuid,
                                                description="{0}".format(
                                                    action)
