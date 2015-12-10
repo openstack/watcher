@@ -16,30 +16,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import abc
+from oslo_log import log
+from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 
-import six
-from watcher.decision_engine.strategy.common.level import StrategyLevel
+from watcher.decision_engine.actions.nop import Nop
+
+LOG = log.getLogger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseAction(object):
-    def __init__(self):
-        self._level = StrategyLevel.conservative
-        self._priority = 0
+class DummyStrategy(BaseStrategy):
 
-    @property
-    def level(self):
-        return self._level
+    DEFAULT_NAME = "dummy"
+    DEFAULT_DESCRIPTION = "Dummy Strategy"
 
-    @level.setter
-    def level(self, l):
-        self._level = l
+    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
+        super(DummyStrategy, self).__init__(name, description)
 
-    @property
-    def priority(self):
-        return self._priority
-
-    @priority.setter
-    def priority(self, p):
-        self._priority = p
+    def execute(self, model):
+        n = Nop()
+        self.solution.add_change_request(n)
+        return self.solution

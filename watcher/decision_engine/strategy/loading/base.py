@@ -16,37 +16,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
-from __future__ import unicode_literals
-
+import abc
 from oslo_log import log
-from stevedore import ExtensionManager
-from watcher.decision_engine.strategy.basic_consolidation import \
-    BasicConsolidation
+import six
 
 LOG = log.getLogger(__name__)
 
 
-class StrategyLoader(object):
+@six.add_metaclass(abc.ABCMeta)
+class BaseStrategyLoader(object):
+    @abc.abstractmethod
+    def load_available_strategies(self):
+        raise NotImplementedError()  # pragma:no cover
 
-    default_strategy_cls = BasicConsolidation
-
-    def load_strategies(self):
-        extension_manager = ExtensionManager(
-            namespace='watcher_strategies',
-            invoke_on_load=True,
-        )
-        return {ext.name: ext.plugin for ext in extension_manager.extensions}
-
-    def load(self, model):
-        strategy = None
+    def load(self, strategy_to_load=None):
+        strategy_selected = None
         try:
-            available_strategies = self.load_strategies()
+            available_strategies = self.load_available_strategies()
             strategy_cls = available_strategies.get(
-                model, self.default_strategy_cls
+                strategy_to_load, self.default_strategy_cls
             )
-            strategy = strategy_cls()
+            strategy_selected = strategy_cls()
         except Exception as exc:
             LOG.exception(exc)
 
-        return strategy
+        return strategy_selected

@@ -17,7 +17,7 @@ from oslo_log import log
 
 from watcher.decision_engine.planner.default import DefaultPlanner
 from watcher.decision_engine.strategy.context.base import BaseStrategyContext
-from watcher.decision_engine.strategy.selector.default import StrategySelector
+from watcher.decision_engine.strategy.selection.default import StrategySelector
 
 LOG = log.getLogger(__name__)
 

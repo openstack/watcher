@@ -17,17 +17,18 @@
 # limitations under the License.
 #
 import uuid
+
 from watcher.decision_engine.model.hypervisor import Hypervisor
 from watcher.decision_engine.model.vm_state import VMState
 from watcher.tests import base
-from watcher.tests.decision_engine.faker_cluster_state import \
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state import \
     FakerModelCollector
 
 
 class TestMapping(base.BaseTestCase):
     def test_get_node_from_vm(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         vms = model.get_all_vms()
         keys = list(vms.keys())
@@ -39,14 +40,14 @@ class TestMapping(base.BaseTestCase):
 
     def test_get_node_from_vm_id(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         hyps = model.mapping.get_node_vms_from_id("BLABLABLA")
         self.assertEqual(hyps.__len__(), 0)
 
     def test_get_all_vms(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         vms = model.get_all_vms()
         self.assertEqual(vms.__len__(), 2)
@@ -57,7 +58,7 @@ class TestMapping(base.BaseTestCase):
 
     def test_get_mapping(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         mapping_vm = model.mapping.get_mapping_vm()
         self.assertEqual(mapping_vm.__len__(), 2)
@@ -66,7 +67,7 @@ class TestMapping(base.BaseTestCase):
 
     def test_migrate_vm(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())
         vm0 = vms[keys[0]]
@@ -81,7 +82,7 @@ class TestMapping(base.BaseTestCase):
 
     def test_unmap_from_id_log_warning(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())
         vm0 = vms[keys[0]]
@@ -95,7 +96,7 @@ class TestMapping(base.BaseTestCase):
 
     def test_unmap_from_id(self):
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())
         vm0 = vms[keys[0]]

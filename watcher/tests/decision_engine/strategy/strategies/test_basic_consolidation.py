@@ -22,20 +22,18 @@ import mock
 from mock import MagicMock
 
 from watcher.common import exception
-
 from watcher.decision_engine.actions.hypervisor_state import \
     ChangeHypervisorState
-from watcher.decision_engine.actions.power_state import ChangePowerState
-
 from watcher.decision_engine.actions.migration import Migrate
+from watcher.decision_engine.actions.power_state import ChangePowerState
 from watcher.decision_engine.model.model_root import ModelRoot
-from watcher.decision_engine.strategy.basic_consolidation import \
+from watcher.decision_engine.strategy.strategies.basic_consolidation import \
     BasicConsolidation
 from watcher.tests import base
-from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerModelCollector
-from watcher.tests.decision_engine.faker_metrics_collector import \
-    FakerMetricsCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
+    import FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_metrics_collector\
+    import FakerMetricsCollector
 
 
 class TestBasicConsolidation(base.BaseTestCase):
@@ -154,7 +152,7 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_check_migration(self):
         sercon = BasicConsolidation()
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         all_vms = model.get_all_vms()
         all_hyps = model.get_all_hypervisors()
@@ -166,7 +164,7 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_threshold(self):
         sercon = BasicConsolidation()
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         all_hyps = model.get_all_hypervisors()
         hyp0 = all_hyps[list(all_hyps.keys())[0]]
@@ -188,7 +186,7 @@ class TestBasicConsolidation(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
         solution = sercon.execute(
-            self.fake_cluster.generate_scenario_3())
+            self.fake_cluster.generate_scenario_2())
 
         actions_counter = Counter(
             [type(action) for action in solution.actions])
@@ -224,7 +222,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
         current_state_cluster = FakerModelCollector()
         model = current_state_cluster. \
-            generate_scenario_5_with_1_hypervisor_no_vm()
+            generate_scenario_4_with_1_hypervisor_no_vm()
 
         with mock.patch.object(BasicConsolidation, 'calculate_weight') \
                 as mock_score_call:

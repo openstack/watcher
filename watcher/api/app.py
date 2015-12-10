@@ -22,7 +22,7 @@ import pecan
 from watcher.api import acl
 from watcher.api import config as api_config
 from watcher.api import middleware
-from watcher.decision_engine.strategy.selector import default \
+from watcher.decision_engine.strategy.selection import default \
     as strategy_selector
 
 # Register options for the service

@@ -13,20 +13,40 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from __future__ import unicode_literals
 
 from mock import patch
 from stevedore.extension import Extension
 from stevedore.extension import ExtensionManager
-from watcher.decision_engine.strategy.dummy_strategy import DummyStrategy
-from watcher.decision_engine.strategy.loader import StrategyLoader
+
+from watcher.decision_engine.strategy.loading.default import \
+    DefaultStrategyLoader
+from watcher.decision_engine.strategy.strategies.base import BaseStrategy
+from watcher.decision_engine.strategy.strategies.dummy_strategy import \
+    DummyStrategy
 from watcher.tests.base import TestCase
 
 
-class TestStrategyLoader(TestCase):
+class TestDefaultStrategyLoader(TestCase):
 
-    @patch("watcher.decision_engine.strategy.loader.ExtensionManager")
+    strategy_loader = DefaultStrategyLoader()
+
+    def test_load_strategy_with_empty_model(self):
+        selected_strategy = self.strategy_loader.load(None)
+        self.assertIsNotNone(selected_strategy,
+                             'The default strategy not be must none')
+        self.assertIsInstance(selected_strategy, BaseStrategy)
+
+    def test_load_strategy_is_basic(self):
+        exptected_strategy = 'basic'
+        selected_strategy = self.strategy_loader.load(exptected_strategy)
+        self.assertEqual(
+            selected_strategy.name,
+            exptected_strategy,
+            'The default strategy should be basic')
+
+    @patch(
+        "watcher.decision_engine.strategy.loading.default.ExtensionManager")
     def test_strategy_loader(self, m_extension_manager):
         dummy_strategy_name = "dummy"
         # Set up the fake Stevedore extensions
@@ -40,15 +60,13 @@ class TestStrategyLoader(TestCase):
             )],
             namespace="watcher_strategies",
         )
-        strategy_loader = StrategyLoader()
+        strategy_loader = DefaultStrategyLoader()
         loaded_strategy = strategy_loader.load("dummy")
 
         self.assertEqual("dummy", loaded_strategy.name)
         self.assertEqual("Dummy Strategy", loaded_strategy.description)
 
     def test_load_dummy_strategy(self):
-        strategy_loader = StrategyLoader()
+        strategy_loader = DefaultStrategyLoader()
         loaded_strategy = strategy_loader.load("dummy")
-
-        self.assertEqual("dummy", loaded_strategy.name)
-        self.assertEqual("Dummy Strategy", loaded_strategy.description)
+        self.assertIsInstance(loaded_strategy, DummyStrategy)

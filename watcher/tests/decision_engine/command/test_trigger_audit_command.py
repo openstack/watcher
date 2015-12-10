@@ -13,7 +13,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from mock import call
 from mock import MagicMock
 from watcher.decision_engine.command.audit import TriggerAuditCommand
@@ -21,8 +20,8 @@ from watcher.decision_engine.messaging.events import Events
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
 from watcher.tests.db.base import DbTestCase
-from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
+    import FakerModelCollector
 from watcher.tests.objects import utils as obj_utils
 
 

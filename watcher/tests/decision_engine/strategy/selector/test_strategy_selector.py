@@ -15,10 +15,13 @@
 # limitations under the License.
 from mock import patch
 from oslo_config import cfg
+
 from watcher.common.exception import WatcherException
-from watcher.decision_engine.strategy.loader import StrategyLoader
-from watcher.decision_engine.strategy.selector.default import StrategySelector
+from watcher.decision_engine.strategy.loading.default import \
+    DefaultStrategyLoader
+from watcher.decision_engine.strategy.selection.default import StrategySelector
 from watcher.tests.base import TestCase
+
 CONF = cfg.CONF
 
 
@@ -26,7 +29,7 @@ class TestStrategySelector(TestCase):
 
     strategy_selector = StrategySelector()
 
-    @patch.object(StrategyLoader, 'load')
+    @patch.object(DefaultStrategyLoader, 'load')
     def test_define_from_goal(self, mock_call):
         cfg.CONF.set_override(
             'goals', {"DUMMY": "fake"}, group='watcher_goals'
@@ -36,7 +39,7 @@ class TestStrategySelector(TestCase):
         self.strategy_selector.define_from_goal(expected_goal)
         mock_call.assert_called_once_with(expected_strategy)
 
-    @patch.object(StrategyLoader, 'load')
+    @patch.object(DefaultStrategyLoader, 'load')
     def test_define_from_goal_with_incorrect_mapping(self, mock_call):
         cfg.CONF.set_override(
             'goals', {}, group='watcher_goals'

@@ -17,15 +17,15 @@
 # limitations under the License.
 #
 import uuid
+
 from watcher.common import exception
 from watcher.common.exception import IllegalArgumentException
 from watcher.decision_engine.model.hypervisor import Hypervisor
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
 from watcher.decision_engine.model.model_root import ModelRoot
-from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerModelCollector
-
 from watcher.tests import base
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state import \
+    FakerModelCollector
 
 
 class TestModel(base.BaseTestCase):

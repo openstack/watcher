@@ -16,11 +16,11 @@
 
 import abc
 from oslo_log import log
-
 import six
-from watcher.decision_engine.solution.default import DefaultSolution
-from watcher.decision_engine.strategy.level import StrategyLevel
 
+
+from watcher.decision_engine.solution.default import DefaultSolution
+from watcher.decision_engine.strategy.common.level import StrategyLevel
 
 LOG = log.getLogger(__name__)
 

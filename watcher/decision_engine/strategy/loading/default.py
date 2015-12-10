@@ -16,23 +16,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from oslo_log import log
 
-from watcher.decision_engine.actions.nop import Nop
-from watcher.decision_engine.strategy.base import BaseStrategy
+from __future__ import unicode_literals
+
+from oslo_log import log
+from stevedore import ExtensionManager
+
+from watcher.decision_engine.strategy.loading.base import BaseStrategyLoader
+from watcher.decision_engine.strategy.strategies.basic_consolidation import \
+    BasicConsolidation
 
 LOG = log.getLogger(__name__)
 
 
-class DummyStrategy(BaseStrategy):
+class DefaultStrategyLoader(BaseStrategyLoader):
 
-    DEFAULT_NAME = "dummy"
-    DEFAULT_DESCRIPTION = "Dummy Strategy"
+    default_strategy_cls = BasicConsolidation
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
-        super(DummyStrategy, self).__init__(name, description)
-
-    def execute(self, model):
-        n = Nop()
-        self.solution.add_change_request(n)
-        return self.solution
+    def load_available_strategies(self):
+        extension_manager = ExtensionManager(
+            namespace='watcher_strategies',
+            invoke_on_load=True,
+        )
+        return {ext.name: ext.plugin for ext in extension_manager.extensions}

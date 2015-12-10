@@ -22,7 +22,7 @@ from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
 from watcher.metrics_engine.cluster_model_collector.manager import \
     CollectorManager
 from watcher.tests import base
-from watcher.tests.decision_engine.faker_cluster_state import \
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state import \
     FakerModelCollector
 
 

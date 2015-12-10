@@ -28,8 +28,8 @@ from watcher.decision_engine.model.hypervisor_state import HypervisorState
 from watcher.decision_engine.model.power_state import PowerState
 from watcher.decision_engine.model.resource import ResourceType
 from watcher.decision_engine.model.vm_state import VMState
-from watcher.decision_engine.strategy.base import BaseStrategy
-from watcher.decision_engine.strategy.level import StrategyLevel
+from watcher.decision_engine.strategy.common.level import StrategyLevel
+from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 from watcher.metrics_engine.cluster_history.ceilometer import \
     CeilometerClusterHistory
 
@@ -53,12 +53,12 @@ class BasicConsolidation(BaseStrategy):
     and often tend to migrate from one physical machine to another.
     Hence, the traditional and offline heuristics such as bin packing
     are not applicable for the placement VM in cloud computing.
-    So, the decision Engine optimizer provide placement strategy considering
+    So, the decision Engine optimizer provides placement strategy considering
     not only the performance effects but also the workload characteristics of
     VMs and others metrics like the power consumption and
     the tenants constraints (SLAs).
 
-    The watcher optimizer use an online VM placement technique
+    The watcher optimizer uses an online VM placement technique
     based on machine learning and meta-heuristics that must handle :
     - multi-objectives
     - Contradictory objectives
@@ -121,9 +121,9 @@ class BasicConsolidation(BaseStrategy):
                         vm_to_mig):
         '''check if the migration is possible
 
-        :param model: current state of the cluster
-        :param src_hypervisor: the current of the virtual machine
-        :param dest_hypervisor:the destination of the virtual machine
+        :param model: the current state of the cluster
+        :param src_hypervisor: the current node of the virtual machine
+        :param dest_hypervisor: the destination of the virtual machine
         :param vm_to_mig: the virtual machine
         :return: True if the there is enough place otherwise false
         '''
@@ -167,7 +167,7 @@ class BasicConsolidation(BaseStrategy):
         """Check threshold
 
         check the threshold value defined by the ratio of
-        aggregated CPU capacity of VMS on one node to CPU capacity
+        aggregated CPU capacity of VMs on one node to CPU capacity
         of this node must not exceed the threshold value.
         :param dest_hypervisor:
         :param total_cores
@@ -213,7 +213,7 @@ class BasicConsolidation(BaseStrategy):
 
     def calculate_weight(self, model, element, total_cores_used,
                          total_disk_used, total_memory_used):
-        """Calculate weight of every
+        """Calculate weight of every resource
 
         :param model:
         :param element:
@@ -248,7 +248,7 @@ class BasicConsolidation(BaseStrategy):
         return (score_cores + score_disk + score_memory) / 3
 
     def calculate_score_node(self, hypervisor, model):
-        """calculate the score that reprensent the utilization level
+        """calculate the score that represent the utilization level
 
             :param hypervisor:
             :param model:
@@ -331,7 +331,7 @@ class BasicConsolidation(BaseStrategy):
                                  model)))
 
     def execute(self, orign_model):
-        LOG.debug("initialize Sercon Consolidation")
+        LOG.debug("Initialize Sercon Consolidation")
 
         if orign_model is None:
             raise ClusterStateNotDefined()
@@ -411,7 +411,7 @@ class BasicConsolidation(BaseStrategy):
                     vm_score.append(
                         (vm_id, self.calculate_score_vm(vm, current_model)))
 
-            ''' sort VM's by Score '''
+            ''' sort VMs by Score '''
             v = sorted(vm_score, reverse=True, key=lambda x: (x[1]))
             LOG.debug("VM(s) BFD {0}".format(v))
 

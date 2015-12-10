@@ -13,15 +13,16 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from watcher.decision_engine.strategy.dummy_strategy import DummyStrategy
+from watcher.decision_engine.strategy.strategies.dummy_strategy import \
+    DummyStrategy
 from watcher.tests import base
-from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state\
+    import FakerModelCollector
 
 
 class TestDummyStrategy(base.TestCase):
     def test_dummy_strategy(self):
         tactique = DummyStrategy("basic", "Basic offline consolidation")
         fake_cluster = FakerModelCollector()
-        model = fake_cluster.generate_scenario_4_with_2_hypervisors()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         tactique.execute(model)

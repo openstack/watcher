@@ -16,20 +16,22 @@
 
 import mock
 from mock import MagicMock
+
 from watcher.common.exception import MetaActionNotFound
 from watcher.common import utils
+
 from watcher.db import api as db_api
 from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.planner.default import DefaultPlanner
 from watcher.decision_engine.solution.default import DefaultSolution
-from watcher.decision_engine.strategy.basic_consolidation import \
+from watcher.decision_engine.strategy.strategies.basic_consolidation import \
     BasicConsolidation
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
-from watcher.tests.decision_engine.faker_cluster_state import \
-    FakerModelCollector
-from watcher.tests.decision_engine.faker_metrics_collector import \
-    FakerMetricsCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state\
+    import FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_metrics_collector\
+    import FakerMetricsCollector
 from watcher.tests.objects import utils as obj_utils
 
 
@@ -54,7 +56,7 @@ class SolutionFakerSingleHyp(object):
             get_statistics=metrics.mock_get_statistics)
 
         return sercon.execute(
-            current_state_cluster.generate_scenario_4_with_2_hypervisors())
+            current_state_cluster.generate_scenario_3_with_2_hypervisors())
 
 
 class TestActionScheduling(base.DbTestCase):

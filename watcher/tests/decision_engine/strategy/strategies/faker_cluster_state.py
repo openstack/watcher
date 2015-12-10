@@ -167,39 +167,12 @@ class FakerModelCollector(BaseClusterModelCollector):
 
         return current_state_cluster
 
-    def generate_scenario_2(self):
-        current_state_cluster = ModelRoot()
-        # number of nodes
-        count_node = 5
-
-        # define ressouce ( CPU, MEM disk, ... )
-        mem = Resource(ResourceType.memory)
-        # 2199.954 Mhz
-        num_cores = Resource(ResourceType.cpu_cores)
-        disk = Resource(ResourceType.disk)
-
-        current_state_cluster.create_resource(mem)
-        current_state_cluster.create_resource(num_cores)
-        current_state_cluster.create_resource(disk)
-
-        for i in range(0, count_node):
-            node_uuid = "Node_{0}".format(i)
-            node = Hypervisor()
-            node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
-            mem.set_capacity(node, 132)
-            disk.set_capacity(node, 250)
-            num_cores.set_capacity(node, 40)
-            # print("create "+str(node))
-            current_state_cluster.add_hypervisor(node)
-        return current_state_cluster
-
     def map(self, model, h_id, vm_id):
         model.get_mapping().map(
             model.get_hypervisor_from_id(h_id),
             model.get_vm_from_id(vm_id))
 
-    def generate_scenario_3(self):
+    def generate_scenario_2(self):
         vms = []
 
         current_state_cluster = ModelRoot()
@@ -263,7 +236,7 @@ class FakerModelCollector(BaseClusterModelCollector):
 
         return current_state_cluster
 
-    def generate_scenario_4_with_2_hypervisors(self):
+    def generate_scenario_3_with_2_hypervisors(self):
         vms = []
 
         current_state_cluster = ModelRoot()
@@ -317,7 +290,7 @@ class FakerModelCollector(BaseClusterModelCollector):
 
         return current_state_cluster
 
-    def generate_scenario_5_with_1_hypervisor_no_vm(self):
+    def generate_scenario_4_with_1_hypervisor_no_vm(self):
         current_state_cluster = ModelRoot()
         # number of nodes
         count_node = 1
