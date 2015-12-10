@@ -18,7 +18,7 @@
 #
 
 
-from watcher.applier.mapper.base import CommandMapper
+from watcher.applier.mapper.base import BaseActionMapper
 from watcher.applier.primitive.hypervisor_state import HypervisorStateCommand
 from watcher.applier.primitive.migration import MigrateCommand
 from watcher.applier.primitive.nop import NopCommand
@@ -27,8 +27,8 @@ from watcher.common.exception import ActionNotFound
 from watcher.decision_engine.planner.default import Primitives
 
 
-class DefaultCommandMapper(CommandMapper):
-    def build_primitive_command(self, action):
+class DefaultActionMapper(BaseActionMapper):
+    def build_primitive_from_action(self, action):
         if action.action_type == Primitives.COLD_MIGRATE.value:
             return MigrateCommand(action.applies_to, Primitives.COLD_MIGRATE,
                                   action.src,

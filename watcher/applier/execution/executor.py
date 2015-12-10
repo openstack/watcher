@@ -18,7 +18,7 @@
 #
 from oslo_log import log
 
-from watcher.applier.mapper.default import DefaultCommandMapper
+from watcher.applier.mapper.default import DefaultActionMapper
 
 from watcher.applier.execution.deploy_phase import DeployPhase
 from watcher.applier.messaging.events import Events
@@ -29,15 +29,15 @@ from watcher.objects.action_plan import Status
 LOG = log.getLogger(__name__)
 
 
-class CommandExecutor(object):
+class ActionPlanExecutor(object):
     def __init__(self, manager_applier, context):
         self.manager_applier = manager_applier
         self.context = context
         self.deploy = DeployPhase(self)
-        self.mapper = DefaultCommandMapper()
+        self.mapper = DefaultActionMapper()
 
     def get_primitive(self, action):
-        return self.mapper.build_primitive_command(action)
+        return self.mapper.build_primitive_from_action(action)
 
     def notify(self, action, state):
         db_action = Action.get_by_uuid(self.context, action.uuid)

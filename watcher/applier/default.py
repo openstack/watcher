@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 from watcher.applier.base import Applier
-from watcher.applier.execution.executor import CommandExecutor
+from watcher.applier.execution.executor import ActionPlanExecutor
 from watcher.objects import Action
 from watcher.objects import ActionPlan
 
@@ -27,7 +27,7 @@ class DefaultApplier(Applier):
         super(DefaultApplier, self).__init__()
         self.manager_applier = manager_applier
         self.context = context
-        self.executor = CommandExecutor(manager_applier, context)
+        self.executor = ActionPlanExecutor(manager_applier, context)
 
     def execute(self, action_plan_uuid):
         action_plan = ActionPlan.get_by_uuid(self.context, action_plan_uuid)
