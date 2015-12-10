@@ -18,7 +18,7 @@
 #
 from oslo_log import log
 
-from watcher.applier.messaging.launcher import LaunchActionPlanCommand
+from watcher.applier.action_plan.default import DefaultActionPlanHandler
 
 LOG = log.getLogger(__name__)
 
@@ -29,9 +29,9 @@ class TriggerActionPlan(object):
 
     def do_launch_action_plan(self, context, action_plan_uuid):
         try:
-            cmd = LaunchActionPlanCommand(context,
-                                          self.manager_applier,
-                                          action_plan_uuid)
+            cmd = DefaultActionPlanHandler(context,
+                                           self.manager_applier,
+                                           action_plan_uuid)
             cmd.execute()
         except Exception as e:
             LOG.error("do_launch_action_plan " + unicode(e))
