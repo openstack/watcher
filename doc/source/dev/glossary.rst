@@ -41,7 +41,8 @@ of the OpenStack :ref:`Cluster <cluster_definition>` such as:
 -  Changing the current state of an hypervisor (enable or disable) with Nova
 
 In most cases, an :ref:`Action <action_definition>` triggers some concrete
-commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.).
+commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.)
+via a :ref:`Primitive <primitive_definition>`.
 
 An :ref:`Action <action_definition>` has a life-cycle and its current state may
 be one of the following:
@@ -543,6 +544,24 @@ In OpenStack Identity, a :ref:`project <project_definition>` must be owned by a
 specific domain.
 
 Please, read `the official OpenStack definition of a Project <http://docs.openstack.org/glossary/content/glossary.html>`_.
+
+
+.. _primitive_definition
+
+Primitive
+=========
+
+A :ref:`Primitive <primitive_definition>` is the component that carries out a
+certain type of atomic :ref:`Actions <action_definition>` on a given
+:ref:`Managed resource <managed_resource_definition>` (nova, swift, neutron,
+glance,..). A :ref:`Primitive <primitive_definition>` is a part of the
+:ref:`Watcher Applier <watcher_applier_definition>` module.
+
+For example, there can be a :ref:`Primitive <primitive_definition>` which is
+responsible for creating a snapshot of a given instance on a Nova compute node.
+This :ref:`Primitive <primitive_definition>` knows exactly how to send
+the appropriate commands to Nova for this type of
+:ref:`Actions <action_definition>`.
 
 .. _sla_definition:
 
