@@ -319,10 +319,6 @@ class BasicConsolidation(BaseStrategy):
                                      0,
                                      0)
 
-        return self.calculate_weight(model, vm, total_cores_used,
-                                     0,
-                                     0)
-
     def print_utilization(self, model):
         if model is None:
             raise ClusteStateNotDefined()
