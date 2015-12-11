@@ -1,0 +1,285 @@
+# French translations for python-watcher.
+# Copyright (C) 2015 ORGANIZATION
+# This file is distributed under the same license as the python-watcher
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: python-watcher 0.21.1.dev32\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2015-12-11 15:29+0100\n"
+"PO-Revision-Date: 2015-12-11 15:42+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.1.1\n"
+
+#: watcher/api/controllers/v1/types.py:148
+#, python-format
+msgid "%s is not JSON serializable"
+msgstr ""
+
+#: watcher/api/controllers/v1/types.py:184
+#, python-format
+msgid "Wrong type. Expected '%(type)s', got '%(value)s'"
+msgstr ""
+
+#: watcher/api/controllers/v1/types.py:222
+#, python-format
+msgid "'%s' is an internal attribute and can not be updated"
+msgstr ""
+
+#: watcher/api/controllers/v1/types.py:226
+#, python-format
+msgid "'%s' is a mandatory attribute and can not be removed"
+msgstr ""
+
+#: watcher/api/controllers/v1/types.py:231
+msgid "'add' and 'replace' operations needs value"
+msgstr ""
+
+#: watcher/api/controllers/v1/utils.py:32
+msgid "Limit must be positive"
+msgstr ""
+
+#: watcher/api/controllers/v1/utils.py:39
+#, python-format
+msgid "Invalid sort direction: %s. Acceptable values are 'asc' or 'desc'"
+msgstr ""
+
+#: watcher/api/controllers/v1/utils.py:49
+#, python-format
+msgid "Adding a new attribute (%s) to the root of  the resource is not allowed"
+msgstr ""
+
+#: watcher/api/middleware/auth_token.py:43
+#, python-format
+msgid "Cannot compile public API routes: %s"
+msgstr ""
+
+#: watcher/api/middleware/parsable_error.py:53
+#, python-format
+msgid "ErrorDocumentMiddleware received an invalid status %s"
+msgstr ""
+
+#: watcher/cmd/api.py:45
+#, python-format
+msgid "Starting server in PID %s"
+msgstr ""
+
+#: watcher/cmd/api.py:50
+#, python-format
+msgid "serving on 0.0.0.0:%(port)s, view at http://127.0.0.1:%(port)s"
+msgstr ""
+
+#: watcher/cmd/api.py:54
+#, python-format
+msgid "serving on http://%(host)s:%(port)s"
+msgstr ""
+
+#: watcher/common/exception.py:58
+msgid "An unknown exception occurred."
+msgstr ""
+
+#: watcher/common/exception.py:109
+msgid "Not authorized."
+msgstr ""
+
+#: watcher/common/exception.py:114
+msgid "Operation not permitted."
+msgstr ""
+
+#: watcher/common/exception.py:118
+msgid "Unacceptable parameters."
+msgstr ""
+
+#: watcher/common/exception.py:123
+#, python-format
+msgid "The %(name)s %(id)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:127
+msgid "Conflict."
+msgstr ""
+
+#: watcher/common/exception.py:132
+#, python-format
+msgid "The %(name)s resource %(id)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:137
+#, python-format
+msgid "Expected an uuid or int but received %(identity)s."
+msgstr ""
+
+#: watcher/common/exception.py:141
+#, python-format
+msgid "Goal %(goal)s is not defined in Watcher configuration file."
+msgstr ""
+
+#: watcher/common/exception.py:147
+#, python-format
+msgid "%(err)s"
+msgstr ""
+
+#: watcher/common/exception.py:151
+#, python-format
+msgid "Expected a uuid but received %(uuid)s."
+msgstr ""
+
+#: watcher/common/exception.py:155
+#, python-format
+msgid "Expected a logical name but received %(name)s."
+msgstr ""
+
+#: watcher/common/exception.py:159
+#, python-format
+msgid "Expected a logical name or uuid but received %(name)s."
+msgstr ""
+
+#: watcher/common/exception.py:163
+#, python-format
+msgid "AuditTemplate %(audit_template)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:167
+#, python-format
+msgid "An audit_template with UUID %(uuid)s or name %(name)s already exists."
+msgstr ""
+
+#: watcher/common/exception.py:172
+#, python-format
+msgid "AuditTemplate %(audit_template)s is referenced by one or multiple audit."
+msgstr ""
+
+#: watcher/common/exception.py:177
+#, python-format
+msgid "Audit %(audit)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:181
+#, python-format
+msgid "An audit with UUID %(uuid)s already exists."
+msgstr ""
+
+#: watcher/common/exception.py:185
+#, python-format
+msgid "Audit %(audit)s is referenced by one or multiple action plans."
+msgstr ""
+
+#: watcher/common/exception.py:190
+msgid "ActionPlan %(action plan)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:194
+#, python-format
+msgid "An action plan with UUID %(uuid)s already exists."
+msgstr ""
+
+#: watcher/common/exception.py:198
+#, python-format
+msgid "Action Plan %(action_plan)s is referenced by one or multiple actions."
+msgstr ""
+
+#: watcher/common/exception.py:203
+#, python-format
+msgid "Action %(action)s could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:207
+#, python-format
+msgid "An action with UUID %(uuid)s already exists."
+msgstr ""
+
+#: watcher/common/exception.py:211
+#, python-format
+msgid "Action plan %(action_plan)s is referenced by one or multiple goals."
+msgstr ""
+
+#: watcher/common/exception.py:216
+msgid "Filtering actions on both audit and action-plan is prohibited."
+msgstr ""
+
+#: watcher/common/exception.py:225
+#, python-format
+msgid "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
+msgstr ""
+
+#: watcher/common/exception.py:286
+msgid "'Keystone API endpoint is missing''"
+msgstr ""
+
+#: watcher/common/exception.py:290
+msgid "The list of hypervisor(s) in the cluster is empty.'"
+msgstr ""
+
+#: watcher/common/exception.py:294
+msgid "The metrics resource collector is not defined.'"
+msgstr ""
+
+#: watcher/common/exception.py:298
+msgid "the cluster state is not defined"
+msgstr ""
+
+#: watcher/common/exception.py:304
+msgid "The VM could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:308
+msgid "The hypervisor could not be found."
+msgstr ""
+
+#: watcher/common/exception.py:312
+msgid "The Meta-Action could not be found."
+msgstr ""
+
+#: watcher/db/sqlalchemy/api.py:278
+msgid "Cannot overwrite UUID for an existing AuditTemplate."
+msgstr ""
+
+#: watcher/db/sqlalchemy/api.py:387 watcher/db/sqlalchemy/api.py:587
+msgid "Cannot overwrite UUID for an existing Audit."
+msgstr ""
+
+#: watcher/db/sqlalchemy/api.py:478
+msgid "Cannot overwrite UUID for an existing Action."
+msgstr ""
+
+#: watcher/objects/base.py:108
+msgid "Invalid version string"
+msgstr ""
+
+#: watcher/objects/base.py:299
+#, python-format
+msgid "Cannot load '%(attrname)s' in the base class"
+msgstr ""
+
+#: watcher/objects/base.py:308
+msgid "Cannot save anything in the base class"
+msgstr ""
+
+#: watcher/objects/base.py:340
+#, python-format
+msgid "%(objname)s object has no attribute '%(attrname)s'"
+msgstr ""
+
+#: watcher/objects/base.py:389
+#, python-format
+msgid "'%(objclass)s' object has no attribute '%(attrname)s'"
+msgstr ""
+
+#: watcher/objects/utils.py:40
+msgid "A datetime.datetime is required here"
+msgstr ""
+
+#: watcher/objects/utils.py:105
+#, python-format
+msgid "An object of class %s is required here"
+msgstr ""
+

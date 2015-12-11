@@ -21,8 +21,8 @@ import six
 import wsme
 from wsme import types as wtypes
 
+from watcher._i18n import _
 from watcher.common import exception
-from watcher.common.i18n import _
 from watcher.common import utils
 
 

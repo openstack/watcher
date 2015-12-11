@@ -24,8 +24,8 @@ from wsgiref import simple_server
 from oslo_config import cfg
 from oslo_log import log as logging
 
+from watcher._i18n import _
 from watcher.api import app as api_app
-from watcher.common.i18n import _
 from watcher import service
 
 

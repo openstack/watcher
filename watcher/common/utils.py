@@ -24,7 +24,7 @@ import six
 import uuid
 
 
-from watcher.common.i18n import _LW
+from watcher._i18n import _LW
 
 UTILS_OPTS = [
     cfg.StrOpt('rootwrap_config',

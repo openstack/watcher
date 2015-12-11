@@ -25,16 +25,16 @@ from oslo_log import log
 from sqlalchemy.orm.exc import MultipleResultsFound
 from sqlalchemy.orm.exc import NoResultFound
 
+from watcher import _i18n
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
-from watcher import i18n
 from watcher.objects.audit import AuditStatus
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
-_ = i18n._
+_ = _i18n._
 
 _FACADE = None
 
