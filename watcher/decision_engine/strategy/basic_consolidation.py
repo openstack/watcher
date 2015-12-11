@@ -292,14 +292,12 @@ class BasicConsolidation(BaseStrategy):
     def calculate_score_vm(self, vm, model):
         """Calculate Score of virtual machine
 
-        :param vm_id: the id of virtual machine
+        :param vm: the virtual machine
         :param model: the model
         :return: score
         """
         if model is None:
             raise ClusteStateNotDefined()
-
-        vm = model.get_vm_from_id(vm.uuid)
 
         vm_cpu_utilization = self.ceilometer. \
             statistic_aggregation(resource_id=vm.uuid,
