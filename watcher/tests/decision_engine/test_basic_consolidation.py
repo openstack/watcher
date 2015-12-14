@@ -127,7 +127,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_exception_model(self):
         sercon = BasicConsolidation()
-        self.assertRaises(exception.ClusteStateNotDefined, sercon.execute,
+        self.assertRaises(exception.ClusterStateNotDefined, sercon.execute,
                           None)
 
     def test_exception_cluster_empty(self):
@@ -143,12 +143,12 @@ class TestBasicConsolidation(base.BaseTestCase):
         sercon.ceilometer = MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
-        self.assertRaises(exception.ClusteStateNotDefined,
+        self.assertRaises(exception.ClusterStateNotDefined,
                           sercon.calculate_score_vm, "VM_1", None)
 
     def test_print_utilization_raise_cluster_state_not_found(self):
         sercon = BasicConsolidation()
-        self.assertRaises(exception.ClusteStateNotDefined,
+        self.assertRaises(exception.ClusterStateNotDefined,
                           sercon.print_utilization, None)
 
     def test_check_migration(self):

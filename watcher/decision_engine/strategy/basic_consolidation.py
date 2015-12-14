@@ -18,7 +18,7 @@
 #
 from oslo_log import log
 from watcher.common.exception import ClusterEmpty
-from watcher.common.exception import ClusteStateNotDefined
+from watcher.common.exception import ClusterStateNotDefined
 from watcher.decision_engine.actions.hypervisor_state import \
     ChangeHypervisorState
 from watcher.decision_engine.actions.migration import Migrate
@@ -297,7 +297,7 @@ class BasicConsolidation(BaseStrategy):
         :return: score
         """
         if model is None:
-            raise ClusteStateNotDefined()
+            raise ClusterStateNotDefined()
 
         vm_cpu_utilization = self.ceilometer. \
             statistic_aggregation(resource_id=vm.uuid,
@@ -321,7 +321,7 @@ class BasicConsolidation(BaseStrategy):
 
     def print_utilization(self, model):
         if model is None:
-            raise ClusteStateNotDefined()
+            raise ClusterStateNotDefined()
         for node_id in model.get_all_hypervisors():
             LOG.debug("{0} utilization {1} % ".
                       format(node_id,
@@ -334,7 +334,7 @@ class BasicConsolidation(BaseStrategy):
         LOG.debug("initialize Sercon Consolidation")
 
         if orign_model is None:
-            raise ClusteStateNotDefined()
+            raise ClusterStateNotDefined()
 
         # todo(jed) clone model
         current_model = orign_model

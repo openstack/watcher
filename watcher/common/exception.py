@@ -294,7 +294,7 @@ class MetricCollectorNotDefined(WatcherException):
     message = _("The metrics resource collector is not defined.'")
 
 
-class ClusteStateNotDefined(WatcherException):
+class ClusterStateNotDefined(WatcherException):
     message = _("the cluster state is not defined")
 
 
