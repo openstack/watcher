@@ -24,7 +24,6 @@ from watcher.decision_engine.planner.default import DefaultPlanner
 from watcher.decision_engine.solution.default import DefaultSolution
 from watcher.decision_engine.strategy.basic_consolidation import \
     BasicConsolidation
-
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
 from watcher.tests.decision_engine.faker_cluster_state import \
@@ -59,11 +58,9 @@ class SolutionFakerSingleHyp(object):
 
 
 class TestActionScheduling(base.DbTestCase):
-
     scenarios = [
         (str(action_cls), {"fake_action": mock.Mock(spec=action_cls)})
-        for action_cls in BaseAction.__subclasses__()
-        ]
+        for action_cls in BaseAction.__subclasses__()]
 
     def test_schedule_actions(self):
         default_planner = DefaultPlanner()
@@ -72,8 +69,8 @@ class TestActionScheduling(base.DbTestCase):
         dummy_solution.add_change_request(self.fake_action)
 
         with mock.patch.object(
-            DefaultPlanner, "create_action",
-            wraps=default_planner.create_action) as m_create_action:
+                DefaultPlanner, "create_action",
+                wraps=default_planner.create_action) as m_create_action:
             action_plan = default_planner.schedule(
                 self.context, audit.id, dummy_solution
             )
@@ -83,19 +80,18 @@ class TestActionScheduling(base.DbTestCase):
 
 
 class TestDefaultPlanner(base.DbTestCase):
-
     def setUp(self):
         super(TestDefaultPlanner, self).setUp()
         self.default_planner = DefaultPlanner()
         obj_utils.create_test_audit_template(self.context)
 
-        p = mock.patch.object(db_api.Connection, 'create_action_plan')
+        p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')
         self.mock_create_action_plan = p.start()
         self.mock_create_action_plan.side_effect = (
             self._simulate_action_plan_create)
         self.addCleanup(p.stop)
 
-        q = mock.patch.object(db_api.Connection, 'create_action')
+        q = mock.patch.object(db_api.BaseConnection, 'create_action')
         self.mock_create_action = q.start()
         self.mock_create_action.side_effect = (
             self._simulate_action_create)

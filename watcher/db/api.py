@@ -16,11 +16,9 @@ Base classes for storage engines
 """
 
 import abc
-
 from oslo_config import cfg
 from oslo_db import api as db_api
 import six
-
 
 _BACKEND_MAPPING = {'sqlalchemy': 'watcher.db.sqlalchemy.api'}
 IMPL = db_api.DBAPI.from_config(cfg.CONF, backend_mapping=_BACKEND_MAPPING,
@@ -33,12 +31,8 @@ def get_instance():
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Connection(object):
+class BaseConnection(object):
     """Base class for storage system connections."""
-
-    @abc.abstractmethod
-    def __init__(self):
-        """Constructor."""
 
     @abc.abstractmethod
     def get_audit_template_list(self, context, columns=None, filters=None,
@@ -130,6 +124,7 @@ class Connection(object):
         :raises: AuditTemplateNotFound
         :raises: InvalidParameterValue
         """
+
     @abc.abstractmethod
     def soft_delete_audit_template(self, audit_template_id):
         """Soft delete an audit_template.
@@ -308,7 +303,7 @@ class Connection(object):
 
     @abc.abstractmethod
     def get_action_plan_list(
-        self, context, columns=None, filters=None, limit=None,
+            self, context, columns=None, filters=None, limit=None,
             marker=None, sort_key=None, sort_dir=None):
         """Get specific columns for matching action plans.
 

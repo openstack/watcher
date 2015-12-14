@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Selector(object):
+class BaseSelector(object):
     @abc.abstractmethod
     def define_from_goal(self, goal_name):
         raise NotImplementedError(

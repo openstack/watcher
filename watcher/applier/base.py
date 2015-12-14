@@ -22,7 +22,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Applier(object):
+class BaseApplier(object):
     @abc.abstractmethod
     def execute(self, action_plan_uuid):
         raise NotImplementedError(

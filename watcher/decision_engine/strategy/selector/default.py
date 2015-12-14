@@ -18,7 +18,7 @@ from oslo_config import cfg
 from oslo_log import log
 from watcher.common.exception import WatcherException
 from watcher.decision_engine.strategy.loader import StrategyLoader
-from watcher.decision_engine.strategy.selector.base import Selector
+from watcher.decision_engine.strategy.selector.base import BaseSelector
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
@@ -38,7 +38,7 @@ CONF.register_group(goals_opt_group)
 CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
 
 
-class StrategySelector(Selector):
+class StrategySelector(BaseSelector):
 
     def __init__(self):
         self.strategy_loader = StrategyLoader()

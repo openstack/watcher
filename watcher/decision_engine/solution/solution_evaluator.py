@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class SolutionEvaluator(object):
+class BaseSolutionEvaluator(object):
     @abc.abstractmethod
     def evaluate(self, solution):
         raise NotImplementedError(

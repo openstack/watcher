@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Solution(object):
+class BaseSolution(object):
     def __init__(self):
         self._origin = None
         self._model = None

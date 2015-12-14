@@ -427,7 +427,7 @@ class TestPatch(api_base.FunctionalTest):
         super(TestPatch, self).setUp()
         obj_utils.create_test_action_plan(self.context)
         self.action = obj_utils.create_test_action(self.context, next=None)
-        p = mock.patch.object(db_api.Connection, 'update_action')
+        p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()
         self.mock_action_update.side_effect = self._simulate_rpc_action_update
         self.addCleanup(p.stop)
@@ -553,7 +553,7 @@ class TestDelete(api_base.FunctionalTest):
         super(TestDelete, self).setUp()
         obj_utils.create_test_action_plan(self.context)
         self.action = obj_utils.create_test_action(self.context, next=None)
-        p = mock.patch.object(db_api.Connection, 'update_action')
+        p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()
         self.mock_action_update.side_effect = self._simulate_rpc_action_update
         self.addCleanup(p.stop)

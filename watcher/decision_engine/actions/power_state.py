@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.model.power_state import PowerState
 
@@ -47,5 +48,5 @@ class ChangePowerState(BaseAction):
         self._target = t
 
     def __str__(self):
-        return "ChangePowerState {} => {} ".format(
-            self.target, self.powerstate)
+        return "ChangePowerState {} => {} ".format(self.target,
+                                                   self.powerstate)

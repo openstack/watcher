@@ -21,6 +21,7 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from oslo_config import cfg
 
+
 from watcher.applier.primitives.base import BasePrimitive
 from watcher.applier.primitives.wrapper.nova_wrapper import NovaWrapper
 from watcher.applier.promise import Promise

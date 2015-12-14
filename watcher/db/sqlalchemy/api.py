@@ -102,7 +102,7 @@ def _paginate_query(model, limit=None, marker=None, sort_key=None,
     return query.all()
 
 
-class Connection(api.Connection):
+class Connection(api.BaseConnection):
     """SqlAlchemy connection."""
 
     def __init__(self):

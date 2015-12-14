@@ -285,7 +285,7 @@ class TestDelete(api_base.FunctionalTest):
         super(TestDelete, self).setUp()
         self.action_plan = obj_utils.create_action_plan_without_audit(
             self.context)
-        p = mock.patch.object(db_api.Connection, 'destroy_action_plan')
+        p = mock.patch.object(db_api.BaseConnection, 'destroy_action_plan')
         self.mock_action_plan_delete = p.start()
         self.mock_action_plan_delete.side_effect = \
             self._simulate_rpc_action_plan_delete
@@ -317,7 +317,7 @@ class TestPatch(api_base.FunctionalTest):
         super(TestPatch, self).setUp()
         self.action_plan = obj_utils.create_action_plan_without_audit(
             self.context)
-        p = mock.patch.object(db_api.Connection, 'update_action_plan')
+        p = mock.patch.object(db_api.BaseConnection, 'update_action_plan')
         self.mock_action_plan_update = p.start()
         self.mock_action_plan_update.side_effect = \
             self._simulate_rpc_action_plan_update
