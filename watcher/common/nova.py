@@ -25,10 +25,11 @@ from oslo_log import log
 import cinderclient.exceptions as ciexceptions
 import cinderclient.v2.client as ciclient
 import glanceclient.v2.client as glclient
-import keystoneclient.v3.client as ksclient
 import neutronclient.neutron.client as netclient
 import novaclient.client as nvclient
 import novaclient.exceptions as nvexceptions
+
+from watcher.common import keystone
 
 LOG = log.getLogger(__name__)
 
@@ -43,7 +44,7 @@ class NovaClient(object):
         self.cinder = None
         self.nova = nvclient.Client(self.NOVA_CLIENT_API_VERSION,
                                     session=session)
-        self.keystone = ksclient.Client(**creds)
+        self.keystone = keystone.KeystoneClient().get_ksclient(creds)
         self.glance = None
 
     def get_hypervisors_list(self):

@@ -46,13 +46,17 @@ class TestKeystone(BaseTestCase):
 
         self.assertEqual(ep, expected_endpoint)
 
-    def test_get_session(self):
+    @mock.patch('watcher.common.keystone.KeystoneClient._is_apiv3')
+    def test_get_session(self, mock_apiv3):
+        mock_apiv3.return_value = True
         k = KeystoneClient()
         session = k.get_session()
         self.assertIsInstance(session.auth, Password)
         self.assertIsInstance(session, Session)
 
-    def test_get_credentials(self):
+    @mock.patch('watcher.common.keystone.KeystoneClient._is_apiv3')
+    def test_get_credentials(self, mock_apiv3):
+        mock_apiv3.return_value = True
         expected_creds = {'auth_url': None,
                           'password': None,
                           'project_domain_name': 'default',

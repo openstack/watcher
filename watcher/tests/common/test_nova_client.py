@@ -20,10 +20,10 @@
 import time
 
 import glanceclient.v2.client as glclient
-import keystoneclient.v3.client as ksclient
 import mock
 import novaclient.client as nvclient
 
+from watcher.common import keystone
 from watcher.common.nova import NovaClient
 from watcher.common import utils
 from watcher.tests import base
@@ -40,7 +40,7 @@ class TestNovaClient(base.TestCase):
         self.creds = mock.MagicMock()
         self.session = mock.MagicMock()
 
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_stop_instance(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -55,7 +55,7 @@ class TestNovaClient(base.TestCase):
         result = nova_client.stop_instance(instance_id)
         self.assertEqual(result, True)
 
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_set_host_offline(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -66,7 +66,7 @@ class TestNovaClient(base.TestCase):
         self.assertEqual(result, True)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_live_migrate_instance(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -79,7 +79,7 @@ class TestNovaClient(base.TestCase):
         )
         self.assertIsNotNone(instance)
 
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_watcher_non_live_migrate_instance_not_found(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -93,7 +93,7 @@ class TestNovaClient(base.TestCase):
         self.assertEqual(is_success, False)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_watcher_non_live_migrate_instance_volume(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -107,7 +107,7 @@ class TestNovaClient(base.TestCase):
         self.assertIsNotNone(instance)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     def test_watcher_non_live_migrate_keep_image(self):
         nova_client = NovaClient(creds=self.creds, session=self.session)
@@ -130,7 +130,7 @@ class TestNovaClient(base.TestCase):
         self.assertIsNotNone(instance)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    @mock.patch.object(ksclient, "Client", mock.Mock())
+    @mock.patch.object(keystone, 'KeystoneClient', mock.Mock())
     @mock.patch.object(nvclient, "Client", mock.Mock())
     @mock.patch.object(glclient, "Client")
     def test_create_image_from_instance(self, m_glance_cls):

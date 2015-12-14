@@ -53,7 +53,7 @@ class KeystoneClient(object):
         self._token = None
 
     def get_endpoint(self, **kwargs):
-        kc = self._get_ksclient()
+        kc = self.get_ksclient()
         if not kc.has_service_catalog():
             raise exception.KeystoneFailure(
                 _('No Keystone service catalog loaded')
@@ -63,7 +63,7 @@ class KeystoneClient(object):
         if kwargs.get('region_name'):
             attr = 'region'
             filter_value = kwargs.get('region_name')
-        return self._get_ksclient().service_catalog.url_for(
+        return kc.service_catalog.url_for(
             service_type=kwargs.get('service_type') or 'metering',
             attr=attr,
             filter_value=filter_value,
@@ -81,15 +81,17 @@ class KeystoneClient(object):
         #   fails to override the version in the URL
         return urljoin(auth_url.rstrip('/'), api_version)
 
-    def _get_ksclient(self):
+    def get_ksclient(self, creds=None):
         """Get an endpoint and auth token from Keystone."""
-
-        ks_args = self.get_credentials()
         auth_version = CONF.keystone_authtoken.auth_version
         auth_url = CONF.keystone_authtoken.auth_uri
-        api_version = self._is_apiv3(auth_url, auth_version)
+        api_v3 = self._is_apiv3(auth_url, auth_version)
+        if creds is None:
+            ks_args = self._get_credentials(api_v3)
+        else:
+            ks_args = creds
 
-        if api_version:
+        if api_v3:
             from keystoneclient.v3 import client
         else:
             from keystoneclient.v2_0 import client
@@ -99,16 +101,28 @@ class KeystoneClient(object):
 
         return client.Client(**ks_args)
 
-    def get_credentials(self):
-        creds = \
-            {'auth_url': CONF.keystone_authtoken.auth_uri,
-             'username': CONF.keystone_authtoken.admin_user,
-             'password': CONF.keystone_authtoken.admin_password,
-             'project_name': CONF.keystone_authtoken.admin_tenant_name,
-             'user_domain_name': "default",
-             'project_domain_name': "default"}
+    def _get_credentials(self, api_v3):
+        if api_v3:
+            creds = \
+                {'auth_url': CONF.keystone_authtoken.auth_uri,
+                 'username': CONF.keystone_authtoken.admin_user,
+                 'password': CONF.keystone_authtoken.admin_password,
+                 'project_name': CONF.keystone_authtoken.admin_tenant_name,
+                 'user_domain_name': "default",
+                 'project_domain_name': "default"}
+        else:
+            creds = \
+                {'auth_url': CONF.keystone_authtoken.auth_uri,
+                 'username': CONF.keystone_authtoken.admin_user,
+                 'password': CONF.keystone_authtoken.admin_password,
+                 'tenant_name': CONF.keystone_authtoken.admin_tenant_name}
         LOG.debug(creds)
         return creds
+
+    def get_credentials(self):
+        api_v3 = self._is_apiv3(CONF.keystone_authtoken.auth_uri,
+                                CONF.keystone_authtoken.auth_version)
+        return self._get_credentials(api_v3)
 
     def get_session(self):
         creds = self.get_credentials()

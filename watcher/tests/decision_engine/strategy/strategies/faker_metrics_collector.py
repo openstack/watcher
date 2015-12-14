@@ -34,7 +34,20 @@ class FakerMetricsCollector(object):
             result = self.get_usage_node_cpu(resource_id)
         elif meter_name == "cpu_util":
             result = self.get_average_usage_vm_cpu(resource_id)
+        elif meter_name == "hardware.ipmi.node.outlet_temperature":
+            result = self.get_average_outlet_temperature(resource_id)
         return result
+
+    def get_average_outlet_temperature(self, uuid):
+        """The average outlet temperature for host"""
+        mock = {}
+        mock['Node_0'] = 30
+        # use a big value to make sure it exceeds threshold
+        mock['Node_1'] = 100
+        if uuid not in mock.keys():
+            mock[uuid] = 100
+
+        return mock[str(uuid)]
 
     def get_usage_node_cpu(self, uuid):
         """The last VM CPU usage values to average
