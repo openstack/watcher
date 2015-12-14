@@ -93,14 +93,13 @@ class BaseInfraOptimTest(test.BaseTestCase):
     @classmethod
     @creates('audit_template')
     def create_audit_template(cls, description=None, expect_errors=False):
-        """
-        Wrapper utility for creating test audit_template.
+        """Wrapper utility for creating test audit_template.
 
         :param description: A description of the audit template.
             if not supplied, a random value will be generated.
         :return: Created audit template.
-
         """
+
         description = description or data_utils.rand_name(
             'test-audit_template')
         resp, body = cls.client.create_audit_template(description=description)
@@ -108,12 +107,10 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def delete_audit_template(cls, audit_template_id):
-        """
-        Deletes a audit_template having the specified UUID.
+        """Deletes a audit_template having the specified UUID.
 
         :param uuid: The unique identifier of the audit_template.
         :return: Server response.
-
         """
 
         resp, body = cls.client.delete_audit_template(audit_template_id)

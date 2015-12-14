@@ -44,6 +44,7 @@ class CeilometerClient(object):
     def build_query(self, user_id=None, tenant_id=None, resource_id=None,
                     user_ids=None, tenant_ids=None, resource_ids=None):
         """Returns query built from given parameters.
+
         This query can be then used for querying resources, meters and
         statistics.
         :Parameters:
@@ -54,6 +55,7 @@ class CeilometerClient(object):
           - `tenant_ids`: list of tenant_ids
           - `resource_ids`: list of resource_ids
         """
+
         user_ids = user_ids or []
         tenant_ids = tenant_ids or []
         resource_ids = resource_ids or []
@@ -109,7 +111,8 @@ class CeilometerClient(object):
                               meter_name,
                               period,
                               aggregate='avg'):
-        """
+        """Representing a statistic aggregate by operators
+
         :param resource_id: id
         :param meter_name: meter names of which we want the statistics
         :param period: `period`: In seconds. If no period is given, only one
@@ -119,7 +122,6 @@ class CeilometerClient(object):
         :param aggregate:
         :return:
         """
-        """Representing a statistic aggregate by operators"""
 
         query = self.build_query(resource_id=resource_id)
         statistic = self.query_retry(f=self.cmclient.statistics.list,

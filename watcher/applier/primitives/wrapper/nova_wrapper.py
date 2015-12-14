@@ -64,21 +64,21 @@ class NovaWrapper(object):
                                           keep_original_image_name=True):
         """This method migrates a given instance
 
-                using an image of this instance and creating a new instance
-                from this image. It saves some configuration information
-                 about the original instance : security group, list of networks
-                ,list of attached volumes, floating IP, ...
-                in order to apply the same settings to the new instance.
-                At the end of the process the original instance is deleted.
-                It returns True if the migration was successful,
-                False otherwise.
+        using an image of this instance and creating a new instance
+        from this image. It saves some configuration information
+        about the original instance : security group, list of networks,
+        list of attached volumes, floating IP, ...
+        in order to apply the same settings to the new instance.
+        At the end of the process the original instance is deleted.
+        It returns True if the migration was successful,
+        False otherwise.
 
-                :param instance_id: the unique id of the instance to migrate.
-                :param keep_original_image_name: flag indicating whether the
-                image name from which the original instance was built must be
-                used as the name of the intermediate image used for migration.
-                If this flag is False, a temporary image name is built
-            """
+        :param instance_id: the unique id of the instance to migrate.
+        :param keep_original_image_name: flag indicating whether the
+        image name from which the original instance was built must be
+        used as the name of the intermediate image used for migration.
+        If this flag is False, a temporary image name is built
+        """
 
         new_image_name = ""
 
@@ -275,12 +275,14 @@ class NovaWrapper(object):
             return True
 
     def built_in_non_live_migrate_instance(self, instance_id, hypervisor_id):
-        """This method uses the Nova built-in non-live migrate()
-            action to migrate a given instance.
-            It returns True if the migration was successful, False otherwise.
+        """This method does a live migration of a given instance
 
-                :param instance_id: the unique id of the instance to migrate.
-            """
+        This method uses the Nova built-in non-live migrate()
+        action to migrate a given instance.
+        It returns True if the migration was successful, False otherwise.
+
+        :param instance_id: the unique id of the instance to migrate.
+        """
 
         LOG.debug(
             "Trying a Nova built-in non-live "
@@ -326,15 +328,18 @@ class NovaWrapper(object):
 
     def live_migrate_instance(self, instance_id, dest_hostname,
                               block_migration=True, retry=120):
-        """This method uses the Nova built-in live_migrate()
-        action to do a live migration of a given instance.
-                It returns True if the migration was successful,
-                False otherwise.
+        """This method does a live migration of a given instance
 
-                :param instance_id: the unique id of the instance to migrate.
-                :param dest_hostname: the name of the destination compute node.
-                :param block_migration:  No shared storage is required.
-            """
+        This method uses the Nova built-in live_migrate()
+        action to do a live migration of a given instance.
+
+        It returns True if the migration was successful,
+        False otherwise.
+
+        :param instance_id: the unique id of the instance to migrate.
+        :param dest_hostname: the name of the destination compute node.
+        :param block_migration:  No shared storage is required.
+        """
 
         LOG.debug("Trying a live migrate of instance %s to host '%s'" % (
             instance_id, dest_hostname))
@@ -429,16 +434,17 @@ class NovaWrapper(object):
     def create_image_from_instance(self, instance_id, image_name,
                                    metadata={"reason": "instance_migrate"}):
         """This method creates a new image from a given instance.
-            It waits for this image to be in 'active' state before returning.
-                 It returns the unique UUID of the created image if successful,
-                 None otherwise
 
-                :param instance_id: the uniqueid of
-                the instance to backup as an image.
-                :param image_name: the name of the image to create.
-                :param metadata: a dictionary containing the list of
-                 key-value pairs to associate to the image as metadata.
-                """
+        It waits for this image to be in 'active' state before returning.
+        It returns the unique UUID of the created image if successful,
+        None otherwise
+
+        :param instance_id: the uniqueid of
+        the instance to backup as an image.
+        :param image_name: the name of the image to create.
+        :param metadata: a dictionary containing the list of
+        key-value pairs to associate to the image as metadata.
+        """
         if self.glance is None:
             glance_endpoint = self.keystone. \
                 service_catalog.url_for(service_type='image',
@@ -495,8 +501,8 @@ class NovaWrapper(object):
     def delete_instance(self, instance_id):
         """This method deletes a given instance.
 
-                :param instance_id: the unique id of the instance to delete.
-                """
+        :param instance_id: the unique id of the instance to delete.
+        """
 
         LOG.debug("Trying to remove instance %s ..." % instance_id)
 
@@ -513,8 +519,8 @@ class NovaWrapper(object):
     def stop_instance(self, instance_id):
         """This method stops a given instance.
 
-                :param instance_id: the unique id of the instance to stop.
-                """
+        :param instance_id: the unique id of the instance to stop.
+        """
 
         LOG.debug("Trying to stop instance %s ..." % instance_id)
 
@@ -533,14 +539,17 @@ class NovaWrapper(object):
                 return False
 
     def wait_for_vm_state(self, server, vm_state, retry, sleep):
-        """Waits for server to be in vm_state which can be one of the following :
-            active, stopped
+        """Waits for server to be in a specific vm_state
 
-            :param server: server object.
-            :param vm_state: for which state we are waiting for
-            :param retry: how many times to retry
-            :param sleep: seconds to sleep between the retries
-            """
+        The vm_state can be one of the following :
+        active, stopped
+
+        :param server: server object.
+        :param vm_state: for which state we are waiting for
+        :param retry: how many times to retry
+        :param sleep: seconds to sleep between the retries
+        """
+
         if not server:
             return False
 
@@ -551,15 +560,18 @@ class NovaWrapper(object):
         return getattr(server, 'OS-EXT-STS:vm_state') == vm_state
 
     def wait_for_instance_status(self, instance, status_list, retry, sleep):
-        """Waits for instance to be in status which can be one of the following
-            : BUILD, ACTIVE, ERROR, VERIFY_RESIZE, SHUTOFF
+        """Waits for instance to be in a specific status
 
-            :param instance: instance object.
-            :param status_list: tuple containing the list of
-             status we are waiting for
-            :param retry: how many times to retry
-            :param sleep: seconds to sleep between the retries
-            """
+        The status can be one of the following
+        : BUILD, ACTIVE, ERROR, VERIFY_RESIZE, SHUTOFF
+
+        :param instance: instance object.
+        :param status_list: tuple containing the list of
+        status we are waiting for
+        :param retry: how many times to retry
+        :param sleep: seconds to sleep between the retries
+        """
+
         if not instance:
             return False
 
@@ -577,11 +589,12 @@ class NovaWrapper(object):
                         network_names_list=["demo-net"], keypair_name="mykeys",
                         create_new_floating_ip=True,
                         block_device_mapping_v2=None):
-        """This method creates a new instance.
-                It also creates, if requested, a new floating IP and associates
-                it with the new instance
-                It returns the unique id of the created instance.
-            """
+        """This method creates a new instance
+
+        It also creates, if requested, a new floating IP and associates
+        it with the new instance
+        It returns the unique id of the created instance.
+        """
 
         LOG.debug(
             "Trying to create new instance '%s' "

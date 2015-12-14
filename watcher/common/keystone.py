@@ -73,8 +73,8 @@ class KeystoneClient(object):
         return auth_version == 'v3.0' or '/v3' in urlparse(auth_url).path
 
     def get_keystone_url(self, auth_url, auth_version):
-        """Gives an http/https url to contact keystone.
-        """
+        """Gives an http/https url to contact keystone."""
+
         api_v3 = self._is_apiv3(auth_url, auth_version)
         api_version = 'v3' if api_v3 else 'v2.0'
         # NOTE(lucasagomes): Get rid of the trailing '/' otherwise urljoin()
@@ -82,8 +82,8 @@ class KeystoneClient(object):
         return urljoin(auth_url.rstrip('/'), api_version)
 
     def _get_ksclient(self):
-        """Get an endpoint and auth token from Keystone.
-        """
+        """Get an endpoint and auth token from Keystone."""
+
         ks_args = self.get_credentials()
         auth_version = CONF.keystone_authtoken.auth_version
         auth_url = CONF.keystone_authtoken.auth_uri

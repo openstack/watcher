@@ -32,6 +32,7 @@ class Mapping(object):
         :param hypervisor: the hypervisor
         :param vm: the virtual machine or instance
         """
+
         try:
             self.lock.acquire()
 
@@ -55,13 +56,15 @@ class Mapping(object):
         :param hypervisor: the hypervisor
         :param vm: the virtual machine or instance
         """
+
         self.unmap_from_id(hypervisor.uuid, vm.uuid)
 
     def unmap_from_id(self, node_uuid, vm_uuid):
-        """
+        """Remove the instance (by id) from the hypervisor (by id)
 
         :rtype : object
         """
+
         try:
             self.lock.acquire()
             if str(node_uuid) in self._mapping_hypervisors:
@@ -91,6 +94,7 @@ class Mapping(object):
         :param vm: the uuid of the instance
         :return: hypervisor
         """
+
         return self.model.get_hypervisor_from_id(
             self.get_mapping_vm()[str(vm_uuid)])
 
@@ -117,6 +121,7 @@ class Mapping(object):
         :param dest_hypervisor:
         :return:
         """
+
         if src_hypervisor == dest_hypervisor:
             return False
         # unmap
