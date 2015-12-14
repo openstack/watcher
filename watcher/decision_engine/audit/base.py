@@ -21,7 +21,7 @@ import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseDecisionEngineCommand(object):
+class BaseAuditHandler(object):
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError()
