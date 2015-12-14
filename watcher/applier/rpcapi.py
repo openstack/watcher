@@ -20,7 +20,6 @@ from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as om
 
-
 from watcher.applier.manager import APPLIER_MANAGER_OPTS
 from watcher.applier.manager import opt_group
 from watcher.common import exception
@@ -69,5 +68,5 @@ class ApplierAPI(MessagingCore):
         try:
             pass
         except Exception as e:
-            LOG.error("evt %s" % e.message)
-            raise e
+            LOG.exception(e)
+            raise

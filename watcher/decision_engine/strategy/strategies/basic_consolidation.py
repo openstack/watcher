@@ -16,7 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 from oslo_log import log
+
+from watcher._i18n import _LE, _LI, _LW
 from watcher.common.exception import ClusterEmpty
 from watcher.common.exception import ClusterStateNotDefined
 from watcher.decision_engine.actions.hypervisor_state import \
@@ -39,6 +42,9 @@ LOG = log.getLogger(__name__)
 class BasicConsolidation(BaseStrategy):
     DEFAULT_NAME = "basic"
     DEFAULT_DESCRIPTION = "Basic offline consolidation"
+
+    host_cpu_usage_metric_name = 'compute.node.cpu.percent'
+    instance_cpu_usage_metric_name = 'cpu_util'
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         """Basic offline Consolidation using live migration
@@ -254,18 +260,20 @@ class BasicConsolidation(BaseStrategy):
             :param model:
             :return:
             """
-        resource_id = "{0}_{1}".format(hypervisor.uuid,
-                                       hypervisor.hostname)
+        resource_id = "%s_%s" % (hypervisor.uuid, hypervisor.hostname)
         cpu_avg_vm = self.ceilometer. \
             statistic_aggregation(resource_id=resource_id,
-                                  meter_name='compute.node.cpu.percent',
+                                  meter_name=self.host_cpu_usage_metric_name,
                                   period="7200",
                                   aggregate='avg'
                                   )
         if cpu_avg_vm is None:
             LOG.error(
-                "No values returned for {0} compute.node.cpu.percent".format(
-                    resource_id))
+                _LE("No values returned by %(resource_id)s "
+                    "for %(metric_name)s"),
+                resource_id=resource_id,
+                metric_name=self.host_cpu_usage_metric_name,
+            )
             cpu_avg_vm = 100
 
         cpu_capacity = model.get_resource_from_id(
@@ -300,14 +308,19 @@ class BasicConsolidation(BaseStrategy):
             raise ClusterStateNotDefined()
 
         vm_cpu_utilization = self.ceilometer. \
-            statistic_aggregation(resource_id=vm.uuid,
-                                  meter_name='cpu_util',
-                                  period="7200",
-                                  aggregate='avg'
-                                  )
+            statistic_aggregation(
+                resource_id=vm.uuid,
+                meter_name=self.instance_cpu_usage_metric_name,
+                period="7200",
+                aggregate='avg'
+            )
         if vm_cpu_utilization is None:
             LOG.error(
-                "No values returned for {0} cpu_util".format(vm.uuid))
+                _LE("No values returned by %(resource_id)s "
+                    "for %(metric_name)s"),
+                resource_id=vm.uuid,
+                metric_name=self.instance_cpu_usage_metric_name,
+            )
             vm_cpu_utilization = 100
 
         cpu_capacity = model.get_resource_from_id(
@@ -331,7 +344,7 @@ class BasicConsolidation(BaseStrategy):
                                  model)))
 
     def execute(self, orign_model):
-        LOG.debug("Initialize Sercon Consolidation")
+        LOG.info(_LI("Initializing Sercon Consolidation"))
 
         if orign_model is None:
             raise ClusterStateNotDefined()
@@ -393,9 +406,9 @@ class BasicConsolidation(BaseStrategy):
 
             ''' get Node to be released '''
             if len(score) == 0:
-                LOG.warning(
+                LOG.warning(_LW(
                     "The workloads of the compute nodes"
-                    " of the cluster is zero.")
+                    " of the cluster is zero"))
                 break
 
             node_to_release = s[len(score) - 1][0]
@@ -413,6 +426,7 @@ class BasicConsolidation(BaseStrategy):
 
             ''' sort VMs by Score '''
             v = sorted(vm_score, reverse=True, key=lambda x: (x[1]))
+            # BFD: Best Fit Decrease
             LOG.debug("VM(s) BFD {0}".format(v))
 
             m = 0

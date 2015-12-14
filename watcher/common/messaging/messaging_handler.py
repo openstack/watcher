@@ -15,14 +15,15 @@
 # limitations under the License.
 
 import socket
+import threading
 
 import eventlet
 from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as om
-from threading import Thread
-from watcher.common.rpc import JsonPayloadSerializer
-from watcher.common.rpc import RequestContextSerializer
+
+from watcher.common import rpc
+from watcher._i18n import _LE, _LW
 
 # NOTE:
 # Ubuntu 14.04 forces librabbitmq when kombu is used
@@ -35,7 +36,7 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class MessagingHandler(Thread):
+class MessagingHandler(threading.Thread):
 
     def __init__(self, publisher_id, topic_watcher, endpoint, version,
                  serializer=None):
@@ -67,7 +68,7 @@ class MessagingHandler(Thread):
         return self.__transport
 
     def build_notifier(self):
-        serializer = RequestContextSerializer(JsonPayloadSerializer())
+        serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
         return om.Notifier(
             self.__transport,
             publisher_id=self.publisher_id,
@@ -93,11 +94,11 @@ class MessagingHandler(Thread):
                 )
                 self.__server = self.build_server(target)
             else:
-                LOG.warn("you have no defined endpoint, "
-                         "so you can only publish events")
+                LOG.warn(
+                    _LW("No endpoint defined; can only publish events"))
         except Exception as e:
             LOG.exception(e)
-            LOG.error("configure : %s" % str(e.message))
+            LOG.error(_LE("Messaging configuration error"))
 
     def run(self):
         LOG.debug("configure MessagingHandler for %s" % self.topic_watcher)
@@ -107,7 +108,7 @@ class MessagingHandler(Thread):
             self.__server.start()
 
     def stop(self):
-        LOG.debug('Stop up server')
+        LOG.debug('Stopped server')
         self.__server.wait()
         self.__server.stop()
 

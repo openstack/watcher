@@ -28,7 +28,6 @@ from watcher.common import utils
 from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.manager import decision_engine_opt_group
 from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
-
 from watcher.decision_engine.messaging.events import Events
 
 LOG = log.getLogger(__name__)
@@ -82,5 +81,5 @@ class DecisionEngineAPI(MessagingCore):
             event_consumer = EventConsumerFactory.factory(event_type)
             event_consumer.execute(request_id, self.context, data)
         except Exception as e:
-            LOG.error("evt %s" % e.message)
-            raise e
+            LOG.exception(e)
+            raise

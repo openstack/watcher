@@ -19,19 +19,16 @@
 from oslo_log import log
 
 from enum import Enum
-from watcher.common.exception import MetaActionNotFound
+
+from watcher._i18n import _LW
+from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.planner.base import BasePlanner
-
+from watcher.decision_engine.actions import hypervisor_state
+from watcher.decision_engine.actions import migration
+from watcher.decision_engine.actions import nop
+from watcher.decision_engine.actions import power_state
+from watcher.decision_engine.planner import base
 from watcher import objects
-
-from watcher.decision_engine.actions.hypervisor_state import \
-    ChangeHypervisorState
-from watcher.decision_engine.actions.migration import Migrate
-from watcher.decision_engine.actions.nop import Nop
-from watcher.decision_engine.actions.power_state import ChangePowerState
-from watcher.objects.action import Status as AStatus
-from watcher.objects.action_plan import Status as APStatus
 
 LOG = log.getLogger(__name__)
 
@@ -57,7 +54,7 @@ priority_primitives = {
 }
 
 
-class DefaultPlanner(BasePlanner):
+class DefaultPlanner(base.BasePlanner):
     def create_action(self, action_plan_id, action_type, applies_to=None,
                       src=None,
                       dst=None,
@@ -74,7 +71,7 @@ class DefaultPlanner(BasePlanner):
             'dst': dst,
             'parameter': parameter,
             'description': description,
-            'state': AStatus.PENDING,
+            'state': objects.action.Status.PENDING,
             'alarm': None,
             'next': None,
         }
@@ -88,7 +85,7 @@ class DefaultPlanner(BasePlanner):
         to_schedule = []
 
         for action in actions:
-            if isinstance(action, Migrate):
+            if isinstance(action, migration.Migrate):
                 # TODO(jed) type
                 primitive = self.create_action(action_plan.id,
                                                Primitives.LIVE_MIGRATE.value,
@@ -101,7 +98,7 @@ class DefaultPlanner(BasePlanner):
                                                    action)
                                                )
 
-            elif isinstance(action, ChangePowerState):
+            elif isinstance(action, power_state.ChangePowerState):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
                                                POWER_STATE.value,
@@ -111,7 +108,7 @@ class DefaultPlanner(BasePlanner):
                                                value,
                                                description="{0}".format(
                                                    action))
-            elif isinstance(action, ChangeHypervisorState):
+            elif isinstance(action, hypervisor_state.ChangeHypervisorState):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
                                                HYPERVISOR_STATE.value,
@@ -120,21 +117,21 @@ class DefaultPlanner(BasePlanner):
                                                value,
                                                description="{0}".format(
                                                    action))
-            elif isinstance(action, Nop):
+            elif isinstance(action, nop.Nop):
                 primitive = self.create_action(action_plan_id=action_plan.id,
                                                action_type=Primitives.
                                                NOP.value,
                                                description="{0}".format(
                                                    action))
             else:
-                raise MetaActionNotFound()
+                raise exception.MetaActionNotFound()
             priority = priority_primitives[primitive['action_type']]
             to_schedule.append((priority, primitive))
 
         # scheduling
         scheduled = sorted(to_schedule, reverse=False, key=lambda x: (x[0]))
         if len(scheduled) == 0:
-            LOG.warning("The ActionPlan is empty")
+            LOG.warning(_LW("The action plan is empty"))
             action_plan.first_action_id = None
             action_plan.save()
         else:
@@ -157,7 +154,7 @@ class DefaultPlanner(BasePlanner):
             'uuid': utils.generate_uuid(),
             'audit_id': audit_id,
             'first_action_id': None,
-            'state': APStatus.RECOMMENDED
+            'state': objects.action_plan.Status.RECOMMENDED
         }
 
         new_action_plan = objects.ActionPlan(context, **action_plan_dict)

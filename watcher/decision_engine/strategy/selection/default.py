@@ -17,10 +17,10 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common.exception import WatcherException
-from watcher.decision_engine.strategy.loading.default import \
-    DefaultStrategyLoader
-from watcher.decision_engine.strategy.selection.base import BaseSelector
+from watcher._i18n import _
+from watcher.common import exception
+from watcher.decision_engine.strategy.loading import default
+from watcher.decision_engine.strategy.selection import base
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -41,11 +41,11 @@ CONF.register_group(goals_opt_group)
 CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
 
 
-class DefaultStrategySelector(BaseSelector):
+class DefaultStrategySelector(base.BaseSelector):
 
     def __init__(self):
         super(DefaultStrategySelector, self).__init__()
-        self.strategy_loader = DefaultStrategyLoader()
+        self.strategy_loader = default.DefaultStrategyLoader()
 
     def define_from_goal(self, goal_name):
         strategy_to_load = None
@@ -54,7 +54,7 @@ class DefaultStrategySelector(BaseSelector):
             return self.strategy_loader.load(strategy_to_load)
         except KeyError as exc:
             LOG.exception(exc)
-            raise WatcherException(
-                "Incorrect mapping: could not find "
-                "associated strategy for '%s'" % goal_name
+            raise exception.WatcherException(
+                _("Incorrect mapping: could not find "
+                  "associated strategy for '%s'") % goal_name
             )

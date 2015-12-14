@@ -17,16 +17,15 @@
 # limitations under the License.
 #
 
+from keystoneclient.auth.identity import generic
+from keystoneclient import session as keystone_session
 from oslo_config import cfg
 from oslo_log import log
-
 from six.moves.urllib.parse import urljoin
 from six.moves.urllib.parse import urlparse
 
-from keystoneclient.auth.identity import generic
-from keystoneclient import session as keystone_session
-
-from watcher.common.exception import KeystoneFailure
+from watcher._i18n import _
+from watcher.common import exception
 
 
 LOG = log.getLogger(__name__)
@@ -56,8 +55,9 @@ class KeystoneClient(object):
     def get_endpoint(self, **kwargs):
         kc = self._get_ksclient()
         if not kc.has_service_catalog():
-            raise KeystoneFailure('No Keystone service catalog '
-                                  'loaded')
+            raise exception.KeystoneFailure(
+                _('No Keystone service catalog loaded')
+            )
         attr = None
         filter_value = None
         if kwargs.get('region_name'):

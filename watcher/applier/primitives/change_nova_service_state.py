@@ -20,7 +20,7 @@
 
 from oslo_config import cfg
 
-
+from watcher._i18n import _
 from watcher.applier.primitives.base import BasePrimitive
 from watcher.applier.primitives.wrapper.nova_wrapper import NovaWrapper
 from watcher.applier.promise import Promise
@@ -70,7 +70,8 @@ class ChangeNovaServiceState(BasePrimitive):
 
     def nova_manage_service(self, state):
         if state is None:
-            raise IllegalArgumentException("The target state is not defined")
+            raise IllegalArgumentException(
+                _("The target state is not defined"))
 
         keystone = KeystoneClient()
         wrapper = NovaWrapper(keystone.get_credentials(),

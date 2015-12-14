@@ -40,10 +40,9 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
             self.public_api_routes = [re.compile(route_pattern_tpl % route_tpl)
                                       for route_tpl in public_api_routes]
         except re.error as e:
-            msg = _('Cannot compile public API routes: %s') % e
-
-            LOG.error(msg)
-            raise exception.ConfigInvalid(error_msg=msg)
+            LOG.exception(e)
+            raise exception.ConfigInvalid(
+                error_msg=_('Cannot compile public API routes'))
 
         super(AuthTokenMiddleware, self).__init__(app, conf)
 

@@ -21,6 +21,7 @@ from alembic import config as alembic_config
 import alembic.migration as alembic_migration
 from oslo_db import exception as db_exc
 
+from watcher._i18n import _
 from watcher.db.sqlalchemy import api as sqla_api
 from watcher.db.sqlalchemy import models
 
@@ -68,8 +69,9 @@ def create_schema(config=None, engine=None):
     #                schema, it will only add the new tables, but leave
     #                existing as is. So we should avoid of this situation.
     if version(engine=engine) is not None:
-        raise db_exc.DbMigrationError("DB schema is already under version"
-                                      " control. Use upgrade() instead")
+        raise db_exc.DbMigrationError(
+            _("Watcher database schema is already under version control; "
+              "use upgrade() instead"))
 
     models.Base.metadata.create_all(engine)
     stamp('head', config=config)

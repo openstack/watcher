@@ -181,8 +181,9 @@ class MultiType(wtypes.UserType):
                 return value
         else:
             raise ValueError(
-                _("Wrong type. Expected '%(type)s', got '%(value)s'")
-                % {'type': self.types, 'value': type(value)})
+                _("Wrong type. Expected '%(type)s', got '%(value)s'"),
+                type=self.types, value=type(value)
+            )
 
 
 class JsonPatchType(wtypes.Base):

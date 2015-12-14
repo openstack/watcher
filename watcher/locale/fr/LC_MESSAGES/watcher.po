@@ -1,18 +1,19 @@
-# Translations template for python-watcher.
+# French translations for python-watcher.
 # Copyright (C) 2015 ORGANIZATION
 # This file is distributed under the same license as the python-watcher
 # project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2015.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.21.1.dev62\n"
+"Project-Id-Version: python-watcher 0.21.1.dev32\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2015-12-18 15:33+0100\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: 2015-12-11 15:42+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -36,15 +37,15 @@ msgstr ""
 #: watcher/api/controllers/v1/types.py:227
 #, python-format
 msgid "'%s' is a mandatory attribute and can not be removed"
-msgstr ""
+msgstr "'%s' est un attribut obligatoire et ne peut pas être enlevé"
 
 #: watcher/api/controllers/v1/types.py:232
 msgid "'add' and 'replace' operations needs value"
-msgstr ""
+msgstr "Les opérations 'add' et 'replace' recquièrent une valeur"
 
 #: watcher/api/controllers/v1/utils.py:36
 msgid "Limit must be positive"
-msgstr ""
+msgstr "Limit doit être positif"
 
 #: watcher/api/controllers/v1/utils.py:47
 #, python-format
@@ -72,17 +73,17 @@ msgstr ""
 #: watcher/cmd/api.py:46
 #, python-format
 msgid "Starting server in PID %s"
-msgstr ""
+msgstr "Démarre le serveur avec pour PID %s"
 
 #: watcher/cmd/api.py:51
 #, python-format
 msgid "serving on 0.0.0.0:%(port)s, view at http://127.0.0.1:%(port)s"
-msgstr ""
+msgstr "Sert sur 0.0.0.0:%(port)s, accessible à http://127.0.0.1:%(port)s"
 
 #: watcher/cmd/api.py:55
 #, python-format
 msgid "serving on http://%(host)s:%(port)s"
-msgstr ""
+msgstr "Sert sur http://%(host)s:%(port)s"
 
 #: watcher/common/exception.py:56
 msgid "An unknown exception occurred"
@@ -106,8 +107,9 @@ msgid "The %(name)s %(id)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:125
+#, fuzzy
 msgid "Conflict"
-msgstr ""
+msgstr "Conflit."
 
 #: watcher/common/exception.py:130
 #, python-format
@@ -329,4 +331,106 @@ msgstr ""
 #, python-format
 msgid "An object of class %s is required here"
 msgstr ""
+
+#~ msgid "Cannot compile public API routes: %s"
+#~ msgstr ""
+
+#~ msgid "An exception occurred without a description."
+#~ msgstr ""
+
+#~ msgid "no rows were returned"
+#~ msgstr ""
+
+#~ msgid ""
+#~ msgstr ""
+
+#~ msgid "An unknown exception occurred."
+#~ msgstr ""
+
+#~ msgid "Not authorized."
+#~ msgstr ""
+
+#~ msgid "Operation not permitted."
+#~ msgstr ""
+
+#~ msgid "Unacceptable parameters."
+#~ msgstr ""
+
+#~ msgid "The %(name)s %(id)s could not be found."
+#~ msgstr ""
+
+#~ msgid "The %(name)s resource %(id)s could not be found."
+#~ msgstr ""
+
+#~ msgid "Expected an uuid or int but received %(identity)s."
+#~ msgstr ""
+
+#~ msgid "Goal %(goal)s is not defined in Watcher configuration file."
+#~ msgstr ""
+
+#~ msgid "Expected a uuid but received %(uuid)s."
+#~ msgstr ""
+
+#~ msgid "Expected a logical name but received %(name)s."
+#~ msgstr ""
+
+#~ msgid "Expected a logical name or uuid but received %(name)s."
+#~ msgstr ""
+
+#~ msgid "AuditTemplate %(audit_template)s could not be found."
+#~ msgstr ""
+
+#~ msgid "An audit_template with UUID %(uuid)s or name %(name)s already exists."
+#~ msgstr ""
+
+#~ msgid "Audit %(audit)s could not be found."
+#~ msgstr ""
+
+#~ msgid "An audit with UUID %(uuid)s already exists."
+#~ msgstr ""
+
+#~ msgid "Audit %(audit)s is referenced by one or multiple action plans."
+#~ msgstr ""
+
+#~ msgid "ActionPlan %(action plan)s could not be found."
+#~ msgstr ""
+
+#~ msgid "An action plan with UUID %(uuid)s already exists."
+#~ msgstr ""
+
+#~ msgid "Action Plan %(action_plan)s is referenced by one or multiple actions."
+#~ msgstr ""
+
+#~ msgid "Action %(action)s could not be found."
+#~ msgstr ""
+
+#~ msgid "An action with UUID %(uuid)s already exists."
+#~ msgstr ""
+
+#~ msgid "Action plan %(action_plan)s is referenced by one or multiple goals."
+#~ msgstr ""
+
+#~ msgid "Filtering actions on both audit and action-plan is prohibited."
+#~ msgstr ""
+
+#~ msgid "The list of hypervisor(s) in the cluster is empty.'"
+#~ msgstr ""
+
+#~ msgid "The metrics resource collector is not defined.'"
+#~ msgstr ""
+
+#~ msgid "The VM could not be found."
+#~ msgstr ""
+
+#~ msgid "The hypervisor could not be found."
+#~ msgstr ""
+
+#~ msgid "The Meta-Action could not be found."
+#~ msgstr ""
+
+#~ msgid "'hypervisor' argument type is not valid"
+#~ msgstr ""
+
+#~ msgid "'vm' argument type is not valid"
+#~ msgstr ""
 

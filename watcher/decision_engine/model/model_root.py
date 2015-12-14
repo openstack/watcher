@@ -15,12 +15,11 @@
 # limitations under the License.
 from oslo_log import log
 
-from watcher.common.exception import HypervisorNotFound
-from watcher.common.exception import IllegalArgumentException
-from watcher.common.exception import VMNotFound
-from watcher.decision_engine.model.hypervisor import Hypervisor
-from watcher.decision_engine.model.mapping import Mapping
-from watcher.decision_engine.model.vm import VM
+from watcher._i18n import _
+from watcher.common import exception
+from watcher.decision_engine.model import hypervisor
+from watcher.decision_engine.model import mapping
+from watcher.decision_engine.model import vm
 
 LOG = log.getLogger(__name__)
 
@@ -29,18 +28,18 @@ class ModelRoot(object):
     def __init__(self):
         self._hypervisors = {}
         self._vms = {}
-        self.mapping = Mapping(self)
+        self.mapping = mapping.Mapping(self)
         self.resource = {}
 
-    def assert_hypervisor(self, hypervisor):
-        if not isinstance(hypervisor, Hypervisor):
-            raise IllegalArgumentException(
-                "Hypervisor must be an instance of hypervisor")
+    def assert_hypervisor(self, obj):
+        if not isinstance(obj, hypervisor.Hypervisor):
+            raise exception.IllegalArgumentException(
+                _("'obj' argument type is not valid"))
 
-    def assert_vm(self, vm):
-        if not isinstance(vm, VM):
-            raise IllegalArgumentException(
-                "VM must be an instance of VM")
+    def assert_vm(self, obj):
+        if not isinstance(obj, vm.VM):
+            raise exception.IllegalArgumentException(
+                _("'obj' argument type is not valid"))
 
     def add_hypervisor(self, hypervisor):
         self.assert_hypervisor(hypervisor)
@@ -49,7 +48,7 @@ class ModelRoot(object):
     def remove_hypervisor(self, hypervisor):
         self.assert_hypervisor(hypervisor)
         if str(hypervisor.uuid) not in self._hypervisors.keys():
-            raise HypervisorNotFound(hypervisor.uuid)
+            raise exception.HypervisorNotFound(hypervisor.uuid)
         else:
             del self._hypervisors[hypervisor.uuid]
 
@@ -62,12 +61,12 @@ class ModelRoot(object):
 
     def get_hypervisor_from_id(self, hypervisor_uuid):
         if str(hypervisor_uuid) not in self._hypervisors.keys():
-            raise HypervisorNotFound(hypervisor_uuid)
+            raise exception.HypervisorNotFound(hypervisor_uuid)
         return self._hypervisors[str(hypervisor_uuid)]
 
     def get_vm_from_id(self, uuid):
         if str(uuid) not in self._vms.keys():
-            raise VMNotFound(uuid)
+            raise exception.VMNotFound(uuid)
         return self._vms[str(uuid)]
 
     def get_all_vms(self):

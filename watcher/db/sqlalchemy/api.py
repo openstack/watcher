@@ -22,15 +22,14 @@ from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import session as db_session
 from oslo_db.sqlalchemy import utils as db_utils
 from oslo_log import log
-from sqlalchemy.orm.exc import MultipleResultsFound
-from sqlalchemy.orm.exc import NoResultFound
+from sqlalchemy.orm import exc
 
 from watcher import _i18n
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
-from watcher.objects.audit import AuditStatus
+from watcher.objects import audit as audit_objects
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -223,7 +222,7 @@ class Connection(api.BaseConnection):
                     raise exception.AuditTemplateNotFound(
                         audit_template=audit_template_id)
             return audit_template
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.AuditTemplateNotFound(
                 audit_template=audit_template_id)
 
@@ -238,7 +237,7 @@ class Connection(api.BaseConnection):
                     raise exception.AuditTemplateNotFound(
                         audit_template=audit_template_uuid)
             return audit_template
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.AuditTemplateNotFound(
                 audit_template=audit_template_uuid)
 
@@ -252,11 +251,11 @@ class Connection(api.BaseConnection):
                     raise exception.AuditTemplateNotFound(
                         audit_template=audit_template_name)
             return audit_template
-        except MultipleResultsFound:
+        except exc.MultipleResultsFound:
             raise exception.Conflict(
-                'Multiple audit templates exist with same name.'
-                ' Please use the audit template uuid instead.')
-        except NoResultFound:
+                _('Multiple audit templates exist with the same name.'
+                  ' Please use the audit template uuid instead'))
+        except exc.NoResultFound:
             raise exception.AuditTemplateNotFound(
                 audit_template=audit_template_name)
 
@@ -268,7 +267,7 @@ class Connection(api.BaseConnection):
 
             try:
                 query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditTemplateNotFound(node=audit_template_id)
 
             query.delete()
@@ -287,7 +286,7 @@ class Connection(api.BaseConnection):
             query = add_identity_filter(query, audit_template_id)
             try:
                 ref = query.with_lockmode('update').one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditTemplateNotFound(
                     audit_template=audit_template_id)
 
@@ -302,7 +301,7 @@ class Connection(api.BaseConnection):
 
             try:
                 query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditTemplateNotFound(node=audit_template_id)
 
             query.soft_delete()
@@ -323,7 +322,7 @@ class Connection(api.BaseConnection):
             values['uuid'] = utils.generate_uuid()
 
         if values.get('state') is None:
-            values['state'] = AuditStatus.PENDING
+            values['state'] = audit_objects.AuditStatus.PENDING
 
         audit = models.Audit()
         audit.update(values)
@@ -343,7 +342,7 @@ class Connection(api.BaseConnection):
                 if audit.state == 'DELETED':
                     raise exception.AuditNotFound(audit=audit_id)
             return audit
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.AuditNotFound(audit=audit_id)
 
     def get_audit_by_uuid(self, context, audit_uuid):
@@ -356,7 +355,7 @@ class Connection(api.BaseConnection):
                 if audit.state == 'DELETED':
                     raise exception.AuditNotFound(audit=audit_uuid)
             return audit
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.AuditNotFound(audit=audit_uuid)
 
     def destroy_audit(self, audit_id):
@@ -374,7 +373,7 @@ class Connection(api.BaseConnection):
 
             try:
                 audit_ref = query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditNotFound(audit=audit_id)
 
             if is_audit_referenced(session, audit_ref['id']):
@@ -396,7 +395,7 @@ class Connection(api.BaseConnection):
             query = add_identity_filter(query, audit_id)
             try:
                 ref = query.with_lockmode('update').one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditNotFound(audit=audit_id)
 
             ref.update(values)
@@ -410,7 +409,7 @@ class Connection(api.BaseConnection):
 
             try:
                 query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.AuditNotFound(node=audit_id)
 
             query.soft_delete()
@@ -447,7 +446,7 @@ class Connection(api.BaseConnection):
                     raise exception.ActionNotFound(
                         action=action_id)
             return action
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.ActionNotFound(action=action_id)
 
     def get_action_by_uuid(self, context, action_uuid):
@@ -460,7 +459,7 @@ class Connection(api.BaseConnection):
                     raise exception.ActionNotFound(
                         action=action_uuid)
             return action
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.ActionNotFound(action=action_uuid)
 
     def destroy_action(self, action_id):
@@ -487,7 +486,7 @@ class Connection(api.BaseConnection):
             query = add_identity_filter(query, action_id)
             try:
                 ref = query.with_lockmode('update').one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.ActionNotFound(action=action_id)
 
             ref.update(values)
@@ -501,7 +500,7 @@ class Connection(api.BaseConnection):
 
             try:
                 query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.ActionNotFound(node=action_id)
 
             query.soft_delete()
@@ -541,7 +540,7 @@ class Connection(api.BaseConnection):
                     raise exception.ActionPlanNotFound(
                         action_plan=action_plan_id)
             return action_plan
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
     def get_action_plan_by_uuid(self, context, action_plan__uuid):
@@ -555,7 +554,7 @@ class Connection(api.BaseConnection):
                     raise exception.ActionPlanNotFound(
                         action_plan=action_plan__uuid)
             return action_plan
-        except NoResultFound:
+        except exc.NoResultFound:
             raise exception.ActionPlanNotFound(action_plan=action_plan__uuid)
 
     def destroy_action_plan(self, action_plan_id):
@@ -573,7 +572,7 @@ class Connection(api.BaseConnection):
 
             try:
                 action_plan_ref = query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
             if is_action_plan_referenced(session, action_plan_ref['id']):
@@ -596,7 +595,7 @@ class Connection(api.BaseConnection):
             query = add_identity_filter(query, action_plan_id)
             try:
                 ref = query.with_lockmode('update').one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
             ref.update(values)
@@ -610,7 +609,7 @@ class Connection(api.BaseConnection):
 
             try:
                 query.one()
-            except NoResultFound:
+            except exc.NoResultFound:
                 raise exception.ActionPlanNotFound(node=action_plan_id)
 
             query.soft_delete()

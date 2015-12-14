@@ -24,11 +24,9 @@ SHOULD include dedicated exception logging.
 
 from oslo_config import cfg
 from oslo_log import log as logging
-
 import six
 
-from watcher._i18n import _
-from watcher._i18n import _LE
+from watcher._i18n import _, _LE
 
 LOG = logging.getLogger(__name__)
 
@@ -43,7 +41,7 @@ CONF.register_opts(exc_log_opts)
 
 
 def _cleanse_dict(original):
-    """Strip all admin_password, new_pass, rescue_pass keys from a dict."""
+    """Strip all admin_password, new_pass, rescue_pass keys from a dict"""
     return dict((k, v) for k, v in six.iteritems(original) if "_pass" not in k)
 
 
@@ -55,7 +53,7 @@ class WatcherException(Exception):
     with the keyword arguments provided to the constructor.
 
     """
-    message = _("An unknown exception occurred.")
+    message = _("An unknown exception occurred")
     code = 500
     headers = {}
     safe = False
@@ -78,7 +76,7 @@ class WatcherException(Exception):
                 # log the issue and the kwargs
                 LOG.exception(_LE('Exception in string format operation'))
                 for name, value in six.iteritems(kwargs):
-                    LOG.error("%s: %s" % (name, value))
+                    LOG.error("%s: %s", name, value)
 
                 if CONF.fatal_exception_format_errors:
                     raise e
@@ -89,7 +87,7 @@ class WatcherException(Exception):
         super(WatcherException, self).__init__(message)
 
     def __str__(self):
-        """Encode to utf-8 then wsme api can consume it as well."""
+        """Encode to utf-8 then wsme api can consume it as well"""
         if not six.PY3:
             return unicode(self.args[0]).encode('utf-8')
         else:
@@ -106,39 +104,39 @@ class WatcherException(Exception):
 
 
 class NotAuthorized(WatcherException):
-    message = _("Not authorized.")
+    message = _("Not authorized")
     code = 403
 
 
 class OperationNotPermitted(NotAuthorized):
-    message = _("Operation not permitted.")
+    message = _("Operation not permitted")
 
 
 class Invalid(WatcherException):
-    message = _("Unacceptable parameters.")
+    message = _("Unacceptable parameters")
     code = 400
 
 
 class ObjectNotFound(WatcherException):
-    message = _("The %(name)s %(id)s could not be found.")
+    message = _("The %(name)s %(id)s could not be found")
 
 
 class Conflict(WatcherException):
-    message = _('Conflict.')
+    message = _('Conflict')
     code = 409
 
 
 class ResourceNotFound(ObjectNotFound):
-    message = _("The %(name)s resource %(id)s could not be found.")
+    message = _("The %(name)s resource %(id)s could not be found")
     code = 404
 
 
 class InvalidIdentity(Invalid):
-    message = _("Expected an uuid or int but received %(identity)s.")
+    message = _("Expected an uuid or int but received %(identity)s")
 
 
 class InvalidGoal(Invalid):
-    message = _("Goal %(goal)s is not defined in Watcher configuration file.")
+    message = _("Goal %(goal)s is not defined in Watcher configuration file")
 
 
 # Cannot be templated as the error syntax varies.
@@ -148,73 +146,73 @@ class InvalidParameterValue(Invalid):
 
 
 class InvalidUUID(Invalid):
-    message = _("Expected a uuid but received %(uuid)s.")
+    message = _("Expected a uuid but received %(uuid)s")
 
 
 class InvalidName(Invalid):
-    message = _("Expected a logical name but received %(name)s.")
+    message = _("Expected a logical name but received %(name)s")
 
 
 class InvalidUuidOrName(Invalid):
-    message = _("Expected a logical name or uuid but received %(name)s.")
+    message = _("Expected a logical name or uuid but received %(name)s")
 
 
 class AuditTemplateNotFound(ResourceNotFound):
-    message = _("AuditTemplate %(audit_template)s could not be found.")
+    message = _("AuditTemplate %(audit_template)s could not be found")
 
 
 class AuditTemplateAlreadyExists(Conflict):
     message = _("An audit_template with UUID %(uuid)s or name %(name)s "
-                "already exists.")
+                "already exists")
 
 
 class AuditTemplateReferenced(Invalid):
     message = _("AuditTemplate %(audit_template)s is referenced by one or "
-                "multiple audit.")
+                "multiple audit")
 
 
 class AuditNotFound(ResourceNotFound):
-    message = _("Audit %(audit)s could not be found.")
+    message = _("Audit %(audit)s could not be found")
 
 
 class AuditAlreadyExists(Conflict):
-    message = _("An audit with UUID %(uuid)s already exists.")
+    message = _("An audit with UUID %(uuid)s already exists")
 
 
 class AuditReferenced(Invalid):
     message = _("Audit %(audit)s is referenced by one or multiple action "
-                "plans.")
+                "plans")
 
 
 class ActionPlanNotFound(ResourceNotFound):
-    message = _("ActionPlan %(action plan)s could not be found.")
+    message = _("ActionPlan %(action plan)s could not be found")
 
 
 class ActionPlanAlreadyExists(Conflict):
-    message = _("An action plan with UUID %(uuid)s already exists.")
+    message = _("An action plan with UUID %(uuid)s already exists")
 
 
 class ActionPlanReferenced(Invalid):
     message = _("Action Plan %(action_plan)s is referenced by one or "
-                "multiple actions.")
+                "multiple actions")
 
 
 class ActionNotFound(ResourceNotFound):
-    message = _("Action %(action)s could not be found.")
+    message = _("Action %(action)s could not be found")
 
 
 class ActionAlreadyExists(Conflict):
-    message = _("An action with UUID %(uuid)s already exists.")
+    message = _("An action with UUID %(uuid)s already exists")
 
 
 class ActionReferenced(Invalid):
     message = _("Action plan %(action_plan)s is referenced by one or "
-                "multiple goals.")
+                "multiple goals")
 
 
 class ActionFilterCombinationProhibited(Invalid):
     message = _("Filtering actions on both audit and action-plan is "
-                "prohibited.")
+                "prohibited")
 
 
 class HTTPNotFound(ResourceNotFound):
@@ -232,8 +230,7 @@ class BaseException(Exception):
 
     def __init__(self, desc=""):
         if (not isinstance(desc, six.string_types)):
-            raise IllegalArgumentException(
-                "Description must be an instance of str")
+            raise ValueError(_("Description must be an instance of str"))
 
         desc = desc.strip()
 
@@ -243,7 +240,7 @@ class BaseException(Exception):
         return self._desc
 
     def get_message(self):
-        return "An exception occurred without a description."
+        return _("An exception occurred without a description")
 
     def __str__(self):
         return self.get_message()
@@ -251,10 +248,8 @@ class BaseException(Exception):
 
 class IllegalArgumentException(BaseException):
     def __init__(self, desc):
-        BaseException.__init__(self, desc)
-
-        if self._desc == "":
-            raise IllegalArgumentException("Description cannot be empty")
+        desc = desc or _("Description cannot be empty")
+        super(IllegalArgumentException, self).__init__(desc)
 
     def get_message(self):
         return self._desc
@@ -262,10 +257,8 @@ class IllegalArgumentException(BaseException):
 
 class NoSuchMetric(BaseException):
     def __init__(self, desc):
-        BaseException.__init__(self, desc)
-
-        if self._desc == "":
-            raise NoSuchMetric("No such metric")
+        desc = desc or _("No such metric")
+        super(NoSuchMetric, self).__init__(desc)
 
     def get_message(self):
         return self._desc
@@ -273,10 +266,8 @@ class NoSuchMetric(BaseException):
 
 class NoDataFound(BaseException):
     def __init__(self, desc):
-        BaseException.__init__(self, desc)
-
-        if self._desc == "":
-            raise NoSuchMetric("no rows were returned")
+        desc = desc or _("No rows were returned")
+        super(NoDataFound, self).__init__(desc)
 
     def get_message(self):
         return self._desc
@@ -287,11 +278,11 @@ class KeystoneFailure(WatcherException):
 
 
 class ClusterEmpty(WatcherException):
-    message = _("The list of hypervisor(s) in the cluster is empty.'")
+    message = _("The list of hypervisor(s) in the cluster is empty")
 
 
 class MetricCollectorNotDefined(WatcherException):
-    message = _("The metrics resource collector is not defined.'")
+    message = _("The metrics resource collector is not defined")
 
 
 class ClusterStateNotDefined(WatcherException):
@@ -301,12 +292,12 @@ class ClusterStateNotDefined(WatcherException):
 # Model
 
 class VMNotFound(WatcherException):
-    message = _("The VM could not be found.")
+    message = _("The VM could not be found")
 
 
 class HypervisorNotFound(WatcherException):
-    message = _("The hypervisor could not be found.")
+    message = _("The hypervisor could not be found")
 
 
 class MetaActionNotFound(WatcherException):
-    message = _("The Meta-Action could not be found.")
+    message = _("The Meta-Action could not be found")

@@ -89,5 +89,5 @@ class ApplierManager(MessagingCore):
             LOG.debug("type_event => %s" % str(event_type))
             LOG.debug("data       => %s" % str(data))
         except Exception as e:
-            LOG.error("evt %s" % e.message)
-            raise e
+            LOG.exception(e)
+            raise
