@@ -26,7 +26,7 @@ from oslo_log import log as logging
 
 from watcher._i18n import _
 from watcher.api import app as api_app
-from watcher import service
+from watcher.common import service
 
 
 LOG = logging.getLogger(__name__)
