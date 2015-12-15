@@ -24,10 +24,10 @@ import oslo_messaging as messaging
 from oslo_service import service
 from oslo_utils import importutils
 
+from watcher._i18n import _LE
+from watcher._i18n import _LI
 from watcher.common import config
 from watcher.common import context
-from watcher.common.i18n import _LE
-from watcher.common.i18n import _LI
 from watcher.common import rpc
 from watcher.objects import base as objects_base
 

@@ -23,15 +23,15 @@ import sys
 
 from oslo_config import cfg
 from oslo_log import log as logging
+
+from watcher import _i18n
 from watcher.common import service
 from watcher.decision_engine.manager import DecisionEngineManager
-
-from watcher import i18n
 
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
-_LI = i18n._LI
+_LI = _i18n._LI
 
 
 def main():

@@ -17,7 +17,7 @@ import jsonpatch
 from oslo_config import cfg
 import wsme
 
-from watcher.common.i18n import _
+from watcher._i18n import _
 
 CONF = cfg.CONF
 

@@ -27,8 +27,8 @@ from oslo_log import log
 import six
 import webob
 
-from watcher.common.i18n import _
-from watcher.common.i18n import _LE
+from watcher._i18n import _
+from watcher._i18n import _LE
 
 LOG = log.getLogger(__name__)
 

@@ -22,7 +22,7 @@ import netaddr
 from oslo_utils import timeutils
 import six
 
-from watcher.common.i18n import _
+from watcher._i18n import _
 
 
 def datetime_or_none(dt):

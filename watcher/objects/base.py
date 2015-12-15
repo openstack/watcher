@@ -22,9 +22,9 @@ import oslo_messaging as messaging
 from oslo_utils import versionutils
 import six
 
+from watcher._i18n import _
+from watcher._i18n import _LE
 from watcher.common import exception
-from watcher.common.i18n import _
-from watcher.common.i18n import _LE
 from watcher.objects import utils as obj_utils
 
 
