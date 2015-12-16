@@ -16,8 +16,8 @@
 # limitations under the License.
 
 import watcher.api.app
-from watcher.applier import manager_applier
-from watcher.decision_engine import manager
+from watcher.applier import manager as applier_manager
+from watcher.decision_engine import manager as decision_engine_manger
 from watcher.decision_engine.strategy.selection import default \
     as strategy_selector
 
@@ -27,7 +27,7 @@ def list_opts():
         ('api', watcher.api.app.API_SERVICE_OPTS),
         ('watcher_goals', strategy_selector.WATCHER_GOALS_OPTS),
         ('watcher_decision_engine',
-         manager.WATCHER_DECISION_ENGINE_OPTS),
+         decision_engine_manger.WATCHER_DECISION_ENGINE_OPTS),
         ('watcher_applier',
-         manager_applier.APPLIER_MANAGER_OPTS)
+         applier_manager.APPLIER_MANAGER_OPTS)
     ]
