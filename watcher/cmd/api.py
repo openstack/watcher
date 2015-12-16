@@ -19,6 +19,7 @@
 
 import logging as std_logging
 import os
+import sys
 from wsgiref import simple_server
 
 from oslo_config import cfg
@@ -34,7 +35,7 @@ CONF = cfg.CONF
 
 
 def main():
-    service.prepare_service()
+    service.prepare_service(sys.argv)
 
     app = api_app.setup_app()
 
