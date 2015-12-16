@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import logging
 import signal
 import socket
 
@@ -124,9 +125,10 @@ _DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
                        'glanceclient=WARN', 'watcher.openstack.common=WARN']
 
 
-def prepare_service(argv=[]):
-    log.register_options(cfg.CONF)
+def prepare_service(argv=[], conf=cfg.CONF):
+    log.register_options(conf)
     config.parse_args(argv)
     cfg.set_defaults(_options.log_opts,
                      default_log_levels=_DEFAULT_LOG_LEVELS)
-    log.setup(cfg.CONF, 'python-watcher')
+    log.setup(conf, 'python-watcher')
+    conf.log_opt_values(LOG, logging.DEBUG)
