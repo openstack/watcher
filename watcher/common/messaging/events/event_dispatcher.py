@@ -39,7 +39,7 @@ class EventDispatcher(object):
             return False
 
     def dispatch_event(self, event):
-        LOG.debug("dispatch evt : %s" % str(event.get_type()))
+        LOG.debug("dispatch evt : %s" % str(event.type))
         """
         Dispatch an instance of Event class
         """
@@ -49,8 +49,8 @@ class EventDispatcher(object):
                 listener(event)
 
         # Dispatch the event to all the associated listeners
-        if event.get_type() in self._events.keys():
-            listeners = self._events[event.get_type()]
+        if event.type in self._events.keys():
+            listeners = self._events[event.type]
             for listener in listeners:
                 listener(event)
 

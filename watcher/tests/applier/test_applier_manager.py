@@ -16,8 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+from mock import patch
+from threading import Thread
+
 from watcher.applier.manager import ApplierManager
-from watcher.common.messaging.events.event import Event
+from watcher.common.messaging.messaging_core import MessagingCore
 from watcher.tests import base
 
 
@@ -26,6 +30,10 @@ class TestApplierManager(base.TestCase):
         super(TestApplierManager, self).setUp()
         self.applier = ApplierManager()
 
-    def test_evt(self):
-        e = Event()
-        self.applier.event_receive(e)
+    @patch.object(MessagingCore, "connect")
+    @patch.object(Thread, "join")
+    def test_connect(self, m_messaging, m_thread):
+        self.applier.connect()
+        self.applier.join()
+        self.assertEqual(m_messaging.call_count, 2)
+        self.assertEqual(m_thread.call_count, 1)

@@ -29,20 +29,26 @@ class Event(object):
         self._data = data
         self._request_id = request_id
 
-    def get_type(self):
+    @property
+    def type(self):
         return self._type
 
-    def set_type(self, type):
+    @type.setter
+    def type(self, type):
         self._type = type
 
-    def get_data(self):
+    @property
+    def data(self):
         return self._data
 
-    def set_data(self, data):
+    @data.setter
+    def data(self, data):
         self._data = data
 
-    def set_request_id(self, id):
-        self._request_id = id
-
-    def get_request_id(self):
+    @property
+    def request_id(self):
         return self._request_id
+
+    @request_id.setter
+    def request_id(self, id):
+        self._request_id = id

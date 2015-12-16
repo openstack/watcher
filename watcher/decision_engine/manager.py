@@ -21,10 +21,8 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.notification_handler import NotificationHandler
-from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
-from watcher.decision_engine.messaging.events import Events
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -67,9 +65,6 @@ class DecisionEngineManager(MessagingCore):
             CONF.watcher_decision_engine.topic_control,
             CONF.watcher_decision_engine.topic_status,
             api_version=self.API_VERSION)
-        self.handler = NotificationHandler(self.publisher_id)
-        self.handler.register_observer(self)
-        self.add_event_listener(Events.ALL, self.event_receive)
         endpoint = AuditEndpoint(self,
                                  max_workers=CONF.watcher_decision_engine.
                                  max_workers)
@@ -78,20 +73,3 @@ class DecisionEngineManager(MessagingCore):
     def join(self):
         self.topic_control.join()
         self.topic_status.join()
-
-    # TODO(ebe): Producer / consumer
-    def event_receive(self, event):
-        try:
-            request_id = event.get_request_id()
-            event_type = event.get_type()
-            data = event.get_data()
-            LOG.debug("request id => %s" % event.get_request_id())
-            LOG.debug("type_event => %s" % str(event.get_type()))
-            LOG.debug("data       => %s" % str(data))
-
-            event_consumer = EventConsumerFactory().factory(event_type)
-            event_consumer.messaging = self
-            event_consumer.execute(request_id, data)
-        except Exception as e:
-            LOG.error("evt %s" % e.message)
-            raise e

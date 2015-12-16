@@ -42,11 +42,11 @@ class ActionPlanExecutor(object):
         db_action.state = state
         db_action.save()
         event = Event()
-        event.set_type(Events.LAUNCH_ACTION)
-        event.set_data({})
+        event.type = Events.LAUNCH_ACTION
+        event.data = {}
         payload = {'action_uuid': action.uuid,
-                   'action_status': state}
-        self.manager_applier.topic_status.publish_event(event.get_type().name,
+                   'action_state': state}
+        self.manager_applier.topic_status.publish_event(event.type.name,
                                                         payload)
 
     def execute(self, actions):
