@@ -28,7 +28,8 @@ extensions = [
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
     'wsmeext.sphinxext',
-    'oslosphinx'
+    'oslosphinx',
+    'watcher.doc',
 ]
 
 wsme_protocols = ['restjson']
