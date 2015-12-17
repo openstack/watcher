@@ -15,7 +15,7 @@
 # limitations under the License.
 from mock import call
 from mock import MagicMock
-from watcher.decision_engine.command.audit import TriggerAuditCommand
+from watcher.decision_engine.audit.default import DefaultAuditHandler
 from watcher.decision_engine.messaging.events import Events
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
@@ -25,9 +25,9 @@ from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
 from watcher.tests.objects import utils as obj_utils
 
 
-class TestTriggerAuditCommand(DbTestCase):
+class TestDefaultAuditHandler(DbTestCase):
     def setUp(self):
-        super(TestTriggerAuditCommand, self).setUp()
+        super(TestDefaultAuditHandler, self).setUp()
         self.audit_template = obj_utils.create_test_audit_template(
             self.context)
         self.audit = obj_utils.create_test_audit(
@@ -36,24 +36,24 @@ class TestTriggerAuditCommand(DbTestCase):
 
     def test_trigger_audit_without_errors(self):
         model_collector = FakerModelCollector()
-        command = TriggerAuditCommand(MagicMock(), model_collector)
-        command.execute(self.audit.uuid, self.context)
+        audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
+        audit_handler.execute(self.audit.uuid, self.context)
 
     def test_trigger_audit_state_success(self):
         model_collector = FakerModelCollector()
-        command = TriggerAuditCommand(MagicMock(), model_collector)
-        command.strategy_context.execute_strategy = MagicMock()
-        command.execute(self.audit.uuid, self.context)
+        audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
+        audit_handler.strategy_context.execute_strategy = MagicMock()
+        audit_handler.execute(self.audit.uuid, self.context)
         audit = Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(AuditStatus.SUCCEEDED, audit.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = MagicMock()
         model_collector = FakerModelCollector()
-        command = TriggerAuditCommand(messaging, model_collector)
-        command.strategy_context.execute_strategy = MagicMock()
+        audit_handler = DefaultAuditHandler(messaging, model_collector)
+        audit_handler.strategy_context.execute_strategy = MagicMock()
 
-        command.execute(self.audit.uuid, self.context)
+        audit_handler.execute(self.audit.uuid, self.context)
 
         call_on_going = call(Events.TRIGGER_AUDIT.name, {
             'audit_status': AuditStatus.ONGOING,

@@ -18,7 +18,7 @@
 #
 from oslo_log import log
 
-from watcher.decision_engine.command.audit import TriggerAuditCommand
+from watcher.decision_engine.audit.default import DefaultAuditHandler
 from watcher.metrics_engine.cluster_model_collector.manager import \
     CollectorManager
 
@@ -33,7 +33,7 @@ class AuditEndpoint(object):
     def do_trigger_audit(self, context, audit_uuid):
         model_collector = self.manager.get_cluster_model_collector()
 
-        audit = TriggerAuditCommand(self.de, model_collector)
+        audit = DefaultAuditHandler(self.de, model_collector)
         audit.execute(audit_uuid, context)
 
     def trigger_audit(self, context, audit_uuid):

@@ -16,8 +16,8 @@
 from oslo_log import log
 
 from watcher.common.messaging.events.event import Event
-from watcher.decision_engine.messaging.command.base import \
-    BaseDecisionEngineCommand
+from watcher.decision_engine.audit.base import \
+    BaseAuditHandler
 from watcher.decision_engine.messaging.events import Events
 from watcher.decision_engine.planner.default import DefaultPlanner
 from watcher.decision_engine.strategy.context.default import StrategyContext
@@ -28,8 +28,9 @@ from watcher.objects.audit_template import AuditTemplate
 LOG = log.getLogger(__name__)
 
 
-class TriggerAuditCommand(BaseDecisionEngineCommand):
+class DefaultAuditHandler(BaseAuditHandler):
     def __init__(self, messaging, model_collector):
+        super(DefaultAuditHandler, self).__init__()
         self.messaging = messaging
         self.model_collector = model_collector
         self.strategy_context = StrategyContext()
@@ -43,8 +44,8 @@ class TriggerAuditCommand(BaseDecisionEngineCommand):
         self.messaging.topic_status.publish_event(event.get_type().name,
                                                   payload)
 
-    def update_audit(self, request_context, audit_uuid, state):
-        LOG.debug("update audit {0} ".format(state))
+    def update_audit_state(self, request_context, audit_uuid, state):
+        LOG.debug("Update audit state:{0} ".format(state))
         audit = Audit.get_by_uuid(request_context, audit_uuid)
         audit.state = state
         audit.save()
@@ -53,31 +54,32 @@ class TriggerAuditCommand(BaseDecisionEngineCommand):
 
     def execute(self, audit_uuid, request_context):
         try:
-            LOG.debug("Execute TriggerAuditCommand ")
+            LOG.debug("Trigger audit %s" % audit_uuid)
 
-            # 1 - change status to ONGOING
-            audit = self.update_audit(request_context, audit_uuid,
-                                      AuditStatus.ONGOING)
+            # change state to ONGOING
+            audit = self.update_audit_state(request_context, audit_uuid,
+                                            AuditStatus.ONGOING)
 
-            # 3 - Retrieve cluster-data-model
+            # Retrieve cluster-data-model
             cluster = self.model_collector.get_latest_cluster_data_model()
 
-            # 4 - Select appropriate strategy
+            # Select appropriate strategy
             audit_template = AuditTemplate.get_by_id(request_context,
                                                      audit.audit_template_id)
 
             self.strategy_context.set_goal(audit_template.goal)
 
-            # 5 - compute change requests
+            # compute change requests
             solution = self.strategy_context.execute_strategy(cluster)
 
-            # 6 - create an action plan
+            # create an action plan
             planner = DefaultPlanner()
             planner.schedule(request_context, audit.id, solution)
 
-            # 7 - change status to SUCCEEDED and notify
-            self.update_audit(request_context, audit_uuid,
-                              AuditStatus.SUCCEEDED)
+            # change state to SUCCEEDED and notify
+            self.update_audit_state(request_context, audit_uuid,
+                                    AuditStatus.SUCCEEDED)
         except Exception as e:
-            self.update_audit(request_context, audit_uuid, AuditStatus.FAILED)
-            LOG.error("Execute audit command {0} ".format(unicode(e)))
+            LOG.exception(e)
+            self.update_audit_state(request_context, audit_uuid,
+                                    AuditStatus.FAILED)
