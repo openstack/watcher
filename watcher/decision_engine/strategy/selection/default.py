@@ -41,9 +41,10 @@ CONF.register_group(goals_opt_group)
 CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
 
 
-class StrategySelector(BaseSelector):
+class DefaultStrategySelector(BaseSelector):
 
     def __init__(self):
+        super(DefaultStrategySelector, self).__init__()
         self.strategy_loader = DefaultStrategyLoader()
 
     def define_from_goal(self, goal_name):

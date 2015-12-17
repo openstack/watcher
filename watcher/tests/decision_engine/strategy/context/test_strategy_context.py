@@ -13,19 +13,26 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from mock import MagicMock
+from mock import patch
 
-from watcher.decision_engine.strategy.context.default import StrategyContext
+from watcher.decision_engine.solution.default import DefaultSolution
+from watcher.decision_engine.strategy.context.default import \
+    DefaultStrategyContext
+from watcher.decision_engine.strategy.selection.default import \
+    DefaultStrategySelector
+from watcher.decision_engine.strategy.strategies.dummy_strategy import \
+    DummyStrategy
 from watcher.tests import base
 
 
-class FakeStrategy(object):
-    def __init__(self):
-        self.name = "BALANCE_LOAD"
-
-
 class TestStrategyContext(base.BaseTestCase):
-    def test_add_remove_strategy(self):
-        strategy = FakeStrategy()
-        strategy_context = StrategyContext()
-        strategy_context.add_strategy(strategy)
-        strategy_context.remove_strategy(strategy)
+    strategy_context = DefaultStrategyContext()
+
+    @patch.object(DefaultStrategySelector, 'define_from_goal')
+    def test_execute_strategy(self, mock_call):
+        mock_call.return_value = DummyStrategy()
+        cluster_data_model = MagicMock()
+        solution = self.strategy_context.execute_strategy("dummy",
+                                                          cluster_data_model)
+        self.assertIsInstance(solution, DefaultSolution)

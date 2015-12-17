@@ -15,34 +15,23 @@
 # limitations under the License.
 from oslo_log import log
 
-from watcher.decision_engine.planner.default import DefaultPlanner
 from watcher.decision_engine.strategy.context.base import BaseStrategyContext
-from watcher.decision_engine.strategy.selection.default import StrategySelector
+from watcher.decision_engine.strategy.selection.default import \
+    DefaultStrategySelector
 
 LOG = log.getLogger(__name__)
 
 
-class StrategyContext(BaseStrategyContext):
-    def __init__(self, broker=None):
-        LOG.debug("Initializing decision_engine Engine API ")
-        self.strategies = {}
-        self.selected_strategies = []
-        self.broker = broker
-        self.planner = DefaultPlanner()
-        self.strategy_selector = StrategySelector()
-        self.goal = None
+class DefaultStrategyContext(BaseStrategyContext):
+    def __init__(self):
+        super(DefaultStrategyContext, self).__init__()
+        LOG.debug("Initializing Strategy Context")
+        self._strategy_selector = DefaultStrategySelector()
 
-    def add_strategy(self, strategy):
-        self.strategies[strategy.name] = strategy
-        self.selected_strategy = strategy.name
+    @property
+    def strategy_selector(self):
+        return self._strategy_selector
 
-    def remove_strategy(self, strategy):
-        pass
-
-    def set_goal(self, goal):
-        self.goal = goal
-
-    def execute_strategy(self, model):
-        # todo(jed) create thread + refactoring
-        selected_strategy = self.strategy_selector.define_from_goal(self.goal)
-        return selected_strategy.execute(model)
+    def execute_strategy(self, goal, cluster_data_model):
+        selected_strategy = self.strategy_selector.define_from_goal(goal)
+        return selected_strategy.execute(cluster_data_model)

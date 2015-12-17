@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from concurrent.futures import ThreadPoolExecutor
+
 from oslo_log import log
 
 from watcher.decision_engine.audit.default import DefaultAuditHandler
@@ -26,19 +28,32 @@ LOG = log.getLogger(__name__)
 
 
 class AuditEndpoint(object):
-    def __init__(self, de):
-        self.de = de
-        self.manager = CollectorManager()
+    def __init__(self, messaging, max_workers):
+        self._messaging = messaging
+        self._collector_manager = CollectorManager()
+        self._executor = ThreadPoolExecutor(max_workers=max_workers)
+
+    @property
+    def collector_manager(self):
+        return self._collector_manager
+
+    @property
+    def executor(self):
+        return self._executor
+
+    @property
+    def messaging(self):
+        return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        model_collector = self.manager.get_cluster_model_collector()
+        model_collector = self.collector_manager.get_cluster_model_collector()
 
-        audit = DefaultAuditHandler(self.de, model_collector)
+        audit = DefaultAuditHandler(self.messaging, model_collector)
         audit.execute(audit_uuid, context)
 
     def trigger_audit(self, context, audit_uuid):
         LOG.debug("Trigger audit %s" % audit_uuid)
-        self.de.executor.submit(self.do_trigger_audit,
-                                context,
-                                audit_uuid)
+        self.executor.submit(self.do_trigger_audit,
+                             context,
+                             audit_uuid)
         return audit_uuid

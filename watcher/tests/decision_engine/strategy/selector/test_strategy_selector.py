@@ -19,21 +19,20 @@ from oslo_config import cfg
 from watcher.common.exception import WatcherException
 from watcher.decision_engine.strategy.loading.default import \
     DefaultStrategyLoader
-from watcher.decision_engine.strategy.selection.default import StrategySelector
+from watcher.decision_engine.strategy.selection.default import \
+    DefaultStrategySelector
 from watcher.tests.base import TestCase
 
 CONF = cfg.CONF
 
 
 class TestStrategySelector(TestCase):
-
-    strategy_selector = StrategySelector()
+    strategy_selector = DefaultStrategySelector()
 
     @patch.object(DefaultStrategyLoader, 'load')
     def test_define_from_goal(self, mock_call):
-        cfg.CONF.set_override(
-            'goals', {"DUMMY": "fake"}, group='watcher_goals'
-        )
+        cfg.CONF.set_override('goals',
+                              {"DUMMY": "fake"}, group='watcher_goals')
         expected_goal = 'DUMMY'
         expected_strategy = CONF.watcher_goals.goals[expected_goal]
         self.strategy_selector.define_from_goal(expected_goal)
@@ -41,12 +40,8 @@ class TestStrategySelector(TestCase):
 
     @patch.object(DefaultStrategyLoader, 'load')
     def test_define_from_goal_with_incorrect_mapping(self, mock_call):
-        cfg.CONF.set_override(
-            'goals', {}, group='watcher_goals'
-        )
-        self.assertRaises(
-            WatcherException,
-            self.strategy_selector.define_from_goal,
-            "DUMMY"
-        )
+        cfg.CONF.set_override('goals', {}, group='watcher_goals')
+        self.assertRaises(WatcherException,
+                          self.strategy_selector.define_from_goal,
+                          "DUMMY")
         self.assertEqual(mock_call.call_count, 0)

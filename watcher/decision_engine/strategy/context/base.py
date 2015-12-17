@@ -23,5 +23,5 @@ import six
 @six.add_metaclass(abc.ABCMeta)
 class BaseStrategyContext(object):
     @abc.abstractmethod
-    def execute_strategy(self, model):
+    def execute_strategy(self, goal, cluster_data_model):
         raise NotImplementedError()
