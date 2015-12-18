@@ -27,7 +27,7 @@ Introduction
 .. toctree::
   :maxdepth: 1
 
-  dev/glossary
+  glossary
   architecture
   dev/environment
   dev/contributing
