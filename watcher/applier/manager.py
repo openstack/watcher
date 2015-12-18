@@ -57,15 +57,6 @@ opt_group = cfg.OptGroup(name='watcher_applier',
 CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
-CONF.import_opt('admin_user', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('admin_tenant_name', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('admin_password', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-CONF.import_opt('auth_uri', 'keystonemiddleware.auth_token',
-                group='keystone_authtoken')
-
 
 class ApplierManager(MessagingCore):
     # todo(jed) need workflow
