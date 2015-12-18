@@ -33,7 +33,7 @@ import novaclient.exceptions as nvexceptions
 LOG = log.getLogger(__name__)
 
 
-class NovaWrapper(object):
+class NovaClient(object):
     NOVA_CLIENT_API_VERSION = "2"
 
     def __init__(self, creds, session):

@@ -21,11 +21,10 @@ from keystoneclient.auth.identity import v3
 from keystoneclient import session
 from oslo_config import cfg
 
-
 from watcher.applier.primitives.base import BasePrimitive
-from watcher.applier.primitives.wrapper.nova_wrapper import NovaWrapper
 from watcher.applier.promise import Promise
 from watcher.common.keystone import KeystoneClient
+from watcher.common.nova import NovaClient
 from watcher.decision_engine.planner.default import Primitives
 
 CONF = cfg.CONF
@@ -44,8 +43,8 @@ class Migrate(BasePrimitive):
 
     def migrate(self, destination):
         keystone = KeystoneClient()
-        wrapper = NovaWrapper(keystone.get_credentials(),
-                              session=keystone.get_session())
+        wrapper = NovaClient(keystone.get_credentials(),
+                             session=keystone.get_session())
         instance = wrapper.find_instance(self.instance_uuid)
         if instance:
             project_id = getattr(instance, "tenant_id")
@@ -66,7 +65,7 @@ class Migrate(BasePrimitive):
                                 project_domain_name=creds2[
                                     'project_domain_name'])
             sess2 = session.Session(auth=auth2)
-            wrapper2 = NovaWrapper(creds2, session=sess2)
+            wrapper2 = NovaClient(creds2, session=sess2)
 
             # todo(jed) remove Primitves
             if self.migration_type is Primitives.COLD_MIGRATE:
