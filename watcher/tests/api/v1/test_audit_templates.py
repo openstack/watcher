@@ -128,7 +128,7 @@ class TestListAuditTemplate(api_base.FunctionalTest):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
             audit_template_list.append(audit_template.uuid)
         response = self.get_json('/audit_templates')
         self.assertEqual(len(audit_template_list),
@@ -141,12 +141,12 @@ class TestListAuditTemplate(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
             audit_template_list.append(audit_template.uuid)
         for id_ in [4, 5]:
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
             audit_template.soft_delete()
         response = self.get_json('/audit_templates')
         self.assertEqual(3, len(response['audit_templates']))
@@ -158,12 +158,12 @@ class TestListAuditTemplate(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
             audit_template_list.append(audit_template.uuid)
         for id_ in [4, 5]:
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
             audit_template.soft_delete()
             audit_template_list.append(audit_template.uuid)
         response = self.get_json('/audit_templates',
@@ -187,7 +187,7 @@ class TestListAuditTemplate(api_base.FunctionalTest):
         for id_ in range(5):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
         response = self.get_json('/audit_templates/?limit=3')
         self.assertEqual(3, len(response['audit_templates']))
 
@@ -199,7 +199,7 @@ class TestListAuditTemplate(api_base.FunctionalTest):
         for id_ in range(5):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template ' + str(id_))
+                name='My Audit Template {0}'.format(id_))
         response = self.get_json('/audit_templates')
         self.assertEqual(3, len(response['audit_templates']))
 

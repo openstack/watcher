@@ -66,14 +66,12 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(hypervisor, 132)
             disk.set_capacity(hypervisor, 250)
             num_cores.set_capacity(hypervisor, 40)
-            # print("create "+str(hypervisor))
             current_state_cluster.add_hypervisor(hypervisor)
 
         for i in range(0, count_vm):
             vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
-            # print("create "+str(vm))
             mem.set_capacity(vm, 8)
             disk.set_capacity(vm, 10)
             num_cores.set_capacity(vm, 10)
@@ -119,14 +117,12 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            # print("create "+str(node))
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
             vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
-            # print("create "+str(vm))
             mem.set_capacity(vm, 2)
             disk.set_capacity(vm, 20)
             num_cores.set_capacity(vm, 10)
@@ -202,14 +198,12 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            # print("create "+str(node))
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
             vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
-            # print("create "+str(vm))
             mem.set_capacity(vm, 10)
             disk.set_capacity(vm, 25)
             num_cores.set_capacity(vm, 16)
@@ -266,14 +260,12 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            # print("create "+str(node))
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
             vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
-            # print("create "+str(vm))
             mem.set_capacity(vm, 2)
             disk.set_capacity(vm, 20)
             num_cores.set_capacity(vm, 10)
@@ -314,7 +306,6 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(node, 1)
             disk.set_capacity(node, 1)
             num_cores.set_capacity(node, 1)
-            # print("create "+str(node))
             current_state_cluster.add_hypervisor(node)
 
         return current_state_cluster
@@ -338,7 +329,7 @@ class FakerModelCollector(BaseClusterModelCollector):
         current_state_cluster.create_resource(disk)
 
         for i in range(0, count_node):
-            node_uuid = "Node_" + str(i)
+            node_uuid = "Node_{0}".format(i)
             node = Hypervisor()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
@@ -346,14 +337,12 @@ class FakerModelCollector(BaseClusterModelCollector):
             mem.set_capacity(node, 4)
             disk.set_capacity(node, 4)
             num_cores.set_capacity(node, 4)
-            # print("create "+str(node))
             current_state_cluster.add_hypervisor(node)
 
         for i in range(0, count_vm):
-            vm_uuid = "VM_" + str(i)
+            vm_uuid = "VM_{0}".format(i)
             vm = VM()
             vm.uuid = vm_uuid
-            # print("create "+str(vm))
             mem.set_capacity(vm, 2)
             disk.set_capacity(vm, 0)
             num_cores.set_capacity(vm, 4)

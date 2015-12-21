@@ -34,7 +34,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         for i in range(1, 6):
             audit_template = utils.create_test_audit_template(
                 uuid=w_utils.generate_uuid(),
-                name='My Audit Template ' + str(i))
+                name='My Audit Template {0}'.format(i))
             uuids.append(six.text_type(audit_template['uuid']))
         res = self.dbapi.get_audit_template_list(self.context)
         res_uuids = [r.uuid for r in res]

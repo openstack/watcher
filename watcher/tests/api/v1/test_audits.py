@@ -169,7 +169,7 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in range(5):
             audit_template = obj_utils.create_test_audit_template(
                 self.context,
-                name='at' + str(id_),
+                name='at{0}'.format(id_),
                 uuid=utils.generate_uuid())
             obj_utils.create_test_audit(
                 self.context, id=id_, uuid=utils.generate_uuid(),

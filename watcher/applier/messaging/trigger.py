@@ -34,7 +34,7 @@ class TriggerActionPlan(object):
                                            action_plan_uuid)
             cmd.execute()
         except Exception as e:
-            LOG.error("do_launch_action_plan " + unicode(e))
+            LOG.exception(e)
 
     def launch_action_plan(self, context, action_plan_uuid):
         LOG.debug("Trigger ActionPlan %s" % action_plan_uuid)
