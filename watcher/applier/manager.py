@@ -23,9 +23,6 @@ from oslo_log import log
 
 from watcher.applier.messaging.trigger import TriggerActionPlan
 from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.notification_handler import NotificationHandler
-from watcher.decision_engine.messaging.events import Events
-
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -59,8 +56,6 @@ CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
 class ApplierManager(MessagingCore):
-    # todo(jed) need workflow
-
     def __init__(self):
         super(ApplierManager, self).__init__(
             CONF.watcher_applier.publisher_id,
@@ -70,24 +65,9 @@ class ApplierManager(MessagingCore):
         )
         # shared executor of the workflow
         self.executor = ThreadPoolExecutor(max_workers=1)
-        self.handler = NotificationHandler(self.publisher_id)
-        self.handler.register_observer(self)
-        self.add_event_listener(Events.ALL, self.event_receive)
         # trigger action_plan
         self.topic_control.add_endpoint(TriggerActionPlan(self))
 
     def join(self):
         self.topic_control.join()
         self.topic_status.join()
-
-    def event_receive(self, event):
-        try:
-            request_id = event.get_request_id()
-            event_type = event.get_type()
-            data = event.get_data()
-            LOG.debug("request id => %s" % request_id)
-            LOG.debug("type_event => %s" % str(event_type))
-            LOG.debug("data       => %s" % str(data))
-        except Exception as e:
-            LOG.exception(e)
-            raise

@@ -32,7 +32,7 @@ class TestEventDispatcher(base.TestCase):
 
     def fake_event(self, event_type):
         event = Event()
-        event.set_type(event_type)
+        event.type = event_type
         return event
 
     def test_add_listener(self):

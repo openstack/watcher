@@ -35,16 +35,16 @@ class DefaultActionPlanHandler(BaseActionPlanHandler):
         self.action_plan_uuid = action_plan_uuid
         self.manager_applier = manager_applier
 
-    def notify(self, uuid, event_type, status):
+    def notify(self, uuid, event_type, state):
         action_plan = ActionPlan.get_by_uuid(self.ctx, uuid)
-        action_plan.state = status
+        action_plan.state = state
         action_plan.save()
         event = Event()
-        event.set_type(event_type)
-        event.set_data({})
+        event.type = event_type
+        event.data = {}
         payload = {'action_plan__uuid': uuid,
-                   'action_plan_status': status}
-        self.manager_applier.topic_status.publish_event(event.get_type().name,
+                   'action_plan_state': state}
+        self.manager_applier.topic_status.publish_event(event.type.name,
                                                         payload)
 
     def execute(self):

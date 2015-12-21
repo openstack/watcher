@@ -23,12 +23,10 @@ import oslo_messaging as om
 
 from watcher.common import exception
 from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.common import utils
-from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.manager import decision_engine_opt_group
 from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
-from watcher.decision_engine.messaging.events import Events
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -46,17 +44,12 @@ class DecisionEngineAPI(MessagingCore):
             CONF.watcher_decision_engine.topic_status,
             api_version=self.API_VERSION,
         )
-        self.handler = NotificationHandler(self.publisher_id)
-        self.handler.register_observer(self)
-        self.add_event_listener(Events.ALL, self.event_receive)
-        self.topic_status.add_endpoint(self.handler)
 
         transport = om.get_transport(CONF)
         target = om.Target(
             topic=CONF.watcher_decision_engine.topic_control,
             version=self.API_VERSION,
         )
-
         self.client = om.RPCClient(transport, target,
                                    serializer=self.serializer)
 
@@ -66,20 +59,3 @@ class DecisionEngineAPI(MessagingCore):
 
         return self.client.call(
             context.to_dict(), 'trigger_audit', audit_uuid=audit_uuid)
-
-    # TODO(ebe): Producteur / consommateur implementer
-    def event_receive(self, event):
-
-        try:
-            request_id = event.get_request_id()
-            event_type = event.get_type()
-            data = event.get_data()
-            LOG.debug("request id => %s" % event.get_request_id())
-            LOG.debug("type_event => %s" % str(event.get_type()))
-            LOG.debug("data       => %s" % str(data))
-
-            event_consumer = EventConsumerFactory.factory(event_type)
-            event_consumer.execute(request_id, self.context, data)
-        except Exception as e:
-            LOG.exception(e)
-            raise
