@@ -23,19 +23,16 @@ from oslo_log import log
 from stevedore import ExtensionManager
 
 from watcher.decision_engine.strategy.loading.base import BaseStrategyLoader
-from watcher.decision_engine.strategy.strategies.basic_consolidation import \
-    BasicConsolidation
+
 
 LOG = log.getLogger(__name__)
 
 
 class DefaultStrategyLoader(BaseStrategyLoader):
 
-    default_strategy_cls = BasicConsolidation
-
     def load_available_strategies(self):
         extension_manager = ExtensionManager(
             namespace='watcher_strategies',
-            invoke_on_load=True,
+            invoke_on_load=False,
         )
         return {ext.name: ext.plugin for ext in extension_manager.extensions}
