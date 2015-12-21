@@ -42,7 +42,6 @@ class TestDefaultAuditHandler(DbTestCase):
     def test_trigger_audit_state_success(self):
         model_collector = FakerModelCollector()
         audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
-        audit_handler.strategy_context.execute_strategy = MagicMock()
         audit_handler.execute(self.audit.uuid, self.context)
         audit = Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(AuditStatus.SUCCEEDED, audit.state)
@@ -51,8 +50,6 @@ class TestDefaultAuditHandler(DbTestCase):
         messaging = MagicMock()
         model_collector = FakerModelCollector()
         audit_handler = DefaultAuditHandler(messaging, model_collector)
-        audit_handler.strategy_context.execute_strategy = MagicMock()
-
         audit_handler.execute(self.audit.uuid, self.context)
 
         call_on_going = call(Events.TRIGGER_AUDIT.name, {

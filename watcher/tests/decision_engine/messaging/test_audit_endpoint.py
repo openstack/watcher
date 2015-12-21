@@ -15,14 +15,15 @@
 # limitations under the License.
 import mock
 from mock import MagicMock
+
 from watcher.common import utils
 from watcher.decision_engine.audit.default import DefaultAuditHandler
 from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
 from watcher.metrics_engine.cluster_model_collector.manager import \
     CollectorManager
 from watcher.tests import base
-from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state import \
-    FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
+    import FakerModelCollector
 
 
 class DefaultAuditHandlerMock(DefaultAuditHandler):
@@ -36,13 +37,12 @@ class DefaultAuditHandlerMock(DefaultAuditHandler):
 class TestAuditEndpoint(base.TestCase):
     def setUp(self):
         super(TestAuditEndpoint, self).setUp()
-        self.endpoint = AuditEndpoint(MagicMock())
 
     def test_do_trigger_audit(self):
         audit_uuid = utils.generate_uuid()
         model_collector = FakerModelCollector()
         audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
-        endpoint = AuditEndpoint(audit_handler)
+        endpoint = AuditEndpoint(audit_handler, max_workers=2)
 
         with mock.patch.object(CollectorManager, 'get_cluster_model_collector') \
                 as mock_call2:
@@ -60,7 +60,7 @@ class TestAuditEndpoint(base.TestCase):
         model_collector = FakerModelCollector()
         audit_handler = DefaultAuditHandlerMock(MagicMock(),
                                                 model_collector)
-        endpoint = AuditEndpoint(audit_handler)
+        endpoint = AuditEndpoint(audit_handler, max_workers=2)
 
         with mock.patch.object(DefaultAuditHandlerMock, 'executor') \
                 as mock_call:

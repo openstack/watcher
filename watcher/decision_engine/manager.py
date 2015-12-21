@@ -16,7 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from concurrent.futures import ThreadPoolExecutor
 
 from oslo_config import cfg
 from oslo_log import log
@@ -26,7 +25,6 @@ from watcher.common.messaging.notification_handler import NotificationHandler
 from watcher.decision_engine.event.consumer_factory import EventConsumerFactory
 from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
 from watcher.decision_engine.messaging.events import Events
-from watcher.decision_engine.strategy.context.default import StrategyContext
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -47,31 +45,35 @@ WATCHER_DECISION_ENGINE_OPTS = [
     cfg.StrOpt('publisher_id',
                default='watcher.decision.api',
                help='The identifier used by watcher '
-                    'module on the message broker')
+                    'module on the message broker'),
+    cfg.IntOpt('max_workers',
+               default=2,
+               required=True,
+               help='The maximum number of threads that can be used to '
+                    'execute strategies',
+               ),
 ]
-decision_engine_opt_group = cfg.OptGroup(
-    name='watcher_decision_engine',
-    title='Defines the parameters of the module decision engine')
+decision_engine_opt_group = cfg.OptGroup(name='watcher_decision_engine',
+                                         title='Defines the parameters of '
+                                               'the module decision engine')
 CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
 class DecisionEngineManager(MessagingCore):
-
     def __init__(self):
         super(DecisionEngineManager, self).__init__(
             CONF.watcher_decision_engine.publisher_id,
             CONF.watcher_decision_engine.topic_control,
             CONF.watcher_decision_engine.topic_status,
-            api_version=self.API_VERSION,
-        )
+            api_version=self.API_VERSION)
         self.handler = NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.add_event_listener(Events.ALL, self.event_receive)
-        # todo(jed) oslo_conf
-        self.executor = ThreadPoolExecutor(max_workers=2)
-        self.topic_control.add_endpoint(AuditEndpoint(self))
-        self.context = StrategyContext(self)
+        endpoint = AuditEndpoint(self,
+                                 max_workers=CONF.watcher_decision_engine.
+                                 max_workers)
+        self.topic_control.add_endpoint(endpoint)
 
     def join(self):
         self.topic_control.join()

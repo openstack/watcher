@@ -788,6 +788,10 @@
 # value)
 #publisher_id = watcher.decision.api
 
+# The maximum number of threads that can be used to execute strategies
+# (integer value)
+#max_workers = 2
+
 
 [watcher_goals]
 
