@@ -20,19 +20,25 @@ import abc
 from oslo_log import log
 import six
 
+from watcher.decision_engine.strategy.strategies.dummy_strategy import \
+    DummyStrategy
+
 LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseStrategyLoader(object):
+    default_strategy_cls = DummyStrategy
+
     @abc.abstractmethod
     def load_available_strategies(self):
-        raise NotImplementedError()  # pragma:no cover
+        raise NotImplementedError()
 
     def load(self, strategy_to_load=None):
         strategy_selected = None
         try:
             available_strategies = self.load_available_strategies()
+            LOG.debug("Available strategies: %s ", available_strategies)
             strategy_cls = available_strategies.get(
                 strategy_to_load, self.default_strategy_cls
             )
