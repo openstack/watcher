@@ -20,12 +20,13 @@
 
 from oslo_config import cfg
 
+
 from watcher._i18n import _
 from watcher.applier.primitives.base import BasePrimitive
-from watcher.applier.primitives.wrapper.nova_wrapper import NovaWrapper
 from watcher.applier.promise import Promise
 from watcher.common.exception import IllegalArgumentException
 from watcher.common.keystone import KeystoneClient
+from watcher.common.nova import NovaClient
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
 
 CONF = cfg.CONF
@@ -74,8 +75,8 @@ class ChangeNovaServiceState(BasePrimitive):
                 _("The target state is not defined"))
 
         keystone = KeystoneClient()
-        wrapper = NovaWrapper(keystone.get_credentials(),
-                              session=keystone.get_session())
+        wrapper = NovaClient(keystone.get_credentials(),
+                             session=keystone.get_session())
         if state is True:
             return wrapper.enable_service_nova_compute(self.host)
         else:
