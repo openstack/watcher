@@ -24,25 +24,20 @@ from watcher.decision_engine.strategy.context.default import \
     DefaultStrategyContext
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
-from watcher.objects.audit_template import AuditTemplate
+
 
 LOG = log.getLogger(__name__)
 
 
 class DefaultAuditHandler(BaseAuditHandler):
-    def __init__(self, messaging, cluster_collector):
+    def __init__(self, messaging):
         super(DefaultAuditHandler, self).__init__()
         self._messaging = messaging
-        self._cluster_collector = cluster_collector
         self._strategy_context = DefaultStrategyContext()
 
     @property
     def messaging(self):
         return self._messaging
-
-    @property
-    def cluster_collector(self):
-        return self._cluster_collector
 
     @property
     def strategy_context(self):
@@ -73,15 +68,9 @@ class DefaultAuditHandler(BaseAuditHandler):
             audit = self.update_audit_state(request_context, audit_uuid,
                                             AuditStatus.ONGOING)
 
-            # Retrieve cluster-data-model
-            cluster = self.cluster_collector.get_latest_cluster_data_model()
-
-            # Retrieve the Audit Template
-            audit_template = AuditTemplate.get_by_id(request_context,
-                                                     audit.audit_template_id)
             # execute the strategy
-            solution = self.strategy_context.execute_strategy(audit_template.
-                                                              goal, cluster)
+            solution = self.strategy_context.execute_strategy(audit_uuid,
+                                                              request_context)
 
             # schedule the actions and create in the watcher db the ActionPlan
             planner = DefaultPlanner()

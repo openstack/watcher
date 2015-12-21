@@ -18,6 +18,9 @@ from oslo_log import log
 from watcher.decision_engine.strategy.context.base import BaseStrategyContext
 from watcher.decision_engine.strategy.selection.default import \
     DefaultStrategySelector
+from watcher.metrics_engine.cluster_model_collector.manager import \
+    CollectorManager
+from watcher import objects
 
 LOG = log.getLogger(__name__)
 
@@ -27,11 +30,32 @@ class DefaultStrategyContext(BaseStrategyContext):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
         self._strategy_selector = DefaultStrategySelector()
+        self._collector_manager = CollectorManager()
+
+    @property
+    def collector(self):
+        return self._collector_manager
 
     @property
     def strategy_selector(self):
         return self._strategy_selector
 
-    def execute_strategy(self, goal, cluster_data_model):
-        selected_strategy = self.strategy_selector.define_from_goal(goal)
+    def execute_strategy(self, audit_uuid, request_context):
+        audit = objects.Audit.get_by_uuid(request_context, audit_uuid)
+
+        # Retrieve the Audit Template
+        audit_template = objects.\
+            AuditTemplate.get_by_id(request_context, audit.audit_template_id)
+
+        # todo(jed) retrieve in audit_template parameters (threshold,...)
+        # todo(jed) create ActionPlan
+        collector_manager = self.collector.get_cluster_model_collector()
+
+        # todo(jed) remove call to get_latest_cluster_data_model
+        cluster_data_model = collector_manager.get_latest_cluster_data_model()
+
+        selected_strategy = self.strategy_selector. \
+            define_from_goal(audit_template.goal)
+
+        # todo(jed) add parameters and remove cluster_data_model
         return selected_strategy.execute(cluster_data_model)

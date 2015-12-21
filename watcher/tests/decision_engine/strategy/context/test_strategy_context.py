@@ -13,8 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from mock import MagicMock
-from mock import patch
+import mock
 
 from watcher.decision_engine.solution.default import DefaultSolution
 from watcher.decision_engine.strategy.context.default import \
@@ -23,16 +22,28 @@ from watcher.decision_engine.strategy.selection.default import \
     DefaultStrategySelector
 from watcher.decision_engine.strategy.strategies.dummy_strategy import \
     DummyStrategy
-from watcher.tests import base
+from watcher.metrics_engine.cluster_model_collector.manager import \
+    CollectorManager
+from watcher.tests.db import base
+from watcher.tests.objects import utils as obj_utils
 
 
-class TestStrategyContext(base.BaseTestCase):
+class TestStrategyContext(base.DbTestCase):
+    def setUp(self):
+        super(TestStrategyContext, self).setUp()
+        self.audit_template = obj_utils. \
+            create_test_audit_template(self.context)
+        self.audit = obj_utils. \
+            create_test_audit(self.context,
+                              audit_template_id=self.audit_template.id)
+
     strategy_context = DefaultStrategyContext()
 
-    @patch.object(DefaultStrategySelector, 'define_from_goal')
+    @mock.patch.object(DefaultStrategySelector, 'define_from_goal')
+    @mock.patch.object(CollectorManager, "get_cluster_model_collector",
+                       mock.Mock())
     def test_execute_strategy(self, mock_call):
         mock_call.return_value = DummyStrategy()
-        cluster_data_model = MagicMock()
-        solution = self.strategy_context.execute_strategy("dummy",
-                                                          cluster_data_model)
+        solution = self.strategy_context.execute_strategy(self.audit.uuid,
+                                                          self.context)
         self.assertIsInstance(solution, DefaultSolution)
