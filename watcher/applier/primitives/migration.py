@@ -17,8 +17,6 @@
 # limitations under the License.
 #
 
-from keystoneclient.auth.identity import v3
-from keystoneclient import session
 from oslo_config import cfg
 
 from watcher.applier.primitives.base import BasePrimitive
@@ -47,34 +45,14 @@ class Migrate(BasePrimitive):
                              session=keystone.get_session())
         instance = wrapper.find_instance(self.instance_uuid)
         if instance:
-            project_id = getattr(instance, "tenant_id")
-
-            creds2 = \
-                {'auth_url': CONF.keystone_authtoken.auth_uri,
-                 'username': CONF.keystone_authtoken.admin_user,
-                 'password': CONF.keystone_authtoken.admin_password,
-                 'project_id': project_id,
-                 'user_domain_name': "default",
-                 'project_domain_name': "default"}
-            auth2 = v3.Password(auth_url=creds2['auth_url'],
-                                username=creds2['username'],
-                                password=creds2['password'],
-                                project_id=creds2['project_id'],
-                                user_domain_name=creds2[
-                                    'user_domain_name'],
-                                project_domain_name=creds2[
-                                    'project_domain_name'])
-            sess2 = session.Session(auth=auth2)
-            wrapper2 = NovaClient(creds2, session=sess2)
-
             # todo(jed) remove Primitves
             if self.migration_type is Primitives.COLD_MIGRATE:
-                return wrapper2.live_migrate_instance(
+                return wrapper.live_migrate_instance(
                     instance_id=self.instance_uuid,
                     dest_hostname=destination,
                     block_migration=True)
             elif self.migration_type is Primitives.LIVE_MIGRATE:
-                return wrapper2.live_migrate_instance(
+                return wrapper.live_migrate_instance(
                     instance_id=self.instance_uuid,
                     dest_hostname=destination,
                     block_migration=False)
