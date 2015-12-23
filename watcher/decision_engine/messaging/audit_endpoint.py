@@ -21,8 +21,6 @@ from concurrent.futures import ThreadPoolExecutor
 from oslo_log import log
 
 from watcher.decision_engine.audit.default import DefaultAuditHandler
-from watcher.metrics_engine.cluster_model_collector.manager import \
-    CollectorManager
 
 LOG = log.getLogger(__name__)
 
@@ -30,12 +28,7 @@ LOG = log.getLogger(__name__)
 class AuditEndpoint(object):
     def __init__(self, messaging, max_workers):
         self._messaging = messaging
-        self._collector_manager = CollectorManager()
         self._executor = ThreadPoolExecutor(max_workers=max_workers)
-
-    @property
-    def collector_manager(self):
-        return self._collector_manager
 
     @property
     def executor(self):
@@ -46,9 +39,7 @@ class AuditEndpoint(object):
         return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        model_collector = self.collector_manager.get_cluster_model_collector()
-
-        audit = DefaultAuditHandler(self.messaging, model_collector)
+        audit = DefaultAuditHandler(self.messaging)
         audit.execute(audit_uuid, context)
 
     def trigger_audit(self, context, audit_uuid):

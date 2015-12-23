@@ -13,10 +13,12 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from mock import call
-from mock import MagicMock
+import mock
+
 from watcher.decision_engine.audit.default import DefaultAuditHandler
 from watcher.decision_engine.messaging.events import Events
+from watcher.metrics_engine.cluster_model_collector.manager import \
+    CollectorManager
 from watcher.objects.audit import Audit
 from watcher.objects.audit import AuditStatus
 from watcher.tests.db.base import DbTestCase
@@ -34,28 +36,31 @@ class TestDefaultAuditHandler(DbTestCase):
             self.context,
             audit_template_id=self.audit_template.id)
 
-    def test_trigger_audit_without_errors(self):
-        model_collector = FakerModelCollector()
-        audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
+    @mock.patch.object(CollectorManager, "get_cluster_model_collector")
+    def test_trigger_audit_without_errors(self, mock_collector):
+        mock_collector.return_value = FakerModelCollector()
+        audit_handler = DefaultAuditHandler(mock.MagicMock())
         audit_handler.execute(self.audit.uuid, self.context)
 
-    def test_trigger_audit_state_success(self):
-        model_collector = FakerModelCollector()
-        audit_handler = DefaultAuditHandler(MagicMock(), model_collector)
+    @mock.patch.object(CollectorManager, "get_cluster_model_collector")
+    def test_trigger_audit_state_success(self, mock_collector):
+        mock_collector.return_value = FakerModelCollector()
+        audit_handler = DefaultAuditHandler(mock.MagicMock())
         audit_handler.execute(self.audit.uuid, self.context)
         audit = Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(AuditStatus.SUCCEEDED, audit.state)
 
-    def test_trigger_audit_send_notification(self):
-        messaging = MagicMock()
-        model_collector = FakerModelCollector()
-        audit_handler = DefaultAuditHandler(messaging, model_collector)
+    @mock.patch.object(CollectorManager, "get_cluster_model_collector")
+    def test_trigger_audit_send_notification(self, mock_collector):
+        messaging = mock.MagicMock()
+        mock_collector.return_value = FakerModelCollector()
+        audit_handler = DefaultAuditHandler(messaging)
         audit_handler.execute(self.audit.uuid, self.context)
 
-        call_on_going = call(Events.TRIGGER_AUDIT.name, {
+        call_on_going = mock.call(Events.TRIGGER_AUDIT.name, {
             'audit_status': AuditStatus.ONGOING,
             'audit_uuid': self.audit.uuid})
-        call_succeeded = call(Events.TRIGGER_AUDIT.name, {
+        call_succeeded = mock.call(Events.TRIGGER_AUDIT.name, {
             'audit_status': AuditStatus.SUCCEEDED,
             'audit_uuid': self.audit.uuid})
 
