@@ -297,7 +297,3 @@ class VMNotFound(WatcherException):
 
 class HypervisorNotFound(WatcherException):
     message = _("The hypervisor could not be found")
-
-
-class MetaActionNotFound(WatcherException):
-    message = _("The Meta-Action could not be found")

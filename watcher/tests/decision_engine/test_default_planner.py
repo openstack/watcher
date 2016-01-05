@@ -17,9 +17,8 @@
 import mock
 from mock import MagicMock
 
-from watcher.common.exception import MetaActionNotFound
+from watcher.common.exception import ActionNotFound
 from watcher.common import utils
-
 from watcher.db import api as db_api
 from watcher.decision_engine.actions.base import BaseAction
 from watcher.decision_engine.planner.default import DefaultPlanner
@@ -118,7 +117,7 @@ class TestDefaultPlanner(base.DbTestCase):
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
         fake_solution = SolutionFaker.build()
         fake_solution.actions[0] = "valeur_qcq"
-        self.assertRaises(MetaActionNotFound, self.default_planner.schedule,
+        self.assertRaises(ActionNotFound, self.default_planner.schedule,
                           self.context, audit.id, fake_solution)
 
     def test_schedule_scheduled_empty(self):

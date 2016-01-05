@@ -124,7 +124,7 @@ class DefaultPlanner(base.BasePlanner):
                                                description="{0}".format(
                                                    action))
             else:
-                raise exception.MetaActionNotFound()
+                raise exception.ActionNotFound()
             priority = priority_primitives[primitive['action_type']]
             to_schedule.append((priority, primitive))
 
