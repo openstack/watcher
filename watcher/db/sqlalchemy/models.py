@@ -155,17 +155,15 @@ class Action(Base):
         table_args()
     )
     id = Column(Integer, primary_key=True)
-    uuid = Column(String(36))
+    uuid = Column(String(36), nullable=False)
     action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
-                            nullable=True)
+                            nullable=False)
     # only for the first version
-    action_type = Column(String(255))
-    applies_to = Column(String(255))
-    src = Column(String(255))
-    dst = Column(String(255))
-    parameter = Column(String(255))
-    description = Column(String(255))
+    action_type = Column(String(255), nullable=False)
+    applies_to = Column(String(255), nullable=True)
+    input_parameters = Column(JSONEncodedDict, nullable=True)
     state = Column(String(20), nullable=True)
+    # todo(jed) remove parameter alarm
     alarm = Column(String(36))
     next = Column(String(36), nullable=True)
 

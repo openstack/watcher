@@ -43,11 +43,9 @@ class Action(base.WatcherObject):
         'action_plan_id': obj_utils.int_or_none,
         'action_type': obj_utils.str_or_none,
         'applies_to': obj_utils.str_or_none,
-        'src': obj_utils.str_or_none,
-        'dst': obj_utils.str_or_none,
-        'parameter': obj_utils.str_or_none,
-        'description': obj_utils.str_or_none,
+        'input_parameters': obj_utils.dict_or_none,
         'state': obj_utils.str_or_none,
+        # todo(jed) remove parameter alarm
         'alarm': obj_utils.str_or_none,
         'next': obj_utils.int_or_none,
     }

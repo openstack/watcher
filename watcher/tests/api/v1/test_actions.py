@@ -84,11 +84,8 @@ class TestListAction(api_base.FunctionalTest):
         action = obj_utils.create_test_action(self.context, next=None)
         response = self.get_json('/actions/%s' % action['uuid'])
         self.assertEqual(action.uuid, response['uuid'])
-        self.assertEqual(action.description, response['description'])
-        self.assertEqual(action.src, response['src'])
-        self.assertEqual(action.dst, response['dst'])
         self.assertEqual(action.action_type, response['action_type'])
-        self.assertEqual(action.parameter, response['parameter'])
+        self.assertEqual(action.input_parameters, response['input_parameters'])
         self._assert_action_fields(response)
 
     def test_get_one_soft_deleted(self):

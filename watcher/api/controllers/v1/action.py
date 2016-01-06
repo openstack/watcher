@@ -87,9 +87,6 @@ class Action(base.APIBase):
                                        mandatory=True)
     """The action plan this action belongs to """
 
-    description = wtypes.text
-    """Description of this action"""
-
     state = wtypes.text
     """This audit state"""
 
@@ -99,17 +96,11 @@ class Action(base.APIBase):
     applies_to = wtypes.text
     """Applies to"""
 
-    src = wtypes.text
-    """Hypervisor source"""
-
-    dst = wtypes.text
-    """Hypervisor source"""
-
     action_type = wtypes.text
     """Action type"""
 
-    parameter = wtypes.text
-    """Additionnal parameter"""
+    input_parameters = wtypes.DictType(wtypes.text, wtypes.text)
+    """One or more key/value pairs """
 
     next_uuid = wsme.wsproperty(types.uuid, _get_next_uuid,
                                 _set_next_uuid,
