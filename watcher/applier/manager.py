@@ -16,20 +16,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from concurrent.futures import ThreadPoolExecutor
 
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.applier.messaging.trigger import TriggerActionPlan
-from watcher.common.messaging.messaging_core import MessagingCore
+from watcher.applier.messaging import trigger
+from watcher.common.messaging import messaging_core
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
+
 # Register options
 APPLIER_MANAGER_OPTS = [
-    cfg.IntOpt('applier_worker', default='1', help='The number of worker'),
+    cfg.IntOpt('workers',
+               default='1',
+               min=1,
+               required=True,
+               help='Number of workers for applier, default value is 1.'),
     cfg.StrOpt('topic_control',
                default='watcher.applier.control',
                help='The topic name used for'
@@ -45,7 +49,11 @@ APPLIER_MANAGER_OPTS = [
     cfg.StrOpt('publisher_id',
                default='watcher.applier.api',
                help='The identifier used by watcher '
-                    'module on the message broker')
+                    'module on the message broker'),
+    cfg.StrOpt('workflow_engine',
+               default='taskflow',
+               required=True,
+               help='Select the engine to use to execute the workflow')
 ]
 
 opt_group = cfg.OptGroup(name='watcher_applier',
@@ -55,7 +63,7 @@ CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
-class ApplierManager(MessagingCore):
+class ApplierManager(messaging_core.MessagingCore):
     def __init__(self):
         super(ApplierManager, self).__init__(
             CONF.watcher_applier.publisher_id,
@@ -63,10 +71,7 @@ class ApplierManager(MessagingCore):
             CONF.watcher_applier.topic_status,
             api_version=self.API_VERSION,
         )
-        # shared executor of the workflow
-        self.executor = ThreadPoolExecutor(max_workers=1)
-        # trigger action_plan
-        self.topic_control.add_endpoint(TriggerActionPlan(self))
+        self.topic_control.add_endpoint(trigger.TriggerActionPlan(self))
 
     def join(self):
         self.topic_control.join()

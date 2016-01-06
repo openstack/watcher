@@ -19,11 +19,11 @@ from __future__ import unicode_literals
 
 from oslo_log import log
 
-from watcher.common.loader.default import DefaultLoader
+from watcher.common.loader import default
 
 LOG = log.getLogger(__name__)
 
 
-class DefaultActionLoader(DefaultLoader):
+class DefaultActionLoader(default.DefaultLoader):
     def __init__(self):
         super(DefaultActionLoader, self).__init__(namespace='watcher_actions')

@@ -18,51 +18,51 @@
 #
 from oslo_log import log
 
-from watcher.applier.action_plan.base import BaseActionPlanHandler
-from watcher.applier.default import DefaultApplier
-from watcher.applier.messaging.events import Events
-from watcher.common.messaging.events.event import Event
-from watcher.objects.action_plan import ActionPlan
-from watcher.objects.action_plan import Status
+from watcher.applier.action_plan import base
+from watcher.applier import default
+from watcher.applier.messaging import event_types
+from watcher.common.messaging.events import event
+from watcher import objects
 
 LOG = log.getLogger(__name__)
 
 
-class DefaultActionPlanHandler(BaseActionPlanHandler):
-    def __init__(self, context, manager_applier, action_plan_uuid):
+class DefaultActionPlanHandler(base.BaseActionPlanHandler):
+    def __init__(self, context, applier_manager, action_plan_uuid):
         super(DefaultActionPlanHandler, self).__init__()
         self.ctx = context
         self.action_plan_uuid = action_plan_uuid
-        self.manager_applier = manager_applier
+        self.applier_manager = applier_manager
 
     def notify(self, uuid, event_type, state):
-        action_plan = ActionPlan.get_by_uuid(self.ctx, uuid)
+        action_plan = objects.ActionPlan.get_by_uuid(self.ctx, uuid)
         action_plan.state = state
         action_plan.save()
-        event = Event()
-        event.type = event_type
-        event.data = {}
+        ev = event.Event()
+        ev.type = event_type
+        ev.data = {}
         payload = {'action_plan__uuid': uuid,
                    'action_plan_state': state}
-        self.manager_applier.topic_status.publish_event(event.type.name,
+        self.applier_manager.topic_status.publish_event(ev.type.name,
                                                         payload)
 
     def execute(self):
         try:
             # update state
             self.notify(self.action_plan_uuid,
-                        Events.LAUNCH_ACTION_PLAN,
-                        Status.ONGOING)
-            applier = DefaultApplier(self.manager_applier, self.ctx)
+                        event_types.EventTypes.LAUNCH_ACTION_PLAN,
+                        objects.action_plan.Status.ONGOING)
+            applier = default.DefaultApplier(self.applier_manager, self.ctx)
             result = applier.execute(self.action_plan_uuid)
         except Exception as e:
+            LOG.exception(e)
             result = False
-            LOG.error("Launch Action Plan " + unicode(e))
         finally:
             if result is True:
-                status = Status.SUCCEEDED
+                status = objects.action_plan.Status.SUCCEEDED
             else:
-                status = Status.FAILED
+                status = objects.action_plan.Status.FAILED
             # update state
-            self.notify(self.action_plan_uuid, Events.LAUNCH_ACTION_PLAN,
+            self.notify(self.action_plan_uuid,
+                        event_types.EventTypes.LAUNCH_ACTION_PLAN,
                         status)

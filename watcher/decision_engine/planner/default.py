@@ -30,8 +30,9 @@ LOG = log.getLogger(__name__)
 class DefaultPlanner(base.BasePlanner):
     priorities = {
         'nop': 0,
-        'migrate': 1,
+        'sleep': 1,
         'change_nova_service_state': 2,
+        'migrate': 3,
     }
 
     def create_action(self,
@@ -53,7 +54,7 @@ class DefaultPlanner(base.BasePlanner):
         return action
 
     def schedule(self, context, audit_id, solution):
-        LOG.debug('Create an action plan for the audit uuid')
+        LOG.debug('Create an action plan for the audit uuid: %s ', audit_id)
         action_plan = self._create_action_plan(context, audit_id)
 
         actions = list(solution.actions)
@@ -76,18 +77,20 @@ class DefaultPlanner(base.BasePlanner):
             action_plan.first_action_id = None
             action_plan.save()
         else:
+            # create the first action
             parent_action = self._create_action(context,
                                                 scheduled[0][1],
                                                 None)
+            # remove first
             scheduled.pop(0)
 
             action_plan.first_action_id = parent_action.id
             action_plan.save()
 
             for s_action in scheduled:
-                action = self._create_action(context, s_action[1],
-                                             parent_action)
-                parent_action = action
+                current_action = self._create_action(context, s_action[1],
+                                                     parent_action)
+                parent_action = current_action
 
         return action_plan
 
@@ -105,16 +108,19 @@ class DefaultPlanner(base.BasePlanner):
         return new_action_plan
 
     def _create_action(self, context, _action, parent_action):
-        action_description = str(_action)
-        LOG.debug("Create a action for the following resquest : %s"
-                  % action_description)
+        try:
+            LOG.debug("Creating the %s in watcher db",
+                      _action.get("action_type"))
 
-        new_action = objects.Action(context, **_action)
-        new_action.create(context)
-        new_action.save()
+            new_action = objects.Action(context, **_action)
+            new_action.create(context)
+            new_action.save()
 
-        if parent_action:
-            parent_action.next = new_action.id
-            parent_action.save()
+            if parent_action:
+                parent_action.next = new_action.id
+                parent_action.save()
 
-        return new_action
+            return new_action
+        except Exception as exc:
+            LOG.exception(exc)
+            raise

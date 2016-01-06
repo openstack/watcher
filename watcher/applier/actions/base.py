@@ -32,16 +32,15 @@ the appropriate commands to Nova for this type of
 """
 
 import abc
-import six
 
-from watcher.applier import promise
+import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BasePrimitive(object):
+class BaseAction(object):
     def __init__(self):
-        self._input_parameters = None
-        self._applies_to = None
+        self._input_parameters = {}
+        self._applies_to = ""
 
     @property
     def input_parameters(self):
@@ -59,12 +58,18 @@ class BasePrimitive(object):
     def applies_to(self, a):
         self._applies_to = a
 
-    @promise.Promise
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError()
 
-    @promise.Promise
     @abc.abstractmethod
-    def undo(self):
+    def revert(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def precondition(self):
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def postcondition(self):
         raise NotImplementedError()

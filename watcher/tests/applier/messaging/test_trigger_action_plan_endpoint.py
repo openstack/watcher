@@ -18,8 +18,9 @@
 #
 
 
-from mock import MagicMock
-from watcher.applier.messaging.trigger import TriggerActionPlan
+import mock
+
+from watcher.applier.messaging import trigger
 from watcher.common import utils
 from watcher.tests import base
 
@@ -27,8 +28,8 @@ from watcher.tests import base
 class TestTriggerActionPlan(base.TestCase):
     def __init__(self, *args, **kwds):
         super(TestTriggerActionPlan, self).__init__(*args, **kwds)
-        self.applier = MagicMock()
-        self.endpoint = TriggerActionPlan(self.applier)
+        self.applier = mock.MagicMock()
+        self.endpoint = trigger.TriggerActionPlan(self.applier)
 
     def setUp(self):
         super(TestTriggerActionPlan, self).setUp()

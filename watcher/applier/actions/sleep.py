@@ -16,26 +16,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import time
 
 from oslo_log import log
 
-
-from watcher.applier.primitives import base
-from watcher.applier import promise
+from watcher.applier.actions import base
 
 
 LOG = log.getLogger(__name__)
 
 
-class Nop(base.BasePrimitive):
+class Sleep(base.BaseAction):
 
-    @promise.Promise
+    @property
+    def duration(self):
+        return int(self.input_parameters.get('duration'))
+
     def execute(self):
-        LOG.debug("executing action NOP message:%s ",
-                  self.input_parameters.get('message'))
+        LOG.debug("Starting action Sleep duration:%s ", self.duration)
+        time.sleep(self.duration)
         return True
 
-    @promise.Promise
-    def undo(self):
-        LOG.debug("undo action NOP")
+    def revert(self):
+        LOG.debug("revert action Sleep")
         return True
+
+    def precondition(self):
+        pass
+
+    def postcondition(self):
+        pass

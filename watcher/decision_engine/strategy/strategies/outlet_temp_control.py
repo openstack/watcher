@@ -237,8 +237,8 @@ class OutletTempControl(BaseStrategy):
                                                   mig_src_hypervisor,
                                                   mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
-                          'src_hypervisor_uuid': mig_src_hypervisor,
-                          'dst_hypervisor_uuid': mig_dst_hypervisor}
+                          'src_hypervisor': mig_src_hypervisor,
+                          'dst_hypervisor': mig_dst_hypervisor}
             self.solution.add_action(action_type=self.MIGRATION,
                                      applies_to=vm_src,
                                      input_parameters=parameters)

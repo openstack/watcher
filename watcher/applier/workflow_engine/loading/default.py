@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2016 b<>com
+# Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,18 +19,12 @@ from __future__ import unicode_literals
 
 from oslo_log import log
 
-from watcher.applier.primitives.loading import default
+from watcher.common.loader import default
 
 LOG = log.getLogger(__name__)
 
 
-class ActionFactory(object):
+class DefaultWorkFlowEngineLoader(default.DefaultLoader):
     def __init__(self):
-        self.action_loader = default.DefaultActionLoader()
-
-    def make_action(self, object_action):
-        LOG.debug("Creating instance of %s", object_action.action_type)
-        loaded_action = self.action_loader.load(name=object_action.action_type)
-        loaded_action.input_parameters = object_action.input_parameters
-        loaded_action.applies_to = object_action.applies_to
-        return loaded_action
+        super(DefaultWorkFlowEngineLoader, self).__init__(
+            namespace='watcher_workflow_engines')

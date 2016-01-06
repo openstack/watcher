@@ -16,24 +16,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_config import cfg
+from oslo_log import log
 
 from watcher.applier import base
-from watcher.applier.execution import default
+from watcher.applier.workflow_engine.loading import default
 from watcher import objects
+
+LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class DefaultApplier(base.BaseApplier):
-    def __init__(self, manager_applier, context):
+    def __init__(self, applier_manager, context):
         super(DefaultApplier, self).__init__()
-        self.manager_applier = manager_applier
-        self.context = context
-        self.executor = default.DefaultActionPlanExecutor(manager_applier,
-                                                          context)
+        self._applier_manager = applier_manager
+        self._loader = default.DefaultWorkFlowEngineLoader()
+        self._engine = None
+        self._context = context
+
+    @property
+    def context(self):
+        return self._context
+
+    @property
+    def applier_manager(self):
+        return self._applier_manager
+
+    @property
+    def engine(self):
+        if self._engine is None:
+            selected_workflow_engine = CONF.watcher_applier.workflow_engine
+            LOG.debug("Loading workflow engine %s ", selected_workflow_engine)
+            self._engine = self._loader.load(name=selected_workflow_engine)
+            self._engine.context = self.context
+            self._engine.applier_manager = self.applier_manager
+        return self._engine
 
     def execute(self, action_plan_uuid):
+        LOG.debug("Executing action plan %s ", action_plan_uuid)
         action_plan = objects.ActionPlan.get_by_uuid(self.context,
                                                      action_plan_uuid)
         # todo(jed) remove direct access to dbapi need filter in object
         filters = {'action_plan_id': action_plan.id}
         actions = objects.Action.dbapi.get_action_list(self.context, filters)
-        return self.executor.execute(actions)
+        return self.engine.execute(actions)
