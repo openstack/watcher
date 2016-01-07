@@ -31,6 +31,7 @@ WATCHER_GOALS_OPTS = [
     cfg.DictOpt(
         'goals',
         default=default_goals,
+        required=True,
         help='Goals used for the optimization. '
              'Maps each goal to an associated strategy (for example: '
              'BASIC_CONSOLIDATION:basic, MY_GOAL:my_strategy_1)'),
