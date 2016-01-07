@@ -1,0 +1,46 @@
+# Sample ``local.conf`` for compute node for Watcher development
+# NOTE: Copy this file to the root DevStack directory for it to work properly.
+
+[[local|localrc]]
+
+ADMIN_PASSWORD=nomoresecrete
+DATABASE_PASSWORD=stackdb
+RABBIT_PASSWORD=stackqueue
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+SERVICE_TOKEN=azertytoken
+
+HOST_IP=192.168.42.2 # Change this to this compute node's IP address
+FLAT_INTERFACE=eth0
+
+FIXED_RANGE=10.254.1.0/24 # Change this to whatever your network is
+NETWORK_GATEWAY=10.254.1.1 # Change this for your network
+
+MULTI_HOST=1
+
+SERVICE_HOST=192.168.42.1 # Change this to the IP of your controller node
+MYSQL_HOST=$SERVICE_HOST
+RABBIT_HOST=$SERVICE_HOST
+GLANCE_HOSTPORT=${SERVICE_HOST}:9292
+
+DATABASE_TYPE=mysql
+
+# Enable services (including neutron)
+ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt
+
+NOVA_VNC_ENABLED=True
+NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_auto.html"
+VNCSERVER_LISTEN=0.0.0.0
+VNCSERVER_PROXYCLIENT_ADDRESS=$HOST_IP
+
+NOVA_INSTANCES_PATH=/opt/stack/data/instances
+
+# Enable the Ceilometer plugin for the compute agent
+enable_plugin ceilometer git://git.openstack.org/openstack/ceilometer
+disable_service ceilometer-acentral,ceilometer-collector,ceilometer-api
+
+LOGFILE=$DEST/logs/stack.sh.log
+LOGDAYS=2
+
+[[post-config|$NOVA_CONF]]
+[DEFAULT]
+compute_monitors=cpu.virt_driver

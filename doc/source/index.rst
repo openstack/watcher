@@ -34,6 +34,17 @@ Introduction
   dev/plugins
 
 
+DevStack Plugin
+---------------
+
+You can configure DevStack to set up the Watcher services easily using
+Watcher's DevStack plugin.
+
+.. toctree::
+  :maxdepth: 1
+
+  dev/devstack-plugin
+
 API References
 --------------
 
