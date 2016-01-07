@@ -91,7 +91,7 @@
 
 # List of logger=LEVEL pairs. This option is ignored if
 # log_config_append is set. (list value)
-#default_log_levels = amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,oslo.messaging=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,urllib3.connectionpool=WARN,websocket=WARN,requests.packages.urllib3.util.retry=WARN,urllib3.util.retry=WARN,keystonemiddleware=WARN,routes.middleware=WARN,stevedore=WARN,taskflow=WARN
+#default_log_levels = amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,oslo.messaging=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,urllib3.connectionpool=WARN,websocket=WARN,requests.packages.urllib3.util.retry=WARN,urllib3.util.retry=WARN,keystonemiddleware=WARN,routes.middleware=WARN,stevedore=WARN,taskflow=WARN,keystoneauth=WARN
 
 # Enables or disables publication of error events. (boolean value)
 #publish_errors = false
@@ -127,10 +127,6 @@
 # MatchMaker driver. (string value)
 #rpc_zmq_matchmaker = redis
 
-# Use REQ/REP pattern for all methods CALL/CAST/FANOUT. (boolean
-# value)
-#rpc_zmq_all_req_rep = true
-
 # Type of concurrency used. Either "native" or "eventlet" (string
 # value)
 #rpc_zmq_concurrency = eventlet
@@ -157,8 +153,13 @@
 # timeout exception when timeout expired. (integer value)
 #rpc_poll_timeout = 1
 
-# Configures zmq-messaging to use broker or not. (boolean value)
-#zmq_use_broker = false
+# Configures zmq-messaging to use proxy with non PUB/SUB patterns.
+# (boolean value)
+#direct_over_proxy = true
+
+# Use PUB/SUB pattern for fanout methods. PUB/SUB always uses proxy.
+# (boolean value)
+#use_pub_sub = true
 
 # Minimal port number for random ports range. (port value)
 # Minimum value: 1
@@ -633,17 +634,6 @@
 # Deprecated group/name - [DEFAULT]/amqp_auto_delete
 #amqp_auto_delete = false
 
-# Send a single AMQP reply to call message. The current behaviour
-# since oslo-incubator is to send two AMQP replies - first one with
-# the payload, a second one to ensure the other have finish to send
-# the payload. We are going to remove it in the N release, but we must
-# keep backward compatible at the same time. This option provides such
-# compatibility - it defaults to False in Liberty and can be turned on
-# for early adopters with a new installations or for testing. Please
-# note, that this option will be removed in the Mitaka release.
-# (boolean value)
-#send_single_reply = false
-
 # SSL version to use (valid only if SSL enabled). Valid values are
 # TLSv1 and SSLv23. SSLv2, SSLv3, TLSv1_1, and TLSv1_2 may be
 # available on some distributions. (string value)
@@ -672,7 +662,7 @@
 # replies. This value should not be longer than rpc_response_timeout.
 # (integer value)
 # Deprecated group/name - [DEFAULT]/kombu_reconnect_timeout
-#kombu_missing_consumer_retry_timeout = 5
+#kombu_missing_consumer_retry_timeout = 60
 
 # Determines how the next RabbitMQ node is chosen in case the one we
 # are currently connected to becomes unavailable. Takes effect only if
@@ -803,3 +793,13 @@
 # strategy (for example: BASIC_CONSOLIDATION:basic,
 # MY_GOAL:my_strategy_1) (dict value)
 #goals = DUMMY:dummy
+
+
+[watcher_planner]
+
+#
+# From watcher
+#
+
+# The selected planner used to schedule the actions (string value)
+#planner = default

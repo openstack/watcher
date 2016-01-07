@@ -18,6 +18,7 @@
 import watcher.api.app
 from watcher.applier import manager as applier_manager
 from watcher.decision_engine import manager as decision_engine_manger
+from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.selection import default \
     as strategy_selector
 
@@ -29,5 +30,6 @@ def list_opts():
         ('watcher_decision_engine',
          decision_engine_manger.WATCHER_DECISION_ENGINE_OPTS),
         ('watcher_applier',
-         applier_manager.APPLIER_MANAGER_OPTS)
+         applier_manager.APPLIER_MANAGER_OPTS),
+        ('watcher_planner', planner_manager.WATCHER_PLANNER_OPTS)
     ]

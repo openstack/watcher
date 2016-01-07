@@ -16,9 +16,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from oslo_log import log
 
-from enum import Enum
+import enum
+from oslo_log import log
 
 from watcher._i18n import _LW
 from watcher.common import exception
@@ -37,7 +37,7 @@ LOG = log.getLogger(__name__)
 # https://wiki.openstack.org/wiki/NovaOrchestration/WorkflowEngines​
 
 
-class Primitives(Enum):
+class Primitives(enum.Enum):
     LIVE_MIGRATE = 'MIGRATE'
     COLD_MIGRATE = 'MIGRATE'
     POWER_STATE = 'POWERSTATE'

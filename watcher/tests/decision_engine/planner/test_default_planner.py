@@ -15,9 +15,8 @@
 # limitations under the License.
 
 import mock
-from mock import MagicMock
 
-from watcher.common.exception import ActionNotFound
+from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.decision_engine.actions.base import BaseAction
@@ -40,7 +39,7 @@ class SolutionFaker(object):
         metrics = FakerMetricsCollector()
         current_state_cluster = FakerModelCollector()
         sercon = BasicConsolidation("basic", "Basic offline consolidation")
-        sercon.ceilometer = MagicMock(
+        sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
         return sercon.execute(current_state_cluster.generate_scenario_1())
 
@@ -51,7 +50,7 @@ class SolutionFakerSingleHyp(object):
         metrics = FakerMetricsCollector()
         current_state_cluster = FakerModelCollector()
         sercon = BasicConsolidation("basic", "Basic offline consolidation")
-        sercon.ceilometer = MagicMock(
+        sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
 
         return sercon.execute(
@@ -117,7 +116,8 @@ class TestDefaultPlanner(base.DbTestCase):
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
         fake_solution = SolutionFaker.build()
         fake_solution.actions[0] = "valeur_qcq"
-        self.assertRaises(ActionNotFound, self.default_planner.schedule,
+        self.assertRaises(exception.ActionNotFound,
+                          self.default_planner.schedule,
                           self.context, audit.id, fake_solution)
 
     def test_schedule_scheduled_empty(self):

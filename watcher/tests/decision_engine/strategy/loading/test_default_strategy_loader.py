@@ -70,3 +70,7 @@ class TestDefaultStrategyLoader(TestCase):
         strategy_loader = DefaultStrategyLoader()
         loaded_strategy = strategy_loader.load("dummy")
         self.assertIsInstance(loaded_strategy, DummyStrategy)
+
+        def test_endpoints(self):
+            for endpoint in self.strategy_loader.list_available():
+                self.assertIsNotNone(self.strategy_loader.load(endpoint))

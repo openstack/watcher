@@ -19,7 +19,7 @@ from watcher.common.messaging.events.event import Event
 from watcher.decision_engine.audit.base import \
     BaseAuditHandler
 from watcher.decision_engine.messaging.events import Events
-from watcher.decision_engine.planner.default import DefaultPlanner
+from watcher.decision_engine.planner.manager import PlannerManager
 from watcher.decision_engine.strategy.context.default import \
     DefaultStrategyContext
 from watcher.objects.audit import Audit
@@ -34,6 +34,14 @@ class DefaultAuditHandler(BaseAuditHandler):
         super(DefaultAuditHandler, self).__init__()
         self._messaging = messaging
         self._strategy_context = DefaultStrategyContext()
+        self._planner_manager = PlannerManager()
+        self._planner = None
+
+    @property
+    def planner(self):
+        if self._planner is None:
+            self._planner = self._planner_manager.load()
+        return self._planner
 
     @property
     def messaging(self):
@@ -72,9 +80,7 @@ class DefaultAuditHandler(BaseAuditHandler):
             solution = self.strategy_context.execute_strategy(audit_uuid,
                                                               request_context)
 
-            # schedule the actions and create in the watcher db the ActionPlan
-            planner = DefaultPlanner()
-            planner.schedule(request_context, audit.id, solution)
+            self.planner.schedule(request_context, audit.id, solution)
 
             # change state of the audit to SUCCEEDED
             self.update_audit_state(request_context, audit_uuid,
