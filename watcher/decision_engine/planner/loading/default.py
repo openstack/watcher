@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
-# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -26,7 +24,7 @@ from watcher.common.loader.default import DefaultLoader
 LOG = log.getLogger(__name__)
 
 
-class DefaultStrategyLoader(DefaultLoader):
+class DefaultPlannerLoader(DefaultLoader):
     def __init__(self):
-        super(DefaultStrategyLoader, self).__init__(
-            namespace='watcher_strategies')
+        super(DefaultPlannerLoader, self).__init__(
+            namespace='watcher_planners')

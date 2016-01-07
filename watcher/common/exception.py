@@ -297,3 +297,7 @@ class VMNotFound(WatcherException):
 
 class HypervisorNotFound(WatcherException):
     message = _("The hypervisor could not be found")
+
+
+class LoadingError(WatcherException):
+    message = _("Error loading plugin '%(name)s'")

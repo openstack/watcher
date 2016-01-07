@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher 0.21.1.dev32\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-05 14:22+0100\n"
+"POT-Creation-Date: 2016-01-12 18:12+0100\n"
 "PO-Revision-Date: 2015-12-11 15:42+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -258,6 +258,11 @@ msgstr ""
 msgid "The hypervisor could not be found"
 msgstr ""
 
+#: watcher/common/exception.py:303
+#, fuzzy, python-format
+msgid "Error loading plugin '%(name)s'"
+msgstr "Erreur lors du chargement du module '%(name)s'"
+
 #: watcher/common/keystone.py:59
 msgid "No Keystone service catalog loaded"
 msgstr ""
@@ -291,7 +296,7 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/strategy/selection/default.py:58
+#: watcher/decision_engine/strategy/selection/default.py:59
 #, python-format
 msgid "Incorrect mapping: could not find associated strategy for '%s'"
 msgstr ""
