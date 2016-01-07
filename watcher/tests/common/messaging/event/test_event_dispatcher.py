@@ -40,7 +40,7 @@ class TestEventDispatcher(base.TestCase):
         self.event_dispatcher.add_event_listener(Events.ALL,
                                                  listener)
 
-        self.assertEqual(True, self.event_dispatcher.has_listener(
+        self.assertTrue(self.event_dispatcher.has_listener(
             Events.ALL, listener))
 
     def test_remove_listener(self):
@@ -49,7 +49,7 @@ class TestEventDispatcher(base.TestCase):
                                                  listener)
         self.event_dispatcher.remove_event_listener(Events.ALL, listener)
 
-        self.assertEqual(False, self.event_dispatcher.has_listener(
+        self.assertFalse(self.event_dispatcher.has_listener(
             Events.TRIGGER_AUDIT, listener))
 
     def test_dispatch_event(self):
