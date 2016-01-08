@@ -1,18 +1,23 @@
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# -*- encoding: utf-8 -*-
+# Copyright (c) 2016 b<>com
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+import abc
 import functools
-import json
 
+import six
 import six.moves.urllib.parse as urlparse
 
 from tempest.common import service_client
@@ -38,20 +43,21 @@ def handle_errors(f):
     return wrapper
 
 
-class InfraOptimClient(service_client.ServiceClient):
+@six.add_metaclass(abc.ABCMeta)
+class BaseInfraOptimClient(service_client.ServiceClient):
     """Base Tempest REST client for Watcher API."""
 
-    uri_prefix = ''
+    URI_PREFIX = ''
 
+    @abc.abstractmethod
     def serialize(self, object_dict):
         """Serialize an Watcher object."""
+        raise NotImplementedError()
 
-        return json.dumps(object_dict)
-
+    @abc.abstractmethod
     def deserialize(self, object_str):
         """Deserialize an Watcher object."""
-
-        return json.loads(object_str)
+        raise NotImplementedError()
 
     def _get_uri(self, resource_name, uuid=None, permanent=False):
         """Get URI for a specific resource or object.
@@ -61,7 +67,7 @@ class InfraOptimClient(service_client.ServiceClient):
         :return: Relative URI for the resource or object.
         """
 
-        prefix = self.uri_prefix if not permanent else ''
+        prefix = self.URI_PREFIX if not permanent else ''
 
         return '{pref}/{res}{uuid}'.format(pref=prefix,
                                            res=resource_name,
@@ -172,7 +178,7 @@ class InfraOptimClient(service_client.ServiceClient):
         """
 
         uri = self._get_uri(resource, uuid)
-        patch_body = json.dumps(patch_object)
+        patch_body = self.serialize(patch_object)
 
         resp, body = self.patch(uri, body=patch_body)
         self.expected_success(200, resp['status'])
@@ -198,7 +204,7 @@ class InfraOptimClient(service_client.ServiceClient):
         """Update specified object with JSON-patch."""
 
         uri = self._get_uri(resource)
-        put_body = json.dumps(put_object)
+        put_body = self.serialize(put_object)
 
         resp, body = self.put(uri, body=put_body)
         self.expected_success(202, resp['status'])

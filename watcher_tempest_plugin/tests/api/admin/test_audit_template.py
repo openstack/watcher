@@ -1,21 +1,73 @@
-# -*- coding: utf-8 -*-
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# -*- encoding: utf-8 -*-
+# Copyright (c) 2016 b<>com
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
+from __future__ import unicode_literals
 
+import uuid
+
+from tempest import test
+from tempest_lib import decorators
 from tempest_lib import exceptions as lib_exc
 
-from tempest.api.infra_optim.admin import base
-from tempest import test
+from watcher_tempest_plugin.tests.api.admin import base
+
+
+class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
+    """Tests on audit templates"""
+
+    @test.attr(type='smoke')
+    def test_create_audit_template(self):
+        params = {'name': 'my at name %s' % uuid.uuid4(),
+                  'description': 'my at description',
+                  'host_aggregate': 12,
+                  'goal': 'DUMMY',
+                  'extra': {'str': 'value', 'int': 123, 'float': 0.123,
+                            'bool': True, 'list': [1, 2, 3],
+                            'dict': {'foo': 'bar'}}}
+
+        _, body = self.create_audit_template(**params)
+        self.assert_expected(params, body)
+
+        _, audit_template = self.client.show_audit_template(body['uuid'])
+        self.assert_expected(audit_template, body)
+
+    @test.attr(type='smoke')
+    def test_create_audit_template_unicode_description(self):
+        # Use a unicode string for testing:
+        params = {'name': 'my at name %s' % uuid.uuid4(),
+                  'description': 'my àt déscrïptïôn',
+                  'host_aggregate': 12,
+                  'goal': 'DUMMY',
+                  'extra': {'foo': 'bar'}}
+
+        _, body = self.create_audit_template(**params)
+        self.assert_expected(params, body)
+
+        _, audit_template = self.client.show_audit_template(body['uuid'])
+        self.assert_expected(audit_template, body)
+
+    @test.attr(type='smoke')
+    def test_delete_audit_template(self):
+        _, body = self.create_audit_template()
+        audit_uuid = body['uuid']
+
+        self.delete_audit_template(audit_uuid)
+
+        self.assertRaises(lib_exc.NotFound, self.client.show_audit_template,
+                          audit_uuid)
 
 
 class TestAuditTemplate(base.BaseInfraOptimTest):
@@ -26,63 +78,30 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         super(TestAuditTemplate, cls).resource_setup()
         _, cls.audit_template = cls.create_audit_template()
 
-    def _assertExpected(self, expected, actual):
-        # Check if not expected keys/values exists in actual response body
-        for key, value in expected.items():
-            if key not in ('created_at', 'updated_at', 'deleted_at'):
-                self.assertIn(key, actual)
-                self.assertEqual(value, actual[key])
-
-    @test.attr(type='smoke')
-    def test_create_audit_template(self):
-        params = {'name': 'my at name',
-                  'description': 'my at description',
-                  'host_aggregate': 12,
-                  'goal': 'A GOAL',
-                  'extra': {'str': 'value', 'int': 123, 'float': 0.123,
-                            'bool': True, 'list': [1, 2, 3],
-                            'dict': {'foo': 'bar'}}}
-
-        _, body = self.create_audit_template(**params)
-        self._assertExpected(params, body['properties'])
-
-        _, audit_template = self.client.show_audit_template(body['uuid'])
-        self._assertExpected(audit_template, body)
-
-    @test.attr(type='smoke')
-    def test_create_audit_template_unicode_description(self):
-        # Use a unicode string for testing:
-        params = {'name': 'my at name',
-                  'description': 'my àt déscrïptïôn',
-                  'host_aggregate': 12,
-                  'goal': 'A GOAL',
-                  'extra': {'foo': 'bar'}}
-
-        _, body = self.create_audit_template(**params)
-        self._assertExpected(params, body['properties'])
-
-        _, audit_template = self.client.show_audit_template(body['uuid'])
-        self._assertExpected(audit_template, body)
-
     @test.attr(type='smoke')
     def test_show_audit_template(self):
         _, audit_template = self.client.show_audit_template(
             self.audit_template['uuid'])
-        self._assertExpected(self.audit_template, audit_template)
 
+        self.assert_expected(self.audit_template, audit_template)
+
+    @decorators.skip_because(bug="1510189")
     @test.attr(type='smoke')
-    def test_show_audit_template_by_goal(self):
+    def test_filter_audit_template_by_goal(self):
         _, audit_template = self.client.\
-            show_audit_template_by_goal(self.audit_template['goal'])
-        self._assertExpected(self.audit_template,
+            filter_audit_template_by_goal(self.audit_template['goal'])
+
+        self.assert_expected(self.audit_template,
                              audit_template['audit_templates'][0])
 
+    @decorators.skip_because(bug="1510189")
     @test.attr(type='smoke')
-    def test_show_audit_template_by_host_aggregate(self):
+    def test_filter_audit_template_by_host_aggregate(self):
         _, audit_template = self.client.\
-            show_audit_template_by_host_aggregate(
+            filter_audit_template_by_host_aggregate(
                 self.audit_template['host_aggregate'])
-        self._assertExpected(self.audit_template,
+
+        self.assert_expected(self.audit_template,
                              audit_template['audit_templates'][0])
 
     @test.attr(type='smoke')
@@ -106,31 +125,27 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_list_with_limit(self):
+        # We create 3 extra audit templates to exceed the limit we fix
+        for _ in range(3):
+            self.create_audit_template()
+
         _, body = self.client.list_audit_templates(limit=3)
 
         next_marker = body['audit_templates'][-1]['uuid']
+        self.assertEqual(len(body['audit_templates']), 3)
         self.assertIn(next_marker, body['next'])
 
     @test.attr(type='smoke')
-    def test_delete_audit_template(self):
-        _, body = self.create_audit_template()
-        uuid = body['uuid']
-
-        self.delete_audit_template(uuid)
-        self.assertRaises(lib_exc.NotFound, self.client.show_audit_template,
-                          uuid)
-
-    @test.attr(type='smoke')
     def test_update_audit_template_replace(self):
-        params = {'name': 'my at name',
+        params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
                   'host_aggregate': 12,
-                  'goal': 'A GOAL',
+                  'goal': 'DUMMY',
                   'extra': {'key1': 'value1', 'key2': 'value2'}}
 
         _, body = self.create_audit_template(**params)
 
-        new_name = 'my at new name'
+        new_name = 'my at new name %s' % uuid.uuid4()
         new_description = 'my new at description'
         new_host_aggregate = 10
         new_goal = 'A NEW GOAL'
@@ -168,8 +183,8 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     def test_update_audit_template_remove(self):
         extra = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
         description = 'my at description'
-        goal = 'A GOAL'
-        name = 'my at name'
+        goal = 'DUMMY'
+        name = 'my at name %s' % uuid.uuid4()
         params = {'name': name,
                   'description': description,
                   'host_aggregate': 12,
@@ -199,7 +214,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
             audit_template['uuid'],
             [{'path': '/host_aggregate', 'op': 'remove'}])
         _, body = self.client.show_audit_template(audit_template['uuid'])
-        self.assertEqual('', body['extra'])
+        self.assertEqual({}, body['extra'])
 
         # Assert nothing else was changed
         self.assertEqual(name, body['name'])
@@ -208,10 +223,10 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_update_audit_template_add(self):
-        params = {'name': 'my at name',
+        params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
                   'host_aggregate': 12,
-                  'goal': 'A GOAL'}
+                  'goal': 'DUMMY'}
 
         _, body = self.create_audit_template(**params)
 
@@ -228,10 +243,3 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
         _, body = self.client.show_audit_template(body['uuid'])
         self.assertEqual(extra, body['extra'])
-
-    @test.attr(type='smoke')
-    def test_audit_template_audit_list(self):
-        _, audit = self.create_audit(self.audit_template['uuid'])
-        _, body = self.client.list_audit_template_audits(
-            self.audit_template['uuid'])
-        self.assertIn(audit['uuid'], [n['uuid'] for n in body['audits']])
