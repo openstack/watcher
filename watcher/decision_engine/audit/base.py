@@ -23,5 +23,5 @@ import six
 @six.add_metaclass(abc.ABCMeta)
 class BaseAuditHandler(object):
     @abc.abstractmethod
-    def execute(self):
+    def execute(self, audit_uuid, request_context):
         raise NotImplementedError()

@@ -83,7 +83,7 @@ def get_test_action(**kwargs):
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'action_plan_id': kwargs.get('action_plan_id', 1),
-        'action_type': kwargs.get('action_type', 'COLD_MIGRATION'),
+        'action_type': kwargs.get('action_type', 'nop'),
         'applies_to': kwargs.get('applies_to',
                                  '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'input_parameters': kwargs.get('input_parameters', {'key1': 'val1',

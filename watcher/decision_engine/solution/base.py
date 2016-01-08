@@ -52,7 +52,21 @@ class BaseSolution(object):
         self._origin = m
 
     @abc.abstractmethod
-    def add_change_request(self, r):
+    def add_action(self,
+                   action_type,
+                   applies_to,
+                   input_parameters=None):
+        """Add a new Action in the Action Plan
+
+        :param action_type: the unique id of an action type defined in
+        entry point 'watcher_actions'
+        :param applies_to: the unique id of the resource to which the
+        `Action` applies.
+        :param input_parameters: An array of input parameters provided as
+         key-value pairs of strings.
+         Each key-pair contains names and values that match what was previously
+         defined in the `Action` type schema.
+        """
         raise NotImplementedError()
 
     @abc.abstractproperty

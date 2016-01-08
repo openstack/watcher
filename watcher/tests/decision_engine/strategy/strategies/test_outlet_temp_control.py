@@ -17,12 +17,9 @@
 # limitations under the License.
 #
 from collections import Counter
-
-from mock import MagicMock
+import mock
 
 from watcher.common import exception
-
-from watcher.decision_engine.actions.migration import Migrate
 from watcher.decision_engine.model.model_root import ModelRoot
 from watcher.decision_engine.model.resource import ResourceType
 from watcher.decision_engine.strategy.strategies.outlet_temp_control import \
@@ -59,7 +56,7 @@ class TestOutletTempControl(base.BaseTestCase):
     def test_group_hosts_by_outlet_temp(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
         self.assertEqual(h1[0]['hv'].uuid, 'Node_1')
@@ -68,7 +65,7 @@ class TestOutletTempControl(base.BaseTestCase):
     def test_choose_vm_to_migrate(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
         vm_to_mig = strategy.choose_vm_to_migrate(model, h1)
@@ -78,7 +75,7 @@ class TestOutletTempControl(base.BaseTestCase):
     def test_filter_dest_servers(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
         vm_to_mig = strategy.choose_vm_to_migrate(model, h1)
@@ -99,14 +96,14 @@ class TestOutletTempControl(base.BaseTestCase):
     def test_execute_cluster_empty(self):
         current_state_cluster = FakerModelCollector()
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         model = current_state_cluster.generate_random(0, 0)
         self.assertRaises(exception.ClusterEmpty, strategy.execute, model)
 
     def test_execute_no_workload(self):
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
         current_state_cluster = FakerModelCollector()
@@ -118,12 +115,12 @@ class TestOutletTempControl(base.BaseTestCase):
 
     def test_execute(self):
         strategy = OutletTempControl()
-        strategy.ceilometer = MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
         solution = strategy.execute(model)
         actions_counter = Counter(
-            [type(action) for action in solution.actions])
+            [action.get('action_type') for action in solution.actions])
 
-        num_migrations = actions_counter.get(Migrate, 0)
+        num_migrations = actions_counter.get("migrate", 0)
         self.assertEqual(num_migrations, 1)

@@ -20,18 +20,10 @@
 from oslo_log import log
 
 from watcher._i18n import _LE, _LI, _LW
-from watcher.common.exception import ClusterEmpty
-from watcher.common.exception import ClusterStateNotDefined
-from watcher.decision_engine.actions.hypervisor_state import \
-    ChangeHypervisorState
-from watcher.decision_engine.actions.migration import Migrate
-from watcher.decision_engine.actions.migration import MigrationType
-from watcher.decision_engine.actions.power_state import ChangePowerState
+from watcher.common import exception
 from watcher.decision_engine.model.hypervisor_state import HypervisorState
-from watcher.decision_engine.model.power_state import PowerState
 from watcher.decision_engine.model.resource import ResourceType
 from watcher.decision_engine.model.vm_state import VMState
-from watcher.decision_engine.strategy.common.level import StrategyLevel
 from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 from watcher.metrics_engine.cluster_history.ceilometer import \
     CeilometerClusterHistory
@@ -43,8 +35,11 @@ class BasicConsolidation(BaseStrategy):
     DEFAULT_NAME = "basic"
     DEFAULT_DESCRIPTION = "Basic offline consolidation"
 
-    host_cpu_usage_metric_name = 'compute.node.cpu.percent'
-    instance_cpu_usage_metric_name = 'cpu_util'
+    HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
+    INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
+
+    MIGRATION = "migrate"
+    CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         """Basic offline Consolidation using live migration
@@ -125,14 +120,14 @@ class BasicConsolidation(BaseStrategy):
                         src_hypervisor,
                         dest_hypervisor,
                         vm_to_mig):
-        '''check if the migration is possible
+        """check if the migration is possible
 
         :param model: the current state of the cluster
         :param src_hypervisor: the current node of the virtual machine
         :param dest_hypervisor: the destination of the virtual machine
         :param vm_to_mig: the virtual machine
         :return: True if the there is enough place otherwise false
-        '''
+        """
         if src_hypervisor == dest_hypervisor:
             return False
 
@@ -263,7 +258,7 @@ class BasicConsolidation(BaseStrategy):
         resource_id = "%s_%s" % (hypervisor.uuid, hypervisor.hostname)
         cpu_avg_vm = self.ceilometer. \
             statistic_aggregation(resource_id=resource_id,
-                                  meter_name=self.host_cpu_usage_metric_name,
+                                  meter_name=self.HOST_CPU_USAGE_METRIC_NAME,
                                   period="7200",
                                   aggregate='avg'
                                   )
@@ -272,7 +267,7 @@ class BasicConsolidation(BaseStrategy):
                 _LE("No values returned by %(resource_id)s "
                     "for %(metric_name)s"),
                 resource_id=resource_id,
-                metric_name=self.host_cpu_usage_metric_name,
+                metric_name=self.HOST_CPU_USAGE_METRIC_NAME,
             )
             cpu_avg_vm = 100
 
@@ -305,12 +300,12 @@ class BasicConsolidation(BaseStrategy):
         :return: score
         """
         if model is None:
-            raise ClusterStateNotDefined()
+            raise exception.ClusterStateNotDefined()
 
         vm_cpu_utilization = self.ceilometer. \
             statistic_aggregation(
                 resource_id=vm.uuid,
-                meter_name=self.instance_cpu_usage_metric_name,
+                meter_name=self.INSTANCE_CPU_USAGE_METRIC_NAME,
                 period="7200",
                 aggregate='avg'
             )
@@ -319,7 +314,7 @@ class BasicConsolidation(BaseStrategy):
                 _LE("No values returned by %(resource_id)s "
                     "for %(metric_name)s"),
                 resource_id=vm.uuid,
-                metric_name=self.instance_cpu_usage_metric_name,
+                metric_name=self.INSTANCE_CPU_USAGE_METRIC_NAME,
             )
             vm_cpu_utilization = 100
 
@@ -332,22 +327,29 @@ class BasicConsolidation(BaseStrategy):
                                      0,
                                      0)
 
-    def print_utilization(self, model):
-        if model is None:
-            raise ClusterStateNotDefined()
-        for node_id in model.get_all_hypervisors():
-            LOG.debug("{0} utilization {1} % ".
-                      format(node_id,
-                             self.calculate_score_node(
-                                 model.get_hypervisor_from_id(
-                                     node_id),
-                                 model)))
+    def add_change_service_state(self, applies_to, state):
+        parameters = {'state': state}
+        self.solution.add_action(action_type=self.CHANGE_NOVA_SERVICE_STATE,
+                                 applies_to=applies_to,
+                                 input_parameters=parameters)
+
+    def add_migration(self,
+                      applies_to,
+                      migration_type,
+                      src_hypervisor_uuid,
+                      dst_hypervisor_uuid):
+        parameters = {'migration_type': migration_type,
+                      'src_hypervisor_uuid': src_hypervisor_uuid,
+                      'dst_hypervisor_uuid': dst_hypervisor_uuid}
+        self.solution.add_action(action_type=self.MIGRATION,
+                                 applies_to=applies_to,
+                                 input_parameters=parameters)
 
     def execute(self, orign_model):
         LOG.info(_LI("Initializing Sercon Consolidation"))
 
         if orign_model is None:
-            raise ClusterStateNotDefined()
+            raise exception.ClusterStateNotDefined()
 
         # todo(jed) clone model
         current_model = orign_model
@@ -358,7 +360,7 @@ class BasicConsolidation(BaseStrategy):
         first = True
         size_cluster = len(current_model.get_all_hypervisors())
         if size_cluster == 0:
-            raise ClusterEmpty()
+            raise exception.ClusterEmpty()
 
         self.compute_attempts(size_cluster)
 
@@ -367,15 +369,10 @@ class BasicConsolidation(BaseStrategy):
             count = current_model.get_mapping(). \
                 get_node_vms_from_id(hypervisor_id)
             if len(count) == 0:
-                change_power = ChangePowerState(hypervisor)
-                change_power.powerstate = PowerState.g1_S1
-                change_power.level = StrategyLevel.conservative
-                self.solution.add_change_request(change_power)
                 if hypervisor.state == HypervisorState.ONLINE:
-                    h = ChangeHypervisorState(hypervisor)
-                    h.level = StrategyLevel.aggressive
-                    h.state = HypervisorState.OFFLINE
-                    self.solution.add_change_request(h)
+                    self.add_change_service_state(hypervisor_id,
+                                                  HypervisorState.
+                                                  OFFLINE.value)
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:
             if first is not True:
@@ -430,7 +427,6 @@ class BasicConsolidation(BaseStrategy):
             LOG.debug("VM(s) BFD {0}".format(v))
 
             m = 0
-            tmp_vm_migration_schedule = []
             for vm in v:
                 for j in range(0, len(s)):
                     mig_vm = current_model.get_vm_from_id(vm[0])
@@ -448,31 +444,16 @@ class BasicConsolidation(BaseStrategy):
                         if current_model.get_mapping(). \
                                 migrate_vm(mig_vm, mig_src_hypervisor,
                                            mig_dst_hypervisor):
-                            live_migrate = Migrate(mig_vm,
-                                                   mig_src_hypervisor,
-                                                   mig_dst_hypervisor)
-                            # live migration
-                            live_migrate.migration_type = \
-                                MigrationType.pre_copy
-                            live_migrate.level = StrategyLevel.conservative
-
-                            tmp_vm_migration_schedule.append(live_migrate)
+                            self.add_migration(mig_vm.uuid, 'live',
+                                               mig_src_hypervisor.uuid,
+                                               mig_dst_hypervisor.uuid)
 
                         if len(current_model.get_mapping().get_node_vms(
                                 mig_src_hypervisor)) == 0:
-                            # TODO(jed) how to manage strategy level
-                            # from conservative to aggressive
-                            change_power = ChangePowerState(mig_src_hypervisor)
-                            change_power.powerstate = PowerState.g1_S1
-                            change_power.level = StrategyLevel.conservative
-                            tmp_vm_migration_schedule.append(change_power)
-
-                            h = ChangeHypervisorState(mig_src_hypervisor)
-                            h.level = StrategyLevel.aggressive
-
-                            h.state = HypervisorState.OFFLINE
-                            tmp_vm_migration_schedule.append(h)
-
+                            self.add_change_service_state(mig_src_hypervisor.
+                                                          uuid,
+                                                          HypervisorState.
+                                                          OFFLINE.value)
                             self.number_of_released_nodes += 1
 
                         m += 1
@@ -480,11 +461,8 @@ class BasicConsolidation(BaseStrategy):
             if m > 0:
                 self.number_of_migrations = self.number_of_migrations + m
                 unsuccessful_migration = 0
-                for a in tmp_vm_migration_schedule:
-                    self.solution.add_change_request(a)
             else:
                 unsuccessful_migration += 1
-        # self.print_utilization(current_model)
         infos = {
             "number_of_migrations": self.number_of_migrations,
             "number_of_nodes_released": self.number_of_released_nodes,

@@ -17,24 +17,17 @@
 # limitations under the License.
 #
 
+import json
+
 import enum
 from oslo_log import log
 
 from watcher._i18n import _LW
-from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.actions import hypervisor_state
-from watcher.decision_engine.actions import migration
-from watcher.decision_engine.actions import nop
-from watcher.decision_engine.actions import power_state
 from watcher.decision_engine.planner import base
 from watcher import objects
 
 LOG = log.getLogger(__name__)
-
-
-# TODO(jed) The default planner is a very simple planner
-# https://wiki.openstack.org/wiki/NovaOrchestration/WorkflowEngines​
 
 
 class Primitives(enum.Enum):
@@ -45,32 +38,25 @@ class Primitives(enum.Enum):
     NOP = 'NOP'
 
 
-priority_primitives = {
-    Primitives.NOP.value: 0,
-    Primitives.HYPERVISOR_STATE.value: 1,
-    Primitives.LIVE_MIGRATE.value: 2,
-    Primitives.COLD_MIGRATE.value: 3,
-    Primitives.POWER_STATE.value: 4,
-}
-
-
 class DefaultPlanner(base.BasePlanner):
-    def create_action(self, action_plan_id, action_type, applies_to=None,
-                      src=None,
-                      dst=None,
-                      parameter=None,
-                      description=None):
-        uuid = utils.generate_uuid()
+    priorities = {
+        'nop': 0,
+        'migrate': 1,
+        'change_nova_service_state': 2,
+    }
 
+    def create_action(self,
+                      action_plan_id,
+                      action_type,
+                      applies_to,
+                      input_parameters=None):
+        uuid = utils.generate_uuid()
         action = {
             'uuid': uuid,
             'action_plan_id': int(action_plan_id),
             'action_type': action_type,
             'applies_to': applies_to,
-            'src': src,
-            'dst': dst,
-            'parameter': parameter,
-            'description': description,
+            'input_parameters': json.dumps(input_parameters),
             'state': objects.action.Status.PENDING,
             'alarm': None,
             'next': None,
@@ -83,53 +69,19 @@ class DefaultPlanner(base.BasePlanner):
 
         actions = list(solution.actions)
         to_schedule = []
-
         for action in actions:
-            if isinstance(action, migration.Migrate):
-                # TODO(jed) type
-                primitive = self.create_action(action_plan.id,
-                                               Primitives.LIVE_MIGRATE.value,
-                                               action.vm.uuid,
-                                               action.src_hypervisor.
-                                               uuid,
-                                               action.dest_hypervisor.
-                                               uuid,
-                                               description="{0}".format(
-                                                   action)
-                                               )
-
-            elif isinstance(action, power_state.ChangePowerState):
-                primitive = self.create_action(action_plan_id=action_plan.id,
-                                               action_type=Primitives.
-                                               POWER_STATE.value,
-                                               applies_to=action.target.uuid,
-                                               parameter=action.
-                                               powerstate.
-                                               value,
-                                               description="{0}".format(
-                                                   action))
-            elif isinstance(action, hypervisor_state.ChangeHypervisorState):
-                primitive = self.create_action(action_plan_id=action_plan.id,
-                                               action_type=Primitives.
-                                               HYPERVISOR_STATE.value,
-                                               applies_to=action.target.uuid,
-                                               parameter=action.state.
-                                               value,
-                                               description="{0}".format(
-                                                   action))
-            elif isinstance(action, nop.Nop):
-                primitive = self.create_action(action_plan_id=action_plan.id,
-                                               action_type=Primitives.
-                                               NOP.value,
-                                               description="{0}".format(
-                                                   action))
-            else:
-                raise exception.ActionNotFound()
-            priority = priority_primitives[primitive['action_type']]
-            to_schedule.append((priority, primitive))
+            json_action = self.create_action(action_plan_id=action_plan.id,
+                                             action_type=action.get(
+                                                 'action_type'),
+                                             applies_to=action.get(
+                                                 'applies_to'),
+                                             input_parameters=action.get(
+                                                 'input_parameters'))
+            to_schedule.append((self.priorities[action.get('action_type')],
+                                json_action))
 
         # scheduling
-        scheduled = sorted(to_schedule, reverse=False, key=lambda x: (x[0]))
+        scheduled = sorted(to_schedule, key=lambda x: (x[0]))
         if len(scheduled) == 0:
             LOG.warning(_LW("The action plan is empty"))
             action_plan.first_action_id = None
@@ -147,6 +99,7 @@ class DefaultPlanner(base.BasePlanner):
                 action = self._create_action(context, s_action[1],
                                              parent_action)
                 parent_action = action
+
         return action_plan
 
     def _create_action_plan(self, context, audit_id):

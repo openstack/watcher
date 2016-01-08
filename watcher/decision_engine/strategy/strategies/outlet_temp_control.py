@@ -20,11 +20,8 @@ from oslo_log import log
 
 from watcher._i18n import _LE
 from watcher.common import exception as wexc
-from watcher.decision_engine.actions.migration import Migrate
-from watcher.decision_engine.actions.migration import MigrationType
 from watcher.decision_engine.model.resource import ResourceType
 from watcher.decision_engine.model.vm_state import VMState
-from watcher.decision_engine.strategy.common.level import StrategyLevel
 from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 from watcher.metrics_engine.cluster_history.ceilometer import \
     CeilometerClusterHistory
@@ -40,6 +37,8 @@ class OutletTempControl(BaseStrategy):
     METER_NAME = "hardware.ipmi.node.outlet_temperature"
     # Unit: degree C
     THRESHOLD = 35.0
+
+    MIGRATION = "migrate"
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         """[PoC]Outlet temperature control using live migration
@@ -230,21 +229,19 @@ class OutletTempControl(BaseStrategy):
             LOG.info(_LE("No proper target host could be found"))
             return self.solution
 
-        dest_servers = sorted(dest_servers,
-                              reverse=False,
-                              key=lambda x: (x["outlet_temp"]))
+        dest_servers = sorted(dest_servers, key=lambda x: (x["outlet_temp"]))
         # always use the host with lowerest outlet temperature
         mig_dst_hypervisor = dest_servers[0]['hv']
         # generate solution to migrate the vm to the dest server,
         if current_model.get_mapping().migrate_vm(vm_src,
                                                   mig_src_hypervisor,
                                                   mig_dst_hypervisor):
-            live_migrate = Migrate(vm_src,
-                                   mig_src_hypervisor,
-                                   mig_dst_hypervisor)
-            live_migrate.migration_type = MigrationType.pre_copy
-            live_migrate.level = StrategyLevel.conservative
-            self.solution.add_change_request(live_migrate)
+            parameters = {'migration_type': 'live',
+                          'src_hypervisor_uuid': mig_src_hypervisor,
+                          'dst_hypervisor_uuid': mig_dst_hypervisor}
+            self.solution.add_action(action_type=self.MIGRATION,
+                                     applies_to=vm_src,
+                                     input_parameters=parameters)
 
         self.solution.model = current_model
 

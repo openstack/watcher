@@ -17,22 +17,27 @@
 # limitations under the License.
 #
 from oslo_log import log
-from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 
-from watcher.decision_engine.actions.nop import Nop
+from watcher.decision_engine.strategy.strategies.base import BaseStrategy
 
 LOG = log.getLogger(__name__)
 
 
 class DummyStrategy(BaseStrategy):
-
     DEFAULT_NAME = "dummy"
     DEFAULT_DESCRIPTION = "Dummy Strategy"
+
+    NOP = "nop"
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         super(DummyStrategy, self).__init__(name, description)
 
     def execute(self, model):
-        n = Nop()
-        self.solution.add_change_request(n)
+        parameters = {'message': 'hello World'}
+        self.solution.add_action(action_type=self.NOP,
+                                 applies_to="",
+                                 input_parameters=parameters)
+
+        # todo(jed) add a new action to test the flow
+        # with two differents actions
         return self.solution

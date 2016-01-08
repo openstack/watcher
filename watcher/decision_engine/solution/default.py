@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 from oslo_log import log
+
 from watcher.decision_engine.solution.base import BaseSolution
 
 LOG = log.getLogger(__name__)
@@ -32,8 +33,16 @@ class DefaultSolution(BaseSolution):
         super(DefaultSolution, self).__init__()
         self._actions = []
 
-    def add_change_request(self, r):
-        self._actions.append(r)
+    def add_action(self, action_type,
+                   applies_to,
+                   input_parameters=None):
+        # todo(jed) add https://pypi.python.org/pypi/schema
+        action = {
+            'action_type': action_type,
+            'applies_to': applies_to,
+            'input_parameters': input_parameters
+        }
+        self._actions.append(action)
 
     def __str__(self):
         return "\n".join(self._actions)
