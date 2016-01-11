@@ -49,5 +49,5 @@ class PlannerManager(object):
 
     def load(self):
         selected_planner = CONF.watcher_planner.planner
-        LOG.debug("Loading {0}".format(selected_planner))
+        LOG.debug("Loading %s", selected_planner)
         return self.loader.load(name=selected_planner)

@@ -17,50 +17,38 @@
 # limitations under the License.
 #
 
-from oslo_config import cfg
 
-from watcher.applier.primitives.base import BasePrimitive
-from watcher.applier.promise import Promise
-from watcher.common.keystone import KeystoneClient
-from watcher.common.nova import NovaClient
-from watcher.decision_engine.planner.default import Primitives
-
-CONF = cfg.CONF
+from watcher.applier.primitives import base
+from watcher.applier import promise
+from watcher.common import exception
+from watcher.common import keystone as kclient
+from watcher.common import nova as nclient
 
 
-class Migrate(BasePrimitive):
-    def __init__(self, vm_uuid=None,
-                 migration_type=None,
-                 source_hypervisor=None,
-                 destination_hypervisor=None):
-        super(BasePrimitive, self).__init__()
-        self.instance_uuid = vm_uuid
-        self.migration_type = migration_type
-        self.source_hypervisor = source_hypervisor
-        self.destination_hypervisor = destination_hypervisor
+class Migrate(base.BasePrimitive):
+    def __init__(self):
+        super(Migrate, self).__init__()
+        self.instance_uuid = self.applies_to
+        self.migration_type = self.input_parameters.get('migration_type')
 
     def migrate(self, destination):
-        keystone = KeystoneClient()
-        wrapper = NovaClient(keystone.get_credentials(),
-                             session=keystone.get_session())
+        keystone = kclient.KeystoneClient()
+        wrapper = nclient.NovaClient(keystone.get_credentials(),
+                                     session=keystone.get_session())
         instance = wrapper.find_instance(self.instance_uuid)
         if instance:
-            # todo(jed) remove Primitves
-            if self.migration_type is Primitives.COLD_MIGRATE:
+            if self.migration_type is 'live':
                 return wrapper.live_migrate_instance(
-                    instance_id=self.instance_uuid,
-                    dest_hostname=destination,
-                    block_migration=True)
-            elif self.migration_type is Primitives.LIVE_MIGRATE:
-                return wrapper.live_migrate_instance(
-                    instance_id=self.instance_uuid,
-                    dest_hostname=destination,
-                    block_migration=False)
+                    instance_id=self.instance_uuid, dest_hostname=destination)
+            else:
+                raise exception.InvalidParameterValue(err=self.migration_type)
+        else:
+            raise exception.InstanceNotFound(name=self.instance_uuid)
 
-    @Promise
+    @promise.Promise
     def execute(self):
-        return self.migrate(self.destination_hypervisor)
+        return self.migrate(self.input_parameters.get('dst_hypervisor_uuid'))
 
-    @Promise
+    @promise.Promise
     def undo(self):
-        return self.migrate(self.source_hypervisor)
+        return self.migrate(self.input_parameters.get('src_hypervisor_uuid'))

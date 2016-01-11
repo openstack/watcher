@@ -20,7 +20,9 @@ from watcher.tests import base
 
 
 class TestDefaultPlannerLoader(base.TestCase):
-    loader = default.DefaultPlannerLoader()
+    def setUp(self):
+        super(TestDefaultPlannerLoader, self).setUp()
+        self.loader = default.DefaultPlannerLoader()
 
     def test_endpoints(self):
         for endpoint in self.loader.list_available():

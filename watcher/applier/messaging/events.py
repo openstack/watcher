@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 
-from enum import Enum
+import enum
 
 
-class Events(Enum):
+class Events(enum.Enum):
     LAUNCH_ACTION_PLAN = "launch_action_plan"
     LAUNCH_ACTION = "launch_action"

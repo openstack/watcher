@@ -18,17 +18,38 @@
 #
 import abc
 import six
-from watcher.applier.promise import Promise
+
+from watcher.applier import promise
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BasePrimitive(object):
-    @Promise
+    def __init__(self):
+        self._input_parameters = None
+        self._applies_to = None
+
+    @property
+    def input_parameters(self):
+        return self._input_parameters
+
+    @input_parameters.setter
+    def input_parameters(self, p):
+        self._input_parameters = p
+
+    @property
+    def applies_to(self):
+        return self._applies_to
+
+    @applies_to.setter
+    def applies_to(self, a):
+        self._applies_to = a
+
+    @promise.Promise
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError()
 
-    @Promise
+    @promise.Promise
     @abc.abstractmethod
     def undo(self):
         raise NotImplementedError()

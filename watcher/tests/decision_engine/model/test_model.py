@@ -129,7 +129,7 @@ class TestModel(base.BaseTestCase):
     def test_vm_from_id_raise(self):
         fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
-        self.assertRaises(exception.VMNotFound,
+        self.assertRaises(exception.InstanceNotFound,
                           model.get_vm_from_id, "valeur_qcq")
 
     def test_assert_vm_raise(self):

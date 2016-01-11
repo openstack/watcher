@@ -17,9 +17,6 @@
 # limitations under the License.
 #
 
-import json
-
-import enum
 from oslo_log import log
 
 from watcher._i18n import _LW
@@ -28,14 +25,6 @@ from watcher.decision_engine.planner import base
 from watcher import objects
 
 LOG = log.getLogger(__name__)
-
-
-class Primitives(enum.Enum):
-    LIVE_MIGRATE = 'MIGRATE'
-    COLD_MIGRATE = 'MIGRATE'
-    POWER_STATE = 'POWERSTATE'
-    HYPERVISOR_STATE = 'HYPERVISOR_STATE'
-    NOP = 'NOP'
 
 
 class DefaultPlanner(base.BasePlanner):
@@ -56,7 +45,7 @@ class DefaultPlanner(base.BasePlanner):
             'action_plan_id': int(action_plan_id),
             'action_type': action_type,
             'applies_to': applies_to,
-            'input_parameters': json.dumps(input_parameters),
+            'input_parameters': input_parameters,
             'state': objects.action.Status.PENDING,
             'alarm': None,
             'next': None,

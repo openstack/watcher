@@ -18,30 +18,21 @@
 #
 
 
-from oslo_config import cfg
-
-
 from watcher._i18n import _
-from watcher.applier.primitives.base import BasePrimitive
-from watcher.applier.promise import Promise
-from watcher.common.exception import IllegalArgumentException
-from watcher.common.keystone import KeystoneClient
-from watcher.common.nova import NovaClient
-from watcher.decision_engine.model.hypervisor_state import HypervisorState
-
-CONF = cfg.CONF
+from watcher.applier.primitives import base
+from watcher.applier import promise
+from watcher.common import exception
+from watcher.common import keystone as kclient
+from watcher.common import nova as nclient
+from watcher.decision_engine.model import hypervisor_state as hstate
 
 
-class ChangeNovaServiceState(BasePrimitive):
-    def __init__(self, host, state):
-        """This class allows us to change the state of nova-compute service.
-
-        :param host: the uuid of the host
-        :param state: (enabled/disabled)
-        """
-        super(BasePrimitive, self).__init__()
-        self._host = host
-        self._state = state
+class ChangeNovaServiceState(base.BasePrimitive):
+    def __init__(self):
+        """This class allows us to change the state of nova-compute service."""
+        super(ChangeNovaServiceState, self).__init__()
+        self._host = self.applies_to
+        self._state = self.input_parameters.get('state')
 
     @property
     def host(self):
@@ -51,32 +42,32 @@ class ChangeNovaServiceState(BasePrimitive):
     def state(self):
         return self._state
 
-    @Promise
+    @promise.Promise
     def execute(self):
         target_state = None
-        if self.state == HypervisorState.OFFLINE.value:
+        if self.state == hstate.HypervisorState.OFFLINE.value:
             target_state = False
-        elif self.status == HypervisorState.ONLINE.value:
+        elif self.status == hstate.HypervisorState.ONLINE.value:
             target_state = True
         return self.nova_manage_service(target_state)
 
-    @Promise
+    @promise.Promise
     def undo(self):
         target_state = None
-        if self.state == HypervisorState.OFFLINE.value:
+        if self.state == hstate.HypervisorState.OFFLINE.value:
             target_state = True
-        elif self.state == HypervisorState.ONLINE.value:
+        elif self.state == hstate.HypervisorState.ONLINE.value:
             target_state = False
         return self.nova_manage_service(target_state)
 
     def nova_manage_service(self, state):
         if state is None:
-            raise IllegalArgumentException(
+            raise exception.IllegalArgumentException(
                 _("The target state is not defined"))
 
-        keystone = KeystoneClient()
-        wrapper = NovaClient(keystone.get_credentials(),
-                             session=keystone.get_session())
+        keystone = kclient.KeystoneClient()
+        wrapper = nclient.NovaClient(keystone.get_credentials(),
+                                     session=keystone.get_session())
         if state is True:
             return wrapper.enable_service_nova_compute(self.host)
         else:

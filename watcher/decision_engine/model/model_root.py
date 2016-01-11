@@ -66,7 +66,7 @@ class ModelRoot(object):
 
     def get_vm_from_id(self, uuid):
         if str(uuid) not in self._vms.keys():
-            raise exception.VMNotFound(uuid)
+            raise exception.InstanceNotFound(name=uuid)
         return self._vms[str(uuid)]
 
     def get_all_vms(self):

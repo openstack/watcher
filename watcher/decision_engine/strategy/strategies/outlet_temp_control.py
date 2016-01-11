@@ -149,8 +149,8 @@ class OutletTempControl(BaseStrategy):
                             LOG.info(_LE("VM not active, skipped: %s"),
                                      vm.uuid)
                             continue
-                        return (mig_src_hypervisor, vm)
-                    except wexc.VMNotFound as e:
+                        return mig_src_hypervisor, vm
+                    except wexc.InstanceNotFound as e:
                         LOG.info("VM not found Error: %s" % e.message)
                         pass
 
