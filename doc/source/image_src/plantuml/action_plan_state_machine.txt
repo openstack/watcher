@@ -1,0 +1,16 @@
+@startuml
+
+[*] --> RECOMMENDED: The Watcher Planner\ncreates the Action Plan
+RECOMMENDED --> TRIGGERED: Administrator launches\nthe Action Plan
+TRIGGERED --> ONGOING: The Watcher Applier receives the request\nto launch the Action Plan
+ONGOING --> FAILED: Something failed while executing\nthe Action Plan in the Watcher Applier
+ONGOING --> SUCCEEDED: The Watcher Applier executed\nthe Action Plan successfully
+FAILED --> DELETED : Administrator removes\nAction Plan
+SUCCEEDED --> DELETED : Administrator removes\nAction Plan
+ONGOING --> CANCELLED : Administrator cancels\nAction Plan
+RECOMMENDED --> CANCELLED : Administrator cancels\nAction Plan
+TRIGGERED --> CANCELLED : Administrator cancels\nAction Plan
+CANCELLED --> DELETED
+DELETED --> [*]
+
+@enduml

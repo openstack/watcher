@@ -1,0 +1,16 @@
+@startuml
+
+actor Administrator
+
+Administrator -> "Watcher CLI" : watcher audit-template-create <name> <goal>
+"Watcher CLI" -> "Watcher API" : POST audit_template(parameters)
+
+"Watcher API" -> "Watcher API" : make sure goal exist in configuration
+"Watcher API" -> "Watcher Database" : create new audit_template in database
+
+"Watcher API" <-- "Watcher Database" : new audit template uuid
+"Watcher CLI" <-- "Watcher API" : return new audit template URL in HTTP Location Header
+Administrator <-- "Watcher CLI" : new audit template uuid
+
+@enduml
+

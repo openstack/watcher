@@ -1,0 +1,23 @@
+@startuml
+
+actor Administrator
+
+Administrator -> "Watcher CLI" : watcher action-plan-start <action_plan_uuid>
+
+"Watcher CLI" -> "Watcher API" : PATCH action_plan(state=TRIGGERED)
+"Watcher API" -> "Watcher Database" : action_plan.state=TRIGGERED
+
+"Watcher CLI" <-- "Watcher API" : HTTP 200
+
+Administrator <-- "Watcher CLI" : OK
+
+"Watcher API" -> "AMQP Bus" : launch_action_plan(action_plan.uuid)
+"AMQP Bus" -> "Watcher Applier" : launch_action_plan(action_plan.uuid)
+
+ref over "Watcher Applier"
+  Launch Action Plan in the
+  Watcher Applier
+end ref
+
+@enduml
+
