@@ -41,12 +41,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         return self._list_request('audit_templates', **kwargs)
 
     @base.handle_errors
-    def list_audit_template_audits(self, audit_template_uuid):
-        """Lists all audits associated with a audit template."""
-        return self._list_request(
-            '/audit_templates/%s/audits' % audit_template_uuid)
-
-    @base.handle_errors
     def list_audit_templates_detail(self, **kwargs):
         """Lists details of all existing audit templates."""
         return self._list_request('/audit_templates/detail', **kwargs)
@@ -111,18 +105,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         return self._create_request('audit_templates', audit_template)
 
     @base.handle_errors
-    def create_audit(self, audit_template_uuid, **kwargs):
-        """Create an audit with the specified parameters.
-
-        :param audit_template_uuid: Audit template ID used by the audit
-        :return: A tuple with the server response and the created audit.
-        """
-        audit = {'audit_template_uuid': audit_template_uuid}
-        audit.update(kwargs)
-
-        return self._create_request('audits', audit)
-
-    @base.handle_errors
     def delete_audit_template(self, audit_template_uuid):
         """Deletes an audit template having the specified UUID.
 
@@ -144,3 +126,63 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
         return self._patch_request('audit_templates',
                                    audit_template_uuid, patch)
+
+    # ### AUDITS ### #
+
+    @base.handle_errors
+    def list_audits(self, **kwargs):
+        """List all existing audit templates."""
+        return self._list_request('audits', **kwargs)
+
+    @base.handle_errors
+    def list_audits_detail(self, **kwargs):
+        """Lists details of all existing audit templates."""
+        return self._list_request('/audits/detail', **kwargs)
+
+    @base.handle_errors
+    def list_audit_by_audit_template(self, audit_template_uuid):
+        """Lists all audits associated with an audit template."""
+        return self._list_request(
+            '/audits', audit_template=audit_template_uuid)
+
+    @base.handle_errors
+    def show_audit(self, audit_uuid):
+        """Gets a specific audit template.
+
+        :param audit_uuid: Unique identifier of the audit template
+        :return: Serialized audit template as a dictionary
+        """
+        return self._show_request('audits', audit_uuid)
+
+    @base.handle_errors
+    def create_audit(self, audit_template_uuid, **kwargs):
+        """Create an audit with the specified parameters
+
+        :param audit_template_uuid: Audit template ID used by the audit
+        :return: A tuple with the server response and the created audit
+        """
+        audit = {'audit_template_uuid': audit_template_uuid}
+        audit.update(kwargs)
+
+        return self._create_request('audits', audit)
+
+    @base.handle_errors
+    def delete_audit(self, audit_uuid):
+        """Deletes an audit having the specified UUID
+
+        :param audit_uuid: The unique identifier of the audit
+        :return: A tuple with the server response and the response body
+        """
+
+        return self._delete_request('audits', audit_uuid)
+
+    @base.handle_errors
+    def update_audit(self, audit_uuid, patch):
+        """Update the specified audit.
+
+        :param audit_uuid: The unique identifier of the audit
+        :param patch: List of dicts representing json patches.
+        :return: Tuple with the server response and the updated audit
+        """
+
+        return self._patch_request('audits', uuid, patch)

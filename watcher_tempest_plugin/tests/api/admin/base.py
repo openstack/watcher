@@ -24,7 +24,7 @@ from watcher_tempest_plugin import infra_optim_clients as clients
 
 # Resources must be deleted in a specific order, this list
 # defines the resource types to clean up, and the correct order.
-RESOURCE_TYPES = ['audit_template']
+RESOURCE_TYPES = ['audit_template', 'audit']
 # RESOURCE_TYPES = ['action', 'action_plan', 'audit', 'audit_template']
 
 
@@ -135,5 +135,38 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
         if uuid in cls.created_objects['audit_template']:
             cls.created_objects['audit_template'].remove(uuid)
+
+        return resp
+
+    # ### AUDITS ### #
+
+    @classmethod
+    @creates('audit')
+    def create_audit(cls, audit_template_uuid, type='ONESHOT',
+                     state='PENDING', deadline=None):
+        """Wrapper utility for creating a test audit
+
+        :param audit_template_uuid: Audit Template UUID this audit will use
+        :param type: Audit type (either ONESHOT or CONTINUOUS)
+        :param state: Audit state (str)
+        :param deadline: Audit deadline (datetime)
+        :return: A tuple with The HTTP response and its body
+        """
+        resp, body = cls.client.create_audit(
+            audit_template_uuid=audit_template_uuid, type=type,
+            state=state, deadline=deadline)
+        return resp, body
+
+    @classmethod
+    def delete_audit(cls, audit_uuid):
+        """Deletes an audit having the specified UUID
+
+        :param audit_uuid: The unique identifier of the audit.
+        :return: the HTTP response
+        """
+        resp, body = cls.client.delete_audit(audit_uuid)
+
+        if audit_uuid in cls.created_objects['audit']:
+            cls.created_objects['audit'].remove(audit_uuid)
 
         return resp
