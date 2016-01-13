@@ -14,6 +14,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+In the Watcher system, an :ref:`Audit <audit_definition>` is a request for
+optimizing a :ref:`Cluster <cluster_definition>`.
+
+The optimization is done in order to satisfy one :ref:`Goal <goal_definition>`
+on a given :ref:`Cluster <cluster_definition>`.
+
+For each :ref:`Audit <audit_definition>`, the Watcher system generates an
+:ref:`Action Plan <action_plan_definition>`.
+
+An :ref:`Audit <audit_definition>` has a life-cycle and its current state may
+be one of the following:
+
+-  **PENDING** : a request for an :ref:`Audit <audit_definition>` has been
+   submitted (either manually by the
+   :ref:`Administrator <administrator_definition>` or automatically via some
+   event handling mechanism) and is in the queue for being processed by the
+   :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`
+-  **ONGOING** : the :ref:`Audit <audit_definition>` is currently being
+   processed by the
+   :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`
+-  **SUCCEEDED** : the :ref:`Audit <audit_definition>` has been executed
+   successfully (note that it may not necessarily produce a
+   :ref:`Solution <solution_definition>`).
+-  **FAILED** : an error occured while executing the
+   :ref:`Audit <audit_definition>`
+-  **DELETED** : the :ref:`Audit <audit_definition>` is still stored in the
+   :ref:`Watcher database <watcher_database_definition>` but is not returned
+   any more through the Watcher APIs.
+-  **CANCELLED** : the :ref:`Audit <audit_definition>` was in **PENDING** or
+   **ONGOING** state and was cancelled by the
+   :ref:`Administrator <administrator_definition>`
+"""
 
 from watcher.common import exception
 from watcher.common import utils

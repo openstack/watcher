@@ -15,6 +15,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+An :ref:`Action <action_definition>` is what enables Watcher to transform the
+current state of a :ref:`Cluster <cluster_definition>` after an
+:ref:`Audit <audit_definition>`.
+
+An :ref:`Action <action_definition>` is an atomic task which changes the
+current state of a target :ref:`Managed resource <managed_resource_definition>`
+of the OpenStack :ref:`Cluster <cluster_definition>` such as:
+
+-  Live migration of an instance from one compute node to another compute
+   node with Nova
+-  Changing the power level of a compute node (ACPI level, ...)
+-  Changing the current state of an hypervisor (enable or disable) with Nova
+
+In most cases, an :ref:`Action <action_definition>` triggers some concrete
+commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.)
+via a :ref:`Primitive <primitive_definition>`.
+
+An :ref:`Action <action_definition>` has a life-cycle and its current state may
+be one of the following:
+
+-  **PENDING** : the :ref:`Action <action_definition>` has not been executed
+   yet by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **ONGOING** : the :ref:`Action <action_definition>` is currently being
+   processed by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **SUCCEEDED** : the :ref:`Action <action_definition>` has been executed
+   successfully
+-  **FAILED** : an error occured while trying to execute the
+   :ref:`Action <action_definition>`
+-  **DELETED** : the :ref:`Action <action_definition>` is still stored in the
+   :ref:`Watcher database <watcher_database_definition>` but is not returned
+   any more through the Watcher APIs.
+-  **CANCELLED** : the :ref:`Action <action_definition>` was in **PENDING** or
+   **ONGOING** state and was cancelled by the
+   :ref:`Administrator <administrator_definition>`
+"""
+
 import datetime
 
 import pecan

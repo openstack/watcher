@@ -14,6 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+A :ref:`Strategy <strategy_definition>` is an algorithm implementation which is
+able to find a :ref:`Solution <solution_definition>` for a given
+:ref:`Goal <goal_definition>`.
+
+There may be several potential strategies which are able to achieve the same
+:ref:`Goal <goal_definition>`. This is why it is possible to configure which
+specific :ref:`Strategy <strategy_definition>` should be used for each
+:ref:`Goal <goal_definition>`.
+
+Some strategies may provide better optimization results but may take more time
+to find an optimal :ref:`Solution <solution_definition>`.
+
+When a new :ref:`Goal <goal_definition>` is added to the Watcher configuration,
+at least one default associated :ref:`Strategy <strategy_definition>` should be
+provided as well.
+"""
+
 import abc
 from oslo_log import log
 import six

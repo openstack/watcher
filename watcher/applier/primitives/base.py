@@ -16,6 +16,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+"""
+A :ref:`Primitive <primitive_definition>` is the component that carries out a
+certain type of atomic :ref:`Actions <action_definition>` on a given
+:ref:`Managed resource <managed_resource_definition>` (nova, swift, neutron,
+glance,..). A :ref:`Primitive <primitive_definition>` is a part of the
+:ref:`Watcher Applier <watcher_applier_definition>` module.
+
+For example, there can be a :ref:`Primitive <primitive_definition>` which is
+responsible for creating a snapshot of a given instance on a Nova compute node.
+This :ref:`Primitive <primitive_definition>` knows exactly how to send
+the appropriate commands to Nova for this type of
+:ref:`Actions <action_definition>`.
+"""
+
 import abc
 import six
 from watcher.applier.promise import Promise
