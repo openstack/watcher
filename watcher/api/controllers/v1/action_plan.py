@@ -302,10 +302,10 @@ class ActionPlansController(rest.RestController):
     @wsme_pecan.wsexpose(ActionPlan, types.uuid,
                          body=[ActionPlanPatchType])
     def patch(self, action_plan_uuid, patch):
-        """Update an existing audit template.
+        """Update an existing action plan.
 
-        :param audit template_uuid: UUID of a audit template.
-        :param patch: a json PATCH document to apply to this audit template.
+        :param action_plan_uuid: UUID of a action plan.
+        :param patch: a json PATCH document to apply to this action plan.
         """
         launch_action_plan = True
         if self.from_actionsPlans:
