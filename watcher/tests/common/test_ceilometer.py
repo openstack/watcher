@@ -49,7 +49,8 @@ class TestCeilometer(BaseTestCase):
     @mock.patch('ceilometerclient.v2.client.Client', autospec=True)
     def test_get_ceilometer_v2(self, mock_keystone, mock_ceilometer):
         cfg.CONF.set_override(
-            'auth_uri', "http://127.0.0.1:9898/v2", group="keystone_authtoken"
+            'auth_uri', "http://127.0.0.1:9898/v2", group="keystone_authtoken",
+            enforce_type=True
         )
         c = CeilometerClient(api_version='2')
         from ceilometerclient.v2 import Client

@@ -32,7 +32,8 @@ class FunctionalTest(unittest.TestCase):
     """
 
     def setUp(self):
-        cfg.CONF.set_override("enable_authentication", False)
+        cfg.CONF.set_override("enable_authentication", False,
+                              enforce_type=True)
         self.app = testing.load_test_app(os.path.join(
             os.path.dirname(__file__),
             'config.py'

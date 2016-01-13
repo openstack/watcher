@@ -35,7 +35,8 @@ class TestKeystone(BaseTestCase):
     def test_get_endpoint_v2(self, keystone):
         expected_endpoint = "http://ip:port/v2"
         cfg.CONF.set_override(
-            'auth_uri', expected_endpoint, group="keystone_authtoken"
+            'auth_uri', expected_endpoint, group="keystone_authtoken",
+            enforce_type=True
         )
         ks = mock.Mock()
         ks.service_catalog.url_for.return_value = expected_endpoint

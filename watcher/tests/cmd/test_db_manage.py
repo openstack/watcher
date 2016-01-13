@@ -39,18 +39,18 @@ class TestDBManageRunApp(TestCase):
     @patch("watcher.cmd.dbmanage.service.prepare_service")
     @patch("watcher.cmd.dbmanage.sys")
     def test_run_db_manage_app(self, m_sys, m_prepare_service):
-        # Patch command arguments
+        # Patch command function
         m_func = Mock()
-        cfg.CONF.register_opt(cfg.Opt("func"), group="command")
-        cfg.CONF.set_override("func", m_func, group="command")
+        cfg.CONF.register_opt(cfg.SubCommandOpt("command"))
+        cfg.CONF.command.func = m_func
+
         # Only append if the command is not None
         m_sys.argv = list(filter(None, ["watcher-db-manage", self.command]))
 
         dbmanage.main()
         self.assertEqual(m_func.call_count, 1)
         m_prepare_service.assert_called_once_with(
-            ["watcher-db-manage", self.expected]
-        )
+            ["watcher-db-manage", self.expected])
 
 
 class TestDBManageRunCommand(TestCase):

@@ -34,6 +34,7 @@ class PolicyFixture(fixtures.Fixture):
                                              'policy.json')
         with open(self.policy_file_name, 'w') as policy_file:
             policy_file.write(fake_policy.get_policy_data(self.compat))
-        CONF.set_override('policy_file', self.policy_file_name)
+        CONF.set_override('policy_file', self.policy_file_name,
+                          enforce_type=True)
         w_policy._ENFORCER = None
         self.addCleanup(w_policy.get_enforcer().clear)

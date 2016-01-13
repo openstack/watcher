@@ -410,7 +410,8 @@ class TestListAction(api_base.FunctionalTest):
         self.assertIn(next_marker, response['next'])
 
     def test_collection_links_default_limit(self):
-        cfg.CONF.set_override('max_limit', 3, 'api')
+        cfg.CONF.set_override('max_limit', 3, 'api',
+                              enforce_type=True)
         for id_ in range(5):
             obj_utils.create_test_action(self.context, id=id_,
                                          uuid=utils.generate_uuid())

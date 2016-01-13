@@ -26,7 +26,7 @@ class TestListGoal(api_base.FunctionalTest):
                 "DUMMY_1": "dummy", "DUMMY_2": "dummy",
                 "DUMMY_3": "dummy", "DUMMY_4": "dummy",
             },
-            group='watcher_goals')
+            group='watcher_goals', enforce_type=True)
 
     def _assert_goal_fields(self, goal):
         goal_fields = ['name', 'strategy']
@@ -65,6 +65,6 @@ class TestListGoal(api_base.FunctionalTest):
         self.assertEqual(2, len(response['goals']))
 
     def test_goals_collection_links_default_limit(self):
-        cfg.CONF.set_override('max_limit', 3, 'api')
+        cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
