@@ -180,9 +180,9 @@ class OutletTempControl(BaseStrategy):
             cores_available = cap_cores.get_capacity(host) - cores_used
             disk_available = cap_disk.get_capacity(host) - mem_used
             mem_available = cap_mem.get_capacity(host) - disk_used
-            if cores_available >= required_cores and \
-                disk_available >= required_disk and \
-                mem_available >= required_mem:
+            if cores_available >= required_cores \
+                    and disk_available >= required_disk \
+                    and mem_available >= required_mem:
                 dest_servers.append(hvmap)
 
         return dest_servers
