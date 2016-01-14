@@ -92,7 +92,7 @@ Edit `/etc/libvirt/libvirtd.conf` to make sure the following values are set::
 
 Edit `/etc/default/libvirt-bin`::
 
-    libvirt_opts = " -d -l"
+    libvirt_opts="-d -l"
 
 Restart the libvirt service::
 
