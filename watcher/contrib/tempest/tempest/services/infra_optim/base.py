@@ -12,8 +12,8 @@
 
 import functools
 import json
-import urllib
 
+import six.moves.urllib.parse as urlparse
 
 from tempest.common import service_client
 
@@ -107,7 +107,7 @@ class InfraOptimClient(service_client.ServiceClient):
 
         uri = self._get_uri(resource, permanent=permanent)
         if kwargs:
-            uri += "?%s" % urllib.urlencode(kwargs)
+            uri += "?%s" % urlparse.urlencode(kwargs)
 
         resp, body = self.get(uri)
         self.expected_success(200, resp['status'])
