@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher 0.21.1.dev32\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-12 18:12+0100\n"
+"POT-Creation-Date: 2016-01-14 14:51+0100\n"
 "PO-Revision-Date: 2015-12-11 15:42+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -66,11 +66,17 @@ msgstr ""
 msgid "ErrorDocumentMiddleware received an invalid status %s"
 msgstr ""
 
+#: watcher/api/middleware/parsable_error.py:80
+#, python-format
+msgid "Error parsing HTTP response: %s"
+msgstr ""
+
 #: watcher/applier/primitives/change_nova_service_state.py:75
 msgid "The target state is not defined"
 msgstr ""
 
-#: watcher/cmd/api.py:46
+#: watcher/cmd/api.py:46 watcher/cmd/applier.py:39
+#: watcher/cmd/decisionengine.py:40
 #, python-format
 msgid "Starting server in PID %s"
 msgstr "Démarre le serveur avec pour PID %s"
@@ -87,6 +93,10 @@ msgstr "Sert sur http://%(host)s:%(port)s"
 
 #: watcher/common/exception.py:56
 msgid "An unknown exception occurred"
+msgstr ""
+
+#: watcher/common/exception.py:77
+msgid "Exception in string format operation"
 msgstr ""
 
 #: watcher/common/exception.py:107
@@ -267,6 +277,48 @@ msgstr "Erreur lors du chargement du module '%(name)s'"
 msgid "No Keystone service catalog loaded"
 msgstr ""
 
+#: watcher/common/service.py:83
+#, python-format
+msgid "Created RPC server for service %(service)s on host %(host)s."
+msgstr ""
+
+#: watcher/common/service.py:92
+#, python-format
+msgid "Service error occurred when stopping the RPC server. Error: %s"
+msgstr ""
+
+#: watcher/common/service.py:97
+#, python-format
+msgid "Service error occurred when cleaning up the RPC manager. Error: %s"
+msgstr ""
+
+#: watcher/common/service.py:101
+#, python-format
+msgid "Stopped RPC server for service %(service)s on host %(host)s."
+msgstr ""
+
+#: watcher/common/service.py:106
+#, python-format
+msgid ""
+"Got signal SIGUSR1. Not deregistering on next shutdown of service "
+"%(service)s on host %(host)s."
+msgstr ""
+
+#: watcher/common/utils.py:53
+#, python-format
+msgid ""
+"Failed to remove trailing character. Returning original object. Supplied "
+"object is not a string: %s,"
+msgstr ""
+
+#: watcher/common/messaging/messaging_handler.py:98
+msgid "No endpoint defined; can only publish events"
+msgstr ""
+
+#: watcher/common/messaging/messaging_handler.py:101
+msgid "Messaging configuration error"
+msgstr ""
+
 #: watcher/db/sqlalchemy/api.py:256
 msgid ""
 "Multiple audit templates exist with the same name. Please use the audit "
@@ -296,13 +348,59 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
+#: watcher/decision_engine/planner/default.py:86
+msgid "The action plan is empty"
+msgstr ""
+
 #: watcher/decision_engine/strategy/selection/default.py:59
 #, python-format
 msgid "Incorrect mapping: could not find associated strategy for '%s'"
 msgstr ""
 
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:267
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:314
+#, python-format
+msgid "No values returned by %(resource_id)s for %(metric_name)s"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:349
+msgid "Initializing Sercon Consolidation"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:406
+msgid "The workloads of the compute nodes of the cluster is zero"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:125
+#, python-format
+msgid "%s: no outlet temp data"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:149
+#, python-format
+msgid "VM not active, skipped: %s"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:206
+msgid "No hosts under outlet temp threshold found"
+msgstr ""
+
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:229
+msgid "No proper target host could be found"
+msgstr ""
+
+#: watcher/objects/base.py:70
+#, python-format
+msgid "Error setting %(attr)s"
+msgstr ""
+
 #: watcher/objects/base.py:108
 msgid "Invalid version string"
+msgstr ""
+
+#: watcher/objects/base.py:172
+#, python-format
+msgid "Unable to instantiate unregistered object type %(objtype)s"
 msgstr ""
 
 #: watcher/objects/base.py:299
