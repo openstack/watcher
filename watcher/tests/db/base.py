@@ -90,7 +90,8 @@ class Database(fixtures.Fixture):
 class DbTestCase(base.TestCase):
 
     def setUp(self):
-        cfg.CONF.set_override("enable_authentication", False)
+        cfg.CONF.set_override("enable_authentication", False,
+                              enforce_type=True)
         super(DbTestCase, self).setUp()
 
         self.dbapi = dbapi.get_instance()

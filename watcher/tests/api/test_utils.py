@@ -41,7 +41,8 @@ class TestApiUtilsValidScenarios(base.TestCase):
     ]
 
     def test_validate_limit(self):
-        cfg.CONF.set_override("max_limit", self.max_limit, group="api")
+        cfg.CONF.set_override("max_limit", self.max_limit, group="api",
+                              enforce_type=True)
         actual_limit = v1_utils.validate_limit(self.limit)
         self.assertEqual(actual_limit, self.expected)
 
@@ -53,7 +54,8 @@ class TestApiUtilsInvalidScenarios(base.TestCase):
     ]
 
     def test_validate_limit_invalid_cases(self):
-        cfg.CONF.set_override("max_limit", self.max_limit, group="api")
+        cfg.CONF.set_override("max_limit", self.max_limit, group="api",
+                              enforce_type=True)
         self.assertRaises(
             wsme.exc.ClientSideError, v1_utils.validate_limit, self.limit
         )
