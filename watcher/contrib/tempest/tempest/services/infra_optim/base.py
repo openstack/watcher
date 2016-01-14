@@ -14,7 +14,6 @@ import functools
 import json
 import urllib
 
-import six
 
 from tempest.common import service_client
 
@@ -79,7 +78,7 @@ class InfraOptimClient(service_client.ServiceClient):
         """
 
         def get_change(kw, path='/'):
-            for name, value in six.iteritems(kw):
+            for name, value in kw.items():
                 if isinstance(value, dict):
                     for ch in get_change(value, path + '%s/' % name):
                         yield ch

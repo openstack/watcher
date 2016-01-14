@@ -24,7 +24,6 @@ from oslo_log import log
 from oslotest import base
 import pecan
 from pecan import testing
-import six
 import testscenarios
 
 from watcher.common import context as watcher_context
@@ -102,7 +101,7 @@ class TestCase(BaseTestCase):
     def config(self, **kw):
         """Override config options for a test."""
         group = kw.pop('group', None)
-        for k, v in six.iteritems(kw):
+        for k, v in kw.items():
             CONF.set_override(k, v, group, enforce_type=True)
 
     def path_get(self, project_file=None):

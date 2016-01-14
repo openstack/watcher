@@ -42,7 +42,7 @@ CONF.register_opts(exc_log_opts)
 
 def _cleanse_dict(original):
     """Strip all admin_password, new_pass, rescue_pass keys from a dict"""
-    return dict((k, v) for k, v in six.iteritems(original) if "_pass" not in k)
+    return dict((k, v) for k, v in original.items() if "_pass" not in k)
 
 
 class WatcherException(Exception):
@@ -75,7 +75,7 @@ class WatcherException(Exception):
                 # kwargs doesn't match a variable in the message
                 # log the issue and the kwargs
                 LOG.exception(_LE('Exception in string format operation'))
-                for name, value in six.iteritems(kwargs):
+                for name, value in kwargs.items():
                     LOG.error("%s: %s", name, value)
 
                 if CONF.fatal_exception_format_errors:

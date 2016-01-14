@@ -18,7 +18,6 @@ Utils for testing the API service.
 import datetime
 import json
 
-import six
 from watcher.api.controllers.v1 import action as action_ctrl
 from watcher.api.controllers.v1 import action_plan as action_plan_ctrl
 from watcher.api.controllers.v1 import audit as audit_ctrl
@@ -78,7 +77,7 @@ def remove_internal(values, internal):
     # NOTE(yuriyz): internal attributes should not be posted, except uuid
     int_attr = [attr.lstrip('/') for attr in internal if attr != '/uuid']
     return dict(
-        (k, v) for (k, v) in six.iteritems(values) if k not in int_attr
+        (k, v) for (k, v) in values.items() if k not in int_attr
     )
 
 

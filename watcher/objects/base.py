@@ -53,7 +53,7 @@ def make_class_properties(cls):
         for name, field in supercls.fields.items():
             if name not in cls.fields:
                 cls.fields[name] = field
-    for name, typefn in six.iteritems(cls.fields):
+    for name, typefn in cls.fields.items():
 
         def getter(self, name=name):
             attrname = get_attrname(name)
@@ -541,7 +541,7 @@ def obj_to_primitive(obj):
         return [obj_to_primitive(x) for x in obj]
     elif isinstance(obj, WatcherObject):
         result = {}
-        for key, value in six.iteritems(obj):
+        for key, value in obj.items():
             result[key] = obj_to_primitive(value)
         return result
     else:
