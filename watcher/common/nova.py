@@ -76,9 +76,9 @@ class NovaClient(object):
 
         :param instance_id: the unique id of the instance to migrate.
         :param keep_original_image_name: flag indicating whether the
-        image name from which the original instance was built must be
-        used as the name of the intermediate image used for migration.
-        If this flag is False, a temporary image name is built
+            image name from which the original instance was built must be
+            used as the name of the intermediate image used for migration.
+            If this flag is False, a temporary image name is built
         """
 
         new_image_name = ""
@@ -438,13 +438,13 @@ class NovaClient(object):
 
         It waits for this image to be in 'active' state before returning.
         It returns the unique UUID of the created image if successful,
-        None otherwise
+        None otherwise.
 
         :param instance_id: the uniqueid of
-        the instance to backup as an image.
+            the instance to backup as an image.
         :param image_name: the name of the image to create.
         :param metadata: a dictionary containing the list of
-        key-value pairs to associate to the image as metadata.
+            key-value pairs to associate to the image as metadata.
         """
         if self.glance is None:
             glance_endpoint = self.keystone. \
@@ -568,7 +568,7 @@ class NovaClient(object):
 
         :param instance: instance object.
         :param status_list: tuple containing the list of
-        status we are waiting for
+            status we are waiting for
         :param retry: how many times to retry
         :param sleep: seconds to sleep between the retries
         """

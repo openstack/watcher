@@ -264,13 +264,6 @@ Please, read `the official OpenStack definition of a Project <http://docs.openst
 
 .. _primitive_definition:
 
-Primitive
-=========
-
-.. watcher-term:: watcher.applier.primitives.base
-
-.. _sla_definition:
-
 SLA
 ===
 

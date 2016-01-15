@@ -75,6 +75,7 @@ should implement:
 
 .. autoclass:: BaseStrategy
     :members:
+    :noindex:
 
 
 Add a new entry point
@@ -169,6 +170,7 @@ Here below is the abstract ``BaseClusterHistory`` class of the Helper.
 
 .. autoclass:: BaseClusterHistory
     :members:
+    :noindex:
 
 
 The following snippet code shows how to create a Cluster History class:
