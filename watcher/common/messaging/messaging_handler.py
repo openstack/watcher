@@ -94,7 +94,7 @@ class MessagingHandler(threading.Thread):
                 )
                 self.__server = self.build_server(target)
             else:
-                LOG.warn(
+                LOG.warning(
                     _LW("No endpoint defined; can only publish events"))
         except Exception as e:
             LOG.exception(e)
