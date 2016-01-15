@@ -62,13 +62,14 @@ Overview
   deploy/user-guide
   deploy/installation
 
-Commands
---------
+Watcher Manual Pages
+====================
 
 .. toctree::
-  :maxdepth: 1
+   :glob:
+   :maxdepth: 1
 
-  cmds/watcher-db-manage
+   man/*
 
 
 Indices and tables
