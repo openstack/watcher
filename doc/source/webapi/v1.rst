@@ -4,22 +4,21 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-=====================
- RESTful Web API (v1)
-=====================
+====================
+RESTful Web API (v1)
+====================
 
 Audit Templates
 ===============
 
 .. rest-controller:: watcher.api.controllers.v1.audit_template:AuditTemplatesController
-   :webprefix: /v1/audit_template
+   :webprefix: /v1/audit_templates
 
 .. autotype:: watcher.api.controllers.v1.audit_template.AuditTemplateCollection
    :members:
 
 .. autotype:: watcher.api.controllers.v1.audit_template.AuditTemplate
    :members:
-
 
 Audits
 ======
@@ -33,24 +32,22 @@ Audits
 .. autotype:: watcher.api.controllers.v1.audit.Audit
    :members:
 
-
 Links
 =====
 
 .. autotype:: watcher.api.controllers.link.Link
    :members:
 
-
-ActionPlans
-===========
+Action Plans
+============
 
 .. rest-controller:: watcher.api.controllers.v1.action_plan:ActionPlansController
    :webprefix: /v1/action_plans
 
-.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlan
+.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlanCollection
    :members:
 
-.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlanCollection
+.. autotype:: watcher.api.controllers.v1.action_plan.ActionPlan
    :members:
 
 

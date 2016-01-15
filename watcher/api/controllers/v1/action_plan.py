@@ -295,7 +295,7 @@ class ActionPlansController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         :param audit_uuid: Optional UUID of an audit, to get only actions
-        for that audit.
+            for that audit.
         """
         return self._get_action_plans_collection(
             marker, limit, sort_key, sort_dir, audit_uuid=audit_uuid)
@@ -307,13 +307,13 @@ class ActionPlansController(rest.RestController):
         """Retrieve a list of action_plans with detail.
 
         :param action_plan_uuid: UUID of a action plan, to get only
-        :action_plans for that action.
+            action_plans for that action.
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         :param audit_uuid: Optional UUID of an audit, to get only actions
-        for that audit.
+            for that audit.
         """
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]

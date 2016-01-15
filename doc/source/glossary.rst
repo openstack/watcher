@@ -4,9 +4,9 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-==========
- Glossary
-==========
+========
+Glossary
+========
 
 .. glossary::
    :sorted:
@@ -262,7 +262,7 @@ specific domain.
 Please, read `the official OpenStack definition of a Project <http://docs.openstack.org/glossary/content/glossary.html>`_.
 
 
-.. _primitive_definition
+.. _primitive_definition:
 
 Primitive
 =========

@@ -61,9 +61,7 @@ class WatcherTerm(rst.Directive):
         cls_path = self.arguments[0]
 
         try:
-            module_name, obj_name = cls_path.rsplit(".", 1)
-            module = importlib.import_module(module_name)
-            cls = getattr(module, obj_name)
+            cls = importlib.import_module(cls_path)
         except Exception as exc:
             raise self.error(exc)
 

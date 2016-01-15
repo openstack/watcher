@@ -51,7 +51,7 @@ MongoDB,...) but will probably be more performant when using
 which are optimized for handling time series data, which are arrays of numbers
 indexed by time (a datetime or a datetime range).
 
-.. _watcher_api_definition:
+.. _archi_watcher_api_definition:
 
 Watcher API
 -----------
@@ -63,13 +63,13 @@ It enables the :ref:`Administrator <administrator_definition>` of a
 :ref:`Cluster <cluster_definition>` to control and monitor the Watcher system
 via any interaction mechanism connected to this API:
 
--   :ref:`CLI <watcher_cli_definition>`
+-   :ref:`CLI <archi_watcher_cli_definition>`
 -   Horizon plugin
 -   Python SDK
 
 You can also read the detailed description of `Watcher API`_.
 
-.. _watcher_applier_definition:
+.. _archi_watcher_applier_definition:
 
 Watcher Applier
 ---------------
@@ -111,7 +111,7 @@ If the :ref:`Action <action_definition>` fails, the
 previous state of the :ref:`Managed resource <managed_resource_definition>`
 (i.e. before the command was sent to the underlying OpenStack service).
 
-.. _watcher_cli_definition:
+.. _archi_watcher_cli_definition:
 
 Watcher CLI
 -----------
@@ -121,14 +121,14 @@ Watcher system in order to control it or to know its current status.
 
 Please, read `the detailed documentation about Watcher CLI <https://factory.b-com.com/www/watcher/doc/python-watcherclient/>`_
 
-.. _watcher_database_definition:
+.. _archi_watcher_database_definition:
 
 Watcher Database
 ----------------
 
 This database stores all the Watcher domain objects which can be requested
-by the :ref:`Watcher API <watcher_api_definition>` or the
-:ref:`Watcher CLI <watcher_cli_definition>`:
+by the :ref:`Watcher API <archi_watcher_api_definition>` or the
+:ref:`Watcher CLI <archi_watcher_cli_definition>`:
 
 -  :ref:`Audit templates <audit_template_definition>`
 -  :ref:`Audits <audit_definition>`
@@ -139,7 +139,7 @@ by the :ref:`Watcher API <watcher_api_definition>` or the
 The Watcher domain being here "*optimization of some resources provided by an
 OpenStack system*".
 
-.. _watcher_decision_engine_definition:
+.. _archi_watcher_decision_engine_definition:
 
 Watcher Decision Engine
 -----------------------
@@ -169,10 +169,10 @@ In order to compute the potential :ref:`Solution <solution_definition>` for the
 Audit, the :ref:`Strategy <strategy_definition>` relies on two sets of data:
 
 -   the current state of the
-:ref:`Managed resources <managed_resource_definition>`
-(e.g., the data stored in the Nova database)
+    :ref:`Managed resources <managed_resource_definition>`
+    (e.g., the data stored in the Nova database)
 -   the data stored in the
-:ref:`Cluster History Database <cluster_history_db_definition>`
+    :ref:`Cluster History Database <cluster_history_db_definition>`
     which provides information about the past of the
     :ref:`Cluster <cluster_definition>`
 

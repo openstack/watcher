@@ -90,7 +90,7 @@ configuration file.
   $ watcher action-plan-list --audit <the_audit_uuid>
 
 - Have a look on the list of optimization :ref:`actions <action_definition>`
-contained in this new :ref:`action plan <action_plan_definition>`:
+  contained in this new :ref:`action plan <action_plan_definition>`:
 
 .. code:: bash
 

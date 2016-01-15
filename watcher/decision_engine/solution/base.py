@@ -38,7 +38,7 @@ applied.
 Two approaches to dealing with this can be envisaged:
 
 -  **fully automated mode**: only the :ref:`Solution <solution_definition>`
- with the highest ranking (i.e., the highest
+   with the highest ranking (i.e., the highest
    :ref:`Optimization Efficiency <efficiency_definition>`)
    will be sent to the :ref:`Watcher Planner <watcher_planner_definition>` and
    translated into concrete :ref:`Actions <action_definition>`.

@@ -6,9 +6,9 @@
 
 .. _contributing:
 
-======================
+=======================
 Contributing to Watcher
-======================
+=======================
 
 If you're interested in contributing to the Watcher project,
 the following will help get you started.
@@ -43,7 +43,7 @@ notifications of important events.
 
 
 Project Hosting Details
--------------------------
+-----------------------
 
 Bug tracker
     http://launchpad.net/watcher

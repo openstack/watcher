@@ -40,9 +40,9 @@ API is proposed with some helper classes in order to :
    See `the full list of meter types <http://docs.openstack.org/admin-guide-cloud/telemetry-measurements.html>`_
 -  simplify the development of a new :ref:`Strategy <strategy_definition>`
 -  avoid duplicating the same code in several
-:ref:`Strategies <strategy_definition>`
+   :ref:`Strategies <strategy_definition>`
 -  have a better consistency between the different
-:ref:`Strategies <strategy_definition>`
+   :ref:`Strategies <strategy_definition>`
 -  avoid any strong coupling with any external metrics/events storage system
    (the proposed API and measurement naming system acts as a pivot format)
 

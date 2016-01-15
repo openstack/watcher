@@ -6,9 +6,9 @@
 
 .. _watcher-db-manage:
 
-=============
+=================
 watcher-db-manage
-=============
+=================
 
 The :command:`watcher-db-manage` utility is used to create the database schema
 tables that the watcher services will use for storage. It can also be used to
