@@ -6,9 +6,9 @@
 
 .. _user-guide:
 
-=================================
-Welcome to the Watcher User Guide
-=================================
+==================
+Watcher User Guide
+==================
 
 See the
 `architecture page <https://factory.b-com.com/www/watcher/doc/watcher/architecture.html>`_
@@ -29,7 +29,7 @@ Getting started with Watcher
 ----------------------------
 This guide assumes you have a working installation of Watcher. If you get
 "*watcher: command not found*" you may have to verify your installation.
-Please refer to the :doc:`installation guide <installation>`.
+Please refer to the `installation guide`_.
 In order to use Watcher, you have to configure your credentials suitable for
 watcher command-line tools.
 If you need help on a specific command, you can use:
@@ -37,6 +37,8 @@ If you need help on a specific command, you can use:
 .. code:: bash
 
   $ watcher help COMMAND
+
+.. _`installation guide`: https://factory.b-com.com/www/watcher/doc/python-watcherclient
 
 Seeing what the Watcher CLI can do ?
 ------------------------------------

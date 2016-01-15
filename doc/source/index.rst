@@ -4,15 +4,31 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-============================================
-Welcome to Watcher's developer documentation
-============================================
+================================
+Welcome to Watcher documentation
+================================
 
-.. include:: ../../README.rst
+OpenStack Watcher provides a flexible and scalable resource optimization
+service for multi-tenant OpenStack-based clouds.
+Watcher provides a complete optimization loop—including everything from a
+metrics receiver, complex event processor and profiler, optimization processor
+and an action plan applier. This provides a robust framework to realize a wide
+range of cloud optimization goals, including the reduction of data center
+operating costs, increased system performance via intelligent virtual machine
+migration, increased energy efficiency—and more!
 
-The developer documentation provided here is continually kept up-to-date based
+Watcher project consists of several source code repositories:
+
+* `watcher`_ - is the main repository. It contains code for Watcher API server,
+  Watcher Decision Engine and Watcher Applier.
+* `python-watcherclient`_ - Client library and CLI client for Watcher.
+
+The documentation provided here is continually kept up-to-date based
 on the latest code, and may not represent the state of the project at any
 specific prior release.
+
+.. _watcher: https://git.openstack.org/cgit/openstack/watcher/
+.. _python-watcherclient: https://git.openstack.org/cgit/openstack/python-watcherclient/
 
 Developer Guide
 ===============
@@ -25,22 +41,19 @@ Introduction
 
   glossary
   architecture
-  deploy/configuration
-  dev/environment
   dev/contributing
-  dev/plugins
 
 
-DevStack Plugin
+Getting Started
 ---------------
-
-You can configure DevStack to set up the Watcher services easily using
-Watcher's DevStack plugin.
 
 .. toctree::
   :maxdepth: 1
 
-  dev/devstack-plugin
+  dev/environment
+  dev/devstack
+  deploy/configuration
+
 
 API References
 --------------
@@ -50,17 +63,26 @@ API References
 
   webapi/v1
 
-Admin Guide
-===========
-
-Overview
---------
+Plugins
+-------
 
 .. toctree::
   :maxdepth: 1
 
-  deploy/user-guide
+  dev/strategy-plugin
+
+
+Admin Guide
+===========
+
+Introduction
+------------
+
+.. toctree::
+  :maxdepth: 1
+
   deploy/installation
+  deploy/user-guide
 
 Watcher Manual Pages
 ====================

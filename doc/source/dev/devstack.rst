@@ -1,6 +1,12 @@
-===============
-DevStack Plugin
-===============
+..
+      Except where otherwise noted, this document is licensed under Creative
+      Commons Attribution 3.0 License.  You can view the license at:
+
+          https://creativecommons.org/licenses/by/3.0/
+
+=============================================
+Set up a development environment via DevStack
+=============================================
 
 Watcher is currently able to optimize compute resources - specifically Nova
 compute hosts - via operations such as live migrations.  In order for you to
