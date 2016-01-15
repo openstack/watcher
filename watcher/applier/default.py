@@ -17,24 +17,23 @@
 # limitations under the License.
 #
 
-from watcher.applier.base import BaseApplier
-from watcher.applier.execution.executor import ActionPlanExecutor
-from watcher.objects import Action
-from watcher.objects import ActionPlan
+from watcher.applier import base
+from watcher.applier.execution import default
+from watcher import objects
 
 
-class DefaultApplier(BaseApplier):
+class DefaultApplier(base.BaseApplier):
     def __init__(self, manager_applier, context):
         super(DefaultApplier, self).__init__()
         self.manager_applier = manager_applier
         self.context = context
-        self.executor = ActionPlanExecutor(manager_applier, context)
+        self.executor = default.DefaultActionPlanExecutor(manager_applier,
+                                                          context)
 
     def execute(self, action_plan_uuid):
-        action_plan = ActionPlan.get_by_uuid(self.context, action_plan_uuid)
+        action_plan = objects.ActionPlan.get_by_uuid(self.context,
+                                                     action_plan_uuid)
         # todo(jed) remove direct access to dbapi need filter in object
-        actions = Action.dbapi.get_action_list(self.context,
-                                               filters={
-                                                   'action_plan_id':
-                                                       action_plan.id})
+        filters = {'action_plan_id': action_plan.id}
+        actions = objects.Action.dbapi.get_action_list(self.context, filters)
         return self.executor.execute(actions)

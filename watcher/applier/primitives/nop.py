@@ -20,21 +20,22 @@
 from oslo_log import log
 
 
-from watcher.applier.primitives.base import BasePrimitive
-from watcher.applier.promise import Promise
+from watcher.applier.primitives import base
+from watcher.applier import promise
 
 
 LOG = log.getLogger(__name__)
 
 
-class Nop(BasePrimitive):
+class Nop(base.BasePrimitive):
 
-    @Promise
+    @promise.Promise
     def execute(self):
-        LOG.debug("executing NOP command")
+        LOG.debug("executing action NOP message:%s ",
+                  self.input_parameters.get('message'))
         return True
 
-    @Promise
+    @promise.Promise
     def undo(self):
-        LOG.debug("undo NOP command")
+        LOG.debug("undo action NOP")
         return True

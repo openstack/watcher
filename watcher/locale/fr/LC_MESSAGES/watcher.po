@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher 0.21.1.dev32\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-14 14:51+0100\n"
+"POT-Creation-Date: 2016-01-15 10:25+0100\n"
 "PO-Revision-Date: 2015-12-11 15:42+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -71,7 +71,11 @@ msgstr ""
 msgid "Error parsing HTTP response: %s"
 msgstr ""
 
-#: watcher/applier/primitives/change_nova_service_state.py:75
+#: watcher/applier/execution/default.py:52
+msgid "Trigger a rollback"
+msgstr ""
+
+#: watcher/applier/primitives/change_nova_service_state.py:66
 msgid "The target state is not defined"
 msgstr ""
 
@@ -261,11 +265,12 @@ msgid "the cluster state is not defined"
 msgstr ""
 
 #: watcher/common/exception.py:295
-msgid "The VM could not be found"
-msgstr ""
+#, python-format
+msgid "The instance '%(name)s' is not found"
+msgstr "L'instance '%(name)s' n'a pas été trouvée"
 
 #: watcher/common/exception.py:299
-msgid "The hypervisor could not be found"
+msgid "The hypervisor is not found"
 msgstr ""
 
 #: watcher/common/exception.py:303
@@ -348,7 +353,7 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/planner/default.py:86
+#: watcher/decision_engine/planner/default.py:75
 msgid "The action plan is empty"
 msgstr ""
 
@@ -534,5 +539,11 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "The Meta-Action could not be found"
+#~ msgstr ""
+
+#~ msgid "The VM could not be found"
+#~ msgstr ""
+
+#~ msgid "The hypervisor could not be found"
 #~ msgstr ""
 

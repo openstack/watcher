@@ -291,12 +291,12 @@ class ClusterStateNotDefined(WatcherException):
 
 # Model
 
-class VMNotFound(WatcherException):
-    message = _("The VM could not be found")
+class InstanceNotFound(WatcherException):
+    message = _("The instance '%(name)s' is not found")
 
 
 class HypervisorNotFound(WatcherException):
-    message = _("The hypervisor could not be found")
+    message = _("The hypervisor is not found")
 
 
 class LoadingError(WatcherException):

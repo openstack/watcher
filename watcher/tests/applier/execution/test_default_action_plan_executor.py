@@ -18,21 +18,17 @@
 #
 import mock
 
-from watcher.applier.execution.executor import ActionPlanExecutor
-from watcher import objects
-
+from watcher.applier.execution import default
 from watcher.common import utils
-from watcher.decision_engine.planner.default import Primitives
-from watcher.objects.action import Action
-from watcher.objects.action import Status
-from watcher.tests.db.base import DbTestCase
+from watcher import objects
+from watcher.tests.db import base
 
 
-class TestCommandExecutor(DbTestCase):
+class TestDefaultActionPlanExecutor(base.DbTestCase):
     def setUp(self):
-        super(TestCommandExecutor, self).setUp()
-        self.applier = mock.MagicMock()
-        self.executor = ActionPlanExecutor(self.applier, self.context)
+        super(TestDefaultActionPlanExecutor, self).setUp()
+        self.executor = default.DefaultActionPlanExecutor(mock.MagicMock(),
+                                                          self.context)
 
     def test_execute(self):
         actions = mock.MagicMock()
@@ -44,19 +40,17 @@ class TestCommandExecutor(DbTestCase):
         action = {
             'uuid': utils.generate_uuid(),
             'action_plan_id': 0,
-            'action_type': Primitives.NOP.value,
+            'action_type': "nop",
             'applies_to': '',
-            'src': '',
-            'dst': '',
-            'parameter': '',
-            'description': '',
-            'state': Status.PENDING,
+            'input_parameters': {'state': 'OFFLINE'},
+            'state': objects.action.Status.PENDING,
             'alarm': None,
             'next': None,
         }
         new_action = objects.Action(self.context, **action)
         new_action.create(self.context)
         new_action.save()
-        actions.append(Action.get_by_uuid(self.context, action['uuid']))
+        actions.append(objects.Action.get_by_uuid(self.context,
+                                                  action['uuid']))
         result = self.executor.execute(actions)
         self.assertEqual(result, True)
