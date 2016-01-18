@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-from watcher.decision_engine.model.diskInfo import DiskInfo
+from watcher.decision_engine.model.disk_info import DiskInfo
 from watcher.tests import base
 
 
