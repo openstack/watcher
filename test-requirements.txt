@@ -8,17 +8,13 @@ doc8 # Apache-2.0
 hacking>=0.10.2,<0.11
 mock>=1.2
 oslotest>=1.10.0  # Apache-2.0
-os-testr>=0.1.0
+os-testr>=0.4.1
 python-subunit>=0.0.18
 testrepository>=0.0.18
 testscenarios>=0.4
 testtools>=1.4.0
 
 # Doc requirements
-oslosphinx>=2.5.0 # Apache-2.0
+oslosphinx>=2.5.0,!=3.4.0  # Apache-2.0
 sphinx>=1.1.2,!=1.2.0,!=1.3b1,<1.3
 sphinxcontrib-pecanwsme>=0.8
-
-# For PyPI distribution
-twine
-
