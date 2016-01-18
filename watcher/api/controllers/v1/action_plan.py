@@ -284,9 +284,9 @@ class ActionPlansController(rest.RestController):
             sort_key=sort_key,
             sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, types.uuid,
-                         int, wtypes.text, wtypes.text, types.uuid)
-    def get_all(self, action_plan_uuid=None, marker=None, limit=None,
+    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
+                         wtypes.text, types.uuid)
+    def get_all(self, marker=None, limit=None,
                 sort_key='id', sort_dir='asc', audit_uuid=None):
         """Retrieve a list of action plans.
 
@@ -300,14 +300,12 @@ class ActionPlansController(rest.RestController):
         return self._get_action_plans_collection(
             marker, limit, sort_key, sort_dir, audit_uuid=audit_uuid)
 
-    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, types.uuid,
-                         int, wtypes.text, wtypes.text, types.uuid)
-    def detail(self, action_plan_uuid=None, marker=None, limit=None,
+    @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
+                         wtypes.text, types.uuid)
+    def detail(self, marker=None, limit=None,
                sort_key='id', sort_dir='asc', audit_uuid=None):
         """Retrieve a list of action_plans with detail.
 
-        :param action_plan_uuid: UUID of a action plan, to get only
-            action_plans for that action.
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
