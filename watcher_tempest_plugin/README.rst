@@ -84,6 +84,9 @@ For Keystone V2::
     admin_password = <ADMIN_PASSWORD>
     auth_version = v2
 
+In both cases::
+    public_network_id = <PUBLIC_NETWORK_ID>
+
 
 For more information, please refer to:
 
