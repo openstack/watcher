@@ -40,20 +40,15 @@ CONF = cfg.CONF
 CONF.register_opts(exc_log_opts)
 
 
-def _cleanse_dict(original):
-    """Strip all admin_password, new_pass, rescue_pass keys from a dict"""
-    return dict((k, v) for k, v in original.items() if "_pass" not in k)
-
-
 class WatcherException(Exception):
     """Base Watcher Exception
 
     To correctly use this class, inherit from it and define
-    a 'message' property. That message will get printf'd
+    a 'msg_fmt' property. That msg_fmt will get printf'd
     with the keyword arguments provided to the constructor.
 
     """
-    message = _("An unknown exception occurred")
+    msg_fmt = _("An unknown exception occurred")
     code = 500
     headers = {}
     safe = False
@@ -69,10 +64,9 @@ class WatcherException(Exception):
 
         if not message:
             try:
-                message = self.message % kwargs
-
+                message = self.msg_fmt % kwargs
             except Exception as e:
-                # kwargs doesn't match a variable in the message
+                # kwargs doesn't match a variable in msg_fmt
                 # log the issue and the kwargs
                 LOG.exception(_LE('Exception in string format operation'))
                 for name, value in kwargs.items():
@@ -81,8 +75,8 @@ class WatcherException(Exception):
                 if CONF.fatal_exception_format_errors:
                     raise e
                 else:
-                    # at least get the core message out if something happened
-                    message = self.message
+                    # at least get the core msg_fmt out if something happened
+                    message = self.msg_fmt
 
         super(WatcherException, self).__init__(message)
 
@@ -94,7 +88,7 @@ class WatcherException(Exception):
             return self.args[0]
 
     def __unicode__(self):
-        return self.message
+        return unicode(self.args[0])
 
     def format_message(self):
         if self.__class__.__name__.endswith('_Remote'):
@@ -104,114 +98,114 @@ class WatcherException(Exception):
 
 
 class NotAuthorized(WatcherException):
-    message = _("Not authorized")
+    msg_fmt = _("Not authorized")
     code = 403
 
 
 class OperationNotPermitted(NotAuthorized):
-    message = _("Operation not permitted")
+    msg_fmt = _("Operation not permitted")
 
 
 class Invalid(WatcherException):
-    message = _("Unacceptable parameters")
+    msg_fmt = _("Unacceptable parameters")
     code = 400
 
 
 class ObjectNotFound(WatcherException):
-    message = _("The %(name)s %(id)s could not be found")
+    msg_fmt = _("The %(name)s %(id)s could not be found")
 
 
 class Conflict(WatcherException):
-    message = _('Conflict')
+    msg_fmt = _('Conflict')
     code = 409
 
 
 class ResourceNotFound(ObjectNotFound):
-    message = _("The %(name)s resource %(id)s could not be found")
+    msg_fmt = _("The %(name)s resource %(id)s could not be found")
     code = 404
 
 
 class InvalidIdentity(Invalid):
-    message = _("Expected an uuid or int but received %(identity)s")
+    msg_fmt = _("Expected an uuid or int but received %(identity)s")
 
 
 class InvalidGoal(Invalid):
-    message = _("Goal %(goal)s is not defined in Watcher configuration file")
+    msg_fmt = _("Goal %(goal)s is not defined in Watcher configuration file")
 
 
 # Cannot be templated as the error syntax varies.
 # msg needs to be constructed when raised.
 class InvalidParameterValue(Invalid):
-    message = _("%(err)s")
+    msg_fmt = _("%(err)s")
 
 
 class InvalidUUID(Invalid):
-    message = _("Expected a uuid but received %(uuid)s")
+    msg_fmt = _("Expected a uuid but received %(uuid)s")
 
 
 class InvalidName(Invalid):
-    message = _("Expected a logical name but received %(name)s")
+    msg_fmt = _("Expected a logical name but received %(name)s")
 
 
 class InvalidUuidOrName(Invalid):
-    message = _("Expected a logical name or uuid but received %(name)s")
+    msg_fmt = _("Expected a logical name or uuid but received %(name)s")
 
 
 class AuditTemplateNotFound(ResourceNotFound):
-    message = _("AuditTemplate %(audit_template)s could not be found")
+    msg_fmt = _("AuditTemplate %(audit_template)s could not be found")
 
 
 class AuditTemplateAlreadyExists(Conflict):
-    message = _("An audit_template with UUID %(uuid)s or name %(name)s "
+    msg_fmt = _("An audit_template with UUID %(uuid)s or name %(name)s "
                 "already exists")
 
 
 class AuditTemplateReferenced(Invalid):
-    message = _("AuditTemplate %(audit_template)s is referenced by one or "
+    msg_fmt = _("AuditTemplate %(audit_template)s is referenced by one or "
                 "multiple audit")
 
 
 class AuditNotFound(ResourceNotFound):
-    message = _("Audit %(audit)s could not be found")
+    msg_fmt = _("Audit %(audit)s could not be found")
 
 
 class AuditAlreadyExists(Conflict):
-    message = _("An audit with UUID %(uuid)s already exists")
+    msg_fmt = _("An audit with UUID %(uuid)s already exists")
 
 
 class AuditReferenced(Invalid):
-    message = _("Audit %(audit)s is referenced by one or multiple action "
+    msg_fmt = _("Audit %(audit)s is referenced by one or multiple action "
                 "plans")
 
 
 class ActionPlanNotFound(ResourceNotFound):
-    message = _("ActionPlan %(action plan)s could not be found")
+    msg_fmt = _("ActionPlan %(action plan)s could not be found")
 
 
 class ActionPlanAlreadyExists(Conflict):
-    message = _("An action plan with UUID %(uuid)s already exists")
+    msg_fmt = _("An action plan with UUID %(uuid)s already exists")
 
 
 class ActionPlanReferenced(Invalid):
-    message = _("Action Plan %(action_plan)s is referenced by one or "
+    msg_fmt = _("Action Plan %(action_plan)s is referenced by one or "
                 "multiple actions")
 
 
 class ActionNotFound(ResourceNotFound):
-    message = _("Action %(action)s could not be found")
+    msg_fmt = _("Action %(action)s could not be found")
 
 
 class ActionAlreadyExists(Conflict):
-    message = _("An action with UUID %(uuid)s already exists")
+    msg_fmt = _("An action with UUID %(uuid)s already exists")
 
 
 class ActionReferenced(Invalid):
-    message = _("Action plan %(action_plan)s is referenced by one or "
+    msg_fmt = _("Action plan %(action_plan)s is referenced by one or "
                 "multiple goals")
 
 
 class ActionFilterCombinationProhibited(Invalid):
-    message = _("Filtering actions on both audit and action-plan is "
+    msg_fmt = _("Filtering actions on both audit and action-plan is "
                 "prohibited")
 
 
@@ -220,7 +214,7 @@ class HTTPNotFound(ResourceNotFound):
 
 
 class PatchError(Invalid):
-    message = _("Couldn't apply patch '%(patch)s'. Reason: %(reason)s")
+    msg_fmt = _("Couldn't apply patch '%(patch)s'. Reason: %(reason)s")
 
 
 # decision engine
@@ -274,30 +268,30 @@ class NoDataFound(BaseException):
 
 
 class KeystoneFailure(WatcherException):
-    message = _("'Keystone API endpoint is missing''")
+    msg_fmt = _("'Keystone API endpoint is missing''")
 
 
 class ClusterEmpty(WatcherException):
-    message = _("The list of hypervisor(s) in the cluster is empty")
+    msg_fmt = _("The list of hypervisor(s) in the cluster is empty")
 
 
 class MetricCollectorNotDefined(WatcherException):
-    message = _("The metrics resource collector is not defined")
+    msg_fmt = _("The metrics resource collector is not defined")
 
 
 class ClusterStateNotDefined(WatcherException):
-    message = _("the cluster state is not defined")
+    msg_fmt = _("the cluster state is not defined")
 
 
 # Model
 
 class InstanceNotFound(WatcherException):
-    message = _("The instance '%(name)s' is not found")
+    msg_fmt = _("The instance '%(name)s' is not found")
 
 
 class HypervisorNotFound(WatcherException):
-    message = _("The hypervisor is not found")
+    msg_fmt = _("The hypervisor is not found")
 
 
 class LoadingError(WatcherException):
-    message = _("Error loading plugin '%(name)s'")
+    msg_fmt = _("Error loading plugin '%(name)s'")
