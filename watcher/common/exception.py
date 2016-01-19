@@ -220,51 +220,16 @@ class PatchError(Invalid):
 # decision engine
 
 
-class BaseException(Exception):
-
-    def __init__(self, desc=""):
-        if (not isinstance(desc, six.string_types)):
-            raise ValueError(_("Description must be an instance of str"))
-
-        desc = desc.strip()
-
-        self._desc = desc
-
-    def get_description(self):
-        return self._desc
-
-    def get_message(self):
-        return _("An exception occurred without a description")
-
-    def __str__(self):
-        return self.get_message()
+class IllegalArgumentException(WatcherException):
+    msg_fmt = _('Illegal argument')
 
 
-class IllegalArgumentException(BaseException):
-    def __init__(self, desc):
-        desc = desc or _("Description cannot be empty")
-        super(IllegalArgumentException, self).__init__(desc)
-
-    def get_message(self):
-        return self._desc
+class NoSuchMetric(WatcherException):
+    msg_fmt = _('No such metric')
 
 
-class NoSuchMetric(BaseException):
-    def __init__(self, desc):
-        desc = desc or _("No such metric")
-        super(NoSuchMetric, self).__init__(desc)
-
-    def get_message(self):
-        return self._desc
-
-
-class NoDataFound(BaseException):
-    def __init__(self, desc):
-        desc = desc or _("No rows were returned")
-        super(NoDataFound, self).__init__(desc)
-
-    def get_message(self):
-        return self._desc
+class NoDataFound(WatcherException):
+    msg_fmt = _('No rows were returned')
 
 
 class KeystoneFailure(WatcherException):

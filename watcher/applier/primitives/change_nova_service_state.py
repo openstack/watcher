@@ -63,7 +63,7 @@ class ChangeNovaServiceState(base.BasePrimitive):
     def nova_manage_service(self, state):
         if state is None:
             raise exception.IllegalArgumentException(
-                _("The target state is not defined"))
+                message=_("The target state is not defined"))
 
         keystone = kclient.KeystoneClient()
         wrapper = nclient.NovaClient(keystone.get_credentials(),
