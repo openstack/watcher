@@ -215,6 +215,7 @@ class AuditCollection(collection.Collection):
     """A list containing audits objects"""
 
     def __init__(self, **kwargs):
+        super(AuditCollection, self).__init__()
         self._type = 'audits'
 
     @staticmethod

@@ -164,6 +164,7 @@ class AuditTemplateCollection(collection.Collection):
     """A list containing audit templates objects"""
 
     def __init__(self, **kwargs):
+        super(AuditTemplateCollection, self).__init__()
         self._type = 'audit_templates'
 
     @staticmethod
