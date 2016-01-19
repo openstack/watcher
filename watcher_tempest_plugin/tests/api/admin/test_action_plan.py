@@ -80,10 +80,10 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
-        # Execute the action by changing its state to STARTING
+        # Execute the action by changing its state to TRIGGERED
         _, updated_ap = self.client.update_action_plan(
             action_plan['uuid'],
-            patch=[{'path': '/state', 'op': 'replace', 'value': 'STARTING'}]
+            patch=[{'path': '/state', 'op': 'replace', 'value': 'TRIGGERED'}]
         )
 
         self.assertTrue(test.call_until_true(
@@ -94,7 +94,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         ))
         _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
 
-        self.assertIn(updated_ap['state'], ('STARTING', 'ONGOING'))
+        self.assertIn(updated_ap['state'], ('TRIGGERED', 'ONGOING'))
         self.assertEqual(finished_ap['state'], 'SUCCEEDED')
 
 

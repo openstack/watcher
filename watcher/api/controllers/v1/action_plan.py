@@ -386,7 +386,8 @@ class ActionPlansController(rest.RestController):
             if action_plan_to_update[field] != patch_val:
                 action_plan_to_update[field] = patch_val
 
-            if field == 'state' and patch_val == 'STARTING':
+            if (field == 'state'
+                    and patch_val == objects.action_plan.State.TRIGGERED):
                 launch_action_plan = True
 
         action_plan_to_update.save()

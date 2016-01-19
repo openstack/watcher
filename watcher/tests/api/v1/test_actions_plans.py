@@ -419,7 +419,7 @@ class TestPatch(api_base.FunctionalTest):
     def test_replace_ok_state_starting(self):
         with mock.patch.object(aapi.ApplierAPI,
                                'launch_action_plan') as applier_mock:
-            new_state = 'STARTING'
+            new_state = objects.action_plan.State.TRIGGERED
             response = self.get_json(
                 '/action_plans/%s' % self.action_plan.uuid)
             self.assertNotEqual(new_state, response['state'])
