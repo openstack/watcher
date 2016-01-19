@@ -55,7 +55,7 @@ from watcher.objects import base
 from watcher.objects import utils as obj_utils
 
 
-class AuditStatus(object):
+class State(object):
     ONGOING = 'ONGOING'
     SUCCEEDED = 'SUCCEEDED'
     SUBMITTED = 'SUBMITTED'

@@ -443,7 +443,7 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual(urlparse.urlparse(response.location).path,
                          expected_location)
         self.assertEqual(audit_dict['uuid'], response.json['uuid'])
-        self.assertEqual(objects.audit.AuditStatus.PENDING,
+        self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertNotIn('updated_at', response.json.keys)
         self.assertNotIn('deleted_at', response.json.keys)
@@ -492,7 +492,7 @@ class TestPost(api_base.FunctionalTest):
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(201, response.status_int)
-        self.assertEqual(objects.audit.AuditStatus.PENDING,
+        self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 

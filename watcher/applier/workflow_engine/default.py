@@ -100,13 +100,13 @@ class TaskFlowActionContainer(task.Task):
     def pre_execute(self):
         try:
             self.engine.notify(self._db_action,
-                               obj_action.Status.ONGOING)
+                               obj_action.State.ONGOING)
             LOG.debug("Precondition action %s", self.name)
             self.action.precondition()
         except Exception as e:
             LOG.exception(e)
             self.engine.notify(self._db_action,
-                               obj_action.Status.FAILED)
+                               obj_action.State.FAILED)
             raise
 
     def execute(self, *args, **kwargs):
@@ -117,17 +117,17 @@ class TaskFlowActionContainer(task.Task):
             result = self.action.execute()
             if result is not True:
                 self.engine.notify(self._db_action,
-                                   obj_action.Status.FAILED)
+                                   obj_action.State.FAILED)
             else:
                 self.engine.notify(self._db_action,
-                                   obj_action.Status.SUCCEEDED)
+                                   obj_action.State.SUCCEEDED)
         except Exception as e:
             LOG.exception(e)
             LOG.error(_LE('The WorkFlow Engine has failed '
                           'to execute the action %s'), self.name)
 
             self.engine.notify(self._db_action,
-                               obj_action.Status.FAILED)
+                               obj_action.State.FAILED)
             raise
 
     def post_execute(self):
@@ -137,7 +137,7 @@ class TaskFlowActionContainer(task.Task):
         except Exception as e:
             LOG.exception(e)
             self.engine.notify(self._db_action,
-                               obj_action.Status.FAILED)
+                               obj_action.State.FAILED)
             raise
 
     def revert(self, *args, **kwargs):

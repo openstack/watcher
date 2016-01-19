@@ -69,7 +69,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             'action_type': action_type,
             'applies_to': applies_to,
             'input_parameters': parameters,
-            'state': objects.action.Status.PENDING,
+            'state': objects.action.State.PENDING,
             'alarm': None,
             'next': next,
         }
@@ -95,7 +95,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions = [self.create_action("nop", "", {'message': 'test'}, None)]
         result = self.engine.execute(actions)
         self.assertEqual(result, True)
-        self.check_actions_state(actions, objects.action.Status.SUCCEEDED)
+        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_two_actions(self):
         actions = []
@@ -107,16 +107,16 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         result = self.engine.execute(actions)
         self.assertEqual(result, True)
-        self.check_actions_state(actions, objects.action.Status.SUCCEEDED)
+        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_three_actions(self):
         actions = []
         next2 = self.create_action("nop", "vm1", {'message': 'next'}, None)
         next = self.create_action("sleep", "vm1", {'duration': '0'}, next2.id)
         first = self.create_action("nop", "vm1", {'message': 'hello'}, next.id)
-        self.check_action_state(first, objects.action.Status.PENDING)
-        self.check_action_state(next, objects.action.Status.PENDING)
-        self.check_action_state(next2, objects.action.Status.PENDING)
+        self.check_action_state(first, objects.action.State.PENDING)
+        self.check_action_state(next, objects.action.State.PENDING)
+        self.check_action_state(next2, objects.action.State.PENDING)
 
         actions.append(first)
         actions.append(next)
@@ -124,7 +124,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         result = self.engine.execute(actions)
         self.assertEqual(result, True)
-        self.check_actions_state(actions, objects.action.Status.SUCCEEDED)
+        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_exception(self):
         actions = []
@@ -135,18 +135,18 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         first = self.create_action("nop", "vm1",
                                    {'message': 'hello'}, next.id)
 
-        self.check_action_state(first, objects.action.Status.PENDING)
-        self.check_action_state(next, objects.action.Status.PENDING)
-        self.check_action_state(next2, objects.action.Status.PENDING)
+        self.check_action_state(first, objects.action.State.PENDING)
+        self.check_action_state(next, objects.action.State.PENDING)
+        self.check_action_state(next2, objects.action.State.PENDING)
         actions.append(first)
         actions.append(next)
         actions.append(next2)
 
         result = self.engine.execute(actions)
         self.assertEqual(result, False)
-        self.check_action_state(first, objects.action.Status.SUCCEEDED)
-        self.check_action_state(next, objects.action.Status.SUCCEEDED)
-        self.check_action_state(next2, objects.action.Status.FAILED)
+        self.check_action_state(first, objects.action.State.SUCCEEDED)
+        self.check_action_state(next, objects.action.State.SUCCEEDED)
+        self.check_action_state(next2, objects.action.State.FAILED)
 
     @mock.patch("watcher.common.loader.default.DriverManager")
     def test_execute_with_action_exception(self, m_driver):
@@ -161,4 +161,4 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions = [self.create_action("dontcare", "vm1", {}, None)]
         result = self.engine.execute(actions)
         self.assertEqual(result, False)
-        self.check_action_state(actions[0], objects.action.Status.FAILED)
+        self.check_action_state(actions[0], objects.action.State.FAILED)

@@ -47,7 +47,7 @@ class DefaultPlanner(base.BasePlanner):
             'action_type': action_type,
             'applies_to': applies_to,
             'input_parameters': input_parameters,
-            'state': objects.action.Status.PENDING,
+            'state': objects.action.State.PENDING,
             'alarm': None,
             'next': None,
         }
@@ -99,7 +99,7 @@ class DefaultPlanner(base.BasePlanner):
             'uuid': utils.generate_uuid(),
             'audit_id': audit_id,
             'first_action_id': None,
-            'state': objects.action_plan.Status.RECOMMENDED
+            'state': objects.action_plan.State.RECOMMENDED
         }
 
         new_action_plan = objects.ActionPlan(context, **action_plan_dict)

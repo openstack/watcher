@@ -75,7 +75,7 @@ from watcher.objects import base
 from watcher.objects import utils as obj_utils
 
 
-class Status(object):
+class State(object):
     RECOMMENDED = 'RECOMMENDED'
     ONGOING = 'ONGOING'
     FAILED = 'FAILED'
