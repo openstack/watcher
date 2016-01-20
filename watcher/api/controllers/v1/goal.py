@@ -111,6 +111,7 @@ class GoalCollection(collection.Collection):
     """A list containing goals objects"""
 
     def __init__(self, **kwargs):
+        super(GoalCollection, self).__init__()
         self._type = 'goals'
 
     @staticmethod
