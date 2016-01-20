@@ -17,30 +17,16 @@
 # limitations under the License.
 #
 
-from ceilometerclient import client
 from ceilometerclient.exc import HTTPUnauthorized
 
-from watcher.common import keystone
+from watcher.common import clients
 
 
-class CeilometerClient(object):
-    def __init__(self, api_version='2'):
-        self._cmclient = None
-        self._api_version = api_version
-
-    @property
-    def cmclient(self):
-        """Initialization of Ceilometer client."""
-        if not self._cmclient:
-            ksclient = keystone.KeystoneClient()
-            creds = ksclient.get_credentials()
-            endpoint = ksclient.get_endpoint(
-                service_type='metering',
-                endpoint_type='publicURL')
-            self._cmclient = client.get_client(self._api_version,
-                                               ceilometer_url=endpoint,
-                                               **creds)
-        return self._cmclient
+class CeilometerHelper(object):
+    def __init__(self, osc=None):
+        """:param osc: an OpenStackClients instance"""
+        self.osc = osc if osc else clients.OpenStackClients()
+        self.ceilometer = self.osc.ceilometer()
 
     def build_query(self, user_id=None, tenant_id=None, resource_id=None,
                     user_ids=None, tenant_ids=None, resource_ids=None):
@@ -83,20 +69,21 @@ class CeilometerClient(object):
         try:
             return f(*args, **kargs)
         except HTTPUnauthorized:
-            self.reset_client()
+            self.osc.reset_clients()
+            self.ceilometer = self.osc.ceilometer()
             return f(*args, **kargs)
         except Exception:
             raise
 
     def query_sample(self, meter_name, query, limit=1):
-        return self.query_retry(f=self.cmclient.samples.list,
+        return self.query_retry(f=self.ceilometer.samples.list,
                                 meter_name=meter_name,
                                 limit=limit,
                                 q=query)
 
     def statistic_list(self, meter_name, query=None, period=None):
         """List of statistics."""
-        statistics = self.cmclient.statistics.list(
+        statistics = self.ceilometer.statistics.list(
             meter_name=meter_name,
             q=query,
             period=period)
@@ -104,7 +91,8 @@ class CeilometerClient(object):
 
     def meter_list(self, query=None):
         """List the user's meters."""
-        meters = self.query_retry(f=self.cmclient.meters.list, query=query)
+        meters = self.query_retry(f=self.ceilometer.meters.list,
+                                  query=query)
         return meters
 
     def statistic_aggregation(self,
@@ -125,7 +113,7 @@ class CeilometerClient(object):
         """
 
         query = self.build_query(resource_id=resource_id)
-        statistic = self.query_retry(f=self.cmclient.statistics.list,
+        statistic = self.query_retry(f=self.ceilometer.statistics.list,
                                      meter_name=meter_name,
                                      q=query,
                                      period=period,
@@ -156,6 +144,3 @@ class CeilometerClient(object):
             return samples[-1]._info['counter_volume']
         else:
             return False
-
-    def reset_client(self):
-        self._cmclient = None

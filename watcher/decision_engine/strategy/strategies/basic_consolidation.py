@@ -41,7 +41,8 @@ class BasicConsolidation(BaseStrategy):
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
+    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
+                 osc=None):
         """Basic offline Consolidation using live migration
 
     The basic consolidation algorithm has several limitations.
@@ -68,8 +69,9 @@ class BasicConsolidation(BaseStrategy):
 
         :param name: the name of the strategy
         :param description: a description of the strategy
+        :param osc: an OpenStackClients object
         """
-        super(BasicConsolidation, self).__init__(name, description)
+        super(BasicConsolidation, self).__init__(name, description, osc)
 
         # set default value for the number of released nodes
         self.number_of_released_nodes = 0
@@ -102,7 +104,7 @@ class BasicConsolidation(BaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = CeilometerClusterHistory()
+            self._ceilometer = CeilometerClusterHistory(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter

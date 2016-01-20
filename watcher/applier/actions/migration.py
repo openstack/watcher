@@ -21,8 +21,7 @@ from oslo_log import log
 
 from watcher.applier.actions import base
 from watcher.common import exception
-from watcher.common import keystone as kclient
-from watcher.common import nova as nclient
+from watcher.common import nova_helper
 
 LOG = log.getLogger(__name__)
 
@@ -45,15 +44,13 @@ class Migrate(base.BaseAction):
         return self.input_parameters.get('src_hypervisor')
 
     def migrate(self, destination):
-        keystone = kclient.KeystoneClient()
-        wrapper = nclient.NovaClient(keystone.get_credentials(),
-                                     session=keystone.get_session())
-        LOG.debug("Migrate instance %s to %s  ", self.instance_uuid,
+        nova = nova_helper.NovaHelper(osc=self.osc)
+        LOG.debug("Migrate instance %s to %s", self.instance_uuid,
                   destination)
-        instance = wrapper.find_instance(self.instance_uuid)
+        instance = nova.find_instance(self.instance_uuid)
         if instance:
             if self.migration_type == 'live':
-                return wrapper.live_migrate_instance(
+                return nova.live_migrate_instance(
                     instance_id=self.instance_uuid, dest_hostname=destination)
             else:
                 raise exception.Invalid(

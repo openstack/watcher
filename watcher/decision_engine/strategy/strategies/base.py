@@ -33,10 +33,11 @@ provided as well.
 """
 
 import abc
+
 from oslo_log import log
 import six
 
-
+from watcher.common import clients
 from watcher.decision_engine.solution.default import DefaultSolution
 from watcher.decision_engine.strategy.common.level import StrategyLevel
 
@@ -51,7 +52,8 @@ class BaseStrategy(object):
     Solution for a given Goal.
     """
 
-    def __init__(self, name=None, description=None):
+    def __init__(self, name=None, description=None, osc=None):
+        """:param osc: an OpenStackClients instance"""
         self._name = name
         self.description = description
         # default strategy level
@@ -59,6 +61,7 @@ class BaseStrategy(object):
         self._cluster_state_collector = None
         # the solution given by the strategy
         self._solution = DefaultSolution()
+        self._osc = osc
 
     @abc.abstractmethod
     def execute(self, model):
@@ -69,6 +72,12 @@ class BaseStrategy(object):
         :return: A computed solution (via a placement algorithm)
         :rtype: :class:`watcher.decision_engine.solution.base.BaseSolution`
         """
+
+    @property
+    def osc(self):
+        if not self._osc:
+            self._osc = clients.OpenStackClients()
+        return self._osc
 
     @property
     def solution(self):

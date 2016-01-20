@@ -48,11 +48,12 @@ class DefaultStrategySelector(base.BaseSelector):
         super(DefaultStrategySelector, self).__init__()
         self.strategy_loader = default.DefaultStrategyLoader()
 
-    def define_from_goal(self, goal_name):
+    def define_from_goal(self, goal_name, osc=None):
+        """:param osc: an OpenStackClients instance"""
         strategy_to_load = None
         try:
             strategy_to_load = CONF.watcher_goals.goals[goal_name]
-            return self.strategy_loader.load(strategy_to_load)
+            return self.strategy_loader.load(strategy_to_load, osc=osc)
         except KeyError as exc:
             LOG.exception(exc)
             raise exception.WatcherException(

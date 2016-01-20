@@ -21,8 +21,7 @@
 from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
-from watcher.common import keystone as kclient
-from watcher.common import nova as nclient
+from watcher.common import nova_helper
 from watcher.decision_engine.model import hypervisor_state as hstate
 
 
@@ -57,13 +56,11 @@ class ChangeNovaServiceState(base.BaseAction):
             raise exception.IllegalArgumentException(
                 message=_("The target state is not defined"))
 
-        keystone = kclient.KeystoneClient()
-        wrapper = nclient.NovaClient(keystone.get_credentials(),
-                                     session=keystone.get_session())
+        nova = nova_helper.NovaHelper(osc=self.osc)
         if state is True:
-            return wrapper.enable_service_nova_compute(self.host)
+            return nova.enable_service_nova_compute(self.host)
         else:
-            return wrapper.disable_service_nova_compute(self.host)
+            return nova.disable_service_nova_compute(self.host)
 
     def precondition(self):
         pass

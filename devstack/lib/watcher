@@ -128,14 +128,8 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
 
-    iniset $WATCHER_CONF keystone_authtoken admin_user watcher
-    iniset $WATCHER_CONF keystone_authtoken admin_password $SERVICE_PASSWORD
-    iniset $WATCHER_CONF keystone_authtoken admin_tenant_name $SERVICE_TENANT_NAME
-
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
-
-    iniset $WATCHER_CONF keystone_authtoken auth_uri $KEYSTONE_SERVICE_URI/v3
-    iniset $WATCHER_CONF keystone_authtoken auth_version v3
+    configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"
 
     if is_fedora || is_suse; then
         # watcher defaults to /usr/local/bin, but fedora and suse pip like to

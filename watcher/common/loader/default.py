@@ -31,7 +31,7 @@ class DefaultLoader(BaseLoader):
         super(DefaultLoader, self).__init__()
         self.namespace = namespace
 
-    def load(self, name):
+    def load(self, name, **kwargs):
         try:
             LOG.debug("Loading in namespace %s => %s ", self.namespace, name)
             driver_manager = DriverManager(namespace=self.namespace,
@@ -41,7 +41,7 @@ class DefaultLoader(BaseLoader):
             LOG.exception(exc)
             raise exception.LoadingError(name=name)
 
-        return loaded()
+        return loaded(**kwargs)
 
     def list_available(self):
         extension_manager = ExtensionManager(namespace=self.namespace)

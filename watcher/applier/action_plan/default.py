@@ -52,7 +52,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             self.notify(self.action_plan_uuid,
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
                         ap_objects.State.ONGOING)
-            applier = default.DefaultApplier(self.applier_manager, self.ctx)
+            applier = default.DefaultApplier(self.ctx, self.applier_manager)
             result = applier.execute(self.action_plan_uuid)
         except Exception as e:
             LOG.exception(e)

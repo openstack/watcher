@@ -28,7 +28,7 @@ CONF = cfg.CONF
 
 
 class DefaultApplier(base.BaseApplier):
-    def __init__(self, applier_manager, context):
+    def __init__(self, context, applier_manager):
         super(DefaultApplier, self).__init__()
         self._applier_manager = applier_manager
         self._loader = default.DefaultWorkFlowEngineLoader()
@@ -48,9 +48,10 @@ class DefaultApplier(base.BaseApplier):
         if self._engine is None:
             selected_workflow_engine = CONF.watcher_applier.workflow_engine
             LOG.debug("Loading workflow engine %s ", selected_workflow_engine)
-            self._engine = self._loader.load(name=selected_workflow_engine)
-            self._engine.context = self.context
-            self._engine.applier_manager = self.applier_manager
+            self._engine = self._loader.load(
+                name=selected_workflow_engine,
+                context=self.context,
+                applier_manager=self.applier_manager)
         return self._engine
 
     def execute(self, action_plan_uuid):
