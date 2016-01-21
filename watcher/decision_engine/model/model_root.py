@@ -34,12 +34,12 @@ class ModelRoot(object):
     def assert_hypervisor(self, obj):
         if not isinstance(obj, hypervisor.Hypervisor):
             raise exception.IllegalArgumentException(
-                _("'obj' argument type is not valid"))
+                message=_("'obj' argument type is not valid"))
 
     def assert_vm(self, obj):
         if not isinstance(obj, vm.VM):
             raise exception.IllegalArgumentException(
-                _("'obj' argument type is not valid"))
+                message=_("'obj' argument type is not valid"))
 
     def add_hypervisor(self, hypervisor):
         self.assert_hypervisor(hypervisor)
