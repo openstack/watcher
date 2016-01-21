@@ -451,6 +451,24 @@ class TestPost(api_base.FunctionalTest):
             response.json['created_at']).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    def test_create_audit_invalid_audit_template_uuid(self, mock_utcnow):
+        test_time = datetime.datetime(2000, 1, 1, 0, 0)
+        mock_utcnow.return_value = test_time
+
+        audit_dict = post_get_test_audit()
+        # Make the audit template UUID some garbage value
+        audit_dict['audit_template_uuid'] = (
+            '01234567-8910-1112-1314-151617181920')
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual("application/json", response.content_type)
+        expected_error_msg = ('The audit template UUID or name specified is '
+                              'invalid')
+        self.assertTrue(response.json['error_message'])
+        self.assertTrue(expected_error_msg in response.json['error_message'])
+
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_doesnt_contain_id(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
