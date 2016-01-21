@@ -77,21 +77,45 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
-from watcher.applier.rpcapi import ApplierAPI
+from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher import objects
+from watcher.objects import action_plan as ap_objects
 
 
 class ActionPlanPatchType(types.JsonPatchType):
 
     @staticmethod
+    def _validate_state(patch):
+        serialized_patch = {'path': patch.path, 'op': patch.op}
+        if patch.value is not wsme.Unset:
+            serialized_patch['value'] = patch.value
+        # todo: use state machines to handle state transitions
+        state_value = patch.value
+        if state_value and not hasattr(ap_objects.State, state_value):
+            msg = _("Invalid state: %(state)s")
+            raise exception.PatchError(
+                patch=serialized_patch, reason=msg % dict(state=state_value))
+
+    @staticmethod
+    def validate(patch):
+        if patch.path == "/state":
+            ActionPlanPatchType._validate_state(patch)
+        return types.JsonPatchType.validate(patch)
+
+    @staticmethod
+    def internal_attrs():
+        return types.JsonPatchType.internal_attrs()
+
+    @staticmethod
     def mandatory_attrs():
-        return []
+        return ["audit_id", "state", "first_action_id"]
 
 
 class ActionPlan(base.APIBase):
@@ -374,6 +398,34 @@ class ActionPlansController(rest.RestController):
             raise exception.PatchError(patch=patch, reason=e)
 
         launch_action_plan = False
+
+        # transitions that are allowed via PATCH
+        allowed_patch_transitions = [
+            (ap_objects.State.RECOMMENDED,
+             ap_objects.State.TRIGGERED),
+            (ap_objects.State.RECOMMENDED,
+             ap_objects.State.CANCELLED),
+            (ap_objects.State.ONGOING,
+             ap_objects.State.CANCELLED),
+            (ap_objects.State.TRIGGERED,
+             ap_objects.State.CANCELLED),
+        ]
+
+        # todo: improve this in blueprint watcher-api-validation
+        if hasattr(action_plan, 'state'):
+            transition = (action_plan_to_update.state, action_plan.state)
+            if transition not in allowed_patch_transitions:
+                error_message = _("State transition not allowed: "
+                                  "(%(initial_state)s -> %(new_state)s)")
+                raise exception.PatchError(
+                    patch=patch,
+                    reason=error_message % dict(
+                        initial_state=action_plan_to_update.state,
+                        new_state=action_plan.state))
+
+            if action_plan.state == ap_objects.State.TRIGGERED:
+                launch_action_plan = True
+
         # Update only the fields that have changed
         for field in objects.ActionPlan.fields:
             try:
@@ -393,7 +445,7 @@ class ActionPlansController(rest.RestController):
         action_plan_to_update.save()
 
         if launch_action_plan:
-            applier_client = ApplierAPI()
+            applier_client = rpcapi.ApplierAPI()
             applier_client.launch_action_plan(pecan.request.context,
                                               action_plan.uuid)
 

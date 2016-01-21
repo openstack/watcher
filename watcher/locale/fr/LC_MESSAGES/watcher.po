@@ -19,6 +19,16 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.1.1\n"
 
+#: watcher/api/controllers/v1/action_plan.py:102
+#, python-format
+msgid "Invalid state: %(state)s"
+msgstr "État invalide : %(state)s"
+
+#: watcher/api/controllers/v1/action_plan.py:418
+#, python-format
+msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
+msgstr "Transition d'état non autorisée : (%(initial_state)s -> %(new_state)s)"
+
 #: watcher/api/controllers/v1/types.py:148
 #, python-format
 msgid "%s is not JSON serializable"
@@ -363,7 +373,7 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/planner/default.py:76
+#: watcher/decision_engine/planner/default.py:75
 msgid "The action plan is empty"
 msgstr ""
 

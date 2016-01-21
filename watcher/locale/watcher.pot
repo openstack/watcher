@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.22.1.dev28\n"
+"Project-Id-Version: python-watcher 0.22.1.dev49\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-19 17:54+0100\n"
+"POT-Creation-Date: 2016-01-22 10:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,20 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.1.1\n"
+
+#: watcher/api/controllers/v1/action_plan.py:102
+#, python-format
+msgid "Invalid state: %(state)s"
+msgstr ""
+
+#: watcher/api/controllers/v1/action_plan.py:416
+#, python-format
+msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
+msgstr ""
+
+#: watcher/api/controllers/v1/audit.py:359
+msgid "The audit template UUID or name specified is invalid"
+msgstr ""
 
 #: watcher/api/controllers/v1/types.py:148
 #, python-format
@@ -65,7 +79,7 @@ msgstr ""
 msgid "ErrorDocumentMiddleware received an invalid status %s"
 msgstr ""
 
-#: watcher/api/middleware/parsable_error.py:80
+#: watcher/api/middleware/parsable_error.py:79
 #, python-format
 msgid "Error parsing HTTP response: %s"
 msgstr ""
@@ -74,17 +88,17 @@ msgstr ""
 msgid "The target state is not defined"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:69
+#: watcher/applier/workflow_engine/default.py:126
 #, python-format
 msgid "The WorkFlow Engine has failed to execute the action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:77
+#: watcher/applier/workflow_engine/default.py:144
 #, python-format
 msgid "Revert action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:83
+#: watcher/applier/workflow_engine/default.py:150
 msgid "Oops! We need disaster recover plan"
 msgstr ""
 
@@ -104,184 +118,176 @@ msgstr ""
 msgid "serving on http://%(host)s:%(port)s"
 msgstr ""
 
-#: watcher/common/exception.py:56
+#: watcher/common/exception.py:51
 msgid "An unknown exception occurred"
 msgstr ""
 
-#: watcher/common/exception.py:77
+#: watcher/common/exception.py:71
 msgid "Exception in string format operation"
 msgstr ""
 
-#: watcher/common/exception.py:107
+#: watcher/common/exception.py:101
 msgid "Not authorized"
 msgstr ""
 
-#: watcher/common/exception.py:112
+#: watcher/common/exception.py:106
 msgid "Operation not permitted"
 msgstr ""
 
-#: watcher/common/exception.py:116
+#: watcher/common/exception.py:110
 msgid "Unacceptable parameters"
 msgstr ""
 
-#: watcher/common/exception.py:121
+#: watcher/common/exception.py:115
 #, python-format
 msgid "The %(name)s %(id)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:125
+#: watcher/common/exception.py:119
 msgid "Conflict"
 msgstr ""
 
-#: watcher/common/exception.py:130
+#: watcher/common/exception.py:124
 #, python-format
 msgid "The %(name)s resource %(id)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:135
+#: watcher/common/exception.py:129
 #, python-format
 msgid "Expected an uuid or int but received %(identity)s"
 msgstr ""
 
-#: watcher/common/exception.py:139
+#: watcher/common/exception.py:133
 #, python-format
 msgid "Goal %(goal)s is not defined in Watcher configuration file"
 msgstr ""
 
-#: watcher/common/exception.py:145
+#: watcher/common/exception.py:139
 #, python-format
 msgid "%(err)s"
 msgstr ""
 
-#: watcher/common/exception.py:149
+#: watcher/common/exception.py:143
 #, python-format
 msgid "Expected a uuid but received %(uuid)s"
 msgstr ""
 
-#: watcher/common/exception.py:153
+#: watcher/common/exception.py:147
 #, python-format
 msgid "Expected a logical name but received %(name)s"
 msgstr ""
 
-#: watcher/common/exception.py:157
+#: watcher/common/exception.py:151
 #, python-format
 msgid "Expected a logical name or uuid but received %(name)s"
 msgstr ""
 
-#: watcher/common/exception.py:161
+#: watcher/common/exception.py:155
 #, python-format
 msgid "AuditTemplate %(audit_template)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:165
+#: watcher/common/exception.py:159
 #, python-format
 msgid "An audit_template with UUID %(uuid)s or name %(name)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:170
+#: watcher/common/exception.py:164
 #, python-format
 msgid "AuditTemplate %(audit_template)s is referenced by one or multiple audit"
 msgstr ""
 
-#: watcher/common/exception.py:175
+#: watcher/common/exception.py:169
 #, python-format
 msgid "Audit %(audit)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:179
+#: watcher/common/exception.py:173
 #, python-format
 msgid "An audit with UUID %(uuid)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:183
+#: watcher/common/exception.py:177
 #, python-format
 msgid "Audit %(audit)s is referenced by one or multiple action plans"
 msgstr ""
 
-#: watcher/common/exception.py:188
+#: watcher/common/exception.py:182
 msgid "ActionPlan %(action plan)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:192
+#: watcher/common/exception.py:186
 #, python-format
 msgid "An action plan with UUID %(uuid)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:196
+#: watcher/common/exception.py:190
 #, python-format
 msgid "Action Plan %(action_plan)s is referenced by one or multiple actions"
 msgstr ""
 
-#: watcher/common/exception.py:201
+#: watcher/common/exception.py:195
 #, python-format
 msgid "Action %(action)s could not be found"
 msgstr ""
 
-#: watcher/common/exception.py:205
+#: watcher/common/exception.py:199
 #, python-format
 msgid "An action with UUID %(uuid)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:209
+#: watcher/common/exception.py:203
 #, python-format
 msgid "Action plan %(action_plan)s is referenced by one or multiple goals"
 msgstr ""
 
-#: watcher/common/exception.py:214
+#: watcher/common/exception.py:208
 msgid "Filtering actions on both audit and action-plan is prohibited"
 msgstr ""
 
-#: watcher/common/exception.py:223
+#: watcher/common/exception.py:217
 #, python-format
 msgid "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
 msgstr ""
 
-#: watcher/common/exception.py:233
-msgid "Description must be an instance of str"
+#: watcher/common/exception.py:224
+msgid "Illegal argument"
 msgstr ""
 
-#: watcher/common/exception.py:243
-msgid "An exception occurred without a description"
-msgstr ""
-
-#: watcher/common/exception.py:251
-msgid "Description cannot be empty"
-msgstr ""
-
-#: watcher/common/exception.py:260
+#: watcher/common/exception.py:228
 msgid "No such metric"
 msgstr ""
 
-#: watcher/common/exception.py:269
+#: watcher/common/exception.py:232
 msgid "No rows were returned"
 msgstr ""
 
-#: watcher/common/exception.py:277
+#: watcher/common/exception.py:236
 msgid "'Keystone API endpoint is missing''"
 msgstr ""
 
-#: watcher/common/exception.py:281
+#: watcher/common/exception.py:240
 msgid "The list of hypervisor(s) in the cluster is empty"
 msgstr ""
 
-#: watcher/common/exception.py:285
+#: watcher/common/exception.py:244
 msgid "The metrics resource collector is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:289
+#: watcher/common/exception.py:248
 msgid "the cluster state is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:295
+#: watcher/common/exception.py:254
 #, python-format
 msgid "The instance '%(name)s' is not found"
 msgstr ""
 
-#: watcher/common/exception.py:299
+#: watcher/common/exception.py:258
 msgid "The hypervisor is not found"
 msgstr ""
 
-#: watcher/common/exception.py:303
+#: watcher/common/exception.py:262
 #, python-format
 msgid "Error loading plugin '%(name)s'"
 msgstr ""
@@ -320,7 +326,7 @@ msgstr ""
 #: watcher/common/utils.py:53
 #, python-format
 msgid ""
-"Failed to remove trailing character. Returning original object. Supplied "
+"Failed to remove trailing character. Returning original object.Supplied "
 "object is not a string: %s,"
 msgstr ""
 
@@ -376,11 +382,11 @@ msgstr ""
 msgid "No values returned by %(resource_id)s for %(metric_name)s"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:349
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:424
 msgid "Initializing Sercon Consolidation"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:406
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:468
 msgid "The workloads of the compute nodes of the cluster is zero"
 msgstr ""
 

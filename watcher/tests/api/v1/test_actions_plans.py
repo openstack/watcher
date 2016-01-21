@@ -11,9 +11,11 @@
 #    limitations under the License.
 
 import datetime
+import itertools
 import mock
+
+
 from oslo_config import cfg
-from oslo_utils import timeutils
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action_plan as api_action_plan
@@ -29,7 +31,7 @@ from watcher.tests.objects import utils as obj_utils
 
 class TestActionPlanObject(base.TestCase):
 
-    def test_actionPlan_init(self):
+    def test_action_plan_init(self):
         act_plan_dict = api_utils.action_plan_post_data()
         del act_plan_dict['state']
         del act_plan_dict['audit_id']
@@ -304,7 +306,7 @@ class TestDelete(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
-    def test_delete_ction_plan_not_found(self):
+    def test_delete_action_plan_not_found(self):
         uuid = utils.generate_uuid()
         response = self.delete('/action_plans/%s' % uuid, expect_errors=True)
         self.assertEqual(404, response.status_int)
@@ -317,7 +319,7 @@ class TestPatch(api_base.FunctionalTest):
     def setUp(self):
         super(TestPatch, self).setUp()
         self.action_plan = obj_utils.create_action_plan_without_audit(
-            self.context)
+            self.context, state=objects.action_plan.State.RECOMMENDED)
         p = mock.patch.object(db_api.BaseConnection, 'update_action_plan')
         self.mock_action_plan_update = p.start()
         self.mock_action_plan_update.side_effect = \
@@ -329,52 +331,36 @@ class TestPatch(api_base.FunctionalTest):
         return action_plan
 
     @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_replace_ok(self, mock_utcnow):
+    def test_replace_denied(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        new_state = 'CANCELLED'
+        new_state = 'DELETED'
         response = self.get_json(
             '/action_plans/%s' % self.action_plan.uuid)
         self.assertNotEqual(new_state, response['state'])
 
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
-            [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+            expect_errors=True)
+
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(400, response.status_int)
+        self.assertTrue(response.json['error_message'])
 
-        response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
-        self.assertEqual(new_state, response['state'])
-        return_updated_at = timeutils.parse_isotime(
-            response['updated_at']).replace(tzinfo=None)
-        self.assertEqual(test_time, return_updated_at)
-
-    def test_replace_non_existent_action_plan(self):
+    def test_replace_non_existent_action_plan_denied(self):
         response = self.patch_json(
             '/action_plans/%s' % utils.generate_uuid(),
-            [{'path': '/state', 'value': 'CANCELLED',
-             'op': 'replace'}],
+            [{'path': '/state',
+              'value': objects.action_plan.State.TRIGGERED,
+              'op': 'replace'}],
             expect_errors=True)
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
-    def test_add_ok(self):
-        new_state = 'CANCELLED'
-        response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
-            [{'path': '/state', 'value': new_state, 'op': 'add'}])
-        self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_int)
-
-        response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
-        self.assertEqual(new_state, response['state'])
-
-    def test_add_non_existent_property(self):
+    def test_add_non_existent_property_denied(self):
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
             [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
@@ -383,22 +369,22 @@ class TestPatch(api_base.FunctionalTest):
         self.assertEqual(400, response.status_int)
         self.assertTrue(response.json['error_message'])
 
-    def test_remove_ok(self):
+    def test_remove_denied(self):
+        # We should not be able to remove the state of an action plan
         response = self.get_json(
             '/action_plans/%s' % self.action_plan.uuid)
         self.assertIsNotNone(response['state'])
 
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
-            [{'path': '/state', 'op': 'remove'}])
+            [{'path': '/state', 'op': 'remove'}],
+            expect_errors=True)
+
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(400, response.status_int)
+        self.assertTrue(response.json['error_message'])
 
-        response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
-        self.assertIsNone(response['state'])
-
-    def test_remove_uuid(self):
+    def test_remove_uuid_denied(self):
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
             [{'path': '/uuid', 'op': 'remove'}],
@@ -407,7 +393,7 @@ class TestPatch(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
-    def test_remove_non_existent_property(self):
+    def test_remove_non_existent_property_denied(self):
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
             [{'path': '/non-existent', 'op': 'remove'}],
@@ -416,19 +402,129 @@ class TestPatch(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
-    def test_replace_ok_state_starting(self):
-        with mock.patch.object(aapi.ApplierAPI,
-                               'launch_action_plan') as applier_mock:
-            new_state = objects.action_plan.State.TRIGGERED
-            response = self.get_json(
-                '/action_plans/%s' % self.action_plan.uuid)
-            self.assertNotEqual(new_state, response['state'])
+    @mock.patch.object(aapi.ApplierAPI, 'launch_action_plan')
+    def test_replace_state_triggered_ok(self, applier_mock):
+        new_state = objects.action_plan.State.TRIGGERED
+        response = self.get_json(
+            '/action_plans/%s' % self.action_plan.uuid)
+        self.assertNotEqual(new_state, response['state'])
+        response = self.patch_json(
+            '/action_plans/%s' % self.action_plan.uuid,
+            [{'path': '/state', 'value': new_state,
+             'op': 'replace'}])
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(200, response.status_code)
+        applier_mock.assert_called_once_with(mock.ANY,
+                                             self.action_plan.uuid)
 
-            response = self.patch_json(
-                '/action_plans/%s' % self.action_plan.uuid,
-                [{'path': '/state', 'value': new_state,
-                 'op': 'replace'}])
-            self.assertEqual('application/json', response.content_type)
-            self.assertEqual(200, response.status_code)
-            applier_mock.assert_called_once_with(mock.ANY,
-                                                 self.action_plan.uuid)
+
+ALLOWED_TRANSITIONS = [
+    {"original_state": objects.action_plan.State.RECOMMENDED,
+     "new_state": objects.action_plan.State.TRIGGERED},
+    {"original_state": objects.action_plan.State.RECOMMENDED,
+     "new_state": objects.action_plan.State.CANCELLED},
+    {"original_state": objects.action_plan.State.ONGOING,
+     "new_state": objects.action_plan.State.CANCELLED},
+    {"original_state": objects.action_plan.State.TRIGGERED,
+     "new_state": objects.action_plan.State.CANCELLED},
+]
+
+
+class TestPatchStateTransitionDenied(api_base.FunctionalTest):
+
+    STATES = [
+        ap_state for ap_state in objects.action_plan.State.__dict__
+        if not ap_state.startswith("_")
+    ]
+
+    scenarios = [
+        (
+            "%s -> %s" % (original_state, new_state),
+            {"original_state": original_state,
+             "new_state": new_state},
+        )
+        for original_state, new_state
+        in list(itertools.product(STATES, STATES))
+        # from DELETED to ...
+        # NOTE: Any state transition from DELETED (To RECOMMENDED, TRIGGERED,
+        # ONGOING, CANCELLED, SUCCEEDED and FAILED) will cause a 404 Not Found
+        # because we cannot retrieve them with a GET (soft_deleted state).
+        # This is the reason why they are not listed here but they have a
+        # special test to cover it
+        if original_state != objects.action_plan.State.DELETED
+        and original_state != new_state
+        and {"original_state": original_state,
+             "new_state": new_state} not in ALLOWED_TRANSITIONS
+    ]
+
+    @mock.patch.object(
+        db_api.BaseConnection, 'update_action_plan',
+        mock.Mock(side_effect=lambda ap: ap.save() or ap))
+    def test_replace_state_triggered_denied(self):
+        action_plan = obj_utils.create_action_plan_without_audit(
+            self.context, state=self.original_state)
+
+        initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+        response = self.patch_json(
+            '/action_plans/%s' % action_plan.uuid,
+            [{'path': '/state', 'value': self.new_state,
+              'op': 'replace'}],
+            expect_errors=True)
+        updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+
+        self.assertNotEqual(self.new_state, initial_ap['state'])
+        self.assertEqual(self.original_state, updated_ap['state'])
+        self.assertEqual(400, response.status_code)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+
+class TestPatchStateDeletedNotFound(api_base.FunctionalTest):
+
+    @mock.patch.object(
+        db_api.BaseConnection, 'update_action_plan',
+        mock.Mock(side_effect=lambda ap: ap.save() or ap))
+    def test_replace_state_triggered_not_found(self):
+        action_plan = obj_utils.create_action_plan_without_audit(
+            self.context, state=objects.action_plan.State.DELETED)
+
+        response = self.get_json(
+            '/action_plans/%s' % action_plan.uuid,
+            expect_errors=True
+        )
+        self.assertEqual(404, response.status_code)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+
+class TestPatchStateTransitionOk(api_base.FunctionalTest):
+
+    scenarios = [
+        (
+            "%s -> %s" % (transition["original_state"],
+                          transition["new_state"]),
+            transition
+        )
+        for transition in ALLOWED_TRANSITIONS
+    ]
+
+    @mock.patch.object(
+        db_api.BaseConnection, 'update_action_plan',
+        mock.Mock(side_effect=lambda ap: ap.save() or ap))
+    @mock.patch.object(aapi.ApplierAPI, 'launch_action_plan', mock.Mock())
+    def test_replace_state_triggered_ok(self):
+        action_plan = obj_utils.create_action_plan_without_audit(
+            self.context, state=self.original_state)
+
+        initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+
+        response = self.patch_json(
+            '/action_plans/%s' % action_plan.uuid,
+            [{'path': '/state', 'value': self.new_state,
+             'op': 'replace'}])
+        updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+
+        self.assertNotEqual(self.new_state, initial_ap['state'])
+        self.assertEqual(self.new_state, updated_ap['state'])
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(200, response.status_code)
