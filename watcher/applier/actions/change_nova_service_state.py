@@ -19,30 +19,23 @@
 
 
 from watcher._i18n import _
-from watcher.applier.primitives import base
-from watcher.applier import promise
+from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import keystone as kclient
 from watcher.common import nova as nclient
 from watcher.decision_engine.model import hypervisor_state as hstate
 
 
-class ChangeNovaServiceState(base.BasePrimitive):
-    def __init__(self):
-        """This class allows us to change the state of nova-compute service."""
-        super(ChangeNovaServiceState, self).__init__()
-        self._host = self.applies_to
-        self._state = self.input_parameters.get('state')
+class ChangeNovaServiceState(base.BaseAction):
 
     @property
     def host(self):
-        return self._host
+        return self.applies_to
 
     @property
     def state(self):
-        return self._state
+        return self.input_parameters.get('state')
 
-    @promise.Promise
     def execute(self):
         target_state = None
         if self.state == hstate.HypervisorState.OFFLINE.value:
@@ -51,8 +44,7 @@ class ChangeNovaServiceState(base.BasePrimitive):
             target_state = True
         return self.nova_manage_service(target_state)
 
-    @promise.Promise
-    def undo(self):
+    def revert(self):
         target_state = None
         if self.state == hstate.HypervisorState.OFFLINE.value:
             target_state = True
@@ -72,3 +64,9 @@ class ChangeNovaServiceState(base.BasePrimitive):
             return wrapper.enable_service_nova_compute(self.host)
         else:
             return wrapper.disable_service_nova_compute(self.host)
+
+    def precondition(self):
+        pass
+
+    def postcondition(self):
+        pass

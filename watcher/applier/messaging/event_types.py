@@ -1,5 +1,7 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2016 b<>com
+# Copyright (c) 2015 b<>com
+#
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,15 +15,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+
+import enum
 
 
-from watcher.decision_engine.strategy.strategies import basic_consolidation
-from watcher.decision_engine.strategy.strategies import dummy_strategy
-from watcher.decision_engine.strategy.strategies import outlet_temp_control
-
-BasicConsolidation = basic_consolidation.BasicConsolidation
-OutletTempControl = outlet_temp_control.OutletTempControl
-DummyStrategy = dummy_strategy.DummyStrategy
-
-
-__all__ = (BasicConsolidation, OutletTempControl, DummyStrategy)
+class EventTypes(enum.Enum):
+    LAUNCH_ACTION_PLAN = "launch_action_plan"
+    LAUNCH_ACTION = "launch_action"

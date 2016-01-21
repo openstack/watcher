@@ -20,26 +20,34 @@ import abc
 
 import six
 
-from watcher.applier.messaging import events
-from watcher.applier.primitives import factory
+from watcher.applier.actions import factory
+from watcher.applier.messaging import event_types
 from watcher.common.messaging.events import event
 from watcher import objects
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseActionPlanExecutor(object):
-    def __init__(self, manager_applier, context):
-        self._manager_applier = manager_applier
-        self._context = context
+class BaseWorkFlowEngine(object):
+    def __init__(self):
+        self._applier_manager = None
+        self._context = None
         self._action_factory = factory.ActionFactory()
 
     @property
     def context(self):
         return self._context
 
+    @context.setter
+    def context(self, c):
+        self._context = c
+
     @property
-    def manager_applier(self):
-        return self._manager_applier
+    def applier_manager(self):
+        return self._applier_manager
+
+    @applier_manager.setter
+    def applier_manager(self, a):
+        self._applier_manager = a
 
     @property
     def action_factory(self):
@@ -50,11 +58,11 @@ class BaseActionPlanExecutor(object):
         db_action.state = state
         db_action.save()
         ev = event.Event()
-        ev.type = events.Events.LAUNCH_ACTION
+        ev.type = event_types.EventTypes.LAUNCH_ACTION
         ev.data = {}
         payload = {'action_uuid': action.uuid,
                    'action_state': state}
-        self.manager_applier.topic_status.publish_event(ev.type.name,
+        self.applier_manager.topic_status.publish_event(ev.type.name,
                                                         payload)
 
     @abc.abstractmethod

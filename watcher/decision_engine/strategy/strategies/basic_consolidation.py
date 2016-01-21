@@ -336,11 +336,11 @@ class BasicConsolidation(BaseStrategy):
     def add_migration(self,
                       applies_to,
                       migration_type,
-                      src_hypervisor_uuid,
-                      dst_hypervisor_uuid):
+                      src_hypervisor,
+                      dst_hypervisor):
         parameters = {'migration_type': migration_type,
-                      'src_hypervisor_uuid': src_hypervisor_uuid,
-                      'dst_hypervisor_uuid': dst_hypervisor_uuid}
+                      'src_hypervisor': src_hypervisor,
+                      'dst_hypervisor': dst_hypervisor}
         self.solution.add_action(action_type=self.MIGRATION,
                                  applies_to=applies_to,
                                  input_parameters=parameters)

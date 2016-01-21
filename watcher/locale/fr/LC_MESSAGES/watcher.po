@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher 0.21.1.dev32\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-15 10:25+0100\n"
+"POT-Creation-Date: 2016-01-19 17:54+0100\n"
 "PO-Revision-Date: 2015-12-11 15:42+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: fr\n"
@@ -71,13 +71,23 @@ msgstr ""
 msgid "Error parsing HTTP response: %s"
 msgstr ""
 
-#: watcher/applier/execution/default.py:52
-msgid "Trigger a rollback"
-msgstr ""
-
-#: watcher/applier/primitives/change_nova_service_state.py:66
+#: watcher/applier/actions/change_nova_service_state.py:58
 msgid "The target state is not defined"
 msgstr ""
+
+#: watcher/applier/workflow_engine/default.py:69
+#, python-format
+msgid "The WorkFlow Engine has failed to execute the action %s"
+msgstr "Le moteur de workflow a echoué lors de l'éxécution de l'action %s"
+
+#: watcher/applier/workflow_engine/default.py:77
+#, python-format
+msgid "Revert action %s"
+msgstr "Annulation de l'action %s"
+
+#: watcher/applier/workflow_engine/default.py:83
+msgid "Oops! We need disaster recover plan"
+msgstr "Oops! Nous avons besoin d'un plan de reprise d'activité"
 
 #: watcher/cmd/api.py:46 watcher/cmd/applier.py:39
 #: watcher/cmd/decisionengine.py:40
@@ -353,7 +363,7 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/planner/default.py:75
+#: watcher/decision_engine/planner/default.py:76
 msgid "The action plan is empty"
 msgstr ""
 
@@ -545,5 +555,11 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "The hypervisor could not be found"
+#~ msgstr ""
+
+#~ msgid "Trigger a rollback"
+#~ msgstr ""
+
+#~ msgid "The WorkFlow Engine has failedto execute the action %s"
 #~ msgstr ""
 

@@ -18,25 +18,26 @@ import mock
 
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher.decision_engine.planner.default import DefaultPlanner
-from watcher.decision_engine.solution.default import DefaultSolution
-from watcher.decision_engine.strategy.strategies.basic_consolidation import \
-    BasicConsolidation
+from watcher.decision_engine.planner import default as pbase
+from watcher.decision_engine.solution import default as dsol
+from watcher.decision_engine.strategy import strategies
+from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
-from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
-    import FakerModelCollector
-from watcher.tests.decision_engine.strategy.strategies.faker_metrics_collector \
-    import FakerMetricsCollector
+from watcher.tests.decision_engine.strategy.strategies \
+    import faker_cluster_state
+from watcher.tests.decision_engine.strategy.strategies \
+    import faker_metrics_collector as fake
 from watcher.tests.objects import utils as obj_utils
 
 
 class SolutionFaker(object):
     @staticmethod
     def build():
-        metrics = FakerMetricsCollector()
-        current_state_cluster = FakerModelCollector()
-        sercon = BasicConsolidation("basic", "Basic offline consolidation")
+        metrics = fake.FakerMetricsCollector()
+        current_state_cluster = faker_cluster_state.FakerModelCollector()
+        sercon = strategies.BasicConsolidation("basic",
+                                               "Basic offline consolidation")
         sercon.ceilometer = mock.\
             MagicMock(get_statistics=metrics.mock_get_statistics)
         return sercon.execute(current_state_cluster.generate_scenario_1())
@@ -45,9 +46,10 @@ class SolutionFaker(object):
 class SolutionFakerSingleHyp(object):
     @staticmethod
     def build():
-        metrics = FakerMetricsCollector()
-        current_state_cluster = FakerModelCollector()
-        sercon = BasicConsolidation("basic", "Basic offline consolidation")
+        metrics = fake.FakerMetricsCollector()
+        current_state_cluster = faker_cluster_state.FakerModelCollector()
+        sercon = strategies.BasicConsolidation("basic",
+                                               "Basic offline consolidation")
         sercon.ceilometer = \
             mock.MagicMock(get_statistics=metrics.mock_get_statistics)
 
@@ -57,9 +59,9 @@ class SolutionFakerSingleHyp(object):
 
 class TestActionScheduling(base.DbTestCase):
     def test_schedule_actions(self):
-        default_planner = DefaultPlanner()
+        default_planner = pbase.DefaultPlanner()
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
-        solution = DefaultSolution()
+        solution = dsol.DefaultSolution()
 
         parameters = {
             "src_uuid_hypervisor": "server1",
@@ -70,7 +72,7 @@ class TestActionScheduling(base.DbTestCase):
                             input_parameters=parameters)
 
         with mock.patch.object(
-                DefaultPlanner, "create_action",
+                pbase.DefaultPlanner, "create_action",
                 wraps=default_planner.create_action) as m_create_action:
             action_plan = default_planner.schedule(
                 self.context, audit.id, solution
@@ -78,12 +80,46 @@ class TestActionScheduling(base.DbTestCase):
 
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(m_create_action.call_count, 1)
+        filters = {'action_plan_id': action_plan.id}
+        actions = objects.Action.dbapi.get_action_list(self.context, filters)
+        self.assertEqual(actions[0].action_type, "migrate")
+
+    def test_schedule_two_actions(self):
+        default_planner = pbase.DefaultPlanner()
+        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        solution = dsol.DefaultSolution()
+
+        parameters = {
+            "src_uuid_hypervisor": "server1",
+            "dst_uuid_hypervisor": "server2",
+        }
+        solution.add_action(action_type="migrate",
+                            applies_to="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+                            input_parameters=parameters)
+
+        solution.add_action(action_type="nop",
+                            applies_to="",
+                            input_parameters={})
+
+        with mock.patch.object(
+                pbase.DefaultPlanner, "create_action",
+                wraps=default_planner.create_action) as m_create_action:
+            action_plan = default_planner.schedule(
+                self.context, audit.id, solution
+            )
+        self.assertIsNotNone(action_plan.uuid)
+        self.assertEqual(m_create_action.call_count, 2)
+        # check order
+        filters = {'action_plan_id': action_plan.id}
+        actions = objects.Action.dbapi.get_action_list(self.context, filters)
+        self.assertEqual(actions[0].action_type, "nop")
+        self.assertEqual(actions[1].action_type, "migrate")
 
 
 class TestDefaultPlanner(base.DbTestCase):
     def setUp(self):
         super(TestDefaultPlanner, self).setUp()
-        self.default_planner = DefaultPlanner()
+        self.default_planner = pbase.DefaultPlanner()
         obj_utils.create_test_audit_template(self.context)
 
         p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')

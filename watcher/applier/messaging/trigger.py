@@ -16,30 +16,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from concurrent import futures
+
+from oslo_config import cfg
 from oslo_log import log
 
-from watcher.applier.action_plan.default import DefaultActionPlanHandler
+from watcher.applier.action_plan import default
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class TriggerActionPlan(object):
-    def __init__(self, manager_applier):
-        self.manager_applier = manager_applier
+    def __init__(self, applier_manager):
+        self.applier_manager = applier_manager
+        workers = CONF.watcher_applier.workers
+        self.executor = futures.ThreadPoolExecutor(max_workers=workers)
 
     def do_launch_action_plan(self, context, action_plan_uuid):
         try:
-            cmd = DefaultActionPlanHandler(context,
-                                           self.manager_applier,
-                                           action_plan_uuid)
+            cmd = default.DefaultActionPlanHandler(context,
+                                                   self.applier_manager,
+                                                   action_plan_uuid)
             cmd.execute()
         except Exception as e:
             LOG.exception(e)
 
     def launch_action_plan(self, context, action_plan_uuid):
-        LOG.debug("Trigger ActionPlan %s" % action_plan_uuid)
+        LOG.debug("Trigger ActionPlan %s", action_plan_uuid)
         # submit
-        self.manager_applier.executor.submit(self.do_launch_action_plan,
-                                             context,
-                                             action_plan_uuid)
+        self.executor.submit(self.do_launch_action_plan, context,
+                             action_plan_uuid)
         return action_plan_uuid

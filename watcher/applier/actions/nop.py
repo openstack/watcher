@@ -17,9 +17,30 @@
 # limitations under the License.
 #
 
-import enum
+from oslo_log import log
+
+from watcher.applier.actions import base
 
 
-class Events(enum.Enum):
-    LAUNCH_ACTION_PLAN = "launch_action_plan"
-    LAUNCH_ACTION = "launch_action"
+LOG = log.getLogger(__name__)
+
+
+class Nop(base.BaseAction):
+
+    @property
+    def message(self):
+        return self.input_parameters.get('message')
+
+    def execute(self):
+        LOG.debug("executing action NOP message:%s ", self.message)
+        return True
+
+    def revert(self):
+        LOG.debug("revert action NOP")
+        return True
+
+    def precondition(self):
+        pass
+
+    def postcondition(self):
+        pass

@@ -328,7 +328,7 @@ class NovaClient(object):
         return False
 
     def live_migrate_instance(self, instance_id, dest_hostname,
-                              block_migration=True, retry=120):
+                              block_migration=False, retry=120):
         """This method does a live migration of a given instance
 
         This method uses the Nova built-in live_migrate()

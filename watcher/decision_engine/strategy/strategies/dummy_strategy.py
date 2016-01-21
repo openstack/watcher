@@ -28,6 +28,7 @@ class DummyStrategy(BaseStrategy):
     DEFAULT_DESCRIPTION = "Dummy Strategy"
 
     NOP = "nop"
+    SLEEP = "sleep"
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
         super(DummyStrategy, self).__init__(name, description)
@@ -38,6 +39,12 @@ class DummyStrategy(BaseStrategy):
                                  applies_to="",
                                  input_parameters=parameters)
 
-        # todo(jed) add a new action to test the flow
-        # with two differents actions
+        parameters = {'message': 'Welcome'}
+        self.solution.add_action(action_type=self.NOP,
+                                 applies_to="",
+                                 input_parameters=parameters)
+
+        self.solution.add_action(action_type=self.SLEEP,
+                                 applies_to="",
+                                 input_parameters={'duration': '5'})
         return self.solution

@@ -23,8 +23,8 @@ import oslo_messaging as om
 from watcher.applier.manager import APPLIER_MANAGER_OPTS
 from watcher.applier.manager import opt_group
 from watcher.common import exception
-from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.notification_handler import NotificationHandler
+from watcher.common.messaging import messaging_core
+from watcher.common.messaging import notification_handler as notification
 from watcher.common import utils
 
 
@@ -34,7 +34,7 @@ CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
-class ApplierAPI(MessagingCore):
+class ApplierAPI(messaging_core.MessagingCore):
 
     def __init__(self):
         super(ApplierAPI, self).__init__(
@@ -43,7 +43,7 @@ class ApplierAPI(MessagingCore):
             CONF.watcher_applier.topic_status,
             api_version=self.API_VERSION,
         )
-        self.handler = NotificationHandler(self.publisher_id)
+        self.handler = notification.NotificationHandler(self.publisher_id)
         self.handler.register_observer(self)
         self.topic_status.add_endpoint(self.handler)
         transport = om.get_transport(CONF)
