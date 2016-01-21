@@ -345,6 +345,81 @@ class BasicConsolidation(BaseStrategy):
                                  applies_to=applies_to,
                                  input_parameters=parameters)
 
+    def score_of_nodes(self, current_model, score):
+        """Calculate score of nodes based on load by VMs"""
+        for hypervisor_id in current_model.get_all_hypervisors():
+            hypervisor = current_model.get_hypervisor_from_id(hypervisor_id)
+            count = current_model.get_mapping(). \
+                get_node_vms_from_id(hypervisor_id)
+            if len(count) > 0:
+                result = self.calculate_score_node(hypervisor, current_model)
+            else:
+                ''' the hypervisor has not VMs '''
+                result = 0
+            if len(count) > 0:
+                score.append((hypervisor_id, result))
+        return score
+
+    def node_and_vm_score(self, s, score, current_model):
+        """Get List of VMs from Node"""
+        node_to_release = s[len(score) - 1][0]
+        vms_to_mig = current_model.get_mapping().get_node_vms_from_id(
+            node_to_release)
+
+        vm_score = []
+        for vm_id in vms_to_mig:
+            vm = current_model.get_vm_from_id(vm_id)
+            if vm.state == VMState.ACTIVE.value:
+                vm_score.append(
+                    (vm_id, self.calculate_score_vm(vm, current_model)))
+
+        return node_to_release, vm_score
+
+    def create_migration_vm(self, current_model, mig_vm, mig_src_hypervisor,
+                            mig_dst_hypervisor):
+        """Create migration VM """
+        if current_model.get_mapping().migrate_vm(
+                mig_vm, mig_src_hypervisor, mig_dst_hypervisor):
+            self.add_migration(mig_vm.uuid, 'live',
+                               mig_src_hypervisor.uuid,
+                               mig_dst_hypervisor.uuid)
+
+        if len(current_model.get_mapping().get_node_vms(
+                mig_src_hypervisor)) == 0:
+            self.add_change_service_state(mig_src_hypervisor.
+                                          uuid,
+                                          HypervisorState.
+                                          OFFLINE.value)
+            self.number_of_released_nodes += 1
+
+    def calculate_m(self, v, current_model, node_to_release, s):
+        m = 0
+        for vm in v:
+            for j in range(0, len(s)):
+                mig_vm = current_model.get_vm_from_id(vm[0])
+                mig_src_hypervisor = current_model.get_hypervisor_from_id(
+                    node_to_release)
+                mig_dst_hypervisor = current_model.get_hypervisor_from_id(
+                    s[j][0])
+
+                result = self.check_migration(current_model,
+                                              mig_src_hypervisor,
+                                              mig_dst_hypervisor, mig_vm)
+                if result is True:
+                    self.create_migration_vm(
+                        current_model, mig_vm,
+                        mig_src_hypervisor, mig_dst_hypervisor)
+                    m += 1
+                    break
+        return m
+
+    def unsuccessful_migration_actualization(self, m, unsuccessful_migration):
+        if m > 0:
+            self.number_of_migrations += m
+            return 0
+        else:
+            return unsuccessful_migration + 1
+
     def execute(self, orign_model):
         LOG.info(_LI("Initializing Sercon Consolidation"))
 
@@ -382,20 +457,7 @@ class BasicConsolidation(BaseStrategy):
             first = False
             score = []
 
-            ''' calculate score of nodes based on load by VMs '''
-            for hypervisor_id in current_model.get_all_hypervisors():
-                hypervisor = current_model.get_hypervisor_from_id(
-                    hypervisor_id)
-                count = current_model.get_mapping(). \
-                    get_node_vms_from_id(hypervisor_id)
-                if len(count) > 0:
-                    result = self.calculate_score_node(hypervisor,
-                                                       current_model)
-                else:
-                    ''' the hypervisor has not VMs '''
-                    result = 0
-                if len(count) > 0:
-                    score.append((hypervisor_id, result))
+            score = self.score_of_nodes(current_model, score)
 
             ''' sort compute nodes by Score decreasing '''''
             s = sorted(score, reverse=True, key=lambda x: (x[1]))
@@ -408,61 +470,18 @@ class BasicConsolidation(BaseStrategy):
                     " of the cluster is zero"))
                 break
 
-            node_to_release = s[len(score) - 1][0]
-
-            ''' get List of VMs from Node '''
-            vms_to_mig = current_model.get_mapping().get_node_vms_from_id(
-                node_to_release)
-
-            vm_score = []
-            for vm_id in vms_to_mig:
-                vm = current_model.get_vm_from_id(vm_id)
-                if vm.state == VMState.ACTIVE.value:
-                    vm_score.append(
-                        (vm_id, self.calculate_score_vm(vm, current_model)))
+            node_to_release, vm_score = self.node_and_vm_score(
+                s, score, current_model)
 
             ''' sort VMs by Score '''
             v = sorted(vm_score, reverse=True, key=lambda x: (x[1]))
             # BFD: Best Fit Decrease
             LOG.debug("VM(s) BFD {0}".format(v))
 
-            m = 0
-            for vm in v:
-                for j in range(0, len(s)):
-                    mig_vm = current_model.get_vm_from_id(vm[0])
-                    mig_src_hypervisor = current_model.get_hypervisor_from_id(
-                        node_to_release)
-                    mig_dst_hypervisor = current_model.get_hypervisor_from_id(
-                        s[j][0])
+            m = self.calculate_m(v, current_model, node_to_release, s)
 
-                    result = self.check_migration(current_model,
-                                                  mig_src_hypervisor,
-                                                  mig_dst_hypervisor, mig_vm)
-                    if result is True:
-
-                        ''' create migration VM '''
-                        if current_model.get_mapping(). \
-                                migrate_vm(mig_vm, mig_src_hypervisor,
-                                           mig_dst_hypervisor):
-                            self.add_migration(mig_vm.uuid, 'live',
-                                               mig_src_hypervisor.uuid,
-                                               mig_dst_hypervisor.uuid)
-
-                        if len(current_model.get_mapping().get_node_vms(
-                                mig_src_hypervisor)) == 0:
-                            self.add_change_service_state(mig_src_hypervisor.
-                                                          uuid,
-                                                          HypervisorState.
-                                                          OFFLINE.value)
-                            self.number_of_released_nodes += 1
-
-                        m += 1
-                        break
-            if m > 0:
-                self.number_of_migrations = self.number_of_migrations + m
-                unsuccessful_migration = 0
-            else:
-                unsuccessful_migration += 1
+            unsuccessful_migration = self.unsuccessful_migration_actualization(
+                m, unsuccessful_migration)
         infos = {
             "number_of_migrations": self.number_of_migrations,
             "number_of_nodes_released": self.number_of_released_nodes,
