@@ -1,0 +1,37 @@
+@startuml
+
+actor Administrator
+
+== Create some Audit settings ==
+
+Administrator -> Watcher : create new Audit Template (i.e. Audit settings : goal, scope, deadline,...)
+Watcher -> Watcher : save Audit Template in database
+Administrator <-- Watcher : Audit Template UUID
+
+== Launch a new Audit ==
+
+Administrator -> Watcher : launch new Audit of the Openstack infrastructure resources\nwith a previously created Audit Template
+Administrator <-- Watcher : Audit UUID
+Administrator -> Watcher : get the Audit state
+Administrator <-- Watcher : ONGOING
+Watcher -> Watcher : compute a solution to achieve optimization goal
+Administrator -> Watcher : get the Audit state
+Administrator <-- Watcher : SUCCEEDED
+
+== Get the result of the Audit ==
+
+Administrator -> Watcher : get Action Plan
+Administrator <-- Watcher : recommended Action Plan and estimated efficacy
+Administrator -> Administrator : verify the recommended actions\nand evaluate the estimated gain vs aggressiveness of the solution
+
+== Launch the recommended Action Plan ==
+
+Administrator -> Watcher : launch the Action Plan
+Administrator <-- Watcher : Action Plan has been launched
+Watcher -> Watcher : trigger Actions on Openstack services
+Administrator -> Watcher : get the Action Plan state
+Administrator <-- Watcher : ONGOING
+Administrator -> Watcher : get the Action Plan state
+Administrator <-- Watcher : SUCCEEDED
+
+@enduml

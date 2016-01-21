@@ -10,10 +10,19 @@
 Welcome to the Watcher User Guide
 =================================
 
-In the `architecture <https://wiki.openstack.org/wiki/WatcherArchitecture>`_
-you got information about how it works.
+See the
+`architecture page <https://factory.b-com.com/www/watcher/doc/watcher/architecture.html>`_
+for an architectural overview of the different components of Watcher and how
+they fit together.
+
 In this guide we're going to take you through the fundamentals of using
 Watcher.
+
+The following diagram shows the main interactions between the
+:ref:`Administrator <administrator_definition>` and the Watcher system:
+
+.. image:: ../images/sequence_overview_watcher_usage.png
+   :width: 100%
 
 
 Getting started with Watcher
@@ -119,3 +128,4 @@ You can also obtain more detailed information about a specific action:
 .. code:: bash
 
   $ watcher action-show <the_action_uuid>
+
