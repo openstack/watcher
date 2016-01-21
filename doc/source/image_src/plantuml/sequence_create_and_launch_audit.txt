@@ -1,0 +1,24 @@
+@startuml
+
+
+actor Administrator
+
+Administrator -> "Watcher CLI" : watcher audit-create -a <audit_template_uuid>
+
+"Watcher CLI" -> "Watcher API" : POST audit(parameters)
+"Watcher API" -> "Watcher Database" : create new audit in database (status=PENDING)
+
+"Watcher API" <-- "Watcher Database" : new audit uuid
+"Watcher CLI" <-- "Watcher API" : return new audit URL
+
+Administrator <-- "Watcher CLI" : new audit uuid
+
+"Watcher API" -> "AMQP Bus" : trigger_audit(new_audit.uuid)
+"AMQP Bus" -> "Watcher Decision Engine" : trigger_audit(new_audit.uuid)
+
+ref over "Watcher Decision Engine"
+  Trigger audit in the
+  Watcher Decision Engine
+end ref
+
+@enduml

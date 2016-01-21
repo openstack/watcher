@@ -1,0 +1,31 @@
+@startuml
+
+"AMQP Bus" -> "Watcher Applier" : launch_action_plan(action_plan.uuid)
+"Watcher Applier" -> "Watcher Database" : action_plan.state=ONGOING
+"Watcher Applier" -[#blue]> "AMQP Bus" : notify action plan state = ONGOING
+"Watcher Applier" -> "Watcher Database" : get_action_list(action_plan.uuid)
+"Watcher Applier" <-- "Watcher Database" : actions
+loop for each action of the action flow
+create Action
+"Watcher Applier" -> Action : instantiate Action object with target resource id\n and input parameters
+"Watcher Applier" -> Action : validate_parameters()
+"Watcher Applier" <-- Action : OK
+"Watcher Applier" -[#blue]> "AMQP Bus" : notify action state = ONGOING
+"Watcher Applier" -> Action : preconditions()
+"Watcher Applier" <-- Action : OK
+"Watcher Applier" -> Action : execute()
+alt action is "migrate instance"
+Action -> "Nova API" : migrate(instance_id, dest_host_id)
+Action <-- "Nova API" : OK
+else action is "disable hypervisor"
+Action -> "Nova API" : host-update(host_id, maintenance=true)
+Action <-- "Nova API" : OK
+end
+"Watcher Applier" <-- Action : OK
+"Watcher Applier" -> "Watcher Database" : action.state=SUCCEEDED
+"Watcher Applier" -[#blue]> "AMQP Bus" : notify action state = SUCCEEDED
+end
+"Watcher Applier" -> "Watcher Database" : action_plan.state=SUCCEEDED
+"Watcher Applier" -[#blue]> "AMQP Bus" : notify action plan state = SUCCEEDED
+
+@enduml

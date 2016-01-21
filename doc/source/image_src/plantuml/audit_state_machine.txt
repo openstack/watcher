@@ -1,0 +1,14 @@
+@startuml
+
+[*] --> PENDING: Audit requested by Administrator
+PENDING --> ONGOING: Audit request is received\nby the Watcher Decision Engine
+ONGOING --> FAILED: Audit fails\n(no solution found, technical error, ...)
+ONGOING --> SUCCEEDED: The Watcher Decision Engine\ncould find at least one Solution
+FAILED --> DELETED : Administrator wants to\narchive/delete the Audit
+SUCCEEDED --> DELETED : Administrator wants to\narchive/delete the Audit
+PENDING --> CANCELLED : Administrator cancels\nthe Audit
+ONGOING --> CANCELLED : Administrator cancels\nthe Audit
+CANCELLED --> DELETED : Administrator wants to\narchive/delete the Audit
+DELETED --> [*]
+
+@enduml
