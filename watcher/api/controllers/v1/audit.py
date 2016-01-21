@@ -57,6 +57,7 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -354,6 +355,11 @@ class AuditsController(rest.RestController):
         """
         if self.from_audits:
             raise exception.OperationNotPermitted
+
+        if not audit._audit_template_uuid:
+            raise exception.Invalid(
+                message=_('The audit template UUID or name specified is '
+                          'invalid'))
 
         audit_dict = audit.as_dict()
         context = pecan.request.context
