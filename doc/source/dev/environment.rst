@@ -4,9 +4,9 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-============================================
-Setting up a Watcher development environment
-============================================
+=========================================
+Set up a development environment manually
+=========================================
 
 This document describes getting the source from watcher `Git repository`_
 for development purposes.

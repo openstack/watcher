@@ -4,22 +4,20 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-===============
-Watcher plugins
-===============
+=================================
+Build a new optimization strategy
+=================================
 
-Writing a Watcher Decision Engine plugin
-========================================
-
-Watcher has an external :ref:`strategy <strategy_definition>` plugin interface
-which gives anyone the ability to integrate an external :ref:`strategy
-<strategy_definition>` in order to make use of placement algorithms.
+Watcher Decision Engine has an external :ref:`strategy <strategy_definition>`
+plugin interface which gives anyone the ability to integrate an external
+:ref:`strategy <strategy_definition>` in order to make use of placement
+algorithms.
 
 This section gives some guidelines on how to implement and integrate custom
 Stategies with Watcher.
 
 Pre-requisites
---------------
+==============
 
 Before using any strategy, you should make sure you have your Telemetry service
 configured so that it would provide you all the metrics you need to be able to
@@ -27,7 +25,7 @@ use your strategy.
 
 
 Creating a new plugin
----------------------
+=====================
 
 First of all you have to:
 
@@ -65,7 +63,7 @@ your ``__init__`` method.
 
 
 Abstract Plugin Class
----------------------
+=====================
 
 Here below is the abstract ``BaseStrategy`` class that every single strategy
 should implement:
@@ -79,7 +77,7 @@ should implement:
 
 
 Add a new entry point
----------------------
+=====================
 
 In order for the Watcher Decision Engine to load your new strategy, the
 strategy must be registered as a named entry point under the
@@ -103,7 +101,7 @@ have a look at the :py:class:`BasicConsolidation` class.
 .. _pbr: http://docs.openstack.org/developer/pbr/
 
 Using strategy plugins
-----------------------
+======================
 
 The Watcher Decision Engine service will automatically discover any installed
 plugins when it is run. If a Python package containing a custom plugin is
@@ -128,7 +126,7 @@ Telemetry service. In such a case, please do make sure that you first
 check/configure the latter so your new strategy can be fully functional.
 
 Querying metrics
-~~~~~~~~~~~~~~~~
+----------------
 
 The metrics available depend on the hypervisors that OpenStack manages on
 the specific implementation. You can find the metrics available per hypervisor
@@ -139,7 +137,7 @@ use the default Ceilometer API or our Helper.
 The Helper attempted to make the Ceilometer API more reusable and easy to use.
 
 Read usage metrics using the Python binding
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-------------------------------------------
 
 You can find the information about the Ceilometer Python binding on the
 OpenStack `ceilometer client python API documentation
@@ -161,7 +159,7 @@ Using that you can now query the values for that specific metric:
  value_cpu = cclient.samples.list(meter_name='cpu_util', limit=10, q=query)
 
 Read usage metrics using the Watcher Cluster History Helper
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------------------------------
 
 Here below is the abstract ``BaseClusterHistory`` class of the Helper.
 
