@@ -53,8 +53,8 @@ class BasePlanner(object):
         :param solution: the solution given by the strategy to
         :param audit_uuid: the audit uuid
         :return: ActionPlan ordered sequence of change requests
-        such that all security, dependency,
-        and performance requirements are met.
+            such that all security, dependency, and performance
+            requirements are met.
         """
         # example: directed acyclic graph
         raise NotImplementedError()

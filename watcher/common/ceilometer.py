@@ -49,12 +49,12 @@ class CeilometerClient(object):
         This query can be then used for querying resources, meters and
         statistics.
         :Parameters:
-          - `user_id`: user_id, has a priority over list of ids
-          - `tenant_id`: tenant_id, has a priority over list of ids
-          - `resource_id`: resource_id, has a priority over list of ids
-          - `user_ids`: list of user_ids
-          - `tenant_ids`: list of tenant_ids
-          - `resource_ids`: list of resource_ids
+        - `user_id`: user_id, has a priority over list of ids
+        - `tenant_id`: tenant_id, has a priority over list of ids
+        - `resource_id`: resource_id, has a priority over list of ids
+        - `user_ids`: list of user_ids
+        - `tenant_ids`: list of tenant_ids
+        - `resource_ids`: list of resource_ids
         """
 
         user_ids = user_ids or []
