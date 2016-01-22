@@ -322,7 +322,7 @@ class Connection(api.BaseConnection):
             values['uuid'] = utils.generate_uuid()
 
         if values.get('state') is None:
-            values['state'] = audit_objects.AuditStatus.PENDING
+            values['state'] = audit_objects.State.PENDING
 
         audit = models.Audit()
         audit.update(values)

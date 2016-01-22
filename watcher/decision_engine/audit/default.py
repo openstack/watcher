@@ -15,26 +15,23 @@
 # limitations under the License.
 from oslo_log import log
 
-from watcher.common.messaging.events.event import Event
-from watcher.decision_engine.audit.base import \
-    BaseAuditHandler
-from watcher.decision_engine.messaging.events import Events
-from watcher.decision_engine.planner.manager import PlannerManager
-from watcher.decision_engine.strategy.context.default import \
-    DefaultStrategyContext
-from watcher.objects.audit import Audit
-from watcher.objects.audit import AuditStatus
+from watcher.common.messaging.events import event as watcher_event
+from watcher.decision_engine.audit import base
+from watcher.decision_engine.messaging import events as de_events
+from watcher.decision_engine.planner import manager as planner_manager
+from watcher.decision_engine.strategy.context import default as default_context
+from watcher.objects import audit as audit_objects
 
 
 LOG = log.getLogger(__name__)
 
 
-class DefaultAuditHandler(BaseAuditHandler):
+class DefaultAuditHandler(base.BaseAuditHandler):
     def __init__(self, messaging):
         super(DefaultAuditHandler, self).__init__()
         self._messaging = messaging
-        self._strategy_context = DefaultStrategyContext()
-        self._planner_manager = PlannerManager()
+        self._strategy_context = default_context.DefaultStrategyContext()
+        self._planner_manager = planner_manager.PlannerManager()
         self._planner = None
 
     @property
@@ -52,7 +49,7 @@ class DefaultAuditHandler(BaseAuditHandler):
         return self._strategy_context
 
     def notify(self, audit_uuid, event_type, status):
-        event = Event()
+        event = watcher_event.Event()
         event.type = event_type
         event.data = {}
         payload = {'audit_uuid': audit_uuid,
@@ -61,20 +58,19 @@ class DefaultAuditHandler(BaseAuditHandler):
                                                   payload)
 
     def update_audit_state(self, request_context, audit_uuid, state):
-        LOG.debug("Update audit state:{0} ".format(state))
-        audit = Audit.get_by_uuid(request_context, audit_uuid)
+        LOG.debug("Update audit state: %s", state)
+        audit = audit_objects.Audit.get_by_uuid(request_context, audit_uuid)
         audit.state = state
         audit.save()
-        self.notify(audit_uuid, Events.TRIGGER_AUDIT, state)
+        self.notify(audit_uuid, de_events.Events.TRIGGER_AUDIT, state)
         return audit
 
     def execute(self, audit_uuid, request_context):
         try:
-            LOG.debug("Trigger audit %s" % audit_uuid)
-
+            LOG.debug("Trigger audit %s", audit_uuid)
             # change state of the audit to ONGOING
             audit = self.update_audit_state(request_context, audit_uuid,
-                                            AuditStatus.ONGOING)
+                                            audit_objects.State.ONGOING)
 
             # execute the strategy
             solution = self.strategy_context.execute_strategy(audit_uuid,
@@ -84,8 +80,8 @@ class DefaultAuditHandler(BaseAuditHandler):
 
             # change state of the audit to SUCCEEDED
             self.update_audit_state(request_context, audit_uuid,
-                                    AuditStatus.SUCCEEDED)
+                                    audit_objects.State.SUCCEEDED)
         except Exception as e:
             LOG.exception(e)
             self.update_audit_state(request_context, audit_uuid,
-                                    AuditStatus.FAILED)
+                                    audit_objects.State.FAILED)

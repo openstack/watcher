@@ -22,7 +22,7 @@ from watcher.applier.action_plan import base
 from watcher.applier import default
 from watcher.applier.messaging import event_types
 from watcher.common.messaging.events import event
-from watcher import objects
+from watcher.objects import action_plan as ap_objects
 
 LOG = log.getLogger(__name__)
 
@@ -35,7 +35,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         self.applier_manager = applier_manager
 
     def notify(self, uuid, event_type, state):
-        action_plan = objects.ActionPlan.get_by_uuid(self.ctx, uuid)
+        action_plan = ap_objects.ActionPlan.get_by_uuid(self.ctx, uuid)
         action_plan.state = state
         action_plan.save()
         ev = event.Event()
@@ -51,7 +51,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             # update state
             self.notify(self.action_plan_uuid,
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
-                        objects.action_plan.Status.ONGOING)
+                        ap_objects.State.ONGOING)
             applier = default.DefaultApplier(self.applier_manager, self.ctx)
             result = applier.execute(self.action_plan_uuid)
         except Exception as e:
@@ -59,9 +59,9 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             result = False
         finally:
             if result is True:
-                status = objects.action_plan.Status.SUCCEEDED
+                status = ap_objects.State.SUCCEEDED
             else:
-                status = objects.action_plan.Status.FAILED
+                status = ap_objects.State.FAILED
             # update state
             self.notify(self.action_plan_uuid,
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
