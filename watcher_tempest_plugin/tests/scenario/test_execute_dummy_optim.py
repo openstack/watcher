@@ -55,11 +55,9 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
             patch=[{'path': '/state', 'op': 'replace', 'value': 'TRIGGERED'}]
         )
 
-        def has_finished(action_plan_uuid):
-            return self.has_action_plan_finished(action_plan_uuid)
-
         self.assertTrue(test.call_until_true(
-            func=functools.partial(has_finished, action_plan['uuid']),
+            func=functools.partial(
+                self.has_action_plan_finished, action_plan['uuid']),
             duration=30,
             sleep_for=.5
         ))

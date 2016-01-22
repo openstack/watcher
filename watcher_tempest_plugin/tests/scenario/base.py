@@ -142,6 +142,10 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
         resp, _ = self.client.delete_audit(audit_uuid)
         return resp
 
+    def has_audit_succeeded(self, audit_uuid):
+        _, audit = self.client.show_audit(audit_uuid)
+        return audit.get('state') == 'SUCCEEDED'
+
     # ### ACTION PLANS ### #
 
     def delete_action_plan(self, action_plan_uuid):
@@ -152,3 +156,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
         """
         resp, _ = self.client.delete_action_plan(action_plan_uuid)
         return resp
+
+    def has_action_plan_finished(self, action_plan_uuid):
+        _, action_plan = self.client.show_action_plan(action_plan_uuid)
+        return action_plan.get('state') in ('FAILED', 'SUCCEEDED', 'CANCELLED')
