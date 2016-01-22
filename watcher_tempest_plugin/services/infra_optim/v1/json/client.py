@@ -185,4 +185,51 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :return: Tuple with the server response and the updated audit
         """
 
-        return self._patch_request('audits', uuid, patch)
+        return self._patch_request('audits', audit_uuid, patch)
+
+    # ### ACTION PLANS ### #
+
+    @base.handle_errors
+    def list_action_plans(self, **kwargs):
+        """List all existing action plan"""
+        return self._list_request('action_plans', **kwargs)
+
+    @base.handle_errors
+    def list_action_plans_detail(self, **kwargs):
+        """Lists details of all existing action plan"""
+        return self._list_request('/action_plans/detail', **kwargs)
+
+    @base.handle_errors
+    def list_action_plan_by_audit(self, audit_uuid):
+        """Lists all action plans associated with an audit"""
+        return self._list_request('/action_plans', audit_uuid=audit_uuid)
+
+    @base.handle_errors
+    def show_action_plan(self, action_plan_uuid):
+        """Gets a specific action plan
+
+        :param action_plan_uuid: Unique identifier of the action plan
+        :return: Serialized action plan as a dictionary
+        """
+        return self._show_request('/action_plans', action_plan_uuid)
+
+    @base.handle_errors
+    def delete_action_plan(self, action_plan_uuid):
+        """Deletes an action_plan having the specified UUID
+
+        :param action_plan_uuid: The unique identifier of the action_plan
+        :return: A tuple with the server response and the response body
+        """
+
+        return self._delete_request('/action_plans', action_plan_uuid)
+
+    @base.handle_errors
+    def update_action_plan(self, action_plan_uuid, patch):
+        """Update the specified action plan
+
+        :param action_plan_uuid: The unique identifier of the action_plan
+        :param patch: List of dicts representing json patches.
+        :return: Tuple with the server response and the updated action_plan
+        """
+
+        return self._patch_request('/action_plans', action_plan_uuid, patch)

@@ -24,7 +24,7 @@ from watcher_tempest_plugin import infra_optim_clients as clients
 
 # Resources must be deleted in a specific order, this list
 # defines the resource types to clean up, and the correct order.
-RESOURCE_TYPES = ['audit_template', 'audit']
+RESOURCE_TYPES = ['audit_template', 'audit', 'action_plan']
 # RESOURCE_TYPES = ['action', 'action_plan', 'audit', 'audit_template']
 
 
@@ -170,3 +170,44 @@ class BaseInfraOptimTest(test.BaseTestCase):
             cls.created_objects['audit'].remove(audit_uuid)
 
         return resp
+
+    @classmethod
+    def has_audit_succeeded(cls, audit_uuid):
+        _, audit = cls.client.show_audit(audit_uuid)
+        return audit.get('state') == 'SUCCEEDED'
+
+    # ### ACTION PLANS ### #
+
+    @classmethod
+    @creates('action_plan')
+    def start_action_plan(cls, audit_uuid, type='ONESHOT',
+                          state='PENDING', deadline=None):
+        """Wrapper utility for creating a test action plan
+
+        :param audit_uuid: Audit Template UUID this action plan will use
+        :param type: Audit type (either ONESHOT or CONTINUOUS)
+        :return: A tuple with The HTTP response and its body
+        """
+        resp, body = cls.client.create_action_plan(
+            audit_uuid=audit_uuid, type=type,
+            state=state, deadline=deadline)
+        return resp, body
+
+    @classmethod
+    def delete_action_plan(cls, action_plan_uuid):
+        """Deletes an action plan having the specified UUID
+
+        :param action_plan_uuid: The unique identifier of the action plan.
+        :return: the HTTP response
+        """
+        resp, body = cls.client.delete_action_plan(action_plan_uuid)
+
+        if action_plan_uuid in cls.created_objects['action_plan']:
+            cls.created_objects['action_plan'].remove(action_plan_uuid)
+
+        return resp
+
+    @classmethod
+    def has_action_plan_finished(cls, action_plan_uuid):
+        _, action_plan = cls.client.show_action_plan(action_plan_uuid)
+        return action_plan.get('state') in ('FAILED', 'SUCCEEDED', 'CANCELLED')
