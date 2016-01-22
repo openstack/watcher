@@ -11,19 +11,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import os
-import sys
 from watcher import version as watcher_version
 
-sys.path.insert(0, os.path.abspath('../..'))
 # -- General configuration ----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'sphinx.ext.autodoc',
-    # 'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
@@ -46,8 +41,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'watcher'
-copyright = u'2015, OpenStack Foundation'
+project = u'Watcher'
+copyright = u'OpenStack Foundation'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -62,6 +57,14 @@ version = watcher_version.version_info.version_string()
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['watcher.']
 
+exclude_patterns = [
+    # The man directory includes some snippet files that are included
+    # in other documents during the build but that should not be
+    # included in the toctree themselves, so tell Sphinx to ignore
+    # them when scanning for input files.
+    'man/footer.rst',
+    'man/general_options.rst',
+]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -72,6 +75,22 @@ add_module_names = True
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+# -- Options for man page output --------------------------------------------
+
+# Grouping the document tree for man pages.
+# List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
+
+man_pages = [
+    ('man/watcher-api', 'watcher-api', u'Watcher API Server',
+     [u'OpenStack'], 1),
+    ('man/watcher-applier', 'watcher-applier', u'Watcher Applier',
+     [u'OpenStack'], 1),
+    ('man/watcher-db-manage', 'watcher-db-manage',
+     u'Watcher Db Management Utility', [u'OpenStack'], 1),
+    ('man/watcher-decision-engine', 'watcher-decision-engine',
+     u'Watcher Decision Engine', [u'OpenStack'], 1),
+]
 
 # -- Options for HTML output --------------------------------------------------
 
