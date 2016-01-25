@@ -37,7 +37,7 @@ congestion which may decrease the :ref:`SLA <sla_definition>` for
 It is also important to schedule :ref:`Actions <action_definition>` in order to
 avoid security issues such as denial of service on core OpenStack services.
 
-See :doc:`architecture` for more details on this component.
+See :doc:`../architecture` for more details on this component.
 """
 
 import abc

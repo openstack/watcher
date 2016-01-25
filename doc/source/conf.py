@@ -63,7 +63,7 @@ exclude_patterns = [
     # included in the toctree themselves, so tell Sphinx to ignore
     # them when scanning for input files.
     'man/footer.rst',
-    'man/general_options.rst',
+    'man/general-options.rst',
 ]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.

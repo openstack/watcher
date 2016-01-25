@@ -34,7 +34,7 @@ of :ref:`Actions <action_definition>` which are scheduled in time by the
 :ref:`Watcher Planner <watcher_planner_definition>` (i.e., it generates an
 :ref:`Action Plan <action_plan_definition>`).
 
-See :doc:`architecture` for more details on this component.
+See :doc:`../architecture` for more details on this component.
 """
 
 from oslo_config import cfg

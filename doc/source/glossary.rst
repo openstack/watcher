@@ -262,7 +262,7 @@ specific domain.
 Please, read `the official OpenStack definition of a Project <http://docs.openstack.org/glossary/content/glossary.html>`_.
 
 
-.. _primitive_definition:
+.. _sla_definition:
 
 SLA
 ===
