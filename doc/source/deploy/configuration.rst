@@ -318,3 +318,33 @@ pick any database system you prefer.
 The original implementation has been based on MongoDB but you can create your
 own storage driver using whatever technology you want.
 For more information : https://wiki.openstack.org/wiki/Gnocchi
+
+
+Workers
+=======
+
+You can define a number of workers for the Decision Engine and the Applier.
+
+If you want to create and run more audits simultaneously, you have to raise
+the number of workers used by the Decision Engine::
+
+    [watcher_decision_engine]
+
+    ...
+
+    # The maximum number of threads that can be used to execute strategies
+    # (integer value)
+    #max_workers = 2
+
+
+If you want to execute simultaneously more recommended action plans, you
+have to raise the number of workers used by the Applier::
+
+    [watcher_applier]
+
+    ...
+
+    # Number of workers for applier, default value is 1. (integer value)
+    # Minimum value: 1
+    #workers = 1
+
