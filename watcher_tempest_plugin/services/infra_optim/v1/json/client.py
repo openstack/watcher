@@ -233,3 +233,24 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         """
 
         return self._patch_request('/action_plans', action_plan_uuid, patch)
+
+    # ### GOALS ### #
+
+    @base.handle_errors
+    def list_goals(self, **kwargs):
+        """List all existing goals"""
+        return self._list_request('/goals', **kwargs)
+
+    @base.handle_errors
+    def list_goals_detail(self, **kwargs):
+        """Lists details of all existing goals"""
+        return self._list_request('/goals/detail', **kwargs)
+
+    @base.handle_errors
+    def show_goal(self, goal):
+        """Gets a specific goal
+
+        :param goal: Name of the goal
+        :return: Serialized goal as a dictionary
+        """
+        return self._show_request('/goals', goal)
