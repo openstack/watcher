@@ -75,17 +75,13 @@ extension, PyPi) cannot satisfy. These dependencies should be installed
 prior to using `pip`, and the installation method may vary depending on
 your platform.
 
-* Ubuntu 14.04:
+* Ubuntu 14.04::
 
-  .. code-block:: bash
+    $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
 
-      $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
+* Fedora 19+::
 
-* Fedora 19+:
-
-  .. code-block:: bash
-
-      $ sudo yum install openssl-devel libffi-devel mysql-devel
+    $ sudo yum install openssl-devel libffi-devel mysql-devel
 
 
 PyPi Packages and VirtualEnv
@@ -287,4 +283,3 @@ template files to easily play with Watcher services within a minimal OpenStack
 isolated environment (Identity, Message Bus, SQL database, Horizon, ...).
 
 .. _`watcher-tools`: https://github.com/b-com/watcher-tools
-
