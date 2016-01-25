@@ -30,8 +30,7 @@ of the OpenStack :ref:`Cluster <cluster_definition>` such as:
 -  Changing the current state of an hypervisor (enable or disable) with Nova
 
 In most cases, an :ref:`Action <action_definition>` triggers some concrete
-commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.)
-via a :ref:`Primitive <primitive_definition>`.
+commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.).
 
 An :ref:`Action <action_definition>` has a life-cycle and its current state may
 be one of the following:

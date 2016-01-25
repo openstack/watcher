@@ -22,7 +22,7 @@ This component is in charge of executing the
 :ref:`Action Plan <action_plan_definition>` built by the
 :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`.
 
-See :doc:`architecture` for more details on this component.
+See: :doc:`../architecture` for more details on this component.
 """
 
 import abc
