@@ -55,25 +55,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         return self._show_request('audit_templates', audit_template_uuid)
 
     @base.handle_errors
-    def filter_audit_template_by_host_aggregate(self, host_aggregate):
-        """Gets an audit template associated with given host agregate ID.
-
-        :param host_aggregate: Unique identifier of the host aggregate
-        :return: Serialized audit template as a dictionary.
-        """
-        return self._list_request('/audit_templates',
-                                  host_aggregate=host_aggregate)
-
-    @base.handle_errors
-    def filter_audit_template_by_goal(self, goal):
-        """Gets an audit template associated with given goal.
-
-        :param goal: goal identifier
-        :return: Serialized audit template as a dictionary.
-        """
-        return self._list_request('/audit_templates', goal=goal)
-
-    @base.handle_errors
     def create_audit_template(self, **kwargs):
         """Creates an audit template with the specified parameters.
 
@@ -138,12 +119,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
     def list_audits_detail(self, **kwargs):
         """Lists details of all existing audit templates."""
         return self._list_request('/audits/detail', **kwargs)
-
-    @base.handle_errors
-    def list_audit_by_audit_template(self, audit_template_uuid):
-        """Lists all audits associated with an audit template."""
-        return self._list_request(
-            '/audits', audit_template=audit_template_uuid)
 
     @base.handle_errors
     def show_audit(self, audit_uuid):
@@ -254,3 +229,24 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :return: Serialized goal as a dictionary
         """
         return self._show_request('/goals', goal)
+
+    # ### ACTIONS ### #
+
+    @base.handle_errors
+    def list_actions(self, **kwargs):
+        """List all existing actions"""
+        return self._list_request('/actions', **kwargs)
+
+    @base.handle_errors
+    def list_actions_detail(self, **kwargs):
+        """Lists details of all existing actions"""
+        return self._list_request('/actions/detail', **kwargs)
+
+    @base.handle_errors
+    def show_action(self, action_uuid):
+        """Gets a specific action
+
+        :param action_uuid: Unique identifier of the action
+        :return: Serialized action as a dictionary
+        """
+        return self._show_request('/actions', action_uuid)

@@ -34,7 +34,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(self.has_audit_succeeded, audit['uuid']),
-            duration=10,
+            duration=30,
             sleep_for=.5
         ))
         _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
@@ -52,7 +52,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(self.has_audit_succeeded, audit['uuid']),
-            duration=10,
+            duration=30,
             sleep_for=.5
         ))
         _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
@@ -72,7 +72,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(self.has_audit_succeeded, audit['uuid']),
-            duration=10,
+            duration=30,
             sleep_for=.5
         ))
         _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
@@ -89,7 +89,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         self.assertTrue(test.call_until_true(
             func=functools.partial(
                 self.has_action_plan_finished, action_plan['uuid']),
-            duration=10,
+            duration=30,
             sleep_for=.5
         ))
         _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
@@ -109,7 +109,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
 
         assert test.call_until_true(
             func=functools.partial(cls.has_audit_succeeded, cls.audit['uuid']),
-            duration=10,
+            duration=30,
             sleep_for=.5
         )
         _, action_plans = cls.client.list_action_plan_by_audit(

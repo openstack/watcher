@@ -179,9 +179,8 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         self.assertEqual(len(body['audits']), 3)
         self.assertIn(next_marker, body['next'])
 
-    # @decorators.skip_because(bug="1533220")
     @test.attr(type='smoke')
     def test_list_audits_related_to_given_audit_template(self):
-        _, body = self.client.list_audit_by_audit_template(
-            self.audit_template['uuid'])
+        _, body = self.client.list_audits(
+            audit_template=self.audit_template['uuid'])
         self.assertIn(self.audit['uuid'], [n['uuid'] for n in body['audits']])

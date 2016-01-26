@@ -22,11 +22,6 @@ from tempest_lib import exceptions as lib_exc
 
 from watcher_tempest_plugin import infra_optim_clients as clients
 
-# Resources must be deleted in a specific order, this list
-# defines the resource types to clean up, and the correct order.
-RESOURCE_TYPES = ['audit_template', 'audit', 'action_plan']
-# RESOURCE_TYPES = ['action', 'action_plan', 'audit', 'audit_template']
-
 
 def creates(resource):
     """Decorator that adds resources to the appropriate cleanup list."""
@@ -47,6 +42,8 @@ def creates(resource):
 class BaseInfraOptimTest(test.BaseTestCase):
     """Base class for Infrastructure Optimization API tests."""
 
+    RESOURCE_TYPES = ['audit_template', 'audit']
+
     @classmethod
     def setup_credentials(cls):
         super(BaseInfraOptimTest, cls).setup_credentials()
@@ -62,19 +59,18 @@ class BaseInfraOptimTest(test.BaseTestCase):
         super(BaseInfraOptimTest, cls).resource_setup()
 
         cls.created_objects = {}
-        for resource in RESOURCE_TYPES:
+        for resource in cls.RESOURCE_TYPES:
             cls.created_objects[resource] = set()
 
     @classmethod
     def resource_cleanup(cls):
         """Ensure that all created objects get destroyed."""
-
         try:
-            for resource in RESOURCE_TYPES:
-                uuids = cls.created_objects[resource]
+            for resource in cls.RESOURCE_TYPES:
+                obj_uuids = cls.created_objects[resource]
                 delete_method = getattr(cls.client, 'delete_%s' % resource)
-                for u in uuids:
-                    delete_method(u, ignore_errors=lib_exc.NotFound)
+                for obj_uuid in obj_uuids:
+                    delete_method(obj_uuid, ignore_errors=lib_exc.NotFound)
         finally:
             super(BaseInfraOptimTest, cls).resource_cleanup()
 
@@ -177,21 +173,6 @@ class BaseInfraOptimTest(test.BaseTestCase):
         return audit.get('state') == 'SUCCEEDED'
 
     # ### ACTION PLANS ### #
-
-    @classmethod
-    @creates('action_plan')
-    def start_action_plan(cls, audit_uuid, type='ONESHOT',
-                          state='PENDING', deadline=None):
-        """Wrapper utility for creating a test action plan
-
-        :param audit_uuid: Audit Template UUID this action plan will use
-        :param type: Audit type (either ONESHOT or CONTINUOUS)
-        :return: A tuple with The HTTP response and its body
-        """
-        resp, body = cls.client.create_action_plan(
-            audit_uuid=audit_uuid, type=type,
-            state=state, deadline=deadline)
-        return resp, body
 
     @classmethod
     def delete_action_plan(cls, action_plan_uuid):

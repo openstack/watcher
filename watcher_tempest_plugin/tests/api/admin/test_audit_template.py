@@ -88,8 +88,8 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @decorators.skip_because(bug="1510189")
     @test.attr(type='smoke')
     def test_filter_audit_template_by_goal(self):
-        _, audit_template = self.client.\
-            filter_audit_template_by_goal(self.audit_template['goal'])
+        _, audit_template = self.client.list_audit_templates(
+            goal=self.audit_template['goal'])
 
         self.assert_expected(self.audit_template,
                              audit_template['audit_templates'][0])
@@ -97,9 +97,8 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @decorators.skip_because(bug="1510189")
     @test.attr(type='smoke')
     def test_filter_audit_template_by_host_aggregate(self):
-        _, audit_template = self.client.\
-            filter_audit_template_by_host_aggregate(
-                self.audit_template['host_aggregate'])
+        _, audit_template = self.client.list_audit_templates(
+            host_aggregate=self.audit_template['host_aggregate'])
 
         self.assert_expected(self.audit_template,
                              audit_template['audit_templates'][0])
