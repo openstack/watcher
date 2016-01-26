@@ -181,7 +181,6 @@ class ActionPlan(base.APIBase):
 
         self.fields = []
         fields = list(objects.ActionPlan.fields)
-        fields.append('audit_uuid')
         for field in fields:
             # Skip fields we do not expose.
             if not hasattr(self, field):
@@ -189,14 +188,19 @@ class ActionPlan(base.APIBase):
             self.fields.append(field)
             setattr(self, field, kwargs.get(field, wtypes.Unset))
 
-        self.fields.append('audit_id')
+        self.fields.append('audit_uuid')
+        self.fields.append('first_action_uuid')
+
         setattr(self, 'audit_uuid', kwargs.get('audit_id', wtypes.Unset))
+        setattr(self, 'first_action_uuid',
+                kwargs.get('first_action_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(action_plan, url, expand=True):
         if not expand:
-            action_plan.unset_fields_except(['uuid', 'state', 'updated_at',
-                                             'audit_uuid'])
+            action_plan.unset_fields_except(
+                ['uuid', 'state', 'updated_at',
+                 'audit_uuid', 'first_action_uuid'])
 
         action_plan.links = [link.Link.make_link(
             'self', url,

@@ -35,6 +35,7 @@ class TestActionPlanObject(base.TestCase):
         act_plan_dict = api_utils.action_plan_post_data()
         del act_plan_dict['state']
         del act_plan_dict['audit_id']
+        del act_plan_dict['first_action_id']
         act_plan = api_action_plan.ActionPlan(**act_plan_dict)
         self.assertEqual(wtypes.Unset, act_plan.state)
 
@@ -69,10 +70,18 @@ class TestListActionPlan(api_base.FunctionalTest):
         response = self.get_json('/action_plans')
         self.assertEqual([], response['action_plans'])
 
-    def test_get_one(self):
+    def test_get_one_ok(self):
         action_plan = obj_utils.create_action_plan_without_audit(self.context)
         response = self.get_json('/action_plans/%s' % action_plan['uuid'])
         self.assertEqual(action_plan.uuid, response['uuid'])
+        self._assert_action_plans_fields(response)
+
+    def test_get_one_with_first_action(self):
+        action_plan = obj_utils.create_test_action_plan(self.context)
+        action = obj_utils.create_test_action(self.context, id=1)
+        response = self.get_json('/action_plans/%s' % action_plan['uuid'])
+        self.assertEqual(action_plan.uuid, response['uuid'])
+        self.assertEqual(action.uuid, response['first_action_uuid'])
         self._assert_action_plans_fields(response)
 
     def test_get_one_soft_deleted(self):
