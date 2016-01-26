@@ -84,10 +84,12 @@ def get_test_action(**kwargs):
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'action_plan_id': kwargs.get('action_plan_id', 1),
         'action_type': kwargs.get('action_type', 'nop'),
-        'applies_to': kwargs.get('applies_to',
-                                 '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
-        'input_parameters': kwargs.get('input_parameters', {'key1': 'val1',
-                                                            'key2': 'val2'}),
+        'input_parameters':
+            kwargs.get('input_parameters',
+                       {'key1': 'val1',
+                        'key2': 'val2',
+                        'resource_id':
+                        '10a47dd1-4874-4298-91cf-eff046dbdb8d'}),
         'state': kwargs.get('state', 'PENDING'),
         'alarm': kwargs.get('alarm', None),
         'next': kwargs.get('next', 2),

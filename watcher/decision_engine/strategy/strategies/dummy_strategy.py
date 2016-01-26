@@ -18,12 +18,12 @@
 #
 from oslo_log import log
 
-from watcher.decision_engine.strategy.strategies.base import BaseStrategy
+from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
 
 
-class DummyStrategy(BaseStrategy):
+class DummyStrategy(base.BaseStrategy):
     DEFAULT_NAME = "dummy"
     DEFAULT_DESCRIPTION = "Dummy Strategy"
 
@@ -35,17 +35,15 @@ class DummyStrategy(BaseStrategy):
         super(DummyStrategy, self).__init__(name, description, osc)
 
     def execute(self, model):
+        LOG.debug("Executing Dummy strategy")
         parameters = {'message': 'hello World'}
         self.solution.add_action(action_type=self.NOP,
-                                 applies_to="",
                                  input_parameters=parameters)
 
         parameters = {'message': 'Welcome'}
         self.solution.add_action(action_type=self.NOP,
-                                 applies_to="",
                                  input_parameters=parameters)
 
         self.solution.add_action(action_type=self.SLEEP,
-                                 applies_to="",
-                                 input_parameters={'duration': '5'})
+                                 input_parameters={'duration': 5.0})
         return self.solution

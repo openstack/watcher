@@ -129,13 +129,10 @@ class Action(base.APIBase):
     alarm = types.uuid
     """An alarm UUID related to this action"""
 
-    applies_to = wtypes.text
-    """Applies to"""
-
     action_type = wtypes.text
     """Action type"""
 
-    input_parameters = wtypes.DictType(wtypes.text, wtypes.text)
+    input_parameters = types.jsontype
     """One or more key/value pairs """
 
     next_uuid = wsme.wsproperty(types.uuid, _get_next_uuid,

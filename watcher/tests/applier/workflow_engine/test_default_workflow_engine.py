@@ -32,6 +32,12 @@ from watcher.tests.db import base
 
 @six.add_metaclass(abc.ABCMeta)
 class FakeAction(abase.BaseAction):
+    def schema(self):
+        pass
+
+    def postcondition(self):
+        pass
+
     def precondition(self):
         pass
 
@@ -62,12 +68,11 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         result = self.engine.execute(actions)
         self.assertEqual(result, True)
 
-    def create_action(self, action_type, applies_to, parameters, next):
+    def create_action(self, action_type, parameters, next):
         action = {
             'uuid': utils.generate_uuid(),
             'action_plan_id': 0,
             'action_type': action_type,
-            'applies_to': applies_to,
             'input_parameters': parameters,
             'state': objects.action.State.PENDING,
             'alarm': None,
@@ -92,15 +97,15 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         self.assertEqual(result, True)
 
     def test_execute_with_one_action(self):
-        actions = [self.create_action("nop", "", {'message': 'test'}, None)]
+        actions = [self.create_action("nop", {'message': 'test'}, None)]
         result = self.engine.execute(actions)
         self.assertEqual(result, True)
         self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_two_actions(self):
         actions = []
-        next = self.create_action("sleep", "", {'duration': '0'}, None)
-        first = self.create_action("nop", "", {'message': 'test'}, next.id)
+        next = self.create_action("sleep", {'duration': 0.0}, None)
+        first = self.create_action("nop", {'message': 'test'}, next.id)
 
         actions.append(first)
         actions.append(next)
@@ -111,9 +116,9 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
     def test_execute_with_three_actions(self):
         actions = []
-        next2 = self.create_action("nop", "vm1", {'message': 'next'}, None)
-        next = self.create_action("sleep", "vm1", {'duration': '0'}, next2.id)
-        first = self.create_action("nop", "vm1", {'message': 'hello'}, next.id)
+        next2 = self.create_action("nop", {'message': 'next'}, None)
+        next = self.create_action("sleep", {'duration': 0.0}, next2.id)
+        first = self.create_action("nop", {'message': 'hello'}, next.id)
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(next, objects.action.State.PENDING)
         self.check_action_state(next2, objects.action.State.PENDING)
@@ -128,12 +133,9 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
     def test_execute_with_exception(self):
         actions = []
-        next2 = self.create_action("no_exist",
-                                   "vm1", {'message': 'next'}, None)
-        next = self.create_action("sleep", "vm1",
-                                  {'duration': '0'}, next2.id)
-        first = self.create_action("nop", "vm1",
-                                   {'message': 'hello'}, next.id)
+        next2 = self.create_action("no_exist", {'message': 'next'}, None)
+        next = self.create_action("sleep", {'duration': 0.0}, next2.id)
+        first = self.create_action("nop", {'message': 'hello'}, next.id)
 
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(next, objects.action.State.PENDING)
@@ -158,7 +160,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
                                           plugin=FakeAction,
                                           obj=None),
             namespace=FakeAction.namespace())
-        actions = [self.create_action("dontcare", "vm1", {}, None)]
+        actions = [self.create_action("dontcare", {}, None)]
         result = self.engine.execute(actions)
         self.assertEqual(result, False)
         self.check_action_state(actions[0], objects.action.State.FAILED)

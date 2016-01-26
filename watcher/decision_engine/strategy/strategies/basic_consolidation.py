@@ -329,14 +329,14 @@ class BasicConsolidation(BaseStrategy):
                                      0,
                                      0)
 
-    def add_change_service_state(self, applies_to, state):
+    def add_change_service_state(self, resource_id, state):
         parameters = {'state': state}
         self.solution.add_action(action_type=self.CHANGE_NOVA_SERVICE_STATE,
-                                 applies_to=applies_to,
+                                 resource_id=resource_id,
                                  input_parameters=parameters)
 
     def add_migration(self,
-                      applies_to,
+                      resource_id,
                       migration_type,
                       src_hypervisor,
                       dst_hypervisor):
@@ -344,7 +344,7 @@ class BasicConsolidation(BaseStrategy):
                       'src_hypervisor': src_hypervisor,
                       'dst_hypervisor': dst_hypervisor}
         self.solution.add_action(action_type=self.MIGRATION,
-                                 applies_to=applies_to,
+                                 resource_id=resource_id,
                                  input_parameters=parameters)
 
     def score_of_nodes(self, current_model, score):

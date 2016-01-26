@@ -18,55 +18,60 @@
 #
 import uuid
 
-from watcher.decision_engine.model.hypervisor import Hypervisor
-from watcher.decision_engine.model.vm_state import VMState
+from watcher.decision_engine.model import hypervisor as modelhyp
+from watcher.decision_engine.model import vm_state
 from watcher.tests import base
-from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state import \
-    FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies import \
+    faker_cluster_state
 
 
 class TestMapping(base.BaseTestCase):
+
+    VM1_UUID = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+    VM2_UUID = "a4cab39b-9828-413a-bf88-f76921bf1517"
+
     def test_get_node_from_vm(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         vms = model.get_all_vms()
         keys = list(vms.keys())
         vm = vms[keys[0]]
-        if vm.uuid != 'VM_0':
+        if vm.uuid != self.VM1_UUID:
             vm = vms[keys[1]]
         node = model.mapping.get_node_from_vm(vm)
         self.assertEqual(node.uuid, 'Node_0')
 
     def test_get_node_from_vm_id(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         hyps = model.mapping.get_node_vms_from_id("BLABLABLA")
         self.assertEqual(hyps.__len__(), 0)
 
     def test_get_all_vms(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         vms = model.get_all_vms()
         self.assertEqual(vms.__len__(), 2)
-        self.assertEqual(vms['VM_0'].state, VMState.ACTIVE.value)
-        self.assertEqual(vms['VM_0'].uuid, 'VM_0')
-        self.assertEqual(vms['VM_1'].state, VMState.ACTIVE.value)
-        self.assertEqual(vms['VM_1'].uuid, 'VM_1')
+        self.assertEqual(vms[self.VM1_UUID].state,
+                         vm_state.VMState.ACTIVE.value)
+        self.assertEqual(vms[self.VM1_UUID].uuid, self.VM1_UUID)
+        self.assertEqual(vms[self.VM2_UUID].state,
+                         vm_state.VMState.ACTIVE.value)
+        self.assertEqual(vms[self.VM2_UUID].uuid, self.VM2_UUID)
 
     def test_get_mapping(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
-
         mapping_vm = model.mapping.get_mapping_vm()
         self.assertEqual(mapping_vm.__len__(), 2)
-        self.assertEqual(mapping_vm['VM_0'], 'Node_0')
-        self.assertEqual(mapping_vm['VM_1'], 'Node_1')
+        self.assertEqual(mapping_vm[self.VM1_UUID], 'Node_0')
+        self.assertEqual(mapping_vm[self.VM2_UUID], 'Node_1')
 
     def test_migrate_vm(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())
@@ -81,13 +86,13 @@ class TestMapping(base.BaseTestCase):
         self.assertEqual(model.mapping.migrate_vm(vm1, hyp0, hyp1), True)
 
     def test_unmap_from_id_log_warning(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())
         vm0 = vms[keys[0]]
         id = "{0}".format(uuid.uuid4())
-        hypervisor = Hypervisor()
+        hypervisor = modelhyp.Hypervisor()
         hypervisor.uuid = id
 
         model.mapping.unmap_from_id(hypervisor.uuid, vm0.uuid)
@@ -95,7 +100,7 @@ class TestMapping(base.BaseTestCase):
         # hypervisor.uuid)), 1)
 
     def test_unmap_from_id(self):
-        fake_cluster = FakerModelCollector()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         vms = model.get_all_vms()
         keys = list(vms.keys())

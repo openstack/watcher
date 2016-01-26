@@ -87,13 +87,13 @@ class BaseSolution(object):
     @abc.abstractmethod
     def add_action(self,
                    action_type,
-                   applies_to,
+                   resource_id,
                    input_parameters=None):
         """Add a new Action in the Action Plan
 
         :param action_type: the unique id of an action type defined in
             entry point 'watcher_actions'
-        :param applies_to: the unique id of the resource to which the
+        :param resource_id: the unique id of the resource to which the
             `Action` applies.
         :param input_parameters: An array of input parameters provided as
             key-value pairs of strings. Each key-pair contains names and

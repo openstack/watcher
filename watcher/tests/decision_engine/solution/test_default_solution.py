@@ -13,27 +13,29 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from watcher.decision_engine.solution.default import DefaultSolution
+
+from watcher.decision_engine.solution import default
 from watcher.tests import base
 
 
 class TestDefaultSolution(base.BaseTestCase):
     def test_default_solution(self):
-        solution = DefaultSolution()
+        solution = default.DefaultSolution()
         parameters = {
             "src_uuid_hypervisor": "server1",
             "dst_uuid_hypervisor": "server2",
         }
         solution.add_action(action_type="nop",
-                            applies_to="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
                             input_parameters=parameters)
         self.assertEqual(len(solution.actions), 1)
         expected_action_type = "nop"
-        expected_applies_to = "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
-        expected_parameters = parameters
+        expected_parameters = {
+            "src_uuid_hypervisor": "server1",
+            "dst_uuid_hypervisor": "server2",
+            "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
+        }
         self.assertEqual(solution.actions[0].get('action_type'),
                          expected_action_type)
-        self.assertEqual(solution.actions[0].get('applies_to'),
-                         expected_applies_to)
         self.assertEqual(solution.actions[0].get('input_parameters'),
                          expected_parameters)

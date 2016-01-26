@@ -18,30 +18,63 @@
 #
 
 from oslo_log import log
+import six
+import voluptuous
 
+from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
+from watcher.common import utils
 
 LOG = log.getLogger(__name__)
 
 
 class Migrate(base.BaseAction):
+
+    # input parameters constants
+    MIGRATION_TYPE = 'migration_type'
+    LIVE_MIGRATION = 'live'
+    DST_HYPERVISOR = 'dst_hypervisor'
+    SRC_HYPERVISOR = 'src_hypervisor'
+
+    def check_resource_id(self, value):
+        if (value is not None and
+                len(value) > 0 and not
+                utils.is_uuid_like(value)):
+            raise voluptuous.Invalid(_("The parameter"
+                                       " resource_id is invalid."))
+
+    @property
+    def schema(self):
+        return voluptuous.Schema({
+            voluptuous.Required(self.RESOURCE_ID): self.check_resource_id,
+            voluptuous.Required(self.MIGRATION_TYPE,
+                                default=self.LIVE_MIGRATION):
+                                    voluptuous.Any(*[self.LIVE_MIGRATION]),
+            voluptuous.Required(self.DST_HYPERVISOR):
+                voluptuous.All(voluptuous.Any(*six.string_types),
+                               voluptuous.Length(min=1)),
+            voluptuous.Required(self.SRC_HYPERVISOR):
+                voluptuous.All(voluptuous.Any(*six.string_types),
+                               voluptuous.Length(min=1)),
+        })
+
     @property
     def instance_uuid(self):
-        return self.applies_to
+        return self.resource_id
 
     @property
     def migration_type(self):
-        return self.input_parameters.get('migration_type')
+        return self.input_parameters.get(self.MIGRATION_TYPE)
 
     @property
     def dst_hypervisor(self):
-        return self.input_parameters.get('dst_hypervisor')
+        return self.input_parameters.get(self.DST_HYPERVISOR)
 
     @property
     def src_hypervisor(self):
-        return self.input_parameters.get('src_hypervisor')
+        return self.input_parameters.get(self.SRC_HYPERVISOR)
 
     def migrate(self, destination):
         nova = nova_helper.NovaHelper(osc=self.osc)

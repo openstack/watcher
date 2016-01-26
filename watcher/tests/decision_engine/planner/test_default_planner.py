@@ -68,7 +68,7 @@ class TestActionScheduling(base.DbTestCase):
             "dst_uuid_hypervisor": "server2",
         }
         solution.add_action(action_type="migrate",
-                            applies_to="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
                             input_parameters=parameters)
 
         with mock.patch.object(
@@ -94,11 +94,11 @@ class TestActionScheduling(base.DbTestCase):
             "dst_uuid_hypervisor": "server2",
         }
         solution.add_action(action_type="migrate",
-                            applies_to="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
                             input_parameters=parameters)
 
         solution.add_action(action_type="nop",
-                            applies_to="",
+                            resource_id="",
                             input_parameters={})
 
         with mock.patch.object(

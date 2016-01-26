@@ -16,26 +16,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from collections import Counter
+import collections
 import mock
 
+from watcher.applier.actions.loading import default
 from watcher.common import exception
-from watcher.decision_engine.model.model_root import ModelRoot
-from watcher.decision_engine.strategy.strategies.basic_consolidation import \
-    BasicConsolidation
+from watcher.decision_engine.model import model_root
+from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
-from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state \
-    import FakerModelCollector
-from watcher.tests.decision_engine.strategy.strategies.faker_metrics_collector\
-    import FakerMetricsCollector
+from watcher.tests.decision_engine.strategy.strategies \
+    import faker_cluster_state
+from watcher.tests.decision_engine.strategy.strategies \
+    import faker_metrics_collector
 
 
 class TestBasicConsolidation(base.BaseTestCase):
     # fake metrics
-    fake_metrics = FakerMetricsCollector()
+    fake_metrics = faker_metrics_collector.FakerMetricsCollector()
 
     # fake cluster
-    fake_cluster = FakerModelCollector()
+    fake_cluster = faker_cluster_state.FakerModelCollector()
 
     def test_cluster_size(self):
         size_cluster = len(
@@ -45,7 +45,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_basic_consolidation_score_hypervisor(self):
         cluster = self.fake_cluster.generate_scenario_1()
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
@@ -67,7 +67,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_basic_consolidation_score_vm(self):
         cluster = self.fake_cluster.generate_scenario_1()
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
@@ -90,7 +90,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_basic_consolidation_score_vm_disk(self):
         cluster = self.fake_cluster.generate_scenario_5_with_vm_disk_0()
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
@@ -99,7 +99,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_basic_consolidation_weight(self):
         cluster = self.fake_cluster.generate_scenario_1()
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
@@ -114,24 +114,24 @@ class TestBasicConsolidation(base.BaseTestCase):
                          vm_0_weight_assert)
 
     def test_calculate_migration_efficacy(self):
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.calculate_migration_efficacy()
 
     def test_exception_model(self):
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         self.assertRaises(exception.ClusterStateNotDefined, sercon.execute,
                           None)
 
     def test_exception_cluster_empty(self):
-        sercon = BasicConsolidation()
-        model = ModelRoot()
+        sercon = strategies.BasicConsolidation()
+        model = model_root.ModelRoot()
         self.assertRaises(exception.ClusterEmpty, sercon.execute,
                           model)
 
     def test_calculate_score_vm_raise_cluster_state_not_found(self):
-        metrics = FakerMetricsCollector()
+        metrics = faker_metrics_collector.FakerMetricsCollector()
         metrics.empty_one_metric("CPU_COMPUTE")
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
@@ -139,8 +139,8 @@ class TestBasicConsolidation(base.BaseTestCase):
                           sercon.calculate_score_vm, "VM_1", None)
 
     def test_check_migration(self):
-        sercon = BasicConsolidation()
-        fake_cluster = FakerModelCollector()
+        sercon = strategies.BasicConsolidation()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         all_vms = model.get_all_vms()
@@ -151,8 +151,8 @@ class TestBasicConsolidation(base.BaseTestCase):
         sercon.check_migration(model, hyp0, hyp0, vm0)
 
     def test_threshold(self):
-        sercon = BasicConsolidation()
-        fake_cluster = FakerModelCollector()
+        sercon = strategies.BasicConsolidation()
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         all_hyps = model.get_all_hypervisors()
@@ -165,19 +165,19 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertEqual(sercon.get_threshold_cores(), threshold_cores + 1)
 
     def test_number_of(self):
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.get_number_of_released_nodes()
         sercon.get_number_of_migrations()
 
     def test_basic_consolidation_migration(self):
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
         solution = sercon.execute(
             self.fake_cluster.generate_scenario_3_with_2_hypervisors())
 
-        actions_counter = Counter(
+        actions_counter = collections.Counter(
             [action.get('action_type') for action in solution.actions])
 
         expected_num_migrations = 1
@@ -189,26 +189,31 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertEqual(num_migrations, expected_num_migrations)
         self.assertEqual(num_hypervisor_state_change, expected_power_state)
 
-    def test_execute_cluster_empty(self):
-        current_state_cluster = FakerModelCollector()
-        sercon = BasicConsolidation("sercon", "Basic offline consolidation")
-        sercon.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        model = current_state_cluster.generate_random(0, 0)
-        self.assertRaises(exception.ClusterEmpty, sercon.execute, model)
-
     # calculate_weight
     def test_execute_no_workload(self):
-        sercon = BasicConsolidation()
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
-        current_state_cluster = FakerModelCollector()
+        current_state_cluster = faker_cluster_state.FakerModelCollector()
         model = current_state_cluster. \
             generate_scenario_4_with_1_hypervisor_no_vm()
 
-        with mock.patch.object(BasicConsolidation, 'calculate_weight') \
+        with mock.patch.object(strategies.BasicConsolidation,
+                               'calculate_weight') \
                 as mock_score_call:
             mock_score_call.return_value = 0
             solution = sercon.execute(model)
             self.assertEqual(solution.efficacy, 100)
+
+    def test_check_parameters(self):
+        sercon = strategies.BasicConsolidation()
+        sercon.ceilometer = mock.MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        solution = sercon.execute(
+            self.fake_cluster.generate_scenario_3_with_2_hypervisors())
+        loader = default.DefaultActionLoader()
+        for action in solution.actions:
+            loaded_action = loader.load(action['action_type'])
+            loaded_action.input_parameters = action['input_parameters']
+            loaded_action.validate_parameters()

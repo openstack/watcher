@@ -33,5 +33,10 @@ class ActionFactory(object):
         loaded_action = self.action_loader.load(name=object_action.action_type,
                                                 osc=osc)
         loaded_action.input_parameters = object_action.input_parameters
-        loaded_action.applies_to = object_action.applies_to
+        LOG.debug("Checking the input parameters")
+        # NOTE(jed) if we change the schema of an action and we try to reload
+        # an older version of the Action, the validation can fail.
+        # We need to add the versioning of an Action or a migration tool.
+        # We can also create an new Action which extends the previous one.
+        loaded_action.validate_parameters()
         return loaded_action

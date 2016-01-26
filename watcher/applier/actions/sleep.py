@@ -18,19 +18,29 @@
 #
 import time
 
+
 from oslo_log import log
+import voluptuous
 
 from watcher.applier.actions import base
-
 
 LOG = log.getLogger(__name__)
 
 
 class Sleep(base.BaseAction):
 
+    DURATION = 'duration'
+
+    @property
+    def schema(self):
+        return voluptuous.Schema({
+            voluptuous.Required(self.DURATION, default=1):
+                voluptuous.All(float, voluptuous.Range(min=0))
+        })
+
     @property
     def duration(self):
-        return int(self.input_parameters.get('duration'))
+        return int(self.input_parameters.get(self.DURATION))
 
     def execute(self):
         LOG.debug("Starting action Sleep duration:%s ", self.duration)

@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
+import six
+import voluptuous
 
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -27,13 +28,27 @@ from watcher.decision_engine.model import hypervisor_state as hstate
 
 class ChangeNovaServiceState(base.BaseAction):
 
+    STATE = 'state'
+
+    @property
+    def schema(self):
+        return voluptuous.Schema({
+            voluptuous.Required(self.RESOURCE_ID):
+                voluptuous.All(
+                    voluptuous.Any(*six.string_types),
+                    voluptuous.Length(min=1)),
+            voluptuous.Required(self.STATE):
+                voluptuous.Any(*[state.value
+                                 for state in list(hstate.HypervisorState)]),
+        })
+
     @property
     def host(self):
-        return self.applies_to
+        return self.resource_id
 
     @property
     def state(self):
-        return self.input_parameters.get('state')
+        return self.input_parameters.get(self.STATE)
 
     def execute(self):
         target_state = None

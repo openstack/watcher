@@ -279,3 +279,7 @@ class HypervisorNotFound(WatcherException):
 
 class LoadingError(WatcherException):
     msg_fmt = _("Error loading plugin '%(name)s'")
+
+
+class ReservedWord(WatcherException):
+    msg_fmt = _("The identifier '%(name)s' is a reserved word")

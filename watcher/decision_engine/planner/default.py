@@ -38,14 +38,12 @@ class DefaultPlanner(base.BasePlanner):
     def create_action(self,
                       action_plan_id,
                       action_type,
-                      applies_to,
                       input_parameters=None):
         uuid = utils.generate_uuid()
         action = {
             'uuid': uuid,
             'action_plan_id': int(action_plan_id),
             'action_type': action_type,
-            'applies_to': applies_to,
             'input_parameters': input_parameters,
             'state': objects.action.State.PENDING,
             'alarm': None,
@@ -63,8 +61,6 @@ class DefaultPlanner(base.BasePlanner):
             json_action = self.create_action(action_plan_id=action_plan.id,
                                              action_type=action.get(
                                                  'action_type'),
-                                             applies_to=action.get(
-                                                 'applies_to'),
                                              input_parameters=action.get(
                                                  'input_parameters'))
             to_schedule.append((self.priorities[action.get('action_type')],

@@ -18,6 +18,8 @@
 #
 
 from oslo_log import log
+import six
+import voluptuous
 
 from watcher.applier.actions import base
 
@@ -27,9 +29,18 @@ LOG = log.getLogger(__name__)
 
 class Nop(base.BaseAction):
 
+    MESSAGE = 'message'
+
+    @property
+    def schema(self):
+        return voluptuous.Schema({
+            voluptuous.Required(self.MESSAGE): voluptuous.Any(
+                voluptuous.Any(*six.string_types), None)
+        })
+
     @property
     def message(self):
-        return self.input_parameters.get('message')
+        return self.input_parameters.get(self.MESSAGE)
 
     def execute(self):
         LOG.debug("executing action NOP message:%s ", self.message)

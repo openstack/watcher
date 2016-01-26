@@ -27,10 +27,15 @@ from watcher.common import clients
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseAction(object):
+    # NOTE(jed) by convention we decided
+    # that the attribute "resource_id" is the unique id of
+    # the resource to which the Action applies to allow us to use it in the
+    # watcher dashboard and will be nested in input_parameters
+    RESOURCE_ID = 'resource_id'
+
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self._input_parameters = {}
-        self._applies_to = ""
         self._osc = osc
 
     @property
@@ -48,12 +53,8 @@ class BaseAction(object):
         self._input_parameters = p
 
     @property
-    def applies_to(self):
-        return self._applies_to
-
-    @applies_to.setter
-    def applies_to(self, a):
-        self._applies_to = a
+    def resource_id(self):
+        return self.input_parameters[self.RESOURCE_ID]
 
     @abc.abstractmethod
     def execute(self):
@@ -70,3 +71,11 @@ class BaseAction(object):
     @abc.abstractmethod
     def postcondition(self):
         raise NotImplementedError()
+
+    @abc.abstractproperty
+    def schema(self):
+        raise NotImplementedError()
+
+    def validate_parameters(self):
+        self.schema(self.input_parameters)
+        return True

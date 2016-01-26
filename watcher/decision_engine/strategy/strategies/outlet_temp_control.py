@@ -20,16 +20,16 @@ from oslo_log import log
 
 from watcher._i18n import _LE
 from watcher.common import exception as wexc
-from watcher.decision_engine.model.resource import ResourceType
-from watcher.decision_engine.model.vm_state import VMState
-from watcher.decision_engine.strategy.strategies.base import BaseStrategy
-from watcher.metrics_engine.cluster_history.ceilometer import \
-    CeilometerClusterHistory
+from watcher.decision_engine.model import resource
+from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.strategy.strategies import base
+from watcher.metrics_engine.cluster_history import ceilometer as ceil
+
 
 LOG = log.getLogger(__name__)
 
 
-class OutletTempControl(BaseStrategy):
+class OutletTempControl(base.BaseStrategy):
 
     DEFAULT_NAME = "outlet_temp_control"
     DEFAULT_DESCRIPTION = "outlet temperature based migration strategy"
@@ -81,7 +81,7 @@ class OutletTempControl(BaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = CeilometerClusterHistory(osc=self.osc)
+            self._ceilometer = ceil.CeilometerClusterHistory(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
@@ -104,7 +104,7 @@ class OutletTempControl(BaseStrategy):
         return vcpus_used, memory_mb_used, disk_gb_used
 
     def group_hosts_by_outlet_temp(self, model):
-        '''Group hosts based on outlet temp meters'''
+        """Group hosts based on outlet temp meters"""
 
         hypervisors = model.get_all_hypervisors()
         size_cluster = len(hypervisors)
@@ -137,7 +137,7 @@ class OutletTempControl(BaseStrategy):
         return hosts_need_release, hosts_target
 
     def choose_vm_to_migrate(self, model, hosts):
-        '''pick up an active vm instance to migrate from provided hosts'''
+        """pick up an active vm instance to migrate from provided hosts"""
 
         for hvmap in hosts:
             mig_src_hypervisor = hvmap['hv']
@@ -147,7 +147,7 @@ class OutletTempControl(BaseStrategy):
                     try:
                         # select the first active VM to migrate
                         vm = model.get_vm_from_id(vm_id)
-                        if vm.state != VMState.ACTIVE.value:
+                        if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.info(_LE("VM not active, skipped: %s"),
                                      vm.uuid)
                             continue
@@ -159,11 +159,11 @@ class OutletTempControl(BaseStrategy):
         return None
 
     def filter_dest_servers(self, model, hosts, vm_to_migrate):
-        '''Only return hosts with sufficient available resources'''
+        """Only return hosts with sufficient available resources"""
 
-        cap_cores = model.get_resource_from_id(ResourceType.cpu_cores)
-        cap_disk = model.get_resource_from_id(ResourceType.disk)
-        cap_mem = model.get_resource_from_id(ResourceType.memory)
+        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
+        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
+        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
 
         required_cores = cap_cores.get_capacity(vm_to_migrate)
         required_disk = cap_disk.get_capacity(vm_to_migrate)
@@ -239,10 +239,10 @@ class OutletTempControl(BaseStrategy):
                                                   mig_src_hypervisor,
                                                   mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
-                          'src_hypervisor': mig_src_hypervisor,
-                          'dst_hypervisor': mig_dst_hypervisor}
+                          'src_hypervisor': mig_src_hypervisor.uuid,
+                          'dst_hypervisor': mig_dst_hypervisor.uuid}
             self.solution.add_action(action_type=self.MIGRATION,
-                                     applies_to=vm_src,
+                                     resource_id=vm_src.uuid,
                                      input_parameters=parameters)
 
         self.solution.model = current_model

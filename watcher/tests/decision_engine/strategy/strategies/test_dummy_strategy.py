@@ -13,16 +13,29 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from watcher.decision_engine.strategy.strategies.dummy_strategy import \
-    DummyStrategy
+
+from watcher.applier.actions.loading import default
+from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
-from watcher.tests.decision_engine.strategy.strategies.faker_cluster_state\
-    import FakerModelCollector
+from watcher.tests.decision_engine.strategy.strategies import \
+    faker_cluster_state
 
 
 class TestDummyStrategy(base.TestCase):
     def test_dummy_strategy(self):
-        tactique = DummyStrategy("basic", "Basic offline consolidation")
-        fake_cluster = FakerModelCollector()
+        dummy = strategies.DummyStrategy("dummy", "Dummy strategy")
+        fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
-        tactique.execute(model)
+        solution = dummy.execute(model)
+        self.assertEqual(3, len(solution.actions))
+
+    def test_check_parameters(self):
+        dummy = strategies.DummyStrategy("dummy", "Dummy strategy")
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
+        solution = dummy.execute(model)
+        loader = default.DefaultActionLoader()
+        for action in solution.actions:
+            loaded_action = loader.load(action['action_type'])
+            loaded_action.input_parameters = action['input_parameters']
+            loaded_action.validate_parameters()
