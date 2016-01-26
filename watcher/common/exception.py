@@ -179,7 +179,7 @@ class AuditReferenced(Invalid):
 
 
 class ActionPlanNotFound(ResourceNotFound):
-    msg_fmt = _("ActionPlan %(action plan)s could not be found")
+    msg_fmt = _("ActionPlan %(action_plan)s could not be found")
 
 
 class ActionPlanAlreadyExists(Conflict):

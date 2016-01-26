@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.22.1.dev49\n"
+"Project-Id-Version: python-watcher 0.23.2.dev1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-01-22 10:43+0100\n"
+"POT-Creation-Date: 2016-01-26 11:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,7 +23,7 @@ msgstr ""
 msgid "Invalid state: %(state)s"
 msgstr ""
 
-#: watcher/api/controllers/v1/action_plan.py:416
+#: watcher/api/controllers/v1/action_plan.py:420
 #, python-format
 msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
 msgstr ""
@@ -213,7 +213,8 @@ msgid "Audit %(audit)s is referenced by one or multiple action plans"
 msgstr ""
 
 #: watcher/common/exception.py:182
-msgid "ActionPlan %(action plan)s could not be found"
+#, python-format
+msgid "ActionPlan %(action_plan)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:186
