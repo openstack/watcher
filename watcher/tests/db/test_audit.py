@@ -92,7 +92,7 @@ class DbAuditTestCase(base.DbTestCase):
                 name='My Audit Template 1',
                 description='Description of my audit template 1',
                 host_aggregate=5,
-                goal='SERVERS_CONSOLIDATION',
+                goal='DUMMY',
                 extra={'automatic': True})
         )
 
@@ -118,7 +118,7 @@ class DbAuditTestCase(base.DbTestCase):
                 name='My Audit Template 1',
                 description='Description of my audit template 1',
                 host_aggregate=5,
-                goal='SERVERS_CONSOLIDATION',
+                goal='DUMMY',
                 extra={'automatic': True})
         )
 

@@ -112,19 +112,19 @@ class TestAuditTemplateObject(base.DbTestCase):
                     as mock_update_audit_template:
                 audit_template = objects.AuditTemplate.get_by_uuid(
                     self.context, uuid)
-                audit_template.goal = 'SERVERS_CONSOLIDATION'
+                audit_template.goal = 'DUMMY'
                 audit_template.save()
 
                 mock_get_audit_template.assert_called_once_with(
                     self.context, uuid)
                 mock_update_audit_template.assert_called_once_with(
-                    uuid, {'goal': 'SERVERS_CONSOLIDATION'})
+                    uuid, {'goal': 'DUMMY'})
                 self.assertEqual(self.context, audit_template._context)
 
     def test_refresh(self):
         uuid = self.fake_audit_template['uuid']
         returns = [dict(self.fake_audit_template,
-                        goal="SERVERS_CONSOLIDATION"),
+                        goal="DUMMY"),
                    dict(self.fake_audit_template, goal="BALANCE_LOAD")]
         expected = [mock.call(self.context, uuid),
                     mock.call(self.context, uuid)]
@@ -132,7 +132,7 @@ class TestAuditTemplateObject(base.DbTestCase):
                                side_effect=returns,
                                autospec=True) as mock_get_audit_template:
             audit_template = objects.AuditTemplate.get(self.context, uuid)
-            self.assertEqual("SERVERS_CONSOLIDATION", audit_template.goal)
+            self.assertEqual("DUMMY", audit_template.goal)
             audit_template.refresh()
             self.assertEqual("BALANCE_LOAD", audit_template.goal)
             self.assertEqual(expected, mock_get_audit_template.call_args_list)

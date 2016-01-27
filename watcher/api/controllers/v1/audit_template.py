@@ -149,7 +149,7 @@ class AuditTemplate(base.APIBase):
                      name='My Audit Template',
                      description='Description of my audit template',
                      host_aggregate=5,
-                     goal='SERVERS_CONSOLIDATION',
+                     goal='DUMMY',
                      extra={'automatic': True},
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
