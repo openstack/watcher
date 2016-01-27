@@ -122,7 +122,7 @@ class BaseConnection(object):
         :param audit_template_id: The id or uuid of an audit template.
         :returns: An audit template.
         :raises: AuditTemplateNotFound
-        :raises: InvalidParameterValue
+        :raises: Invalid
         """
 
     @abc.abstractmethod
@@ -209,7 +209,7 @@ class BaseConnection(object):
         :param audit_id: The id or uuid of an audit.
         :returns: An audit.
         :raises: AuditNotFound
-        :raises: InvalidParameterValue
+        :raises: Invalid
         """
 
     def soft_delete_audit(self, audit_id):
@@ -299,6 +299,7 @@ class BaseConnection(object):
         :returns: A action.
         :raises: ActionNotFound
         :raises: ActionReferenced
+        :raises: Invalid
         """
 
     @abc.abstractmethod
@@ -371,4 +372,5 @@ class BaseConnection(object):
         :returns: An action plan.
         :raises: ActionPlanNotFound
         :raises: ActionPlanReferenced
+        :raises: Invalid
         """

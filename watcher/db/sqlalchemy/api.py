@@ -274,8 +274,9 @@ class Connection(api.BaseConnection):
 
     def update_audit_template(self, audit_template_id, values):
         if 'uuid' in values:
-            msg = _("Cannot overwrite UUID for an existing AuditTemplate.")
-            raise exception.InvalidParameterValue(err=msg)
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing "
+                          "Audit Template."))
 
         return self._do_update_audit_template(audit_template_id, values)
 
@@ -383,8 +384,9 @@ class Connection(api.BaseConnection):
 
     def update_audit(self, audit_id, values):
         if 'uuid' in values:
-            msg = _("Cannot overwrite UUID for an existing Audit.")
-            raise exception.InvalidParameterValue(err=msg)
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing "
+                          "Audit."))
 
         return self._do_update_audit(audit_id, values)
 
@@ -474,8 +476,9 @@ class Connection(api.BaseConnection):
     def update_action(self, action_id, values):
         # NOTE(dtantsur): this can lead to very strange errors
         if 'uuid' in values:
-            msg = _("Cannot overwrite UUID for an existing Action.")
-            raise exception.InvalidParameterValue(err=msg)
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing "
+                          "Action."))
 
         return self._do_update_action(action_id, values)
 
@@ -583,8 +586,9 @@ class Connection(api.BaseConnection):
 
     def update_action_plan(self, action_plan_id, values):
         if 'uuid' in values:
-            msg = _("Cannot overwrite UUID for an existing Audit.")
-            raise exception.InvalidParameterValue(err=msg)
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing "
+                          "Action Plan."))
 
         return self._do_update_action_plan(action_plan_id, values)
 

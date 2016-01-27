@@ -126,7 +126,7 @@ class DbActionTestCase(base.DbTestCase):
 
     def test_update_action_uuid(self):
         action = self._create_test_action()
-        self.assertRaises(exception.InvalidParameterValue,
+        self.assertRaises(exception.Invalid,
                           self.dbapi.update_action, action['id'],
                           {'uuid': 'hello'})
 

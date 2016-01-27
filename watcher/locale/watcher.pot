@@ -88,6 +88,10 @@ msgstr ""
 msgid "The target state is not defined"
 msgstr ""
 
+#: watcher/applier/actions/migration.py:60
+msgid "Migration of type %(migration_type)s is not supported."
+msgstr ""
+
 #: watcher/applier/workflow_engine/default.py:126
 #, python-format
 msgid "The WorkFlow Engine has failed to execute the action %s"
@@ -160,11 +164,6 @@ msgstr ""
 #: watcher/common/exception.py:133
 #, python-format
 msgid "Goal %(goal)s is not defined in Watcher configuration file"
-msgstr ""
-
-#: watcher/common/exception.py:139
-#, python-format
-msgid "%(err)s"
 msgstr ""
 
 #: watcher/common/exception.py:143

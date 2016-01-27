@@ -56,7 +56,10 @@ class Migrate(base.BaseAction):
                 return wrapper.live_migrate_instance(
                     instance_id=self.instance_uuid, dest_hostname=destination)
             else:
-                raise exception.InvalidParameterValue(err=self.migration_type)
+                raise exception.Invalid(
+                    message=(_('Migration of type %(migration_type)s is not '
+                               'supported.') %
+                             {'migration_type': self.migration_type}))
         else:
             raise exception.InstanceNotFound(name=self.instance_uuid)
 
