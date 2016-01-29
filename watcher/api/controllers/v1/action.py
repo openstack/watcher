@@ -288,10 +288,10 @@ class ActionsController(rest.RestController):
                                                    sort_key=sort_key,
                                                    sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(ActionCollection, types.uuid, types.uuid,
-                         int, wtypes.text, wtypes.text, types.uuid,
+    @wsme_pecan.wsexpose(ActionCollection, types.uuid, int,
+                         wtypes.text, wtypes.text, types.uuid,
                          types.uuid)
-    def get_all(self, action_uuid=None, marker=None, limit=None,
+    def get_all(self, marker=None, limit=None,
                 sort_key='id', sort_dir='asc', action_plan_uuid=None,
                 audit_uuid=None):
         """Retrieve a list of actions.
@@ -312,16 +312,14 @@ class ActionsController(rest.RestController):
             marker, limit, sort_key, sort_dir,
             action_plan_uuid=action_plan_uuid, audit_uuid=audit_uuid)
 
-    @wsme_pecan.wsexpose(ActionCollection, types.uuid,
-                         types.uuid, int, wtypes.text, wtypes.text,
-                         types.uuid, types.uuid)
-    def detail(self, action_uuid=None, marker=None, limit=None,
+    @wsme_pecan.wsexpose(ActionCollection, types.uuid, int,
+                         wtypes.text, wtypes.text, types.uuid,
+                         types.uuid)
+    def detail(self, marker=None, limit=None,
                sort_key='id', sort_dir='asc', action_plan_uuid=None,
                audit_uuid=None):
         """Retrieve a list of actions with detail.
 
-        :param action_uuid: UUID of a action, to get only actions for that
-                            action.
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
