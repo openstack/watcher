@@ -71,6 +71,7 @@ state may be one of the following:
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as dbapi
+from watcher.objects import action as action_objects
 from watcher.objects import base
 from watcher.objects import utils as obj_utils
 
@@ -251,6 +252,14 @@ class ActionPlan(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: Audit(context)
         """
+        related_actions = action_objects.Action.list(
+            context=self._context,
+            filters={"action_plan_uuid": self.uuid})
+
+        # Cascade soft_delete of related actions
+        for related_action in related_actions:
+            related_action.soft_delete()
+
         self.dbapi.soft_delete_action_plan(self.uuid)
-        self.state = "DELETED"
+        self.state = State.DELETED
         self.save()
