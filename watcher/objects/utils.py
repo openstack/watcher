@@ -117,7 +117,7 @@ def dt_serializer(name):
     return serializer
 
 
-def dt_deserializer(instance, val):
+def dt_deserializer(val):
     """A deserializer method for datetime attributes."""
     if val is None:
         return None
