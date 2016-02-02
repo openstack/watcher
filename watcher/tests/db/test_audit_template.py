@@ -106,7 +106,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
     def test_update_audit_template_uuid(self):
         audit_template = self._create_test_audit_template()
-        self.assertRaises(exception.InvalidParameterValue,
+        self.assertRaises(exception.Invalid,
                           self.dbapi.update_audit_template,
                           audit_template['id'],
                           {'uuid': 'hello'})

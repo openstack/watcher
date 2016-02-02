@@ -133,12 +133,6 @@ class InvalidGoal(Invalid):
     msg_fmt = _("Goal %(goal)s is not defined in Watcher configuration file")
 
 
-# Cannot be templated as the error syntax varies.
-# msg needs to be constructed when raised.
-class InvalidParameterValue(Invalid):
-    msg_fmt = _("%(err)s")
-
-
 class InvalidUUID(Invalid):
     msg_fmt = _("Expected a uuid but received %(uuid)s")
 
