@@ -175,11 +175,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         return self._list_request('/action_plans/detail', **kwargs)
 
     @base.handle_errors
-    def list_action_plan_by_audit(self, audit_uuid):
-        """Lists all action plans associated with an audit"""
-        return self._list_request('/action_plans', audit_uuid=audit_uuid)
-
-    @base.handle_errors
     def show_action_plan(self, action_plan_uuid):
         """Gets a specific action plan
 
@@ -190,13 +185,25 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
     @base.handle_errors
     def delete_action_plan(self, action_plan_uuid):
-        """Deletes an action_plan having the specified UUID
+        """Deletes an action plan having the specified UUID
 
         :param action_plan_uuid: The unique identifier of the action_plan
         :return: A tuple with the server response and the response body
         """
 
         return self._delete_request('/action_plans', action_plan_uuid)
+
+    @base.handle_errors
+    def delete_action_plans_by_audit(self, audit_uuid):
+        """Deletes an action plan having the specified UUID
+
+        :param audit_uuid: The unique identifier of the related Audit
+        """
+
+        _, action_plans = self.list_action_plans(audit_uuid=audit_uuid)
+
+        for action_plan in action_plans:
+            self.delete_action_plan(action_plan['uuid'])
 
     @base.handle_errors
     def update_action_plan(self, action_plan_uuid, patch):

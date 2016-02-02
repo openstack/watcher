@@ -38,8 +38,8 @@ class TestShowListAction(base.BaseInfraOptimTest):
             duration=30,
             sleep_for=.5
         )
-        _, action_plans = cls.client.list_action_plan_by_audit(
-            cls.audit['uuid'])
+        _, action_plans = cls.client.list_action_plans(
+            audit_uuid=cls.audit['uuid'])
         cls.action_plan = action_plans['action_plans'][0]
 
     @test.attr(type='smoke')

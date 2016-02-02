@@ -45,7 +45,8 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
             duration=30,
             sleep_for=.5
         ))
-        _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
+        _, action_plans = self.client.list_action_plans(
+            audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])

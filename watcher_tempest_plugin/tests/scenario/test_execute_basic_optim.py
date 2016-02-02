@@ -117,7 +117,8 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
             duration=300,
             sleep_for=2
         ))
-        _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
+        _, action_plans = self.client.list_action_plans(
+            audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
