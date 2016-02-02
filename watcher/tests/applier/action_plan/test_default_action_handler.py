@@ -15,9 +15,8 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-from mock import call
-from mock import MagicMock
+
+import mock
 
 from watcher.applier.action_plan.default import DefaultActionPlanHandler
 from watcher.applier.messaging.event_types import EventTypes
@@ -34,7 +33,7 @@ class TestDefaultActionPlanHandler(DbTestCase):
             self.context)
 
     def test_launch_action_plan(self):
-        command = DefaultActionPlanHandler(self.context, MagicMock(),
+        command = DefaultActionPlanHandler(self.context, mock.MagicMock(),
                                            self.action_plan.uuid)
         command.execute()
         action_plan = ActionPlan.get_by_uuid(self.context,
@@ -42,18 +41,19 @@ class TestDefaultActionPlanHandler(DbTestCase):
         self.assertEqual(ap_objects.State.SUCCEEDED, action_plan.state)
 
     def test_trigger_audit_send_notification(self):
-        messaging = MagicMock()
+        messaging = mock.MagicMock()
         command = DefaultActionPlanHandler(self.context, messaging,
                                            self.action_plan.uuid)
         command.execute()
 
-        call_on_going = call(EventTypes.LAUNCH_ACTION_PLAN.name, {
+        call_on_going = mock.call(EventTypes.LAUNCH_ACTION_PLAN.name, {
             'action_plan_state': ap_objects.State.ONGOING,
             'action_plan__uuid': self.action_plan.uuid})
-        call_succeeded = call(EventTypes.LAUNCH_ACTION_PLAN.name, {
+        call_succeeded = mock.call(EventTypes.LAUNCH_ACTION_PLAN.name, {
             'action_plan_state': ap_objects.State.SUCCEEDED,
             'action_plan__uuid': self.action_plan.uuid})
 
         calls = [call_on_going, call_succeeded]
-        messaging.topic_status.publish_event.assert_has_calls(calls)
-        self.assertEqual(2, messaging.topic_status.publish_event.call_count)
+        messaging.status_topic_handler.publish_event.assert_has_calls(calls)
+        self.assertEqual(
+            2, messaging.status_topic_handler.publish_event.call_count)

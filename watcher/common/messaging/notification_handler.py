@@ -18,17 +18,16 @@ import eventlet
 from oslo_log import log
 import oslo_messaging as messaging
 
-from watcher.common.messaging.utils.observable import \
-    Observable
+from watcher.common.messaging.utils import observable
 
 
 eventlet.monkey_patch()
 LOG = log.getLogger(__name__)
 
 
-class NotificationHandler(Observable):
+class NotificationHandler(observable.Observable):
     def __init__(self, publisher_id):
-        Observable.__init__(self)
+        super(NotificationHandler, self).__init__()
         self.publisher_id = publisher_id
 
     def info(self, ctx, publisher_id, event_type, payload, metadata):

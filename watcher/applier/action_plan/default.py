@@ -43,8 +43,8 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         ev.data = {}
         payload = {'action_plan__uuid': uuid,
                    'action_plan_state': state}
-        self.applier_manager.topic_status.publish_event(ev.type.name,
-                                                        payload)
+        self.applier_manager.status_topic_handler.publish_event(
+            ev.type.name, payload)
 
     def execute(self):
         try:

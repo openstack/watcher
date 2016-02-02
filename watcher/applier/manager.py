@@ -34,12 +34,12 @@ APPLIER_MANAGER_OPTS = [
                min=1,
                required=True,
                help='Number of workers for applier, default value is 1.'),
-    cfg.StrOpt('topic_control',
+    cfg.StrOpt('conductor_topic',
                default='watcher.applier.control',
                help='The topic name used for'
                     'control events, this topic '
                     'used for rpc call '),
-    cfg.StrOpt('topic_status',
+    cfg.StrOpt('status_topic',
                default='watcher.applier.status',
                help='The topic name used for '
                     'status events, this topic '
@@ -67,12 +67,13 @@ class ApplierManager(messaging_core.MessagingCore):
     def __init__(self):
         super(ApplierManager, self).__init__(
             CONF.watcher_applier.publisher_id,
-            CONF.watcher_applier.topic_control,
-            CONF.watcher_applier.topic_status,
+            CONF.watcher_applier.conductor_topic,
+            CONF.watcher_applier.status_topic,
             api_version=self.API_VERSION,
         )
-        self.topic_control.add_endpoint(trigger.TriggerActionPlan(self))
+        self.conductor_topic_handler.add_endpoint(
+            trigger.TriggerActionPlan(self))
 
     def join(self):
-        self.topic_control.join()
-        self.topic_status.join()
+        self.conductor_topic_handler.join()
+        self.status_topic_handler.join()

@@ -15,59 +15,79 @@
 # limitations under the License.
 
 
-from mock import patch
+import mock
 
-from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.messaging_handler import MessagingHandler
-from watcher.common.rpc import RequestContextSerializer
-from watcher.tests.base import TestCase
+from watcher.common.messaging import messaging_core
+from watcher.common.messaging import messaging_handler
+from watcher.common import rpc
+from watcher.tests import base
 
 
-class TestMessagingCore(TestCase):
+class TestMessagingCore(base.TestCase):
 
     def setUp(self):
         super(TestMessagingCore, self).setUp()
 
-    def test_build_topic(self):
+    @mock.patch.object(messaging_handler, "MessagingHandler")
+    def test_connect(self, m_handler):
+        messaging = messaging_core.MessagingCore("", "", "")
+        messaging.connect()
+        self.assertEqual(m_handler.call_count, 2)
+
+    @mock.patch.object(messaging_handler, "MessagingHandler")
+    def test_disconnect(self, m_handler):
+        messaging = messaging_core.MessagingCore("", "", "")
+        messaging.disconnect()
+        self.assertEqual(m_handler.call_count, 2)
+
+    def test_build_topic_handler(self):
         topic_name = "MyTopic"
-        messaging = MessagingCore("", "", "")
-        messaging_handler = messaging.build_topic(topic_name)
-        self.assertIsNotNone(messaging_handler)
+        messaging = messaging_core.MessagingCore("", "", "")
+        handler = messaging.build_topic_handler(topic_name)
+        self.assertIsNotNone(handler)
 
     def test_init_messaging_core(self):
-        messaging = MessagingCore("", "", "")
+        messaging = messaging_core.MessagingCore("", "", "")
         self.assertIsInstance(messaging.serializer,
-                              RequestContextSerializer)
-        self.assertIsInstance(messaging.topic_control, MessagingHandler)
-        self.assertIsInstance(messaging.topic_status, MessagingHandler)
+                              rpc.RequestContextSerializer)
+        self.assertIsInstance(
+            messaging.conductor_topic_handler,
+            messaging_handler.MessagingHandler)
+        self.assertIsInstance(
+            messaging.status_topic_handler,
+            messaging_handler.MessagingHandler)
 
-    @patch.object(MessagingCore, 'publish_control')
-    def test_publish_control(self, mock_call):
+    @mock.patch.object(messaging_handler, "MessagingHandler")
+    def test_publish_control(self, m_handler_cls):
+        m_handler = mock.Mock()
+        m_handler_cls.return_value = m_handler
         payload = {
             "name": "value",
         }
         event = "MyEvent"
-        messaging = MessagingCore("", "", "")
+        messaging = messaging_core.MessagingCore("", "", "")
         messaging.publish_control(event, payload)
-        mock_call.assert_called_once_with(event, payload)
+        m_handler.publish_event.assert_called_once_with(event, payload)
 
-    @patch.object(MessagingCore, 'publish_status')
-    def test_publish_status(self, mock_call):
+    @mock.patch.object(messaging_handler, "MessagingHandler")
+    def test_publish_status(self, m_handler_cls):
+        m_handler = mock.Mock()
+        m_handler_cls.return_value = m_handler
         payload = {
             "name": "value",
         }
         event = "MyEvent"
-        messaging = MessagingCore("", "", "")
+        messaging = messaging_core.MessagingCore("", "", "")
         messaging.publish_status(event, payload)
-        mock_call.assert_called_once_with(event, payload)
+        m_handler.publish_event.assert_called_once_with(event, payload, None)
 
-    @patch.object(MessagingCore, 'publish_status')
+    @mock.patch.object(messaging_core.MessagingCore, 'publish_status')
     def test_response(self, mock_call):
         event = "My event"
         context = {'request_id': 12}
         message = "My Message"
 
-        messaging = MessagingCore("", "", "")
+        messaging = messaging_core.MessagingCore("", "", "")
         messaging.response(event, context, message)
 
         expected_payload = {
@@ -76,13 +96,15 @@ class TestMessagingCore(TestCase):
         }
         mock_call.assert_called_once_with(event, expected_payload)
 
-    def test_messaging_build_topic(self):
-        messaging = MessagingCore("pub_id", "test_topic", "does not matter")
-        topic = messaging.build_topic("test_topic")
+    def test_messaging_build_topic_handler(self):
+        messaging = messaging_core.MessagingCore(
+            "pub_id", "test_topic", "does not matter")
+        topic = messaging.build_topic_handler("test_topic")
 
-        self.assertIsInstance(topic, MessagingHandler)
+        self.assertIsInstance(topic, messaging_handler.MessagingHandler)
         self.assertEqual(messaging.publisher_id, "pub_id")
         self.assertEqual(topic.publisher_id, "pub_id")
 
-        self.assertEqual(messaging.topic_control.topic_watcher, "test_topic")
-        self.assertEqual(topic.topic_watcher, "test_topic")
+        self.assertEqual(
+            messaging.conductor_topic_handler.topic_name, "test_topic")
+        self.assertEqual(topic.topic_name, "test_topic")

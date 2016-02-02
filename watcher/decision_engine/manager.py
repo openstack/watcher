@@ -40,20 +40,20 @@ See :doc:`../architecture` for more details on this component.
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.decision_engine.messaging.audit_endpoint import AuditEndpoint
+from watcher.common.messaging import messaging_core
+from watcher.decision_engine.messaging import audit_endpoint
 
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 WATCHER_DECISION_ENGINE_OPTS = [
-    cfg.StrOpt('topic_control',
+    cfg.StrOpt('conductor_topic',
                default='watcher.decision.control',
                help='The topic name used for'
                     'control events, this topic '
                     'used for rpc call '),
-    cfg.StrOpt('topic_status',
+    cfg.StrOpt('status_topic',
                default='watcher.decision.status',
                help='The topic name used for '
                     'status events, this topic '
@@ -78,18 +78,18 @@ CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class DecisionEngineManager(MessagingCore):
+class DecisionEngineManager(messaging_core.MessagingCore):
     def __init__(self):
         super(DecisionEngineManager, self).__init__(
             CONF.watcher_decision_engine.publisher_id,
-            CONF.watcher_decision_engine.topic_control,
-            CONF.watcher_decision_engine.topic_status,
+            CONF.watcher_decision_engine.conductor_topic,
+            CONF.watcher_decision_engine.status_topic,
             api_version=self.API_VERSION)
-        endpoint = AuditEndpoint(self,
-                                 max_workers=CONF.watcher_decision_engine.
-                                 max_workers)
-        self.topic_control.add_endpoint(endpoint)
+        endpoint = audit_endpoint.AuditEndpoint(
+            self,
+            max_workers=CONF.watcher_decision_engine.max_workers)
+        self.conductor_topic_handler.add_endpoint(endpoint)
 
     def join(self):
-        self.topic_control.join()
-        self.topic_status.join()
+        self.conductor_topic_handler.join()
+        self.status_topic_handler.join()
