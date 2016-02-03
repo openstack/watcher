@@ -172,10 +172,9 @@ class TestUtils(test_base.TestCase):
 
     def test_dt_deserializer(self):
         dt = timeutils.parse_isotime('1955-11-05T00:00:00Z')
-        self.assertEqual(utils.dt_deserializer(None, timeutils.isotime(dt)),
-                         dt)
-        self.assertIsNone(utils.dt_deserializer(None, None))
-        self.assertRaises(ValueError, utils.dt_deserializer, None, 'foo')
+        self.assertEqual(utils.dt_deserializer(timeutils.isotime(dt)), dt)
+        self.assertIsNone(utils.dt_deserializer(None))
+        self.assertRaises(ValueError, utils.dt_deserializer, 'foo')
 
     def test_obj_to_primitive_list(self):
         class MyList(base.ObjectListBase, base.WatcherObject):
