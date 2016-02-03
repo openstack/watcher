@@ -243,74 +243,96 @@ so that the watcher service is configured for your needs.
     #rabbit_port = 5672
 
 
-#. Configure the Watcher Service to use these credentials with the Identity
-   Service. Replace IDENTITY_IP with the IP of the Identity server, and
-   replace WATCHER_PASSWORD with the password you chose for the ``watcher``
-   user in the Identity Service::
+#. Watcher API shall validate the token provided by every incoming request,
+   via keystonemiddleware, which requires the Watcher service to be configured
+   with the right credentials for the Identity service.
 
-    [keystone_authtoken]
+   In the configuration section here below:
 
-    # Complete public Identity API endpoint (string value)
-    #auth_uri=<None>
-    auth_uri=http://IDENTITY_IP:5000/
+   * replace IDENTITY_IP with the IP of the Identity server
+   * replace WATCHER_PASSWORD with the password you chose for the ``watcher``
+     user
+   * replace KEYSTONE_SERVICE_PROJECT_NAME with the name of project created
+     for OpenStack services (e.g. ``service``) ::
 
-    # API version of the admin Identity API endpoint. (string value)
-    #auth_version=<None>
-    auth_version=v3
+        [keystone_authtoken]
 
-    # Complete admin Identity API endpoint. This should specify the
-    # unversioned root endpoint e.g. https://localhost:35357/ (string
-    # value)
-    #identity_uri = <None>
-    identity_uri = http://IDENTITY_IP:5000
+        # Authentication type to load (unknown value)
+        # Deprecated group/name - [DEFAULT]/auth_plugin
+        #auth_type = <None>
+        auth_type = password
 
-    # Keystone account username (string value)
-    #admin_user=<None>
-    admin_user=watcher
+        # Authentication URL (unknown value)
+        #auth_url = <None>
+        auth_url = http://IDENTITY_IP:35357
 
-    # Keystone account password (string value)
-    #admin_password=<None>
-    admin_password=WATCHER_DBPASSWORD
+        # Username (unknown value)
+        # Deprecated group/name - [DEFAULT]/username
+        #username = <None>
+        username=watcher
 
-    # Keystone service account tenant name to validate user tokens
-    # (string value)
-    #admin_tenant_name=admin
-    admin_tenant_name=KEYSTONE_SERVICE_PROJECT_NAME
+        # User's password (unknown value)
+        #password = <None>
+        password = WATCHER_PASSWORD
 
-    # Directory used to cache files related to PKI tokens (string
-    # value)
-    #signing_dir=<None>
+        # Domain ID containing project (unknown value)
+        #project_domain_id = <None>
+        project_domain_id = default
 
-#. Configure the credentials to use to authenticate with the Identity Service
-   for the different project clients::
+        # User's domain id (unknown value)
+        #user_domain_id = <None>
+        user_domain_id = default
 
-    [watcher_clients_auth]
+        # Project name to scope to (unknown value)
+        # Deprecated group/name - [DEFAULT]/tenant-name
+        #project_name = <None>
+        project_name = KEYSTONE_SERVICE_PROJECT_NAME
 
-    # Authentication type to load (unknown value)
-    # Deprecated group/name - [DEFAULT]/auth_plugin
-    #auth_type = <None>
-    auth_type = password
+#. Watcher's decision engine and applier interact with other OpenStack
+   projects through those projects' clients. In order to instantiate these
+   clients, Watcher needs to request a new session from the Identity service
+   using the right credentials.
 
-    # Authentication URL (unknown value)
-    #auth_url = <None>
-    auth_url = http://IDENTITY_IP:35357
+   In the configuration section here below:
 
-    # Username (unknown value)
-    # Deprecated group/name - [DEFAULT]/username
-    #username = <None>
-    username=watcher
+   * replace IDENTITY_IP with the IP of the Identity server
+   * replace WATCHER_PASSWORD with the password you chose for the ``watcher``
+     user
+   * replace KEYSTONE_SERVICE_PROJECT_NAME with the name of project created
+     for OpenStack services (e.g. ``service``) ::
 
-    # User's password (unknown value)
-    #password = <None>
-    password = WATCHER_PASSWORD
+        [watcher_clients_auth]
 
-    # Domain ID containing project (unknown value)
-    #project_domain_id = <None>
-    project_domain_id = default
+        # Authentication type to load (unknown value)
+        # Deprecated group/name - [DEFAULT]/auth_plugin
+        #auth_type = <None>
+        auth_type = password
 
-    # User's domain id (unknown value)
-    #user_domain_id = <None>
-    user_domain_id = default
+        # Authentication URL (unknown value)
+        #auth_url = <None>
+        auth_url = http://IDENTITY_IP:35357
+
+        # Username (unknown value)
+        # Deprecated group/name - [DEFAULT]/username
+        #username = <None>
+        username=watcher
+
+        # User's password (unknown value)
+        #password = <None>
+        password = WATCHER_PASSWORD
+
+        # Domain ID containing project (unknown value)
+        #project_domain_id = <None>
+        project_domain_id = default
+
+        # User's domain id (unknown value)
+        #user_domain_id = <None>
+        user_domain_id = default
+
+        # Project name to scope to (unknown value)
+        # Deprecated group/name - [DEFAULT]/tenant-name
+        #project_name = <None>
+        project_name = KEYSTONE_SERVICE_PROJECT_NAME
 
 #. Configure the clients to use a specific version if desired. For example, to
    configure Watcher to use a Nova client with version 2.1, use::
