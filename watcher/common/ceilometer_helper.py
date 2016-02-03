@@ -128,7 +128,8 @@ class CeilometerHelper(object):
 
     def get_last_sample_values(self, resource_id, meter_name, limit=1):
         samples = self.query_sample(meter_name=meter_name,
-                                    query=self.build_query(resource_id))
+                                    query=self.build_query(resource_id),
+                                    limit=limit)
         values = []
         for index, sample in enumerate(samples):
             values.append(
