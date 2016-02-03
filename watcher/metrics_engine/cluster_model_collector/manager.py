@@ -20,8 +20,7 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common.keystone import KeystoneClient
-from watcher.common.nova import NovaClient
+from watcher.common import nova_helper
 from watcher.metrics_engine.cluster_model_collector.nova import \
     NovaClusterModelCollector
 
@@ -30,8 +29,7 @@ CONF = cfg.CONF
 
 
 class CollectorManager(object):
-    def get_cluster_model_collector(self):
-        keystone = KeystoneClient()
-        wrapper = NovaClient(keystone.get_credentials(),
-                             session=keystone.get_session())
-        return NovaClusterModelCollector(wrapper=wrapper)
+    def get_cluster_model_collector(self, osc=None):
+        """:param osc: an OpenStackClients instance"""
+        nova = nova_helper.NovaHelper(osc=osc)
+        return NovaClusterModelCollector(nova)

@@ -40,7 +40,8 @@ class OutletTempControl(BaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
+    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
+                 osc=None):
         """[PoC]Outlet temperature control using live migration
 
         It is a migration strategy based on the Outlet Temperature of physical
@@ -67,8 +68,9 @@ class OutletTempControl(BaseStrategy):
 
         :param name: the name of the strategy
         :param description: a description of the strategy
+        :param osc: an OpenStackClients object
         """
-        super(OutletTempControl, self).__init__(name, description)
+        super(OutletTempControl, self).__init__(name, description, osc)
         # the migration plan will be triggered when the outlet temperature
         # reaches threshold
         # TODO(zhenzanz): Threshold should be configurable for each audit
@@ -79,7 +81,7 @@ class OutletTempControl(BaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = CeilometerClusterHistory()
+            self._ceilometer = CeilometerClusterHistory(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter

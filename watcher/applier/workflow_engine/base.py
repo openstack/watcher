@@ -22,32 +22,32 @@ import six
 
 from watcher.applier.actions import factory
 from watcher.applier.messaging import event_types
+from watcher.common import clients
 from watcher.common.messaging.events import event
 from watcher import objects
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseWorkFlowEngine(object):
-    def __init__(self):
-        self._applier_manager = None
-        self._context = None
+    def __init__(self, context=None, applier_manager=None):
+        self._context = context
+        self._applier_manager = applier_manager
         self._action_factory = factory.ActionFactory()
+        self._osc = None
 
     @property
     def context(self):
         return self._context
 
-    @context.setter
-    def context(self, c):
-        self._context = c
+    @property
+    def osc(self):
+        if not self._osc:
+            self._osc = clients.OpenStackClients()
+        return self._osc
 
     @property
     def applier_manager(self):
         return self._applier_manager
-
-    @applier_manager.setter
-    def applier_manager(self, a):
-        self._applier_manager = a
 
     @property
     def action_factory(self):

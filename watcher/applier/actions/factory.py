@@ -28,9 +28,10 @@ class ActionFactory(object):
     def __init__(self):
         self.action_loader = default.DefaultActionLoader()
 
-    def make_action(self, object_action):
+    def make_action(self, object_action, osc=None):
         LOG.debug("Creating instance of %s", object_action.action_type)
-        loaded_action = self.action_loader.load(name=object_action.action_type)
+        loaded_action = self.action_loader.load(name=object_action.action_type,
+                                                osc=osc)
         loaded_action.input_parameters = object_action.input_parameters
         loaded_action.applies_to = object_action.applies_to
         return loaded_action

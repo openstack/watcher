@@ -166,11 +166,17 @@ The configuration file is organized into the following sections:
 * ``[api]`` - API server configuration
 * ``[database]`` - SQL driver configuration
 * ``[keystone_authtoken]`` - Keystone Authentication plugin configuration
+* ``[watcher_clients_auth]`` - Keystone auth configuration for clients
 * ``[watcher_applier]`` - Watcher Applier module configuration
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
 * ``[watcher_goals]`` - Goals mapping configuration
 * ``[watcher_strategies]`` - Strategy configuration
 * ``[oslo_messaging_rabbit]`` - Oslo Messaging RabbitMQ driver configuration
+* ``[ceilometer_client]`` - Ceilometer client configuration
+* ``[cinder_client]`` - Cinder client configuration
+* ``[glance_client]`` - Glance client configuration
+* ``[nova_client]`` - Nova client configuration
+* ``[neutron_client]`` - Neutron client configuration
 
 The Watcher configuration file is expected to be named
 ``watcher.conf``. When starting Watcher, you can specify a different
@@ -246,7 +252,11 @@ so that the watcher service is configured for your needs.
 
     # Complete public Identity API endpoint (string value)
     #auth_uri=<None>
-    auth_uri=http://IDENTITY_IP:5000/v3
+    auth_uri=http://IDENTITY_IP:5000/
+
+    # API version of the admin Identity API endpoint. (string value)
+    #auth_version=<None>
+    auth_version=v3
 
     # Complete admin Identity API endpoint. This should specify the
     # unversioned root endpoint e.g. https://localhost:35357/ (string
@@ -270,6 +280,46 @@ so that the watcher service is configured for your needs.
     # Directory used to cache files related to PKI tokens (string
     # value)
     #signing_dir=<None>
+
+#. Configure the credentials to use to authenticate with the Identity Service
+   for the different project clients::
+
+    [watcher_clients_auth]
+
+    # Authentication type to load (unknown value)
+    # Deprecated group/name - [DEFAULT]/auth_plugin
+    #auth_type = <None>
+    auth_type = password
+
+    # Authentication URL (unknown value)
+    #auth_url = <None>
+    auth_url = http://IDENTITY_IP:35357
+
+    # Username (unknown value)
+    # Deprecated group/name - [DEFAULT]/username
+    #username = <None>
+    username=watcher
+
+    # User's password (unknown value)
+    #password = <None>
+    password = WATCHER_PASSWORD
+
+    # Domain ID containing project (unknown value)
+    #project_domain_id = <None>
+    project_domain_id = default
+
+    # User's domain id (unknown value)
+    #user_domain_id = <None>
+    user_domain_id = default
+
+#. Configure the clients to use a specific version if desired. For example, to
+   configure Watcher to use a Nova client with version 2.1, use::
+
+    [nova_client]
+
+    # Version of Nova API to use in novaclient. (string value)
+    #api_version = 2
+    api_version = 2.1
 
 #. Create the Watcher Service database tables::
 

@@ -15,6 +15,7 @@
 # limitations under the License.
 from oslo_log import log
 
+from watcher.common import clients
 from watcher.decision_engine.strategy.context.base import BaseStrategyContext
 from watcher.decision_engine.strategy.selection.default import \
     DefaultStrategySelector
@@ -47,15 +48,17 @@ class DefaultStrategyContext(BaseStrategyContext):
         audit_template = objects.\
             AuditTemplate.get_by_id(request_context, audit.audit_template_id)
 
+        osc = clients.OpenStackClients()
+
         # todo(jed) retrieve in audit_template parameters (threshold,...)
         # todo(jed) create ActionPlan
-        collector_manager = self.collector.get_cluster_model_collector()
+        collector_manager = self.collector.get_cluster_model_collector(osc=osc)
 
         # todo(jed) remove call to get_latest_cluster_data_model
         cluster_data_model = collector_manager.get_latest_cluster_data_model()
 
-        selected_strategy = self.strategy_selector. \
-            define_from_goal(audit_template.goal)
+        selected_strategy = self.strategy_selector.define_from_goal(
+            audit_template.goal, osc=osc)
 
         # todo(jed) add parameters and remove cluster_data_model
         return selected_strategy.execute(cluster_data_model)

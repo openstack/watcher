@@ -30,8 +30,9 @@ class DummyStrategy(BaseStrategy):
     NOP = "nop"
     SLEEP = "sleep"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION):
-        super(DummyStrategy, self).__init__(name, description)
+    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
+                 osc=None):
+        super(DummyStrategy, self).__init__(name, description, osc)
 
     def execute(self, model):
         parameters = {'message': 'hello World'}

@@ -22,12 +22,22 @@ import abc
 
 import six
 
+from watcher.common import clients
+
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseAction(object):
-    def __init__(self):
+    def __init__(self, osc=None):
+        """:param osc: an OpenStackClients instance"""
         self._input_parameters = {}
         self._applies_to = ""
+        self._osc = osc
+
+    @property
+    def osc(self):
+        if not self._osc:
+            self._osc = clients.OpenStackClients()
+        return self._osc
 
     @property
     def input_parameters(self):

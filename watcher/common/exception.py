@@ -22,6 +22,10 @@ SHOULD include dedicated exception logging.
 
 """
 
+import functools
+import sys
+
+from keystoneclient import exceptions as keystone_exceptions
 from oslo_config import cfg
 from oslo_log import log as logging
 import six
@@ -38,6 +42,23 @@ exc_log_opts = [
 
 CONF = cfg.CONF
 CONF.register_opts(exc_log_opts)
+
+
+def wrap_keystone_exception(func):
+    """Wrap keystone exceptions and throw Watcher specific exceptions."""
+    @functools.wraps(func)
+    def wrapped(*args, **kw):
+        try:
+            return func(*args, **kw)
+        except keystone_exceptions.AuthorizationFailure:
+            raise AuthorizationFailure(
+                client=func.__name__, reason=sys.exc_info()[1])
+        except keystone_exceptions.ClientException:
+            raise AuthorizationFailure(
+                client=func.__name__,
+                reason=(_('Unexpected keystone client error occurred: %s')
+                        % sys.exc_info()[1]))
+    return wrapped
 
 
 class WatcherException(Exception):
@@ -224,6 +245,10 @@ class NoSuchMetric(WatcherException):
 
 class NoDataFound(WatcherException):
     msg_fmt = _('No rows were returned')
+
+
+class AuthorizationFailure(WatcherException):
+    msg_fmt = _('%(client)s connection failed. Reason: %(reason)s')
 
 
 class KeystoneFailure(WatcherException):

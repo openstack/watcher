@@ -20,7 +20,7 @@
 
 from oslo_config import cfg
 from oslo_log import log
-from watcher.common.ceilometer import CeilometerClient
+from watcher.common import ceilometer_helper
 
 from watcher.metrics_engine.cluster_history.api import BaseClusterHistory
 
@@ -29,8 +29,10 @@ LOG = log.getLogger(__name__)
 
 
 class CeilometerClusterHistory(BaseClusterHistory):
-    def __init__(self):
-        self.ceilometer = CeilometerClient()
+    def __init__(self, osc=None):
+        """:param osc: an OpenStackClients instance"""
+        super(CeilometerClusterHistory, self).__init__()
+        self.ceilometer = ceilometer_helper.CeilometerHelper(osc=osc)
 
     def statistic_list(self, meter_name, query=None, period=None):
         return self.ceilometer.statistic_list(meter_name, query, period)

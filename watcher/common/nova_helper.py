@@ -23,29 +23,22 @@ import time
 from oslo_log import log
 
 import cinderclient.exceptions as ciexceptions
-import cinderclient.v2.client as ciclient
-import glanceclient.v2.client as glclient
-import neutronclient.neutron.client as netclient
-import novaclient.client as nvclient
 import novaclient.exceptions as nvexceptions
 
-from watcher.common import keystone
+from watcher.common import clients
 
 LOG = log.getLogger(__name__)
 
 
-class NovaClient(object):
-    NOVA_CLIENT_API_VERSION = "2"
+class NovaHelper(object):
 
-    def __init__(self, creds, session):
-        self.user = creds['username']
-        self.session = session
-        self.neutron = None
-        self.cinder = None
-        self.nova = nvclient.Client(self.NOVA_CLIENT_API_VERSION,
-                                    session=session)
-        self.keystone = keystone.KeystoneClient().get_ksclient(creds)
-        self.glance = None
+    def __init__(self, osc=None):
+        """:param osc: an OpenStackClients instance"""
+        self.osc = osc if osc else clients.OpenStackClients()
+        self.neutron = self.osc.neutron()
+        self.cinder = self.osc.cinder()
+        self.nova = self.osc.nova()
+        self.glance = self.osc.glance()
 
     def get_hypervisors_list(self):
         return self.nova.hypervisors.list()
@@ -180,9 +173,6 @@ class NovaClient(object):
                 volume_id = attached_volume['id']
 
                 try:
-                    if self.cinder is None:
-                        self.cinder = ciclient.Client('2',
-                                                      session=self.session)
                     volume = self.cinder.volumes.get(volume_id)
 
                     attachments_list = getattr(volume, "attachments")
@@ -446,13 +436,6 @@ class NovaClient(object):
         :param metadata: a dictionary containing the list of
             key-value pairs to associate to the image as metadata.
         """
-        if self.glance is None:
-            glance_endpoint = self.keystone. \
-                service_catalog.url_for(service_type='image',
-                                        endpoint_type='publicURL')
-            self.glance = glclient.Client(glance_endpoint,
-                                          token=self.keystone.auth_token)
-
         LOG.debug(
             "Trying to create an image from instance %s ..." % instance_id)
 
@@ -676,10 +659,6 @@ class NovaClient(object):
 
     def get_network_id_from_name(self, net_name="private"):
         """This method returns the unique id of the provided network name"""
-        if self.neutron is None:
-            self.neutron = netclient.Client('2.0', session=self.session)
-            self.neutron.format = 'json'
-
         networks = self.neutron.list_networks(name=net_name)
 
         # LOG.debug(networks)

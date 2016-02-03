@@ -53,9 +53,9 @@ class FakeAction(abase.BaseAction):
 class TestDefaultWorkFlowEngine(base.DbTestCase):
     def setUp(self):
         super(TestDefaultWorkFlowEngine, self).setUp()
-        self.engine = tflow.DefaultWorkFlowEngine()
-        self.engine.context = self.context
-        self.engine.applier_manager = mock.MagicMock()
+        self.engine = tflow.DefaultWorkFlowEngine(
+            context=self.context,
+            applier_manager=mock.MagicMock())
 
     def test_execute(self):
         actions = mock.MagicMock()

@@ -89,7 +89,9 @@ class TaskFlowActionContainer(task.Task):
     @property
     def action(self):
         if self.loaded_action is None:
-            action = self.engine.action_factory.make_action(self._db_action)
+            action = self.engine.action_factory.make_action(
+                self._db_action,
+                osc=self._engine.osc)
             self.loaded_action = action
         return self.loaded_action
 

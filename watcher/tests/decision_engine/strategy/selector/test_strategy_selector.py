@@ -36,8 +36,8 @@ class TestStrategySelector(TestCase):
                               enforce_type=True)
         expected_goal = 'DUMMY'
         expected_strategy = CONF.watcher_goals.goals[expected_goal]
-        self.strategy_selector.define_from_goal(expected_goal)
-        mock_call.assert_called_once_with(expected_strategy)
+        self.strategy_selector.define_from_goal(expected_goal, osc=None)
+        mock_call.assert_called_once_with(expected_strategy, osc=None)
 
     @patch.object(DefaultStrategyLoader, 'load')
     def test_define_from_goal_with_incorrect_mapping(self, mock_call):
