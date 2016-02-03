@@ -80,10 +80,7 @@ function cleanup_watcher {
 # configure_watcher() - Set config files, create data dirs, etc
 function configure_watcher {
     # Put config files in ``/etc/watcher`` for everyone to find
-    if [[  ! -d $WATCHER_CONF_DIR  ]]; then
-        sudo mkdir -p $WATCHER_CONF_DIR
-        sudo chown $STACK_USER $WATCHER_CONF_DIR
-    fi
+    sudo install -d -o $STACK_USER $WATCHER_CONF_DIR
 
     install_default_policy watcher
 
@@ -178,9 +175,8 @@ function create_watcher_conf {
 # create_watcher_cache_dir() - Part of the init_watcher() process
 function create_watcher_cache_dir {
     # Create cache dir
-    sudo mkdir -p $WATCHER_AUTH_CACHE_DIR
-    sudo chown $STACK_USER $WATCHER_AUTH_CACHE_DIR
-    rm -f $WATCHER_AUTH_CACHE_DIR/*
+    sudo install -d -o $STACK_USER $WATCHER_AUTH_CACHE_DIR
+    rm -rf $WATCHER_AUTH_CACHE_DIR/*
 }
 
 # init_watcher() - Initialize databases, etc.
