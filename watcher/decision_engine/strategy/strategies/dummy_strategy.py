@@ -34,7 +34,7 @@ class DummyStrategy(base.BaseStrategy):
                  osc=None):
         super(DummyStrategy, self).__init__(name, description, osc)
 
-    def execute(self, model):
+    def execute(self, original_model):
         LOG.debug("Executing Dummy strategy")
         parameters = {'message': 'hello World'}
         self.solution.add_action(action_type=self.NOP,

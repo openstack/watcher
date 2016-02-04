@@ -64,10 +64,10 @@ class BaseStrategy(object):
         self._osc = osc
 
     @abc.abstractmethod
-    def execute(self, model):
+    def execute(self, original_model):
         """Execute a strategy
 
-        :param model: The name of the strategy to execute (loaded dynamically)
+        :param original_model: The model the strategy is executed on
         :type model: str
         :return: A computed solution (via a placement algorithm)
         :rtype: :class:`watcher.decision_engine.solution.base.BaseSolution`
