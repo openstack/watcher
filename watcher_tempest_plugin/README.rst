@@ -55,7 +55,8 @@ Otherwise, if you are not using a virtualenv::
     $ cd <TEMPEST_DIR>
     $ tempest init --config-dir ./etc watcher-cloud
 
-By default the configuration file is empty so before starting, you need to issue the following commands::
+By default the configuration file is empty so before starting, you need to
+issue the following commands::
 
     $ cd <TEMPEST_DIR>/watcher-cloud/etc
     $ cp tempest.conf.sample tempest.conf
@@ -67,25 +68,49 @@ Shown below is a minimal configuration you need to set within your
 
 For Keystone V3::
 
+    [identity]
     uri_v3 = http://<KEYSTONE_PUBLIC_ENDPOINT_IP>:<KEYSTONE_PORT>/v3
-    admin_tenant_name = <ADMIN_TENANT_NAME>
+    auth_version = v3
+
+    [auth]
     admin_username = <ADMIN_USERNAME>
     admin_password = <ADMIN_PASSWORD>
+    admin_tenant_name = <ADMIN_TENANT_NAME>
     admin_domain_name = <ADMIN_DOMAIN_NAME>
+
+    [identity-feature-enabled]
     api_v2 = false
     api_v3 = true
-    auth_version = v3
 
 For Keystone V2::
 
+    [identity]
     uri = http://<KEYSTONE_PUBLIC_ENDPOINT_IP>:<KEYSTONE_PORT>/v2.0
+    auth_version = v2
+
+    [auth]
     admin_tenant_name = <ADMIN_TENANT_NAME>
     admin_username = <ADMIN_USERNAME>
     admin_password = <ADMIN_PASSWORD>
-    auth_version = v2
 
 In both cases::
+
+    [network]
     public_network_id = <PUBLIC_NETWORK_ID>
+
+You now have the minimum configuration for running Watcher Tempest tests on a
+single node.
+
+Since deploying Watcher with only a single compute node is not very useful, a
+few more configuration have to be set in your ``tempest.conf`` file in order to
+enable the execution of multi-node scenarios::
+
+    [compute]
+    # To indicate Tempest test that yout have provided enough compute nodes
+    min_compute_nodes = 2
+
+    # Image UUID you can get using the "glance image-list" command
+    image_ref = <IMAGE_UUID>
 
 
 For more information, please refer to:
