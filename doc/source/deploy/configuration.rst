@@ -163,6 +163,16 @@ Configure the Watcher service
 The Watcher service is configured via its configuration file. This file
 is typically located at ``/etc/watcher/watcher.conf``.
 
+You can easily generate and update a sample configuration file
+named :ref:`watcher.conf.sample <watcher_sample_configuration_files>` by using
+these following commands::
+
+    $ git clone git://git.openstack.org/openstack/watcher
+    $ cd watcher/
+    $ tox -econfig
+    $ vi etc/watcher/watcher.conf.sample
+
+
 The configuration file is organized into the following sections:
 
 * ``[DEFAULT]`` - General configuration

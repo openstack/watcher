@@ -55,8 +55,8 @@ Getting Started
   dev/environment
   dev/devstack
   deploy/configuration
+  deploy/conf-files
   dev/testing
-
 
 API References
 --------------
