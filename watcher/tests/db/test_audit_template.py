@@ -47,7 +47,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             name='My Audit Template 1',
             description='Description of my audit template 1',
             host_aggregate=5,
-            goal='SERVERS_CONSOLIDATION',
+            goal='DUMMY',
             extra={'automatic': True})
         audit_template2 = self._create_test_audit_template(
             id=2,
@@ -55,7 +55,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             name='My Audit Template 2',
             description='Description of my audit template 2',
             host_aggregate=3,
-            goal='SERVERS_CONSOLIDATION',
+            goal='DUMMY',
             extra={'automatic': True})
 
         res = self.dbapi.get_audit_template_list(self.context,
@@ -68,7 +68,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
         res = self.dbapi.get_audit_template_list(
             self.context,
-            filters={'goal': 'SERVERS_CONSOLIDATION'})
+            filters={'goal': 'DUMMY'})
         self.assertEqual([audit_template1['id'], audit_template2['id']],
                          [r.id for r in res])
 

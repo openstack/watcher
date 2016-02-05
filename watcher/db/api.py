@@ -71,7 +71,7 @@ class BaseConnection(object):
                          'name': 'example',
                          'description': 'free text description'
                          'host_aggregate': 'nova aggregate name or id'
-                         'goal': 'SERVER_CONSOLiDATION'
+                         'goal': 'DUMMY'
                          'extra': {'automatic': True}
                         }
         :returns: An audit template.

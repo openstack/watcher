@@ -60,7 +60,7 @@ This goal should be declared in the Watcher service configuration file
 
 .. code:: bash
 
-  $ watcher audit-template-create my_first_audit SERVERS_CONSOLIDATION
+  $ watcher audit-template-create my_first_audit DUMMY
 
 If you get "*You must provide a username via either --os-username or via
 env[OS_USERNAME]*" you may have to verify your credentials.
