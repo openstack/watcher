@@ -26,7 +26,7 @@ from oslo_log import log as logging
 
 from watcher import _i18n
 from watcher.common import service
-from watcher.decision_engine.manager import DecisionEngineManager
+from watcher.decision_engine import manager
 
 
 LOG = logging.getLogger(__name__)
@@ -41,6 +41,6 @@ def main():
     LOG.debug("Configuration:")
     cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)
 
-    server = DecisionEngineManager()
+    server = manager.DecisionEngineManager()
     server.connect()
     server.join()

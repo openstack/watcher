@@ -16,7 +16,7 @@
 
 from oslo_log import log
 
-from watcher.decision_engine.messaging.events import Events
+from watcher.decision_engine.messaging import events as messaging_events
 
 LOG = log.getLogger(__name__)
 
@@ -43,8 +43,8 @@ class EventDispatcher(object):
         """
         Dispatch an instance of Event class
         """
-        if Events.ALL in self._events.keys():
-            listeners = self._events[Events.ALL]
+        if messaging_events.Events.ALL in self._events.keys():
+            listeners = self._events[messaging_events.Events.ALL]
             for listener in listeners:
                 listener(event)
 

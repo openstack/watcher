@@ -21,12 +21,12 @@ from __future__ import unicode_literals
 
 from oslo_log import log
 
-from watcher.common.loader.default import DefaultLoader
+from watcher.common.loader import default
 
 LOG = log.getLogger(__name__)
 
 
-class DefaultStrategyLoader(DefaultLoader):
+class DefaultStrategyLoader(default.DefaultLoader):
     def __init__(self):
         super(DefaultStrategyLoader, self).__init__(
             namespace='watcher_strategies')

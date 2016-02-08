@@ -38,8 +38,8 @@ from oslo_log import log
 import six
 
 from watcher.common import clients
-from watcher.decision_engine.solution.default import DefaultSolution
-from watcher.decision_engine.strategy.common.level import StrategyLevel
+from watcher.decision_engine.solution import default
+from watcher.decision_engine.strategy.common import level
 
 LOG = log.getLogger(__name__)
 
@@ -57,10 +57,10 @@ class BaseStrategy(object):
         self._name = name
         self.description = description
         # default strategy level
-        self._strategy_level = StrategyLevel.conservative
+        self._strategy_level = level.StrategyLevel.conservative
         self._cluster_state_collector = None
         # the solution given by the strategy
-        self._solution = DefaultSolution()
+        self._solution = default.DefaultSolution()
         self._osc = osc
 
     @abc.abstractmethod

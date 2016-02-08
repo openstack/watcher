@@ -21,17 +21,17 @@ from oslo_log import log
 
 from watcher._i18n import _LE, _LI, _LW
 from watcher.common import exception
-from watcher.decision_engine.model.hypervisor_state import HypervisorState
-from watcher.decision_engine.model.resource import ResourceType
-from watcher.decision_engine.model.vm_state import VMState
-from watcher.decision_engine.strategy.strategies.base import BaseStrategy
-from watcher.metrics_engine.cluster_history.ceilometer import \
-    CeilometerClusterHistory
+from watcher.decision_engine.model import hypervisor_state as hyper_state
+from watcher.decision_engine.model import resource
+from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.strategy.strategies import base
+from watcher.metrics_engine.cluster_history import ceilometer as \
+    ceilometer_cluster_history
 
 LOG = log.getLogger(__name__)
 
 
-class BasicConsolidation(BaseStrategy):
+class BasicConsolidation(base.BaseStrategy):
     DEFAULT_NAME = "basic"
     DEFAULT_DESCRIPTION = "Basic offline consolidation"
 
@@ -104,7 +104,8 @@ class BasicConsolidation(BaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = CeilometerClusterHistory(osc=self.osc)
+            self._ceilometer = (ceilometer_cluster_history.
+                                CeilometerClusterHistory(osc=self.osc))
         return self._ceilometer
 
     @ceilometer.setter
@@ -141,9 +142,9 @@ class BasicConsolidation(BaseStrategy):
         total_cores = 0
         total_disk = 0
         total_mem = 0
-        cap_cores = model.get_resource_from_id(ResourceType.cpu_cores)
-        cap_disk = model.get_resource_from_id(ResourceType.disk)
-        cap_mem = model.get_resource_from_id(ResourceType.memory)
+        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
+        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
+        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
 
         for vm_id in model.get_mapping().get_node_vms(dest_hypervisor):
             vm = model.get_vm_from_id(vm_id)
@@ -178,9 +179,9 @@ class BasicConsolidation(BaseStrategy):
         :param total_mem
         :return: True if the threshold is not exceed
         """
-        cap_cores = model.get_resource_from_id(ResourceType.cpu_cores)
-        cap_disk = model.get_resource_from_id(ResourceType.disk)
-        cap_mem = model.get_resource_from_id(ResourceType.memory)
+        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
+        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
+        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
         # available
         cores_available = cap_cores.get_capacity(dest_hypervisor)
         disk_available = cap_disk.get_capacity(dest_hypervisor)
@@ -226,13 +227,13 @@ class BasicConsolidation(BaseStrategy):
         :return:
         """
         cpu_capacity = model.get_resource_from_id(
-            ResourceType.cpu_cores).get_capacity(element)
+            resource.ResourceType.cpu_cores).get_capacity(element)
 
         disk_capacity = model.get_resource_from_id(
-            ResourceType.disk).get_capacity(element)
+            resource.ResourceType.disk).get_capacity(element)
 
         memory_capacity = model.get_resource_from_id(
-            ResourceType.memory).get_capacity(element)
+            resource.ResourceType.memory).get_capacity(element)
 
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
                        float(cpu_capacity))
@@ -274,7 +275,7 @@ class BasicConsolidation(BaseStrategy):
             cpu_avg_vm = 100
 
         cpu_capacity = model.get_resource_from_id(
-            ResourceType.cpu_cores).get_capacity(hypervisor)
+            resource.ResourceType.cpu_cores).get_capacity(hypervisor)
 
         total_cores_used = cpu_capacity * (cpu_avg_vm / 100)
 
@@ -321,7 +322,7 @@ class BasicConsolidation(BaseStrategy):
             vm_cpu_utilization = 100
 
         cpu_capacity = model.get_resource_from_id(
-            ResourceType.cpu_cores).get_capacity(vm)
+            resource.ResourceType.cpu_cores).get_capacity(vm)
 
         total_cores_used = cpu_capacity * (vm_cpu_utilization / 100.0)
 
@@ -371,7 +372,7 @@ class BasicConsolidation(BaseStrategy):
         vm_score = []
         for vm_id in vms_to_mig:
             vm = current_model.get_vm_from_id(vm_id)
-            if vm.state == VMState.ACTIVE.value:
+            if vm.state == vm_state.VMState.ACTIVE.value:
                 vm_score.append(
                     (vm_id, self.calculate_score_vm(vm, current_model)))
 
@@ -390,7 +391,7 @@ class BasicConsolidation(BaseStrategy):
                 mig_src_hypervisor)) == 0:
             self.add_change_service_state(mig_src_hypervisor.
                                           uuid,
-                                          HypervisorState.
+                                          hyper_state.HypervisorState.
                                           OFFLINE.value)
             self.number_of_released_nodes += 1
 
@@ -446,9 +447,9 @@ class BasicConsolidation(BaseStrategy):
             count = current_model.get_mapping(). \
                 get_node_vms_from_id(hypervisor_id)
             if len(count) == 0:
-                if hypervisor.state == HypervisorState.ONLINE:
+                if hypervisor.state == hyper_state.HypervisorState.ONLINE:
                     self.add_change_service_state(hypervisor_id,
-                                                  HypervisorState.
+                                                  hyper_state.HypervisorState.
                                                   OFFLINE.value)
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:

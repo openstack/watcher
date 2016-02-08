@@ -21,8 +21,8 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
-from watcher.common.messaging.messaging_core import MessagingCore
-from watcher.common.messaging.notification_handler import NotificationHandler
+from watcher.common.messaging import messaging_core
+from watcher.common.messaging import notification_handler
 from watcher.common import utils
 from watcher.decision_engine.manager import decision_engine_opt_group
 from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
@@ -35,7 +35,7 @@ CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class DecisionEngineAPI(MessagingCore):
+class DecisionEngineAPI(messaging_core.MessagingCore):
 
     def __init__(self):
         super(DecisionEngineAPI, self).__init__(
@@ -44,7 +44,8 @@ class DecisionEngineAPI(MessagingCore):
             CONF.watcher_decision_engine.status_topic,
             api_version=self.API_VERSION,
         )
-        self.handler = NotificationHandler(self.publisher_id)
+        self.handler = notification_handler.NotificationHandler(
+            self.publisher_id)
         self.status_topic_handler.add_endpoint(self.handler)
 
     def trigger_audit(self, context, audit_uuid=None):

@@ -16,22 +16,21 @@
 from oslo_log import log
 
 from watcher.common import clients
-from watcher.decision_engine.strategy.context.base import BaseStrategyContext
-from watcher.decision_engine.strategy.selection.default import \
-    DefaultStrategySelector
-from watcher.metrics_engine.cluster_model_collector.manager import \
-    CollectorManager
+from watcher.decision_engine.strategy.context import base
+from watcher.decision_engine.strategy.selection import default
+from watcher.metrics_engine.cluster_model_collector import manager
+
 from watcher import objects
 
 LOG = log.getLogger(__name__)
 
 
-class DefaultStrategyContext(BaseStrategyContext):
+class DefaultStrategyContext(base.BaseStrategyContext):
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
-        self._strategy_selector = DefaultStrategySelector()
-        self._collector_manager = CollectorManager()
+        self._strategy_selector = default.DefaultStrategySelector()
+        self._collector_manager = manager.CollectorManager()
 
     @property
     def collector(self):

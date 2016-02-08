@@ -25,7 +25,7 @@ from oslo_config import cfg
 from oslo_log import log as logging
 
 from watcher import _i18n
-from watcher.applier.manager import ApplierManager
+from watcher.applier import manager
 from watcher.common import service
 
 LOG = logging.getLogger(__name__)
@@ -40,6 +40,6 @@ def main():
     LOG.debug("Configuration:")
     cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)
 
-    server = ApplierManager()
+    server = manager.ApplierManager()
     server.connect()
     server.join()

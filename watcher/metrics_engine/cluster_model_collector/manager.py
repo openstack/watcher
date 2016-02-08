@@ -21,8 +21,8 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import nova_helper
-from watcher.metrics_engine.cluster_model_collector.nova import \
-    NovaClusterModelCollector
+from watcher.metrics_engine.cluster_model_collector import nova as cnova
+
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -32,4 +32,4 @@ class CollectorManager(object):
     def get_cluster_model_collector(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         nova = nova_helper.NovaHelper(osc=osc)
-        return NovaClusterModelCollector(nova)
+        return cnova.NovaClusterModelCollector(nova)

@@ -18,38 +18,38 @@
 
 import mock
 
-from watcher.applier.action_plan.default import DefaultActionPlanHandler
-from watcher.applier.messaging.event_types import EventTypes
+from watcher.applier.action_plan import default
+from watcher.applier.messaging import event_types as ev
 from watcher.objects import action_plan as ap_objects
-from watcher.objects import ActionPlan
-from watcher.tests.db.base import DbTestCase
+from watcher.tests.db import base
 from watcher.tests.objects import utils as obj_utils
 
 
-class TestDefaultActionPlanHandler(DbTestCase):
+class TestDefaultActionPlanHandler(base.DbTestCase):
     def setUp(self):
         super(TestDefaultActionPlanHandler, self).setUp()
         self.action_plan = obj_utils.create_test_action_plan(
             self.context)
 
     def test_launch_action_plan(self):
-        command = DefaultActionPlanHandler(self.context, mock.MagicMock(),
-                                           self.action_plan.uuid)
+        command = default.DefaultActionPlanHandler(self.context,
+                                                   mock.MagicMock(),
+                                                   self.action_plan.uuid)
         command.execute()
-        action_plan = ActionPlan.get_by_uuid(self.context,
-                                             self.action_plan.uuid)
+        action_plan = ap_objects.ActionPlan.get_by_uuid(self.context,
+                                                        self.action_plan.uuid)
         self.assertEqual(ap_objects.State.SUCCEEDED, action_plan.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = mock.MagicMock()
-        command = DefaultActionPlanHandler(self.context, messaging,
-                                           self.action_plan.uuid)
+        command = default.DefaultActionPlanHandler(self.context, messaging,
+                                                   self.action_plan.uuid)
         command.execute()
 
-        call_on_going = mock.call(EventTypes.LAUNCH_ACTION_PLAN.name, {
+        call_on_going = mock.call(ev.EventTypes.LAUNCH_ACTION_PLAN.name, {
             'action_plan_state': ap_objects.State.ONGOING,
             'action_plan__uuid': self.action_plan.uuid})
-        call_succeeded = mock.call(EventTypes.LAUNCH_ACTION_PLAN.name, {
+        call_succeeded = mock.call(ev.EventTypes.LAUNCH_ACTION_PLAN.name, {
             'action_plan_state': ap_objects.State.SUCCEEDED,
             'action_plan__uuid': self.action_plan.uuid})
 

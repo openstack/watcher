@@ -65,7 +65,7 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.rpcapi import DecisionEngineAPI
+from watcher.decision_engine import rpcapi
 from watcher import objects
 
 
@@ -369,7 +369,7 @@ class AuditsController(rest.RestController):
 
         # trigger decision-engine to run the audit
 
-        dc_client = DecisionEngineAPI()
+        dc_client = rpcapi.DecisionEngineAPI()
         dc_client.trigger_audit(context, new_audit.uuid)
 
         return Audit.convert_with_links(new_audit)

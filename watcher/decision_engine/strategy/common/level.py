@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-from enum import Enum
+import enum
 
 
-class StrategyLevel(Enum):
+class StrategyLevel(enum.Enum):
     conservative = "conservative"
     balanced = "balanced"
     growth = "growth"

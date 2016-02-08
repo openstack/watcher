@@ -16,11 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from concurrent.futures import ThreadPoolExecutor
+from concurrent import futures
 
 from oslo_log import log
 
-from watcher.decision_engine.audit.default import DefaultAuditHandler
+from watcher.decision_engine.audit import default
 
 LOG = log.getLogger(__name__)
 
@@ -28,7 +28,7 @@ LOG = log.getLogger(__name__)
 class AuditEndpoint(object):
     def __init__(self, messaging, max_workers):
         self._messaging = messaging
-        self._executor = ThreadPoolExecutor(max_workers=max_workers)
+        self._executor = futures.ThreadPoolExecutor(max_workers=max_workers)
 
     @property
     def executor(self):
@@ -39,7 +39,7 @@ class AuditEndpoint(object):
         return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        audit = DefaultAuditHandler(self.messaging)
+        audit = default.DefaultAuditHandler(self.messaging)
         audit.execute(audit_uuid, context)
 
     def trigger_audit(self, context, audit_uuid):

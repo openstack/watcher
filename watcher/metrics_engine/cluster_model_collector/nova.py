@@ -25,7 +25,6 @@ from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm as obj_vm
 from watcher.metrics_engine.cluster_model_collector import api
 
-
 LOG = log.getLogger(__name__)
 
 
