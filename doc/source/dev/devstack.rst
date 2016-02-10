@@ -9,35 +9,97 @@ Set up a development environment via DevStack
 =============================================
 
 Watcher is currently able to optimize compute resources - specifically Nova
-compute hosts - via operations such as live migrations.  In order for you to
+compute hosts - via operations such as live migrations. In order for you to
 fully be able to exercise what Watcher can do, it is necessary to have a
-multinode environment to use.  If you have no experience with DevStack, you
-should check out the `DevStack documentation`_ and be comfortable with the
-basics of DevStack before attempting to get a multinode DevStack setup with
-the Watcher plugin.
+multinode environment to use.
 
 You can set up the Watcher services quickly and easily using a Watcher
-DevStack plugin.  See `PluginModelDocs`_ for information on DevStack's plugin
-model.
-
-.. _DevStack documentation: http://docs.openstack.org/developer/devstack/
-.. _PluginModelDocs: http://docs.openstack.org/developer/devstack/plugins.html
-
-It is recommended that you build off of the provided example local.conf files
-(`local.conf.controller`_, `local.conf.compute`_).  You'll likely want to
-configure something to obtain metrics, such as Ceilometer.  Ceilometer is used
-in the example local.conf files.
-
-To configure the Watcher services with DevStack, add the following to the
+DevStack plugin. See `PluginModelDocs`_ for information on DevStack's plugin
+model. To enable the Watcher plugin with DevStack, add the following to the
 `[[local|localrc]]` section of your controller's `local.conf` to enable the
 Watcher plugin::
 
     enable_plugin watcher git://git.openstack.org/openstack/watcher
 
-Then run devstack normally::
+For more detailed instructions, see `Detailed DevStack Instructions`_. Check
+out the `DevStack documentation`_ for more information regarding DevStack.
 
-    cd /opt/stack/devstack
-    ./stack.sh
+.. _PluginModelDocs: http://docs.openstack.org/developer/devstack/plugins.html
+.. _DevStack documentation: http://docs.openstack.org/developer/devstack/
+
+Detailed DevStack Instructions
+==============================
+
+#. Obtain N (where N >= 1) servers (virtual machines preferred for DevStack).
+   One of these servers will be the controller node while the others will be
+   compute nodes. N is preferably >= 3 so that you have at least 2 compute
+   nodes, but in order to stand up the Watcher services only 1 server is
+   needed (i.e., no computes are needed if you want to just experiment with
+   the Watcher services). These servers can be VMs running on your local
+   machine via VirtualBox if you prefer. DevStack currently recommends that
+   you use Ubuntu 14.04 LTS. The servers should also have connections to the
+   same network such that they are all able to communicate with one another.
+
+#. For each server, clone the DevStack repository and create the stack user::
+
+       sudo apt-get update
+       sudo apt-get install git
+       git clone https://git.openstack.org/openstack-dev/devstack
+       sudo ./devstack/tools/create-stack-user.sh
+
+   Now you have a stack user that is used to run the DevStack processes. You
+   may want to give your stack user a password to allow SSH via a password::
+
+       sudo passwd stack
+
+#. Switch to the stack user and clone the DevStack repo again::
+
+       sudo su stack
+       cd ~
+       git clone https://git.openstack.org/openstack-dev/devstack
+
+#. For each compute node, copy the provided `local.conf.compute`_ example file
+   to the compute node's system at ~/devstack/local.conf. Make sure the
+   HOST_IP and SERVICE_HOST values are changed appropriately - i.e., HOST_IP
+   is set to the IP address of the compute node and SERVICE_HOST is set to the
+   IP address of the controller node.
+
+   If you need specific metrics collected (or want to use something other
+   than Ceilometer), be sure to configure it. For example, in the
+   `local.conf.compute`_ example file, the appropriate ceilometer plugins and
+   services are enabled and disabled. If you were using something other than
+   Ceilometer, then you would likely want to configure it likewise. The
+   example file also sets the compute monitors nova configuration option to
+   use the CPU virt driver. If you needed other metrics, it may be necessary
+   to configure similar configuration options for the projects providing those
+   metrics.
+
+#. For the controller node, copy the provided `local.conf.controller`_ example
+   file to the controller node's system at ~/devstack/local.conf. Make sure
+   the HOST_IP value is changed appropriately - i.e., HOST_IP is set to the IP
+   address of the controller node.
+
+   Note: if you want to use another Watcher git repository (such as a local
+   one), then change the enable plugin line::
+
+       enable_plugin watcher <your_local_git_repo> [optional_branch]
+
+   If you do this, then the Watcher DevStack plugin will try to pull the
+   python-watcherclient repo from <your_local_git_repo>/../, so either make
+   sure that is also available or specify WATCHERCLIENT_REPO in the local.conf
+   file.
+
+   Note: if you want to use a specific branch, specify WATCHER_BRANCH in the
+   local.conf file. By default it will use the master branch.
+
+#. Start stacking from the controller node::
+
+       ./devstack/stack.sh
+
+#. Start stacking on each of the compute nodes using the same command.
+
+#. Configure the environment for live migration via NFS. See the
+   `Multi-Node DevStack Environment`_ section for more details.
 
 .. _local.conf.controller: https://github.com/openstack/watcher/tree/master/devstack/local.conf.controller
 .. _local.conf.compute: https://github.com/openstack/watcher/tree/master/devstack/local.conf.compute
@@ -104,7 +166,6 @@ Restart the libvirt service::
 
     sudo service libvirt-bin restart
 
-
 Setting up SSH keys between compute nodes to enable live migration
 ------------------------------------------------------------------
 
@@ -113,8 +174,8 @@ each compute node:
 
 1. The SOURCE root user's public RSA key (likely in /root/.ssh/id_rsa.pub)
    needs to be in the DESTINATION stack user's authorized_keys file
-   (~stack/.ssh/authorized_keys).  This can be accomplished by manually
-   copying the contents from the file on the SOURCE to the DESTINATION.  If
+   (~stack/.ssh/authorized_keys). This can be accomplished by manually
+   copying the contents from the file on the SOURCE to the DESTINATION. If
    you have a password configured for the stack user, then you can use the
    following command to accomplish the same thing::
 
@@ -122,7 +183,7 @@ each compute node:
 
 2. The DESTINATION host's public ECDSA key (/etc/ssh/ssh_host_ecdsa_key.pub)
    needs to be in the SOURCE root user's known_hosts file
-   (/root/.ssh/known_hosts).  This can be accomplished by running the
+   (/root/.ssh/known_hosts). This can be accomplished by running the
    following on the SOURCE machine (hostname must be used)::
 
         ssh-keyscan -H DEST_HOSTNAME | sudo tee -a /root/.ssh/known_hosts
