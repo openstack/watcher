@@ -46,7 +46,7 @@ CEILOMETER_CLIENT_OPTS = [
 
 NEUTRON_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
-               default='2',
+               default='2.0',
                help=_('Version of Neutron API to use in neutronclient.'))]
 
 cfg.CONF.register_opts(NOVA_CLIENT_OPTS, group='nova_client')
