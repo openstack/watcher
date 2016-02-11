@@ -27,6 +27,24 @@ from watcher.decision_engine.model import hypervisor_state as hstate
 
 
 class ChangeNovaServiceState(base.BaseAction):
+    """Disables or enables the nova-compute service, deployed on a host
+
+    By using this action, you will be able to update the state of a
+    nova-compute service. A disabled nova-compute service can not be selected
+    by the nova scheduler for future deployment of server.
+
+    The action schema is::
+
+        schema = Schema({
+         'resource_id': str,
+         'state': str,
+        })
+
+    The `resource_id` references a nova-compute service name (list of available
+    nova-compute services is returned by this command: ``nova service-list
+    --binary nova-compute``).
+    The `state` value should either be `ONLINE` or `OFFLINE`.
+    """
 
     STATE = 'state'
 

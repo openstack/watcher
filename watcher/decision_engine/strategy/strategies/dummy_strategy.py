@@ -24,6 +24,26 @@ LOG = log.getLogger(__name__)
 
 
 class DummyStrategy(base.BaseStrategy):
+    """Dummy strategy used for integration testing via Tempest
+
+    *Description*
+
+    This strategy does not provide any useful optimization. Indeed, its only
+    purpose is to be used by Tempest tests.
+
+    *Requirements*
+
+    <None>
+
+    *Limitations*
+
+    Do not use in production.
+
+    *Spec URL*
+
+    <None>
+    """
+
     DEFAULT_NAME = "dummy"
     DEFAULT_DESCRIPTION = "Dummy Strategy"
 

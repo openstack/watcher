@@ -70,6 +70,7 @@ Plugins
   :maxdepth: 1
 
   dev/strategy-plugin
+  dev/plugins
 
 
 Admin Guide

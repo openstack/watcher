@@ -28,6 +28,13 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultPlanner(base.BasePlanner):
+    """Default planner implementation
+
+    This implementation comes with basic rules with a fixed set of action types
+    that are weighted. An action having a lower weight will be scheduled before
+    the other ones.
+    """
+
     priorities = {
         'nop': 0,
         'sleep': 1,

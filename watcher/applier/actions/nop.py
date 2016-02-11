@@ -28,6 +28,16 @@ LOG = log.getLogger(__name__)
 
 
 class Nop(base.BaseAction):
+    """logs a message
+
+    The action schema is::
+
+        schema = Schema({
+         'message': str,
+        })
+
+    The `message` is the actual message that will be logged.
+    """
 
     MESSAGE = 'message'
 

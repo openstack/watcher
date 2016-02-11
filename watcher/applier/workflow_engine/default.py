@@ -28,6 +28,12 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
+    """Taskflow as a workflow engine for Watcher
+
+    Full documentation on taskflow at
+    http://docs.openstack.org/developer/taskflow/
+    """
+
     def decider(self, history):
         # FIXME(jed) not possible with the current Watcher Planner
         #
