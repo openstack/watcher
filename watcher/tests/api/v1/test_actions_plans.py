@@ -307,13 +307,37 @@ class TestDelete(api_base.FunctionalTest):
         action_plan = objects.ActionPlan.get_by_uuid(self.context, audit_uuid)
         action_plan.destroy()
 
-    def test_delete_action_plan(self):
+    def test_delete_action_plan_without_action(self):
         self.delete('/action_plans/%s' % self.action_plan.uuid)
         response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
                                  expect_errors=True)
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
+
+    def test_delete_action_plan_with_action(self):
+        action = obj_utils.create_test_action(
+            self.context, id=self.action_plan.first_action_id)
+
+        self.delete('/action_plans/%s' % self.action_plan.uuid)
+        ap_response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
+                                    expect_errors=True)
+        acts_response = self.get_json(
+            '/actions/?action_plan_uuid=%s' % self.action_plan.uuid)
+        act_response = self.get_json(
+            '/actions/%s' % action.uuid,
+            expect_errors=True)
+
+        # The action plan does not exist anymore
+        self.assertEqual(404, ap_response.status_int)
+        self.assertEqual('application/json', ap_response.content_type)
+        self.assertTrue(ap_response.json['error_message'])
+
+        # Nor does the action
+        self.assertEqual(len(acts_response['actions']), 0)
+        self.assertEqual(404, act_response.status_int)
+        self.assertEqual('application/json', act_response.content_type)
+        self.assertTrue(act_response.json['error_message'])
 
     def test_delete_action_plan_not_found(self):
         uuid = utils.generate_uuid()

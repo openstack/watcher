@@ -285,33 +285,41 @@ class TestListAction(api_base.FunctionalTest):
             id=3,
             uuid=utils.generate_uuid(),
             audit_id=1)
-        action_list = []
+
+        ap1_action_list = []
+        ap2_action_list = []
 
         for id_ in range(0, 2):
             action = obj_utils.create_test_action(
                 self.context, id=id_,
-                action_plan_id=2,
+                action_plan_id=action_plan1.id,
                 uuid=utils.generate_uuid())
-            action_list.append(action.uuid)
+            ap1_action_list.append(action)
 
         for id_ in range(2, 4):
             action = obj_utils.create_test_action(
                 self.context, id=id_,
-                action_plan_id=3,
+                action_plan_id=action_plan2.id,
                 uuid=utils.generate_uuid())
-            action_list.append(action.uuid)
+            ap2_action_list.append(action)
 
         self.delete('/action_plans/%s' % action_plan1.uuid)
 
         response = self.get_json('/actions')
-        self.assertEqual(len(action_list), len(response['actions']))
-        for id_ in range(0, 2):
-            action = response['actions'][id_]
-            self.assertEqual(None, action['action_plan_uuid'])
+        # We deleted the actions from the 1st action plan so we've got 2 left
+        self.assertEqual(len(ap2_action_list), len(response['actions']))
 
-        for id_ in range(2, 4):
-            action = response['actions'][id_]
-            self.assertEqual(action_plan2.uuid, action['action_plan_uuid'])
+        # We deleted them so that's normal
+        self.assertEqual(
+            [act for act in response['actions']
+             if act['action_plan_uuid'] == action_plan1.uuid],
+            [])
+
+        # Here are the 2 actions left
+        self.assertEqual(
+            set([act['uuid'] for act in response['actions']
+                 if act['action_plan_uuid'] == action_plan2.uuid]),
+            set([act.as_dict()['uuid'] for act in ap2_action_list]))
 
     def test_many_with_next_uuid(self):
         action_list = []
