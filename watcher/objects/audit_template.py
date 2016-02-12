@@ -164,7 +164,7 @@ class AuditTemplate(base.WatcherObject):
         return audit_template
 
     @classmethod
-    def list(cls, context, limit=None, marker=None,
+    def list(cls, context, filters=None, limit=None, marker=None,
              sort_key=None, sort_dir=None):
         """Return a list of :class:`AuditTemplate` objects.
 
@@ -174,6 +174,7 @@ class AuditTemplate(base.WatcherObject):
                         argument, even though we don't use it.
                         A context should be set when instantiating the
                         object, e.g.: AuditTemplate(context)
+        :param filters: dict mapping the filter key to a value.
         :param limit: maximum number of resources to return in a single result.
         :param marker: pagination marker for large data sets.
         :param sort_key: column to sort results by.
@@ -183,6 +184,7 @@ class AuditTemplate(base.WatcherObject):
 
         db_audit_templates = cls.dbapi.get_audit_template_list(
             context,
+            filters=filters,
             limit=limit,
             marker=marker,
             sort_key=sort_key,

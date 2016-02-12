@@ -227,7 +227,7 @@ class TestClients(base.BaseTestCase):
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_diff_vers(self, mock_session):
         '''neutronclient currently only has one version (v2)'''
-        cfg.CONF.set_override('api_version', '2',
+        cfg.CONF.set_override('api_version', '2.0',
                               group='neutron_client')
         osc = clients.OpenStackClients()
         osc._neutron = None

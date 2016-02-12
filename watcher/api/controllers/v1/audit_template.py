@@ -197,10 +197,11 @@ class AuditTemplatesController(rest.RestController):
         'detail': ['GET'],
     }
 
-    def _get_audit_templates_collection(self, marker, limit,
+    def _get_audit_templates_collection(self, filters, marker, limit,
                                         sort_key, sort_dir, expand=False,
                                         resource_url=None):
-
+        api_utils.validate_search_filters(
+            filters, objects.audit_template.AuditTemplate.fields.keys())
         limit = api_utils.validate_limit(limit)
         sort_dir = api_utils.validate_sort_dir(sort_dir)
 
@@ -212,6 +213,7 @@ class AuditTemplatesController(rest.RestController):
 
         audit_templates = objects.AuditTemplate.list(
             pecan.request.context,
+            filters,
             limit,
             marker_obj, sort_key=sort_key,
             sort_dir=sort_dir)
@@ -223,26 +225,30 @@ class AuditTemplatesController(rest.RestController):
                                                           sort_key=sort_key,
                                                           sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, types.uuid, int,
-                         wtypes.text, wtypes.text)
-    def get_all(self, marker=None, limit=None,
+    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text,
+                         types.uuid, int, wtypes.text, wtypes.text)
+    def get_all(self, goal=None, marker=None, limit=None,
                 sort_key='id', sort_dir='asc'):
         """Retrieve a list of audit templates.
 
+        :param goal: goal name to filter by (case sensitive)
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
-        return self._get_audit_templates_collection(marker, limit, sort_key,
-                                                    sort_dir)
+        filters = api_utils.as_filters_dict(goal=goal)
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, types.uuid, int,
+        return self._get_audit_templates_collection(
+            filters, marker, limit, sort_key, sort_dir)
+
+    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, types.uuid, int,
                          wtypes.text, wtypes.text)
-    def detail(self, marker=None, limit=None,
+    def detail(self, goal=None, marker=None, limit=None,
                sort_key='id', sort_dir='asc'):
         """Retrieve a list of audit templates with detail.
 
+        :param goal: goal name to filter by (case sensitive)
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
@@ -253,9 +259,11 @@ class AuditTemplatesController(rest.RestController):
         if parent != "audit_templates":
             raise exception.HTTPNotFound
 
+        filters = api_utils.as_filters_dict(goal=goal)
+
         expand = True
         resource_url = '/'.join(['audit_templates', 'detail'])
-        return self._get_audit_templates_collection(marker, limit,
+        return self._get_audit_templates_collection(filters, marker, limit,
                                                     sort_key, sort_dir, expand,
                                                     resource_url)
 
@@ -263,7 +271,7 @@ class AuditTemplatesController(rest.RestController):
     def get_one(self, audit_template):
         """Retrieve information about the given audit template.
 
-        :param audit template_uuid: UUID or name of an audit template.
+        :param audit audit_template: UUID or name of an audit template.
         """
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
