@@ -19,7 +19,6 @@ from __future__ import unicode_literals
 import uuid
 
 from tempest import test
-from tempest_lib import decorators
 from tempest_lib import exceptions as lib_exc
 
 from watcher_tempest_plugin.tests.api.admin import base
@@ -85,23 +84,14 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
         self.assert_expected(self.audit_template, audit_template)
 
-    @decorators.skip_because(bug="1510189")
     @test.attr(type='smoke')
     def test_filter_audit_template_by_goal(self):
-        _, audit_template = self.client.list_audit_templates(
+        _, audit_templates = self.client.list_audit_templates(
             goal=self.audit_template['goal'])
 
-        self.assert_expected(self.audit_template,
-                             audit_template['audit_templates'][0])
-
-    @decorators.skip_because(bug="1510189")
-    @test.attr(type='smoke')
-    def test_filter_audit_template_by_host_aggregate(self):
-        _, audit_template = self.client.list_audit_templates(
-            host_aggregate=self.audit_template['host_aggregate'])
-
-        self.assert_expected(self.audit_template,
-                             audit_template['audit_templates'][0])
+        audit_template_uuids = [
+            at["uuid"] for at in audit_templates['audit_templates']]
+        self.assertIn(self.audit_template['uuid'], audit_template_uuids)
 
     @test.attr(type='smoke')
     def test_show_audit_template_with_links(self):
