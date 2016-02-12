@@ -187,6 +187,7 @@ class TestClients(base.BaseTestCase):
         osc.ceilometer()
         mock_call.assert_called_once_with(
             cfg.CONF.ceilometer_client.api_version,
+            None,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -194,6 +195,7 @@ class TestClients(base.BaseTestCase):
     def test_clients_ceilometer_diff_vers(self, mock_get_alarm_client,
                                           mock_session):
         '''ceilometerclient currently only has one version (v2)'''
+        mock_get_alarm_client.return_value = [mock.Mock(), mock.Mock()]
         cfg.CONF.set_override('api_version', '2',
                               group='ceilometer_client')
         osc = clients.OpenStackClients()
@@ -206,6 +208,7 @@ class TestClients(base.BaseTestCase):
     @mock.patch.object(ceclient_v2.Client, '_get_alarm_client')
     def test_clients_ceilometer_cached(self, mock_get_alarm_client,
                                        mock_session):
+        mock_get_alarm_client.return_value = [mock.Mock(), mock.Mock()]
         osc = clients.OpenStackClients()
         osc._ceilometer = None
         ceilometer = osc.ceilometer()

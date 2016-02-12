@@ -141,8 +141,8 @@ class OpenStackClients(object):
 
         ceilometerclient_version = self._get_client_option('ceilometer',
                                                            'api_version')
-        self._ceilometer = ceclient.Client(ceilometerclient_version,
-                                           session=self.session)
+        self._ceilometer = ceclient.get_client(ceilometerclient_version,
+                                               session=self.session)
         return self._ceilometer
 
     @exception.wrap_keystone_exception
