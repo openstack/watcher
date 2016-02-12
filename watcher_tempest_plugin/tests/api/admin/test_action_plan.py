@@ -37,7 +37,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
             duration=30,
             sleep_for=.5
         ))
-        _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
+        _, action_plans = self.client.list_action_plans(
+            audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
@@ -55,7 +56,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
             duration=30,
             sleep_for=.5
         ))
-        _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
+        _, action_plans = self.client.list_action_plans(
+            audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
@@ -75,7 +77,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
             duration=30,
             sleep_for=.5
         ))
-        _, action_plans = self.client.list_action_plan_by_audit(audit['uuid'])
+        _, action_plans = self.client.list_action_plans(
+            audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
@@ -112,8 +115,8 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
             duration=30,
             sleep_for=.5
         )
-        _, action_plans = cls.client.list_action_plan_by_audit(
-            cls.audit['uuid'])
+        _, action_plans = cls.client.list_action_plans(
+            audit_uuid=cls.audit['uuid'])
         cls.action_plan = action_plans['action_plans'][0]
 
     @test.attr(type='smoke')
@@ -155,7 +158,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
     def test_list_with_limit(self):
         # We create 3 extra audits to exceed the limit we fix
         for _ in range(3):
-            self.create_audit(self.audit_template['uuid'])
+            self.create_action_plan(self.audit_template['uuid'])
 
         _, body = self.client.list_action_plans(limit=3)
 
