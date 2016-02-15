@@ -102,7 +102,7 @@ class RPCService(service.Service):
                      '%(host)s.'),
                  {'service': self.topic, 'host': self.host})
 
-    def _handle_signal(self, signo, frame):
+    def _handle_signal(self):
         LOG.info(_LI('Got signal SIGUSR1. Not deregistering on next shutdown '
                      'of service %(service)s on host %(host)s.'),
                  {'service': self.topic, 'host': self.host})
