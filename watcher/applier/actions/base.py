@@ -58,22 +58,57 @@ class BaseAction(object):
 
     @abc.abstractmethod
     def execute(self):
+        """Executes the main logic of the action
+
+        This method can be used to perform an action on a given set of input
+        parameters to accomplish some type of operation. This operation may
+        return a boolean value as a result of its execution. If False, this
+        will be considered as an error and will then trigger the reverting of
+        the actions.
+
+        :returns: A flag indicating whether or not the action succeeded
+        :rtype: bool
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def revert(self):
+        """Revert this action
+
+        This method should rollback the resource to its initial state in the
+        event of a faulty execution. This happens when the action raised an
+        exception during its :py:meth:`~.BaseAction.execute`.
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def precondition(self):
+        """Hook: called before the execution of an action
+
+        This method can be used to perform some initializations or to make
+        some more advanced validation on its input parameters. So if you wish
+        to block its execution based on this factor, `raise` the related
+        exception.
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
     def postcondition(self):
+        """Hook: called after the execution of an action
+
+        This function is called regardless of whether an action succeded or
+        not. So you can use it to perform cleanup operations.
+        """
         raise NotImplementedError()
 
     @abc.abstractproperty
     def schema(self):
+        """Defines a Schema that the input parameters shall comply to
+
+        :returns: A schema declaring the input parameters this action should be
+                  provided along with their respective constraints
+        :rtype: :py:class:`voluptuous.Schema` instance
+        """
         raise NotImplementedError()
 
     def validate_parameters(self):

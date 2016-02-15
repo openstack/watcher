@@ -72,6 +72,7 @@ Plugins
 
   dev/strategy-plugin
   dev/plugins
+  dev/plugin/action-plugin
 
 
 Admin Guide
