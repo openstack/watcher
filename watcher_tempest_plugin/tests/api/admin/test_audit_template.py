@@ -137,7 +137,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         new_name = 'my at new name %s' % uuid.uuid4()
         new_description = 'my new at description'
         new_host_aggregate = 10
-        new_goal = 'A NEW GOAL'
+        new_goal = 'BASIC_CONSOLIDATION'
         new_extra = {'key1': 'new-value1', 'key2': 'new-value2'}
 
         patch = [{'path': '/name',

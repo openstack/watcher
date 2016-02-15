@@ -237,6 +237,8 @@ class TestPatch(api_base.FunctionalTest):
         self.mock_audit_template_update = p.start()
         self.mock_audit_template_update.side_effect = \
             self._simulate_rpc_audit_template_update
+        cfg.CONF.set_override('goals', {"DUMMY": "DUMMY", "BASIC": "BASIC"},
+                              group='watcher_goals', enforce_type=True)
         self.addCleanup(p.stop)
 
     def _simulate_rpc_audit_template_update(self, audit_template):
@@ -248,7 +250,7 @@ class TestPatch(api_base.FunctionalTest):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        new_goal = 'BALANCE_LOAD'
+        new_goal = "BASIC"
         response = self.get_json(
             '/audit_templates/%s' % self.audit_template.uuid)
         self.assertNotEqual(new_goal, response['goal'])
@@ -272,7 +274,7 @@ class TestPatch(api_base.FunctionalTest):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        new_goal = 'BALANCE_LOAD'
+        new_goal = 'BASIC'
         response = self.get_json(urlparse.quote(
             '/audit_templates/%s' % self.audit_template.name))
         self.assertNotEqual(new_goal, response['goal'])
@@ -294,15 +296,29 @@ class TestPatch(api_base.FunctionalTest):
     def test_replace_non_existent_audit_template(self):
         response = self.patch_json(
             '/audit_templates/%s' % utils.generate_uuid(),
-            [{'path': '/goal', 'value': 'BALANCE_LOAD',
+            [{'path': '/goal', 'value': 'DUMMY',
              'op': 'replace'}],
             expect_errors=True)
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
+    def test_replace_invalid_goal(self):
+        with mock.patch.object(
+            self.dbapi,
+            'update_audit_template',
+            wraps=self.dbapi.update_audit_template
+        ) as cn_mock:
+            response = self.patch_json(
+                '/audit_templates/%s' % self.audit_template.uuid,
+                [{'path': '/goal', 'value': 'INVALID_GOAL',
+                  'op': 'replace'}],
+                expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        assert not cn_mock.called
+
     def test_add_ok(self):
-        new_goal = 'BALANCE_LOAD'
+        new_goal = 'DUMMY'
         response = self.patch_json(
             '/audit_templates/%s' % self.audit_template.uuid,
             [{'path': '/goal', 'value': new_goal, 'op': 'add'}])
