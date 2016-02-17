@@ -127,7 +127,19 @@ Watcher CLI
 The watcher command-line interface (CLI) can be used to interact with the
 Watcher system in order to control it or to know its current status.
 
-Please, read `the detailed documentation about Watcher CLI <https://factory.b-com.com/www/watcher/doc/python-watcherclient/>`_
+Please, read `the detailed documentation about Watcher CLI
+<https://factory.b-com.com/www/watcher/doc/python-watcherclient/>`_.
+
+.. _archi_watcher_dashboard_definition:
+
+Watcher Dashboard
+-----------------
+
+The Watcher Dashboard can be used to interact with the Watcher system through
+Horizon in order to control it or to know its current status.
+
+Please, read `the detailed documentation about Watcher Dashboard
+<https://factory.b-com.com/www/watcher/doc/watcher-dashboard/>`_.
 
 .. _archi_watcher_database_definition:
 

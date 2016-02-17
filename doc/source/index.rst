@@ -22,6 +22,7 @@ Watcher project consists of several source code repositories:
 * `watcher`_ - is the main repository. It contains code for Watcher API server,
   Watcher Decision Engine and Watcher Applier.
 * `python-watcherclient`_ - Client library and CLI client for Watcher.
+* `watcher-dashboard`_ - Watcher Horizon plugin.
 
 The documentation provided here is continually kept up-to-date based
 on the latest code, and may not represent the state of the project at any
@@ -29,6 +30,7 @@ specific prior release.
 
 .. _watcher: https://git.openstack.org/cgit/openstack/watcher/
 .. _python-watcherclient: https://git.openstack.org/cgit/openstack/python-watcherclient/
+.. _watcher-dashboard: https://git.openstack.org/cgit/openstack/watcher-dashboard/
 
 Developer Guide
 ===============

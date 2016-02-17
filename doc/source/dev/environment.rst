@@ -269,6 +269,11 @@ interface.
 
 .. _`python-watcherclient`: https://github.com/openstack/python-watcherclient
 
+There is also an Horizon plugin for Watcher `watcher-dashboard`_ which
+allows to interact with Watcher through a web-based interface.
+
+.. _`watcher-dashboard`: https://github.com/openstack/watcher-dashboard
+
 
 Exercising the Watcher Services locally
 =======================================
