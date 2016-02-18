@@ -14,13 +14,11 @@ import datetime
 
 import mock
 from oslo_config import cfg
-from oslo_utils import timeutils
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action as api_action
 from watcher.common import utils
 from watcher.db import api as db_api
-from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils
 from watcher.tests import base
@@ -442,7 +440,7 @@ class TestPatch(api_base.FunctionalTest):
         return action
 
     @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_replace_ok(self, mock_utcnow):
+    def test_patch_not_allowed(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
@@ -453,104 +451,12 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             '/actions/%s' % self.action.uuid,
             [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
-        self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
-
-        response = self.get_json('/actions/%s' % self.action.uuid)
-        self.assertEqual(new_state, response['state'])
-        return_updated_at = timeutils.parse_isotime(
-            response['updated_at']).replace(tzinfo=None)
-        self.assertEqual(test_time, return_updated_at)
-
-    def test_replace_non_existent_action(self):
-        response = self.patch_json('/actions/%s' % utils.generate_uuid(),
-                                   [{'path': '/state', 'value': 'SUBMITTED',
-                                     'op': 'replace'}],
-                                   expect_errors=True)
-        self.assertEqual(404, response.status_int)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
-
-    def test_add_ok(self):
-        new_state = 'SUCCEEDED'
-        response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
-            [{'path': '/state', 'value': new_state, 'op': 'add'}])
-        self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_int)
-
-        response = self.get_json('/actions/%s' % self.action.uuid)
-        self.assertEqual(new_state, response['state'])
-
-    def test_add_non_existent_property(self):
-        response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
-            [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
+             'op': 'replace'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(403, response.status_int)
         self.assertTrue(response.json['error_message'])
 
-    def test_remove_ok(self):
-        response = self.get_json('/actions/%s' % self.action.uuid)
-        self.assertIsNotNone(response['state'])
-
-        response = self.patch_json('/actions/%s' % self.action.uuid,
-                                   [{'path': '/state', 'op': 'remove'}])
-        self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
-
-        response = self.get_json('/actions/%s' % self.action.uuid)
-        self.assertIsNone(response['state'])
-
-    def test_remove_uuid(self):
-        response = self.patch_json('/actions/%s' % self.action.uuid,
-                                   [{'path': '/uuid', 'op': 'remove'}],
-                                   expect_errors=True)
-        self.assertEqual(400, response.status_int)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
-
-    def test_remove_non_existent_property(self):
-        response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
-            [{'path': '/non-existent', 'op': 'remove'}],
-            expect_errors=True)
-        self.assertEqual(400, response.status_code)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
-
-
-# class TestDelete(api_base.FunctionalTest):
-
-#     def setUp(self):
-#         super(TestDelete, self).setUp()
-#         self.action = obj_utils.create_test_action(self.context, next=None)
-#         p = mock.patch.object(db_api.Connection, 'destroy_action')
-#         self.mock_action_delete = p.start()
-#         self.mock_action_delete.side_effect =
-#                 self._simulate_rpc_action_delete
-#         self.addCleanup(p.stop)
-
-#     def _simulate_rpc_action_delete(self, action_uuid):
-#         action = objects.Action.get_by_uuid(self.context, action_uuid)
-#         action.destroy()
-
-#     def test_delete_action(self):
-#         self.delete('/actions/%s' % self.action.uuid)
-#         response = self.get_json('/actions/%s' % self.action.uuid,
-#                                  expect_errors=True)
-#         self.assertEqual(404, response.status_int)
-#         self.assertEqual('application/json', response.content_type)
-#         self.assertTrue(response.json['error_message'])
-
-#     def test_delete_action_not_found(self):
-#         uuid = utils.generate_uuid()
-#         response = self.delete('/actions/%s' % uuid, expect_errors=True)
-#         self.assertEqual(404, response.status_int)
-#         self.assertEqual('application/json', response.content_type)
-#         self.assertTrue(response.json['error_message'])
 
 class TestDelete(api_base.FunctionalTest):
 
@@ -568,26 +474,11 @@ class TestDelete(api_base.FunctionalTest):
         return action
 
     @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_delete_action(self, mock_utcnow):
+    def test_delete_action_not_allowed(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
-        self.delete('/actions/%s' % self.action.uuid)
-        response = self.get_json('/actions/%s' % self.action.uuid,
-                                 expect_errors=True)
-        self.assertEqual(404, response.status_int)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
-
-        self.context.show_deleted = True
-        action = objects.Action.get_by_uuid(self.context, self.action.uuid)
-
-        return_deleted_at = timeutils.strtime(action['deleted_at'])
-        self.assertEqual(timeutils.strtime(test_time), return_deleted_at)
-        self.assertEqual('DELETED', action['state'])
-
-    def test_delete_action_not_found(self):
-        uuid = utils.generate_uuid()
-        response = self.delete('/actions/%s' % uuid, expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        response = self.delete('/actions/%s' % self.action.uuid,
+                               expect_errors=True)
+        self.assertEqual(403, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
