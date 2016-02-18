@@ -88,25 +88,26 @@ class OutletTempControl(base.BaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
-    def calc_used_res(self, model, hypervisor, cap_cores, cap_mem, cap_disk):
+    def calc_used_res(self, cluster_data_model, hypervisor, cpu_capacity,
+                      memory_capacity, disk_capacity):
         '''calculate the used vcpus, memory and disk based on VM flavors'''
-        vms = model.get_mapping().get_node_vms(hypervisor)
+        vms = cluster_data_model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         if len(vms) > 0:
             for vm_id in vms:
-                vm = model.get_vm_from_id(vm_id)
-                vcpus_used += cap_cores.get_capacity(vm)
-                memory_mb_used += cap_mem.get_capacity(vm)
-                disk_gb_used += cap_disk.get_capacity(vm)
+                vm = cluster_data_model.get_vm_from_id(vm_id)
+                vcpus_used += cpu_capacity.get_capacity(vm)
+                memory_mb_used += memory_capacity.get_capacity(vm)
+                disk_gb_used += disk_capacity.get_capacity(vm)
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
-    def group_hosts_by_outlet_temp(self, model):
+    def group_hosts_by_outlet_temp(self, cluster_data_model):
         """Group hosts based on outlet temp meters"""
 
-        hypervisors = model.get_all_hypervisors()
+        hypervisors = cluster_data_model.get_all_hypervisors()
         size_cluster = len(hypervisors)
         if size_cluster == 0:
             raise wexc.ClusterEmpty()
@@ -114,7 +115,8 @@ class OutletTempControl(base.BaseStrategy):
         hosts_need_release = []
         hosts_target = []
         for hypervisor_id in hypervisors:
-            hypervisor = model.get_hypervisor_from_id(hypervisor_id)
+            hypervisor = cluster_data_model.get_hypervisor_from_id(
+                hypervisor_id)
             resource_id = hypervisor.uuid
 
             outlet_temp = self.ceilometer.statistic_aggregation(
@@ -136,17 +138,18 @@ class OutletTempControl(base.BaseStrategy):
                 hosts_target.append(hvmap)
         return hosts_need_release, hosts_target
 
-    def choose_vm_to_migrate(self, model, hosts):
+    def choose_vm_to_migrate(self, cluster_data_model, hosts):
         """pick up an active vm instance to migrate from provided hosts"""
 
         for hvmap in hosts:
             mig_src_hypervisor = hvmap['hv']
-            vms_of_src = model.get_mapping().get_node_vms(mig_src_hypervisor)
+            vms_of_src = cluster_data_model.get_mapping().get_node_vms(
+                mig_src_hypervisor)
             if len(vms_of_src) > 0:
                 for vm_id in vms_of_src:
                     try:
                         # select the first active VM to migrate
-                        vm = model.get_vm_from_id(vm_id)
+                        vm = cluster_data_model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.info(_LE("VM not active, skipped: %s"),
                                      vm.uuid)
@@ -158,44 +161,45 @@ class OutletTempControl(base.BaseStrategy):
 
         return None
 
-    def filter_dest_servers(self, model, hosts, vm_to_migrate):
+    def filter_dest_servers(self, cluster_data_model, hosts, vm_to_migrate):
         """Only return hosts with sufficient available resources"""
 
-        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
-        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
-        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
+        cpu_capacity = cluster_data_model.get_resource_from_id(
+            resource.ResourceType.cpu_cores)
+        disk_capacity = cluster_data_model.get_resource_from_id(
+            resource.ResourceType.disk)
+        memory_capacity = cluster_data_model.get_resource_from_id(
+            resource.ResourceType.memory)
 
-        required_cores = cap_cores.get_capacity(vm_to_migrate)
-        required_disk = cap_disk.get_capacity(vm_to_migrate)
-        required_mem = cap_mem.get_capacity(vm_to_migrate)
+        required_cores = cpu_capacity.get_capacity(vm_to_migrate)
+        required_disk = disk_capacity.get_capacity(vm_to_migrate)
+        required_memory = memory_capacity.get_capacity(vm_to_migrate)
 
         # filter hypervisors without enough resource
         dest_servers = []
         for hvmap in hosts:
             host = hvmap['hv']
             # available
-            cores_used, mem_used, disk_used = self.calc_used_res(model,
-                                                                 host,
-                                                                 cap_cores,
-                                                                 cap_mem,
-                                                                 cap_disk)
-            cores_available = cap_cores.get_capacity(host) - cores_used
-            disk_available = cap_disk.get_capacity(host) - mem_used
-            mem_available = cap_mem.get_capacity(host) - disk_used
+            cores_used, mem_used, disk_used = self.calc_used_res(
+                cluster_data_model, host, cpu_capacity, memory_capacity,
+                disk_capacity)
+            cores_available = cpu_capacity.get_capacity(host) - cores_used
+            disk_available = disk_capacity.get_capacity(host) - mem_used
+            mem_available = memory_capacity.get_capacity(host) - disk_used
             if cores_available >= required_cores \
                     and disk_available >= required_disk \
-                    and mem_available >= required_mem:
+                    and mem_available >= required_memory:
                 dest_servers.append(hvmap)
 
         return dest_servers
 
-    def execute(self, orign_model):
+    def execute(self, original_model):
         LOG.debug("Initializing Outlet temperature strategy")
 
-        if orign_model is None:
+        if original_model is None:
             raise wexc.ClusterStateNotDefined()
 
-        current_model = orign_model
+        current_model = original_model
         hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp(
             current_model)
 
