@@ -47,7 +47,6 @@ def validate_sort_dir(sort_dir):
         raise wsme.exc.ClientSideError(_("Invalid sort direction: %s. "
                                          "Acceptable values are "
                                          "'asc' or 'desc'") % sort_dir)
-    return sort_dir
 
 
 def validate_search_filters(filters, allowed_fields):

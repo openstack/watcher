@@ -283,7 +283,7 @@ class ActionPlansController(rest.RestController):
                                      resource_url=None, audit_uuid=None):
 
         limit = api_utils.validate_limit(limit)
-        sort_dir = api_utils.validate_sort_dir(sort_dir)
+        api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
