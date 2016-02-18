@@ -50,6 +50,15 @@ def validate_sort_dir(sort_dir):
     return sort_dir
 
 
+def validate_search_filters(filters, allowed_fields):
+    # Very leightweight validation for now
+    # todo: improve this (e.g. https://www.parse.com/docs/rest/guide/#queries)
+    for filter_name in filters.keys():
+        if filter_name not in allowed_fields:
+            raise wsme.exc.ClientSideError(
+                _("Invalid filter: %s") % filter_name)
+
+
 def apply_jsonpatch(doc, patch):
     for p in patch:
         if p['op'] == 'add' and p['path'].count('/') == 1:
@@ -58,3 +67,12 @@ def apply_jsonpatch(doc, patch):
                         ' the resource is not allowed')
                 raise wsme.exc.ClientSideError(msg % p['path'])
     return jsonpatch.apply_patch(doc, jsonpatch.JsonPatch(patch))
+
+
+def as_filters_dict(**filters):
+    filters_dict = {}
+    for filter_name, filter_value in filters.items():
+        if filter_value:
+            filters_dict[filter_name] = filter_value
+
+    return filters_dict

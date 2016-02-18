@@ -207,6 +207,25 @@ class TestListAuditTemplate(api_base.FunctionalTest):
         next_marker = response['audit_templates'][-1]['uuid']
         self.assertIn(next_marker, response['next'])
 
+    def test_filter_by_goal(self):
+        cfg.CONF.set_override('goals', {"DUMMY": "DUMMY", "BASIC": "BASIC"},
+                              group='watcher_goals', enforce_type=True)
+
+        for id_ in range(2):
+            obj_utils.create_test_audit_template(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='My Audit Template {0}'.format(id_),
+                goal="DUMMY")
+
+        for id_ in range(2, 5):
+            obj_utils.create_test_audit_template(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='My Audit Template {0}'.format(id_),
+                goal="BASIC")
+
+        response = self.get_json('/audit_templates?goal=BASIC')
+        self.assertEqual(3, len(response['audit_templates']))
+
 
 class TestPatch(api_base.FunctionalTest):
 
