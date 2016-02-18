@@ -54,9 +54,9 @@ class ChangeNovaServiceState(base.BaseAction):
         target_state = None
         if self.state == hstate.HypervisorState.OFFLINE.value:
             target_state = False
-        elif self.status == hstate.HypervisorState.ONLINE.value:
+        elif self.state == hstate.HypervisorState.ONLINE.value:
             target_state = True
-        return self.nova_manage_service(target_state)
+        return self._nova_manage_service(target_state)
 
     def revert(self):
         target_state = None
@@ -64,9 +64,9 @@ class ChangeNovaServiceState(base.BaseAction):
             target_state = True
         elif self.state == hstate.HypervisorState.ONLINE.value:
             target_state = False
-        return self.nova_manage_service(target_state)
+        return self._nova_manage_service(target_state)
 
-    def nova_manage_service(self, state):
+    def _nova_manage_service(self, state):
         if state is None:
             raise exception.IllegalArgumentException(
                 message=_("The target state is not defined"))
