@@ -32,7 +32,7 @@ def _alembic_config():
     return config
 
 
-def version(config=None, engine=None):
+def version(engine=None):
     """Current database version.
 
     :returns: Database version

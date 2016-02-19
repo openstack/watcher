@@ -47,7 +47,7 @@ class WatcherTerm(rst.Directive):
     # You need to put an import path as an argument for this directive to work
     required_arguments = 1
 
-    def add_textblock(self, textblock, *lineno):
+    def add_textblock(self, textblock):
         for line in textblock.splitlines():
             self.add_line(line)
 

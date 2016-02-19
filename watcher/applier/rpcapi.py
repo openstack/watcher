@@ -63,10 +63,3 @@ class ApplierAPI(messaging_core.MessagingCore):
         return self.client.call(
             context.to_dict(), 'launch_action_plan',
             action_plan_uuid=action_plan_uuid)
-
-    def event_receive(self, event):
-        try:
-            pass
-        except Exception as e:
-            LOG.exception(e)
-            raise

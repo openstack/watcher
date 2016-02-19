@@ -265,58 +265,6 @@ class NovaHelper(object):
 
             return True
 
-    def built_in_non_live_migrate_instance(self, instance_id, hypervisor_id):
-        """This method does a live migration of a given instance
-
-        This method uses the Nova built-in non-live migrate()
-        action to migrate a given instance.
-        It returns True if the migration was successful, False otherwise.
-
-        :param instance_id: the unique id of the instance to migrate.
-        """
-
-        LOG.debug(
-            "Trying a Nova built-in non-live "
-            "migrate of instance %s ..." % instance_id)
-
-        # Looking for the instance to migrate
-        instance = self.find_instance(instance_id)
-
-        if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
-            return False
-        else:
-            host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-            LOG.debug(
-                "Instance %s found on host '%s'." % (instance_id, host_name))
-
-            instance.migrate()
-
-            # Poll at 5 second intervals, until the status is as expected
-            if self.wait_for_instance_status(instance,
-                                             ('VERIFY_RESIZE', 'ERROR'),
-                                             5, 10):
-
-                instance = self.nova.servers.get(instance.id)
-
-                if instance.status == 'VERIFY_RESIZE':
-                    host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-                    LOG.debug(
-                        "Instance %s has been successfully "
-                        "migrated to host '%s'." % (
-                            instance_id, host_name))
-
-                    # We need to confirm that the resize() operation
-                    # has succeeded in order to
-                    # get back instance state to 'ACTIVE'
-                    instance.confirm_resize()
-
-                    return True
-                elif instance.status == 'ERROR':
-                    LOG.debug("Instance %s migration failed" % instance_id)
-
-        return False
-
     def live_migrate_instance(self, instance_id, dest_hostname,
                               block_migration=False, retry=120):
         """This method does a live migration of a given instance
