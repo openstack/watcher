@@ -143,34 +143,13 @@ You should then be able to `import watcher` using Python without issue:
 
 If you can import watcher without a traceback, you should be ready to develop.
 
-Run Watcher unit tests
-======================
+Run Watcher tests
+=================
 
-All unit tests should be run using tox. To run the unit tests under py27 and
-also run the pep8 tests:
+Watcher provides both :ref:`unit tests <unit_tests>` and
+:ref:`functional/tempest tests <tempest_tests>`. Please refer to :doc:`testing`
+to understand how to run them.
 
-.. code-block:: bash
-
-    $ workon watcher
-    (watcher) $ pip install tox
-
-    (watcher) $ cd watcher
-    (watcher) $ tox -epep8 -epy27
-
-You may pass options to the test programs using positional arguments. To run a
-specific unit test, this passes the -r option and desired test (regex string)
-to os-testr:
-
-.. code-block:: bash
-
-    $ workon watcher
-    (watcher) $ tox -epy27 -- tests.api
-
-When you're done, deactivate the virtualenv:
-
-.. code-block:: bash
-
-    $ deactivate
 
 Build the Watcher documentation
 ===============================

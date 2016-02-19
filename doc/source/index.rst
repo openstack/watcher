@@ -53,6 +53,7 @@ Getting Started
   dev/environment
   dev/devstack
   deploy/configuration
+  dev/testing
 
 
 API References

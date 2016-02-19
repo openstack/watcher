@@ -4,13 +4,10 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-.. _tempest_integration:
+.. _tempest_tests:
 
-=============
 Tempest tests
 =============
-
-This directory contains Tempest tests to cover Watcher project.
 
 The following procedure gets you started with Tempest testing but you can also
 refer to the `Tempest documentation`_ for more details.
@@ -19,7 +16,7 @@ refer to the `Tempest documentation`_ for more details.
 
 
 Tempest installation
-====================
+--------------------
 
 To install Tempest you can issue the following commands::
 
@@ -30,11 +27,11 @@ To install Tempest you can issue the following commands::
 The folder you are into now will be called ``<TEMPEST_DIR>`` from now onwards.
 
 Please note that although it is fully working outside a virtual environment, it
-is recommended to install within a venv.
+is recommended to install within a `venv`.
 
 
 Watcher Tempest testing setup
-=============================
+-----------------------------
 
 You can now install Watcher alongside it in development mode by issuing the
 following command::
@@ -43,7 +40,7 @@ following command::
 
 Then setup a local working environment (here ``watcher-cloud``) for running
 Tempest for Watcher which shall contain the configuration for your OpenStack
-intergration platform.
+integration platform.
 
 In a virtual environment, you can do so by issuing the following command::
 
@@ -106,7 +103,7 @@ few more configuration have to be set in your ``tempest.conf`` file in order to
 enable the execution of multi-node scenarios::
 
     [compute]
-    # To indicate Tempest test that yout have provided enough compute nodes
+    # To indicate Tempest test that you have provided enough compute nodes
     min_compute_nodes = 2
 
     # Image UUID you can get using the "glance image-list" command
@@ -123,7 +120,7 @@ For more information, please refer to:
 
 
 Watcher Tempest tests execution
-===============================
+-------------------------------
 
 To list all Watcher Tempest cases, you can issue the following commands::
 
