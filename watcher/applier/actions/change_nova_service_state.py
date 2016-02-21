@@ -52,17 +52,17 @@ class ChangeNovaServiceState(base.BaseAction):
 
     def execute(self):
         target_state = None
-        if self.state == hstate.HypervisorState.OFFLINE.value:
+        if self.state == hstate.HypervisorState.DISABLED.value:
             target_state = False
-        elif self.state == hstate.HypervisorState.ONLINE.value:
+        elif self.state == hstate.HypervisorState.ENABLED.value:
             target_state = True
         return self._nova_manage_service(target_state)
 
     def revert(self):
         target_state = None
-        if self.state == hstate.HypervisorState.OFFLINE.value:
+        if self.state == hstate.HypervisorState.DISABLED.value:
             target_state = True
-        elif self.state == hstate.HypervisorState.ONLINE.value:
+        elif self.state == hstate.HypervisorState.ENABLED.value:
             target_state = False
         return self._nova_manage_service(target_state)
 
