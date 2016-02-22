@@ -20,10 +20,10 @@ from watcher.decision_engine.model import hypervisor
 from watcher.decision_engine.model import model_root as modelroot
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm as modelvm
-from watcher.metrics_engine.cluster_model_collector import api
+from watcher.metrics_engine.cluster_model_collector import base
 
 
-class FakerModelCollector(api.BaseClusterModelCollector):
+class FakerModelCollector(base.BaseClusterModelCollector):
     def __init__(self):
         pass
 
