@@ -72,6 +72,7 @@ Plugins
 .. toctree::
   :maxdepth: 1
 
+  dev/plugin/base-setup
   dev/plugin/strategy-plugin
   dev/plugin/action-plugin
   dev/plugin/planner-plugin

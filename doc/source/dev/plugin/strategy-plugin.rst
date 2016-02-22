@@ -38,8 +38,6 @@ Here is an example showing how you can write a plugin called ``DummyStrategy``:
 
 .. code-block:: python
 
-    # Filepath = third-party/thirdparty/dummy.py
-    # Import path = thirdparty.dummy
     import uuid
 
     class DummyStrategy(BaseStrategy):
