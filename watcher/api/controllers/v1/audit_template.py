@@ -203,7 +203,7 @@ class AuditTemplatesController(rest.RestController):
         api_utils.validate_search_filters(
             filters, objects.audit_template.AuditTemplate.fields.keys())
         limit = api_utils.validate_limit(limit)
-        sort_dir = api_utils.validate_sort_dir(sort_dir)
+        api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:

@@ -159,7 +159,7 @@ class GoalsController(rest.RestController):
                               resource_url=None, goal_name=None):
 
         limit = api_utils.validate_limit(limit)
-        sort_dir = api_utils.validate_sort_dir(sort_dir)
+        api_utils.validate_sort_dir(sort_dir)
 
         goals = []
 

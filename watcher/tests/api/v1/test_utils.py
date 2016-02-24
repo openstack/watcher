@@ -40,8 +40,11 @@ class TestApiUtils(base.TestCase):
         self.assertRaises(wsme.exc.ClientSideError, utils.validate_limit, 0)
 
     def test_validate_sort_dir(self):
-        sort_dir = utils.validate_sort_dir('asc')
-        self.assertEqual('asc', sort_dir)
+        # if sort_dir is valid, nothing should happen
+        try:
+            utils.validate_sort_dir('asc')
+        except Exception as exc:
+            self.fail(exc)
 
         # invalid sort_dir parameter
         self.assertRaises(wsme.exc.ClientSideError,

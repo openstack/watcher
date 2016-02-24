@@ -263,7 +263,7 @@ class AuditsController(rest.RestController):
                                sort_key, sort_dir, expand=False,
                                resource_url=None, audit_template=None):
         limit = api_utils.validate_limit(limit)
-        sort_dir = api_utils.validate_sort_dir(sort_dir)
+        api_utils.validate_sort_dir(sort_dir)
 
         marker_obj = None
         if marker:
