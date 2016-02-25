@@ -398,7 +398,7 @@ class BasicConsolidation(base.BaseStrategy):
             self.add_change_service_state(mig_src_hypervisor.
                                           uuid,
                                           hyper_state.HypervisorState.
-                                          OFFLINE.value)
+                                          DISABLED.value)
             self.number_of_released_nodes += 1
 
     def calculate_num_migrations(self, sorted_vms, current_model,
@@ -455,10 +455,10 @@ class BasicConsolidation(base.BaseStrategy):
             count = current_model.get_mapping(). \
                 get_node_vms_from_id(hypervisor_id)
             if len(count) == 0:
-                if hypervisor.state == hyper_state.HypervisorState.ONLINE:
+                if hypervisor.state == hyper_state.HypervisorState.ENABLED:
                     self.add_change_service_state(hypervisor_id,
                                                   hyper_state.HypervisorState.
-                                                  OFFLINE.value)
+                                                  DISABLED.value)
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:
             if not first_migration:
