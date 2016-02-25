@@ -25,6 +25,7 @@ from stevedore import extension
 
 from watcher.applier.actions import base as abase
 from watcher.applier.workflow_engine import default as tflow
+from watcher.common import exception
 from watcher.common import utils
 from watcher import objects
 from watcher.tests.db import base
@@ -63,10 +64,15 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             context=self.context,
             applier_manager=mock.MagicMock())
 
-    def test_execute(self):
+    @mock.patch('taskflow.engines.load')
+    @mock.patch('taskflow.patterns.graph_flow.Flow.link')
+    def test_execute(self, graph_flow, engines):
         actions = mock.MagicMock()
-        result = self.engine.execute(actions)
-        self.assertEqual(True, result)
+        try:
+            self.engine.execute(actions)
+            self.assertTrue(engines.called)
+        except Exception as exc:
+            self.fail(exc)
 
     def create_action(self, action_type, parameters, next):
         action = {
@@ -91,64 +97,84 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         for a in actions:
             self.check_action_state(a, expected_state)
 
-    def test_execute_with_no_actions(self):
+    @mock.patch('taskflow.engines.load')
+    @mock.patch('taskflow.patterns.graph_flow.Flow.link')
+    def test_execute_with_no_actions(self, graph_flow, engines):
         actions = []
-        result = self.engine.execute(actions)
-        self.assertEqual(True, result)
+        try:
+            self.engine.execute(actions)
+            self.assertFalse(graph_flow.called)
+            self.assertTrue(engines.called)
+        except Exception as exc:
+            self.fail(exc)
 
     def test_execute_with_one_action(self):
         actions = [self.create_action("nop", {'message': 'test'}, None)]
-        result = self.engine.execute(actions)
-        self.assertEqual(True, result)
-        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+        try:
+            self.engine.execute(actions)
+            self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+
+        except Exception as exc:
+            self.fail(exc)
 
     def test_execute_with_two_actions(self):
         actions = []
-        next = self.create_action("sleep", {'duration': 0.0}, None)
-        first = self.create_action("nop", {'message': 'test'}, next.id)
+        second = self.create_action("sleep", {'duration': 0.0}, None)
+        first = self.create_action("nop", {'message': 'test'}, second.id)
 
         actions.append(first)
-        actions.append(next)
+        actions.append(second)
 
-        result = self.engine.execute(actions)
-        self.assertEqual(True, result)
-        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+        try:
+            self.engine.execute(actions)
+            self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+
+        except Exception as exc:
+            self.fail(exc)
 
     def test_execute_with_three_actions(self):
         actions = []
-        next2 = self.create_action("nop", {'message': 'next'}, None)
-        next = self.create_action("sleep", {'duration': 0.0}, next2.id)
-        first = self.create_action("nop", {'message': 'hello'}, next.id)
+
+        third = self.create_action("nop", {'message': 'next'}, None)
+        second = self.create_action("sleep", {'duration': 0.0}, third.id)
+        first = self.create_action("nop", {'message': 'hello'}, second.id)
+
         self.check_action_state(first, objects.action.State.PENDING)
-        self.check_action_state(next, objects.action.State.PENDING)
-        self.check_action_state(next2, objects.action.State.PENDING)
+        self.check_action_state(second, objects.action.State.PENDING)
+        self.check_action_state(third, objects.action.State.PENDING)
 
         actions.append(first)
-        actions.append(next)
-        actions.append(next2)
+        actions.append(second)
+        actions.append(third)
 
-        result = self.engine.execute(actions)
-        self.assertEqual(True, result)
-        self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+        try:
+            self.engine.execute(actions)
+            self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+
+        except Exception as exc:
+            self.fail(exc)
 
     def test_execute_with_exception(self):
         actions = []
-        next2 = self.create_action("no_exist", {'message': 'next'}, None)
-        next = self.create_action("sleep", {'duration': 0.0}, next2.id)
-        first = self.create_action("nop", {'message': 'hello'}, next.id)
+
+        third = self.create_action("no_exist", {'message': 'next'}, None)
+        second = self.create_action("sleep", {'duration': 0.0}, third.id)
+        first = self.create_action("nop", {'message': 'hello'}, second.id)
 
         self.check_action_state(first, objects.action.State.PENDING)
-        self.check_action_state(next, objects.action.State.PENDING)
-        self.check_action_state(next2, objects.action.State.PENDING)
-        actions.append(first)
-        actions.append(next)
-        actions.append(next2)
+        self.check_action_state(second, objects.action.State.PENDING)
+        self.check_action_state(third, objects.action.State.PENDING)
 
-        result = self.engine.execute(actions)
-        self.assertEqual(False, result)
+        actions.append(first)
+        actions.append(second)
+        actions.append(third)
+
+        self.assertRaises(exception.WorkflowExecutionException,
+                          self.engine.execute, actions)
+
         self.check_action_state(first, objects.action.State.SUCCEEDED)
-        self.check_action_state(next, objects.action.State.SUCCEEDED)
-        self.check_action_state(next2, objects.action.State.FAILED)
+        self.check_action_state(second, objects.action.State.SUCCEEDED)
+        self.check_action_state(third, objects.action.State.FAILED)
 
     @mock.patch("watcher.common.loader.default.DriverManager")
     def test_execute_with_action_exception(self, m_driver):
@@ -161,6 +187,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
                                           obj=None),
             namespace=FakeAction.namespace())
         actions = [self.create_action("dontcare", {}, None)]
-        result = self.engine.execute(actions)
-        self.assertEqual(False, result)
+
+        self.assertRaises(exception.WorkflowExecutionException,
+                          self.engine.execute, actions)
         self.check_action_state(actions[0], objects.action.State.FAILED)

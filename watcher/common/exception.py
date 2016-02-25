@@ -234,6 +234,9 @@ class PatchError(Invalid):
 
 # decision engine
 
+class WorkflowExecutionException(WatcherException):
+    msg_fmt = _('Workflow execution error: %(error)s')
+
 
 class IllegalArgumentException(WatcherException):
     msg_fmt = _('Illegal argument')

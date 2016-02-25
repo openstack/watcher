@@ -53,16 +53,15 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
                         ap_objects.State.ONGOING)
             applier = default.DefaultApplier(self.ctx, self.applier_manager)
-            result = applier.execute(self.action_plan_uuid)
+            applier.execute(self.action_plan_uuid)
+            state = ap_objects.State.SUCCEEDED
+
         except Exception as e:
             LOG.exception(e)
-            result = False
+            state = ap_objects.State.FAILED
+
         finally:
-            if result is True:
-                status = ap_objects.State.SUCCEEDED
-            else:
-                status = ap_objects.State.FAILED
             # update state
             self.notify(self.action_plan_uuid,
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
-                        status)
+                        state)
