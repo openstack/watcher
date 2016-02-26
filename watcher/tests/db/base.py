@@ -92,6 +92,12 @@ class DbTestCase(base.TestCase):
     def setUp(self):
         cfg.CONF.set_override("enable_authentication", False,
                               enforce_type=True)
+        # To use in-memory SQLite DB
+        cfg.CONF.set_override("connection", "sqlite://", group="database",
+                              enforce_type=True)
+        cfg.CONF.set_override("sqlite_db", "", group="database",
+                              enforce_type=True)
+
         super(DbTestCase, self).setUp()
 
         self.dbapi = dbapi.get_instance()

@@ -15,11 +15,215 @@
 
 """Tests for manipulating Audit via the DB API"""
 
+import freezegun
 import six
+
 from watcher.common import exception
 from watcher.common import utils as w_utils
+from watcher.objects import audit as audit_objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
+
+
+class TestDbAuditFilters(base.DbTestCase):
+
+    FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
+    FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
+    FAKE_TODAY = '2016-02-24T09:52:05.219414'
+
+    def setUp(self):
+        super(TestDbAuditFilters, self).setUp()
+        self.context.show_deleted = True
+        self._data_setup()
+
+    def _data_setup(self):
+        self.audit_template_name = "Audit Template"
+
+        self.audit_template = utils.create_test_audit_template(
+            name=self.audit_template_name, id=1, uuid=None)
+
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.audit1 = utils.create_test_audit(
+                audit_template_id=self.audit_template.id, id=1, uuid=None)
+        with freezegun.freeze_time(self.FAKE_OLD_DATE):
+            self.audit2 = utils.create_test_audit(
+                audit_template_id=self.audit_template.id, id=2, uuid=None)
+        with freezegun.freeze_time(self.FAKE_OLDER_DATE):
+            self.audit3 = utils.create_test_audit(
+                audit_template_id=self.audit_template.id, id=3, uuid=None)
+
+    def _soft_delete_audits(self):
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.dbapi.soft_delete_audit(self.audit1.uuid)
+        with freezegun.freeze_time(self.FAKE_OLD_DATE):
+            self.dbapi.soft_delete_audit(self.audit2.uuid)
+        with freezegun.freeze_time(self.FAKE_OLDER_DATE):
+            self.dbapi.soft_delete_audit(self.audit3.uuid)
+
+    def _update_audits(self):
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.dbapi.update_audit(
+                self.audit1.uuid,
+                values={"state": audit_objects.State.SUCCEEDED})
+        with freezegun.freeze_time(self.FAKE_OLD_DATE):
+            self.dbapi.update_audit(
+                self.audit2.uuid,
+                values={"state": audit_objects.State.SUCCEEDED})
+        with freezegun.freeze_time(self.FAKE_OLDER_DATE):
+            self.dbapi.update_audit(
+                self.audit3.uuid,
+                values={"state": audit_objects.State.SUCCEEDED})
+
+    def test_get_audit_list_filter_deleted_true(self):
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.dbapi.soft_delete_audit(self.audit1.uuid)
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted': True})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_false(self):
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.dbapi.soft_delete_audit(self.audit1.uuid)
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted': False})
+
+        self.assertEqual([self.audit2['id'], self.audit3['id']],
+                         [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_at_eq(self):
+        self._soft_delete_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted_at__eq': self.FAKE_TODAY})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_at_lt(self):
+        self._soft_delete_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_at_lte(self):
+        self._soft_delete_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_at_gt(self):
+        self._soft_delete_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted_at__gt': self.FAKE_OLD_DATE})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_deleted_at_gte(self):
+        self._soft_delete_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit1['id'], self.audit2['id']],
+            [r.id for r in res])
+
+    # created_at #
+
+    def test_get_audit_list_filter_created_at_eq(self):
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'created_at__eq': self.FAKE_TODAY})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_created_at_lt(self):
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'created_at__lt': self.FAKE_TODAY})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_created_at_lte(self):
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_created_at_gt(self):
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'created_at__gt': self.FAKE_OLD_DATE})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_created_at_gte(self):
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit1['id'], self.audit2['id']],
+            [r.id for r in res])
+
+    # updated_at #
+
+    def test_get_audit_list_filter_updated_at_eq(self):
+        self._update_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'updated_at__eq': self.FAKE_TODAY})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_updated_at_lt(self):
+        self._update_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'updated_at__lt': self.FAKE_TODAY})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_updated_at_lte(self):
+        self._update_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_updated_at_gt(self):
+        self._update_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'updated_at__gt': self.FAKE_OLD_DATE})
+
+        self.assertEqual([self.audit1['id']], [r.id for r in res])
+
+    def test_get_audit_list_filter_updated_at_gte(self):
+        self._update_audits()
+
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
+
+        self.assertEqual(
+            [self.audit1['id'], self.audit2['id']],
+            [r.id for r in res])
 
 
 class DbAuditTestCase(base.DbTestCase):
@@ -31,7 +235,7 @@ class DbAuditTestCase(base.DbTestCase):
 
     def test_get_audit_list(self):
         uuids = []
-        for i in range(1, 6):
+        for _ in range(1, 6):
             audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
             uuids.append(six.text_type(audit['uuid']))
         res = self.dbapi.get_audit_list(self.context)
@@ -69,6 +273,14 @@ class DbAuditTestCase(base.DbTestCase):
             self.context,
             filters={'state': 'PENDING'})
         self.assertEqual([audit2['id']], [r.id for r in res])
+
+    def test_get_audit_list_with_filter_by_uuid(self):
+        audit = self._create_test_audit()
+        res = self.dbapi.get_audit_list(
+            self.context, filters={'uuid': audit["uuid"]})
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(audit['uuid'], res[0].uuid)
 
     def test_get_audit_by_id(self):
         audit = self._create_test_audit()

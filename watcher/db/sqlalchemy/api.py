@@ -29,7 +29,10 @@ from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
+from watcher.objects import action as action_objects
+from watcher.objects import action_plan as ap_objects
 from watcher.objects import audit as audit_objects
+from watcher.objects import utils as objutils
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -105,12 +108,88 @@ class Connection(api.BaseConnection):
     """SqlAlchemy connection."""
 
     def __init__(self):
-        pass
+        super(Connection, self).__init__()
+
+    def __add_soft_delete_mixin_filters(self, query, filters, model):
+        if 'deleted' in filters:
+            if bool(filters['deleted']):
+                query = query.filter(model.deleted != 0)
+            else:
+                query = query.filter(model.deleted == 0)
+        if 'deleted_at__eq' in filters:
+            query = query.filter(
+                model.deleted_at == objutils.datetime_or_str_or_none(
+                    filters['deleted_at__eq']))
+        if 'deleted_at__gt' in filters:
+            query = query.filter(
+                model.deleted_at > objutils.datetime_or_str_or_none(
+                    filters['deleted_at__gt']))
+        if 'deleted_at__gte' in filters:
+            query = query.filter(
+                model.deleted_at >= objutils.datetime_or_str_or_none(
+                    filters['deleted_at__gte']))
+        if 'deleted_at__lt' in filters:
+            query = query.filter(
+                model.deleted_at < objutils.datetime_or_str_or_none(
+                    filters['deleted_at__lt']))
+        if 'deleted_at__lte' in filters:
+            query = query.filter(
+                model.deleted_at <= objutils.datetime_or_str_or_none(
+                    filters['deleted_at__lte']))
+
+        return query
+
+    def __add_timestamp_mixin_filters(self, query, filters, model):
+        if 'created_at__eq' in filters:
+            query = query.filter(
+                model.created_at == objutils.datetime_or_str_or_none(
+                    filters['created_at__eq']))
+        if 'created_at__gt' in filters:
+            query = query.filter(
+                model.created_at > objutils.datetime_or_str_or_none(
+                    filters['created_at__gt']))
+        if 'created_at__gte' in filters:
+            query = query.filter(
+                model.created_at >= objutils.datetime_or_str_or_none(
+                    filters['created_at__gte']))
+        if 'created_at__lt' in filters:
+            query = query.filter(
+                model.created_at < objutils.datetime_or_str_or_none(
+                    filters['created_at__lt']))
+        if 'created_at__lte' in filters:
+            query = query.filter(
+                model.created_at <= objutils.datetime_or_str_or_none(
+                    filters['created_at__lte']))
+
+        if 'updated_at__eq' in filters:
+            query = query.filter(
+                model.updated_at == objutils.datetime_or_str_or_none(
+                    filters['updated_at__eq']))
+        if 'updated_at__gt' in filters:
+            query = query.filter(
+                model.updated_at > objutils.datetime_or_str_or_none(
+                    filters['updated_at__gt']))
+        if 'updated_at__gte' in filters:
+            query = query.filter(
+                model.updated_at >= objutils.datetime_or_str_or_none(
+                    filters['updated_at__gte']))
+        if 'updated_at__lt' in filters:
+            query = query.filter(
+                model.updated_at < objutils.datetime_or_str_or_none(
+                    filters['updated_at__lt']))
+        if 'updated_at__lte' in filters:
+            query = query.filter(
+                model.updated_at <= objutils.datetime_or_str_or_none(
+                    filters['updated_at__lte']))
+
+        return query
 
     def _add_audit_templates_filters(self, query, filters):
         if filters is None:
             filters = []
 
+        if 'uuid' in filters:
+            query = query.filter_by(uuid=filters['uuid'])
         if 'name' in filters:
             query = query.filter_by(name=filters['name'])
         if 'host_aggregate' in filters:
@@ -118,12 +197,19 @@ class Connection(api.BaseConnection):
         if 'goal' in filters:
             query = query.filter_by(goal=filters['goal'])
 
+        query = self.__add_soft_delete_mixin_filters(
+            query, filters, models.AuditTemplate)
+        query = self.__add_timestamp_mixin_filters(
+            query, filters, models.AuditTemplate)
+
         return query
 
     def _add_audits_filters(self, query, filters):
         if filters is None:
             filters = []
 
+        if 'uuid' in filters:
+            query = query.filter_by(uuid=filters['uuid'])
         if 'type' in filters:
             query = query.filter_by(type=filters['type'])
         if 'state' in filters:
@@ -144,12 +230,20 @@ class Connection(api.BaseConnection):
             query = query.filter(
                 models.AuditTemplate.name ==
                 filters['audit_template_name'])
+
+        query = self.__add_soft_delete_mixin_filters(
+            query, filters, models.Audit)
+        query = self.__add_timestamp_mixin_filters(
+            query, filters, models.Audit)
+
         return query
 
     def _add_action_plans_filters(self, query, filters):
         if filters is None:
             filters = []
 
+        if 'uuid' in filters:
+            query = query.filter_by(uuid=filters['uuid'])
         if 'state' in filters:
             query = query.filter_by(state=filters['state'])
         if 'audit_id' in filters:
@@ -158,12 +252,20 @@ class Connection(api.BaseConnection):
             query = query.join(models.Audit,
                                models.ActionPlan.audit_id == models.Audit.id)
             query = query.filter(models.Audit.uuid == filters['audit_uuid'])
+
+        query = self.__add_soft_delete_mixin_filters(
+            query, filters, models.ActionPlan)
+        query = self.__add_timestamp_mixin_filters(
+            query, filters, models.ActionPlan)
+
         return query
 
     def _add_actions_filters(self, query, filters):
         if filters is None:
             filters = []
 
+        if 'uuid' in filters:
+            query = query.filter_by(uuid=filters['uuid'])
         if 'action_plan_id' in filters:
             query = query.filter_by(action_plan_id=filters['action_plan_id'])
         if 'action_plan_uuid' in filters:
@@ -184,6 +286,11 @@ class Connection(api.BaseConnection):
         if 'alarm' in filters:
             query = query.filter_by(alarm=filters['alarm'])
 
+        query = self.__add_soft_delete_mixin_filters(
+            query, filters, models.Action)
+        query = self.__add_timestamp_mixin_filters(
+            query, filters, models.Action)
+
         return query
 
     def get_audit_template_list(self, context, filters=None, limit=None,
@@ -193,7 +300,6 @@ class Connection(api.BaseConnection):
         query = self._add_audit_templates_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
-
         return _paginate_query(models.AuditTemplate, limit, marker,
                                sort_key, sort_dir, query)
 
@@ -312,7 +418,8 @@ class Connection(api.BaseConnection):
         query = model_query(models.Audit)
         query = self._add_audits_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(~(models.Audit.state == 'DELETED'))
+            query = query.filter(
+                ~(models.Audit.state == audit_objects.State.DELETED))
 
         return _paginate_query(models.Audit, limit, marker,
                                sort_key, sort_dir, query)
@@ -340,7 +447,7 @@ class Connection(api.BaseConnection):
         try:
             audit = query.one()
             if not context.show_deleted:
-                if audit.state == 'DELETED':
+                if audit.state == audit_objects.State.DELETED:
                     raise exception.AuditNotFound(audit=audit_id)
             return audit
         except exc.NoResultFound:
@@ -353,7 +460,7 @@ class Connection(api.BaseConnection):
         try:
             audit = query.one()
             if not context.show_deleted:
-                if audit.state == 'DELETED':
+                if audit.state == audit_objects.State.DELETED:
                     raise exception.AuditNotFound(audit=audit_uuid)
             return audit
         except exc.NoResultFound:
@@ -421,7 +528,8 @@ class Connection(api.BaseConnection):
         query = model_query(models.Action)
         query = self._add_actions_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(~(models.Action.state == 'DELETED'))
+            query = query.filter(
+                ~(models.Action.state == action_objects.State.DELETED))
         return _paginate_query(models.Action, limit, marker,
                                sort_key, sort_dir, query)
 
@@ -444,7 +552,7 @@ class Connection(api.BaseConnection):
         try:
             action = query.one()
             if not context.show_deleted:
-                if action.state == 'DELETED':
+                if action.state == action_objects.State.DELETED:
                     raise exception.ActionNotFound(
                         action=action_id)
             return action
@@ -457,7 +565,7 @@ class Connection(api.BaseConnection):
         try:
             action = query.one()
             if not context.show_deleted:
-                if action.state == 'DELETED':
+                if action.state == action_objects.State.DELETED:
                     raise exception.ActionNotFound(
                         action=action_uuid)
             return action
@@ -514,7 +622,8 @@ class Connection(api.BaseConnection):
         query = model_query(models.ActionPlan)
         query = self._add_action_plans_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(~(models.ActionPlan.state == 'DELETED'))
+            query = query.filter(
+                ~(models.ActionPlan.state == ap_objects.State.DELETED))
 
         return _paginate_query(models.ActionPlan, limit, marker,
                                sort_key, sort_dir, query)
@@ -539,7 +648,7 @@ class Connection(api.BaseConnection):
         try:
             action_plan = query.one()
             if not context.show_deleted:
-                if action_plan.state == 'DELETED':
+                if action_plan.state == ap_objects.State.DELETED:
                     raise exception.ActionPlanNotFound(
                         action_plan=action_plan_id)
             return action_plan
@@ -553,7 +662,7 @@ class Connection(api.BaseConnection):
         try:
             action_plan = query.one()
             if not context.show_deleted:
-                if action_plan.state == 'DELETED':
+                if action_plan.state == ap_objects.State.DELETED:
                     raise exception.ActionPlanNotFound(
                         action_plan=action_plan__uuid)
             return action_plan
