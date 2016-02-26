@@ -98,7 +98,7 @@ class BaseConnection(object):
         :raises: AuditTemplateNotFound
         """
 
-    def get_audit_template_by__name(self, context, audit_template_name):
+    def get_audit_template_by_name(self, context, audit_template_name):
         """Return an audit template.
 
         :param context: The security context
