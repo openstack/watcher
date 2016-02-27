@@ -386,7 +386,7 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             '/action_plans/%s' % utils.generate_uuid(),
             [{'path': '/state',
-              'value': objects.action_plan.State.TRIGGERED,
+              'value': objects.action_plan.State.PENDING,
               'op': 'replace'}],
             expect_errors=True)
         self.assertEqual(404, response.status_int)
@@ -436,8 +436,8 @@ class TestPatch(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
     @mock.patch.object(aapi.ApplierAPI, 'launch_action_plan')
-    def test_replace_state_triggered_ok(self, applier_mock):
-        new_state = objects.action_plan.State.TRIGGERED
+    def test_replace_state_pending_ok(self, applier_mock):
+        new_state = objects.action_plan.State.PENDING
         response = self.get_json(
             '/action_plans/%s' % self.action_plan.uuid)
         self.assertNotEqual(new_state, response['state'])
@@ -453,12 +453,12 @@ class TestPatch(api_base.FunctionalTest):
 
 ALLOWED_TRANSITIONS = [
     {"original_state": objects.action_plan.State.RECOMMENDED,
-     "new_state": objects.action_plan.State.TRIGGERED},
+     "new_state": objects.action_plan.State.PENDING},
     {"original_state": objects.action_plan.State.RECOMMENDED,
      "new_state": objects.action_plan.State.CANCELLED},
     {"original_state": objects.action_plan.State.ONGOING,
      "new_state": objects.action_plan.State.CANCELLED},
-    {"original_state": objects.action_plan.State.TRIGGERED,
+    {"original_state": objects.action_plan.State.PENDING,
      "new_state": objects.action_plan.State.CANCELLED},
 ]
 
@@ -479,7 +479,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         for original_state, new_state
         in list(itertools.product(STATES, STATES))
         # from DELETED to ...
-        # NOTE: Any state transition from DELETED (To RECOMMENDED, TRIGGERED,
+        # NOTE: Any state transition from DELETED (To RECOMMENDED, PENDING,
         # ONGOING, CANCELLED, SUCCEEDED and FAILED) will cause a 404 Not Found
         # because we cannot retrieve them with a GET (soft_deleted state).
         # This is the reason why they are not listed here but they have a
@@ -493,7 +493,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
     @mock.patch.object(
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
-    def test_replace_state_triggered_denied(self):
+    def test_replace_state_pending_denied(self):
         action_plan = obj_utils.create_action_plan_without_audit(
             self.context, state=self.original_state)
 
@@ -517,7 +517,7 @@ class TestPatchStateDeletedNotFound(api_base.FunctionalTest):
     @mock.patch.object(
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
-    def test_replace_state_triggered_not_found(self):
+    def test_replace_state_pending_not_found(self):
         action_plan = obj_utils.create_action_plan_without_audit(
             self.context, state=objects.action_plan.State.DELETED)
 
@@ -545,7 +545,7 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
     @mock.patch.object(aapi.ApplierAPI, 'launch_action_plan', mock.Mock())
-    def test_replace_state_triggered_ok(self):
+    def test_replace_state_pending_ok(self):
         action_plan = obj_utils.create_action_plan_without_audit(
             self.context, state=self.original_state)
 

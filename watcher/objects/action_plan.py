@@ -78,7 +78,7 @@ from watcher.objects import utils as obj_utils
 
 class State(object):
     RECOMMENDED = 'RECOMMENDED'
-    TRIGGERED = 'TRIGGERED'
+    PENDING = 'PENDING'
     ONGOING = 'ONGOING'
     FAILED = 'FAILED'
     SUCCEEDED = 'SUCCEEDED'

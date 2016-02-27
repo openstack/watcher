@@ -123,10 +123,10 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
-        # Execute the action by changing its state to TRIGGERED
+        # Execute the action by changing its state to PENDING
         _, updated_ap = self.client.update_action_plan(
             action_plan['uuid'],
-            patch=[{'path': '/state', 'op': 'replace', 'value': 'TRIGGERED'}]
+            patch=[{'path': '/state', 'op': 'replace', 'value': 'PENDING'}]
         )
 
         self.assertTrue(test.call_until_true(
@@ -139,7 +139,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         _, action_list = self.client.list_actions(
             action_plan_uuid=finished_ap["uuid"])
 
-        self.assertIn(updated_ap['state'], ('TRIGGERED', 'ONGOING'))
+        self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
         self.assertEqual(finished_ap['state'], 'SUCCEEDED')
 
         for action in action_list['actions']:

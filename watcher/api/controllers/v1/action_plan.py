@@ -406,12 +406,12 @@ class ActionPlansController(rest.RestController):
         # transitions that are allowed via PATCH
         allowed_patch_transitions = [
             (ap_objects.State.RECOMMENDED,
-             ap_objects.State.TRIGGERED),
+             ap_objects.State.PENDING),
             (ap_objects.State.RECOMMENDED,
              ap_objects.State.CANCELLED),
             (ap_objects.State.ONGOING,
              ap_objects.State.CANCELLED),
-            (ap_objects.State.TRIGGERED,
+            (ap_objects.State.PENDING,
              ap_objects.State.CANCELLED),
         ]
 
@@ -427,7 +427,7 @@ class ActionPlansController(rest.RestController):
                         initial_state=action_plan_to_update.state,
                         new_state=action_plan.state))
 
-            if action_plan.state == ap_objects.State.TRIGGERED:
+            if action_plan.state == ap_objects.State.PENDING:
                 launch_action_plan = True
 
         # Update only the fields that have changed
@@ -443,7 +443,7 @@ class ActionPlansController(rest.RestController):
                 action_plan_to_update[field] = patch_val
 
             if (field == 'state'
-                    and patch_val == objects.action_plan.State.TRIGGERED):
+                    and patch_val == objects.action_plan.State.PENDING):
                 launch_action_plan = True
 
         action_plan_to_update.save()
