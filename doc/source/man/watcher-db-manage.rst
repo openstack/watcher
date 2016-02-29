@@ -52,7 +52,7 @@ run the following::
 
   Show the program's version number and exit.
 
-.. option:: upgrade, downgrade, stamp, revision, version, create_schema
+.. option:: upgrade, downgrade, stamp, revision, version, create_schema, purge
 
   The :ref:`command <db-manage_cmds>` to run.
 
@@ -219,3 +219,42 @@ version
   Show help for version and exit.
 
 This command will output the current database version.
+
+purge
+-----
+
+.. program:: purge
+
+.. option:: -h, --help
+
+  Show help for purge and exit.
+
+.. option:: -d, --age-in-days
+
+  The number of days (starting from today) before which we consider soft
+  deleted objects as expired and should hence be erased. By default, all
+  objects soft deleted are considered expired. This can be useful as removing
+  a significant amount of objects may cause a performance issues.
+
+.. option:: -n, --max-number
+
+  The maximum number of database objects we expect to be deleted. If exceeded,
+  this will prevent any deletion.
+
+.. option:: -t, --audit-template
+
+  Either the UUID or name of the soft deleted audit template to purge. This
+  will also include any related objects with it.
+
+.. option:: -e, --exclude-orphans
+
+  This is a flag to indicate when we want to exclude orphan objects from
+  deletion.
+
+.. option:: --dry-run
+
+  This is a flag to indicate when we want to perform a dry run. This will show
+  the objects that would be deleted instead of actually deleting them.
+
+This command will purge the current database by removing both its soft deleted
+and orphan objects.
