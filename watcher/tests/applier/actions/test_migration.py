@@ -157,7 +157,10 @@ class TestMigration(base.TestCase):
     def test_execute_live_migration(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID
 
-        self.action.execute()
+        try:
+            self.action.execute()
+        except Exception as exc:
+            self.fail(exc)
 
         self.m_helper.live_migrate_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID,
@@ -173,3 +176,31 @@ class TestMigration(base.TestCase):
             instance_id=self.INSTANCE_UUID,
             dest_hostname="hypervisor1-hostname"
         )
+
+    def test_live_migrate_non_shared_storage_instance(self):
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+
+        self.m_helper.live_migrate_instance.side_effect = [
+            nova_helper.nvexceptions.ClientException(400, "BadRequest"), True]
+
+        try:
+            self.action.execute()
+        except Exception as exc:
+            self.fail(exc)
+
+        self.m_helper.live_migrate_instance.assert_has_calls([
+            mock.call(instance_id=self.INSTANCE_UUID,
+                      dest_hostname="hypervisor2-hostname"),
+            mock.call(instance_id=self.INSTANCE_UUID,
+                      dest_hostname="hypervisor2-hostname",
+                      block_migration=True)
+            ])
+
+        expected = [mock.call.first(instance_id=self.INSTANCE_UUID,
+                                    dest_hostname="hypervisor2-hostname"),
+                    mock.call.second(instance_id=self.INSTANCE_UUID,
+                                     dest_hostname="hypervisor2-hostname",
+                                     block_migration=True)
+                    ]
+        self.m_helper.live_migrate_instance.mock_calls == expected
+        self.assertEqual(2, self.m_helper.live_migrate_instance.call_count)

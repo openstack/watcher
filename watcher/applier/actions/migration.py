@@ -21,7 +21,7 @@ from oslo_log import log
 import six
 import voluptuous
 
-from watcher._i18n import _
+from watcher._i18n import _, _LC
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
@@ -76,6 +76,31 @@ class Migrate(base.BaseAction):
     def src_hypervisor(self):
         return self.input_parameters.get(self.SRC_HYPERVISOR)
 
+    def _live_migrate_instance(self, nova, destination):
+        result = None
+        try:
+            result = nova.live_migrate_instance(instance_id=self.instance_uuid,
+                                                dest_hostname=destination)
+        except nova_helper.nvexceptions.ClientException as e:
+            if e.code == 400:
+                LOG.debug("Live migration of instance %s failed. "
+                          "Trying to live migrate using block migration."
+                          % self.instance_uuid)
+                result = nova.live_migrate_instance(
+                    instance_id=self.instance_uuid,
+                    dest_hostname=destination,
+                    block_migration=True)
+            else:
+                LOG.debug("Nova client exception occured while live migrating "
+                          "instance %s.Exception: %s" %
+                          (self.instance_uuid, e))
+        except Exception:
+            LOG.critical(_LC("Unexpected error occured. Migration failed for"
+                             "instance %s. Leaving instance on previous "
+                             "host."), self.instance_uuid)
+
+        return result
+
     def migrate(self, destination):
         nova = nova_helper.NovaHelper(osc=self.osc)
         LOG.debug("Migrate instance %s to %s", self.instance_uuid,
@@ -83,8 +108,7 @@ class Migrate(base.BaseAction):
         instance = nova.find_instance(self.instance_uuid)
         if instance:
             if self.migration_type == 'live':
-                return nova.live_migrate_instance(
-                    instance_id=self.instance_uuid, dest_hostname=destination)
+                return self._live_migrate_instance(nova, destination)
             else:
                 raise exception.Invalid(
                     message=(_('Migration of type %(migration_type)s is not '
