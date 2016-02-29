@@ -283,3 +283,11 @@ class LoadingError(WatcherException):
 
 class ReservedWord(WatcherException):
     msg_fmt = _("The identifier '%(name)s' is a reserved word")
+
+
+class NotSoftDeletedStateError(WatcherException):
+    msg_fmt = _("The %(name)s resource %(id)s is not soft deleted")
+
+
+class NegativeLimitError(WatcherException):
+    msg_fmt = _("Limit should be positive")

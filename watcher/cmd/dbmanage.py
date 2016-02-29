@@ -25,7 +25,7 @@ from oslo_config import cfg
 
 from watcher.common import service
 from watcher.db import migration
-
+from watcher.db import purge
 
 CONF = cfg.CONF
 
@@ -55,6 +55,12 @@ class DBCommand(object):
     @staticmethod
     def create_schema():
         migration.create_schema()
+
+    @staticmethod
+    def purge():
+        purge.purge(CONF.command.age_in_days, CONF.command.max_number,
+                    CONF.command.audit_template, CONF.command.exclude_orphans,
+                    CONF.command.dry_run)
 
 
 def add_command_parsers(subparsers):
@@ -96,6 +102,33 @@ def add_command_parsers(subparsers):
         help="Create the database schema.")
     parser.set_defaults(func=DBCommand.create_schema)
 
+    parser = subparsers.add_parser(
+        'purge',
+        help="Purge the database.")
+    parser.add_argument('-d', '--age-in-days',
+                        help="Number of days since deletion (from today) "
+                             "to exclude from the purge. If None, everything "
+                             "will be purged.",
+                        type=int, default=None, nargs='?')
+    parser.add_argument('-n', '--max-number',
+                        help="Max number of objects expected to be deleted. "
+                             "Prevents the deletion if exceeded. No limit if "
+                             "set to None.",
+                        type=int, default=None, nargs='?')
+    parser.add_argument('-t', '--audit-template',
+                        help="UUID or name of the audit template to purge.",
+                        type=str, default=None, nargs='?')
+    parser.add_argument('-e', '--exclude-orphans', action='store_true',
+                        help="Flag to indicate whether or not you want to "
+                             "exclude orphans from deletion (default: False).",
+                        default=False)
+    parser.add_argument('--dry-run', action='store_true',
+                        help="Flag to indicate whether or not you want to "
+                             "perform a dry run (no deletion).",
+                        default=False)
+
+    parser.set_defaults(func=DBCommand.purge)
+
 
 command_opt = cfg.SubCommandOpt('command',
                                 title='Command',
@@ -114,6 +147,7 @@ def main():
     valid_commands = set([
         'upgrade', 'downgrade', 'revision',
         'version', 'stamp', 'create_schema',
+        'purge',
     ])
     if not set(sys.argv).intersection(valid_commands):
         sys.argv.append('upgrade')

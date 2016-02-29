@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.24.1.dev1\n"
+"Project-Id-Version: python-watcher 0.24.1.dev4\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-03-09 11:18+0100\n"
+"POT-Creation-Date: 2016-03-14 15:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -344,6 +344,15 @@ msgstr ""
 msgid "The identifier '%(name)s' is a reserved word"
 msgstr ""
 
+#: watcher/common/exception.py:289
+#, python-format
+msgid "The %(name)s resource %(id)s is not soft deleted"
+msgstr ""
+
+#: watcher/common/exception.py:293
+msgid "Limit should be positive"
+msgstr ""
+
 #: watcher/common/service.py:83
 #, python-format
 msgid "Created RPC server for service %(service)s on host %(host)s."
@@ -386,25 +395,102 @@ msgstr ""
 msgid "Messaging configuration error"
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:256
+#: watcher/db/purge.py:50
+msgid "Audit Templates"
+msgstr ""
+
+#: watcher/db/purge.py:51
+msgid "Audits"
+msgstr ""
+
+#: watcher/db/purge.py:52
+msgid "Action Plans"
+msgstr ""
+
+#: watcher/db/purge.py:53
+msgid "Actions"
+msgstr ""
+
+#: watcher/db/purge.py:100
+msgid "Total"
+msgstr ""
+
+#: watcher/db/purge.py:158
+msgid "Audit Template"
+msgstr ""
+
+#: watcher/db/purge.py:206
+#, python-format
+msgid ""
+"Orphans found:\n"
+"%s"
+msgstr ""
+
+#: watcher/db/purge.py:265
+#, python-format
+msgid "There are %(count)d objects set for deletion. Continue? [y/N]"
+msgstr ""
+
+#: watcher/db/purge.py:272
+#, python-format
+msgid ""
+"The number of objects (%(num)s) to delete from the database exceeds the "
+"maximum number of objects (%(max_number)s) specified."
+msgstr ""
+
+#: watcher/db/purge.py:277
+msgid "Do you want to delete objects up to the specified maximum number? [y/N]"
+msgstr ""
+
+#: watcher/db/purge.py:340
+msgid "Deleting..."
+msgstr ""
+
+#: watcher/db/purge.py:346
+msgid "Starting purge command"
+msgstr ""
+
+#: watcher/db/purge.py:356
+msgid " (orphans excluded)"
+msgstr ""
+
+#: watcher/db/purge.py:357
+msgid " (may include orphans)"
+msgstr ""
+
+#: watcher/db/purge.py:360 watcher/db/purge.py:361
+#, python-format
+msgid "Purge results summary%s:"
+msgstr ""
+
+#: watcher/db/purge.py:364
+#, python-format
+msgid "Here below is a table containing the objects that can be purged%s:"
+msgstr ""
+
+#: watcher/db/purge.py:369
+msgid "Purge process completed"
+msgstr ""
+
+#: watcher/db/sqlalchemy/api.py:362
 msgid ""
 "Multiple audit templates exist with the same name. Please use the audit "
 "template uuid instead"
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:278
+#: watcher/db/sqlalchemy/api.py:384
 msgid "Cannot overwrite UUID for an existing Audit Template."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:388
+#: watcher/db/sqlalchemy/api.py:495
 msgid "Cannot overwrite UUID for an existing Audit."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:480
+#: watcher/db/sqlalchemy/api.py:588
 msgid "Cannot overwrite UUID for an existing Action."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:590
+#: watcher/db/sqlalchemy/api.py:699
 msgid "Cannot overwrite UUID for an existing Action Plan."
 msgstr ""
 
