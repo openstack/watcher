@@ -43,8 +43,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
-        self.assertEqual(action_plan['audit_uuid'], audit['uuid'])
-        self.assertEqual(action_plan['state'], 'RECOMMENDED')
+        self.assertEqual(audit['uuid'], action_plan['audit_uuid'])
+        self.assertEqual('RECOMMENDED', action_plan['state'])
 
     @test.attr(type='smoke')
     def test_delete_action_plan(self):
@@ -98,7 +98,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
 
         self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
-        self.assertEqual(finished_ap['state'], 'SUCCEEDED')
+        self.assertEqual('SUCCEEDED', finished_ap['state'])
 
 
 class TestShowListActionPlan(base.BaseInfraOptimTest):
@@ -164,5 +164,5 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
 
         next_marker = body['action_plans'][-1]['uuid']
 
-        self.assertEqual(len(body['action_plans']), 3)
+        self.assertEqual(3, len(body['action_plans']))
         self.assertIn(next_marker, body['next'])

@@ -51,7 +51,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.servers.list.return_value = [server]
 
         result = nova_util.stop_instance(instance_id)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
 
     def test_set_host_offline(self, mock_glance, mock_cinder, mock_neutron,
                               mock_nova):
@@ -60,7 +60,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.hosts = mock.MagicMock()
         nova_util.nova.hosts.get.return_value = host
         result = nova_util.set_host_offline("rennes")
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance(self, mock_glance, mock_cinder,
@@ -85,7 +85,7 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid,
             self.destination_hypervisor)
 
-        self.assertEqual(is_success, False)
+        self.assertEqual(False, is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_watcher_non_live_migrate_instance_volume(

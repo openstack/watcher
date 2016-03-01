@@ -44,7 +44,7 @@ class TestCeilometerHelper(base.BaseTestCase):
                                user_ids=["user_ids"],
                                tenant_ids=["tenant_ids"],
                                resource_ids=["resource_ids"])
-        self.assertEqual(query, expected)
+        self.assertEqual(expected, query)
 
     def test_statistic_aggregation(self, mock_ceilometer):
         cm = ceilometer_helper.CeilometerHelper()
@@ -60,7 +60,7 @@ class TestCeilometerHelper(base.BaseTestCase):
             meter_name="cpu_util",
             period="7300"
         )
-        self.assertEqual(val, expected_result)
+        self.assertEqual(expected_result, val)
 
     def test_get_last_sample(self, mock_ceilometer):
         ceilometer = mock.MagicMock()
@@ -74,7 +74,7 @@ class TestCeilometerHelper(base.BaseTestCase):
             resource_id="id",
             meter_name="compute.node.percent"
         )
-        self.assertEqual(val, expected_result)
+        self.assertEqual(expected_result, val)
 
     def test_get_last_sample_none(self, mock_ceilometer):
         ceilometer = mock.MagicMock()
@@ -86,7 +86,7 @@ class TestCeilometerHelper(base.BaseTestCase):
             resource_id="id",
             meter_name="compute.node.percent"
         )
-        self.assertEqual(val, expected)
+        self.assertEqual(expected, val)
 
     def test_statistic_list(self, mock_ceilometer):
         ceilometer = mock.MagicMock()
@@ -95,4 +95,4 @@ class TestCeilometerHelper(base.BaseTestCase):
         mock_ceilometer.return_value = ceilometer
         cm = ceilometer_helper.CeilometerHelper()
         val = cm.statistic_list(meter_name="cpu_util")
-        self.assertEqual(val, expected_value)
+        self.assertEqual(expected_value, val)

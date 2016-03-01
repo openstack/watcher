@@ -47,5 +47,5 @@ class TestApplier(BaseTestCase):
     @patch.object(ApplierManager, "join")
     def test_run_applier_app(self, m_connect, m_join):
         applier.main()
-        self.assertEqual(m_connect.call_count, 1)
-        self.assertEqual(m_join.call_count, 1)
+        self.assertEqual(1, m_connect.call_count)
+        self.assertEqual(1, m_join.call_count)

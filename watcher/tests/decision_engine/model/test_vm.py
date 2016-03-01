@@ -25,6 +25,6 @@ class TestVm(base.BaseTestCase):
     def test_namedelement(self):
         vm = VM()
         vm.state = VMState.ACTIVE
-        self.assertEqual(vm.state, VMState.ACTIVE)
+        self.assertEqual(VMState.ACTIVE, vm.state)
         vm.human_id = "human_05"
-        self.assertEqual(vm.human_id, "human_05")
+        self.assertEqual("human_05", vm.human_id)

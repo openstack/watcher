@@ -25,9 +25,9 @@ class TestDiskInfo(base.BaseTestCase):
     def test_all(self):
         disk_information = DiskInfo()
         disk_information.set_size(1024)
-        self.assertEqual(disk_information.get_size(), 1024)
+        self.assertEqual(1024, disk_information.get_size())
 
         disk_information.set_scheduler = "scheduler_qcq"
 
         disk_information.set_device_name("nom_qcq")
-        self.assertEqual(disk_information.get_device_name(), "nom_qcq")
+        self.assertEqual("nom_qcq", disk_information.get_device_name())

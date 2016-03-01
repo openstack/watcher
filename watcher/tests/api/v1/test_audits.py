@@ -564,7 +564,7 @@ class TestDelete(api_base.FunctionalTest):
 
         return_deleted_at = timeutils.strtime(audit['deleted_at'])
         self.assertEqual(timeutils.strtime(test_time), return_deleted_at)
-        self.assertEqual(audit['state'], 'DELETED')
+        self.assertEqual('DELETED', audit['state'])
 
     def test_delete_audit_not_found(self):
         uuid = utils.generate_uuid()

@@ -24,9 +24,9 @@ class TestNamedElement(base.BaseTestCase):
     def test_namedelement(self):
         id = ComputeResource()
         id.uuid = "BLABLABLA"
-        self.assertEqual(id.uuid, "BLABLABLA")
+        self.assertEqual("BLABLABLA", id.uuid)
 
     def test_set_get_human_id(self):
         id = ComputeResource()
         id.human_id = "BLABLABLA"
-        self.assertEqual(id.human_id, "BLABLABLA")
+        self.assertEqual("BLABLABLA", id.human_id)

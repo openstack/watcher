@@ -35,5 +35,5 @@ class TestApplierManager(base.TestCase):
     def test_connect(self, m_messaging, m_thread):
         self.applier.connect()
         self.applier.join()
-        self.assertEqual(m_messaging.call_count, 2)
-        self.assertEqual(m_thread.call_count, 1)
+        self.assertEqual(2, m_messaging.call_count)
+        self.assertEqual(1, m_thread.call_count)

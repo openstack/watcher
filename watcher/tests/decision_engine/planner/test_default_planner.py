@@ -79,10 +79,10 @@ class TestActionScheduling(base.DbTestCase):
             )
 
         self.assertIsNotNone(action_plan.uuid)
-        self.assertEqual(m_create_action.call_count, 1)
+        self.assertEqual(1, m_create_action.call_count)
         filters = {'action_plan_id': action_plan.id}
         actions = objects.Action.dbapi.get_action_list(self.context, filters)
-        self.assertEqual(actions[0].action_type, "migrate")
+        self.assertEqual("migrate", actions[0].action_type)
 
     def test_schedule_two_actions(self):
         default_planner = pbase.DefaultPlanner()
@@ -108,12 +108,12 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, audit.id, solution
             )
         self.assertIsNotNone(action_plan.uuid)
-        self.assertEqual(m_create_action.call_count, 2)
+        self.assertEqual(2, m_create_action.call_count)
         # check order
         filters = {'action_plan_id': action_plan.id}
         actions = objects.Action.dbapi.get_action_list(self.context, filters)
-        self.assertEqual(actions[0].action_type, "nop")
-        self.assertEqual(actions[1].action_type, "migrate")
+        self.assertEqual("nop", actions[0].action_type)
+        self.assertEqual("migrate", actions[1].action_type)
 
 
 class TestDefaultPlanner(base.DbTestCase):

@@ -101,7 +101,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         _, audit = self.client.show_audit(body['uuid'])
 
         initial_audit_state = audit.pop('state')
-        self.assertEqual(initial_audit_state, 'PENDING')
+        self.assertEqual('PENDING', initial_audit_state)
 
         self.assert_expected(audit, body)
 
@@ -176,7 +176,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         _, body = self.client.list_audits(limit=3)
 
         next_marker = body['audits'][-1]['uuid']
-        self.assertEqual(len(body['audits']), 3)
+        self.assertEqual(3, len(body['audits']))
         self.assertIn(next_marker, body['next'])
 
     @test.attr(type='smoke')

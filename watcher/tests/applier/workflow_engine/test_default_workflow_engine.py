@@ -66,7 +66,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
     def test_execute(self):
         actions = mock.MagicMock()
         result = self.engine.execute(actions)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
 
     def create_action(self, action_type, parameters, next):
         action = {
@@ -85,7 +85,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
     def check_action_state(self, action, expected_state):
         to_check = objects.Action.get_by_uuid(self.context, action.uuid)
-        self.assertEqual(to_check.state, expected_state)
+        self.assertEqual(expected_state, to_check.state)
 
     def check_actions_state(self, actions, expected_state):
         for a in actions:
@@ -94,12 +94,12 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
     def test_execute_with_no_actions(self):
         actions = []
         result = self.engine.execute(actions)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
 
     def test_execute_with_one_action(self):
         actions = [self.create_action("nop", {'message': 'test'}, None)]
         result = self.engine.execute(actions)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
         self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_two_actions(self):
@@ -111,7 +111,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions.append(next)
 
         result = self.engine.execute(actions)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
         self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_three_actions(self):
@@ -128,7 +128,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions.append(next2)
 
         result = self.engine.execute(actions)
-        self.assertEqual(result, True)
+        self.assertEqual(True, result)
         self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
     def test_execute_with_exception(self):
@@ -145,7 +145,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions.append(next2)
 
         result = self.engine.execute(actions)
-        self.assertEqual(result, False)
+        self.assertEqual(False, result)
         self.check_action_state(first, objects.action.State.SUCCEEDED)
         self.check_action_state(next, objects.action.State.SUCCEEDED)
         self.check_action_state(next2, objects.action.State.FAILED)
@@ -162,5 +162,5 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             namespace=FakeAction.namespace())
         actions = [self.create_action("dontcare", {}, None)]
         result = self.engine.execute(actions)
-        self.assertEqual(result, False)
+        self.assertEqual(False, result)
         self.check_action_state(actions[0], objects.action.State.FAILED)

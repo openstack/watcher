@@ -334,7 +334,7 @@ class TestDelete(api_base.FunctionalTest):
         self.assertTrue(ap_response.json['error_message'])
 
         # Nor does the action
-        self.assertEqual(len(acts_response['actions']), 0)
+        self.assertEqual(0, len(acts_response['actions']))
         self.assertEqual(404, act_response.status_int)
         self.assertEqual('application/json', act_response.content_type)
         self.assertTrue(act_response.json['error_message'])

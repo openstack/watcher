@@ -44,7 +44,7 @@ class TestApiUtilsValidScenarios(base.TestCase):
         cfg.CONF.set_override("max_limit", self.max_limit, group="api",
                               enforce_type=True)
         actual_limit = v1_utils.validate_limit(self.limit)
-        self.assertEqual(actual_limit, self.expected)
+        self.assertEqual(self.expected, actual_limit)
 
 
 class TestApiUtilsInvalidScenarios(base.TestCase):
