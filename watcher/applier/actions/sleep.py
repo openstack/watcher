@@ -28,6 +28,16 @@ LOG = log.getLogger(__name__)
 
 
 class Sleep(base.BaseAction):
+    """Makes the executor of the action plan wait for a given duration
+
+    The action schema is::
+
+        schema = Schema({
+         'duration': float,
+        })
+
+    The `duration` is expressed in seconds.
+    """
 
     DURATION = 'duration'
 

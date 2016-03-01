@@ -16,6 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+"""
+*Good Thermal Strategy*:
+
+Towards to software defined infrastructure, the power and thermal
+intelligences is being adopted to optimize workload, which can help
+improve efficiency, reduce power, as well as to improve datacenter PUE
+and lower down operation cost in data center.
+Outlet (Exhaust Air) Temperature is one of the important thermal
+telemetries to measure thermal/workload status of server.
+"""
+
 from oslo_log import log
 
 from watcher._i18n import _LE
@@ -30,6 +42,34 @@ LOG = log.getLogger(__name__)
 
 
 class OutletTempControl(base.BaseStrategy):
+    """[PoC] Outlet temperature control using live migration
+
+    *Description*
+
+    It is a migration strategy based on the outlet temperature of compute
+    hosts. It generates solutions to move a workload whenever a server's
+    outlet temperature is higher than the specified threshold.
+
+    *Requirements*
+
+    * Hardware: All computer hosts should support IPMI and PTAS technology
+    * Software: Ceilometer component ceilometer-agent-ipmi running
+      in each compute host, and Ceilometer API can report such telemetry
+      ``hardware.ipmi.node.outlet_temperature`` successfully.
+    * You must have at least 2 physical compute hosts to run this strategy.
+
+    *Limitations*
+
+    - This is a proof of concept that is not meant to be used in production
+    - We cannot forecast how many servers should be migrated. This is the
+      reason why we only plan a single virtual machine migration at a time.
+      So it's better to use this algorithm with `CONTINUOUS` audits.
+    - It assume that live migrations are possible
+
+    *Spec URL*
+
+    https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/approved/outlet-temperature-based-strategy.rst
+    """  # noqa
 
     DEFAULT_NAME = "outlet_temp_control"
     DEFAULT_DESCRIPTION = "outlet temperature based migration strategy"
@@ -42,29 +82,7 @@ class OutletTempControl(base.BaseStrategy):
 
     def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
                  osc=None):
-        """[PoC]Outlet temperature control using live migration
-
-        It is a migration strategy based on the Outlet Temperature of physical
-        servers. It generates solutions to move a workload whenever a server’s
-        outlet temperature is higher than the specified threshold. As of now,
-        we cannot forecast how many instances should be migrated. This is the
-        reason why we simply plan a single virtual machine migration.
-        So it's better to use this algorithm with CONTINUOUS audits.
-
-        Requirements:
-        * Hardware: computer node should support IPMI and PTAS technology
-        * Software: Ceilometer component ceilometer-agent-ipmi running
-          in each compute node, and Ceilometer API can report such telemetry
-          "hardware.ipmi.node.outlet_temperature" successfully.
-        * You must have at least 2 physical compute nodes to run this strategy.
-
-        Good Strategy:
-        Towards to software defined infrastructure, the power and thermal
-        intelligences is being adopted to optimize workload, which can help
-        improve efficiency, reduce power, as well as to improve datacenter PUE
-        and lower down operation cost in data center.
-        Outlet(Exhaust Air) Temperature is one of the important thermal
-        telemetries to measure thermal/workload status of server.
+        """Outlet temperature control using live migration
 
         :param name: the name of the strategy
         :param description: a description of the strategy

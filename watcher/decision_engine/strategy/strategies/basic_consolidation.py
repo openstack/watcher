@@ -16,6 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+*Good server consolidation strategy*
+
+Consolidation of VMs is essential to achieve energy optimization in cloud
+environments such as OpenStack. As VMs are spinned up and/or moved over time,
+it becomes necessary to migrate VMs among servers to lower the costs. However,
+migration of VMs introduces runtime overheads and consumes extra energy, thus
+a good server consolidation strategy should carefully plan for migration in
+order to both minimize energy consumption and comply to the various SLAs.
+"""
 
 from oslo_log import log
 
@@ -32,6 +42,29 @@ LOG = log.getLogger(__name__)
 
 
 class BasicConsolidation(base.BaseStrategy):
+    """Basic offline consolidation using live migration
+
+    *Description*
+
+    This is server consolidation algorithm which not only minimizes the overall
+    number of used servers, but also minimizes the number of migrations.
+
+    *Requirements*
+
+    * You must have at least 2 physical compute nodes to run this strategy.
+
+    *Limitations*
+
+    - It has been developed only for tests.
+    - It assumes that the virtual machine and the compute node are on the same
+      private network.
+    - It assume that live migrations are possible
+
+    *Spec URL*
+
+    <None>
+    """
+
     DEFAULT_NAME = "basic"
     DEFAULT_DESCRIPTION = "Basic offline consolidation"
 
@@ -45,31 +78,11 @@ class BasicConsolidation(base.BaseStrategy):
                  osc=None):
         """Basic offline Consolidation using live migration
 
-    The basic consolidation algorithm has several limitations.
-    It has been developed only for tests.
-    eg: The BasicConsolidation assumes that the virtual mahine and
-    the compute node are on the same private network.
-
-    Good Strategy :
-    The workloads of the VMs are changing over the time
-    and often tend to migrate from one physical machine to another.
-    Hence, the traditional and offline heuristics such as bin packing
-    are not applicable for the placement VM in cloud computing.
-    So, the decision Engine optimizer provides placement strategy considering
-    not only the performance effects but also the workload characteristics of
-    VMs and others metrics like the power consumption and
-    the tenants constraints (SLAs).
-
-    The watcher optimizer uses an online VM placement technique
-    based on machine learning and meta-heuristics that must handle :
-    - multi-objectives
-    - Contradictory objectives
-    - Adapt to changes dynamically
-    - Fast convergence
-
-        :param name: the name of the strategy
-        :param description: a description of the strategy
-        :param osc: an OpenStackClients object
+        :param name: The name of the strategy (Default: "basic")
+        :param description: The description of the strategy
+                            (Default: "Basic offline consolidation")
+        :param osc: An :py:class:`~watcher.common.clients.OpenStackClients`
+                    instance
         """
         super(BasicConsolidation, self).__init__(name, description, osc)
 

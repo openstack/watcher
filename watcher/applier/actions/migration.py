@@ -31,6 +31,32 @@ LOG = log.getLogger(__name__)
 
 
 class Migrate(base.BaseAction):
+    """Live-Migrates a server to a destination nova-compute host
+
+    This action will allow you to migrate a server to another compute
+    destination host. As of now, only live migration can be performed using
+    this action.
+    .. If either host uses shared storage, you can use ``live``
+    .. as ``migration_type``. If both source and destination hosts provide
+    .. local disks, you can set the block_migration parameter to True (not
+    .. supported for yet).
+
+    The action schema is::
+
+        schema = Schema({
+         'resource_id': str,  # should be a UUID
+         'migration_type': str,  # choices -> "live" only
+         'dst_hypervisor': str,
+         'src_hypervisor': str,
+        })
+
+    The `resource_id` is the UUID of the server to migrate. Only live migration
+    is supported.
+    The `src_hypervisor` and `dst_hypervisor` parameters are respectively the
+    source and the destination compute hostname (list of available compute
+    hosts is returned by this command: ``nova service-list --binary
+    nova-compute``).
+    """
 
     # input parameters constants
     MIGRATION_TYPE = 'migration_type'
