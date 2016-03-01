@@ -131,3 +131,13 @@ In essence, this means that every compute node's root user's public RSA key
 must exist in every other compute node's stack user's authorized_keys file and
 every compute node's public ECDSA key needs to be in every other compute
 node's root user's known_hosts file.
+
+
+Environment final checkup
+-------------------------
+
+If you are willing to make sure everything is in order in your DevStack
+environment, you can run the Watcher Tempest tests which will validate its API
+but also that you can perform the typical Watcher workflows. To do so, have a
+look at the :ref:`Tempest tests <tempest_tests>` section which will explain to
+you how to run them.
