@@ -8,6 +8,19 @@
 RESTful Web API (v1)
 ====================
 
+Goals
+=====
+
+.. rest-controller:: watcher.api.controllers.v1.goal:GoalsController
+   :webprefix: /v1/goal
+
+.. autotype:: watcher.api.controllers.v1.goal.GoalCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.goal.Goal
+   :members:
+
+
 Audit Templates
 ===============
 
