@@ -34,6 +34,8 @@ The Watcher service includes the following components:
 - ``watcher-applier``: applies the action plan.
 - `python-watcherclient`_: A command-line interface (CLI) for interacting with
   the Watcher service.
+- `watcher-dashboard`_: An Horizon plugin for interacting with the Watcher
+  service.
 
 Additionally, the Bare Metal service has certain external dependencies, which
 are very similar to other OpenStack services:
@@ -52,6 +54,7 @@ additional functionality:
 .. _`ceilometer`: https://github.com/openstack/ceilometer
 .. _`nova`: https://github.com/openstack/nova
 .. _`python-watcherclient`: https://github.com/openstack/python-watcherclient
+.. _`watcher-dashboard`: https://github.com/openstack/watcher-dashboard
 .. _`watcher metering`: https://github.com/b-com/watcher-metering
 .. _`RabbitMQ`: https://www.rabbitmq.com/
 

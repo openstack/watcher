@@ -38,7 +38,11 @@ If you need help on a specific command, you can use:
 
   $ watcher help COMMAND
 
+If you want to deploy Watcher in Horizon, please refer to the `Watcher Horizon
+plugin installation guide`_.
+
 .. _`installation guide`: https://factory.b-com.com/www/watcher/doc/python-watcherclient
+.. _`Watcher Horizon plugin installation guide`: https://factory.b-com.com/www/watcher/doc/watcher-dashboard/deploy/installation.html
 
 Seeing what the Watcher CLI can do ?
 ------------------------------------
