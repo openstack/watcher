@@ -50,11 +50,13 @@ class BasePlanner(object):
     def schedule(self, context, audit_uuid, solution):
         """The  planner receives a solution to schedule
 
-        :param solution: the solution given by the strategy to
+        :param solution: A solution provided by a strategy for scheduling
+        :type solution: :py:class:`~.BaseSolution` subclass instance
         :param audit_uuid: the audit uuid
-        :return: ActionPlan ordered sequence of change requests
-            such that all security, dependency, and performance
-            requirements are met.
+        :type audit_uuid: str
+        :return: Action plan with an ordered sequence of actions such that all
+                 security, dependency, and performance requirements are met.
+        :rtype: :py:class:`watcher.objects.action_plan.ActionPlan` instance
         """
         # example: directed acyclic graph
         raise NotImplementedError()

@@ -71,6 +71,7 @@ Plugins
   :maxdepth: 1
 
   dev/strategy-plugin
+  dev/planner-plugin
   dev/plugins
 
 
