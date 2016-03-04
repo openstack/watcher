@@ -21,6 +21,7 @@ class ResourceType(Enum):
     cpu_cores = 'num_cores'
     memory = 'memory'
     disk = 'disk'
+    disk_capacity = 'disk_capacity'
 
 
 class Resource(object):

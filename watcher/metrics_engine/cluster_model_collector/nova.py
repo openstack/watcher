@@ -40,9 +40,11 @@ class NovaClusterModelCollector(api.BaseClusterModelCollector):
         mem = resource.Resource(resource.ResourceType.memory)
         num_cores = resource.Resource(resource.ResourceType.cpu_cores)
         disk = resource.Resource(resource.ResourceType.disk)
+        disk_capacity = resource.Resource(resource.ResourceType.disk_capacity)
         cluster.create_resource(mem)
         cluster.create_resource(num_cores)
         cluster.create_resource(disk)
+        cluster.create_resource(disk_capacity)
 
         flavor_cache = {}
         hypervisors = self.wrapper.get_hypervisors_list()
@@ -55,6 +57,7 @@ class NovaClusterModelCollector(api.BaseClusterModelCollector):
             # set capacity
             mem.set_capacity(hypervisor, h.memory_mb)
             disk.set_capacity(hypervisor, h.free_disk_gb)
+            disk_capacity.set_capacity(hypervisor, h.local_gb)
             num_cores.set_capacity(hypervisor, h.vcpus)
             hypervisor.state = h.state
             hypervisor.status = h.status
