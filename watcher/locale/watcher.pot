@@ -7,16 +7,16 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.23.3.dev2\n"
+"Project-Id-Version: python-watcher 0.24.1.dev1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-02-09 09:07+0100\n"
+"POT-Creation-Date: 2016-03-09 11:18+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.1.1\n"
+"Generated-By: Babel 2.2.0\n"
 
 #: watcher/api/controllers/v1/action_plan.py:102
 #, python-format
@@ -65,7 +65,12 @@ msgstr ""
 msgid "Invalid sort direction: %s. Acceptable values are 'asc' or 'desc'"
 msgstr ""
 
-#: watcher/api/controllers/v1/utils.py:57
+#: watcher/api/controllers/v1/utils.py:58
+#, python-format
+msgid "Invalid filter: %s"
+msgstr ""
+
+#: watcher/api/controllers/v1/utils.py:65
 #, python-format
 msgid "Adding a new attribute (%s) to the root of  the resource is not allowed"
 msgstr ""
@@ -84,30 +89,37 @@ msgstr ""
 msgid "Error parsing HTTP response: %s"
 msgstr ""
 
-#: watcher/applier/actions/change_nova_service_state.py:69
+#: watcher/applier/actions/change_nova_service_state.py:90
 msgid "The target state is not defined"
 msgstr ""
 
-#: watcher/applier/actions/migration.py:43
+#: watcher/applier/actions/migration.py:71
 msgid "The parameter resource_id is invalid."
 msgstr ""
 
-#: watcher/applier/actions/migration.py:86
+#: watcher/applier/actions/migration.py:124
+#, python-format
+msgid ""
+"Unexpected error occured. Migration failed forinstance %s. Leaving "
+"instance on previous host."
+msgstr ""
+
+#: watcher/applier/actions/migration.py:140
 #, python-format
 msgid "Migration of type %(migration_type)s is not supported."
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:128
+#: watcher/applier/workflow_engine/default.py:134
 #, python-format
 msgid "The WorkFlow Engine has failed to execute the action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:146
+#: watcher/applier/workflow_engine/default.py:152
 #, python-format
 msgid "Revert action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:152
+#: watcher/applier/workflow_engine/default.py:158
 msgid "Oops! We need disaster recover plan"
 msgstr ""
 
@@ -407,7 +419,7 @@ msgstr ""
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/planner/default.py:72
+#: watcher/decision_engine/planner/default.py:79
 msgid "The action plan is empty"
 msgstr ""
 
@@ -416,35 +428,35 @@ msgstr ""
 msgid "Incorrect mapping: could not find associated strategy for '%s'"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:269
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:316
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:288
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:335
 #, python-format
 msgid "No values returned by %(resource_id)s for %(metric_name)s"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:426
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:448
 msgid "Initializing Sercon Consolidation"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:470
+#: watcher/decision_engine/strategy/strategies/basic_consolidation.py:492
 msgid "The workloads of the compute nodes of the cluster is zero"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:127
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:147
 #, python-format
 msgid "%s: no outlet temp data"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:151
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:172
 #, python-format
 msgid "VM not active, skipped: %s"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:208
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:230
 msgid "No hosts under outlet temp threshold found"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:231
+#: watcher/decision_engine/strategy/strategies/outlet_temp_control.py:253
 msgid "No proper target host could be found"
 msgstr ""
 
