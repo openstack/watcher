@@ -44,6 +44,13 @@ class FakerMetricsCollector(object):
             result = self.get_average_outlet_temperature(resource_id)
         return result
 
+    def mock_get_statistics_wb(self, resource_id, meter_name, period,
+                               aggregate='avg'):
+        result = 0
+        if meter_name == "cpu_util":
+            result = self.get_average_usage_vm_cpu_wb(resource_id)
+        return result
+
     def get_average_outlet_temperature(self, uuid):
         """The average outlet temperature for host"""
         mock = {}
@@ -52,7 +59,6 @@ class FakerMetricsCollector(object):
         mock['Node_1'] = 100
         if uuid not in mock.keys():
             mock[uuid] = 100
-
         return mock[str(uuid)]
 
     def get_usage_node_ram(self, uuid):
@@ -107,6 +113,26 @@ class FakerMetricsCollector(object):
             # mock[uuid] = random.randint(1, 4)
             mock[uuid] = 8
 
+        return float(mock[str(uuid)])
+
+    def get_average_usage_vm_cpu_wb(self, uuid):
+        """The last VM CPU usage values to average
+
+            :param uuid:00
+            :return:
+            """
+        # query influxdb stream
+
+        # compute in stream
+
+        # Normalize
+        mock = {}
+        # node 0
+        mock['VM_1'] = 80
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 50
+        # node 1
+        mock['VM_3'] = 20
+        mock['VM_4'] = 10
         return float(mock[str(uuid)])
 
     def get_average_usage_vm_cpu(self, uuid):
