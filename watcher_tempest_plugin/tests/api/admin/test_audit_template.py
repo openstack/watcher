@@ -121,7 +121,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, body = self.client.list_audit_templates(limit=3)
 
         next_marker = body['audit_templates'][-1]['uuid']
-        self.assertEqual(len(body['audit_templates']), 3)
+        self.assertEqual(3, len(body['audit_templates']))
         self.assertIn(next_marker, body['next'])
 
     @test.attr(type='smoke')

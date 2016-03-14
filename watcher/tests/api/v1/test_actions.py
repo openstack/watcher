@@ -310,16 +310,15 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual(len(ap2_action_list), len(response['actions']))
 
         # We deleted them so that's normal
-        self.assertEqual(
-            [act for act in response['actions']
-             if act['action_plan_uuid'] == action_plan1.uuid],
-            [])
+        self.assertEqual([],
+                         [act for act in response['actions']
+                          if act['action_plan_uuid'] == action_plan1.uuid])
 
         # Here are the 2 actions left
         self.assertEqual(
+            set([act.as_dict()['uuid'] for act in ap2_action_list]),
             set([act['uuid'] for act in response['actions']
-                 if act['action_plan_uuid'] == action_plan2.uuid]),
-            set([act.as_dict()['uuid'] for act in ap2_action_list]))
+                 if act['action_plan_uuid'] == action_plan2.uuid]))
 
     def test_many_with_next_uuid(self):
         action_list = []
@@ -584,7 +583,7 @@ class TestDelete(api_base.FunctionalTest):
 
         return_deleted_at = timeutils.strtime(action['deleted_at'])
         self.assertEqual(timeutils.strtime(test_time), return_deleted_at)
-        self.assertEqual(action['state'], 'DELETED')
+        self.assertEqual('DELETED', action['state'])
 
     def test_delete_action_not_found(self):
         uuid = utils.generate_uuid()

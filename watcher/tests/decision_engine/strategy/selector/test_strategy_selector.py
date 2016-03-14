@@ -46,4 +46,4 @@ class TestStrategySelector(TestCase):
         self.assertRaises(WatcherException,
                           self.strategy_selector.define_from_goal,
                           "DUMMY")
-        self.assertEqual(mock_call.call_count, 0)
+        self.assertEqual(0, mock_call.call_count)

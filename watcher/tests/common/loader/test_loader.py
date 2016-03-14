@@ -42,7 +42,7 @@ class TestLoader(BaseTestCase):
         loader_manager = DefaultLoader(namespace='TESTING')
         loaded_driver = loader_manager.load(name='fake')
 
-        self.assertEqual(loaded_driver.get_name(), FakeLoadable.get_name())
+        self.assertEqual(FakeLoadable.get_name(), loaded_driver.get_name())
 
     @mock.patch("watcher.common.loader.default.DriverManager")
     def test_load_driver_bad_plugin(self, m_driver_manager):

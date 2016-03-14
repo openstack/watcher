@@ -70,8 +70,8 @@ class TestMessagingHandler(base.TestCase):
             serializer=None,
         )
 
-        self.assertEqual(handler.endpoints, [self.ENDPOINT])
+        self.assertEqual([self.ENDPOINT], handler.endpoints)
 
         handler.remove_endpoint(self.ENDPOINT)
 
-        self.assertEqual(handler.endpoints, [])
+        self.assertEqual([], handler.endpoints)

@@ -51,7 +51,7 @@ class TestOutletTempControl(base.BaseTestCase):
                                                                  cap_mem,
                                                                  cap_disk)
 
-        self.assertEqual((cores_used, mem_used, disk_used), (10, 2, 20))
+        self.assertEqual((10, 2, 20), (cores_used, mem_used, disk_used))
 
     def test_group_hosts_by_outlet_temp(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
@@ -59,8 +59,8 @@ class TestOutletTempControl(base.BaseTestCase):
         strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
-        self.assertEqual(h1[0]['hv'].uuid, 'Node_1')
-        self.assertEqual(h2[0]['hv'].uuid, 'Node_0')
+        self.assertEqual('Node_1', h1[0]['hv'].uuid)
+        self.assertEqual('Node_0', h2[0]['hv'].uuid)
 
     def test_choose_vm_to_migrate(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
@@ -69,9 +69,9 @@ class TestOutletTempControl(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
         vm_to_mig = strategy.choose_vm_to_migrate(model, h1)
-        self.assertEqual(vm_to_mig[0].uuid, 'Node_1')
-        self.assertEqual(vm_to_mig[1].uuid,
-                         "a4cab39b-9828-413a-bf88-f76921bf1517")
+        self.assertEqual('Node_1', vm_to_mig[0].uuid)
+        self.assertEqual('a4cab39b-9828-413a-bf88-f76921bf1517',
+                         vm_to_mig[1].uuid)
 
     def test_filter_dest_servers(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
@@ -81,8 +81,8 @@ class TestOutletTempControl(base.BaseTestCase):
         h1, h2 = strategy.group_hosts_by_outlet_temp(model)
         vm_to_mig = strategy.choose_vm_to_migrate(model, h1)
         dest_hosts = strategy.filter_dest_servers(model, h2, vm_to_mig[1])
-        self.assertEqual(len(dest_hosts), 1)
-        self.assertEqual(dest_hosts[0]['hv'].uuid, 'Node_0')
+        self.assertEqual(1, len(dest_hosts))
+        self.assertEqual('Node_0', dest_hosts[0]['hv'].uuid)
 
     def test_exception_model(self):
         strategy = strategies.OutletTempControl()
@@ -111,7 +111,7 @@ class TestOutletTempControl(base.BaseTestCase):
             generate_scenario_4_with_1_hypervisor_no_vm()
 
         solution = strategy.execute(model)
-        self.assertEqual(solution.actions, [])
+        self.assertEqual([], solution.actions)
 
     def test_execute(self):
         strategy = strategies.OutletTempControl()
@@ -123,7 +123,7 @@ class TestOutletTempControl(base.BaseTestCase):
             [action.get('action_type') for action in solution.actions])
 
         num_migrations = actions_counter.get("migrate", 0)
-        self.assertEqual(num_migrations, 1)
+        self.assertEqual(1, num_migrations)
 
     def test_check_parameters(self):
         outlet = strategies.OutletTempControl()

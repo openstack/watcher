@@ -48,7 +48,7 @@ class TestDBManageRunApp(TestCase):
         m_sys.argv = list(filter(None, ["watcher-db-manage", self.command]))
 
         dbmanage.main()
-        self.assertEqual(m_func.call_count, 1)
+        self.assertEqual(1, m_func.call_count)
         m_prepare_service.assert_called_once_with(
             ["watcher-db-manage", self.expected])
 
@@ -97,4 +97,4 @@ class TestDBManageRunCommand(TestCase):
     def test_run_db_version(self, m_version):
         dbmanage.DBCommand.version()
 
-        self.assertEqual(m_version.call_count, 1)
+        self.assertEqual(1, m_version.call_count)

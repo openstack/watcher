@@ -54,7 +54,7 @@ class TestApi(BaseTestCase):
     def test_run_api_app(self, m_make, m_make_app):
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)
         api.main()
-        self.assertEqual(m_make.call_count, 1)
+        self.assertEqual(1, m_make.call_count)
 
     @patch("watcher.api.app.pecan.make_app")
     @patch.object(BaseServer, "serve_forever", Mock())
@@ -63,4 +63,4 @@ class TestApi(BaseTestCase):
         cfg.CONF.set_default("host", "localhost", group="api")
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)
         api.main()
-        self.assertEqual(m_make.call_count, 1)
+        self.assertEqual(1, m_make.call_count)

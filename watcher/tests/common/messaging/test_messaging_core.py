@@ -32,13 +32,13 @@ class TestMessagingCore(base.TestCase):
     def test_connect(self, m_handler):
         messaging = messaging_core.MessagingCore("", "", "")
         messaging.connect()
-        self.assertEqual(m_handler.call_count, 2)
+        self.assertEqual(2, m_handler.call_count)
 
     @mock.patch.object(messaging_handler, "MessagingHandler")
     def test_disconnect(self, m_handler):
         messaging = messaging_core.MessagingCore("", "", "")
         messaging.disconnect()
-        self.assertEqual(m_handler.call_count, 2)
+        self.assertEqual(2, m_handler.call_count)
 
     def test_build_topic_handler(self):
         topic_name = "MyTopic"
@@ -102,9 +102,9 @@ class TestMessagingCore(base.TestCase):
         topic = messaging.build_topic_handler("test_topic")
 
         self.assertIsInstance(topic, messaging_handler.MessagingHandler)
-        self.assertEqual(messaging.publisher_id, "pub_id")
-        self.assertEqual(topic.publisher_id, "pub_id")
+        self.assertEqual("pub_id", messaging.publisher_id)
+        self.assertEqual("pub_id", topic.publisher_id)
 
-        self.assertEqual(
-            messaging.conductor_topic_handler.topic_name, "test_topic")
-        self.assertEqual(topic.topic_name, "test_topic")
+        self.assertEqual("test_topic",
+                         messaging.conductor_topic_handler.topic_name)
+        self.assertEqual("test_topic", topic.topic_name)

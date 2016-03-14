@@ -57,7 +57,7 @@ class TestActionPlanObject(base.DbTestCase):
                                autospec=True) as mock_get_list:
             mock_get_list.return_value = [self.fake_action_plan]
             action_plans = objects.ActionPlan.list(self.context)
-            self.assertEqual(mock_get_list.call_count, 1)
+            self.assertEqual(1, mock_get_list.call_count)
             self.assertThat(action_plans, HasLength(1))
             self.assertIsInstance(action_plans[0], objects.ActionPlan)
             self.assertEqual(self.context, action_plans[0]._context)

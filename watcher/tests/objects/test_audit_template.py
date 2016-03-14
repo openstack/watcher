@@ -70,7 +70,7 @@ class TestAuditTemplateObject(base.DbTestCase):
                                autospec=True) as mock_get_list:
             mock_get_list.return_value = [self.fake_audit_template]
             audit_templates = objects.AuditTemplate.list(self.context)
-            self.assertEqual(mock_get_list.call_count, 1)
+            self.assertEqual(1, mock_get_list.call_count)
             self.assertThat(audit_templates, HasLength(1))
             self.assertIsInstance(audit_templates[0], objects.AuditTemplate)
             self.assertEqual(self.context, audit_templates[0]._context)

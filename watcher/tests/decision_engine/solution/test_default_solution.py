@@ -28,14 +28,14 @@ class TestDefaultSolution(base.BaseTestCase):
         solution.add_action(action_type="nop",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
                             input_parameters=parameters)
-        self.assertEqual(len(solution.actions), 1)
+        self.assertEqual(1, len(solution.actions))
         expected_action_type = "nop"
         expected_parameters = {
             "src_uuid_hypervisor": "server1",
             "dst_uuid_hypervisor": "server2",
             "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
         }
-        self.assertEqual(solution.actions[0].get('action_type'),
-                         expected_action_type)
-        self.assertEqual(solution.actions[0].get('input_parameters'),
-                         expected_parameters)
+        self.assertEqual(expected_action_type,
+                         solution.actions[0].get('action_type'))
+        self.assertEqual(expected_parameters,
+                         solution.actions[0].get('input_parameters'))

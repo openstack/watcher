@@ -40,35 +40,35 @@ class TestMapping(base.BaseTestCase):
         if vm.uuid != self.VM1_UUID:
             vm = vms[keys[1]]
         node = model.mapping.get_node_from_vm(vm)
-        self.assertEqual(node.uuid, 'Node_0')
+        self.assertEqual('Node_0', node.uuid)
 
     def test_get_node_from_vm_id(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         hyps = model.mapping.get_node_vms_from_id("BLABLABLA")
-        self.assertEqual(hyps.__len__(), 0)
+        self.assertEqual(0, hyps.__len__())
 
     def test_get_all_vms(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
 
         vms = model.get_all_vms()
-        self.assertEqual(vms.__len__(), 2)
-        self.assertEqual(vms[self.VM1_UUID].state,
-                         vm_state.VMState.ACTIVE.value)
-        self.assertEqual(vms[self.VM1_UUID].uuid, self.VM1_UUID)
-        self.assertEqual(vms[self.VM2_UUID].state,
-                         vm_state.VMState.ACTIVE.value)
-        self.assertEqual(vms[self.VM2_UUID].uuid, self.VM2_UUID)
+        self.assertEqual(2, vms.__len__())
+        self.assertEqual(vm_state.VMState.ACTIVE.value,
+                         vms[self.VM1_UUID].state)
+        self.assertEqual(self.VM1_UUID, vms[self.VM1_UUID].uuid)
+        self.assertEqual(vm_state.VMState.ACTIVE.value,
+                         vms[self.VM2_UUID].state)
+        self.assertEqual(self.VM2_UUID, vms[self.VM2_UUID].uuid)
 
     def test_get_mapping(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         mapping_vm = model.mapping.get_mapping_vm()
-        self.assertEqual(mapping_vm.__len__(), 2)
-        self.assertEqual(mapping_vm[self.VM1_UUID], 'Node_0')
-        self.assertEqual(mapping_vm[self.VM2_UUID], 'Node_1')
+        self.assertEqual(2, mapping_vm.__len__())
+        self.assertEqual('Node_0', mapping_vm[self.VM1_UUID])
+        self.assertEqual('Node_1', mapping_vm[self.VM2_UUID])
 
     def test_migrate_vm(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
@@ -80,10 +80,10 @@ class TestMapping(base.BaseTestCase):
         vm1 = vms[keys[1]]
         hyp1 = model.mapping.get_node_from_vm_id(vm1.uuid)
 
-        self.assertEqual(model.mapping.migrate_vm(vm1, hyp1, hyp1), False)
-        self.assertEqual(model.mapping.migrate_vm(vm1, hyp0, hyp0), False)
-        self.assertEqual(model.mapping.migrate_vm(vm1, hyp1, hyp0), True)
-        self.assertEqual(model.mapping.migrate_vm(vm1, hyp0, hyp1), True)
+        self.assertEqual(False, model.mapping.migrate_vm(vm1, hyp1, hyp1))
+        self.assertEqual(False, model.mapping.migrate_vm(vm1, hyp0, hyp0))
+        self.assertEqual(True, model.mapping.migrate_vm(vm1, hyp1, hyp0))
+        self.assertEqual(True, model.mapping.migrate_vm(vm1, hyp0, hyp1))
 
     def test_unmap_from_id_log_warning(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
@@ -108,5 +108,5 @@ class TestMapping(base.BaseTestCase):
         hyp0 = model.mapping.get_node_from_vm_id(vm0.uuid)
 
         model.mapping.unmap_from_id(hyp0.uuid, vm0.uuid)
-        self.assertEqual(len(model.mapping.get_node_vms_from_id(
-            hyp0.uuid)), 0)
+        self.assertEqual(0, len(model.mapping.get_node_vms_from_id(
+            hyp0.uuid)))

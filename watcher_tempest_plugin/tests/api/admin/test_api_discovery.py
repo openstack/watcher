@@ -35,7 +35,7 @@ class TestApiDiscovery(base.BaseInfraOptimTest):
     def test_default_version(self):
         _, descr = self.client.get_api_description()
         default_version = descr['default_version']
-        self.assertEqual(default_version['id'], 'v1')
+        self.assertEqual('v1', default_version['id'])
 
     @test.attr(type='smoke')
     def test_version_1_resources(self):

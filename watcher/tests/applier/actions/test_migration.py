@@ -152,7 +152,7 @@ class TestMigration(base.TestCase):
         exc = self.assertRaises(
             exception.InstanceNotFound, self.action.execute)
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
-        self.assertEqual(exc.kwargs["name"], self.INSTANCE_UUID)
+        self.assertEqual(self.INSTANCE_UUID, exc.kwargs["name"])
 
     def test_execute_live_migration(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID

@@ -39,8 +39,8 @@ class TestShowListGoal(base.BaseInfraOptimTest):
     def test_show_goal(self):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
 
-        self.assertEqual(goal['name'], self.DUMMY_GOAL)
-        self.assertEqual(goal['strategy'], "dummy")
+        self.assertEqual(self.DUMMY_GOAL, goal['name'])
+        self.assertEqual("dummy", goal['strategy'])
 
     @test.attr(type='smoke')
     def test_show_goal_with_links(self):

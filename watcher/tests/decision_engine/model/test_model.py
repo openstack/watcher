@@ -33,9 +33,9 @@ class TestModel(base.BaseTestCase):
         fake_cluster = FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
 
-        self.assertEqual(len(model._hypervisors), 5)
-        self.assertEqual(len(model._vms), 35)
-        self.assertEqual(len(model.get_mapping().get_mapping()), 5)
+        self.assertEqual(5, len(model._hypervisors))
+        self.assertEqual(35, len(model._vms))
+        self.assertEqual(5, len(model.get_mapping().get_mapping()))
 
     def test_add_hypervisor(self):
         model = ModelRoot()
@@ -43,7 +43,7 @@ class TestModel(base.BaseTestCase):
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
-        self.assertEqual(model.get_hypervisor_from_id(id), hypervisor)
+        self.assertEqual(hypervisor, model.get_hypervisor_from_id(id))
 
     def test_delete_hypervisor(self):
         model = ModelRoot()
@@ -51,7 +51,7 @@ class TestModel(base.BaseTestCase):
         hypervisor = Hypervisor()
         hypervisor.uuid = id
         model.add_hypervisor(hypervisor)
-        self.assertEqual(model.get_hypervisor_from_id(id), hypervisor)
+        self.assertEqual(hypervisor, model.get_hypervisor_from_id(id))
         model.remove_hypervisor(hypervisor)
         self.assertRaises(exception.HypervisorNotFound,
                           model.get_hypervisor_from_id, id)

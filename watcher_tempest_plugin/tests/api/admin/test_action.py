@@ -47,9 +47,10 @@ class TestShowListAction(base.BaseInfraOptimTest):
         _, action = self.client.show_action(
             self.action_plan["first_action_uuid"])
 
-        self.assertEqual(action['uuid'], self.action_plan["first_action_uuid"])
-        self.assertEqual(action['action_type'], "nop")
-        self.assertEqual(action['state'], "PENDING")
+        self.assertEqual(self.action_plan["first_action_uuid"],
+                         action['uuid'])
+        self.assertEqual("nop", action['action_type'])
+        self.assertEqual("PENDING", action['state'])
 
     @test.attr(type='smoke')
     def test_show_action_with_links(self):
@@ -81,9 +82,9 @@ class TestShowListAction(base.BaseInfraOptimTest):
             act['action_type'] for act in body['actions'])
 
         # A dummy strategy generates 2 "nop" actions and 1 "sleep" action
-        self.assertEqual(len(body['actions']), 3)
-        self.assertEqual(action_counter.get("nop"), 2)
-        self.assertEqual(action_counter.get("sleep"), 1)
+        self.assertEqual(3, len(body['actions']))
+        self.assertEqual(2, action_counter.get("nop"))
+        self.assertEqual(1, action_counter.get("sleep"))
 
     @test.attr(type="smoke")
     def test_list_actions_by_audit(self):
@@ -97,6 +98,6 @@ class TestShowListAction(base.BaseInfraOptimTest):
             act['action_type'] for act in body['actions'])
 
         # A dummy strategy generates 2 "nop" actions and 1 "sleep" action
-        self.assertEqual(len(body['actions']), 3)
-        self.assertEqual(action_counter.get("nop"), 2)
-        self.assertEqual(action_counter.get("sleep"), 1)
+        self.assertEqual(3, len(body['actions']))
+        self.assertEqual(2, action_counter.get("nop"))
+        self.assertEqual(1, action_counter.get("sleep"))

@@ -41,7 +41,7 @@ class TestBasicConsolidation(base.BaseTestCase):
         size_cluster = len(
             self.fake_cluster.generate_scenario_1().get_all_hypervisors())
         size_cluster_assert = 5
-        self.assertEqual(size_cluster, size_cluster_assert)
+        self.assertEqual(size_cluster_assert, size_cluster)
 
     def test_basic_consolidation_score_hypervisor(self):
         cluster = self.fake_cluster.generate_scenario_1()
@@ -50,20 +50,17 @@ class TestBasicConsolidation(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
         node_1_score = 0.023333333333333317
-        self.assertEqual(
-            sercon.calculate_score_node(
-                cluster.get_hypervisor_from_id("Node_1"),
-                cluster), node_1_score)
+        self.assertEqual(node_1_score, sercon.calculate_score_node(
+            cluster.get_hypervisor_from_id("Node_1"),
+            cluster))
         node_2_score = 0.26666666666666666
-        self.assertEqual(
-            sercon.calculate_score_node(
-                cluster.get_hypervisor_from_id("Node_2"),
-                cluster), node_2_score)
+        self.assertEqual(node_2_score, sercon.calculate_score_node(
+            cluster.get_hypervisor_from_id("Node_2"),
+            cluster))
         node_0_score = 0.023333333333333317
-        self.assertEqual(
-            sercon.calculate_score_node(
-                cluster.get_hypervisor_from_id("Node_0"),
-                cluster), node_0_score)
+        self.assertEqual(node_0_score, sercon.calculate_score_node(
+            cluster.get_hypervisor_from_id("Node_0"),
+            cluster))
 
     def test_basic_consolidation_score_vm(self):
         cluster = self.fake_cluster.generate_scenario_1()
@@ -72,21 +69,20 @@ class TestBasicConsolidation(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
         vm_0_score = 0.023333333333333317
-        self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
+        self.assertEqual(vm_0_score, sercon.calculate_score_vm(vm_0, cluster))
 
         vm_1 = cluster.get_vm_from_id("VM_1")
         vm_1_score = 0.023333333333333317
-        self.assertEqual(sercon.calculate_score_vm(vm_1, cluster),
-                         vm_1_score)
+        self.assertEqual(vm_1_score, sercon.calculate_score_vm(vm_1, cluster))
         vm_2 = cluster.get_vm_from_id("VM_2")
         vm_2_score = 0.033333333333333326
-        self.assertEqual(sercon.calculate_score_vm(vm_2, cluster), vm_2_score)
+        self.assertEqual(vm_2_score, sercon.calculate_score_vm(vm_2, cluster))
         vm_6 = cluster.get_vm_from_id("VM_6")
         vm_6_score = 0.02666666666666669
-        self.assertEqual(sercon.calculate_score_vm(vm_6, cluster), vm_6_score)
+        self.assertEqual(vm_6_score, sercon.calculate_score_vm(vm_6, cluster))
         vm_7 = cluster.get_vm_from_id("VM_7")
         vm_7_score = 0.013333333333333345
-        self.assertEqual(sercon.calculate_score_vm(vm_7, cluster), vm_7_score)
+        self.assertEqual(vm_7_score, sercon.calculate_score_vm(vm_7, cluster))
 
     def test_basic_consolidation_score_vm_disk(self):
         cluster = self.fake_cluster.generate_scenario_5_with_vm_disk_0()
@@ -95,7 +91,7 @@ class TestBasicConsolidation(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         vm_0 = cluster.get_vm_from_id("VM_0")
         vm_0_score = 0.023333333333333355
-        self.assertEqual(sercon.calculate_score_vm(vm_0, cluster), vm_0_score)
+        self.assertEqual(vm_0_score, sercon.calculate_score_vm(vm_0, cluster))
 
     def test_basic_consolidation_weight(self):
         cluster = self.fake_cluster.generate_scenario_1()
@@ -109,9 +105,9 @@ class TestBasicConsolidation(base.BaseTestCase):
         # mem 8 Go
         mem = 8
         vm_0_weight_assert = 3.1999999999999997
-        self.assertEqual(sercon.calculate_weight(cluster, vm_0, cores, disk,
-                                                 mem),
-                         vm_0_weight_assert)
+        self.assertEqual(vm_0_weight_assert,
+                         sercon.calculate_weight(cluster, vm_0, cores, disk,
+                                                 mem))
 
     def test_calculate_migration_efficacy(self):
         sercon = strategies.BasicConsolidation()
@@ -162,7 +158,7 @@ class TestBasicConsolidation(base.BaseTestCase):
 
         threshold_cores = sercon.get_threshold_cores()
         sercon.set_threshold_cores(threshold_cores + 1)
-        self.assertEqual(sercon.get_threshold_cores(), threshold_cores + 1)
+        self.assertEqual(threshold_cores + 1, sercon.get_threshold_cores())
 
     def test_number_of(self):
         sercon = strategies.BasicConsolidation()
@@ -186,8 +182,8 @@ class TestBasicConsolidation(base.BaseTestCase):
         num_migrations = actions_counter.get("migrate", 0)
         num_hypervisor_state_change = actions_counter.get(
             "change_hypervisor_state", 0)
-        self.assertEqual(num_migrations, expected_num_migrations)
-        self.assertEqual(num_hypervisor_state_change, expected_power_state)
+        self.assertEqual(expected_num_migrations, num_migrations)
+        self.assertEqual(expected_power_state, num_hypervisor_state_change)
 
     # calculate_weight
     def test_execute_no_workload(self):
@@ -204,7 +200,7 @@ class TestBasicConsolidation(base.BaseTestCase):
                 as mock_score_call:
             mock_score_call.return_value = 0
             solution = sercon.execute(model)
-            self.assertEqual(solution.efficacy, 100)
+            self.assertEqual(100, solution.efficacy)
 
     def test_check_parameters(self):
         sercon = strategies.BasicConsolidation()

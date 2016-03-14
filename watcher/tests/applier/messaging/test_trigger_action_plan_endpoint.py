@@ -38,4 +38,4 @@ class TestTriggerActionPlan(base.TestCase):
         action_plan_uuid = utils.generate_uuid()
         expected_uuid = self.endpoint.launch_action_plan(self.context,
                                                          action_plan_uuid)
-        self.assertEqual(action_plan_uuid, expected_uuid)
+        self.assertEqual(expected_uuid, action_plan_uuid)
