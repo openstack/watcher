@@ -50,6 +50,7 @@ provided as a list of key-value pairs.
 
 import datetime
 
+from oslo_config import cfg
 import pecan
 from pecan import rest
 import wsme
@@ -67,10 +68,24 @@ from watcher import objects
 
 
 class AuditTemplatePatchType(types.JsonPatchType):
-
     @staticmethod
     def mandatory_attrs():
         return []
+
+    @staticmethod
+    def validate(patch):
+        if patch.path == "/goal":
+            AuditTemplatePatchType._validate_goal(patch)
+        return types.JsonPatchType.validate(patch)
+
+    @staticmethod
+    def _validate_goal(patch):
+        serialized_patch = {'path': patch.path, 'op': patch.op}
+        if patch.value is not wsme.Unset:
+            serialized_patch['value'] = patch.value
+        new_goal = patch.value
+        if new_goal and new_goal not in cfg.CONF.watcher_goals.goals.keys():
+            raise exception.InvalidGoal(goal=new_goal)
 
 
 class AuditTemplate(base.APIBase):
@@ -155,6 +170,12 @@ class AuditTemplate(base.APIBase):
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow())
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
+
+    @staticmethod
+    def validate(audit_template):
+        if audit_template.goal not in cfg.CONF.watcher_goals.goals.keys():
+            raise exception.InvalidGoal(audit_template.goal)
+        return audit_template
 
 
 class AuditTemplateCollection(collection.Collection):
@@ -287,12 +308,14 @@ class AuditTemplatesController(rest.RestController):
 
         return AuditTemplate.convert_with_links(rpc_audit_template)
 
+    @wsme.validate(types.uuid, AuditTemplate)
     @wsme_pecan.wsexpose(AuditTemplate, body=AuditTemplate, status_code=201)
     def post(self, audit_template):
         """Create a new audit template.
 
         :param audit template: a audit template within the request body.
         """
+
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
 

@@ -47,7 +47,6 @@ contain a list of extra parameters related to the
 provided as a list of key-value pairs.
 """
 
-from oslo_config import cfg
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as dbapi
@@ -204,9 +203,6 @@ class AuditTemplate(base.WatcherObject):
         """
 
         values = self.obj_get_changes()
-        goal = values['goal']
-        if goal not in cfg.CONF.watcher_goals.goals.keys():
-            raise exception.InvalidGoal(goal=goal)
         db_audit_template = self.dbapi.create_audit_template(values)
         self._from_db_object(self, db_audit_template)
 
