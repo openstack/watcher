@@ -31,6 +31,7 @@ class Strategy(base.WatcherObject):
         'name': obj_utils.str_or_none,
         'display_name': obj_utils.str_or_none,
         'goal_id': obj_utils.int_or_none,
+        'parameters_spec': obj_utils.dict_or_none,
     }
 
     @staticmethod

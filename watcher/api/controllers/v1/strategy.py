@@ -112,6 +112,9 @@ class Strategy(base.APIBase):
                                 mandatory=False)
     """The name of the goal this audit refers to"""
 
+    parameters_spec = {wtypes.text: types.jsontype}
+    """ Parameters spec dict"""
+
     def __init__(self, **kwargs):
         super(Strategy, self).__init__()
 
@@ -121,11 +124,14 @@ class Strategy(base.APIBase):
         self.fields.append('display_name')
         self.fields.append('goal_uuid')
         self.fields.append('goal_name')
+        self.fields.append('parameters_spec')
         setattr(self, 'uuid', kwargs.get('uuid', wtypes.Unset))
         setattr(self, 'name', kwargs.get('name', wtypes.Unset))
         setattr(self, 'display_name', kwargs.get('display_name', wtypes.Unset))
         setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
         setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
+        setattr(self, 'parameters_spec', kwargs.get('parameters_spec',
+                wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(strategy, url, expand=True):

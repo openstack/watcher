@@ -16,6 +16,7 @@
 from oslo_log import log
 
 from watcher.common import clients
+from watcher.common import utils
 from watcher.decision_engine.strategy.context import base
 from watcher.decision_engine.strategy.selection import default
 
@@ -57,5 +58,15 @@ class DefaultStrategyContext(base.BaseStrategyContext):
             osc=osc)
 
         selected_strategy = strategy_selector.select()
+
+        schema = selected_strategy.get_schema()
+        if not audit.parameters and schema:
+            # Default value feedback if no predefined strategy
+            utils.DefaultValidatingDraft4Validator(schema).validate(
+                audit.parameters)
+
+        selected_strategy.input_parameters.update({
+            name: value for name, value in audit.parameters.items()
+        })
 
         return selected_strategy.execute()

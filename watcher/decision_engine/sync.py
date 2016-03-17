@@ -28,7 +28,8 @@ LOG = log.getLogger(__name__)
 GoalMapping = collections.namedtuple(
     'GoalMapping', ['name', 'display_name', 'efficacy_specification'])
 StrategyMapping = collections.namedtuple(
-    'StrategyMapping', ['name', 'goal_name', 'display_name'])
+    'StrategyMapping',
+    ['name', 'goal_name', 'display_name', 'parameters_spec'])
 
 IndicatorSpec = collections.namedtuple(
     'IndicatorSpec', ['name', 'description', 'unit', 'schema'])
@@ -90,7 +91,8 @@ class Syncer(object):
             self._available_strategies_map = {
                 StrategyMapping(
                     name=s.name, goal_name=goals_map[s.goal_id],
-                    display_name=s.display_name): s
+                    display_name=s.display_name,
+                    parameters_spec=str(s.parameters_spec)): s
                 for s in self.available_strategies
             }
         return self._available_strategies_map
@@ -148,6 +150,7 @@ class Syncer(object):
         strategy_name = strategy_map.name
         strategy_display_name = strategy_map.display_name
         goal_name = strategy_map.goal_name
+        parameters_spec = strategy_map.parameters_spec
         strategy_mapping = dict()
 
         # Strategies that are matching by name with the given
@@ -162,6 +165,7 @@ class Syncer(object):
             strategy.name = strategy_name
             strategy.display_name = strategy_display_name
             strategy.goal_id = objects.Goal.get_by_name(self.ctx, goal_name).id
+            strategy.parameters_spec = parameters_spec
             strategy.create()
             LOG.info(_LI("Strategy %s created"), strategy_name)
 
@@ -284,7 +288,8 @@ class Syncer(object):
             strategies_map[strategy_cls.get_name()] = StrategyMapping(
                 name=strategy_cls.get_name(),
                 goal_name=strategy_cls.get_goal_name(),
-                display_name=strategy_cls.get_translatable_display_name())
+                display_name=strategy_cls.get_translatable_display_name(),
+                parameters_spec=str(strategy_cls.get_schema()))
 
         return discovered_map
 
