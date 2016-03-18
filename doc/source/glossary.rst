@@ -213,27 +213,27 @@ Here are some examples of
 
 It can be any of the `the official list of available resource types defined in OpenStack for HEAT <http://docs.openstack.org/developer/heat/template_guide/openstack.html>`_.
 
-.. _efficiency_definition:
+.. _efficacy_definition:
 
-Optimization Efficiency
-=======================
+Optimization Efficacy
+=====================
 
-The :ref:`Optimization Efficiency <efficiency_definition>` is the objective
+The :ref:`Optimization Efficacy <efficacy_definition>` is the objective
 measure of how much of the :ref:`Goal <goal_definition>` has been achieved in
 respect with constraints and :ref:`SLAs <sla_definition>` defined by the
 :ref:`Customer <customer_definition>`.
 
-The way efficiency is evaluated will depend on the
+The way efficacy is evaluated will depend on the
 :ref:`Goal <goal_definition>` to achieve.
 
-Of course, the efficiency will be relevant only as long as the
+Of course, the efficacy will be relevant only as long as the
 :ref:`Action Plan <action_plan_definition>` is relevant
 (i.e., the current state of the :ref:`Cluster <cluster_definition>`
 has not changed in a way that a new :ref:`Audit <audit_definition>` would need
 to be launched).
 
 For example, if the :ref:`Goal <goal_definition>` is to lower the energy
-consumption, the :ref:`Efficiency <efficiency_definition>` will be computed
+consumption, the :ref:`Efficacy <efficacy_definition>` will be computed
 using several indicators (KPIs):
 
 -  the percentage of energy gain (which must be the highest possible)
@@ -244,7 +244,7 @@ using several indicators (KPIs):
 All those indicators (KPIs) are computed within a given timeframe, which is the
 time taken to execute the whole :ref:`Action Plan <action_plan_definition>`.
 
-The efficiency also enables the :ref:`Administrator <administrator_definition>`
+The efficacy also enables the :ref:`Administrator <administrator_definition>`
 to objectively compare different :ref:`Strategies <strategy_definition>` for
 the same goal and same workload of the :ref:`Cluster <cluster_definition>`.
 
