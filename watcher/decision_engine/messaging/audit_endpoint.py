@@ -18,17 +18,20 @@
 #
 from concurrent import futures
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher.decision_engine.audit import default
 
+CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
 class AuditEndpoint(object):
-    def __init__(self, messaging, max_workers):
+    def __init__(self, messaging):
         self._messaging = messaging
-        self._executor = futures.ThreadPoolExecutor(max_workers=max_workers)
+        self._executor = futures.ThreadPoolExecutor(
+            max_workers=CONF.watcher_decision_engine.max_workers)
 
     @property
     def executor(self):

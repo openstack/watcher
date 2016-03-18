@@ -42,7 +42,7 @@ class TestMessagingHandler(base.TestCase):
         handler = messaging_handler.MessagingHandler(
             publisher_id=self.PUBLISHER_ID,
             topic_name=self.TOPIC_WATCHER,
-            endpoint=self.ENDPOINT,
+            endpoints=[self.ENDPOINT],
             version=self.VERSION,
             serializer=None,
         )
@@ -65,7 +65,7 @@ class TestMessagingHandler(base.TestCase):
         handler = messaging_handler.MessagingHandler(
             publisher_id=self.PUBLISHER_ID,
             topic_name=self.TOPIC_WATCHER,
-            endpoint=self.ENDPOINT,
+            endpoints=[self.ENDPOINT],
             version=self.VERSION,
             serializer=None,
         )

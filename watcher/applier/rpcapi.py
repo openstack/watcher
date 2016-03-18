@@ -18,48 +18,43 @@
 #
 from oslo_config import cfg
 from oslo_log import log
-import oslo_messaging as om
 
-from watcher.applier.manager import APPLIER_MANAGER_OPTS
-from watcher.applier.manager import opt_group
+from watcher.applier import manager
 from watcher.common import exception
-from watcher.common.messaging import messaging_core
 from watcher.common.messaging import notification_handler as notification
+from watcher.common import service
 from watcher.common import utils
 
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
-CONF.register_group(opt_group)
-CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
+CONF.register_group(manager.opt_group)
+CONF.register_opts(manager.APPLIER_MANAGER_OPTS, manager.opt_group)
 
 
-class ApplierAPI(messaging_core.MessagingCore):
+class ApplierAPI(service.Service):
 
     def __init__(self):
-        super(ApplierAPI, self).__init__(
-            CONF.watcher_applier.publisher_id,
-            CONF.watcher_applier.conductor_topic,
-            CONF.watcher_applier.status_topic,
-            api_version=self.API_VERSION,
-        )
-        self.handler = notification.NotificationHandler(self.publisher_id)
-        self.handler.register_observer(self)
-        self.status_topic_handler.add_endpoint(self.handler)
-        transport = om.get_transport(CONF)
-
-        target = om.Target(
-            topic=CONF.watcher_applier.conductor_topic,
-            version=self.API_VERSION,
-        )
-
-        self.client = om.RPCClient(transport, target,
-                                   serializer=self.serializer)
+        super(ApplierAPI, self).__init__(ApplierAPIManager)
 
     def launch_action_plan(self, context, action_plan_uuid=None):
         if not utils.is_uuid_like(action_plan_uuid):
             raise exception.InvalidUuidOrName(name=action_plan_uuid)
 
-        return self.client.call(
+        return self.conductor_client.call(
             context.to_dict(), 'launch_action_plan',
             action_plan_uuid=action_plan_uuid)
+
+
+class ApplierAPIManager(object):
+
+    API_VERSION = '1.0'
+
+    conductor_endpoints = []
+    status_endpoints = [notification.NotificationHandler]
+
+    def __init__(self):
+        self.publisher_id = CONF.watcher_applier.publisher_id
+        self.conductor_topic = CONF.watcher_applier.conductor_topic
+        self.status_topic = CONF.watcher_applier.status_topic
+        self.api_version = self.API_VERSION

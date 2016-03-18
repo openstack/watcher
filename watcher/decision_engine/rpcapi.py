@@ -20,31 +20,23 @@
 from oslo_config import cfg
 
 from watcher.common import exception
-from watcher.common.messaging import messaging_core
 from watcher.common.messaging import notification_handler
+from watcher.common import service
 from watcher.common import utils
-from watcher.decision_engine.manager import decision_engine_opt_group
-from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
+from watcher.decision_engine import manager
 
 
 CONF = cfg.CONF
 
-CONF.register_group(decision_engine_opt_group)
-CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
+CONF.register_group(manager.decision_engine_opt_group)
+CONF.register_opts(manager.WATCHER_DECISION_ENGINE_OPTS,
+                   manager.decision_engine_opt_group)
 
 
-class DecisionEngineAPI(messaging_core.MessagingCore):
+class DecisionEngineAPI(service.Service):
 
     def __init__(self):
-        super(DecisionEngineAPI, self).__init__(
-            CONF.watcher_decision_engine.publisher_id,
-            CONF.watcher_decision_engine.conductor_topic,
-            CONF.watcher_decision_engine.status_topic,
-            api_version=self.API_VERSION,
-        )
-        self.handler = notification_handler.NotificationHandler(
-            self.publisher_id)
-        self.status_topic_handler.add_endpoint(self.handler)
+        super(DecisionEngineAPI, self).__init__(DecisionEngineAPIManager)
 
     def trigger_audit(self, context, audit_uuid=None):
         if not utils.is_uuid_like(audit_uuid):
@@ -52,3 +44,17 @@ class DecisionEngineAPI(messaging_core.MessagingCore):
 
         return self.conductor_client.call(
             context.to_dict(), 'trigger_audit', audit_uuid=audit_uuid)
+
+
+class DecisionEngineAPIManager(object):
+
+    API_VERSION = '1.0'
+
+    conductor_endpoints = []
+    status_endpoints = [notification_handler.NotificationHandler]
+
+    def __init__(self):
+        self.publisher_id = CONF.watcher_decision_engine.publisher_id
+        self.conductor_topic = CONF.watcher_decision_engine.conductor_topic
+        self.status_topic = CONF.watcher_decision_engine.status_topic
+        self.api_version = self.API_VERSION

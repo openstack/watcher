@@ -17,30 +17,30 @@
 
 """Starter script for the Decision Engine manager service."""
 
-import logging as std_logging
 import os
 import sys
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_reports import guru_meditation_report as gmr
+from oslo_service import service
 
-from watcher import _i18n
-from watcher.common import service
+from watcher._i18n import _LI
+from watcher.common import service as watcher_service
 from watcher.decision_engine import manager
-
+from watcher import version
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
-_LI = _i18n._LI
 
 
 def main():
-    service.prepare_service(sys.argv)
+    watcher_service.prepare_service(sys.argv)
+    gmr.TextGuruMeditation.setup_autorun(version)
 
-    LOG.info(_LI('Starting server in PID %s') % os.getpid())
-    LOG.debug("Configuration:")
-    cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)
+    LOG.info(_LI('Starting Watcher Decision Engine service in PID %s'),
+             os.getpid())
 
-    server = manager.DecisionEngineManager()
-    server.connect()
-    server.join()
+    de_service = watcher_service.Service(manager.DecisionEngineManager)
+    launcher = service.launch(CONF, de_service)
+    launcher.wait()

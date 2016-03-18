@@ -39,7 +39,6 @@ See :doc:`../architecture` for more details on this component.
 
 from oslo_config import cfg
 
-from watcher.common.messaging import messaging_core
 from watcher.decision_engine.messaging import audit_endpoint
 
 
@@ -76,18 +75,15 @@ CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class DecisionEngineManager(messaging_core.MessagingCore):
-    def __init__(self):
-        super(DecisionEngineManager, self).__init__(
-            CONF.watcher_decision_engine.publisher_id,
-            CONF.watcher_decision_engine.conductor_topic,
-            CONF.watcher_decision_engine.status_topic,
-            api_version=self.API_VERSION)
-        endpoint = audit_endpoint.AuditEndpoint(
-            self,
-            max_workers=CONF.watcher_decision_engine.max_workers)
-        self.conductor_topic_handler.add_endpoint(endpoint)
+class DecisionEngineManager(object):
 
-    def join(self):
-        self.conductor_topic_handler.join()
-        self.status_topic_handler.join()
+    API_VERSION = '1.0'
+
+    conductor_endpoints = [audit_endpoint.AuditEndpoint]
+    status_endpoints = []
+
+    def __init__(self):
+        self.publisher_id = CONF.watcher_decision_engine.publisher_id
+        self.conductor_topic = CONF.watcher_decision_engine.conductor_topic
+        self.status_topic = CONF.watcher_decision_engine.status_topic
+        self.api_version = self.API_VERSION
