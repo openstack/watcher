@@ -277,25 +277,25 @@ class BasicConsolidation(base.BaseStrategy):
             :return:
             """
         resource_id = "%s_%s" % (hypervisor.uuid, hypervisor.hostname)
-        vm_avg_cpu_util = self.ceilometer. \
+        host_avg_cpu_util = self.ceilometer. \
             statistic_aggregation(resource_id=resource_id,
                                   meter_name=self.HOST_CPU_USAGE_METRIC_NAME,
                                   period="7200",
                                   aggregate='avg'
                                   )
-        if vm_avg_cpu_util is None:
+        if host_avg_cpu_util is None:
             LOG.error(
                 _LE("No values returned by %(resource_id)s "
                     "for %(metric_name)s"),
                 resource_id=resource_id,
                 metric_name=self.HOST_CPU_USAGE_METRIC_NAME,
             )
-            vm_avg_cpu_util = 100
+            host_avg_cpu_util = 100
 
         cpu_capacity = model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(hypervisor)
 
-        total_cores_used = cpu_capacity * (vm_avg_cpu_util / 100)
+        total_cores_used = cpu_capacity * (host_avg_cpu_util / 100)
 
         return self.calculate_weight(model, hypervisor, total_cores_used,
                                      0,
