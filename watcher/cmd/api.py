@@ -17,17 +17,15 @@
 
 """Starter script for the Watcher API service."""
 
-import logging as std_logging
-import os
 import sys
-from wsgiref import simple_server
 
 from oslo_config import cfg
 from oslo_log import log as logging
+from oslo_reports import guru_meditation_report as gmr
 
 from watcher._i18n import _
-from watcher.api import app as api_app
 from watcher.common import service
+from watcher import version
 
 
 LOG = logging.getLogger(__name__)
@@ -37,15 +35,12 @@ CONF = cfg.CONF
 def main():
     service.prepare_service(sys.argv)
 
-    app = api_app.setup_app()
+    gmr.TextGuruMeditation.setup_autorun(version)
 
-    # Create the WSGI server and start it
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
-    srv = simple_server.make_server(host, port, app)
-
-    LOG.info(_('Starting server in PID %s') % os.getpid())
-    LOG.debug("Watcher configuration:")
-    cfg.CONF.log_opt_values(LOG, std_logging.DEBUG)
+    # Build and start the WSGI app
+    server = service.WSGIService(
+        'watcher-api', CONF.api.enable_ssl_api)
 
     if host == '0.0.0.0':
         LOG.info(_('serving on 0.0.0.0:%(port)s, '
@@ -55,4 +50,6 @@ def main():
         LOG.info(_('serving on http://%(host)s:%(port)s') %
                  dict(host=host, port=port))
 
-    srv.serve_forever()
+    launcher = service.process_launcher()
+    launcher.launch_service(server, workers=server.workers)
+    launcher.wait()

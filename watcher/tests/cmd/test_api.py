@@ -16,22 +16,22 @@
 
 from __future__ import absolute_import
 from __future__ import unicode_literals
-from six.moves.socketserver import BaseServer
-
 
 import types
-from wsgiref import simple_server
 
-from mock import Mock
-from mock import patch
+import mock
 from oslo_config import cfg
+from oslo_service import wsgi
 from pecan.testing import load_test_app
+
 from watcher.api import config as api_config
 from watcher.cmd import api
-from watcher.tests.base import BaseTestCase
+from watcher.common import service
+from watcher.tests import base
 
 
-class TestApi(BaseTestCase):
+class TestApi(base.BaseTestCase):
+
     def setUp(self):
         super(TestApi, self).setUp()
 
@@ -48,19 +48,18 @@ class TestApi(BaseTestCase):
         super(TestApi, self).tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
-    @patch("watcher.api.app.pecan.make_app")
-    @patch.object(BaseServer, "serve_forever", Mock())
-    @patch.object(simple_server, "make_server")
-    def test_run_api_app(self, m_make, m_make_app):
+    @mock.patch.object(wsgi, "Server", mock.Mock())
+    @mock.patch("watcher.api.app.pecan.make_app")
+    @mock.patch.object(service, "process_launcher")
+    def test_run_api_app(self, m_launcher, m_make_app):
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)
         api.main()
-        self.assertEqual(1, m_make.call_count)
+        self.assertEqual(1, m_launcher.call_count)
 
-    @patch("watcher.api.app.pecan.make_app")
-    @patch.object(BaseServer, "serve_forever", Mock())
-    @patch.object(simple_server, "make_server")
-    def test_run_api_app_serve_specific_address(self, m_make, m_make_app):
+    @mock.patch("watcher.api.app.pecan.make_app")
+    @mock.patch.object(service, "process_launcher")
+    def test_run_api_app_serve_specific_address(self, m_launcher, m_make_app):
         cfg.CONF.set_default("host", "localhost", group="api")
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)
         api.main()
-        self.assertEqual(1, m_make.call_count)
+        self.assertEqual(1, m_launcher.call_count)

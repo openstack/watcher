@@ -7,16 +7,46 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.25.1.dev3\n"
+"Project-Id-Version: python-watcher 0.26.1.dev13\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-03-30 10:10+0200\n"
+"POT-Creation-Date: 2016-04-22 10:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.2.0\n"
+"Generated-By: Babel 2.3.2\n"
+
+#: watcher/api/app.py:33
+msgid "The port for the watcher API server"
+msgstr ""
+
+#: watcher/api/app.py:36
+msgid "The listen IP for the watcher API server"
+msgstr ""
+
+#: watcher/api/app.py:39
+msgid ""
+"The maximum number of items returned in a single response from a "
+"collection resource"
+msgstr ""
+
+#: watcher/api/app.py:43
+msgid ""
+"Number of workers for Watcher API service. The default is equal to the "
+"number of CPUs available if that can be determined, else a default worker"
+" count of 1 is returned."
+msgstr ""
+
+#: watcher/api/app.py:50
+msgid ""
+"Enable the integrated stand-alone API to service requests via HTTPS "
+"instead of HTTP. If there is a front-end service performing HTTPS "
+"offloading from the service, this option should be False; note, you will "
+"want to change public API endpoint to represent SSL termination URL with "
+"'public_endpoint' option."
+msgstr ""
 
 #: watcher/api/controllers/v1/action.py:364
 msgid "Cannot create an action directly"
@@ -30,41 +60,41 @@ msgstr ""
 msgid "Cannot delete an action directly"
 msgstr ""
 
-#: watcher/api/controllers/v1/action_plan.py:102
+#: watcher/api/controllers/v1/action_plan.py:87
 #, python-format
 msgid "Invalid state: %(state)s"
 msgstr ""
 
-#: watcher/api/controllers/v1/action_plan.py:422
+#: watcher/api/controllers/v1/action_plan.py:407
 #, python-format
 msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
 msgstr ""
 
-#: watcher/api/controllers/v1/audit.py:359
+#: watcher/api/controllers/v1/audit.py:365
 msgid "The audit template UUID or name specified is invalid"
 msgstr ""
 
-#: watcher/api/controllers/v1/types.py:148
+#: watcher/api/controllers/v1/types.py:123
 #, python-format
 msgid "%s is not JSON serializable"
 msgstr ""
 
-#: watcher/api/controllers/v1/types.py:184
+#: watcher/api/controllers/v1/types.py:159
 #, python-format
 msgid "Wrong type. Expected '%(type)s', got '%(value)s'"
 msgstr ""
 
-#: watcher/api/controllers/v1/types.py:223
+#: watcher/api/controllers/v1/types.py:198
 #, python-format
 msgid "'%s' is an internal attribute and can not be updated"
 msgstr ""
 
-#: watcher/api/controllers/v1/types.py:227
+#: watcher/api/controllers/v1/types.py:202
 #, python-format
 msgid "'%s' is a mandatory attribute and can not be removed"
 msgstr ""
 
-#: watcher/api/controllers/v1/types.py:232
+#: watcher/api/controllers/v1/types.py:207
 msgid "'add' and 'replace' operations needs value"
 msgstr ""
 
@@ -135,20 +165,19 @@ msgstr ""
 msgid "Oops! We need disaster recover plan"
 msgstr ""
 
-#: watcher/cmd/api.py:46 watcher/cmd/applier.py:39
-#: watcher/cmd/decisionengine.py:40
-#, python-format
-msgid "Starting server in PID %s"
-msgstr ""
-
-#: watcher/cmd/api.py:51
+#: watcher/cmd/api.py:46
 #, python-format
 msgid "serving on 0.0.0.0:%(port)s, view at http://127.0.0.1:%(port)s"
 msgstr ""
 
-#: watcher/cmd/api.py:55
+#: watcher/cmd/api.py:50
 #, python-format
 msgid "serving on http://%(host)s:%(port)s"
+msgstr ""
+
+#: watcher/cmd/applier.py:39 watcher/cmd/decisionengine.py:40
+#, python-format
+msgid "Starting server in PID %s"
 msgstr ""
 
 #: watcher/common/clients.py:29
@@ -252,149 +281,139 @@ msgstr ""
 
 #: watcher/common/exception.py:184
 #, python-format
-msgid "Audit %(audit)s could not be found"
+msgid "Audit type %(audit_type)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:188
 #, python-format
-msgid "An audit with UUID %(uuid)s already exists"
+msgid "Audit %(audit)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:192
 #, python-format
-msgid "Audit %(audit)s is referenced by one or multiple action plans"
+msgid "An audit with UUID %(uuid)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:197
+#: watcher/common/exception.py:196
 #, python-format
-msgid "ActionPlan %(action_plan)s could not be found"
+msgid "Audit %(audit)s is referenced by one or multiple action plans"
 msgstr ""
 
 #: watcher/common/exception.py:201
 #, python-format
-msgid "An action plan with UUID %(uuid)s already exists"
+msgid "ActionPlan %(action_plan)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:205
 #, python-format
-msgid "Action Plan %(action_plan)s is referenced by one or multiple actions"
+msgid "An action plan with UUID %(uuid)s already exists"
 msgstr ""
 
-#: watcher/common/exception.py:210
+#: watcher/common/exception.py:209
 #, python-format
-msgid "Action %(action)s could not be found"
+msgid "Action Plan %(action_plan)s is referenced by one or multiple actions"
 msgstr ""
 
 #: watcher/common/exception.py:214
 #, python-format
-msgid "An action with UUID %(uuid)s already exists"
+msgid "Action %(action)s could not be found"
 msgstr ""
 
 #: watcher/common/exception.py:218
 #, python-format
+msgid "An action with UUID %(uuid)s already exists"
+msgstr ""
+
+#: watcher/common/exception.py:222
+#, python-format
 msgid "Action plan %(action_plan)s is referenced by one or multiple goals"
 msgstr ""
 
-#: watcher/common/exception.py:223
+#: watcher/common/exception.py:227
 msgid "Filtering actions on both audit and action-plan is prohibited"
 msgstr ""
 
-#: watcher/common/exception.py:232
+#: watcher/common/exception.py:236
 #, python-format
 msgid "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
 msgstr ""
 
-#: watcher/common/exception.py:238
+#: watcher/common/exception.py:242
 #, python-format
 msgid "Workflow execution error: %(error)s"
 msgstr ""
 
-#: watcher/common/exception.py:242
+#: watcher/common/exception.py:246
 msgid "Illegal argument"
 msgstr ""
 
-#: watcher/common/exception.py:246
+#: watcher/common/exception.py:250
 msgid "No such metric"
 msgstr ""
 
-#: watcher/common/exception.py:250
+#: watcher/common/exception.py:254
 msgid "No rows were returned"
 msgstr ""
 
-#: watcher/common/exception.py:254
+#: watcher/common/exception.py:258
 #, python-format
 msgid "%(client)s connection failed. Reason: %(reason)s"
 msgstr ""
 
-#: watcher/common/exception.py:258
+#: watcher/common/exception.py:262
 msgid "'Keystone API endpoint is missing''"
 msgstr ""
 
-#: watcher/common/exception.py:262
+#: watcher/common/exception.py:266
 msgid "The list of hypervisor(s) in the cluster is empty"
 msgstr ""
 
-#: watcher/common/exception.py:266
+#: watcher/common/exception.py:270
 msgid "The metrics resource collector is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:270
+#: watcher/common/exception.py:274
 msgid "the cluster state is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:276
+#: watcher/common/exception.py:280
 #, python-format
 msgid "The instance '%(name)s' is not found"
 msgstr ""
 
-#: watcher/common/exception.py:280
-msgid "The hypervisor is not found"
-msgstr ""
-
 #: watcher/common/exception.py:284
-#, python-format
-msgid "Error loading plugin '%(name)s'"
+msgid "The hypervisor is not found"
 msgstr ""
 
 #: watcher/common/exception.py:288
 #, python-format
-msgid "The identifier '%(name)s' is a reserved word"
+msgid "Error loading plugin '%(name)s'"
 msgstr ""
 
 #: watcher/common/exception.py:292
 #, python-format
-msgid "The %(name)s resource %(id)s is not soft deleted"
+msgid "The identifier '%(name)s' is a reserved word"
 msgstr ""
 
 #: watcher/common/exception.py:296
+#, python-format
+msgid "The %(name)s resource %(id)s is not soft deleted"
+msgstr ""
+
+#: watcher/common/exception.py:300
 msgid "Limit should be positive"
 msgstr ""
 
-#: watcher/common/service.py:83
-#, python-format
-msgid "Created RPC server for service %(service)s on host %(host)s."
+#: watcher/common/service.py:36
+msgid "Seconds between running periodic tasks."
 msgstr ""
 
-#: watcher/common/service.py:92
-#, python-format
-msgid "Service error occurred when stopping the RPC server. Error: %s"
-msgstr ""
-
-#: watcher/common/service.py:97
-#, python-format
-msgid "Service error occurred when cleaning up the RPC manager. Error: %s"
-msgstr ""
-
-#: watcher/common/service.py:101
-#, python-format
-msgid "Stopped RPC server for service %(service)s on host %(host)s."
-msgstr ""
-
-#: watcher/common/service.py:106
-#, python-format
+#: watcher/common/service.py:39
 msgid ""
-"Got signal SIGUSR1. Not deregistering on next shutdown of service "
-"%(service)s on host %(host)s."
+"Name of this node. This can be an opaque identifier.  It is not "
+"necessarily a hostname, FQDN, or IP address. However, the node name must "
+"be valid within an AMQP key, and if using ZeroMQ, a valid hostname, FQDN,"
+" or IP address."
 msgstr ""
 
 #: watcher/common/utils.py:53
@@ -489,25 +508,25 @@ msgstr ""
 msgid "Purge process completed"
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:362
+#: watcher/db/sqlalchemy/api.py:361
 msgid ""
 "Multiple audit templates exist with the same name. Please use the audit "
 "template uuid instead"
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:384
+#: watcher/db/sqlalchemy/api.py:383
 msgid "Cannot overwrite UUID for an existing Audit Template."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:495
+#: watcher/db/sqlalchemy/api.py:494
 msgid "Cannot overwrite UUID for an existing Audit."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:588
+#: watcher/db/sqlalchemy/api.py:587
 msgid "Cannot overwrite UUID for an existing Action."
 msgstr ""
 
-#: watcher/db/sqlalchemy/api.py:699
+#: watcher/db/sqlalchemy/api.py:698
 msgid "Cannot overwrite UUID for an existing Action Plan."
 msgstr ""
 
@@ -517,12 +536,12 @@ msgid ""
 "instead"
 msgstr ""
 
-#: watcher/decision_engine/model/model_root.py:37
-#: watcher/decision_engine/model/model_root.py:42
+#: watcher/decision_engine/model/model_root.py:33
+#: watcher/decision_engine/model/model_root.py:38
 msgid "'obj' argument type is not valid"
 msgstr ""
 
-#: watcher/decision_engine/planner/default.py:79
+#: watcher/decision_engine/planner/default.py:78
 msgid "The action plan is empty"
 msgstr ""
 
@@ -563,22 +582,22 @@ msgstr ""
 msgid "No proper target host could be found"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:104
+#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:105
 #, python-format
 msgid "Unexpexted resource state type, state=%(state)s, state_type=%(st)s."
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:156
+#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:157
 #, python-format
 msgid "Cannot live migrate: vm_uuid=%(vm_uuid)s, state=%(vm_state)s."
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:240
+#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:241
 #, python-format
 msgid "No values returned by %(resource_id)s for memory.usage or disk.root.size"
 msgstr ""
 
-#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:489
+#: watcher/decision_engine/strategy/strategies/vm_workload_consolidation.py:490
 msgid "Executing Smart Strategy"
 msgstr ""
 
