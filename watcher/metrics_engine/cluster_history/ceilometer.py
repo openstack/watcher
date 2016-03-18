@@ -22,13 +22,13 @@ from oslo_config import cfg
 from oslo_log import log
 from watcher.common import ceilometer_helper
 
-from watcher.metrics_engine.cluster_history import api
+from watcher.metrics_engine.cluster_history import base
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class CeilometerClusterHistory(api.BaseClusterHistory):
+class CeilometerClusterHistory(base.BaseClusterHistory):
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         super(CeilometerClusterHistory, self).__init__()

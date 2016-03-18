@@ -23,12 +23,12 @@ from watcher.decision_engine.model import hypervisor as obj_hypervisor
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm as obj_vm
-from watcher.metrics_engine.cluster_model_collector import api
+from watcher.metrics_engine.cluster_model_collector import base
 
 LOG = log.getLogger(__name__)
 
 
-class NovaClusterModelCollector(api.BaseClusterModelCollector):
+class NovaClusterModelCollector(base.BaseClusterModelCollector):
     def __init__(self, wrapper):
         super(NovaClusterModelCollector, self).__init__()
         self.wrapper = wrapper
