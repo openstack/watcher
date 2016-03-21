@@ -18,6 +18,7 @@ from watcher import version as watcher_version
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
+    'oslo_config.sphinxconfiggen',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
@@ -28,7 +29,8 @@ extensions = [
 ]
 
 wsme_protocols = ['restjson']
-
+config_generator_config_file = '../../etc/watcher/watcher-config-generator.conf'
+sample_config_basename = 'watcher'
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.

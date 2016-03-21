@@ -44,6 +44,8 @@ output/*/index.html
 # Sphinx
 doc/build
 doc/source/api
+doc/source/samples
+doc/source/watcher.conf.sample
 
 # pbr generates these
 AUTHORS
