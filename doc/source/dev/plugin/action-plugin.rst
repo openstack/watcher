@@ -50,6 +50,8 @@ Here is an example showing how you can write a plugin called ``DummyAction``:
 
     # Filepath = <PROJECT_DIR>/thirdparty/dummy.py
     # Import path = thirdparty.dummy
+    import voluptuous
+
     from watcher.applier.actions import base
 
 
@@ -57,7 +59,7 @@ Here is an example showing how you can write a plugin called ``DummyAction``:
 
         @property
         def schema(self):
-            return Schema({})
+            return voluptuous.Schema({})
 
         def execute(self):
             # Does nothing
@@ -82,6 +84,16 @@ by Watcher like.
 To get a better understanding on how to implement a more advanced action,
 have a look at the :py:class:`~watcher.applier.actions.migration.Migrate`
 class.
+
+Input validation
+----------------
+
+As you can see in the previous example, we are using `Voluptuous`_ to validate
+the input parameters of an action. So if you want to learn more about how to
+work with `Voluptuous`_, you can have a look at their `documentation`_ here:
+
+.. _Voluptuous: https://github.com/alecthomas/voluptuous
+.. _documentation: https://github.com/alecthomas/voluptuous/blob/master/README.md
 
 Abstract Plugin Class
 =====================
