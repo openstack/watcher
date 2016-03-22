@@ -7,9 +7,9 @@
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: python-watcher 0.24.1.dev4\n"
+"Project-Id-Version: python-watcher 0.24.1.dev12\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-03-14 15:29+0100\n"
+"POT-Creation-Date: 2016-03-16 18:18-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -109,17 +109,17 @@ msgstr ""
 msgid "Migration of type %(migration_type)s is not supported."
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:134
+#: watcher/applier/workflow_engine/default.py:129
 #, python-format
 msgid "The WorkFlow Engine has failed to execute the action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:152
+#: watcher/applier/workflow_engine/default.py:147
 #, python-format
 msgid "Revert action %s"
 msgstr ""
 
-#: watcher/applier/workflow_engine/default.py:158
+#: watcher/applier/workflow_engine/default.py:153
 msgid "Oops! We need disaster recover plan"
 msgstr ""
 
@@ -292,64 +292,69 @@ msgstr ""
 msgid "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
 msgstr ""
 
-#: watcher/common/exception.py:239
+#: watcher/common/exception.py:238
+#, python-format
+msgid "Workflow execution error: %(error)s"
+msgstr ""
+
+#: watcher/common/exception.py:242
 msgid "Illegal argument"
 msgstr ""
 
-#: watcher/common/exception.py:243
+#: watcher/common/exception.py:246
 msgid "No such metric"
 msgstr ""
 
-#: watcher/common/exception.py:247
+#: watcher/common/exception.py:250
 msgid "No rows were returned"
 msgstr ""
 
-#: watcher/common/exception.py:251
+#: watcher/common/exception.py:254
 #, python-format
 msgid "%(client)s connection failed. Reason: %(reason)s"
 msgstr ""
 
-#: watcher/common/exception.py:255
+#: watcher/common/exception.py:258
 msgid "'Keystone API endpoint is missing''"
 msgstr ""
 
-#: watcher/common/exception.py:259
+#: watcher/common/exception.py:262
 msgid "The list of hypervisor(s) in the cluster is empty"
 msgstr ""
 
-#: watcher/common/exception.py:263
+#: watcher/common/exception.py:266
 msgid "The metrics resource collector is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:267
+#: watcher/common/exception.py:270
 msgid "the cluster state is not defined"
 msgstr ""
 
-#: watcher/common/exception.py:273
+#: watcher/common/exception.py:276
 #, python-format
 msgid "The instance '%(name)s' is not found"
 msgstr ""
 
-#: watcher/common/exception.py:277
+#: watcher/common/exception.py:280
 msgid "The hypervisor is not found"
 msgstr ""
 
-#: watcher/common/exception.py:281
+#: watcher/common/exception.py:284
 #, python-format
 msgid "Error loading plugin '%(name)s'"
 msgstr ""
 
-#: watcher/common/exception.py:285
+#: watcher/common/exception.py:288
 #, python-format
 msgid "The identifier '%(name)s' is a reserved word"
 msgstr ""
 
-#: watcher/common/exception.py:289
+#: watcher/common/exception.py:292
 #, python-format
 msgid "The %(name)s resource %(id)s is not soft deleted"
 msgstr ""
 
-#: watcher/common/exception.py:293
+#: watcher/common/exception.py:296
 msgid "Limit should be positive"
 msgstr ""
 

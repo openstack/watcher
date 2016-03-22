@@ -22,6 +22,7 @@ from taskflow import task
 
 from watcher._i18n import _LE, _LW, _LC
 from watcher.applier.workflow_engine import base
+from watcher.common import exception
 from watcher.objects import action as obj_action
 
 LOG = log.getLogger(__name__)
@@ -77,10 +78,9 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
             e = engines.load(flow)
             e.run()
-            return True
+
         except Exception as e:
-            LOG.exception(e)
-            return False
+            raise exception.WorkflowExecutionException(error=e)
 
 
 class TaskFlowActionContainer(task.Task):
@@ -121,14 +121,9 @@ class TaskFlowActionContainer(task.Task):
         try:
             LOG.debug("Running action %s", self.name)
 
-            # todo(jed) remove return (true or false) raise an Exception
-            result = self.action.execute()
-            if result is not True:
-                self.engine.notify(self._db_action,
-                                   obj_action.State.FAILED)
-            else:
-                self.engine.notify(self._db_action,
-                                   obj_action.State.SUCCEEDED)
+            self.action.execute()
+            self.engine.notify(self._db_action,
+                               obj_action.State.SUCCEEDED)
         except Exception as e:
             LOG.exception(e)
             LOG.error(_LE('The WorkFlow Engine has failed '
