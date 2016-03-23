@@ -35,6 +35,102 @@ class BaseConnection(object):
     """Base class for storage system connections."""
 
     @abc.abstractmethod
+    def get_goal_list(self, context, filters=None, limit=None,
+                      marker=None, sort_key=None, sort_dir=None):
+        """Get specific columns for matching goals.
+
+        Return a list of the specified columns for all goals that
+        match the specified filters.
+
+        :param context: The security context
+        :param filters: Filters to apply. Defaults to None.
+
+        :param limit: Maximum number of goals to return.
+        :param marker: the last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_goal(self, values):
+        """Create a new goal.
+
+        :param values: A dict containing several items used to identify
+                       and track the goal. For example:
+
+                       ::
+
+                        {
+                         'uuid': utils.generate_uuid(),
+                         'name': 'DUMMY',
+                         'display_name': 'Dummy',
+                        }
+        :returns: A goal
+        :raises: :py:class:`~.GoalAlreadyExists`
+        """
+
+    @abc.abstractmethod
+    def get_goal_by_id(self, context, goal_id):
+        """Return a goal given its ID.
+
+        :param context: The security context
+        :param goal_id: The ID of a goal
+        :returns: A goal
+        :raises: :py:class:`~.GoalNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_goal_by_uuid(self, context, goal_uuid):
+        """Return a goal given its UUID.
+
+        :param context: The security context
+        :param goal_uuid: The UUID of a goal
+        :returns: A goal
+        :raises: :py:class:`~.GoalNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_goal_by_name(self, context, goal_name):
+        """Return a goal given its name.
+
+        :param context: The security context
+        :param goal_name: The name of a goal
+        :returns: A goal
+        :raises: :py:class:`~.GoalNotFound`
+        """
+
+    @abc.abstractmethod
+    def destroy_goal(self, goal_uuid):
+        """Destroy a goal.
+
+        :param goal_uuid: The UUID of a goal
+        :raises: :py:class:`~.GoalNotFound`
+        """
+
+    @abc.abstractmethod
+    def update_goal(self, goal_uuid, values):
+        """Update properties of a goal.
+
+        :param goal_uuid: The UUID of a goal
+        :param values: A dict containing several items used to identify
+                       and track the goal. For example:
+
+                       ::
+
+                        {
+                         'uuid': utils.generate_uuid(),
+                         'name': 'DUMMY',
+                         'display_name': 'Dummy',
+                        }
+        :returns: A goal
+        :raises: :py:class:`~.GoalNotFound`
+        :raises: :py:class:`~.Invalid`
+        """
+
+    @abc.abstractmethod
     def get_audit_template_list(self, context, columns=None, filters=None,
                                 limit=None, marker=None, sort_key=None,
                                 sort_dir=None):
@@ -75,7 +171,7 @@ class BaseConnection(object):
                          'extra': {'automatic': True}
                         }
         :returns: An audit template.
-        :raises: AuditTemplateAlreadyExists
+        :raises: :py:class:`~.AuditTemplateAlreadyExists`
         """
 
     @abc.abstractmethod
@@ -85,7 +181,7 @@ class BaseConnection(object):
         :param context: The security context
         :param audit_template_id: The id of an audit template.
         :returns: An audit template.
-        :raises: AuditTemplateNotFound
+        :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
@@ -95,7 +191,7 @@ class BaseConnection(object):
         :param context: The security context
         :param audit_template_uuid: The uuid of an audit template.
         :returns: An audit template.
-        :raises: AuditTemplateNotFound
+        :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     def get_audit_template_by_name(self, context, audit_template_name):
@@ -104,7 +200,7 @@ class BaseConnection(object):
         :param context: The security context
         :param audit_template_name: The name of an audit template.
         :returns: An audit template.
-        :raises: AuditTemplateNotFound
+        :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
@@ -112,7 +208,7 @@ class BaseConnection(object):
         """Destroy an audit_template.
 
         :param audit_template_id: The id or uuid of an audit template.
-        :raises: AuditTemplateNotFound
+        :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
@@ -121,8 +217,8 @@ class BaseConnection(object):
 
         :param audit_template_id: The id or uuid of an audit template.
         :returns: An audit template.
-        :raises: AuditTemplateNotFound
-        :raises: Invalid
+        :raises: :py:class:`~.AuditTemplateNotFound`
+        :raises: :py:class:`~.Invalid`
         """
 
     @abc.abstractmethod
@@ -130,7 +226,7 @@ class BaseConnection(object):
         """Soft delete an audit_template.
 
         :param audit_template_id: The id or uuid of an audit template.
-        :raises: AuditTemplateNotFound
+        :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
@@ -171,7 +267,7 @@ class BaseConnection(object):
                          'deadline': None
                         }
         :returns: An audit.
-        :raises: AuditAlreadyExists
+        :raises: :py:class:`~.AuditAlreadyExists`
         """
 
     @abc.abstractmethod
@@ -181,7 +277,7 @@ class BaseConnection(object):
         :param context: The security context
         :param audit_id: The id of an audit.
         :returns: An audit.
-        :raises: AuditNotFound
+        :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
@@ -191,7 +287,7 @@ class BaseConnection(object):
         :param context: The security context
         :param audit_uuid: The uuid of an audit.
         :returns: An audit.
-        :raises: AuditNotFound
+        :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
@@ -199,7 +295,7 @@ class BaseConnection(object):
         """Destroy an audit and all associated action plans.
 
         :param audit_id: The id or uuid of an audit.
-        :raises: AuditNotFound
+        :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
@@ -208,8 +304,8 @@ class BaseConnection(object):
 
         :param audit_id: The id or uuid of an audit.
         :returns: An audit.
-        :raises: AuditNotFound
-        :raises: Invalid
+        :raises: :py:class:`~.AuditNotFound`
+        :raises: :py:class:`~.Invalid`
         """
 
     def soft_delete_audit(self, audit_id):
@@ -217,7 +313,7 @@ class BaseConnection(object):
 
         :param audit_id: The id or uuid of an audit.
         :returns: An audit.
-        :raises: AuditNotFound
+        :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
@@ -259,7 +355,7 @@ class BaseConnection(object):
                          'aggregate': 'nova aggregate name or uuid'
                         }
         :returns: A action.
-        :raises: ActionAlreadyExists
+        :raises: :py:class:`~.ActionAlreadyExists`
         """
 
     @abc.abstractmethod
@@ -269,7 +365,7 @@ class BaseConnection(object):
         :param context: The security context
         :param action_id: The id of a action.
         :returns: A action.
-        :raises: ActionNotFound
+        :raises: :py:class:`~.ActionNotFound`
         """
 
     @abc.abstractmethod
@@ -279,7 +375,7 @@ class BaseConnection(object):
         :param context: The security context
         :param action_uuid: The uuid of a action.
         :returns: A action.
-        :raises: ActionNotFound
+        :raises: :py:class:`~.ActionNotFound`
         """
 
     @abc.abstractmethod
@@ -287,8 +383,8 @@ class BaseConnection(object):
         """Destroy a action and all associated interfaces.
 
         :param action_id: The id or uuid of a action.
-        :raises: ActionNotFound
-        :raises: ActionReferenced
+        :raises: :py:class:`~.ActionNotFound`
+        :raises: :py:class:`~.ActionReferenced`
         """
 
     @abc.abstractmethod
@@ -297,9 +393,9 @@ class BaseConnection(object):
 
         :param action_id: The id or uuid of a action.
         :returns: A action.
-        :raises: ActionNotFound
-        :raises: ActionReferenced
-        :raises: Invalid
+        :raises: :py:class:`~.ActionNotFound`
+        :raises: :py:class:`~.ActionReferenced`
+        :raises: :py:class:`~.Invalid`
         """
 
     @abc.abstractmethod
@@ -332,7 +428,7 @@ class BaseConnection(object):
         :param values: A dict containing several items used to identify
                        and track the action plan.
         :returns: An action plan.
-        :raises: ActionPlanAlreadyExists
+        :raises: :py:class:`~.ActionPlanAlreadyExists`
         """
 
     @abc.abstractmethod
@@ -342,7 +438,7 @@ class BaseConnection(object):
         :param context: The security context
         :param action_plan_id: The id of an action plan.
         :returns: An action plan.
-        :raises: ActionPlanNotFound
+        :raises: :py:class:`~.ActionPlanNotFound`
         """
 
     @abc.abstractmethod
@@ -352,7 +448,7 @@ class BaseConnection(object):
         :param context: The security context
         :param action_plan__uuid: The uuid of an action plan.
         :returns: An action plan.
-        :raises: ActionPlanNotFound
+        :raises: :py:class:`~.ActionPlanNotFound`
         """
 
     @abc.abstractmethod
@@ -360,8 +456,8 @@ class BaseConnection(object):
         """Destroy an action plan and all associated interfaces.
 
         :param action_plan_id: The id or uuid of a action plan.
-        :raises: ActionPlanNotFound
-        :raises: ActionPlanReferenced
+        :raises: :py:class:`~.ActionPlanNotFound`
+        :raises: :py:class:`~.ActionPlanReferenced`
         """
 
     @abc.abstractmethod
@@ -370,7 +466,7 @@ class BaseConnection(object):
 
         :param action_plan_id: The id or uuid of an action plan.
         :returns: An action plan.
-        :raises: ActionPlanNotFound
-        :raises: ActionPlanReferenced
-        :raises: Invalid
+        :raises: :py:class:`~.ActionPlanNotFound`
+        :raises: :py:class:`~.ActionPlanReferenced`
+        :raises: :py:class:`~.Invalid`
         """
