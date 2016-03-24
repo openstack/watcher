@@ -37,6 +37,10 @@ congestion which may decrease the :ref:`SLA <sla_definition>` for
 It is also important to schedule :ref:`Actions <action_definition>` in order to
 avoid security issues such as denial of service on core OpenStack services.
 
+:ref:`Some default implementations are provided <watcher_planners>`, but it is
+possible to :ref:`develop new implementations <implement_planner_plugin>`
+which are dynamically loaded by Watcher at launch time.
+
 See :doc:`../architecture` for more details on this component.
 """
 

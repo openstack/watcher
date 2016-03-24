@@ -49,6 +49,10 @@ be one of the following:
 -  **CANCELLED** : the :ref:`Action <action_definition>` was in **PENDING** or
    **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
+
+:ref:`Some default implementations are provided <watcher_planners>`, but it is
+possible to :ref:`develop new implementations <implement_action_plugin>` which
+are dynamically loaded by Watcher at launch time.
 """
 
 import datetime
