@@ -222,3 +222,19 @@ class ThermalOptimizationBaseStrategy(BaseStrategy):
     @classmethod
     def get_translatable_goal_display_name(cls):
         return "Thermal optimization"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class WorkloadStabilizationBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "WORKLOAD_BALANCING"
+
+    @classmethod
+    def get_goal_display_name(cls):
+        return _("Workload balancing")
+
+    @classmethod
+    def get_translatable_goal_display_name(cls):
+        return "Workload balancing"
