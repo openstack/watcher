@@ -4,6 +4,7 @@ source = watcher
 omit = watcher/tests/*
 
 [report]
-ignore_errors = True 
+ignore_errors = True
 exclude_lines =
-    @abstract
+    @abc.abstract
+    raise NotImplementedError
