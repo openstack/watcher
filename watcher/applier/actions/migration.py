@@ -31,27 +31,24 @@ LOG = log.getLogger(__name__)
 
 
 class Migrate(base.BaseAction):
-    """Live-Migrates a server to a destination nova-compute host
+    """Migrates a server to a destination nova-compute host
 
     This action will allow you to migrate a server to another compute
-    destination host. As of now, only live migration can be performed using
-    this action.
-    .. If either host uses shared storage, you can use ``live``
-    .. as ``migration_type``. If both source and destination hosts provide
-    .. local disks, you can set the block_migration parameter to True (not
-    .. supported for yet).
+    destination host.
+    Migration type 'live' can only be used for migrating active VMs.
+    Migration type 'cold' can be used for migrating non-active VMs
+    as well active VMs, which will be shut down while migrating.
 
     The action schema is::
 
         schema = Schema({
          'resource_id': str,  # should be a UUID
-         'migration_type': str,  # choices -> "live" only
+         'migration_type': str,  # choices -> "live", "cold"
          'dst_hypervisor': str,
          'src_hypervisor': str,
         })
 
-    The `resource_id` is the UUID of the server to migrate. Only live migration
-    is supported.
+    The `resource_id` is the UUID of the server to migrate.
     The `src_hypervisor` and `dst_hypervisor` parameters are respectively the
     source and the destination compute hostname (list of available compute
     hosts is returned by this command: ``nova service-list --binary
@@ -61,6 +58,7 @@ class Migrate(base.BaseAction):
     # input parameters constants
     MIGRATION_TYPE = 'migration_type'
     LIVE_MIGRATION = 'live'
+    COLD_MIGRATION = 'cold'
     DST_HYPERVISOR = 'dst_hypervisor'
     SRC_HYPERVISOR = 'src_hypervisor'
 
@@ -77,7 +75,8 @@ class Migrate(base.BaseAction):
             voluptuous.Required(self.RESOURCE_ID): self.check_resource_id,
             voluptuous.Required(self.MIGRATION_TYPE,
                                 default=self.LIVE_MIGRATION):
-                                    voluptuous.Any(*[self.LIVE_MIGRATION]),
+                                    voluptuous.Any(*[self.LIVE_MIGRATION,
+                                                     self.COLD_MIGRATION]),
             voluptuous.Required(self.DST_HYPERVISOR):
                 voluptuous.All(voluptuous.Any(*six.string_types),
                                voluptuous.Length(min=1)),
@@ -127,14 +126,30 @@ class Migrate(base.BaseAction):
 
         return result
 
+    def _cold_migrate_instance(self, nova, destination):
+        result = None
+        try:
+            result = nova.watcher_non_live_migrate_instance(
+                instance_id=self.instance_uuid,
+                dest_hostname=destination)
+        except Exception as exc:
+            LOG.exception(exc)
+            LOG.critical(_LC("Unexpected error occured. Migration failed for"
+                             "instance %s. Leaving instance on previous "
+                             "host."), self.instance_uuid)
+
+        return result
+
     def migrate(self, destination):
         nova = nova_helper.NovaHelper(osc=self.osc)
         LOG.debug("Migrate instance %s to %s", self.instance_uuid,
                   destination)
         instance = nova.find_instance(self.instance_uuid)
         if instance:
-            if self.migration_type == 'live':
+            if self.migration_type == self.LIVE_MIGRATION:
                 return self._live_migrate_instance(nova, destination)
+            elif self.migration_type == self.COLD_MIGRATION:
+                return self._cold_migrate_instance(nova, destination)
             else:
                 raise exception.Invalid(
                     message=(_('Migration of type %(migration_type)s is not '
