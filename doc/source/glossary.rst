@@ -99,14 +99,14 @@ The :ref:`Cluster <cluster_definition>` may be divided in one or several
 Cluster Data Model
 ==================
 
-.. watcher-term:: watcher.metrics_engine.cluster_model_collector.api
+.. watcher-term:: watcher.metrics_engine.cluster_model_collector.base
 
 .. _cluster_history_definition:
 
 Cluster History
 ===============
 
-.. watcher-term:: watcher.metrics_engine.cluster_history.api
+.. watcher-term:: watcher.metrics_engine.cluster_history.base
 
 .. _controller_node_definition:
 
@@ -223,8 +223,8 @@ measure of how much of the :ref:`Goal <goal_definition>` has been achieved in
 respect with constraints and :ref:`SLAs <sla_definition>` defined by the
 :ref:`Customer <customer_definition>`.
 
-The way efficacy is evaluated will depend on the
-:ref:`Goal <goal_definition>` to achieve.
+The way efficacy is evaluated will depend on the :ref:`Goal <goal_definition>`
+to achieve.
 
 Of course, the efficacy will be relevant only as long as the
 :ref:`Action Plan <action_plan_definition>` is relevant
@@ -323,7 +323,7 @@ Solution
 Strategy
 ========
 
-.. watcher-term::  watcher.decision_engine.strategy.strategies.base
+.. watcher-term::  watcher.api.controllers.v1.strategy
 
 .. _watcher_applier_definition:
 

@@ -2,15 +2,21 @@
 
 actor Administrator
 
-Administrator -> "Watcher CLI" : watcher audit-template-create <name> <goal>
+Administrator -> "Watcher CLI" : watcher audit-template-create <name> <goal> \
+[--strategy-uuid <strategy>]
 "Watcher CLI" -> "Watcher API" : POST audit_template(parameters)
 
-"Watcher API" -> "Watcher API" : make sure goal exist in configuration
-"Watcher API" -> "Watcher Database" : create new audit_template in database
+"Watcher API" -> "Watcher Database" : Request if goal exists in database
+"Watcher API" <-- "Watcher Database" : OK
 
-"Watcher API" <-- "Watcher Database" : new audit template uuid
-"Watcher CLI" <-- "Watcher API" : return new audit template URL in HTTP Location Header
-Administrator <-- "Watcher CLI" : new audit template uuid
+"Watcher API" -> "Watcher Database" : Request if strategy exists in database (if provided)
+"Watcher API" <-- "Watcher Database" : OK
+
+"Watcher API" -> "Watcher Database" : Create new audit_template in database
+"Watcher API" <-- "Watcher Database" : New audit template UUID
+
+"Watcher CLI" <-- "Watcher API" : Return new audit template URL in HTTP Location Header
+Administrator <-- "Watcher CLI" : New audit template UUID
 
 @enduml
 

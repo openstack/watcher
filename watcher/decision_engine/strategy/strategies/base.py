@@ -170,6 +170,29 @@ class DummyBaseStrategy(BaseStrategy):
 
 
 @six.add_metaclass(abc.ABCMeta)
+class UnclassifiedStrategy(BaseStrategy):
+    """This base class is used to ease the development of new strategies
+
+    The goal defined within this strategy can be used to simplify the
+    documentation explaining how to implement a new strategy plugin by
+    ommitting the need for the strategy developer to define a goal straight
+    away.
+    """
+
+    @classmethod
+    def get_goal_name(cls):
+        return "UNCLASSIFIED"
+
+    @classmethod
+    def get_goal_display_name(cls):
+        return _("Unclassified")
+
+    @classmethod
+    def get_translatable_goal_display_name(cls):
+        return "Unclassified"
+
+
+@six.add_metaclass(abc.ABCMeta)
 class ServerConsolidationBaseStrategy(BaseStrategy):
 
     @classmethod

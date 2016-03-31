@@ -56,18 +56,39 @@ watcher binary without options.
 How do I run an audit of my cluster ?
 -------------------------------------
 
-First, you need to create an :ref:`audit template <audit_template_definition>`.
-An :ref:`audit template <audit_template_definition>` defines an optimization
-:ref:`goal <goal_definition>` to achieve (i.e. the settings of your audit).
-This goal should be declared in the Watcher service configuration file
-**/etc/watcher/watcher.conf**.
+First, you need to find the :ref:`goal <goal_definition>` you want to achieve:
 
 .. code:: bash
 
-  $ watcher audit-template-create my_first_audit DUMMY
+  $ watcher goal-list
 
-If you get "*You must provide a username via either --os-username or via
-env[OS_USERNAME]*" you may have to verify your credentials.
+.. note::
+
+    If you get "*You must provide a username via either --os-username or via
+    env[OS_USERNAME]*" you may have to verify your credentials.
+
+Then, you can create an :ref:`audit template <audit_template_definition>`.
+An :ref:`audit template <audit_template_definition>` defines an optimization
+:ref:`goal <goal_definition>` to achieve (i.e. the settings of your audit).
+
+.. code:: bash
+
+  $ watcher audit-template-create my_first_audit_template <your_goal_uuid>
+
+Although optional, you may want to actually set a specific strategy for your
+audit template. If so, you may can search of its UUID using the following
+command:
+
+.. code:: bash
+
+  $ watcher strategy-list --goal-uuid <your_goal_uuid>
+
+The command to create your audit template would then be:
+
+.. code:: bash
+
+  $ watcher audit-template-create my_first_audit_template <your_goal_uuid> \
+    --strategy-uuid <your_strategy_uuid>
 
 Then, you can create an audit. An audit is a request for optimizing your
 cluster depending on the specified :ref:`goal <goal_definition>`.

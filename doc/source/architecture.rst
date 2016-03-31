@@ -155,6 +155,7 @@ by the :ref:`Watcher API <archi_watcher_api_definition>` or the
 -  :ref:`Action plans <action_plan_definition>`
 -  :ref:`Actions <action_definition>`
 -  :ref:`Goals <goal_definition>`
+-  :ref:`Strategies <strategy_definition>`
 
 The Watcher domain being here "*optimization of some resources provided by an
 OpenStack system*".
@@ -196,8 +197,6 @@ Audit, the :ref:`Strategy <strategy_definition>` relies on two sets of data:
     which provides information about the past of the
     :ref:`Cluster <cluster_definition>`
 
-So far, only one :ref:`Strategy <strategy_definition>` can be associated to a
-given :ref:`Goal <goal_definition>` via the main Watcher configuration file.
 
 .. _data_model:
 
@@ -230,13 +229,15 @@ following parameters:
 
 -   A name
 -   A goal to achieve
+-   An optional strategy
 
 .. image:: ./images/sequence_create_audit_template.png
    :width: 100%
 
-The `Watcher API`_  just makes sure that the goal exists (i.e. it is declared
-in the Watcher configuration file) and stores a new audit template in the
-:ref:`Watcher Database <watcher_database_definition>`.
+The `Watcher API`_  makes sure that both the specified goal (mandatory) and
+its associated strategy (optional) are registered inside the :ref:`Watcher
+Database <watcher_database_definition>` before storing a new audit template in
+the :ref:`Watcher Database <watcher_database_definition>`.
 
 .. _sequence_diagrams_create_and_launch_audit:
 
@@ -260,12 +261,11 @@ the Audit in the
 The :ref:`Watcher Decision Engine <watcher_decision_engine_definition>` reads
 the Audit parameters from the
 :ref:`Watcher Database <watcher_database_definition>`. It instantiates the
-appropriate :ref:`Strategy <strategy_definition>` (using entry points)
-associated to the :ref:`Goal <goal_definition>` of the
-:ref:`Audit <audit_definition>` (it uses the information of the Watcher
-configuration file to find the mapping between the
-:ref:`Goal <goal_definition>` and the :ref:`Strategy <strategy_definition>`
-python class).
+appropriate :ref:`strategy <strategy_definition>` (using entry points)
+given both the :ref:`goal <goal_definition>` and the strategy associated to the
+parent :ref:`audit template <audit_template_definition>` of the :ref:`Audit
+<audit_definition>`. If no strategy is associated to the audit template, the
+strategy is dynamically selected by the Decision Engine.
 
 The :ref:`Watcher Decision Engine <watcher_decision_engine_definition>` also
 builds the :ref:`Cluster Data Model <cluster_data_model_definition>`. This

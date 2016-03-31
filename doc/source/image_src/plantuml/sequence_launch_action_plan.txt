@@ -4,8 +4,8 @@ actor Administrator
 
 Administrator -> "Watcher CLI" : watcher action-plan-start <action_plan_uuid>
 
-"Watcher CLI" -> "Watcher API" : PATCH action_plan(state=TRIGGERED)
-"Watcher API" -> "Watcher Database" : action_plan.state=TRIGGERED
+"Watcher CLI" -> "Watcher API" : PATCH action_plan(state=PENDING)
+"Watcher API" -> "Watcher Database" : action_plan.state=PENDING
 
 "Watcher CLI" <-- "Watcher API" : HTTP 200
 

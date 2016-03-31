@@ -182,8 +182,6 @@ The configuration file is organized into the following sections:
 * ``[watcher_clients_auth]`` - Keystone auth configuration for clients
 * ``[watcher_applier]`` - Watcher Applier module configuration
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
-* ``[watcher_goals]`` - Goals mapping configuration
-* ``[watcher_strategies]`` - Strategy configuration
 * ``[oslo_messaging_rabbit]`` - Oslo Messaging RabbitMQ driver configuration
 * ``[ceilometer_client]`` - Ceilometer client configuration
 * ``[cinder_client]`` - Cinder client configuration
