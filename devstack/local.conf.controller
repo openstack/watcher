@@ -42,7 +42,3 @@ LOGDAYS=2
 [[post-config|$NOVA_CONF]]
 [DEFAULT]
 compute_monitors=cpu.virt_driver
-
-[[post-config|$WATCHER_CONF]]
-[watcher_goals]
-goals=BASIC_CONSOLIDATION:basic,DUMMY:dummy
