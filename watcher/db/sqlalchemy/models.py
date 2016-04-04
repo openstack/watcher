@@ -116,7 +116,6 @@ class AuditTemplate(Base):
     __tablename__ = 'audit_templates'
     __table_args__ = (
         schema.UniqueConstraint('uuid', name='uniq_audit_templates0uuid'),
-        schema.UniqueConstraint('name', name='uniq_audit_templates0name'),
         table_args()
     )
     id = Column(Integer, primary_key=True)

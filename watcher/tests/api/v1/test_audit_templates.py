@@ -19,6 +19,7 @@ from six.moves.urllib import parse as urlparse
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import audit_template as api_audit_template
+from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher import objects
@@ -496,11 +497,10 @@ class TestDelete(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
         self.context.show_deleted = True
-        audit_template = objects.AuditTemplate.get_by_name(
-            self.context, self.audit_template.name)
-
-        return_deleted_at = timeutils.strtime(audit_template['deleted_at'])
-        self.assertEqual(timeutils.strtime(test_time), return_deleted_at)
+        self.assertRaises(exception.AuditTemplateNotFound,
+                          objects.AuditTemplate.get_by_name,
+                          self.context,
+                          self.audit_template.name)
 
     def test_delete_audit_template_not_found(self):
         uuid = utils.generate_uuid()
