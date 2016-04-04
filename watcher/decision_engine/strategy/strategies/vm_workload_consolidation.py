@@ -20,6 +20,7 @@
 from copy import deepcopy
 
 from oslo_log import log
+import six
 
 from watcher._i18n import _LE, _LI
 from watcher.common import exception
@@ -95,7 +96,7 @@ class VMWorkloadConsolidation(base.BaseStrategy):
 
         :param state: resource state of unknown type
         """
-        if type(state) == str:
+        if isinstance(state, six.string_types):
             return state
         elif (type(state) == hyper_state.HypervisorState or
               type(state) == vm_state.VMState):
