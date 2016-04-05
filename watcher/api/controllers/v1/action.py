@@ -359,6 +359,10 @@ class ActionsController(rest.RestController):
 
         :param action: a action within the request body.
         """
+        # FIXME: blueprint edit-action-plan-flow
+        raise exception.OperationNotPermitted(
+            _("Cannot create an action directly"))
+
         if self.from_actions:
             raise exception.OperationNotPermitted
 
@@ -379,6 +383,10 @@ class ActionsController(rest.RestController):
         :param action_uuid: UUID of a action.
         :param patch: a json PATCH document to apply to this action.
         """
+        # FIXME: blueprint edit-action-plan-flow
+        raise exception.OperationNotPermitted(
+            _("Cannot modify an action directly"))
+
         if self.from_actions:
             raise exception.OperationNotPermitted
 
@@ -411,6 +419,9 @@ class ActionsController(rest.RestController):
 
         :param action_uuid: UUID of a action.
         """
+        # FIXME: blueprint edit-action-plan-flow
+        raise exception.OperationNotPermitted(
+            _("Cannot delete an action directly"))
 
         action_to_delete = objects.Action.get_by_uuid(
             pecan.request.context,
