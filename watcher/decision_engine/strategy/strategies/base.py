@@ -30,6 +30,10 @@ to find an optimal :ref:`Solution <solution_definition>`.
 When a new :ref:`Goal <goal_definition>` is added to the Watcher configuration,
 at least one default associated :ref:`Strategy <strategy_definition>` should be
 provided as well.
+
+:ref:`Some default implementations are provided <watcher_strategies>`, but it
+is possible to :ref:`develop new implementations <implement_strategy_plugin>`
+which are dynamically loaded by Watcher at launch time.
 """
 
 import abc
