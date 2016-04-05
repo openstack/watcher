@@ -49,24 +49,9 @@ standard workflow model description formats such as
 `Business Process Model and Notation 2.0 (BPMN 2.0) <http://www.omg.org/spec/BPMN/2.0/>`_
 or `Unified Modeling Language (UML) <http://www.uml.org/>`_.
 
-An :ref:`Action Plan <action_plan_definition>` has a life-cycle and its current
-state may be one of the following:
-
--  **RECOMMENDED** : the :ref:`Action Plan <action_plan_definition>` is waiting
-   for a validation from the :ref:`Administrator <administrator_definition>`
--  **ONGOING** : the :ref:`Action Plan <action_plan_definition>` is currently
-   being processed by the :ref:`Watcher Applier <watcher_applier_definition>`
--  **SUCCEEDED** : the :ref:`Action Plan <action_plan_definition>` has been
-   executed successfully (i.e. all :ref:`Actions <action_definition>` that it
-   contains have been executed successfully)
--  **FAILED** : an error occured while executing the
-   :ref:`Action Plan <action_plan_definition>`
--  **DELETED** : the :ref:`Action Plan <action_plan_definition>` is still
-   stored in the :ref:`Watcher database <watcher_database_definition>` but is
-   not returned any more through the Watcher APIs.
--  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
-   **PENDING** or **ONGOING** state and was cancelled by the
-   :ref:`Administrator <administrator_definition>`
+To see the life-cycle and description of 
+:ref:`Action Plan <action_plan_definition>` states, visit :ref:`the Action Plan state
+machine <action_plan_state_machine>`.
 """  # noqa
 
 import datetime

@@ -361,6 +361,28 @@ State Machine diagrams
 Audit State Machine
 -------------------
 
+An :ref:`Audit <audit_definition>` has a life-cycle and its current state may
+be one of the following:
+
+-  **PENDING** : a request for an :ref:`Audit <audit_definition>` has been
+   submitted (either manually by the
+   :ref:`Administrator <administrator_definition>` or automatically via some
+   event handling mechanism) and is in the queue for being processed by the
+   :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`
+-  **ONGOING** : the :ref:`Audit <audit_definition>` is currently being
+   processed by the
+   :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`
+-  **SUCCEEDED** : the :ref:`Audit <audit_definition>` has been executed
+   successfully and at least one solution was found
+-  **FAILED** : an error occured while executing the
+   :ref:`Audit <audit_definition>`
+-  **DELETED** : the :ref:`Audit <audit_definition>` is still stored in the
+   :ref:`Watcher database <watcher_database_definition>` but is not returned
+   any more through the Watcher APIs.
+-  **CANCELLED** : the :ref:`Audit <audit_definition>` was in **PENDING** or
+   **ONGOING** state and was cancelled by the
+   :ref:`Administrator <administrator_definition>`
+
 The following diagram shows the different possible states of an
 :ref:`Audit <audit_definition>` and what event makes the state change to a new
 value:
@@ -372,6 +394,31 @@ value:
 
 Action Plan State Machine
 -------------------------
+
+An :ref:`Action Plan <action_plan_definition>` has a life-cycle and its current
+state may be one of the following:
+
+-  **RECOMMENDED** : the :ref:`Action Plan <action_plan_definition>` is waiting
+   for a validation from the :ref:`Administrator <administrator_definition>`
+-  **PENDING** : a request for an :ref:`Action Plan <action_plan_definition>`
+   has been submitted (due to an
+   :ref:`Administrator <administrator_definition>` executing an
+   :ref:`Audit <audit_definition>`) and is in the queue for
+   being processed by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **ONGOING** : the :ref:`Action Plan <action_plan_definition>` is currently
+   being processed by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **SUCCEEDED** : the :ref:`Action Plan <action_plan_definition>` has been
+   executed successfully (i.e. all :ref:`Actions <action_definition>` that it
+   contains have been executed successfully)
+-  **FAILED** : an error occured while executing the
+   :ref:`Action Plan <action_plan_definition>`
+-  **DELETED** : the :ref:`Action Plan <action_plan_definition>` is still
+   stored in the :ref:`Watcher database <watcher_database_definition>` but is
+   not returned any more through the Watcher APIs.
+-  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
+   **PENDING** or **ONGOING** state and was cancelled by the
+   :ref:`Administrator <administrator_definition>`
+
 
 The following diagram shows the different possible states of an
 :ref:`Action Plan <action_plan_definition>` and what event makes the state
