@@ -18,13 +18,11 @@
 #
 
 from oslo_config import cfg
-from oslo_log import log
 
 from watcher.common import nova_helper
 from watcher.metrics_engine.cluster_model_collector import nova as cnova
 
 
-LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 

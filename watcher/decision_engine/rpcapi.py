@@ -18,7 +18,6 @@
 #
 
 from oslo_config import cfg
-from oslo_log import log
 
 from watcher.common import exception
 from watcher.common.messaging import messaging_core
@@ -28,7 +27,6 @@ from watcher.decision_engine.manager import decision_engine_opt_group
 from watcher.decision_engine.manager import WATCHER_DECISION_ENGINE_OPTS
 
 
-LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 CONF.register_group(decision_engine_opt_group)

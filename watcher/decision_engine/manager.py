@@ -38,13 +38,11 @@ See :doc:`../architecture` for more details on this component.
 """
 
 from oslo_config import cfg
-from oslo_log import log
 
 from watcher.common.messaging import messaging_core
 from watcher.decision_engine.messaging import audit_endpoint
 
 
-LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 WATCHER_DECISION_ENGINE_OPTS = [

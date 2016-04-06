@@ -15,14 +15,12 @@
 # limitations under the License.
 
 import eventlet
-from oslo_log import log
 import oslo_messaging as messaging
 
 from watcher.common.messaging.utils import observable
 
 
 eventlet.monkey_patch()
-LOG = log.getLogger(__name__)
 
 
 class NotificationHandler(observable.Observable):

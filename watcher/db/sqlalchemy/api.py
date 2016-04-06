@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import session as db_session
 from oslo_db.sqlalchemy import utils as db_utils
-from oslo_log import log
 from sqlalchemy.orm import exc
 
 from watcher import _i18n
@@ -35,7 +34,6 @@ from watcher.objects import audit as audit_objects
 from watcher.objects import utils as objutils
 
 CONF = cfg.CONF
-LOG = log.getLogger(__name__)
 _ = _i18n._
 
 _FACADE = None

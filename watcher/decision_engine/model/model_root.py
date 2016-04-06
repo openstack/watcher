@@ -13,15 +13,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from oslo_log import log
-
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.model import hypervisor
 from watcher.decision_engine.model import mapping
 from watcher.decision_engine.model import vm
-
-LOG = log.getLogger(__name__)
 
 
 class ModelRoot(object):

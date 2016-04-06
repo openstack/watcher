@@ -19,11 +19,8 @@
 
 from __future__ import unicode_literals
 
-from oslo_log import log
 
 from watcher.common.loader import default
-
-LOG = log.getLogger(__name__)
 
 
 class DefaultStrategyLoader(default.DefaultLoader):

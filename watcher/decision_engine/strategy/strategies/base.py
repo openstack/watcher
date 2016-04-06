@@ -37,15 +37,11 @@ which are dynamically loaded by Watcher at launch time.
 """
 
 import abc
-
-from oslo_log import log
 import six
 
 from watcher.common import clients
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
-
-LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)

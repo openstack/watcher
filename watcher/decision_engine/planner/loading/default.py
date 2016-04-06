@@ -17,11 +17,7 @@
 
 from __future__ import unicode_literals
 
-from oslo_log import log
-
 from watcher.common.loader.default import DefaultLoader
-
-LOG = log.getLogger(__name__)
 
 
 class DefaultPlannerLoader(DefaultLoader):
