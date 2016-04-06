@@ -180,6 +180,10 @@ class AuditTemplateReferenced(Invalid):
                 "multiple audit")
 
 
+class AuditTypeNotFound(Invalid):
+    msg_fmt = _("Audit type %(audit_type)s could not be found")
+
+
 class AuditNotFound(ResourceNotFound):
     msg_fmt = _("Audit %(audit)s could not be found")
 

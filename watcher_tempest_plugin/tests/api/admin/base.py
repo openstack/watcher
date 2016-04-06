@@ -16,8 +16,8 @@
 
 import functools
 
+from tempest.lib.common.utils import data_utils
 from tempest import test
-from tempest_lib.common.utils import data_utils
 
 from watcher_tempest_plugin import infra_optim_clients as clients
 
@@ -157,7 +157,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit(cls, audit_template_uuid, type='ONESHOT',
-                     state='PENDING', deadline=None):
+                     state=None, deadline=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use

@@ -49,6 +49,31 @@ from watcher.decision_engine import rpcapi
 from watcher import objects
 
 
+class AuditPostType(wtypes.Base):
+
+    uuid = wtypes.wsattr(types.uuid, mandatory=False)
+
+    audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=True)
+
+    type = wtypes.wsattr(wtypes.text, mandatory=True)
+
+    deadline = wtypes.wsattr(datetime.datetime, mandatory=False)
+
+    state = wsme.wsattr(wtypes.text, readonly=True,
+                        default=objects.audit.State.PENDING)
+
+    def as_audit(self):
+        audit_type_values = [val.value for val in objects.audit.AuditType]
+        if self.type not in audit_type_values:
+            raise exception.AuditTypeNotFound(audit_type=self.type)
+
+        return Audit(
+            uuid=self.uuid or utils.generate_uuid(),
+            audit_template_id=self.audit_template_uuid,
+            type=self.type,
+            deadline=self.deadline)
+
+
 class AuditPatchType(types.JsonPatchType):
 
     @staticmethod
@@ -325,12 +350,13 @@ class AuditsController(rest.RestController):
                                               audit_uuid)
         return Audit.convert_with_links(rpc_audit)
 
-    @wsme_pecan.wsexpose(Audit, body=Audit, status_code=201)
-    def post(self, audit):
+    @wsme_pecan.wsexpose(Audit, body=AuditPostType, status_code=201)
+    def post(self, audit_p):
         """Create a new audit.
 
-        :param audit: a audit within the request body.
+        :param audit_p: a audit within the request body.
         """
+        audit = audit_p.as_audit()
         if self.from_audits:
             raise exception.OperationNotPermitted
 

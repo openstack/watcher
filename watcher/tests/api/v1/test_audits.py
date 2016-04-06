@@ -432,7 +432,8 @@ class TestPost(api_base.FunctionalTest):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        audit_dict = post_get_test_audit()
+        audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+        del audit_dict['state']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -451,12 +452,28 @@ class TestPost(api_base.FunctionalTest):
             response.json['created_at']).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    def test_create_audit_with_state_not_allowed(self, mock_utcnow,
+                                                 mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        test_time = datetime.datetime(2000, 1, 1, 0, 0)
+        mock_utcnow.return_value = test_time
+
+        audit_dict = post_get_test_audit(state=objects.audit.State.SUCCEEDED)
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
     @mock.patch('oslo_utils.timeutils.utcnow')
     def test_create_audit_invalid_audit_template_uuid(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
         audit_dict = post_get_test_audit()
+        del audit_dict['state']
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
             '01234567-8910-1112-1314-151617181920')
@@ -473,11 +490,13 @@ class TestPost(api_base.FunctionalTest):
     def test_create_audit_doesnt_contain_id(self, mock_trigger_audit):
         mock_trigger_audit.return_value = mock.ANY
 
-        audit_dict = post_get_test_audit(state='ONGOING')
+        audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+        state = audit_dict['state']
+        del audit_dict['state']
         with mock.patch.object(self.dbapi, 'create_audit',
                                wraps=self.dbapi.create_audit) as cn_mock:
             response = self.post_json('/audits', audit_dict)
-            self.assertEqual(audit_dict['state'], response.json['state'])
+            self.assertEqual(state, response.json['state'])
             cn_mock.assert_called_once_with(mock.ANY)
             # Check that 'id' is not in first arg of positional args
             self.assertNotIn('id', cn_mock.call_args[0][0])
@@ -488,6 +507,7 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit()
         del audit_dict['uuid']
+        del audit_dict['state']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -499,7 +519,8 @@ class TestPost(api_base.FunctionalTest):
     def test_create_audit_trigger_decision_engine(self):
         with mock.patch.object(deapi.DecisionEngineAPI,
                                'trigger_audit') as de_mock:
-            audit_dict = post_get_test_audit(state='ONGOING')
+            audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+            del audit_dict['state']
             self.post_json('/audits', audit_dict)
             de_mock.assert_called_once_with(mock.ANY, audit_dict['uuid'])
 

@@ -16,7 +16,6 @@
 
 from __future__ import unicode_literals
 
-from tempest.lib import decorators
 from tempest.lib import exceptions
 from tempest import test
 
@@ -72,7 +71,6 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         self.assertRaises(
             exceptions.BadRequest, self.create_audit, **audit_params)
 
-    @decorators.skip_because(bug="1532843")
     @test.attr(type='smoke')
     def test_create_audit_with_invalid_state(self):
         _, audit_template = self.create_audit_template()
@@ -85,7 +83,6 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         self.assertRaises(
             exceptions.BadRequest, self.create_audit, **audit_params)
 
-    @decorators.skip_because(bug="1533210")
     @test.attr(type='smoke')
     def test_create_audit_with_no_state(self):
         _, audit_template = self.create_audit_template()

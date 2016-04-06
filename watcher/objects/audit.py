@@ -48,6 +48,8 @@ be one of the following:
    :ref:`Administrator <administrator_definition>`
 """
 
+import enum
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as dbapi
@@ -65,7 +67,7 @@ class State(object):
     PENDING = 'PENDING'
 
 
-class AuditType(object):
+class AuditType(enum.Enum):
     ONESHOT = 'ONESHOT'
     CONTINUOUS = 'CONTINUOUS'
 

@@ -138,6 +138,8 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         """
         audit = {'audit_template_uuid': audit_template_uuid}
         audit.update(kwargs)
+        if not audit['state']:
+            del audit['state']
 
         return self._create_request('audits', audit)
 

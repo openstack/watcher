@@ -24,8 +24,8 @@ from oslo_log import log
 
 from tempest import config
 from tempest import exceptions
+from tempest.lib.common.utils import data_utils
 from tempest.scenario import manager
-from tempest_lib.common.utils import data_utils
 
 from watcher_tempest_plugin import infra_optim_clients as clients
 
@@ -114,7 +114,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     # ### AUDITS ### #
 
     def create_audit(self, audit_template_uuid, type='ONESHOT',
-                     state='PENDING', deadline=None):
+                     state=None, deadline=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
