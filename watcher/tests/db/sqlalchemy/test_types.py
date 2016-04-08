@@ -35,6 +35,7 @@ class SqlAlchemyCustomTypesTestCase(base.DbTestCase):
                                 .filter_by(uuid=audit_template1_id).one()
         self.assertEqual({}, audit_template1.extra)
 
+    def test_JSONEncodedDict_extra_value(self):
         # Create audit_template with extra
         audit_template2_id = w_utils.generate_uuid()
         self.dbapi.create_audit_template({'uuid': audit_template2_id,

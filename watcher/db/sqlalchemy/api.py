@@ -306,6 +306,13 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
+        query = model_query(models.AuditTemplate)
+        query = query.filter_by(name=values.get('name'),
+                                deleted_at=None)
+
+        if len(query.all()) > 0:
+            raise exception.AuditTemplateAlreadyExists(uuid=values['uuid'])
+
         audit_template = models.AuditTemplate()
         audit_template.update(values)
 
@@ -347,14 +354,10 @@ class Connection(api.BaseConnection):
 
     def get_audit_template_by_name(self, context, audit_template_name):
         query = model_query(models.AuditTemplate)
-        query = query.filter_by(name=audit_template_name)
+        query = query.filter_by(name=audit_template_name,
+                                deleted_at=None)
         try:
-            audit_template = query.one()
-            if not context.show_deleted:
-                if audit_template.deleted_at is not None:
-                    raise exception.AuditTemplateNotFound(
-                        audit_template=audit_template_name)
-            return audit_template
+            return query.one()
         except exc.MultipleResultsFound:
             raise exception.Conflict(
                 _('Multiple audit templates exist with the same name.'
