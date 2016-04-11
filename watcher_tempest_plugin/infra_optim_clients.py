@@ -29,17 +29,14 @@ CONF = config.CONF
 @six.add_metaclass(abc.ABCMeta)
 class BaseManager(clients.Manager):
 
-    def __init__(self, credentials, service=None, api_microversions=None):
-        super(BaseManager, self).__init__(
-            credentials, service, api_microversions)
+    def __init__(self, credentials):
+        super(BaseManager, self).__init__(credentials)
         self.io_client = ioc.InfraOptimClientJSON(
             self.auth_provider, 'infra-optim', CONF.identity.region)
 
 
 class AdminManager(BaseManager):
-    def __init__(self, service=None, api_microversions=None):
+    def __init__(self):
         super(AdminManager, self).__init__(
             creds_factory.get_configured_credentials('identity_admin'),
-            service,
-            api_microversions
         )

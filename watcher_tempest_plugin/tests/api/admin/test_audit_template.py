@@ -18,8 +18,8 @@ from __future__ import unicode_literals
 
 import uuid
 
+from tempest.lib import exceptions
 from tempest import test
-from tempest_lib import exceptions as lib_exc
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -65,7 +65,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
         self.delete_audit_template(audit_uuid)
 
-        self.assertRaises(lib_exc.NotFound, self.client.show_audit_template,
+        self.assertRaises(exceptions.NotFound, self.client.show_audit_template,
                           audit_uuid)
 
 

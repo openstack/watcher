@@ -123,6 +123,8 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
 
+    iniset $WATCHER_CONF watcher_goals goals "DUMMY:dummy,BASIC_CONSOLIDATION:basic"
+
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"
 

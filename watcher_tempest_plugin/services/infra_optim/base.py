@@ -20,7 +20,7 @@ import functools
 import six
 import six.moves.urllib.parse as urlparse
 
-from tempest.common import service_client
+from tempest.lib.common import rest_client
 
 
 def handle_errors(f):
@@ -44,7 +44,7 @@ def handle_errors(f):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseInfraOptimClient(service_client.ServiceClient):
+class BaseInfraOptimClient(rest_client.RestClient):
     """Base Tempest REST client for Watcher API."""
 
     URI_PREFIX = ''
@@ -116,7 +116,7 @@ class BaseInfraOptimClient(service_client.ServiceClient):
             uri += "?%s" % urlparse.urlencode(kwargs)
 
         resp, body = self.get(uri)
-        self.expected_success(200, resp['status'])
+        self.expected_success(200, int(resp['status']))
 
         return resp, self.deserialize(body)
 
@@ -132,7 +132,7 @@ class BaseInfraOptimClient(service_client.ServiceClient):
         else:
             uri = self._get_uri(resource, uuid=uuid, permanent=permanent)
         resp, body = self.get(uri)
-        self.expected_success(200, resp['status'])
+        self.expected_success(200, int(resp['status']))
 
         return resp, self.deserialize(body)
 
@@ -150,7 +150,7 @@ class BaseInfraOptimClient(service_client.ServiceClient):
         uri = self._get_uri(resource)
 
         resp, body = self.post(uri, body=body)
-        self.expected_success(201, resp['status'])
+        self.expected_success(201, int(resp['status']))
 
         return resp, self.deserialize(body)
 
@@ -165,7 +165,7 @@ class BaseInfraOptimClient(service_client.ServiceClient):
         uri = self._get_uri(resource, uuid)
 
         resp, body = self.delete(uri)
-        self.expected_success(204, resp['status'])
+        self.expected_success(204, int(resp['status']))
         return resp, body
 
     def _patch_request(self, resource, uuid, patch_object):
@@ -181,7 +181,7 @@ class BaseInfraOptimClient(service_client.ServiceClient):
         patch_body = self.serialize(patch_object)
 
         resp, body = self.patch(uri, body=patch_body)
-        self.expected_success(200, resp['status'])
+        self.expected_success(200, int(resp['status']))
         return resp, self.deserialize(body)
 
     @handle_errors
@@ -207,5 +207,5 @@ class BaseInfraOptimClient(service_client.ServiceClient):
         put_body = self.serialize(put_object)
 
         resp, body = self.put(uri, body=put_body)
-        self.expected_success(202, resp['status'])
+        self.expected_success(202, int(resp['status']))
         return resp, body

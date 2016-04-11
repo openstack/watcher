@@ -16,9 +16,9 @@
 
 from __future__ import unicode_literals
 
+from tempest.lib import decorators
+from tempest.lib import exceptions
 from tempest import test
-from tempest_lib import decorators
-from tempest_lib import exceptions as lib_exc
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -70,7 +70,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         )
 
         self.assertRaises(
-            lib_exc.BadRequest, self.create_audit, **audit_params)
+            exceptions.BadRequest, self.create_audit, **audit_params)
 
     @decorators.skip_because(bug="1532843")
     @test.attr(type='smoke')
@@ -83,7 +83,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         )
 
         self.assertRaises(
-            lib_exc.BadRequest, self.create_audit, **audit_params)
+            exceptions.BadRequest, self.create_audit, **audit_params)
 
     @decorators.skip_because(bug="1533210")
     @test.attr(type='smoke')
@@ -113,7 +113,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
         self.delete_audit(audit_uuid)
 
-        self.assertRaises(lib_exc.NotFound, self.client.show_audit, audit_uuid)
+        self.assertRaises(
+            exceptions.NotFound, self.client.show_audit, audit_uuid)
 
 
 class TestShowListAudit(base.BaseInfraOptimTest):
