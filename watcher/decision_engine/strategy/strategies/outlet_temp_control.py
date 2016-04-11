@@ -202,8 +202,8 @@ class OutletTempControl(base.BaseStrategy):
                 cluster_data_model, host, cpu_capacity, memory_capacity,
                 disk_capacity)
             cores_available = cpu_capacity.get_capacity(host) - cores_used
-            disk_available = disk_capacity.get_capacity(host) - mem_used
-            mem_available = memory_capacity.get_capacity(host) - disk_used
+            disk_available = disk_capacity.get_capacity(host) - disk_used
+            mem_available = memory_capacity.get_capacity(host) - mem_used
             if cores_available >= required_cores \
                     and disk_available >= required_disk \
                     and mem_available >= required_memory:
