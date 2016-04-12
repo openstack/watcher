@@ -44,19 +44,48 @@ CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
 
 class DefaultStrategySelector(base.BaseSelector):
 
-    def __init__(self):
+    def __init__(self, goal_name, strategy_name=None, osc=None):
+        """Default strategy selector
+
+        :param goal_name: Name of the goal
+        :param strategy_name: Name of the strategy
+        :param osc: an OpenStackClients instance
+        """
         super(DefaultStrategySelector, self).__init__()
+        self.goal_name = goal_name
+        self.strategy_name = strategy_name
+        self.osc = osc
         self.strategy_loader = default.DefaultStrategyLoader()
 
-    def define_from_goal(self, goal_name, osc=None):
-        """:param osc: an OpenStackClients instance"""
+    def select(self):
+        """Selects a strategy
+
+        :raises: :py:class:`~.LoadingError` if it failed to load a strategy
+        :returns: A :py:class:`~.BaseStrategy` instance
+        """
         strategy_to_load = None
         try:
-            strategy_to_load = CONF.watcher_goals.goals[goal_name]
-            return self.strategy_loader.load(strategy_to_load, osc=osc)
-        except KeyError as exc:
+            if self.strategy_name:
+                strategy_to_load = self.strategy_name
+            else:
+                available_strategies = self.strategy_loader.list_available()
+                available_strategies_for_goal = list(
+                    key for key, strat in available_strategies.items()
+                    if strat.get_goal_name() == self.goal_name)
+
+                if not available_strategies_for_goal:
+                    raise exception.NoAvailableStrategyForGoal(
+                        goal=self.goal_name)
+
+                # TODO(v-francoise): We should do some more work here to select
+                # a strategy out of a given goal instead of just choosing the
+                # 1st one
+                strategy_to_load = available_strategies_for_goal[0]
+            return self.strategy_loader.load(strategy_to_load, osc=self.osc)
+        except exception.NoAvailableStrategyForGoal:
+            raise
+        except Exception as exc:
             LOG.exception(exc)
-            raise exception.WatcherException(
-                _("Incorrect mapping: could not find "
-                  "associated strategy for '%s'") % goal_name
-            )
+            raise exception.LoadingError(
+                _("Could not load any strategy for goal %(goal)s"),
+                goal=self.goal_name)

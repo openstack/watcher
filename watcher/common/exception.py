@@ -287,7 +287,11 @@ class MetricCollectorNotDefined(WatcherException):
 
 
 class ClusterStateNotDefined(WatcherException):
-    msg_fmt = _("the cluster state is not defined")
+    msg_fmt = _("The cluster state is not defined")
+
+
+class NoAvailableStrategyForGoal(WatcherException):
+    msg_fmt = _("No strategy could be found to achieve the '%(goal)s' goal.")
 
 
 # Model

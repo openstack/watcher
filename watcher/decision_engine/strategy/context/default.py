@@ -30,26 +30,20 @@ class DefaultStrategyContext(base.BaseStrategyContext):
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
-        self._strategy_selector = default.DefaultStrategySelector()
         self._collector_manager = manager.CollectorManager()
 
     @property
     def collector(self):
         return self._collector_manager
 
-    @property
-    def strategy_selector(self):
-        return self._strategy_selector
-
     def execute_strategy(self, audit_uuid, request_context):
         audit = objects.Audit.get_by_uuid(request_context, audit_uuid)
 
         # Retrieve the Audit Template
-        audit_template = objects.\
-            AuditTemplate.get_by_id(request_context, audit.audit_template_id)
+        audit_template = objects.AuditTemplate.get_by_id(
+            request_context, audit.audit_template_id)
 
         osc = clients.OpenStackClients()
-
         # todo(jed) retrieve in audit_template parameters (threshold,...)
         # todo(jed) create ActionPlan
         collector_manager = self.collector.get_cluster_model_collector(osc=osc)
@@ -57,8 +51,13 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         # todo(jed) remove call to get_latest_cluster_data_model
         cluster_data_model = collector_manager.get_latest_cluster_data_model()
 
-        selected_strategy = self.strategy_selector.define_from_goal(
-            audit_template.goal, osc=osc)
+        strategy_selector = default.DefaultStrategySelector(
+            goal_name=objects.Goal.get_by_name(
+                request_context, audit_template.goal).name,
+            strategy_name=None,
+            osc=osc)
+
+        selected_strategy = strategy_selector.select()
 
         # todo(jed) add parameters and remove cluster_data_model
         return selected_strategy.execute(cluster_data_model)
