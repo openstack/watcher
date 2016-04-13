@@ -33,7 +33,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_oneshot(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
@@ -48,7 +49,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_continuous(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
@@ -73,7 +75,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_with_invalid_state(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
@@ -85,7 +88,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_with_no_state(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
@@ -104,7 +108,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_delete_audit(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, body = self.create_audit(audit_template['uuid'])
         audit_uuid = body['uuid']
 
@@ -123,7 +128,8 @@ class TestShowListAudit(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestShowListAudit, cls).resource_setup()
-        _, cls.audit_template = cls.create_audit_template()
+        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
     def assert_expected(self, expected, actual,

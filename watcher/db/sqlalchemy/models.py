@@ -152,7 +152,8 @@ class AuditTemplate(Base):
     name = Column(String(63), nullable=True)
     description = Column(String(255), nullable=True)
     host_aggregate = Column(Integer, nullable=True)
-    goal = Column(String(63), nullable=True)
+    goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
+    strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     extra = Column(JSONEncodedDict)
     version = Column(String(15), nullable=True)
 

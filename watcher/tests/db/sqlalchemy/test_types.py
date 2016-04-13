@@ -30,7 +30,8 @@ class SqlAlchemyCustomTypesTestCase(base.DbTestCase):
     def test_JSONEncodedDict_default_value(self):
         # Create audit_template w/o extra
         audit_template1_id = w_utils.generate_uuid()
-        self.dbapi.create_audit_template({'uuid': audit_template1_id})
+        self.dbapi.create_audit_template({'uuid': audit_template1_id,
+                                          'goal_id': "DUMMY"})
         audit_template1 = sa_api.model_query(models.AuditTemplate) \
                                 .filter_by(uuid=audit_template1_id).one()
         self.assertEqual({}, audit_template1.extra)
@@ -39,6 +40,7 @@ class SqlAlchemyCustomTypesTestCase(base.DbTestCase):
         # Create audit_template with extra
         audit_template2_id = w_utils.generate_uuid()
         self.dbapi.create_audit_template({'uuid': audit_template2_id,
+                                          'goal_id': "DUMMY",
                                           'extra': {'bar': 'foo'}})
         audit_template2 = sa_api.model_query(models.AuditTemplate) \
                                 .filter_by(uuid=audit_template2_id).one()
@@ -48,24 +50,3 @@ class SqlAlchemyCustomTypesTestCase(base.DbTestCase):
         self.assertRaises(db_exc.DBError,
                           self.dbapi.create_audit_template,
                           {'extra': ['this is not a dict']})
-
-    # def test_JSONEncodedList_default_value(self):
-    #     # Create audit_template w/o images
-    #     audit_template1_id = w_utils.generate_uuid()
-    #     self.dbapi.create_audit_template({'uuid': audit_template1_id})
-    #     audit_template1 = sa_api.model_query(models.AuditTemplate) \
-    #                     .filter_by(uuid=audit_template1_id).one()
-    #     self.assertEqual([], audit_template1.images)
-
-    #     # Create audit_template with images
-    #     audit_template2_id = w_utils.generate_uuid()
-    #     self.dbapi.create_audit_template({'uuid': audit_template2_id,
-    #                               'images': ['myimage1', 'myimage2']})
-    #     audit_template2 = sa_api.model_query(models.AuditTemplate) \
-    #                     .filter_by(uuid=audit_template2_id).one()
-    #     self.assertEqual(['myimage1', 'myimage2'], audit_template2.images)
-
-    # def test_JSONEncodedList_type_check(self):
-    #     self.assertRaises(db_exc.DBError,
-    #                       self.dbapi.create_audit_template,
-    #                       {'images': {'this is not a list': 'test'}})

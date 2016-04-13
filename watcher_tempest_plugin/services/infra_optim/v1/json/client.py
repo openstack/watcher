@@ -61,8 +61,10 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
             Default: AT Description
-        :param goal: The goal associated within the audit template.
-            Default: DUMMY
+        :param goal_uuid: The related Goal UUID associated.
+            Default: None
+        :param strategy_uuid: The related Strategy UUID associated.
+            Default: None
         :param host_aggregate: ID of the host aggregate targeted by
             this audit template. Default: 1
         :param extra: IMetadata associated to this audit template.
@@ -77,8 +79,9 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
         audit_template = {
             'name': parameters.get('name', unique_name),
-            'description': parameters.get('description', ''),
-            'goal': parameters.get('goal', 'DUMMY'),
+            'description': parameters.get('description'),
+            'goal_uuid': parameters.get('goal_uuid'),
+            'strategy_uuid': parameters.get('strategy_uuid'),
             'host_aggregate': parameters.get('host_aggregate', 1),
             'extra': parameters.get('extra', {}),
         }

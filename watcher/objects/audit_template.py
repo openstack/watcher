@@ -65,7 +65,8 @@ class AuditTemplate(base.WatcherObject):
         'uuid': obj_utils.str_or_none,
         'name': obj_utils.str_or_none,
         'description': obj_utils.str_or_none,
-        'goal': obj_utils.str_or_none,
+        'goal_id': obj_utils.int_or_none,
+        'strategy_id': obj_utils.int_or_none,
         'host_aggregate': obj_utils.int_or_none,
         'extra': obj_utils.dict_or_none,
         'version': obj_utils.str_or_none,
@@ -83,8 +84,7 @@ class AuditTemplate(base.WatcherObject):
     @staticmethod
     def _from_db_object_list(db_objects, cls, context):
         """Converts a list of database entities to a list of formal objects."""
-        return \
-            [AuditTemplate._from_db_object(cls(context), obj)
+        return [AuditTemplate._from_db_object(cls(context), obj)
                 for obj in db_objects]
 
     @classmethod

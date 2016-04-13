@@ -29,7 +29,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_action_plan(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
@@ -48,7 +49,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_delete_action_plan(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
@@ -69,7 +71,8 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_execute_dummy_action_plan(self):
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
@@ -107,7 +110,8 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestShowListActionPlan, cls).resource_setup()
-        _, cls.audit_template = cls.create_audit_template()
+        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
         assert test.call_until_true(

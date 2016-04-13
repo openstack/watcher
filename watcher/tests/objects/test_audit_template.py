@@ -14,10 +14,9 @@
 #    under the License.
 
 import mock
-from testtools.matchers import HasLength
 
 from watcher.common import exception
-# from watcher.common import utils as w_utils
+from watcher.common import utils as w_utils
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -28,6 +27,10 @@ class TestAuditTemplateObject(base.DbTestCase):
     def setUp(self):
         super(TestAuditTemplateObject, self).setUp()
         self.fake_audit_template = utils.get_test_audit_template()
+        self.fake_goal1 = utils.create_test_goal(
+            id=1, uuid=w_utils.generate_uuid(), name="DUMMY")
+        self.fake_goal2 = utils.create_test_goal(
+            id=2, uuid=w_utils.generate_uuid(), name="BALANCE_LOAD")
 
     def test_get_by_id(self):
         audit_template_id = self.fake_audit_template['id']
@@ -71,7 +74,7 @@ class TestAuditTemplateObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_audit_template]
             audit_templates = objects.AuditTemplate.list(self.context)
             self.assertEqual(1, mock_get_list.call_count)
-            self.assertThat(audit_templates, HasLength(1))
+            self.assertEqual(1, len(audit_templates))
             self.assertIsInstance(audit_templates[0], objects.AuditTemplate)
             self.assertEqual(self.context, audit_templates[0]._context)
 
@@ -112,29 +115,29 @@ class TestAuditTemplateObject(base.DbTestCase):
                     as mock_update_audit_template:
                 audit_template = objects.AuditTemplate.get_by_uuid(
                     self.context, uuid)
-                audit_template.goal = 'DUMMY'
+                audit_template.goal_id = self.fake_goal1.id
                 audit_template.save()
 
                 mock_get_audit_template.assert_called_once_with(
                     self.context, uuid)
                 mock_update_audit_template.assert_called_once_with(
-                    uuid, {'goal': 'DUMMY'})
+                    uuid, {'goal_id': self.fake_goal1.id})
                 self.assertEqual(self.context, audit_template._context)
 
     def test_refresh(self):
         uuid = self.fake_audit_template['uuid']
         returns = [dict(self.fake_audit_template,
-                        goal="DUMMY"),
-                   dict(self.fake_audit_template, goal="BALANCE_LOAD")]
+                        goal_id=self.fake_goal1.id),
+                   dict(self.fake_audit_template, goal_id=self.fake_goal2.id)]
         expected = [mock.call(self.context, uuid),
                     mock.call(self.context, uuid)]
         with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
                                side_effect=returns,
                                autospec=True) as mock_get_audit_template:
             audit_template = objects.AuditTemplate.get(self.context, uuid)
-            self.assertEqual("DUMMY", audit_template.goal)
+            self.assertEqual(1, audit_template.goal_id)
             audit_template.refresh()
-            self.assertEqual("BALANCE_LOAD", audit_template.goal)
+            self.assertEqual(2, audit_template.goal_id)
             self.assertEqual(expected, mock_get_audit_template.call_args_list)
             self.assertEqual(self.context, audit_template._context)
 

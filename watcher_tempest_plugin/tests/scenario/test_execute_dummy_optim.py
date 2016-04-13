@@ -37,7 +37,8 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
         - run the action plan
         - get results and make sure it succeeded
         """
-        _, audit_template = self.create_audit_template()
+        _, goal = self.client.show_goal("DUMMY")
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(

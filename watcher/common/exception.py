@@ -154,6 +154,10 @@ class InvalidGoal(Invalid):
     msg_fmt = _("Goal %(goal)s is invalid")
 
 
+class InvalidStrategy(Invalid):
+    msg_fmt = _("Strategy %(strategy)s is invalid")
+
+
 class InvalidUUID(Invalid):
     msg_fmt = _("Expected a uuid but received %(uuid)s")
 

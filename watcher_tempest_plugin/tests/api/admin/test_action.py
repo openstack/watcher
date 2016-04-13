@@ -30,7 +30,8 @@ class TestShowListAction(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestShowListAction, cls).resource_setup()
-        _, cls.audit_template = cls.create_audit_template()
+        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
         assert test.call_until_true(

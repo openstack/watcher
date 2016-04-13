@@ -23,8 +23,6 @@ from watcher._i18n import _
 from watcher.api import acl
 from watcher.api import config as api_config
 from watcher.api import middleware
-from watcher.decision_engine.strategy.selection import default \
-    as strategy_selector
 
 # Register options for the service
 API_SERVICE_OPTS = [
@@ -61,7 +59,6 @@ opt_group = cfg.OptGroup(name='api',
 
 CONF.register_group(opt_group)
 CONF.register_opts(API_SERVICE_OPTS, opt_group)
-CONF.register_opts(strategy_selector.WATCHER_GOALS_OPTS)
 
 
 def get_pecan_config():

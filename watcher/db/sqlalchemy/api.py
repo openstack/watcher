@@ -289,23 +289,18 @@ class Connection(api.BaseConnection):
 
     def _add_audit_templates_filters(self, query, filters):
         if filters is None:
-            filters = []
+            filters = {}
 
-        if 'uuid' in filters:
-            query = query.filter_by(uuid=filters['uuid'])
-        if 'name' in filters:
-            query = query.filter_by(name=filters['name'])
-        if 'host_aggregate' in filters:
-            query = query.filter_by(host_aggregate=filters['host_aggregate'])
-        if 'goal' in filters:
-            query = query.filter_by(goal=filters['goal'])
+        plain_fields = ['uuid', 'name', 'host_aggregate',
+                        'goal_id', 'strategy_id']
+        join_fieldmap = {
+            'goal_uuid': ("uuid", models.Goal),
+            'strategy_uuid': ("uuid", models.Strategy),
+        }
 
-        query = self.__add_soft_delete_mixin_filters(
-            query, filters, models.AuditTemplate)
-        query = self.__add_timestamp_mixin_filters(
-            query, filters, models.AuditTemplate)
-
-        return query
+        return self._add_filters(
+            query=query, model=models.AuditTemplate, filters=filters,
+            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
 
     def _add_audits_filters(self, query, filters):
         if filters is None:
@@ -522,7 +517,7 @@ class Connection(api.BaseConnection):
         try:
             self._soft_delete(models.Strategy, strategy_id)
         except exception.ResourceNotFound:
-            raise exception.GoalNotFound(strategy=strategy_id)
+            raise exception.StrategyNotFound(strategy=strategy_id)
 
     # ### AUDIT TEMPLATES ### #
 
@@ -558,98 +553,50 @@ class Connection(api.BaseConnection):
                                                        name=values['name'])
         return audit_template
 
-    def get_audit_template_by_id(self, context, audit_template_id):
-        query = model_query(models.AuditTemplate)
-        query = query.filter_by(id=audit_template_id)
+    def _get_audit_template(self, context, fieldname, value):
         try:
-            audit_template = query.one()
-            if not context.show_deleted:
-                if audit_template.deleted_at is not None:
-                    raise exception.AuditTemplateNotFound(
-                        audit_template=audit_template_id)
-            return audit_template
-        except exc.NoResultFound:
-            raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_id)
+            return self._get(context, model=models.AuditTemplate,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.AuditTemplateNotFound(audit_template=value)
+
+    def get_audit_template_by_id(self, context, audit_template_id):
+        return self._get_audit_template(
+            context, fieldname="id", value=audit_template_id)
 
     def get_audit_template_by_uuid(self, context, audit_template_uuid):
-        query = model_query(models.AuditTemplate)
-        query = query.filter_by(uuid=audit_template_uuid)
-
-        try:
-            audit_template = query.one()
-            if not context.show_deleted:
-                if audit_template.deleted_at is not None:
-                    raise exception.AuditTemplateNotFound(
-                        audit_template=audit_template_uuid)
-            return audit_template
-        except exc.NoResultFound:
-            raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_uuid)
+        return self._get_audit_template(
+            context, fieldname="uuid", value=audit_template_uuid)
 
     def get_audit_template_by_name(self, context, audit_template_name):
-        query = model_query(models.AuditTemplate)
-        query = query.filter_by(name=audit_template_name,
-                                deleted_at=None)
-        try:
-            return query.one()
-        except exc.MultipleResultsFound:
-            raise exception.Conflict(
-                _('Multiple audit templates exist with the same name.'
-                  ' Please use the audit template uuid instead'))
-        except exc.NoResultFound:
-            raise exception.AuditTemplateNotFound(
-                audit_template=audit_template_name)
+        return self._get_audit_template(
+            context, fieldname="name", value=audit_template_name)
 
     def destroy_audit_template(self, audit_template_id):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.AuditTemplate, session=session)
-            query = add_identity_filter(query, audit_template_id)
-
-            try:
-                query.one()
-            except exc.NoResultFound:
-                raise exception.AuditTemplateNotFound(
-                    audit_template=audit_template_id)
-
-            query.delete()
+        try:
+            return self._destroy(models.AuditTemplate, audit_template_id)
+        except exception.ResourceNotFound:
+            raise exception.AuditTemplateNotFound(
+                audit_template=audit_template_id)
 
     def update_audit_template(self, audit_template_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
                 message=_("Cannot overwrite UUID for an existing "
                           "Audit Template."))
-
-        return self._do_update_audit_template(audit_template_id, values)
-
-    def _do_update_audit_template(self, audit_template_id, values):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.AuditTemplate, session=session)
-            query = add_identity_filter(query, audit_template_id)
-            try:
-                ref = query.with_lockmode('update').one()
-            except exc.NoResultFound:
-                raise exception.AuditTemplateNotFound(
-                    audit_template=audit_template_id)
-
-            ref.update(values)
-        return ref
+        try:
+            return self._update(
+                models.AuditTemplate, audit_template_id, values)
+        except exception.ResourceNotFound:
+            raise exception.AuditTemplateNotFound(
+                audit_template=audit_template_id)
 
     def soft_delete_audit_template(self, audit_template_id):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.AuditTemplate, session=session)
-            query = add_identity_filter(query, audit_template_id)
-
-            try:
-                query.one()
-            except exc.NoResultFound:
-                raise exception.AuditTemplateNotFound(
-                    audit_template=audit_template_id)
-
-            query.soft_delete()
+        try:
+            self._soft_delete(models.AuditTemplate, audit_template_id)
+        except exception.ResourceNotFound:
+            raise exception.AuditTemplateNotFound(
+                audit_template=audit_template_id)
 
     # ### AUDITS ### #
 

@@ -52,8 +52,8 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         cluster_data_model = collector_manager.get_latest_cluster_data_model()
 
         strategy_selector = default.DefaultStrategySelector(
-            goal_name=objects.Goal.get_by_name(
-                request_context, audit_template.goal).name,
+            goal_name=objects.Goal.get_by_id(
+                request_context, audit_template.goal_id).name,
             strategy_name=None,
             osc=osc)
 
