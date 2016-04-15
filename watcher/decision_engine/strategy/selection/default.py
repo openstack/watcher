@@ -25,22 +25,6 @@ from watcher.decision_engine.strategy.selection import base
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
-default_goals = {'DUMMY': 'dummy'}
-
-WATCHER_GOALS_OPTS = [
-    cfg.DictOpt(
-        'goals',
-        default=default_goals,
-        required=True,
-        help='Goals used for the optimization. '
-             'Maps each goal to an associated strategy (for example: '
-             'BASIC_CONSOLIDATION:basic, MY_GOAL:my_strategy_1)'),
-]
-goals_opt_group = cfg.OptGroup(name='watcher_goals',
-                               title='Goals available for the optimization')
-CONF.register_group(goals_opt_group)
-CONF.register_opts(WATCHER_GOALS_OPTS, goals_opt_group)
-
 
 class DefaultStrategySelector(base.BaseSelector):
 
