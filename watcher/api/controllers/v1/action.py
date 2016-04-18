@@ -130,9 +130,6 @@ class Action(base.APIBase):
     state = wtypes.text
     """This audit state"""
 
-    alarm = types.uuid
-    """An alarm UUID related to this action"""
-
     action_type = wtypes.text
     """Action type"""
 
@@ -194,7 +191,6 @@ class Action(base.APIBase):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
                      description='action description',
                      state='PENDING',
-                     alarm=None,
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow())

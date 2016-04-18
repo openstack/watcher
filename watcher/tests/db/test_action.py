@@ -266,24 +266,21 @@ class DbActionTestCase(base.DbTestCase):
             description='description action 1',
             uuid=w_utils.generate_uuid(),
             next=None,
-            state='PENDING',
-            alarm=None)
+            state='PENDING')
         action2 = self._create_test_action(
             id=2,
             action_plan_id=2,
             description='description action 2',
             uuid=w_utils.generate_uuid(),
             next=action1['uuid'],
-            state='PENDING',
-            alarm=None)
+            state='PENDING')
         action3 = self._create_test_action(
             id=3,
             action_plan_id=1,
             description='description action 3',
             uuid=w_utils.generate_uuid(),
             next=action2['uuid'],
-            state='ONGOING',
-            alarm=None)
+            state='ONGOING')
         res = self.dbapi.get_action_list(self.context,
                                          filters={'state': 'ONGOING'})
         self.assertEqual([action3['id']], [r.id for r in res])

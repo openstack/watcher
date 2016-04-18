@@ -161,8 +161,6 @@ class Action(Base):
     action_type = Column(String(255), nullable=False)
     input_parameters = Column(JSONEncodedDict, nullable=True)
     state = Column(String(20), nullable=True)
-    # todo(jed) remove parameter alarm
-    alarm = Column(String(36))
     next = Column(String(36), nullable=True)
 
 

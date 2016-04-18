@@ -91,7 +91,6 @@ def get_test_action(**kwargs):
                         'resource_id':
                         '10a47dd1-4874-4298-91cf-eff046dbdb8d'}),
         'state': kwargs.get('state', 'PENDING'),
-        'alarm': kwargs.get('alarm', None),
         'next': kwargs.get('next', 2),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),

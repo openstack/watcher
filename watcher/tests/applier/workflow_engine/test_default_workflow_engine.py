@@ -81,7 +81,6 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             'action_type': action_type,
             'input_parameters': parameters,
             'state': objects.action.State.PENDING,
-            'alarm': None,
             'next': next,
         }
         new_action = objects.Action(self.context, **action)
