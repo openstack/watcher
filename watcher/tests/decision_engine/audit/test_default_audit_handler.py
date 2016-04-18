@@ -28,7 +28,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestDefaultAuditHandler(base.DbTestCase):
     def setUp(self):
         super(TestDefaultAuditHandler, self).setUp()
-        obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
+        obj_utils.create_test_goal(self.context, id=1, name="dummy")
         audit_template = obj_utils.create_test_audit_template(
             self.context)
         self.audit = obj_utils.create_test_audit(

@@ -57,16 +57,16 @@ class FunctionalTestWithSetup(api_base.FunctionalTest):
     def setUp(self):
         super(FunctionalTestWithSetup, self).setUp()
         self.fake_goal1 = obj_utils.get_test_goal(
-            self.context, id=1, uuid=utils.generate_uuid(), name="DUMMY_1")
+            self.context, id=1, uuid=utils.generate_uuid(), name="dummy_1")
         self.fake_goal2 = obj_utils.get_test_goal(
-            self.context, id=2, uuid=utils.generate_uuid(), name="DUMMY_2")
+            self.context, id=2, uuid=utils.generate_uuid(), name="dummy_2")
         self.fake_goal1.create()
         self.fake_goal2.create()
         self.fake_strategy1 = obj_utils.get_test_strategy(
-            self.context, id=1, uuid=utils.generate_uuid(), name="STRATEGY_1",
+            self.context, id=1, uuid=utils.generate_uuid(), name="strategy_1",
             goal_id=self.fake_goal1.id)
         self.fake_strategy2 = obj_utils.get_test_strategy(
-            self.context, id=2, uuid=utils.generate_uuid(), name="STRATEGY_2",
+            self.context, id=2, uuid=utils.generate_uuid(), name="strategy_2",
             goal_id=self.fake_goal2.id)
         self.fake_strategy1.create()
         self.fake_strategy2.create()

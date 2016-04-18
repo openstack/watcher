@@ -30,7 +30,7 @@ CONF = config.CONF
 class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
     """Tests for action plans"""
 
-    BASIC_GOAL = "SERVER_CONSOLIDATION"
+    BASIC_GOAL = "server_consolidation"
 
     @classmethod
     def skip_checks(cls):

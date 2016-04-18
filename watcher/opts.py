@@ -25,10 +25,10 @@ from watcher.applier.workflow_engine.loading import default as \
     workflow_engine_loader
 from watcher.common import clients
 from watcher.common import utils
+from watcher.decision_engine.loading import default as strategy_loader
 from watcher.decision_engine import manager as decision_engine_manger
 from watcher.decision_engine.planner.loading import default as planner_loader
 from watcher.decision_engine.planner import manager as planner_manager
-from watcher.decision_engine.strategy.loading import default as strategy_loader
 
 
 PLUGIN_LOADERS = (
