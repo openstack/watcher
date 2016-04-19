@@ -281,8 +281,6 @@ class Connection(api.BaseConnection):
 
         if 'state' in filters:
             query = query.filter_by(state=filters['state'])
-        if 'alarm' in filters:
-            query = query.filter_by(alarm=filters['alarm'])
 
         query = self.__add_soft_delete_mixin_filters(
             query, filters, models.Action)

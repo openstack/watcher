@@ -53,7 +53,6 @@ class DefaultPlanner(base.BasePlanner):
             'action_type': action_type,
             'input_parameters': input_parameters,
             'state': objects.action.State.PENDING,
-            'alarm': None,
             'next': None,
         }
         return action
