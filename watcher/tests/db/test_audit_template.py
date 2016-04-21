@@ -358,15 +358,3 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             utils.create_test_audit_template,
             uuid=w_utils.generate_uuid(),
             name='audit_template_name')
-
-    def test_audit_template_create_same_uuid(self):
-        uuid = w_utils.generate_uuid()
-        audit_template1 = utils.create_test_audit_template(
-            uuid=uuid,
-            name='audit_template_name_1')
-        self.assertEqual(audit_template1['uuid'], audit_template1.uuid)
-        self.assertRaises(
-            exception.AuditTemplateAlreadyExists,
-            utils.create_test_audit_template,
-            uuid=uuid,
-            name='audit_template_name_2')

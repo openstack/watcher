@@ -392,6 +392,7 @@ class TestPost(api_base.FunctionalTest):
         audit_template_dict = api_utils.audit_template_post_data()
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
+        del audit_template_dict['uuid']
 
         response = self.post_json('/audit_templates', audit_template_dict)
         self.assertEqual('application/json', response.content_type)
@@ -399,10 +400,9 @@ class TestPost(api_base.FunctionalTest):
         # Check location header
         self.assertIsNotNone(response.location)
         expected_location = \
-            '/v1/audit_templates/%s' % audit_template_dict['uuid']
+            '/v1/audit_templates/%s' % response.json['uuid']
         self.assertEqual(urlparse.urlparse(response.location).path,
                          expected_location)
-        self.assertEqual(audit_template_dict['uuid'], response.json['uuid'])
         self.assertNotIn('updated_at', response.json.keys)
         self.assertNotIn('deleted_at', response.json.keys)
         return_created_at = timeutils.parse_isotime(
@@ -417,6 +417,7 @@ class TestPost(api_base.FunctionalTest):
         ) as cn_mock:
             audit_template_dict = api_utils.audit_template_post_data(
                 goal='DUMMY')
+            del audit_template_dict['uuid']
             response = self.post_json('/audit_templates', audit_template_dict)
             self.assertEqual(audit_template_dict['goal'],
                              response.json['goal'])
@@ -444,6 +445,20 @@ class TestPost(api_base.FunctionalTest):
                 goal='INVALID_GOAL')
             response = self.post_json('/audit_templates',
                                       audit_template_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        assert not cn_mock.called
+
+    def test_create_audit_template_with_uuid(self):
+        with mock.patch.object(
+            self.dbapi,
+            'create_audit_template',
+            wraps=self.dbapi.create_audit_template
+        ) as cn_mock:
+            audit_template_dict = api_utils.audit_template_post_data()
+
+            response = self.post_json('/audit_templates', audit_template_dict,
+                                      expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
         self.assertEqual(400, response.status_int)
         assert not cn_mock.called
 

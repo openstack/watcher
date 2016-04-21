@@ -371,13 +371,13 @@ class DbAuditTestCase(base.DbTestCase):
                           self.context, audit['id'])
 
     def test_destroy_audit_by_uuid(self):
-        uuid = w_utils.generate_uuid()
-        self._create_test_audit(uuid=uuid)
+        audit = self._create_test_audit()
         self.assertIsNotNone(self.dbapi.get_audit_by_uuid(self.context,
-                                                          uuid))
-        self.dbapi.destroy_audit(uuid)
+                                                          audit['uuid']))
+        self.dbapi.destroy_audit(audit['uuid'])
         self.assertRaises(exception.AuditNotFound,
-                          self.dbapi.get_audit_by_uuid, self.context, uuid)
+                          self.dbapi.get_audit_by_uuid, self.context,
+                          audit['uuid'])
 
     def test_destroy_audit_that_does_not_exist(self):
         self.assertRaises(exception.AuditNotFound,
@@ -389,10 +389,3 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual(audit['id'], action_plan.audit_id)
         self.assertRaises(exception.AuditReferenced,
                           self.dbapi.destroy_audit, audit['id'])
-
-    def test_create_audit_already_exists(self):
-        uuid = w_utils.generate_uuid()
-        self._create_test_audit(id=1, uuid=uuid)
-        self.assertRaises(exception.AuditAlreadyExists,
-                          self._create_test_audit,
-                          id=2, uuid=uuid)

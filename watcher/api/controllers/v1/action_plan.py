@@ -143,7 +143,7 @@ class ActionPlan(base.APIBase):
             except exception.ActionNotFound:
                 self._first_action_uuid = None
 
-    uuid = types.uuid
+    uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
     first_action_uuid = wsme.wsproperty(
