@@ -73,30 +73,25 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
 
     # ### AUDIT TEMPLATES ### #
 
-    def create_audit_template(self, goal_uuid, name=None, description=None,
-                              strategy_uuid=None, host_aggregate=None,
+    def create_audit_template(self, goal, name=None, description=None,
+                              strategy=None, host_aggregate=None,
                               extra=None):
         """Wrapper utility for creating a test audit template
 
-        :param goal_uuid: The goal UUID related to the audit template.
-            Default: DUMMY
+        :param goal: Goal UUID or name related to the audit template.
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
-            Default: AT Description
-        :param strategy_uuid: The strategy UUID related to the audit template.
-            Default: dummy
+        :param strategy: Strategy UUID or name related to the audit template.
         :param host_aggregate: ID of the host aggregate targeted by
-            this audit template. Default: 1
-        :param extra: IMetadata associated to this audit template.
-            Default: {}
+                               this audit template.
+        :param extra: Metadata associated to this audit template.
         :return: A tuple with The HTTP response and its body
         """
         description = description or data_utils.rand_name(
             'test-audit_template')
         resp, body = self.client.create_audit_template(
-            name=name, description=description, goal_uuid=goal_uuid,
-            strategy_uuid=strategy_uuid, host_aggregate=host_aggregate,
-            extra=extra)
+            name=name, description=description, goal=goal, strategy=strategy,
+            host_aggregate=host_aggregate, extra=extra)
 
         self.addCleanup(
             self.delete_audit_template,

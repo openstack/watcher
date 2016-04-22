@@ -29,35 +29,57 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_template(self):
-        _, goal = self.client.show_goal("DUMMY")
+        goal_name = "DUMMY"
+        _, goal = self.client.show_goal(goal_name)
 
-        params = {'name': 'my at name %s' % uuid.uuid4(),
-                  'description': 'my at description',
-                  'host_aggregate': 12,
-                  'goal_uuid': goal['uuid'],
-                  'extra': {'str': 'value', 'int': 123, 'float': 0.123,
-                            'bool': True, 'list': [1, 2, 3],
-                            'dict': {'foo': 'bar'}}}
+        params = {
+            'name': 'my at name %s' % uuid.uuid4(),
+            'description': 'my at description',
+            'host_aggregate': 12,
+            'goal': goal['uuid'],
+            'extra': {'str': 'value', 'int': 123, 'float': 0.123,
+                      'bool': True, 'list': [1, 2, 3],
+                      'dict': {'foo': 'bar'}}}
+        expected_data = {
+            'name': params['name'],
+            'description': params['description'],
+            'host_aggregate': params['host_aggregate'],
+            'goal_uuid': params['goal'],
+            'goal_name': goal_name,
+            'strategy_uuid': None,
+            'strategy_name': None,
+            'extra': params['extra']}
 
         _, body = self.create_audit_template(**params)
-        self.assert_expected(params, body)
+        self.assert_expected(expected_data, body)
 
         _, audit_template = self.client.show_audit_template(body['uuid'])
         self.assert_expected(audit_template, body)
 
     @test.attr(type='smoke')
     def test_create_audit_template_unicode_description(self):
-        _, goal = self.client.show_goal("DUMMY")
-
+        goal_name = "DUMMY"
+        _, goal = self.client.show_goal(goal_name)
         # Use a unicode string for testing:
-        params = {'name': 'my at name %s' % uuid.uuid4(),
-                  'description': 'my àt déscrïptïôn',
-                  'host_aggregate': 12,
-                  'goal_uuid': goal['uuid'],
-                  'extra': {'foo': 'bar'}}
+        params = {
+            'name': 'my at name %s' % uuid.uuid4(),
+            'description': 'my àt déscrïptïôn',
+            'host_aggregate': 12,
+            'goal': goal['uuid'],
+            'extra': {'foo': 'bar'}}
+
+        expected_data = {
+            'name': params['name'],
+            'description': params['description'],
+            'host_aggregate': params['host_aggregate'],
+            'goal_uuid': params['goal'],
+            'goal_name': goal_name,
+            'strategy_uuid': None,
+            'strategy_name': None,
+            'extra': params['extra']}
 
         _, body = self.create_audit_template(**params)
-        self.assert_expected(params, body)
+        self.assert_expected(expected_data, body)
 
         _, audit_template = self.client.show_audit_template(body['uuid'])
         self.assert_expected(audit_template, body)
@@ -65,7 +87,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
     @test.attr(type='smoke')
     def test_delete_audit_template(self):
         _, goal = self.client.show_goal("DUMMY")
-        _, body = self.create_audit_template(goal_uuid=goal['uuid'])
+        _, body = self.create_audit_template(goal=goal['uuid'])
         audit_uuid = body['uuid']
 
         self.delete_audit_template(audit_uuid)
@@ -83,7 +105,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, cls.goal = cls.client.show_goal("DUMMY")
         _, cls.strategy = cls.client.show_strategy("dummy")
         _, cls.audit_template = cls.create_audit_template(
-            goal_uuid=cls.goal['uuid'], strategy_uuid=cls.strategy['uuid'])
+            goal=cls.goal['uuid'], strategy=cls.strategy['uuid'])
 
     @test.attr(type='smoke')
     def test_show_audit_template(self):
@@ -95,7 +117,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @test.attr(type='smoke')
     def test_filter_audit_template_by_goal_uuid(self):
         _, audit_templates = self.client.list_audit_templates(
-            goal_uuid=self.audit_template['goal_uuid'])
+            goal=self.audit_template['goal_uuid'])
 
         audit_template_uuids = [
             at["uuid"] for at in audit_templates['audit_templates']]
@@ -104,7 +126,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @test.attr(type='smoke')
     def test_filter_audit_template_by_strategy_uuid(self):
         _, audit_templates = self.client.list_audit_templates(
-            strategy_uuid=self.audit_template['strategy_uuid'])
+            strategy=self.audit_template['strategy_uuid'])
 
         audit_template_uuids = [
             at["uuid"] for at in audit_templates['audit_templates']]
@@ -149,7 +171,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
                   'host_aggregate': 12,
-                  'goal_uuid': self.goal['uuid'],
+                  'goal': self.goal['uuid'],
                   'extra': {'key1': 'value1', 'key2': 'value2'}}
 
         _, body = self.create_audit_template(**params)
@@ -168,10 +190,10 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
                  {'path': '/host_aggregate',
                   'op': 'replace',
                   'value': new_host_aggregate},
-                 {'path': '/goal_uuid',
+                 {'path': '/goal',
                   'op': 'replace',
                   'value': new_goal['uuid']},
-                 {'path': '/strategy_uuid',
+                 {'path': '/strategy',
                   'op': 'replace',
                   'value': new_strategy['uuid']},
                  {'path': '/extra/key1',
@@ -199,7 +221,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         params = {'name': name,
                   'description': description,
                   'host_aggregate': 12,
-                  'goal_uuid': self.goal['uuid'],
+                  'goal': self.goal['uuid'],
                   'extra': extra}
 
         _, audit_template = self.create_audit_template(**params)
@@ -237,7 +259,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
                   'host_aggregate': 12,
-                  'goal_uuid': self.goal['uuid']}
+                  'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)
 

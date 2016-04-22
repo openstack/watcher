@@ -295,7 +295,9 @@ class Connection(api.BaseConnection):
                         'goal_id', 'strategy_id']
         join_fieldmap = {
             'goal_uuid': ("uuid", models.Goal),
+            'goal_name': ("name", models.Goal),
             'strategy_uuid': ("uuid", models.Strategy),
+            'strategy_name': ("name", models.Strategy),
         }
 
         return self._add_filters(
