@@ -87,7 +87,6 @@ class NovaHelper(object):
             return False
         else:
             host_name = getattr(instance, "OS-EXT-SRV-ATTR:host")
-            # https://bugs.launchpad.net/nova/+bug/1182965
             LOG.debug(
                 "Instance %s found on host '%s'." % (instance_id, host_name))
 
@@ -532,16 +531,12 @@ class NovaHelper(object):
             "Trying to create new instance '%s' "
             "from image '%s' with flavor '%s' ..." % (
                 inst_name, image_id, flavor_name))
-        # TODO(jed) wait feature
-        # Allow admin users to view any keypair
-        # https://bugs.launchpad.net/nova/+bug/1182965
-        if not self.nova.keypairs.findall(name=keypair_name):
-            LOG.debug("Key pair '%s' not found with user '%s'" % (
-                keypair_name, self.user))
+
+        try:
+            self.nova.keypairs.findall(name=keypair_name)
+        except nvexceptions.NotFound:
+            LOG.debug("Key pair '%s' not found " % keypair_name)
             return
-        else:
-            LOG.debug("Key pair '%s' found with user '%s'" % (
-                keypair_name, self.user))
 
         try:
             image = self.nova.images.get(image_id)
