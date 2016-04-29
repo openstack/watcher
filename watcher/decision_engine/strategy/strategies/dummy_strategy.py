@@ -18,12 +18,13 @@
 #
 from oslo_log import log
 
+from watcher._i18n import _
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
 
 
-class DummyStrategy(base.BaseStrategy):
+class DummyStrategy(base.DummyBaseStrategy):
     """Dummy strategy used for integration testing via Tempest
 
     *Description*
@@ -44,15 +45,11 @@ class DummyStrategy(base.BaseStrategy):
     <None>
     """
 
-    DEFAULT_NAME = "dummy"
-    DEFAULT_DESCRIPTION = "Dummy Strategy"
-
     NOP = "nop"
     SLEEP = "sleep"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
-                 osc=None):
-        super(DummyStrategy, self).__init__(name, description, osc)
+    def __init__(self, osc=None):
+        super(DummyStrategy, self).__init__(osc)
 
     def execute(self, original_model):
         LOG.debug("Executing Dummy strategy")
@@ -67,3 +64,15 @@ class DummyStrategy(base.BaseStrategy):
         self.solution.add_action(action_type=self.SLEEP,
                                  input_parameters={'duration': 5.0})
         return self.solution
+
+    @classmethod
+    def get_name(cls):
+        return "dummy"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Dummy strategy")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Dummy strategy"

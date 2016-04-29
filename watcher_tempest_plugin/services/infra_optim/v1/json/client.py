@@ -234,7 +234,7 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
     def show_goal(self, goal):
         """Gets a specific goal
 
-        :param goal: Name of the goal
+        :param goal: UUID or Name of the goal
         :return: Serialized goal as a dictionary
         """
         return self._show_request('/goals', goal)

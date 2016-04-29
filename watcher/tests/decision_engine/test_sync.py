@@ -19,38 +19,10 @@ import mock
 from watcher.common import context
 from watcher.common import utils
 from watcher.decision_engine.strategy.loading import default
-from watcher.decision_engine.strategy.strategies import base as base_strategy
 from watcher.decision_engine import sync
 from watcher import objects
 from watcher.tests.db import base
-
-
-class FakeStrategy(base_strategy.BaseStrategy):
-    DEFAULT_NAME = ""
-    DEFAULT_DESCRIPTION = ""
-
-    def execute(self, original_model):
-        pass
-
-
-class FakeDummy1Strategy1(FakeStrategy):
-    DEFAULT_NAME = "DUMMY_1"
-    DEFAULT_DESCRIPTION = "Dummy 1"
-
-
-class FakeDummy1Strategy2(FakeStrategy):
-    DEFAULT_NAME = "DUMMY_1"
-    DEFAULT_DESCRIPTION = "Dummy 1"
-
-
-class FakeDummy2Strategy3(FakeStrategy):
-    DEFAULT_NAME = "DUMMY_2"
-    DEFAULT_DESCRIPTION = "Dummy 2"
-
-
-class FakeDummy2Strategy4(FakeStrategy):
-    DEFAULT_NAME = "DUMMY_2"
-    DEFAULT_DESCRIPTION = "Other Dummy 2"
+from watcher.tests.decision_engine import fake_strategies
 
 
 class TestSyncer(base.DbTestCase):
@@ -60,10 +32,14 @@ class TestSyncer(base.DbTestCase):
         self.ctx = context.make_context()
 
         self.m_available_strategies = mock.Mock(return_value={
-            FakeDummy1Strategy1.__name__: FakeDummy1Strategy1,
-            FakeDummy1Strategy2.__name__: FakeDummy1Strategy2,
-            FakeDummy2Strategy3.__name__: FakeDummy2Strategy3,
-            FakeDummy2Strategy4.__name__: FakeDummy2Strategy4,
+            fake_strategies.FakeDummy1Strategy1.get_name():
+                fake_strategies.FakeDummy1Strategy1,
+            fake_strategies.FakeDummy1Strategy2.get_name():
+                fake_strategies.FakeDummy1Strategy2,
+            fake_strategies.FakeDummy2Strategy3.get_name():
+                fake_strategies.FakeDummy2Strategy3,
+            fake_strategies.FakeDummy2Strategy4.get_name():
+                fake_strategies.FakeDummy2Strategy4,
         })
 
         p_strategies = mock.patch.object(
@@ -150,8 +126,8 @@ class TestSyncer(base.DbTestCase):
                          name="DUMMY_1", display_name="Dummy 1")
         ]
         m_s_list.return_value = [
-            objects.Strategy(self.ctx, id=1, name="FakeDummy1Strategy1",
-                             goal_id=1, display_name="Dummy 1")
+            objects.Strategy(self.ctx, id=1, name="STRATEGY_1",
+                             goal_id=1, display_name="Strategy 1")
         ]
         self.syncer.sync()
 
@@ -211,7 +187,7 @@ class TestSyncer(base.DbTestCase):
                          name="DUMMY_1", display_name="Dummy 1")
         ]
         m_s_list.return_value = [
-            objects.Strategy(self.ctx, id=1, name="FakeDummy1Strategy1",
+            objects.Strategy(self.ctx, id=1, name="STRATEGY_1",
                              goal_id=1, display_name="original")
         ]
         self.syncer.sync()
@@ -229,7 +205,7 @@ class TestSyncer(base.DbTestCase):
                             name="DUMMY_1", display_name="Original")
         goal.create()
         strategy = objects.Strategy(
-            self.ctx, id=1, name="FakeDummy1Strategy1",
+            self.ctx, id=1, name="STRATEGY_1",
             display_name="Original", goal_id=goal.id)
         strategy.create()
         # audit_template = objects.AuditTemplate(
@@ -260,8 +236,7 @@ class TestSyncer(base.DbTestCase):
             {"DUMMY_1", "DUMMY_2"},
             set([g.name for g in after_goals]))
         self.assertEqual(
-            {'FakeDummy1Strategy1', 'FakeDummy1Strategy2',
-             'FakeDummy2Strategy3', 'FakeDummy2Strategy4'},
+            {"STRATEGY_1", "STRATEGY_2", "STRATEGY_3", "STRATEGY_4"},
             set([s.name for s in after_strategies]))
         created_goals = [ag for ag in after_goals
                          if ag.uuid not in [bg.uuid for bg in before_goals]]

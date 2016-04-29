@@ -24,6 +24,7 @@ from oslo_config import cfg
 from oslo_service import service
 
 from watcher.cmd import decisionengine
+from watcher.decision_engine import sync
 from watcher.tests import base
 
 
@@ -45,6 +46,7 @@ class TestDecisionEngine(base.BaseTestCase):
         super(TestDecisionEngine, self).tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
+    @mock.patch.object(sync.Syncer, "sync", mock.Mock())
     @mock.patch.object(service, "launch")
     def test_run_de_app(self, m_launch):
         decisionengine.main()

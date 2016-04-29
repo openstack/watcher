@@ -29,7 +29,7 @@ order to both minimize energy consumption and comply to the various SLAs.
 
 from oslo_log import log
 
-from watcher._i18n import _LE, _LI, _LW
+from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception
 from watcher.decision_engine.model import hypervisor_state as hyper_state
 from watcher.decision_engine.model import resource
@@ -41,7 +41,7 @@ from watcher.metrics_engine.cluster_history import ceilometer as \
 LOG = log.getLogger(__name__)
 
 
-class BasicConsolidation(base.BaseStrategy):
+class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     """Basic offline consolidation using live migration
 
     *Description*
@@ -65,17 +65,13 @@ class BasicConsolidation(base.BaseStrategy):
     <None>
     """
 
-    DEFAULT_NAME = "basic"
-    DEFAULT_DESCRIPTION = "Basic offline consolidation"
-
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
 
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
-                 osc=None):
+    def __init__(self, osc=None):
         """Basic offline Consolidation using live migration
 
         :param name: The name of the strategy (Default: "basic")
@@ -84,7 +80,7 @@ class BasicConsolidation(base.BaseStrategy):
         :param osc: An :py:class:`~watcher.common.clients.OpenStackClients`
                     instance
         """
-        super(BasicConsolidation, self).__init__(name, description, osc)
+        super(BasicConsolidation, self).__init__(osc)
 
         # set default value for the number of released nodes
         self.number_of_released_nodes = 0
@@ -113,6 +109,18 @@ class BasicConsolidation(base.BaseStrategy):
 
         # TODO(jed) bound migration attempts (80 %)
         self.bound_migration = 0.80
+
+    @classmethod
+    def get_name(cls):
+        return "basic"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Basic offline consolidation")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Basic offline consolidation"
 
     @property
     def ceilometer(self):

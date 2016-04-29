@@ -30,7 +30,7 @@ telemetries to measure thermal/workload status of server.
 
 from oslo_log import log
 
-from watcher._i18n import _LE
+from watcher._i18n import _, _LE
 from watcher.common import exception as wexc
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state
@@ -41,7 +41,7 @@ from watcher.metrics_engine.cluster_history import ceilometer as ceil
 LOG = log.getLogger(__name__)
 
 
-class OutletTempControl(base.BaseStrategy):
+class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     """[PoC] Outlet temperature control using live migration
 
     *Description*
@@ -71,8 +71,6 @@ class OutletTempControl(base.BaseStrategy):
     https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/approved/outlet-temperature-based-strategy.rst
     """  # noqa
 
-    DEFAULT_NAME = "outlet_temp_control"
-    DEFAULT_DESCRIPTION = "outlet temperature based migration strategy"
     # The meter to report outlet temperature in ceilometer
     METER_NAME = "hardware.ipmi.node.outlet_temperature"
     # Unit: degree C
@@ -80,21 +78,32 @@ class OutletTempControl(base.BaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
-                 osc=None):
+    def __init__(self, osc=None):
         """Outlet temperature control using live migration
 
         :param name: the name of the strategy
         :param description: a description of the strategy
         :param osc: an OpenStackClients object
         """
-        super(OutletTempControl, self).__init__(name, description, osc)
+        super(OutletTempControl, self).__init__(osc)
         # the migration plan will be triggered when the outlet temperature
         # reaches threshold
         # TODO(zhenzanz): Threshold should be configurable for each audit
         self.threshold = self.THRESHOLD
         self._meter = self.METER_NAME
         self._ceilometer = None
+
+    @classmethod
+    def get_name(cls):
+        return "outlet_temperature"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Outlet temperature based strategy")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Outlet temperature based strategy"
 
     @property
     def ceilometer(self):
