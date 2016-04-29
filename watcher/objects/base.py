@@ -343,7 +343,7 @@ class WatcherObject(object):
 
     @property
     def obj_fields(self):
-        return self.fields.keys() + self.obj_extra_fields
+        return list(self.fields.keys()) + self.obj_extra_fields
 
     # dictish syntactic sugar
     def iteritems(self):

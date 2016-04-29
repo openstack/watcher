@@ -41,7 +41,7 @@ class TestDefaultAuditHandler(base.DbTestCase):
         audit_handler.execute(self.audit.uuid, self.context)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
-    def test_trigger_audit_state_success(self, mock_collector):
+    def test_trigger_audit_state_succeeded(self, mock_collector):
         mock_collector.return_value = faker.FakerModelCollector()
         audit_handler = default.DefaultAuditHandler(mock.MagicMock())
         audit_handler.execute(self.audit.uuid, self.context)

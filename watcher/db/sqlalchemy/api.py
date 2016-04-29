@@ -270,6 +270,14 @@ class Connection(api.BaseConnection):
             query=query, model=models.Goal, filters=filters,
             plain_fields=plain_fields)
 
+    def _add_strategies_filters(self, query, filters):
+        plain_fields = ['uuid', 'name', 'display_name', 'goal_id']
+        join_fieldmap = {'goal_uuid': models.Goal}
+
+        return self._add_filters(
+            query=query, model=models.Strategy, filters=filters,
+            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
+
     def _add_audit_templates_filters(self, query, filters):
         if filters is None:
             filters = []
@@ -440,6 +448,72 @@ class Connection(api.BaseConnection):
             self._soft_delete(models.Goal, goal_id)
         except exception.ResourceNotFound:
             raise exception.GoalNotFound(goal=goal_id)
+
+    # ### STRATEGIES ### #
+
+    def get_strategy_list(self, context, filters=None, limit=None,
+                          marker=None, sort_key=None, sort_dir=None):
+
+        query = model_query(models.Strategy)
+        query = self._add_strategies_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+        return _paginate_query(models.Strategy, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_strategy(self, values):
+        # ensure defaults are present for new strategies
+        if not values.get('uuid'):
+            values['uuid'] = utils.generate_uuid()
+
+        strategy = models.Strategy()
+        strategy.update(values)
+
+        try:
+            strategy.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.StrategyAlreadyExists(uuid=values['uuid'])
+        return strategy
+
+    def _get_strategy(self, context, fieldname, value):
+        try:
+            return self._get(context, model=models.Strategy,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.StrategyNotFound(strategy=value)
+
+    def get_strategy_by_id(self, context, strategy_id):
+        return self._get_strategy(context, fieldname="id", value=strategy_id)
+
+    def get_strategy_by_uuid(self, context, strategy_uuid):
+        return self._get_strategy(
+            context, fieldname="uuid", value=strategy_uuid)
+
+    def get_strategy_by_name(self, context, strategy_name):
+        return self._get_strategy(
+            context, fieldname="name", value=strategy_name)
+
+    def destroy_strategy(self, strategy_id):
+        try:
+            return self._destroy(models.Strategy, strategy_id)
+        except exception.ResourceNotFound:
+            raise exception.StrategyNotFound(strategy=strategy_id)
+
+    def update_strategy(self, strategy_id, values):
+        if 'uuid' in values:
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing Strategy."))
+
+        try:
+            return self._update(models.Strategy, strategy_id, values)
+        except exception.ResourceNotFound:
+            raise exception.StrategyNotFound(strategy=strategy_id)
+
+    def soft_delete_strategy(self, strategy_id):
+        try:
+            self._soft_delete(models.Strategy, strategy_id)
+        except exception.ResourceNotFound:
+            raise exception.GoalNotFound(strategy=strategy_id)
 
     # ### AUDIT TEMPLATES ### #
 
