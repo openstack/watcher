@@ -119,7 +119,7 @@ class Action(base.APIBase):
                 self.action_next_uuid = None
                 # raise e
 
-    uuid = types.uuid
+    uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action"""
 
     action_plan_uuid = wsme.wsproperty(types.uuid, _get_action_plan_uuid,

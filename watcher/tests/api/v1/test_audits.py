@@ -433,6 +433,7 @@ class TestPost(api_base.FunctionalTest):
         mock_utcnow.return_value = test_time
 
         audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+        del audit_dict['uuid']
         del audit_dict['state']
 
         response = self.post_json('/audits', audit_dict)
@@ -440,10 +441,9 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual(201, response.status_int)
         # Check location header
         self.assertIsNotNone(response.location)
-        expected_location = '/v1/audits/%s' % audit_dict['uuid']
+        expected_location = '/v1/audits/%s' % response.json['uuid']
         self.assertEqual(urlparse.urlparse(response.location).path,
                          expected_location)
-        self.assertEqual(audit_dict['uuid'], response.json['uuid'])
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertNotIn('updated_at', response.json.keys)
@@ -473,6 +473,7 @@ class TestPost(api_base.FunctionalTest):
         mock_utcnow.return_value = test_time
 
         audit_dict = post_get_test_audit()
+        del audit_dict['uuid']
         del audit_dict['state']
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
@@ -492,6 +493,7 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
         state = audit_dict['state']
+        del audit_dict['uuid']
         del audit_dict['state']
         with mock.patch.object(self.dbapi, 'create_audit',
                                wraps=self.dbapi.create_audit) as cn_mock:
@@ -520,9 +522,20 @@ class TestPost(api_base.FunctionalTest):
         with mock.patch.object(deapi.DecisionEngineAPI,
                                'trigger_audit') as de_mock:
             audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+            del audit_dict['uuid']
             del audit_dict['state']
-            self.post_json('/audits', audit_dict)
-            de_mock.assert_called_once_with(mock.ANY, audit_dict['uuid'])
+            response = self.post_json('/audits', audit_dict)
+            de_mock.assert_called_once_with(mock.ANY, response.json['uuid'])
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_uuid(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(400, response.status_int)
+        assert not mock_trigger_audit.called
 
 
 # class TestDelete(api_base.FunctionalTest):

@@ -51,8 +51,6 @@ from watcher import objects
 
 class AuditPostType(wtypes.Base):
 
-    uuid = wtypes.wsattr(types.uuid, mandatory=False)
-
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=True)
 
     type = wtypes.wsattr(wtypes.text, mandatory=True)
@@ -68,7 +66,6 @@ class AuditPostType(wtypes.Base):
             raise exception.AuditTypeNotFound(audit_type=self.type)
 
         return Audit(
-            uuid=self.uuid or utils.generate_uuid(),
             audit_template_id=self.audit_template_uuid,
             type=self.type,
             deadline=self.deadline)

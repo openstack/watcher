@@ -95,7 +95,8 @@ class AuditTemplate(base.APIBase):
     between the internal object model and the API representation of an
     audit template.
     """
-    uuid = types.uuid
+
+    uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this audit template"""
 
     name = wtypes.text
