@@ -90,6 +90,7 @@ Introduction
 
   deploy/installation
   deploy/user-guide
+  deploy/gmr
 
 Watcher Manual Pages
 ====================

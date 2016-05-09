@@ -55,7 +55,7 @@ Here is an example showing how you can write a plugin called ``DummyAction``:
     from watcher.applier.actions import base
 
 
-    class DummyAction(baseBaseAction):
+    class DummyAction(base.BaseAction):
 
         @property
         def schema(self):
@@ -90,10 +90,52 @@ Input validation
 
 As you can see in the previous example, we are using `Voluptuous`_ to validate
 the input parameters of an action. So if you want to learn more about how to
-work with `Voluptuous`_, you can have a look at their `documentation`_ here:
+work with `Voluptuous`_, you can have a look at their `documentation`_:
 
 .. _Voluptuous: https://github.com/alecthomas/voluptuous
 .. _documentation: https://github.com/alecthomas/voluptuous/blob/master/README.md
+
+
+Define configuration parameters
+===============================
+
+At this point, you have a fully functional action. However, in more complex
+implementation, you may want to define some configuration options so one can
+tune the action to its needs. To do so, you can implement the
+:py:meth:`~.Loadable.get_config_opts` class method as followed:
+
+.. code-block:: python
+
+    from oslo_config import cfg
+
+    class DummyAction(base.BaseAction):
+
+        # [...]
+
+        def execute(self):
+            assert self.config.test_opt == 0
+
+        def get_config_opts(self):
+            return [
+                cfg.StrOpt('test_opt', help="Demo Option.", default=0),
+                # Some more options ...
+            ]
+
+The configuration options defined within this class method will be included
+within the global ``watcher.conf`` configuration file under a section named by
+convention: ``{namespace}.{plugin_name}``. In our case, the ``watcher.conf``
+configuration would have to be modified as followed:
+
+.. code-block:: ini
+
+    [watcher_actions.dummy]
+    # Option used for testing.
+    test_opt = test_value
+
+Then, the configuration options you define within this method will then be
+injected in each instantiated object via the  ``config`` parameter of the
+:py:meth:`~.BaseAction.__init__` method.
+
 
 Abstract Plugin Class
 =====================
@@ -103,6 +145,7 @@ should implement:
 
 .. autoclass:: watcher.applier.actions.base.BaseAction
     :members:
+    :special-members: __init__
     :noindex:
 
     .. py:attribute:: schema
