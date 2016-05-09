@@ -71,16 +71,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
-    def __init__(self, osc=None):
+    def __init__(self, config=None, osc=None):
         """Basic offline Consolidation using live migration
 
-        :param name: The name of the strategy (Default: "basic")
-        :param description: The description of the strategy
-                            (Default: "Basic offline consolidation")
-        :param osc: An :py:class:`~watcher.common.clients.OpenStackClients`
-                    instance
+        :param config: A mapping containing the configuration of this strategy
+        :type config: dict
+        :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(BasicConsolidation, self).__init__(osc)
+        super(BasicConsolidation, self).__init__(config, osc)
 
         # set default value for the number of released nodes
         self.number_of_released_nodes = 0

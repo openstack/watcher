@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2015 b<>com
+# Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,16 +13,29 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import abc
+
 import six
 
 
 @six.add_metaclass(abc.ABCMeta)
-class FakeLoadable(object):
-    @classmethod
-    def namespace(cls):
-        return "TESTING"
+class Loadable(object):
+    """Generic interface for dynamically loading a driver/entry point.
+
+    This defines the contract in order to let the loader manager inject
+    the configuration parameters during the loading.
+    """
+
+    def __init__(self, config):
+        self.config = config
 
     @classmethod
-    def get_name(cls):
-        return 'fake'
+    @abc.abstractmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        raise NotImplementedError

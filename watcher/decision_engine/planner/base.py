@@ -47,12 +47,24 @@ See :doc:`../architecture` for more details on this component.
 import abc
 import six
 
+from watcher.common.loader import loadable
+
 
 @six.add_metaclass(abc.ABCMeta)
-class BasePlanner(object):
+class BasePlanner(loadable.Loadable):
+
+    @classmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        return []
+
     @abc.abstractmethod
     def schedule(self, context, audit_uuid, solution):
-        """The  planner receives a solution to schedule
+        """The planner receives a solution to schedule
 
         :param solution: A solution provided by a strategy for scheduling
         :type solution: :py:class:`~.BaseSolution` subclass instance
@@ -60,7 +72,7 @@ class BasePlanner(object):
         :type audit_uuid: str
         :return: Action plan with an ordered sequence of actions such that all
                  security, dependency, and performance requirements are met.
-        :rtype: :py:class:`watcher.objects.action_plan.ActionPlan` instance
+        :rtype: :py:class:`watcher.objects.ActionPlan` instance
         """
         # example: directed acyclic graph
         raise NotImplementedError()

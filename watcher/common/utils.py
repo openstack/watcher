@@ -41,6 +41,29 @@ CONF.register_opts(UTILS_OPTS)
 LOG = logging.getLogger(__name__)
 
 
+class Struct(dict):
+    """Specialized dict where you access an item like an attribute
+
+    >>> struct = Struct()
+    >>> struct['a'] = 1
+    >>> struct.b = 2
+    >>> assert struct.a == 1
+    >>> assert struct['b'] == 2
+    """
+
+    def __getattr__(self, name):
+        try:
+            return self[name]
+        except KeyError:
+            raise AttributeError(name)
+
+    def __setattr__(self, name, value):
+        try:
+            self[name] = value
+        except KeyError:
+            raise AttributeError(name)
+
+
 def safe_rstrip(value, chars=None):
     """Removes trailing characters from a string if that does not make it empty
 

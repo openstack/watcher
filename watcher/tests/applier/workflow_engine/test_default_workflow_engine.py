@@ -20,15 +20,18 @@ import abc
 import mock
 
 import six
-from stevedore import driver
-from stevedore import extension
 
 from watcher.applier.actions import base as abase
+from watcher.applier.actions import factory
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
 from watcher.common import utils
 from watcher import objects
 from watcher.tests.db import base
+
+
+class ExpectedException(Exception):
+    pass
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -46,21 +49,14 @@ class FakeAction(abase.BaseAction):
         pass
 
     def execute(self):
-        raise Exception()
-
-    @classmethod
-    def namespace(cls):
-        return "TESTING"
-
-    @classmethod
-    def get_name(cls):
-        return 'fake_action'
+        raise ExpectedException()
 
 
 class TestDefaultWorkFlowEngine(base.DbTestCase):
     def setUp(self):
         super(TestDefaultWorkFlowEngine, self).setUp()
         self.engine = tflow.DefaultWorkFlowEngine(
+            config=mock.Mock(),
             context=self.context,
             applier_manager=mock.MagicMock())
 
@@ -86,6 +82,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         new_action = objects.Action(self.context, **action)
         new_action.create(self.context)
         new_action.save()
+
         return new_action
 
     def check_action_state(self, action, expected_state):
@@ -175,18 +172,13 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         self.check_action_state(second, objects.action.State.SUCCEEDED)
         self.check_action_state(third, objects.action.State.FAILED)
 
-    @mock.patch("watcher.common.loader.default.DriverManager")
-    def test_execute_with_action_exception(self, m_driver):
-        m_driver.return_value = driver.DriverManager.make_test_instance(
-            extension=extension.Extension(name=FakeAction.get_name(),
-                                          entry_point="%s:%s" % (
-                                          FakeAction.__module__,
-                                          FakeAction.__name__),
-                                          plugin=FakeAction,
-                                          obj=None),
-            namespace=FakeAction.namespace())
-        actions = [self.create_action("dontcare", {}, None)]
+    @mock.patch.object(factory.ActionFactory, "make_action")
+    def test_execute_with_action_exception(self, m_make_action):
+        actions = [self.create_action("fake_action", {}, None)]
+        m_make_action.return_value = FakeAction(mock.Mock())
 
-        self.assertRaises(exception.WorkflowExecutionException,
-                          self.engine.execute, actions)
+        exc = self.assertRaises(exception.WorkflowExecutionException,
+                                self.engine.execute, actions)
+
+        self.assertIsInstance(exc.kwargs['error'], ExpectedException)
         self.check_action_state(actions[0], objects.action.State.FAILED)

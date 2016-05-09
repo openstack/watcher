@@ -17,10 +17,10 @@
 
 from __future__ import unicode_literals
 
-from watcher.common.loader.default import DefaultLoader
+from watcher.common.loader import default
 
 
-class DefaultPlannerLoader(DefaultLoader):
+class DefaultPlannerLoader(default.DefaultLoader):
     def __init__(self):
         super(DefaultPlannerLoader, self).__init__(
             namespace='watcher_planners')

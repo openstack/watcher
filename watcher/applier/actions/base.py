@@ -23,18 +23,26 @@ import abc
 import six
 
 from watcher.common import clients
+from watcher.common.loader import loadable
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseAction(object):
+class BaseAction(loadable.Loadable):
     # NOTE(jed) by convention we decided
     # that the attribute "resource_id" is the unique id of
     # the resource to which the Action applies to allow us to use it in the
     # watcher dashboard and will be nested in input_parameters
     RESOURCE_ID = 'resource_id'
 
-    def __init__(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
+    def __init__(self, config, osc=None):
+        """Constructor
+
+        :param config: A mapping containing the configuration of this action
+        :type config: dict
+        :param osc: an OpenStackClients instance, defaults to None
+        :type osc: :py:class:`~.OpenStackClients` instance, optional
+        """
+        super(BaseAction, self).__init__(config)
         self._input_parameters = {}
         self._osc = osc
 
@@ -55,6 +63,15 @@ class BaseAction(object):
     @property
     def resource_id(self):
         return self.input_parameters[self.RESOURCE_ID]
+
+    @classmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        return []
 
     @abc.abstractmethod
     def execute(self):

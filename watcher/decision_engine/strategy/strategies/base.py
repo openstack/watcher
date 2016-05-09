@@ -41,20 +41,22 @@ import six
 
 from watcher._i18n import _
 from watcher.common import clients
+from watcher.common.loader import loadable
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseStrategy(object):
+class BaseStrategy(loadable.Loadable):
     """A base class for all the strategies
 
     A Strategy is an algorithm implementation which is able to find a
     Solution for a given Goal.
     """
 
-    def __init__(self, osc=None):
+    def __init__(self, config, osc=None):
         """:param osc: an OpenStackClients instance"""
+        super(BaseStrategy, self).__init__(config)
         self._name = self.get_name()
         self._display_name = self.get_display_name()
         # default strategy level
@@ -103,6 +105,15 @@ class BaseStrategy(object):
         # Note(v-francoise): Defined here to be used as the translation key for
         # other services
         raise NotImplementedError()
+
+    @classmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        return []
 
     @abc.abstractmethod
     def execute(self, original_model):

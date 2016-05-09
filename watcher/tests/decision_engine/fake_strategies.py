@@ -14,7 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+
 from watcher.decision_engine.strategy.strategies import base as base_strategy
+
+CONF = cfg.CONF
 
 
 class FakeStrategy(base_strategy.BaseStrategy):
@@ -48,6 +52,10 @@ class FakeStrategy(base_strategy.BaseStrategy):
     def get_translatable_goal_display_name(cls):
         return cls.GOAL_DISPLAY_NAME
 
+    @classmethod
+    def get_config_opts(cls):
+        return []
+
     def execute(self, original_model):
         pass
 
@@ -57,6 +65,12 @@ class FakeDummy1Strategy1(FakeStrategy):
     GOAL_DISPLAY_NAME = "Dummy 1"
     NAME = "STRATEGY_1"
     DISPLAY_NAME = "Strategy 1"
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt('test_opt', help="Option used for testing."),
+        ]
 
 
 class FakeDummy1Strategy2(FakeStrategy):

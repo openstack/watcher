@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
+import mock
 import voluptuous
 
 from watcher.applier.actions import sleep
@@ -23,7 +25,7 @@ from watcher.tests import base
 class TestSleep(base.TestCase):
     def setUp(self):
         super(TestSleep, self).setUp()
-        self.s = sleep.Sleep()
+        self.s = sleep.Sleep(mock.Mock())
 
     def test_parameters_duration(self):
         self.s.input_parameters = {self.s.DURATION: 1.0}
