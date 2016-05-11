@@ -34,6 +34,7 @@ from watcher.api.controllers.v1 import action_plan
 from watcher.api.controllers.v1 import audit
 from watcher.api.controllers.v1 import audit_template
 from watcher.api.controllers.v1 import goal
+from watcher.api.controllers.v1 import strategy
 
 
 class APIBase(wtypes.Base):
@@ -157,6 +158,7 @@ class Controller(rest.RestController):
     actions = action.ActionsController()
     action_plans = action_plan.ActionPlansController()
     goals = goal.GoalsController()
+    strategies = strategy.StrategiesController()
 
     @wsme_pecan.wsexpose(V1)
     def get(self):

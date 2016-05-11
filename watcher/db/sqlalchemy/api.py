@@ -187,10 +187,19 @@ class Connection(api.BaseConnection):
 
     def __add_join_filter(self, query, model, join_model, fieldname, value):
         query = query.join(join_model)
-        return self.__add_simple_filter(query, model, fieldname, value)
+        return self.__add_simple_filter(query, join_model, fieldname, value)
 
     def _add_filters(self, query, model, filters=None,
                      plain_fields=None, join_fieldmap=None):
+        """Generic way to add filters to a Watcher model
+
+        :param query: a :py:class:`sqlalchemy.orm.query.Query` instance
+        :param model: the model class the filters should relate to
+        :param filters: dict with the following structure {"fieldname": value}
+        :param plain_fields: a :py:class:`sqlalchemy.orm.query.Query` instance
+        :param join_fieldmap: a :py:class:`sqlalchemy.orm.query.Query` instance
+
+        """
         filters = filters or {}
         plain_fields = plain_fields or ()
         join_fieldmap = join_fieldmap or {}
@@ -200,9 +209,9 @@ class Connection(api.BaseConnection):
                 query = self.__add_simple_filter(
                     query, model, fieldname, value)
             elif fieldname in join_fieldmap:
-                join_model = join_fieldmap[fieldname]
+                join_field, join_model = join_fieldmap[fieldname]
                 query = self.__add_join_filter(
-                    query, model, join_model, fieldname, value)
+                    query, model, join_model, join_field, value)
 
         query = self.__add_soft_delete_mixin_filters(query, filters, model)
         query = self.__add_timestamp_mixin_filters(query, filters, model)
@@ -272,7 +281,7 @@ class Connection(api.BaseConnection):
 
     def _add_strategies_filters(self, query, filters):
         plain_fields = ['uuid', 'name', 'display_name', 'goal_id']
-        join_fieldmap = {'goal_uuid': models.Goal}
+        join_fieldmap = {'goal_uuid': ("uuid", models.Goal)}
 
         return self._add_filters(
             query=query, model=models.Strategy, filters=filters,

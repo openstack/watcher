@@ -26,6 +26,7 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultStrategyContext(base.BaseStrategyContext):
+
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")

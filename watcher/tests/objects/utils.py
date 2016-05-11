@@ -162,3 +162,30 @@ def create_test_goal(context, **kw):
     goal = get_test_goal(context, **kw)
     goal.create()
     return goal
+
+
+def get_test_strategy(context, **kw):
+    """Return a Strategy object with appropriate attributes.
+
+    NOTE: The object leaves the attributes marked as changed, such
+    that a create() could be used to commit it to the DB.
+    """
+    db_strategy = db_utils.get_test_strategy(**kw)
+    # Let DB generate ID if it isn't specified explicitly
+    if 'id' not in kw:
+        del db_strategy['id']
+    strategy = objects.Strategy(context)
+    for key in db_strategy:
+        setattr(strategy, key, db_strategy[key])
+    return strategy
+
+
+def create_test_strategy(context, **kw):
+    """Create and return a test strategy object.
+
+    Create a strategy in the DB and return a Strategy object with appropriate
+    attributes.
+    """
+    strategy = get_test_strategy(context, **kw)
+    strategy.create()
+    return strategy
