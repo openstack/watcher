@@ -19,6 +19,7 @@
 from oslo_config import cfg
 import pecan
 
+from watcher._i18n import _
 from watcher.api import acl
 from watcher.api import config as api_config
 from watcher.api import middleware
@@ -27,16 +28,31 @@ from watcher.decision_engine.strategy.selection import default \
 
 # Register options for the service
 API_SERVICE_OPTS = [
-    cfg.IntOpt('port',
-               default=9322,
-               help='The port for the watcher API server'),
+    cfg.PortOpt('port',
+                default=9322,
+                help=_('The port for the watcher API server')),
     cfg.StrOpt('host',
                default='0.0.0.0',
-               help='The listen IP for the watcher API server'),
+               help=_('The listen IP for the watcher API server')),
     cfg.IntOpt('max_limit',
                default=1000,
-               help='The maximum number of items returned in a single '
-                    'response from a collection resource.')
+               help=_('The maximum number of items returned in a single '
+                      'response from a collection resource')),
+    cfg.IntOpt('workers',
+               min=1,
+               help=_('Number of workers for Watcher API service. '
+                      'The default is equal to the number of CPUs available '
+                      'if that can be determined, else a default worker '
+                      'count of 1 is returned.')),
+
+    cfg.BoolOpt('enable_ssl_api',
+                default=False,
+                help=_("Enable the integrated stand-alone API to service "
+                       "requests via HTTPS instead of HTTP. If there is a "
+                       "front-end service performing HTTPS offloading from "
+                       "the service, this option should be False; note, you "
+                       "will want to change public API endpoint to represent "
+                       "SSL termination URL with 'public_endpoint' option.")),
 ]
 
 CONF = cfg.CONF
@@ -68,3 +84,12 @@ def setup_app(config=None):
     )
 
     return acl.install(app, CONF, config.app.acl_public_routes)
+
+
+class VersionSelectorApplication(object):
+    def __init__(self):
+        pc = get_pecan_config()
+        self.v1 = setup_app(config=pc)
+
+    def __call__(self, environ, start_response):
+        return self.v1(environ, start_response)
