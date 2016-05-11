@@ -131,6 +131,96 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
+    def get_strategy_list(self, context, filters=None, limit=None,
+                          marker=None, sort_key=None, sort_dir=None):
+        """Get specific columns for matching strategies.
+
+        Return a list of the specified columns for all strategies that
+        match the specified filters.
+
+        :param context: The security context
+        :param columns: List of column names to return.
+                        Defaults to 'id' column when columns == None.
+        :param filters: Filters to apply. Defaults to None.
+
+        :param limit: Maximum number of strategies to return.
+        :param marker: The last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: Direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_strategy(self, values):
+        """Create a new strategy.
+
+        :param values: A dict containing items used to identify
+                       and track the strategy. For example:
+
+                       ::
+
+                        {
+                         'id': 1,
+                         'uuid': utils.generate_uuid(),
+                         'name': 'my_strategy',
+                         'display_name': 'My strategy',
+                         'goal_uuid': utils.generate_uuid(),
+                        }
+        :returns: A strategy
+        :raises: :py:class:`~.StrategyAlreadyExists`
+        """
+
+    @abc.abstractmethod
+    def get_strategy_by_id(self, context, strategy_id):
+        """Return a strategy given its ID.
+
+        :param context: The security context
+        :param strategy_id: The ID of a strategy
+        :returns: A strategy
+        :raises: :py:class:`~.StrategyNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_strategy_by_uuid(self, context, strategy_uuid):
+        """Return a strategy given its UUID.
+
+        :param context: The security context
+        :param strategy_uuid: The UUID of a strategy
+        :returns: A strategy
+        :raises: :py:class:`~.StrategyNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_strategy_by_name(self, context, strategy_name):
+        """Return a strategy given its name.
+
+        :param context: The security context
+        :param strategy_name: The name of a strategy
+        :returns: A strategy
+        :raises: :py:class:`~.StrategyNotFound`
+        """
+
+    @abc.abstractmethod
+    def destroy_strategy(self, strategy_uuid):
+        """Destroy a strategy.
+
+        :param strategy_uuid: The UUID of a strategy
+        :raises: :py:class:`~.StrategyNotFound`
+        """
+
+    @abc.abstractmethod
+    def update_strategy(self, strategy_uuid, values):
+        """Update properties of a strategy.
+
+        :param strategy_uuid: The UUID of a strategy
+        :returns: A strategy
+        :raises: :py:class:`~.StrategyNotFound`
+        :raises: :py:class:`~.Invalid`
+        """
+
+    @abc.abstractmethod
     def get_audit_template_list(self, context, columns=None, filters=None,
                                 limit=None, marker=None, sort_key=None,
                                 sort_dir=None):

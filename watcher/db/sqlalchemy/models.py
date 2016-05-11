@@ -110,6 +110,21 @@ class WatcherBase(models.SoftDeleteMixin,
 Base = declarative_base(cls=WatcherBase)
 
 
+class Strategy(Base):
+    """Represents a strategy."""
+
+    __tablename__ = 'strategies'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', name='uniq_strategies0uuid'),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36))
+    name = Column(String(63), nullable=False)
+    display_name = Column(String(63), nullable=False)
+    goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
+
+
 class Goal(Base):
     """Represents a goal."""
 

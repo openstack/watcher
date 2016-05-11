@@ -163,3 +163,28 @@ def create_test_goal(**kwargs):
     goal = get_test_goal(**kwargs)
     dbapi = db_api.get_instance()
     return dbapi.create_goal(goal)
+
+
+def get_test_strategy(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'uuid': kwargs.get('uuid', 'cb3d0b58-4415-4d90-b75b-1e96878730e3'),
+        'name': kwargs.get('name', 'TEST'),
+        'display_name': kwargs.get('display_name', 'test strategy'),
+        'goal_id': kwargs.get('goal_id', 1),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_strategy(**kwargs):
+    """Create test strategy entry in DB and return Strategy DB object.
+
+    Function to be used to create test Strategy objects in the database.
+    :param kwargs: kwargs with overriding values for strategy's attributes.
+    :returns: Test Strategy DB object.
+    """
+    strategy = get_test_strategy(**kwargs)
+    dbapi = db_api.get_instance()
+    return dbapi.create_strategy(strategy)

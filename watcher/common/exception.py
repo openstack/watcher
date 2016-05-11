@@ -151,7 +151,7 @@ class InvalidIdentity(Invalid):
 
 
 class InvalidGoal(Invalid):
-    msg_fmt = _("Goal %(goal)s is not defined in Watcher configuration file")
+    msg_fmt = _("Goal %(goal)s is invalid")
 
 
 class InvalidUUID(Invalid):
@@ -172,6 +172,14 @@ class GoalNotFound(ResourceNotFound):
 
 class GoalAlreadyExists(Conflict):
     msg_fmt = _("A goal with UUID %(uuid)s already exists")
+
+
+class StrategyNotFound(ResourceNotFound):
+    msg_fmt = _("Strategy %(strategy)s could not be found")
+
+
+class StrategyAlreadyExists(Conflict):
+    msg_fmt = _("A strategy with UUID %(uuid)s already exists")
 
 
 class AuditTemplateNotFound(ResourceNotFound):
