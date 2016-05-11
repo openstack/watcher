@@ -541,7 +541,8 @@ class Connection(api.BaseConnection):
                                 deleted_at=None)
 
         if len(query.all()) > 0:
-            raise exception.AuditTemplateAlreadyExists(uuid=values['uuid'])
+            raise exception.AuditTemplateAlreadyExists(
+                audit_template=values['name'])
 
         audit_template = models.AuditTemplate()
         audit_template.update(values)
@@ -549,8 +550,8 @@ class Connection(api.BaseConnection):
         try:
             audit_template.save()
         except db_exc.DBDuplicateEntry:
-            raise exception.AuditTemplateAlreadyExists(uuid=values['uuid'],
-                                                       name=values['name'])
+            raise exception.AuditTemplateAlreadyExists(
+                audit_template=values['name'])
         return audit_template
 
     def _get_audit_template(self, context, fieldname, value):

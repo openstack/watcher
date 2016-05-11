@@ -147,7 +147,7 @@ class ResourceNotFound(ObjectNotFound):
 
 
 class InvalidIdentity(Invalid):
-    msg_fmt = _("Expected an uuid or int but received %(identity)s")
+    msg_fmt = _("Expected a uuid or int but received %(identity)s")
 
 
 class InvalidGoal(Invalid):
@@ -191,7 +191,7 @@ class AuditTemplateNotFound(ResourceNotFound):
 
 
 class AuditTemplateAlreadyExists(Conflict):
-    msg_fmt = _("An audit_template with UUID %(uuid)s or name %(name)s "
+    msg_fmt = _("An audit_template with UUID or name %(audit_template)s "
                 "already exists")
 
 
