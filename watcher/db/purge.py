@@ -47,6 +47,8 @@ class WatcherObjectsMap(object):
 
     # This is for generating the .pot translations
     keymap = collections.OrderedDict([
+        ("goals", _("Goals")),
+        ("strategies", _("Strategies")),
         ("audit_templates", _("Audit Templates")),
         ("audits", _("Audits")),
         ("action_plans", _("Action Plans")),
@@ -143,9 +145,9 @@ class PurgeCommand(object):
 
         query_func = None
         if not utils.is_uuid_like(uuid_or_name):
-            query_func = objects.audit_template.AuditTemplate.get_by_name
+            query_func = objects.AuditTemplate.get_by_name
         else:
-            query_func = objects.audit_template.AuditTemplate.get_by_uuid
+            query_func = objects.AuditTemplate.get_by_uuid
 
         try:
             audit_template = query_func(cls.ctx, uuid_or_name)
@@ -159,45 +161,64 @@ class PurgeCommand(object):
 
         return audit_template.uuid
 
+    def _find_goals(self, filters=None):
+        return objects.Goal.list(self.ctx, filters=filters)
+
+    def _find_strategies(self, filters=None):
+        return objects.Strategy.list(self.ctx, filters=filters)
+
     def _find_audit_templates(self, filters=None):
-        return objects.audit_template.AuditTemplate.list(
-            self.ctx, filters=filters)
+        return objects.AuditTemplate.list(self.ctx, filters=filters)
 
     def _find_audits(self, filters=None):
-        return objects.audit.Audit.list(self.ctx, filters=filters)
+        return objects.Audit.list(self.ctx, filters=filters)
 
     def _find_action_plans(self, filters=None):
-        return objects.action_plan.ActionPlan.list(self.ctx, filters=filters)
+        return objects.ActionPlan.list(self.ctx, filters=filters)
 
     def _find_actions(self, filters=None):
-        return objects.action.Action.list(self.ctx, filters=filters)
+        return objects.Action.list(self.ctx, filters=filters)
 
     def _find_orphans(self):
         orphans = WatcherObjectsMap()
 
         filters = dict(deleted=False)
-        audit_templates = objects.audit_template.AuditTemplate.list(
-            self.ctx, filters=filters)
-        audits = objects.audit.Audit.list(self.ctx, filters=filters)
-        action_plans = objects.action_plan.ActionPlan.list(
-            self.ctx, filters=filters)
-        actions = objects.action.Action.list(self.ctx, filters=filters)
+        goals = objects.Goal.list(self.ctx, filters=filters)
+        strategies = objects.Strategy.list(self.ctx, filters=filters)
+        audit_templates = objects.AuditTemplate.list(self.ctx, filters=filters)
+        audits = objects.Audit.list(self.ctx, filters=filters)
+        action_plans = objects.ActionPlan.list(self.ctx, filters=filters)
+        actions = objects.Action.list(self.ctx, filters=filters)
 
-        audit_template_ids = set(at.id for at in audit_templates)
+        goal_ids = set(g.id for g in goals)
+        orphans.strategies = [
+            strategy for strategy in strategies
+            if strategy.goal_id not in goal_ids]
+
+        strategy_ids = [s.id for s in (s for s in strategies
+                                       if s not in orphans.strategies)]
+        orphans.audit_templates = [
+            audit_template for audit_template in audit_templates
+            if audit_template.goal_id not in goal_ids or
+            (audit_template.strategy_id and
+             audit_template.strategy_id not in strategy_ids)]
+
+        audit_template_ids = [at.id for at in audit_templates
+                              if at not in orphans.audit_templates]
         orphans.audits = [
             audit for audit in audits
             if audit.audit_template_id not in audit_template_ids]
 
         # Objects with orphan parents are themselves orphans
-        audit_ids = [audit.id for audit in (a for a in audits
-                                            if a not in orphans.audits)]
+        audit_ids = [audit.id for audit in audits
+                     if audit not in orphans.audits]
         orphans.action_plans = [
             ap for ap in action_plans
             if ap.audit_id not in audit_ids]
 
         # Objects with orphan parents are themselves orphans
-        action_plan_ids = [ap.id for ap in (a for a in action_plans
-                                            if a not in orphans.action_plans)]
+        action_plan_ids = [ap.id for ap in action_plans
+                           if ap not in orphans.action_plans]
         orphans.actions = [
             action for action in actions
             if action.action_plan_id not in action_plan_ids]
@@ -209,18 +230,21 @@ class PurgeCommand(object):
 
     def _find_soft_deleted_objects(self):
         to_be_deleted = WatcherObjectsMap()
-
         expiry_date = self.get_expiry_date()
         filters = dict(deleted=True)
+
         if self.uuid:
             filters["uuid"] = self.uuid
         if expiry_date:
             filters.update(dict(deleted_at__lt=expiry_date))
 
+        to_be_deleted.goals.extend(self._find_goals(filters))
+        to_be_deleted.strategies.extend(self._find_strategies(filters))
         to_be_deleted.audit_templates.extend(
             self._find_audit_templates(filters))
         to_be_deleted.audits.extend(self._find_audits(filters))
-        to_be_deleted.action_plans.extend(self._find_action_plans(filters))
+        to_be_deleted.action_plans.extend(
+            self._find_action_plans(filters))
         to_be_deleted.actions.extend(self._find_actions(filters))
 
         soft_deleted_objs = self._find_related_objects(
@@ -232,6 +256,23 @@ class PurgeCommand(object):
 
     def _find_related_objects(self, objects_map, base_filters=None):
         base_filters = base_filters or {}
+
+        for goal in objects_map.goals:
+            filters = {}
+            filters.update(base_filters)
+            filters.update(dict(goal_id=goal.id))
+            related_objs = WatcherObjectsMap()
+            related_objs.strategies = self._find_strategies(filters)
+            related_objs.audit_templates = self._find_audit_templates(filters)
+            objects_map += related_objs
+
+        for strategy in objects_map.strategies:
+            filters = {}
+            filters.update(base_filters)
+            filters.update(dict(strategy_id=strategy.id))
+            related_objs = WatcherObjectsMap()
+            related_objs.audit_templates = self._find_audit_templates(filters)
+            objects_map += related_objs
 
         for audit_template in objects_map.audit_templates:
             filters = {}
@@ -282,21 +323,48 @@ class PurgeCommand(object):
         return self._delete_up_to_max
 
     def _aggregate_objects(self):
-        """Objects aggregated on a 'per audit template' basis"""
+        """Objects aggregated on a 'per goal' basis"""
         # todo: aggregate orphans as well
         aggregate = []
-        for audit_template in self._objects_map.audit_templates:
+        for goal in self._objects_map.goals:
             related_objs = WatcherObjectsMap()
-            related_objs.audit_templates = [audit_template]
+
+            # goals
+            related_objs.goals = [goal]
+
+            # strategies
+            goal_ids = [goal.id]
+            related_objs.strategies = [
+                strategy for strategy in self._objects_map.strategies
+                if strategy.goal_id in goal_ids
+            ]
+
+            # audit templates
+            strategy_ids = [
+                strategy.id for strategy in related_objs.strategies]
+            related_objs.audit_templates = [
+                at for at in self._objects_map.audit_templates
+                if at.goal_id in goal_ids or
+                (at.strategy_id and at.strategy_id in strategy_ids)
+            ]
+
+            # audits
+            audit_template_ids = [
+                audit_template.id
+                for audit_template in related_objs.audit_templates]
             related_objs.audits = [
                 audit for audit in self._objects_map.audits
-                if audit.audit_template_id == audit_template.id
+                if audit.audit_template_id in audit_template_ids
             ]
+
+            # action plans
             audit_ids = [audit.id for audit in related_objs.audits]
             related_objs.action_plans = [
                 action_plan for action_plan in self._objects_map.action_plans
                 if action_plan.audit_id in audit_ids
             ]
+
+            # actions
             action_plan_ids = [
                 action_plan.id for action_plan in related_objs.action_plans
             ]

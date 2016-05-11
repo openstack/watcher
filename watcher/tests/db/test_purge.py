@@ -71,6 +71,9 @@ class TestPurgeCommand(base.DbTestCase):
             yield seed
             seed += 1
 
+    def generate_unique_name(self, prefix):
+        return "%s%s" % (prefix, uuid.uuid4())
+
     def _data_setup(self):
         # All the 1's are soft_deleted and are expired
         # All the 2's are soft_deleted but are not expired
@@ -80,21 +83,62 @@ class TestPurgeCommand(base.DbTestCase):
         self.cmd.age_in_days = 10
         self.cmd.max_number = None
         self.cmd.orphans = True
-        gen_name = lambda: "Audit Template %s" % uuid.uuid4()
-        self.audit_template1_name = gen_name()
-        self.audit_template2_name = gen_name()
-        self.audit_template3_name = gen_name()
+
+        goal1_name = "GOAL_1"
+        goal2_name = "GOAL_2"
+        goal3_name = "GOAL_3"
+
+        strategy1_name = "strategy_1"
+        strategy2_name = "strategy_2"
+        strategy3_name = "strategy_3"
+
+        self.audit_template1_name = self.generate_unique_name(
+            prefix="Audit Template 1 ")
+        self.audit_template2_name = self.generate_unique_name(
+            prefix="Audit Template 2 ")
+        self.audit_template3_name = self.generate_unique_name(
+            prefix="Audit Template 3 ")
+
+        with freezegun.freeze_time(self.expired_date):
+            self.goal1 = obj_utils.create_test_goal(
+                self.context, id=self._generate_id(), uuid=None,
+                name=goal1_name, display_name=goal1_name.lower())
+            self.goal2 = obj_utils.create_test_goal(
+                self.context, id=self._generate_id(), uuid=None,
+                name=goal2_name, display_name=goal2_name.lower())
+            self.goal3 = obj_utils.create_test_goal(
+                self.context, id=self._generate_id(), uuid=None,
+                name=goal3_name, display_name=goal3_name.lower())
+            self.goal1.soft_delete()
+
+        with freezegun.freeze_time(self.expired_date):
+            self.strategy1 = obj_utils.create_test_strategy(
+                self.context, id=self._generate_id(), uuid=None,
+                name=strategy1_name, display_name=strategy1_name.lower(),
+                goal_id=self.goal1.id)
+            self.strategy2 = obj_utils.create_test_strategy(
+                self.context, id=self._generate_id(), uuid=None,
+                name=strategy2_name, display_name=strategy2_name.lower(),
+                goal_id=self.goal2.id)
+            self.strategy3 = obj_utils.create_test_strategy(
+                self.context, id=self._generate_id(), uuid=None,
+                name=strategy3_name, display_name=strategy3_name.lower(),
+                goal_id=self.goal3.id)
+            self.strategy1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
             self.audit_template1 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template1_name,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(), uuid=None, goal_id=self.goal1.id,
+                strategy_id=self.strategy1.id)
             self.audit_template2 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template2_name,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(), uuid=None, goal_id=self.goal2.id,
+                strategy_id=self.strategy2.id)
             self.audit_template3 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template3_name,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(), uuid=None, goal_id=self.goal3.id,
+                strategy_id=self.strategy3.id)
             self.audit_template1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
@@ -135,14 +179,21 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
-    def test_execute_max_number_exceeded(self, m_destroy_audit_template,
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
+    def test_execute_max_number_exceeded(self,
+                                         m_destroy_goal,
+                                         m_destroy_strategy,
+                                         m_destroy_audit_template,
                                          m_destroy_audit,
                                          m_destroy_action_plan,
                                          m_destroy_action):
         self.cmd.age_in_days = None
-        self.cmd.max_number = 5
+        self.cmd.max_number = 10
 
         with freezegun.freeze_time(self.fake_today):
+            self.goal2.soft_delete()
+            self.strategy2.soft_delete()
             self.audit_template2.soft_delete()
             self.audit2.soft_delete()
             self.action_plan2.soft_delete()
@@ -151,8 +202,10 @@ class TestPurgeCommand(base.DbTestCase):
             self.cmd.execute()
 
         # The 1's and the 2's are purgeable (due to age of day set to 0),
-        # but max_number = 5, and because of no Db integrity violation, we
-        # should be able to purge only 4 objects.
+        # but max_number = 10, and because of no Db integrity violation, we
+        # should be able to purge only 6 objects.
+        self.assertEqual(m_destroy_goal.call_count, 1)
+        self.assertEqual(m_destroy_strategy.call_count, 1)
         self.assertEqual(m_destroy_audit_template.call_count, 1)
         self.assertEqual(m_destroy_audit.call_count, 1)
         self.assertEqual(m_destroy_action_plan.call_count, 1)
@@ -164,6 +217,8 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             objects_map = self.cmd.find_objects_to_delete()
 
+        self.assertEqual(len(objects_map.goals), 1)
+        self.assertEqual(len(objects_map.strategies), 1)
         self.assertEqual(len(objects_map.audit_templates), 1)
         self.assertEqual(len(objects_map.audits), 1)
         self.assertEqual(len(objects_map.action_plans), 1)
@@ -171,6 +226,8 @@ class TestPurgeCommand(base.DbTestCase):
 
     def test_find_deleted_and_expired_entries(self):
         with freezegun.freeze_time(self.fake_today):
+            self.goal2.soft_delete()
+            self.strategy2.soft_delete()
             self.audit_template2.soft_delete()
             self.audit2.soft_delete()
             self.action_plan2.soft_delete()
@@ -179,6 +236,8 @@ class TestPurgeCommand(base.DbTestCase):
             objects_map = self.cmd.find_objects_to_delete()
 
         # The 1's are purgeable (due to age of day set to 10)
+        self.assertEqual(len(objects_map.goals), 1)
+        self.assertEqual(len(objects_map.strategies), 1)
         self.assertEqual(len(objects_map.audit_templates), 1)
         self.assertEqual(len(objects_map.audits), 1)
         self.assertEqual(len(objects_map.action_plans), 1)
@@ -186,9 +245,13 @@ class TestPurgeCommand(base.DbTestCase):
 
     def test_find_deleted_and_nonexpired_related_entries(self):
         with freezegun.freeze_time(self.fake_today):
-            # orphan audit
+            # orphan audit template
+            audit_template4 = obj_utils.create_test_audit_template(
+                self.context, goal_id=404,  # Does not exist
+                name=self.generate_unique_name(prefix="Audit Template 4 "),
+                strategy_id=None, id=self._generate_id(), uuid=None)
             audit4 = obj_utils.create_test_audit(
-                self.context, audit_template_id=404,  # Does not exist
+                self.context, audit_template_id=audit_template4.id,
                 id=self._generate_id(), uuid=None)
             action_plan4 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit4.id,
@@ -197,8 +260,12 @@ class TestPurgeCommand(base.DbTestCase):
                 self.context, action_plan_id=action_plan4.id,
                 id=self._generate_id(), uuid=None)
 
+            audit_template5 = obj_utils.create_test_audit_template(
+                self.context, goal_id=self.goal1.id,
+                name=self.generate_unique_name(prefix="Audit Template 5 "),
+                strategy_id=None, id=self._generate_id(), uuid=None)
             audit5 = obj_utils.create_test_audit(
-                self.context, audit_template_id=self.audit_template1.id,
+                self.context, audit_template_id=audit_template5.id,
                 id=self._generate_id(), uuid=None)
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit5.id,
@@ -207,6 +274,8 @@ class TestPurgeCommand(base.DbTestCase):
                 self.context, action_plan_id=action_plan5.id,
                 id=self._generate_id(), uuid=None)
 
+            self.goal2.soft_delete()
+            self.strategy2.soft_delete()
             self.audit_template2.soft_delete()
             self.audit2.soft_delete()
             self.action_plan2.soft_delete()
@@ -216,13 +285,16 @@ class TestPurgeCommand(base.DbTestCase):
 
             # All the 5's should be purged as well even though they are not
             # expired because their related audit template is itself expired
+            audit_template5.soft_delete()
             audit5.soft_delete()
             action_plan5.soft_delete()
 
         with freezegun.freeze_time(self.fake_today):
             objects_map = self.cmd.find_objects_to_delete()
 
-        self.assertEqual(len(objects_map.audit_templates), 1)
+        self.assertEqual(len(objects_map.goals), 1)
+        self.assertEqual(len(objects_map.strategies), 1)
+        self.assertEqual(len(objects_map.audit_templates), 3)
         self.assertEqual(len(objects_map.audits), 3)
         self.assertEqual(len(objects_map.action_plans), 3)
         self.assertEqual(len(objects_map.actions), 3)
@@ -234,9 +306,11 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
-    def test_purge_command(self, m_destroy_audit_template,
-                           m_destroy_audit, m_destroy_action_plan,
-                           m_destroy_action):
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
+    def test_purge_command(self, m_destroy_goal, m_destroy_strategy,
+                           m_destroy_audit_template, m_destroy_audit,
+                           m_destroy_action_plan, m_destroy_action):
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
@@ -253,13 +327,20 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
     def test_purge_command_with_nonexpired_related_entries(
-            self, m_destroy_audit_template, m_destroy_audit,
+            self, m_destroy_goal, m_destroy_strategy,
+            m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
         with freezegun.freeze_time(self.fake_today):
-            # orphan audit
+            # orphan audit template
+            audit_template4 = obj_utils.create_test_audit_template(
+                self.context, goal_id=404,  # Does not exist
+                name=self.generate_unique_name(prefix="Audit Template 4 "),
+                strategy_id=None, id=self._generate_id(), uuid=None)
             audit4 = obj_utils.create_test_audit(
-                self.context, audit_template_id=404,  # Does not exist
+                self.context, audit_template_id=audit_template4.id,
                 id=self._generate_id(), uuid=None)
             action_plan4 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit4.id,
@@ -268,8 +349,12 @@ class TestPurgeCommand(base.DbTestCase):
                 self.context, action_plan_id=action_plan4.id,
                 id=self._generate_id(), uuid=None)
 
+            audit_template5 = obj_utils.create_test_audit_template(
+                self.context, goal_id=self.goal1.id,
+                name=self.generate_unique_name(prefix="Audit Template 5 "),
+                strategy_id=None, id=self._generate_id(), uuid=None)
             audit5 = obj_utils.create_test_audit(
-                self.context, audit_template_id=self.audit_template1.id,
+                self.context, audit_template_id=audit_template5.id,
                 id=self._generate_id(), uuid=None)
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit5.id,
@@ -278,6 +363,8 @@ class TestPurgeCommand(base.DbTestCase):
                 self.context, action_plan_id=action_plan5.id,
                 id=self._generate_id(), uuid=None)
 
+            self.goal2.soft_delete()
+            self.strategy2.soft_delete()
             self.audit_template2.soft_delete()
             self.audit2.soft_delete()
             self.action_plan2.soft_delete()
@@ -287,13 +374,16 @@ class TestPurgeCommand(base.DbTestCase):
 
             # All the 5's should be purged as well even though they are not
             # expired because their related audit template is itself expired
+            audit_template5.soft_delete()
             audit5.soft_delete()
             action_plan5.soft_delete()
 
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
-        self.assertEqual(m_destroy_audit_template.call_count, 1)
+        self.assertEqual(m_destroy_goal.call_count, 1)
+        self.assertEqual(m_destroy_strategy.call_count, 1)
+        self.assertEqual(m_destroy_audit_template.call_count, 3)
         self.assertEqual(m_destroy_audit.call_count, 3)
         self.assertEqual(m_destroy_action_plan.call_count, 3)
         self.assertEqual(m_destroy_action.call_count, 3)
@@ -312,8 +402,11 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
     def test_purge_command_with_audit_template_ok(
-            self, m_destroy_audit_template, m_destroy_audit,
+            self, m_destroy_goal, m_destroy_strategy,
+            m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
         self.cmd.orphans = False
         self.cmd.uuid = self.audit_template1.uuid
@@ -321,6 +414,8 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
+        self.assertEqual(m_destroy_goal.call_count, 0)
+        self.assertEqual(m_destroy_strategy.call_count, 0)
         self.assertEqual(m_destroy_audit_template.call_count, 1)
         self.assertEqual(m_destroy_audit.call_count, 1)
         self.assertEqual(m_destroy_action_plan.call_count, 1)
@@ -339,8 +434,11 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
     def test_purge_command_with_audit_template_not_expired(
-            self, m_destroy_audit_template, m_destroy_audit,
+            self, m_destroy_goal, m_destroy_strategy,
+            m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
         self.cmd.orphans = False
         self.cmd.uuid = self.audit_template2.uuid
@@ -348,6 +446,8 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
+        self.assertEqual(m_destroy_goal.call_count, 0)
+        self.assertEqual(m_destroy_strategy.call_count, 0)
         self.assertEqual(m_destroy_audit_template.call_count, 0)
         self.assertEqual(m_destroy_audit.call_count, 0)
         self.assertEqual(m_destroy_action_plan.call_count, 0)
@@ -357,8 +457,11 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
     @mock.patch.object(dbapi.Connection, "destroy_audit")
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
+    @mock.patch.object(dbapi.Connection, "destroy_strategy")
+    @mock.patch.object(dbapi.Connection, "destroy_goal")
     def test_purge_command_with_audit_template_not_soft_deleted(
-            self, m_destroy_audit_template, m_destroy_audit,
+            self, m_destroy_goal, m_destroy_strategy,
+            m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
         self.cmd.orphans = False
         self.cmd.uuid = self.audit_template3.uuid
@@ -366,6 +469,8 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
+        self.assertEqual(m_destroy_goal.call_count, 0)
+        self.assertEqual(m_destroy_strategy.call_count, 0)
         self.assertEqual(m_destroy_audit_template.call_count, 0)
         self.assertEqual(m_destroy_audit.call_count, 0)
         self.assertEqual(m_destroy_action_plan.call_count, 0)
