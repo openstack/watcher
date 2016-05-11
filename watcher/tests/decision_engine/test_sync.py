@@ -21,7 +21,7 @@ from watcher.common import utils
 from watcher.decision_engine.strategy.loading import default
 from watcher.decision_engine.strategy.strategies import base as base_strategy
 from watcher.decision_engine import sync
-from watcher.objects import goal
+from watcher import objects
 from watcher.tests.db import base
 
 
@@ -36,25 +36,21 @@ class FakeStrategy(base_strategy.BaseStrategy):
 class FakeDummy1Strategy1(FakeStrategy):
     DEFAULT_NAME = "DUMMY_1"
     DEFAULT_DESCRIPTION = "Dummy 1"
-    ID = "STRATEGY_1"
 
 
 class FakeDummy1Strategy2(FakeStrategy):
     DEFAULT_NAME = "DUMMY_1"
     DEFAULT_DESCRIPTION = "Dummy 1"
-    ID = "STRATEGY_2"
 
 
 class FakeDummy2Strategy3(FakeStrategy):
     DEFAULT_NAME = "DUMMY_2"
     DEFAULT_DESCRIPTION = "Dummy 2"
-    ID = "STRATEGY_3"
 
 
 class FakeDummy2Strategy4(FakeStrategy):
     DEFAULT_NAME = "DUMMY_2"
     DEFAULT_DESCRIPTION = "Other Dummy 2"
-    ID = "STRATEGY_4"
 
 
 class TestSyncer(base.DbTestCase):
@@ -64,10 +60,10 @@ class TestSyncer(base.DbTestCase):
         self.ctx = context.make_context()
 
         self.m_available_strategies = mock.Mock(return_value={
-            FakeDummy1Strategy1.DEFAULT_NAME: FakeDummy1Strategy1,
-            FakeDummy1Strategy2.DEFAULT_NAME: FakeDummy1Strategy2,
-            FakeDummy2Strategy3.DEFAULT_NAME: FakeDummy2Strategy3,
-            FakeDummy2Strategy4.DEFAULT_NAME: FakeDummy2Strategy4,
+            FakeDummy1Strategy1.__name__: FakeDummy1Strategy1,
+            FakeDummy1Strategy2.__name__: FakeDummy1Strategy2,
+            FakeDummy2Strategy3.__name__: FakeDummy2Strategy3,
+            FakeDummy2Strategy4.__name__: FakeDummy2Strategy4,
         })
 
         p_strategies = mock.patch.object(
@@ -78,72 +74,206 @@ class TestSyncer(base.DbTestCase):
         self.syncer = sync.Syncer()
         self.addCleanup(p_strategies.stop)
 
-    @mock.patch.object(goal.Goal, "soft_delete")
-    @mock.patch.object(goal.Goal, "save")
-    @mock.patch.object(goal.Goal, "create")
-    @mock.patch.object(goal.Goal, "list")
-    def test_sync_goals_empty_db(self, m_list, m_create,
-                                 m_save, m_soft_delete):
-        m_list.return_value = []
+    @mock.patch.object(objects.Strategy, "soft_delete")
+    @mock.patch.object(objects.Strategy, "save")
+    @mock.patch.object(objects.Strategy, "create")
+    @mock.patch.object(objects.Strategy, "list")
+    @mock.patch.object(objects.Goal, "get_by_name")
+    @mock.patch.object(objects.Goal, "soft_delete")
+    @mock.patch.object(objects.Goal, "save")
+    @mock.patch.object(objects.Goal, "create")
+    @mock.patch.object(objects.Goal, "list")
+    def test_sync_empty_db(
+            self, m_g_list, m_g_create, m_g_save, m_g_soft_delete,
+            m_g_get_by_name, m_s_list, m_s_create, m_s_save, m_s_soft_delete):
+        m_g_get_by_name.side_effect = [
+            objects.Goal(self.ctx, id=i) for i in range(1, 10)]
+        m_g_list.return_value = []
+        m_s_list.return_value = []
 
         self.syncer.sync()
 
-        self.assertEqual(2, m_create.call_count)
-        self.assertEqual(0, m_save.call_count)
-        self.assertEqual(0, m_soft_delete.call_count)
+        self.assertEqual(2, m_g_create.call_count)
+        self.assertEqual(0, m_g_save.call_count)
+        self.assertEqual(0, m_g_soft_delete.call_count)
 
-    @mock.patch.object(goal.Goal, "soft_delete")
-    @mock.patch.object(goal.Goal, "save")
-    @mock.patch.object(goal.Goal, "create")
-    @mock.patch.object(goal.Goal, "list")
-    def test_sync_goals_with_existing_goal(self, m_list, m_create,
-                                           m_save, m_soft_delete):
-        m_list.return_value = [
-            goal.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
-                      name="DUMMY_1", display_name="Dummy 1")
+        self.assertEqual(4, m_s_create.call_count)
+        self.assertEqual(0, m_s_save.call_count)
+        self.assertEqual(0, m_s_soft_delete.call_count)
+
+    @mock.patch.object(objects.Strategy, "soft_delete")
+    @mock.patch.object(objects.Strategy, "save")
+    @mock.patch.object(objects.Strategy, "create")
+    @mock.patch.object(objects.Strategy, "list")
+    @mock.patch.object(objects.Goal, "get_by_name")
+    @mock.patch.object(objects.Goal, "soft_delete")
+    @mock.patch.object(objects.Goal, "save")
+    @mock.patch.object(objects.Goal, "create")
+    @mock.patch.object(objects.Goal, "list")
+    def test_sync_with_existing_goal(
+            self, m_g_list, m_g_create, m_g_save, m_g_soft_delete,
+            m_g_get_by_name, m_s_list, m_s_create, m_s_save, m_s_soft_delete):
+        m_g_get_by_name.side_effect = [
+            objects.Goal(self.ctx, id=i) for i in range(1, 10)]
+        m_g_list.return_value = [
+            objects.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
+                         name="DUMMY_1", display_name="Dummy 1")
+        ]
+        m_s_list.return_value = []
+
+        self.syncer.sync()
+
+        self.assertEqual(1, m_g_create.call_count)
+        self.assertEqual(0, m_g_save.call_count)
+        self.assertEqual(0, m_g_soft_delete.call_count)
+
+        self.assertEqual(4, m_s_create.call_count)
+        self.assertEqual(0, m_s_save.call_count)
+        self.assertEqual(0, m_s_soft_delete.call_count)
+
+    @mock.patch.object(objects.Strategy, "soft_delete")
+    @mock.patch.object(objects.Strategy, "save")
+    @mock.patch.object(objects.Strategy, "create")
+    @mock.patch.object(objects.Strategy, "list")
+    @mock.patch.object(objects.Goal, "get_by_name")
+    @mock.patch.object(objects.Goal, "soft_delete")
+    @mock.patch.object(objects.Goal, "save")
+    @mock.patch.object(objects.Goal, "create")
+    @mock.patch.object(objects.Goal, "list")
+    def test_sync_with_existing_strategy(
+            self, m_g_list, m_g_create, m_g_save, m_g_soft_delete,
+            m_g_get_by_name, m_s_list, m_s_create, m_s_save, m_s_soft_delete):
+        m_g_get_by_name.side_effect = [
+            objects.Goal(self.ctx, id=i) for i in range(1, 10)]
+        m_g_list.return_value = [
+            objects.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
+                         name="DUMMY_1", display_name="Dummy 1")
+        ]
+        m_s_list.return_value = [
+            objects.Strategy(self.ctx, id=1, name="FakeDummy1Strategy1",
+                             goal_id=1, display_name="Dummy 1")
         ]
         self.syncer.sync()
 
-        self.assertEqual(1, m_create.call_count)
-        self.assertEqual(0, m_save.call_count)
-        self.assertEqual(0, m_soft_delete.call_count)
+        self.assertEqual(1, m_g_create.call_count)
+        self.assertEqual(0, m_g_save.call_count)
+        self.assertEqual(0, m_g_soft_delete.call_count)
 
-    @mock.patch.object(goal.Goal, "soft_delete")
-    @mock.patch.object(goal.Goal, "save")
-    @mock.patch.object(goal.Goal, "create")
-    @mock.patch.object(goal.Goal, "list")
-    def test_sync_goals_with_modified_goal(self, m_list, m_create,
-                                           m_save, m_soft_delete):
-        m_list.return_value = [
-            goal.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
-                      name="DUMMY_2", display_name="original")
+        self.assertEqual(3, m_s_create.call_count)
+        self.assertEqual(0, m_s_save.call_count)
+        self.assertEqual(0, m_s_soft_delete.call_count)
+
+    @mock.patch.object(objects.Strategy, "soft_delete")
+    @mock.patch.object(objects.Strategy, "save")
+    @mock.patch.object(objects.Strategy, "create")
+    @mock.patch.object(objects.Strategy, "list")
+    @mock.patch.object(objects.Goal, "get_by_name")
+    @mock.patch.object(objects.Goal, "soft_delete")
+    @mock.patch.object(objects.Goal, "save")
+    @mock.patch.object(objects.Goal, "create")
+    @mock.patch.object(objects.Goal, "list")
+    def test_sync_with_modified_goal(
+            self, m_g_list, m_g_create, m_g_save, m_g_soft_delete,
+            m_g_get_by_name, m_s_list, m_s_create, m_s_save, m_s_soft_delete):
+        m_g_get_by_name.side_effect = [
+            objects.Goal(self.ctx, id=i) for i in range(1, 10)]
+        m_g_list.return_value = [
+            objects.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
+                         name="DUMMY_2", display_name="original")
+        ]
+        m_s_list.return_value = []
+        self.syncer.sync()
+
+        self.assertEqual(2, m_g_create.call_count)
+        self.assertEqual(0, m_g_save.call_count)
+        self.assertEqual(1, m_g_soft_delete.call_count)
+
+        self.assertEqual(4, m_s_create.call_count)
+        self.assertEqual(0, m_s_save.call_count)
+        self.assertEqual(0, m_s_soft_delete.call_count)
+
+    @mock.patch.object(objects.Strategy, "soft_delete")
+    @mock.patch.object(objects.Strategy, "save")
+    @mock.patch.object(objects.Strategy, "create")
+    @mock.patch.object(objects.Strategy, "list")
+    @mock.patch.object(objects.Goal, "get_by_name")
+    @mock.patch.object(objects.Goal, "soft_delete")
+    @mock.patch.object(objects.Goal, "save")
+    @mock.patch.object(objects.Goal, "create")
+    @mock.patch.object(objects.Goal, "list")
+    def test_sync_with_modified_strategy(
+            self, m_g_list, m_g_create, m_g_save, m_g_soft_delete,
+            m_g_get_by_name, m_s_list, m_s_create, m_s_save, m_s_soft_delete):
+        m_g_get_by_name.side_effect = [
+            objects.Goal(self.ctx, id=i) for i in range(1, 10)]
+        m_g_list.return_value = [
+            objects.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
+                         name="DUMMY_1", display_name="Dummy 1")
+        ]
+        m_s_list.return_value = [
+            objects.Strategy(self.ctx, id=1, name="FakeDummy1Strategy1",
+                             goal_id=1, display_name="original")
         ]
         self.syncer.sync()
 
-        self.assertEqual(2, m_create.call_count)
-        self.assertEqual(0, m_save.call_count)
-        self.assertEqual(1, m_soft_delete.call_count)
+        self.assertEqual(1, m_g_create.call_count)
+        self.assertEqual(0, m_g_save.call_count)
+        self.assertEqual(0, m_g_soft_delete.call_count)
 
-    def test_end2end_sync_goals_with_modified_goal(self):
-        goal1 = goal.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
-                          name="DUMMY_2", display_name="original")
-        goal1.create()
+        self.assertEqual(4, m_s_create.call_count)
+        self.assertEqual(0, m_s_save.call_count)
+        self.assertEqual(1, m_s_soft_delete.call_count)
 
-        before_goals = goal.Goal.list(self.ctx)
+    def test_end2end_sync_goals_with_modified_goal_and_strategy(self):
+        goal = objects.Goal(self.ctx, id=1, uuid=utils.generate_uuid(),
+                            name="DUMMY_1", display_name="Original")
+        goal.create()
+        strategy = objects.Strategy(
+            self.ctx, id=1, name="FakeDummy1Strategy1",
+            display_name="Original", goal_id=goal.id)
+        strategy.create()
+        # audit_template = objects.AuditTemplate(
+        #     self.ctx, id=1, name="Synced AT", goal_id=goal.id,
+        #     strategy_id=strategy.id)
+        # audit_template.create()
+
+        # before_audit_templates = objects.AuditTemplate.list(self.ctx)
+        before_goals = objects.Goal.list(self.ctx)
+        before_strategies = objects.Strategy.list(self.ctx)
 
         try:
             self.syncer.sync()
         except Exception as exc:
             self.fail(exc)
 
-        after_goals = goal.Goal.list(self.ctx)
+        # after_audit_templates = objects.AuditTemplate.list(self.ctx)
+        after_goals = objects.Goal.list(self.ctx)
+        after_strategies = objects.Strategy.list(self.ctx)
+
         self.assertEqual(1, len(before_goals))
+        self.assertEqual(1, len(before_strategies))
+        # self.assertEqual(1, len(before_audit_templates))
         self.assertEqual(2, len(after_goals))
+        self.assertEqual(4, len(after_strategies))
+        # self.assertEqual(1, len(after_audit_templates))
         self.assertEqual(
             {"DUMMY_1", "DUMMY_2"},
             set([g.name for g in after_goals]))
+        self.assertEqual(
+            {'FakeDummy1Strategy1', 'FakeDummy1Strategy2',
+             'FakeDummy2Strategy3', 'FakeDummy2Strategy4'},
+            set([s.name for s in after_strategies]))
         created_goals = [ag for ag in after_goals
                          if ag.uuid not in [bg.uuid for bg in before_goals]]
+        created_strategies = [
+            a_s for a_s in after_strategies
+            if a_s.uuid not in [b_s.uuid for b_s in before_strategies]]
+
         self.assertEqual(2, len(created_goals))
-        # TODO(v-francoise): check that the audit templates are re-synced with
-        # the new goal version
+        self.assertEqual(4, len(created_strategies))
+
+        # synced_audit_template = after_audit_templates[0]
+        # self.assertTrue(
+        #     audit_template.goal_id != synced_audit_template.goal_id)
+        # self.assertIn(synced_audit_template.goal_id,
+        #               (g.id for g in after_goals))

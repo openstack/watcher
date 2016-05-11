@@ -32,8 +32,15 @@ class Syncer(object):
         self._discovered_map = None
 
         self._available_goals = None
-        self._available_goal_names = None
         self._available_goals_map = None
+
+        self._available_strategies = None
+        self._available_strategies_map = None
+
+        # This goal mapping maps stale goal IDs to the synced goal
+        self.goal_mapping = dict()
+        # This strategy mapping maps stale strategy IDs to the synced goal
+        self.strategy_mapping = dict()
 
     @property
     def available_goals(self):
@@ -42,10 +49,10 @@ class Syncer(object):
         return self._available_goals
 
     @property
-    def available_goal_names(self):
-        if self._available_goal_names is None:
-            self._available_goal_names = [g.name for g in self.available_goals]
-        return self._available_goal_names
+    def available_strategies(self):
+        if self._available_strategies is None:
+            self._available_strategies = objects.Strategy.list(self.ctx)
+        return self._available_strategies
 
     @property
     def available_goals_map(self):
@@ -56,20 +63,42 @@ class Syncer(object):
             }
         return self._available_goals_map
 
+    @property
+    def available_strategies_map(self):
+        if self._available_strategies_map is None:
+            goals_map = {g.id: g.name for g in self.available_goals}
+            self._available_strategies_map = {
+                s: {"name": s.name, "goal_name": goals_map[s.goal_id],
+                    "display_name": s.display_name}
+                for s in self.available_strategies
+            }
+        return self._available_strategies_map
+
     def sync(self):
         discovered_map = self.discover()
         goals_map = discovered_map["goals"]
+        strategies_map = discovered_map["strategies"]
 
         for goal_name, goal_map in goals_map.items():
             if goal_map in self.available_goals_map.values():
                 LOG.info(_LI("Goal %s already exists"), goal_name)
                 continue
 
-            self._sync_goal(goal_map)
+            self.goal_mapping.update(self._sync_goal(goal_map))
+
+        for strategy_name, strategy_map in strategies_map.items():
+            if strategy_map in self.available_strategies_map.values():
+                LOG.info(_LI("Strategy %s already exists"), strategy_name)
+                continue
+
+            self.strategy_mapping.update(self._sync_strategy(strategy_map))
+
+        # TODO(v-francoise): Sync the audit templates
 
     def _sync_goal(self, goal_map):
         goal_name = goal_map['name']
         goal_display_name = goal_map['display_name']
+        goal_mapping = dict()
 
         matching_goals = [g for g in self.available_goals
                           if g.name == goal_name]
@@ -81,22 +110,41 @@ class Syncer(object):
             goal.display_name = goal_display_name
             goal.create()
             LOG.info(_LI("Goal %s created"), goal_name)
-            self.available_goal_names.append(goal_name)
+
+            # Updating the internal states
             self.available_goals_map[goal] = goal_map
-            # We have to update the audit templates that were pointing
-            # self._sync_audit_templates(stale_goals, goal)
+            # Map the old goal IDs to the new (equivalent) goal
+            for matching_goal in matching_goals:
+                goal_mapping[matching_goal.id] = goal
 
-    # def _sync_audit_templates(self, stale_goals, goal):
-    #     related_audit_templates = []
-    #     for stale_goal in stale_goals:
-    #         filters = {"goal_id": stale_goal.id}
-    #         related_audit_templates.extend(
-    #             objects.AuditTemplate.list(self.ctx, filters=filters))
+        return goal_mapping
 
-    #     for audit_template in related_audit_templates:
-    #         LOG.info(_LI("Audit Template '%s' updated with synced goal"))
-    #         audit_template.goal_id = goal.id
-    #         audit_template.save()
+    def _sync_strategy(self, strategy_map):
+        strategy_name = strategy_map['name']
+        strategy_display_name = strategy_map['display_name']
+        goal_name = strategy_map['goal_name']
+        strategy_mapping = dict()
+
+        matching_strategies = [s for s in self.available_strategies
+                               if s.name == strategy_name]
+        stale_strategies = self.soft_delete_stale_strategies(
+            strategy_map, matching_strategies)
+
+        if stale_strategies or not matching_strategies:
+            strategy = objects.Strategy(self.ctx)
+            strategy.name = strategy_name
+            strategy.display_name = strategy_display_name
+            strategy.goal_id = objects.Goal.get_by_name(self.ctx, goal_name).id
+            strategy.create()
+            LOG.info(_LI("Strategy %s created"), strategy_name)
+
+            # Updating the internal states
+            self.available_strategies_map[strategy] = strategy_map
+            # Map the old strategy IDs to the new (equivalent) strategy
+            for matching_strategy in matching_strategies:
+                strategy_mapping[matching_strategy.id] = strategy
+
+        return strategy_mapping
 
     def discover(self):
         strategies_map = {}
@@ -116,6 +164,11 @@ class Syncer(object):
                 "name": strategy_cls.DEFAULT_NAME,
                 "display_name": strategy_cls.DEFAULT_DESCRIPTION}
 
+            strategies_map[strategy_cls.__name__] = {
+                "name": strategy_cls.__name__,
+                "goal_name": strategy_cls.DEFAULT_NAME,
+                "display_name": strategy_cls.DEFAULT_DESCRIPTION}
+
         return discovered_map
 
     def soft_delete_stale_goals(self, goal_map, matching_goals):
@@ -132,3 +185,18 @@ class Syncer(object):
                 stale_goals.append(matching_goal)
 
         return stale_goals
+
+    def soft_delete_stale_strategies(self, strategy_map, matching_strategies):
+        strategy_name = strategy_map['name']
+        strategy_display_name = strategy_map['display_name']
+
+        stale_strategies = []
+        for matching_strategy in matching_strategies:
+            if matching_strategy.display_name == strategy_display_name:
+                LOG.info(_LI("Strategy %s unchanged"), strategy_name)
+            else:
+                LOG.info(_LI("Strategy %s modified"), strategy_name)
+                matching_strategy.soft_delete()
+                stale_strategies.append(matching_strategy)
+
+        return stale_strategies
