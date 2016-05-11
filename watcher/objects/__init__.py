@@ -17,10 +17,12 @@ from watcher.objects import action
 from watcher.objects import action_plan
 from watcher.objects import audit
 from watcher.objects import audit_template
+from watcher.objects import goal
 
 Audit = audit.Audit
 AuditTemplate = audit_template.AuditTemplate
 Action = action.Action
 ActionPlan = action_plan.ActionPlan
+Goal = goal.Goal
 
-__all__ = (Audit, AuditTemplate, Action, ActionPlan)
+__all__ = ("Audit", "AuditTemplate", "Action", "ActionPlan", "Goal")

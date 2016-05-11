@@ -51,11 +51,11 @@ class TestDbGoalFilters(base.DbTestCase):
 
     def _soft_delete_goals(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
-            self.dbapi.soft_delete_goal(self.goal1.uuid)
+            self.dbapi.soft_delete_goal(self.goal1.id)
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
-            self.dbapi.soft_delete_goal(self.goal2.uuid)
+            self.dbapi.soft_delete_goal(self.goal2.id)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
-            self.dbapi.soft_delete_goal(self.goal3.uuid)
+            self.dbapi.soft_delete_goal(self.goal3.id)
 
     def _update_goals(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -70,7 +70,7 @@ class TestDbGoalFilters(base.DbTestCase):
 
     def test_get_goal_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
-            self.dbapi.soft_delete_goal(self.goal1.uuid)
+            self.dbapi.soft_delete_goal(self.goal1.id)
 
         res = self.dbapi.get_goal_list(
             self.context, filters={'deleted': True})
@@ -79,7 +79,7 @@ class TestDbGoalFilters(base.DbTestCase):
 
     def test_get_goal_list_filter_deleted_false(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
-            self.dbapi.soft_delete_goal(self.goal1.uuid)
+            self.dbapi.soft_delete_goal(self.goal1.id)
 
         res = self.dbapi.get_goal_list(
             self.context, filters={'deleted': False})
