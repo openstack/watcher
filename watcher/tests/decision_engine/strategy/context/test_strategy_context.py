@@ -31,19 +31,19 @@ from watcher.tests.objects import utils as obj_utils
 class TestStrategyContext(base.DbTestCase):
     def setUp(self):
         super(TestStrategyContext, self).setUp()
-        self.audit_template = obj_utils. \
-            create_test_audit_template(self.context)
-        self.audit = obj_utils. \
-            create_test_audit(self.context,
-                              audit_template_id=self.audit_template.id)
+        obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
+        audit_template = obj_utils.create_test_audit_template(
+            self.context)
+        self.audit = obj_utils.create_test_audit(
+            self.context, audit_template_id=audit_template.id)
 
     strategy_context = DefaultStrategyContext()
 
-    @mock.patch.object(DefaultStrategySelector, 'define_from_goal')
+    @mock.patch.object(DefaultStrategySelector, 'select')
     @mock.patch.object(CollectorManager, "get_cluster_model_collector",
                        mock.Mock())
     def test_execute_strategy(self, mock_call):
         mock_call.return_value = DummyStrategy()
-        solution = self.strategy_context.execute_strategy(self.audit.uuid,
-                                                          self.context)
+        solution = self.strategy_context.execute_strategy(
+            self.audit.uuid, self.context)
         self.assertIsInstance(solution, DefaultSolution)

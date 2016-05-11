@@ -13,37 +13,54 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from mock import patch
+
+import mock
 from oslo_config import cfg
 
-from watcher.common.exception import WatcherException
-from watcher.decision_engine.strategy.loading.default import \
-    DefaultStrategyLoader
-from watcher.decision_engine.strategy.selection.default import \
-    DefaultStrategySelector
-from watcher.tests.base import TestCase
+from watcher.common import exception
+from watcher.decision_engine.strategy.loading import default as default_loader
+from watcher.decision_engine.strategy.selection import (
+    default as default_selector)
+from watcher.decision_engine.strategy import strategies
+from watcher.tests import base
 
 CONF = cfg.CONF
 
 
-class TestStrategySelector(TestCase):
-    strategy_selector = DefaultStrategySelector()
+class TestStrategySelector(base.TestCase):
 
-    @patch.object(DefaultStrategyLoader, 'load')
-    def test_define_from_goal(self, mock_call):
-        cfg.CONF.set_override('goals',
-                              {"DUMMY": "fake"}, group='watcher_goals',
-                              enforce_type=True)
+    def setUp(self):
+        super(TestStrategySelector, self).setUp()
+
+    @mock.patch.object(default_loader.DefaultStrategyLoader, 'load')
+    def test_select_with_strategy_name(self, m_load):
         expected_goal = 'DUMMY'
-        expected_strategy = CONF.watcher_goals.goals[expected_goal]
-        self.strategy_selector.define_from_goal(expected_goal, osc=None)
-        mock_call.assert_called_once_with(expected_strategy, osc=None)
+        expected_strategy = "dummy"
+        strategy_selector = default_selector.DefaultStrategySelector(
+            expected_goal, expected_strategy, osc=None)
+        strategy_selector.select()
+        m_load.assert_called_once_with(expected_strategy, osc=None)
 
-    @patch.object(DefaultStrategyLoader, 'load')
-    def test_define_from_goal_with_incorrect_mapping(self, mock_call):
-        cfg.CONF.set_override('goals', {}, group='watcher_goals',
-                              enforce_type=True)
-        self.assertRaises(WatcherException,
-                          self.strategy_selector.define_from_goal,
-                          "DUMMY")
-        self.assertEqual(0, mock_call.call_count)
+    @mock.patch.object(default_loader.DefaultStrategyLoader, 'load')
+    @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
+    def test_select_with_goal_name_only(self, m_list_available, m_load):
+        m_list_available.return_value = {"dummy": strategies.DummyStrategy}
+        expected_goal = 'DUMMY'
+        expected_strategy = "dummy"
+        strategy_selector = default_selector.DefaultStrategySelector(
+            expected_goal, osc=None)
+        strategy_selector.select()
+        m_load.assert_called_once_with(expected_strategy, osc=None)
+
+    def test_select_non_existing_strategy(self):
+        strategy_selector = default_selector.DefaultStrategySelector(
+            "DUMMY", "NOT_FOUND")
+        self.assertRaises(exception.LoadingError, strategy_selector.select)
+
+    @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
+    def test_select_no_available_strategy_for_goal(self, m_list_available):
+        m_list_available.return_value = {}
+        strategy_selector = default_selector.DefaultStrategySelector(
+            "DUMMY")
+        self.assertRaises(exception.NoAvailableStrategyForGoal,
+                          strategy_selector.select)

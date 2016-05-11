@@ -28,11 +28,12 @@ from watcher.tests.objects import utils as obj_utils
 class TestDefaultAuditHandler(base.DbTestCase):
     def setUp(self):
         super(TestDefaultAuditHandler, self).setUp()
-        self.audit_template = obj_utils.create_test_audit_template(
+        obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
+        audit_template = obj_utils.create_test_audit_template(
             self.context)
         self.audit = obj_utils.create_test_audit(
             self.context,
-            audit_template_id=self.audit_template.id)
+            audit_template_id=audit_template.id)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_without_errors(self, mock_collector):
