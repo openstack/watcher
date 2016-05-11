@@ -38,17 +38,18 @@ def main():
     gmr.TextGuruMeditation.setup_autorun(version)
 
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
+    protocol = "http" if not CONF.api.enable_ssl_api else "https"
     # Build and start the WSGI app
     server = service.WSGIService(
         'watcher-api', CONF.api.enable_ssl_api)
 
     if host == '0.0.0.0':
         LOG.info(_('serving on 0.0.0.0:%(port)s, '
-                   'view at http://127.0.0.1:%(port)s') %
-                 dict(port=port))
+                   'view at %(protocol)s://127.0.0.1:%(port)s') %
+                 dict(protocol=protocol, port=port))
     else:
-        LOG.info(_('serving on http://%(host)s:%(port)s') %
-                 dict(host=host, port=port))
+        LOG.info(_('serving on %(protocol)s://%(host)s:%(port)s') %
+                 dict(protocol=protocol, host=host, port=port))
 
     launcher = service.process_launcher()
     launcher.launch_service(server, workers=server.workers)
