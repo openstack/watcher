@@ -21,7 +21,8 @@ def get_test_audit_template(**kwargs):
     return {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', 'e74c40e0-d825-11e2-a28f-0800200c9a66'),
-        'goal': kwargs.get('goal', 'DUMMY'),
+        'goal_id': kwargs.get('goal_id', 1),
+        'strategy_id': kwargs.get('strategy_id', None),
         'name': kwargs.get('name', 'My Audit Template'),
         'description': kwargs.get('description', 'Desc. Of My Audit Template'),
         'extra': kwargs.get('extra', {'automatic': False}),

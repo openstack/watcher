@@ -108,8 +108,8 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         """
         self.addCleanup(self.rollback_compute_nodes_status)
         self._create_one_instance_per_host()
-
-        _, audit_template = self.create_audit_template(goal=self.BASIC_GOAL)
+        _, goal = self.client.show_goal(self.BASIC_GOAL)
+        _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
