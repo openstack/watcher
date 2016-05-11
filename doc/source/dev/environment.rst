@@ -205,7 +205,7 @@ place:
 
     $ workon watcher
 
-    (watcher) $ watcher-db-manage --create_schema
+    (watcher) $ watcher-db-manage create_schema
 
 
 Running Watcher services
