@@ -32,11 +32,11 @@ class TestDefaultStrategyLoader(base.TestCase):
             exception.LoadingError, self.strategy_loader.load, None)
 
     def test_load_strategy_is_basic(self):
-        exptected_strategy = 'basic'
-        selected_strategy = self.strategy_loader.load(exptected_strategy)
+        expected_strategy = 'basic'
+        selected_strategy = self.strategy_loader.load(expected_strategy)
         self.assertEqual(
-            selected_strategy.name,
-            exptected_strategy,
+            selected_strategy.id,
+            expected_strategy,
             'The default strategy should be basic')
 
     @patch("watcher.common.loader.default.ExtensionManager")
@@ -58,8 +58,8 @@ class TestDefaultStrategyLoader(base.TestCase):
         strategy_loader = default_loading.DefaultStrategyLoader()
         loaded_strategy = strategy_loader.load("dummy")
 
-        self.assertEqual("dummy", loaded_strategy.name)
-        self.assertEqual("Dummy Strategy", loaded_strategy.description)
+        self.assertEqual("dummy", loaded_strategy.id)
+        self.assertEqual("Dummy strategy", loaded_strategy.display_name)
 
     def test_load_dummy_strategy(self):
         strategy_loader = default_loading.DefaultStrategyLoader()

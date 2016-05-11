@@ -242,17 +242,15 @@ class DbGoalTestCase(base.DbTestCase):
         self.assertEqual(uuids.sort(), res_uuids.sort())
 
     def test_get_goal_list_with_filters(self):
-        goal1_uuid = w_utils.generate_uuid()
-        goal2_uuid = w_utils.generate_uuid()
         goal1 = self._create_test_goal(
             id=1,
-            uuid=goal1_uuid,
+            uuid=w_utils.generate_uuid(),
             name="GOAL_1",
             display_name='Goal 1',
         )
         goal2 = self._create_test_goal(
             id=2,
-            uuid=goal2_uuid,
+            uuid=w_utils.generate_uuid(),
             name="GOAL_2",
             display_name='Goal 2',
         )

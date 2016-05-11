@@ -40,14 +40,14 @@ class TestShowListGoal(base.BaseInfraOptimTest):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
 
         self.assertEqual(self.DUMMY_GOAL, goal['name'])
-        self.assertEqual("dummy", goal['strategy'])
+        self.assertIn("display_name", goal.keys())
 
     @test.attr(type='smoke')
     def test_show_goal_with_links(self):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
         self.assertIn('links', goal.keys())
         self.assertEqual(2, len(goal['links']))
-        self.assertIn(goal['name'],
+        self.assertIn(goal['uuid'],
                       goal['links'][0]['href'])
 
     @test.attr(type="smoke")
@@ -58,5 +58,5 @@ class TestShowListGoal(base.BaseInfraOptimTest):
 
         # Verify self links.
         for goal in body['goals']:
-            self.validate_self_link('goals', goal['name'],
+            self.validate_self_link('goals', goal['uuid'],
                                     goal['links'][0]['href'])

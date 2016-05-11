@@ -135,3 +135,30 @@ def create_test_action(context, **kw):
     action = get_test_action(context, **kw)
     action.create()
     return action
+
+
+def get_test_goal(context, **kw):
+    """Return a Goal object with appropriate attributes.
+
+    NOTE: The object leaves the attributes marked as changed, such
+    that a create() could be used to commit it to the DB.
+    """
+    db_goal = db_utils.get_test_goal(**kw)
+    # Let DB generate ID if it isn't specified explicitly
+    if 'id' not in kw:
+        del db_goal['id']
+    goal = objects.Goal(context)
+    for key in db_goal:
+        setattr(goal, key, db_goal[key])
+    return goal
+
+
+def create_test_goal(context, **kw):
+    """Create and return a test goal object.
+
+    Create a goal in the DB and return a Goal object with appropriate
+    attributes.
+    """
+    goal = get_test_goal(context, **kw)
+    goal.create()
+    return goal

@@ -28,6 +28,7 @@ from oslo_service import service
 from watcher._i18n import _LI
 from watcher.common import service as watcher_service
 from watcher.decision_engine import manager
+from watcher.decision_engine import sync
 from watcher import version
 
 LOG = logging.getLogger(__name__)
@@ -40,6 +41,9 @@ def main():
 
     LOG.info(_LI('Starting Watcher Decision Engine service in PID %s'),
              os.getpid())
+
+    syncer = sync.Syncer()
+    syncer.sync()
 
     de_service = watcher_service.Service(manager.DecisionEngineManager)
     launcher = service.launch(CONF, de_service)

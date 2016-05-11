@@ -22,7 +22,7 @@ from copy import deepcopy
 from oslo_log import log
 import six
 
-from watcher._i18n import _LE, _LI
+from watcher._i18n import _, _LE, _LI
 from watcher.common import exception
 from watcher.decision_engine.model import hypervisor_state as hyper_state
 from watcher.decision_engine.model import resource
@@ -34,8 +34,10 @@ from watcher.metrics_engine.cluster_history import ceilometer \
 LOG = log.getLogger(__name__)
 
 
-class VMWorkloadConsolidation(base.BaseStrategy):
+class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     """VM Workload Consolidation Strategy.
+
+    *Description*
 
     A load consolidation strategy based on heuristic first-fit
     algorithm which focuses on measured CPU utilization and tries to
@@ -67,18 +69,38 @@ class VMWorkloadConsolidation(base.BaseStrategy):
     correctly on all hypervisors within the cluster.
     This strategy assumes it is possible to live migrate any VM from
     an active hypervisor to any other active hypervisor.
-    """
 
-    DEFAULT_NAME = 'vm_workload_consolidation'
-    DEFAULT_DESCRIPTION = 'VM Workload Consolidation Strategy'
+    *Requirements*
 
-    def __init__(self, name=DEFAULT_NAME, description=DEFAULT_DESCRIPTION,
-                 osc=None):
-        super(VMWorkloadConsolidation, self).__init__(name, description, osc)
+    * You must have at least 2 physical compute nodes to run this strategy.
+
+    *Limitations*
+
+    <None>
+
+    *Spec URL*
+
+    https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/implemented/zhaw-load-consolidation.rst
+    """  # noqa
+
+    def __init__(self, osc=None):
+        super(VMWorkloadConsolidation, self).__init__(osc)
         self._ceilometer = None
         self.number_of_migrations = 0
         self.number_of_released_hypervisors = 0
         self.ceilometer_vm_data_cache = dict()
+
+    @classmethod
+    def get_name(cls):
+        return "vm_workload_consolidation"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("VM Workload Consolidation Strategy")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "VM Workload Consolidation Strategy"
 
     @property
     def ceilometer(self):

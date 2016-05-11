@@ -36,8 +36,7 @@ class SolutionFaker(object):
     def build():
         metrics = fake.FakerMetricsCollector()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
-        sercon = strategies.BasicConsolidation("basic",
-                                               "Basic offline consolidation")
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = mock.\
             MagicMock(get_statistics=metrics.mock_get_statistics)
         return sercon.execute(current_state_cluster.generate_scenario_1())
@@ -48,8 +47,7 @@ class SolutionFakerSingleHyp(object):
     def build():
         metrics = fake.FakerMetricsCollector()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
-        sercon = strategies.BasicConsolidation("basic",
-                                               "Basic offline consolidation")
+        sercon = strategies.BasicConsolidation()
         sercon.ceilometer = \
             mock.MagicMock(get_statistics=metrics.mock_get_statistics)
 

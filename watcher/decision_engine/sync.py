@@ -153,21 +153,16 @@ class Syncer(object):
         strategy_loader = default.DefaultStrategyLoader()
         implemented_strategies = strategy_loader.list_available()
 
-        # TODO(v-francoise): At this point I only register the goals, but later
-        # on this will be extended to also populate the strategies map.
         for _, strategy_cls in implemented_strategies.items():
-            # This mapping is a temporary trick where I use the strategy
-            # DEFAULT_NAME as the goal name because we used to have a 1-to-1
-            # mapping between the goal and the strategy.
-            # TODO(v-francoise): Dissociate the goal name and the strategy name
-            goals_map[strategy_cls.DEFAULT_NAME] = {
-                "name": strategy_cls.DEFAULT_NAME,
-                "display_name": strategy_cls.DEFAULT_DESCRIPTION}
+            goals_map[strategy_cls.get_goal_name()] = {
+                "name": strategy_cls.get_goal_name(),
+                "display_name":
+                    strategy_cls.get_translatable_goal_display_name()}
 
-            strategies_map[strategy_cls.__name__] = {
-                "name": strategy_cls.__name__,
-                "goal_name": strategy_cls.DEFAULT_NAME,
-                "display_name": strategy_cls.DEFAULT_DESCRIPTION}
+            strategies_map[strategy_cls.get_name()] = {
+                "name": strategy_cls.get_name(),
+                "goal_name": strategy_cls.get_goal_name(),
+                "display_name": strategy_cls.get_translatable_display_name()}
 
         return discovered_map
 

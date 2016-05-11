@@ -39,6 +39,7 @@ which are dynamically loaded by Watcher at launch time.
 import abc
 import six
 
+from watcher._i18n import _
 from watcher.common import clients
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
@@ -52,16 +53,56 @@ class BaseStrategy(object):
     Solution for a given Goal.
     """
 
-    def __init__(self, name=None, description=None, osc=None):
+    def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
-        self._name = name
-        self.description = description
+        self._name = self.get_name()
+        self._display_name = self.get_display_name()
         # default strategy level
         self._strategy_level = level.StrategyLevel.conservative
         self._cluster_state_collector = None
         # the solution given by the strategy
         self._solution = default.DefaultSolution()
         self._osc = osc
+
+    @classmethod
+    @abc.abstractmethod
+    def get_name(cls):
+        """The name of the strategy"""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def get_display_name(cls):
+        """The goal display name for the strategy"""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def get_translatable_display_name(cls):
+        """The translatable msgid of the strategy"""
+        # Note(v-francoise): Defined here to be used as the translation key for
+        # other services
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def get_goal_name(cls):
+        """The goal name for the strategy"""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def get_goal_display_name(cls):
+        """The translated display name related to the goal of the strategy"""
+        raise NotImplementedError()
+
+    @classmethod
+    @abc.abstractmethod
+    def get_translatable_goal_display_name(cls):
+        """The translatable msgid related to the goal of the strategy"""
+        # Note(v-francoise): Defined here to be used as the translation key for
+        # other services
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def execute(self, original_model):
@@ -88,12 +129,12 @@ class BaseStrategy(object):
         self._solution = s
 
     @property
-    def name(self):
+    def id(self):
         return self._name
 
-    @name.setter
-    def name(self, n):
-        self._name = n
+    @property
+    def display_name(self):
+        return self._display_name
 
     @property
     def strategy_level(self):
@@ -110,3 +151,51 @@ class BaseStrategy(object):
     @state_collector.setter
     def state_collector(self, s):
         self._cluster_state_collector = s
+
+
+@six.add_metaclass(abc.ABCMeta)
+class DummyBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "DUMMY"
+
+    @classmethod
+    def get_goal_display_name(cls):
+        return _("Dummy goal")
+
+    @classmethod
+    def get_translatable_goal_display_name(cls):
+        return "Dummy goal"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ServerConsolidationBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "SERVER_CONSOLIDATION"
+
+    @classmethod
+    def get_goal_display_name(cls):
+        return _("Server consolidation")
+
+    @classmethod
+    def get_translatable_goal_display_name(cls):
+        return "Server consolidation"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ThermalOptimizationBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "THERMAL_OPTIMIZATION"
+
+    @classmethod
+    def get_goal_display_name(cls):
+        return _("Thermal optimization")
+
+    @classmethod
+    def get_translatable_goal_display_name(cls):
+        return "Thermal optimization"

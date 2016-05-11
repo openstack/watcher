@@ -23,14 +23,14 @@ from watcher.tests.decision_engine.strategy.strategies import \
 
 class TestDummyStrategy(base.TestCase):
     def test_dummy_strategy(self):
-        dummy = strategies.DummyStrategy("dummy", "Dummy strategy")
+        dummy = strategies.DummyStrategy()
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         solution = dummy.execute(model)
         self.assertEqual(3, len(solution.actions))
 
     def test_check_parameters(self):
-        dummy = strategies.DummyStrategy("dummy", "Dummy strategy")
+        dummy = strategies.DummyStrategy()
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_3_with_2_hypervisors()
         solution = dummy.execute(model)

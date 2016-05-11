@@ -11,60 +11,109 @@
 #    limitations under the License.
 
 from oslo_config import cfg
-from watcher.tests.api import base as api_base
+from six.moves.urllib import parse as urlparse
 
-CONF = cfg.CONF
+from watcher.common import utils
+from watcher.tests.api import base as api_base
+from watcher.tests.objects import utils as obj_utils
 
 
 class TestListGoal(api_base.FunctionalTest):
 
-    def setUp(self):
-        super(TestListGoal, self).setUp()
-        # Override the default to get enough goals to test limit on query
-        cfg.CONF.set_override(
-            "goals", {
-                "DUMMY_1": "dummy", "DUMMY_2": "dummy",
-                "DUMMY_3": "dummy", "DUMMY_4": "dummy",
-            },
-            group='watcher_goals', enforce_type=True)
-
     def _assert_goal_fields(self, goal):
-        goal_fields = ['name', 'strategy']
+        goal_fields = ['uuid', 'name', 'display_name']
         for field in goal_fields:
             self.assertIn(field, goal)
 
     def test_one(self):
+        goal = obj_utils.create_test_goal(self.context)
         response = self.get_json('/goals')
+        self.assertEqual(goal.uuid, response['goals'][0]["uuid"])
         self._assert_goal_fields(response['goals'][0])
 
-    def test_get_one(self):
-        goal_name = list(CONF.watcher_goals.goals.keys())[0]
-        response = self.get_json('/goals/%s' % goal_name)
-        self.assertEqual(goal_name, response['name'])
+    def test_get_one_by_uuid(self):
+        goal = obj_utils.create_test_goal(self.context)
+        response = self.get_json('/goals/%s' % goal.uuid)
+        self.assertEqual(goal.uuid, response["uuid"])
+        self.assertEqual(goal.name, response["name"])
         self._assert_goal_fields(response)
 
+    def test_get_one_by_name(self):
+        goal = obj_utils.create_test_goal(self.context)
+        response = self.get_json(urlparse.quote(
+            '/goals/%s' % goal['name']))
+        self.assertEqual(goal.uuid, response['uuid'])
+        self._assert_goal_fields(response)
+
+    def test_get_one_soft_deleted(self):
+        goal = obj_utils.create_test_goal(self.context)
+        goal.soft_delete()
+        response = self.get_json(
+            '/goals/%s' % goal['uuid'],
+            headers={'X-Show-Deleted': 'True'})
+        self.assertEqual(goal.uuid, response['uuid'])
+        self._assert_goal_fields(response)
+
+        response = self.get_json(
+            '/goals/%s' % goal['uuid'],
+            expect_errors=True)
+        self.assertEqual(404, response.status_int)
+
     def test_detail(self):
-        goal_name = list(CONF.watcher_goals.goals.keys())[0]
+        goal = obj_utils.create_test_goal(self.context)
         response = self.get_json('/goals/detail')
-        self.assertEqual(goal_name, response['goals'][0]["name"])
+        self.assertEqual(goal.uuid, response['goals'][0]["uuid"])
         self._assert_goal_fields(response['goals'][0])
 
     def test_detail_against_single(self):
-        goal_name = list(CONF.watcher_goals.goals.keys())[0]
-        response = self.get_json('/goals/%s/detail' % goal_name,
+        goal = obj_utils.create_test_goal(self.context)
+        response = self.get_json('/goals/%s/detail' % goal.uuid,
                                  expect_errors=True)
         self.assertEqual(404, response.status_int)
 
     def test_many(self):
+        goal_list = []
+        for idx in range(1, 6):
+            goal = obj_utils.create_test_goal(
+                self.context, id=idx,
+                uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(idx))
+            goal_list.append(goal.uuid)
         response = self.get_json('/goals')
-        self.assertEqual(len(CONF.watcher_goals.goals),
-                         len(response['goals']))
+        self.assertTrue(len(response['goals']) > 2)
+
+    def test_many_without_soft_deleted(self):
+        goal_list = []
+        for id_ in [1, 2, 3]:
+            goal = obj_utils.create_test_goal(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(id_))
+            goal_list.append(goal.uuid)
+        for id_ in [4, 5]:
+            goal = obj_utils.create_test_goal(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(id_))
+            goal.soft_delete()
+        response = self.get_json('/goals')
+        self.assertEqual(3, len(response['goals']))
+        uuids = [s['uuid'] for s in response['goals']]
+        self.assertEqual(sorted(goal_list), sorted(uuids))
 
     def test_goals_collection_links(self):
+        for idx in range(1, 6):
+            obj_utils.create_test_goal(
+                self.context, id=idx,
+                uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(idx))
         response = self.get_json('/goals/?limit=2')
         self.assertEqual(2, len(response['goals']))
 
     def test_goals_collection_links_default_limit(self):
+        for idx in range(1, 6):
+            obj_utils.create_test_goal(
+                self.context, id=idx,
+                uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(idx))
         cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
