@@ -182,6 +182,94 @@ class Connection(api.BaseConnection):
 
         return query
 
+    def __add_simple_filter(self, query, model, fieldname, value):
+        return query.filter(getattr(model, fieldname) == value)
+
+    def __add_join_filter(self, query, model, join_model, fieldname, value):
+        query = query.join(join_model)
+        return self.__add_simple_filter(query, model, fieldname, value)
+
+    def _add_filters(self, query, model, filters=None,
+                     plain_fields=None, join_fieldmap=None):
+        filters = filters or {}
+        plain_fields = plain_fields or ()
+        join_fieldmap = join_fieldmap or {}
+
+        for fieldname, value in filters.items():
+            if fieldname in plain_fields:
+                query = self.__add_simple_filter(
+                    query, model, fieldname, value)
+            elif fieldname in join_fieldmap:
+                join_model = join_fieldmap[fieldname]
+                query = self.__add_join_filter(
+                    query, model, join_model, fieldname, value)
+
+        query = self.__add_soft_delete_mixin_filters(query, filters, model)
+        query = self.__add_timestamp_mixin_filters(query, filters, model)
+
+        return query
+
+    def _get(self, context, model, fieldname, value):
+        query = model_query(model)
+        query = query.filter(getattr(model, fieldname) == value)
+        if not context.show_deleted:
+            query = query.filter(model.deleted_at.is_(None))
+
+        try:
+            obj = query.one()
+        except exc.NoResultFound:
+            raise exception.ResourceNotFound(name=model.__name__, id=value)
+
+        return obj
+
+    def _update(self, model, id_, values):
+        session = get_session()
+        with session.begin():
+            query = model_query(model, session=session)
+            query = add_identity_filter(query, id_)
+            try:
+                ref = query.with_lockmode('update').one()
+            except exc.NoResultFound:
+                raise exception.ResourceNotFound(name=model.__name__, id=id_)
+
+            ref.update(values)
+        return ref
+
+    def _soft_delete(self, model, id_):
+        session = get_session()
+        with session.begin():
+            query = model_query(model, session=session)
+            query = add_identity_filter(query, id_)
+            try:
+                query.one()
+            except exc.NoResultFound:
+                raise exception.ResourceNotFound(name=model.__name__, id=id_)
+
+            query.soft_delete()
+
+    def _destroy(self, model, id_):
+        session = get_session()
+        with session.begin():
+            query = model_query(model, session=session)
+            query = add_identity_filter(query, id_)
+
+            try:
+                query.one()
+            except exc.NoResultFound:
+                raise exception.ResourceNotFound(name=model.__name__, id=id_)
+
+            query.delete()
+
+    def _add_goals_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+
+        plain_fields = ['uuid', 'name', 'display_name']
+
+        return self._add_filters(
+            query=query, model=models.Goal, filters=filters,
+            plain_fields=plain_fields)
+
     def _add_audit_templates_filters(self, query, filters):
         if filters is None:
             filters = []
@@ -289,6 +377,72 @@ class Connection(api.BaseConnection):
 
         return query
 
+    # ### GOALS ### #
+
+    def get_goal_list(self, context, filters=None, limit=None,
+                      marker=None, sort_key=None, sort_dir=None):
+
+        query = model_query(models.Goal)
+        query = self._add_goals_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+        return _paginate_query(models.Goal, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_goal(self, values):
+        # ensure defaults are present for new goals
+        if not values.get('uuid'):
+            values['uuid'] = utils.generate_uuid()
+
+        goal = models.Goal()
+        goal.update(values)
+
+        try:
+            goal.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.GoalAlreadyExists(uuid=values['uuid'])
+        return goal
+
+    def _get_goal(self, context, fieldname, value):
+        try:
+            return self._get(context, model=models.Goal,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.GoalNotFound(goal=value)
+
+    def get_goal_by_id(self, context, goal_id):
+        return self._get_goal(context, fieldname="id", value=goal_id)
+
+    def get_goal_by_uuid(self, context, goal_uuid):
+        return self._get_goal(context, fieldname="uuid", value=goal_uuid)
+
+    def get_goal_by_name(self, context, goal_name):
+        return self._get_goal(context, fieldname="name", value=goal_name)
+
+    def destroy_goal(self, goal_id):
+        try:
+            return self._destroy(models.Goal, goal_id)
+        except exception.ResourceNotFound:
+            raise exception.GoalNotFound(goal=goal_id)
+
+    def update_goal(self, goal_id, values):
+        if 'uuid' in values:
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing Goal."))
+
+        try:
+            return self._update(models.Goal, goal_id, values)
+        except exception.ResourceNotFound:
+            raise exception.GoalNotFound(goal=goal_id)
+
+    def soft_delete_goal(self, goal_id):
+        try:
+            self._soft_delete(models.Goal, goal_id)
+        except exception.ResourceNotFound:
+            raise exception.GoalNotFound(goal=goal_id)
+
+    # ### AUDIT TEMPLATES ### #
+
     def get_audit_template_list(self, context, filters=None, limit=None,
                                 marker=None, sort_key=None, sort_dir=None):
 
@@ -373,7 +527,8 @@ class Connection(api.BaseConnection):
             try:
                 query.one()
             except exc.NoResultFound:
-                raise exception.AuditTemplateNotFound(node=audit_template_id)
+                raise exception.AuditTemplateNotFound(
+                    audit_template=audit_template_id)
 
             query.delete()
 
@@ -408,9 +563,12 @@ class Connection(api.BaseConnection):
             try:
                 query.one()
             except exc.NoResultFound:
-                raise exception.AuditTemplateNotFound(node=audit_template_id)
+                raise exception.AuditTemplateNotFound(
+                    audit_template=audit_template_id)
 
             query.soft_delete()
+
+    # ### AUDITS ### #
 
     def get_audit_list(self, context, filters=None, limit=None, marker=None,
                        sort_key=None, sort_dir=None):
@@ -518,9 +676,11 @@ class Connection(api.BaseConnection):
             try:
                 query.one()
             except exc.NoResultFound:
-                raise exception.AuditNotFound(node=audit_id)
+                raise exception.AuditNotFound(audit=audit_id)
 
             query.soft_delete()
+
+    # ### ACTIONS ### #
 
     def get_action_list(self, context, filters=None, limit=None, marker=None,
                         sort_key=None, sort_dir=None):
@@ -611,9 +771,11 @@ class Connection(api.BaseConnection):
             try:
                 query.one()
             except exc.NoResultFound:
-                raise exception.ActionNotFound(node=action_id)
+                raise exception.ActionNotFound(action=action_id)
 
             query.soft_delete()
+
+    # ### ACTION PLANS ### #
 
     def get_action_plan_list(
         self, context, columns=None, filters=None, limit=None,
@@ -722,6 +884,6 @@ class Connection(api.BaseConnection):
             try:
                 query.one()
             except exc.NoResultFound:
-                raise exception.ActionPlanNotFound(node=action_plan_id)
+                raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
             query.soft_delete()

@@ -127,7 +127,7 @@ def get_test_action_plan(**kwargs):
 
 
 def create_test_action_plan(**kwargs):
-    """Create test action plan entry in DB and return Action DB object.
+    """Create test action plan entry in DB and return Action Plan DB object.
 
     Function to be used to create test Action objects in the database.
     :param kwargs: kwargsargs with overriding values for action's attributes.
@@ -139,3 +139,27 @@ def create_test_action_plan(**kwargs):
         del action['id']
     dbapi = db_api.get_instance()
     return dbapi.create_action_plan(action)
+
+
+def get_test_goal(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'uuid': kwargs.get('uuid', 'f7ad87ae-4298-91cf-93a0-f35a852e3652'),
+        'name': kwargs.get('name', 'TEST'),
+        'display_name': kwargs.get('display_name', 'test goal'),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_goal(**kwargs):
+    """Create test goal entry in DB and return Goal DB object.
+
+    Function to be used to create test Goal objects in the database.
+    :param kwargs: kwargs which override default goal values of its attributes.
+    :returns: Test Goal DB object.
+    """
+    goal = get_test_goal(**kwargs)
+    dbapi = db_api.get_instance()
+    return dbapi.create_goal(goal)

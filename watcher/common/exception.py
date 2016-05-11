@@ -166,6 +166,14 @@ class InvalidUuidOrName(Invalid):
     msg_fmt = _("Expected a logical name or uuid but received %(name)s")
 
 
+class GoalNotFound(ResourceNotFound):
+    msg_fmt = _("Goal %(goal)s could not be found")
+
+
+class GoalAlreadyExists(Conflict):
+    msg_fmt = _("A goal with UUID %(uuid)s already exists")
+
+
 class AuditTemplateNotFound(ResourceNotFound):
     msg_fmt = _("AuditTemplate %(audit_template)s could not be found")
 

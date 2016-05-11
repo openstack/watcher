@@ -110,6 +110,20 @@ class WatcherBase(models.SoftDeleteMixin,
 Base = declarative_base(cls=WatcherBase)
 
 
+class Goal(Base):
+    """Represents a goal."""
+
+    __tablename__ = 'goals'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', name='uniq_goals0uuid'),
+        table_args(),
+    )
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36))
+    name = Column(String(63), nullable=False)
+    display_name = Column(String(63), nullable=False)
+
+
 class AuditTemplate(Base):
     """Represents an audit template."""
 
@@ -175,9 +189,6 @@ class ActionPlan(Base):
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36))
     first_action_id = Column(Integer)
-    # first_action_id = Column(Integer, ForeignKeyConstraint(
-    #     ['first_action_id'], ['actions.id'], name='fk_first_action_id'),
-    #     nullable=True)
     audit_id = Column(Integer, ForeignKey('audits.id'),
                       nullable=True)
     state = Column(String(20), nullable=True)
