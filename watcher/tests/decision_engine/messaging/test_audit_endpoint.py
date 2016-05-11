@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import mock
 
 from watcher.common import utils
@@ -41,7 +42,7 @@ class TestAuditEndpoint(DbTestCase):
         audit_uuid = utils.generate_uuid()
 
         audit_handler = DefaultAuditHandler(mock.MagicMock())
-        endpoint = AuditEndpoint(audit_handler, max_workers=2)
+        endpoint = AuditEndpoint(audit_handler)
 
         with mock.patch.object(DefaultAuditHandler, 'execute') as mock_call:
             mock_call.return_value = 0
@@ -54,7 +55,7 @@ class TestAuditEndpoint(DbTestCase):
         mock_collector.return_value = FakerModelCollector()
         audit_uuid = utils.generate_uuid()
         audit_handler = DefaultAuditHandler(mock.MagicMock())
-        endpoint = AuditEndpoint(audit_handler, max_workers=2)
+        endpoint = AuditEndpoint(audit_handler)
 
         with mock.patch.object(DefaultAuditHandler, 'execute') \
                 as mock_call:

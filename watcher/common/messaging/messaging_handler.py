@@ -38,7 +38,7 @@ CONF = cfg.CONF
 
 class MessagingHandler(threading.Thread):
 
-    def __init__(self, publisher_id, topic_name, endpoint, version,
+    def __init__(self, publisher_id, topic_name, endpoints, version,
                  serializer=None):
         super(MessagingHandler, self).__init__()
         self.publisher_id = publisher_id
@@ -50,10 +50,10 @@ class MessagingHandler(threading.Thread):
         self.__server = None
         self.__notifier = None
         self.__transport = None
-        self.add_endpoint(endpoint)
+        self.add_endpoints(endpoints)
 
-    def add_endpoint(self, endpoint):
-        self.__endpoints.append(endpoint)
+    def add_endpoints(self, endpoints):
+        self.__endpoints.extend(endpoints)
 
     def remove_endpoint(self, endpoint):
         if endpoint in self.__endpoints:

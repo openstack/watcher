@@ -19,15 +19,15 @@ from __future__ import unicode_literals
 
 import types
 
-from mock import patch
+import mock
 from oslo_config import cfg
-from watcher.decision_engine.manager import DecisionEngineManager
-from watcher.tests.base import BaseTestCase
+from oslo_service import service
 
 from watcher.cmd import decisionengine
+from watcher.tests import base
 
 
-class TestDecisionEngine(BaseTestCase):
+class TestDecisionEngine(base.BaseTestCase):
 
     def setUp(self):
         super(TestDecisionEngine, self).setUp()
@@ -45,9 +45,7 @@ class TestDecisionEngine(BaseTestCase):
         super(TestDecisionEngine, self).tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
-    @patch.object(DecisionEngineManager, "connect")
-    @patch.object(DecisionEngineManager, "join")
-    def test_run_de_app(self, m_connect, m_join):
+    @mock.patch.object(service, "launch")
+    def test_run_de_app(self, m_launch):
         decisionengine.main()
-        self.assertEqual(1, m_connect.call_count)
-        self.assertEqual(1, m_join.call_count)
+        self.assertEqual(1, m_launch.call_count)

@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.applier.messaging import trigger
-from watcher.common.messaging import messaging_core
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -63,17 +62,15 @@ CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
-class ApplierManager(messaging_core.MessagingCore):
-    def __init__(self):
-        super(ApplierManager, self).__init__(
-            CONF.watcher_applier.publisher_id,
-            CONF.watcher_applier.conductor_topic,
-            CONF.watcher_applier.status_topic,
-            api_version=self.API_VERSION,
-        )
-        self.conductor_topic_handler.add_endpoint(
-            trigger.TriggerActionPlan(self))
+class ApplierManager(object):
 
-    def join(self):
-        self.conductor_topic_handler.join()
-        self.status_topic_handler.join()
+    API_VERSION = '1.0'
+
+    conductor_endpoints = [trigger.TriggerActionPlan]
+    status_endpoints = []
+
+    def __init__(self):
+        self.publisher_id = CONF.watcher_applier.publisher_id
+        self.conductor_topic = CONF.watcher_applier.conductor_topic
+        self.status_topic = CONF.watcher_applier.status_topic
+        self.api_version = self.API_VERSION

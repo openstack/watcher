@@ -19,9 +19,10 @@ from __future__ import unicode_literals
 
 import types
 
-from mock import patch
+import mock
 from oslo_config import cfg
-from watcher.applier.manager import ApplierManager
+from oslo_service import service
+
 from watcher.cmd import applier
 from watcher.tests.base import BaseTestCase
 
@@ -43,9 +44,7 @@ class TestApplier(BaseTestCase):
         super(TestApplier, self).tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
-    @patch.object(ApplierManager, "connect")
-    @patch.object(ApplierManager, "join")
-    def test_run_applier_app(self, m_connect, m_join):
+    @mock.patch.object(service, "launch")
+    def test_run_applier_app(self, m_launch):
         applier.main()
-        self.assertEqual(1, m_connect.call_count)
-        self.assertEqual(1, m_join.call_count)
+        self.assertEqual(1, m_launch.call_count)
