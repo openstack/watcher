@@ -56,9 +56,7 @@ class DefaultApplier(base.BaseApplier):
 
     def execute(self, action_plan_uuid):
         LOG.debug("Executing action plan %s ", action_plan_uuid)
-        action_plan = objects.ActionPlan.get_by_uuid(self.context,
-                                                     action_plan_uuid)
-        # todo(jed) remove direct access to dbapi need filter in object
-        filters = {'action_plan_id': action_plan.id}
-        actions = objects.Action.dbapi.get_action_list(self.context, filters)
+        filters = {'action_plan_uuid': action_plan_uuid}
+        actions = objects.Action.list(self.context,
+                                      filters=filters)
         return self.engine.execute(actions)
