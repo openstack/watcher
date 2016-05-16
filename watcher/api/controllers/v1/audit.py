@@ -63,25 +63,45 @@ class AuditPostType(wtypes.Base):
 
     parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
                                default={})
+    interval = wsme.wsattr(int, mandatory=False)
 
     def as_audit(self):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
             raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
+        if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
+           self.interval != wtypes.Unset):
+            raise exception.AuditIntervalNotAllowed(audit_type=self.audit_type)
+
+        if (self.audit_type == objects.audit.AuditType.CONTINUOUS.value and
+           self.interval == wtypes.Unset):
+            raise exception.AuditIntervalNotSpecified(
+                audit_type=self.audit_type)
+
         return Audit(
             audit_template_id=self.audit_template_uuid,
             audit_type=self.audit_type,
             deadline=self.deadline,
             parameters=self.parameters,
-            )
+            interval=self.interval)
 
 
 class AuditPatchType(types.JsonPatchType):
 
     @staticmethod
     def mandatory_attrs():
-        return ['/audit_template_uuid']
+        return ['/audit_template_uuid', '/type']
+
+    @staticmethod
+    def validate(patch):
+        serialized_patch = {'path': patch.path, 'op': patch.op}
+        if patch.path in AuditPatchType.mandatory_attrs():
+            msg = _("%(field)s can't be updated.")
+            raise exception.PatchError(
+                patch=serialized_patch,
+                reason=msg % dict(field=patch.path))
+        return types.JsonPatchType.validate(patch)
 
 
 class Audit(base.APIBase):
@@ -160,6 +180,9 @@ class Audit(base.APIBase):
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit links"""
 
+    interval = wsme.wsattr(int, mandatory=False)
+    """Launch audit periodically (in seconds)"""
+
     def __init__(self, **kwargs):
         self.fields = []
         fields = list(objects.Audit.fields)
@@ -187,7 +210,7 @@ class Audit(base.APIBase):
         if not expand:
             audit.unset_fields_except(['uuid', 'audit_type', 'deadline',
                                        'state', 'audit_template_uuid',
-                                       'audit_template_name'])
+                                       'audit_template_name', 'interval'])
 
         # The numeric ID should not be exposed to
         # the user, it's internal only.
@@ -215,7 +238,8 @@ class Audit(base.APIBase):
                      deadline=None,
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow())
+                     updated_at=datetime.datetime.utcnow(),
+                     interval=7200)
         sample._audit_template_uuid = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
@@ -414,8 +438,9 @@ class AuditsController(rest.RestController):
 
         # trigger decision-engine to run the audit
 
-        dc_client = rpcapi.DecisionEngineAPI()
-        dc_client.trigger_audit(context, new_audit.uuid)
+        if new_audit.audit_type == objects.audit.AuditType.ONESHOT.value:
+            dc_client = rpcapi.DecisionEngineAPI()
+            dc_client.trigger_audit(context, new_audit.uuid)
 
         return Audit.convert_with_links(new_audit)
 

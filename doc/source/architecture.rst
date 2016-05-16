@@ -261,6 +261,13 @@ previously created :ref:`Audit template <audit_template_definition>`:
 .. image:: ./images/sequence_create_and_launch_audit.png
    :width: 100%
 
+The :ref:`Administrator <administrator_definition>` also can specify type of
+Audit and interval (in case of CONTINUOUS type). There is two types of Audit:
+ONESHOT and CONTINUOUS. Oneshot Audit is launched once and if it succeeded
+executed new action plan list will be provided. Continuous Audit creates
+action plans with specified interval (in seconds); if action plan
+has been created, all previous action plans get CANCELLED state.
+
 A message is sent on the :ref:`AMQP bus <amqp_bus_definition>` which triggers
 the Audit in the
 :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`:

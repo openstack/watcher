@@ -21,7 +21,9 @@ from concurrent import futures
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.decision_engine.audit import default
+from watcher.decision_engine.audit import continuous as continuous_handler
+from watcher.decision_engine.audit import oneshot as oneshot_handler
+from watcher.objects import audit as audit_objects
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -32,6 +34,10 @@ class AuditEndpoint(object):
         self._messaging = messaging
         self._executor = futures.ThreadPoolExecutor(
             max_workers=CONF.watcher_decision_engine.max_workers)
+        self._oneshot_handler = oneshot_handler.OneShotAuditHandler(
+            self.messaging)
+        self._continuous_handler = continuous_handler.ContinuousAuditHandler(
+            self.messaging)
 
     @property
     def executor(self):
@@ -42,8 +48,8 @@ class AuditEndpoint(object):
         return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        audit = default.DefaultAuditHandler(self.messaging)
-        audit.execute(audit_uuid, context)
+        audit = audit_objects.Audit.get_by_uuid(context, audit_uuid)
+        self._oneshot_handler.execute(audit, context)
 
     def trigger_audit(self, context, audit_uuid):
         LOG.debug("Trigger audit %s" % audit_uuid)

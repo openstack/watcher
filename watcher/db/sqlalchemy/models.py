@@ -177,6 +177,7 @@ class Audit(Base):
     audit_template_id = Column(Integer, ForeignKey('audit_templates.id'),
                                nullable=False)
     parameters = Column(JSONEncodedDict, nullable=True)
+    interval = Column(Integer, nullable=True)
 
 
 class Action(Base):

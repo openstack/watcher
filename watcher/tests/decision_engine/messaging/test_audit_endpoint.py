@@ -16,8 +16,7 @@
 
 import mock
 
-from watcher.common import utils
-from watcher.decision_engine.audit import default
+from watcher.decision_engine.audit import oneshot as oneshot_handler
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.metrics_engine.cluster_model_collector import manager
 from watcher.tests.db import base
@@ -38,28 +37,29 @@ class TestAuditEndpoint(base.DbTestCase):
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_do_trigger_audit(self, mock_collector):
         mock_collector.return_value = faker_cluster_state.FakerModelCollector()
-        audit_uuid = utils.generate_uuid()
 
-        audit_handler = default.DefaultAuditHandler(mock.MagicMock())
+        audit_handler = oneshot_handler.OneShotAuditHandler(mock.MagicMock())
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
-        with mock.patch.object(default.DefaultAuditHandler,
+        with mock.patch.object(oneshot_handler.OneShotAuditHandler,
                                'execute') as mock_call:
             mock_call.return_value = 0
-            endpoint.do_trigger_audit(audit_handler, audit_uuid)
+            endpoint.do_trigger_audit(self.context, self.audit.uuid)
 
-        mock_call.assert_called_once_with(audit_uuid, audit_handler)
+        self.assertEqual(mock_call.call_count, 1)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit(self, mock_collector):
         mock_collector.return_value = faker_cluster_state.FakerModelCollector()
-        audit_uuid = utils.generate_uuid()
-        audit_handler = default.DefaultAuditHandler(mock.MagicMock())
+
+        audit_handler = oneshot_handler.OneShotAuditHandler(mock.MagicMock())
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
-        with mock.patch.object(default.DefaultAuditHandler, 'execute') \
-                as mock_call:
-            mock_call.return_value = 0
-            endpoint.trigger_audit(audit_handler, audit_uuid)
+        with mock.patch.object(endpoint.executor, 'submit') as mock_call:
+            mock_execute = mock.call(endpoint.do_trigger_audit,
+                                     self.context,
+                                     self.audit.uuid)
+            endpoint.trigger_audit(self.context, self.audit.uuid)
 
-        mock_call.assert_called_once_with(audit_uuid, audit_handler)
+        mock_call.assert_has_calls([mock_execute])
+        self.assertEqual(mock_call.call_count, 1)
