@@ -189,3 +189,33 @@ def create_test_strategy(**kwargs):
     strategy = get_test_strategy(**kwargs)
     dbapi = db_api.get_instance()
     return dbapi.create_strategy(strategy)
+
+
+def get_test_efficacy_indicator(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'uuid': kwargs.get('uuid', '202cfcf9-811c-411a-8a35-d8351f64eb24'),
+        'name': kwargs.get('name', 'test_indicator'),
+        'description': kwargs.get('description', 'Test indicator'),
+        'unit': kwargs.get('unit', '%'),
+        'value': kwargs.get('value', 0),
+        'action_plan_id': kwargs.get('action_plan_id', 1),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_efficacy_indicator(**kwargs):
+    """Create and return a test efficacy indicator entry in DB.
+
+    Function to be used to create test EfficacyIndicator objects in the DB.
+    :param kwargs: kwargs for overriding the values of the attributes
+    :returns: Test EfficacyIndicator DB object.
+    """
+    efficacy_indicator = get_test_efficacy_indicator(**kwargs)
+    # Let DB generate ID if it isn't specified explicitly
+    if 'id' not in kwargs:
+        del efficacy_indicator['id']
+    dbapi = db_api.get_instance()
+    return dbapi.create_efficacy_indicator(efficacy_indicator)
