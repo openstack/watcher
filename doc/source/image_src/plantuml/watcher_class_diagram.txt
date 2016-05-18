@@ -1,0 +1,87 @@
+@startuml
+
+abstract class Base {
+    // Timestamp mixin
+    DateTime created_at
+    DateTime updated_at
+
+    // Soft Delete mixin
+    DateTime deleted_at
+    Integer deleted // default = 0
+}
+
+class Strategy {
+    **Integer id** // primary_key
+    String uuid // length = 36
+    String name // length = 63, nullable = false
+    String display_name // length = 63, nullable = false
+    <i>Integer goal_id</i> // ForeignKey('goals.id'), nullable = false
+}
+
+
+class Goal {
+    **Integer id** // primary_key
+    String uuid // length = 36
+    String name // length = 63, nullable = false
+    String display_name // length = 63, nullable=False
+}
+
+
+class AuditTemplate {
+    **Integer id** // primary_key
+    String uuid // length = 36
+    String name // length = 63, nullable = true
+    String description // length = 255, nullable = true
+    Integer host_aggregate // nullable = true
+    <i>Integer goal_id</i> // ForeignKey('goals.id'), nullable = false
+    <i>Integer strategy_id</i> // ForeignKey('strategies.id'), nullable = true
+    JsonString extra
+    String version // length = 15, nullable = true
+}
+
+
+class Audit {
+    **Integer id** // primary_key
+    String uuid // length = 36
+    String type // length = 20
+    String state // length = 20, nullable = true
+    DateTime deadline // nullable = true
+    <i>Integer audit_template_id</i> // ForeignKey('audit_templates.id') \
+nullable = false
+}
+
+
+class Action {
+    **Integer id** // primary_key
+    String uuid // length = 36, nullable = false
+    <i>Integer action_plan_id</i> // ForeignKey('action_plans.id'), nullable = false
+    String action_type // length = 255, nullable = false
+    JsonString input_parameters // nullable = true
+    String state // length = 20, nullable = true
+    String next // length = 36, nullable = true
+}
+
+
+class ActionPlan {
+    **Integer id** // primary_key
+    String uuid // length = 36
+    Integer first_action_id //
+    <i>Integer audit_id</i> // ForeignKey('audits.id'), nullable = true
+    String state // length = 20, nullable = true
+}
+
+"Base" <|-- "Strategy"
+"Base" <|-- "Goal"
+"Base" <|-- "AuditTemplate"
+"Base" <|-- "Audit"
+"Base" <|-- "Action"
+"Base" <|-- "ActionPlan"
+
+ "Goal" <.. "Strategy" : Foreign Key
+ "Goal" <.. "AuditTemplate" : Foreign Key
+ "Strategy" <.. "AuditTemplate" : Foreign Key
+ "AuditTemplate" <.. "Audit" : Foreign Key
+ "ActionPlan" <.. "Action" : Foreign Key
+ "Audit" <.. "ActionPlan" : Foreign Key
+
+@enduml

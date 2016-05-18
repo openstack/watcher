@@ -210,6 +210,14 @@ view (Goals, Audits, Action Plans, ...):
 .. image:: ./images/functional_data_model.svg
    :width: 100%
 
+Here below is a class diagram representing the main objects in Watcher from a
+database perspective:
+
+.. image:: ./images/watcher_class_diagram.png
+   :width: 100%
+
+
+
 .. _sequence_diagrams:
 
 Sequence diagrams
