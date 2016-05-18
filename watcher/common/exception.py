@@ -306,6 +306,11 @@ class NoAvailableStrategyForGoal(WatcherException):
     msg_fmt = _("No strategy could be found to achieve the '%(goal)s' goal.")
 
 
+class InvalidIndicatorValue(WatcherException):
+    msg_fmt = _("The indicator '%(name)s' with value '%(value)s' "
+                "and spec type '%(spec_type)s' is invalid.")
+
+
 class NoMetricValuesForVM(WatcherException):
     msg_fmt = _("No values returned by %(resource_id)s for %(metric_name)s.")
 

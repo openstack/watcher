@@ -32,6 +32,7 @@ class Goal(base.WatcherObject):
         'uuid': obj_utils.str_or_none,
         'name': obj_utils.str_or_none,
         'display_name': obj_utils.str_or_none,
+        'efficacy_specification': obj_utils.list_or_none,
     }
 
     @staticmethod

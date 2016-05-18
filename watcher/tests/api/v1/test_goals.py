@@ -21,7 +21,8 @@ from watcher.tests.objects import utils as obj_utils
 class TestListGoal(api_base.FunctionalTest):
 
     def _assert_goal_fields(self, goal):
-        goal_fields = ['uuid', 'name', 'display_name']
+        goal_fields = ['uuid', 'name', 'display_name',
+                       'efficacy_specification']
         for field in goal_fields:
             self.assertIn(field, goal)
 

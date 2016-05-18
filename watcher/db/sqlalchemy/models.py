@@ -138,6 +138,7 @@ class Goal(Base):
     uuid = Column(String(36))
     name = Column(String(63), nullable=False)
     display_name = Column(String(63), nullable=False)
+    efficacy_specification = Column(JSONEncodedList, nullable=False)
 
 
 class AuditTemplate(Base):

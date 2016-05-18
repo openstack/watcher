@@ -151,6 +151,7 @@ def get_test_goal(**kwargs):
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
+        'efficacy_specification': kwargs.get('efficacy_specification', []),
     }
 
 

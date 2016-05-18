@@ -14,7 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import voluptuous
+
 from watcher.decision_engine.goal import base as base_goal
+from watcher.decision_engine.goal.efficacy import base as efficacy_base
+from watcher.decision_engine.goal.efficacy import indicators
+from watcher.decision_engine.goal.efficacy import specs
 
 
 class FakeGoal(base_goal.Goal):
@@ -34,10 +39,43 @@ class FakeGoal(base_goal.Goal):
     def get_translatable_display_name(cls):
         return cls.DISPLAY_NAME
 
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
+
+
+class DummyIndicator(indicators.IndicatorSpecification):
+    def __init__(self):
+        super(DummyIndicator, self).__init__(
+            name="dummy",
+            description="Dummy indicator",
+            unit="%",
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0, max=100), required=True)
+
+
+class DummySpec1(efficacy_base.EfficacySpecification):
+
+    def get_indicators_specifications(self):
+        return [DummyIndicator()]
+
+    def get_global_efficacy_indicator(self, indicators_map):
+        return None
+
 
 class FakeDummy1(FakeGoal):
     NAME = "dummy_1"
     DISPLAY_NAME = "Dummy 1"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return DummySpec1()
 
 
 class FakeDummy2(FakeGoal):

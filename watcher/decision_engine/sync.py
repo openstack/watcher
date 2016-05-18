@@ -26,7 +26,7 @@ from watcher import objects
 LOG = log.getLogger(__name__)
 
 GoalMapping = collections.namedtuple(
-    'GoalMapping', ['name', 'display_name'])
+    'GoalMapping', ['name', 'display_name', 'efficacy_specification'])
 StrategyMapping = collections.namedtuple(
     'StrategyMapping', ['name', 'goal_name', 'display_name'])
 
@@ -75,7 +75,10 @@ class Syncer(object):
             self._available_goals_map = {
                 GoalMapping(
                     name=g.name,
-                    display_name=g.display_name): g
+                    display_name=g.display_name,
+                    efficacy_specification=tuple(
+                        IndicatorSpec(**item)
+                        for item in g.efficacy_specification)): g
                 for g in self.available_goals
             }
         return self._available_goals_map
@@ -127,6 +130,9 @@ class Syncer(object):
             goal = objects.Goal(self.ctx)
             goal.name = goal_name
             goal.display_name = goal_map.display_name
+            goal.efficacy_specification = [
+                indicator._asdict()
+                for indicator in goal_map.efficacy_specification]
             goal.create()
             LOG.info(_LI("Goal %s created"), goal_name)
 
@@ -140,6 +146,7 @@ class Syncer(object):
 
     def _sync_strategy(self, strategy_map):
         strategy_name = strategy_map.name
+        strategy_display_name = strategy_map.display_name
         goal_name = strategy_map.goal_name
         strategy_mapping = dict()
 
@@ -153,7 +160,7 @@ class Syncer(object):
         if stale_strategies or not matching_strategies:
             strategy = objects.Strategy(self.ctx)
             strategy.name = strategy_name
-            strategy.display_name = strategy_map.display_name
+            strategy.display_name = strategy_display_name
             strategy.goal_id = objects.Goal.get_by_name(self.ctx, goal_name).id
             strategy.create()
             LOG.info(_LI("Strategy %s created"), strategy_name)
@@ -267,7 +274,11 @@ class Syncer(object):
         for _, goal_cls in implemented_goals.items():
             goals_map[goal_cls.get_name()] = GoalMapping(
                 name=goal_cls.get_name(),
-                display_name=goal_cls.get_translatable_display_name())
+                display_name=goal_cls.get_translatable_display_name(),
+                efficacy_specification=tuple(
+                    IndicatorSpec(**indicator.to_dict())
+                    for indicator in goal_cls.get_efficacy_specification()
+                                             .get_indicators_specifications()))
 
         for _, strategy_cls in implemented_strategies.items():
             strategies_map[strategy_cls.get_name()] = StrategyMapping(
@@ -289,10 +300,12 @@ class Syncer(object):
         """
         goal_display_name = goal_map.display_name
         goal_name = goal_map.name
+        goal_efficacy_spec = goal_map.efficacy_specification
 
         stale_goals = []
         for matching_goal in matching_goals:
-            if matching_goal.display_name == goal_display_name:
+            if (matching_goal.efficacy_specification == goal_efficacy_spec and
+                    matching_goal.display_name == goal_display_name):
                 LOG.info(_LI("Goal %s unchanged"), goal_name)
             else:
                 LOG.info(_LI("Goal %s modified"), goal_name)

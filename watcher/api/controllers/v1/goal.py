@@ -68,24 +68,28 @@ class Goal(base.APIBase):
     display_name = wtypes.text
     """Localized name of the goal"""
 
+    efficacy_specification = wtypes.wsattr(types.jsontype, readonly=True)
+    """Efficacy specification for this goal"""
+
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit template links"""
 
     def __init__(self, **kwargs):
-        super(Goal, self).__init__()
-
         self.fields = []
-        self.fields.append('uuid')
-        self.fields.append('name')
-        self.fields.append('display_name')
-        setattr(self, 'uuid', kwargs.get('uuid', wtypes.Unset))
-        setattr(self, 'name', kwargs.get('name', wtypes.Unset))
-        setattr(self, 'display_name', kwargs.get('display_name', wtypes.Unset))
+        fields = list(objects.Goal.fields)
+
+        for k in fields:
+            # Skip fields we do not expose.
+            if not hasattr(self, k):
+                continue
+            self.fields.append(k)
+            setattr(self, k, kwargs.get(k, wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(goal, url, expand=True):
         if not expand:
-            goal.unset_fields_except(['uuid', 'name', 'display_name'])
+            goal.unset_fields_except(['uuid', 'name', 'display_name',
+                                      'efficacy_specification'])
 
         goal.links = [link.Link.make_link('self', url,
                                           'goals', goal.uuid),
@@ -101,9 +105,16 @@ class Goal(base.APIBase):
 
     @classmethod
     def sample(cls, expand=True):
-        sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     name='DUMMY',
-                     display_name='Dummy strategy')
+        sample = cls(
+            uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+            name='DUMMY',
+            display_name='Dummy strategy',
+            efficacy_specification=[
+                {'description': 'Dummy indicator', 'name': 'dummy',
+                 'schema': 'Range(min=0, max=100, min_included=True, '
+                           'max_included=True, msg=None)',
+                 'unit': '%'}
+            ])
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 

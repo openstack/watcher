@@ -31,6 +31,7 @@ class Goal(loadable.Loadable):
         super(Goal, self).__init__(config)
         self.name = self.get_name()
         self.display_name = self.get_display_name()
+        self.efficacy_specification = self.get_efficacy_specification()
 
     @classmethod
     @abc.abstractmethod
@@ -60,3 +61,8 @@ class Goal(loadable.Loadable):
         :rtype: list of :class:`oslo_config.cfg.Opt` instances
         """
         return []
+
+    @abc.abstractmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        raise NotImplementedError()
