@@ -123,7 +123,7 @@ class CeilometerHelper(object):
 
         item_value = None
         if statistic:
-            item_value = statistic[-1]._info.get('aggregate').get('avg')
+            item_value = statistic[-1]._info.get('aggregate').get(aggregate)
         return item_value
 
     def get_last_sample_values(self, resource_id, meter_name, limit=1):
