@@ -96,7 +96,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
                                wait_until='ACTIVE',
                                clients=self.mgr)
 
-    @test.services('compute', 'network', 'telemetry', 'image')
+    @test.services('compute', 'network', 'image')
     def test_execute_basic_action_plan(self):
         """Execute an action plan based on the BASIC strategy
 
