@@ -47,7 +47,13 @@ class FakeStrategy(base_strategy.BaseStrategy):
     def get_config_opts(cls):
         return []
 
-    def execute(self, original_model):
+    def pre_execute(self):
+        pass
+
+    def do_execute(self):
+        pass
+
+    def post_execute(self):
         pass
 
 

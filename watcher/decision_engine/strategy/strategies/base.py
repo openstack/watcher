@@ -66,11 +66,12 @@ class BaseStrategy(loadable.Loadable):
         super(BaseStrategy, self).__init__(config)
         self._name = self.get_name()
         self._display_name = self.get_display_name()
+        self._goal = self.get_goal()
         # default strategy level
         self._strategy_level = level.StrategyLevel.conservative
         self._cluster_state_collector = None
         # the solution given by the strategy
-        self._solution = default.DefaultSolution()
+        self._solution = default.DefaultSolution(goal=self.goal, strategy=self)
         self._osc = osc
         self._collector_manager = None
         self._model = None
@@ -99,7 +100,7 @@ class BaseStrategy(loadable.Loadable):
     @classmethod
     @abc.abstractmethod
     def get_goal_name(cls):
-        """The goal name for the strategy"""
+        """The goal name the strategy achieves"""
         raise NotImplementedError()
 
     @classmethod
@@ -150,6 +151,8 @@ class BaseStrategy(loadable.Loadable):
         self.pre_execute()
         self.do_execute()
         self.post_execute()
+
+        self.solution.compute_global_efficacy()
 
         return self.solution
 

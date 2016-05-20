@@ -189,3 +189,30 @@ def create_test_strategy(context, **kw):
     strategy = get_test_strategy(context, **kw)
     strategy.create()
     return strategy
+
+
+def get_test_efficacy_indicator(context, **kw):
+    """Return a EfficacyIndicator object with appropriate attributes.
+
+    NOTE: The object leaves the attributes marked as changed, such
+    that a create() could be used to commit it to the DB.
+    """
+    db_efficacy_indicator = db_utils.get_test_efficacy_indicator(**kw)
+    # Let DB generate ID if it isn't specified explicitly
+    if 'id' not in kw:
+        del db_efficacy_indicator['id']
+    efficacy_indicator = objects.EfficacyIndicator(context)
+    for key in db_efficacy_indicator:
+        setattr(efficacy_indicator, key, db_efficacy_indicator[key])
+    return efficacy_indicator
+
+
+def create_test_efficacy_indicator(context, **kw):
+    """Create and return a test efficacy indicator object.
+
+    Create a efficacy indicator in the DB and return a EfficacyIndicator object
+    with appropriate attributes.
+    """
+    efficacy_indicator = get_test_efficacy_indicator(context, **kw)
+    efficacy_indicator.create()
+    return efficacy_indicator

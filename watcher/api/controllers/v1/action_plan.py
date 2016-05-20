@@ -49,13 +49,14 @@ standard workflow model description formats such as
 `Business Process Model and Notation 2.0 (BPMN 2.0) <http://www.omg.org/spec/BPMN/2.0/>`_
 or `Unified Modeling Language (UML) <http://www.uml.org/>`_.
 
-To see the life-cycle and description of 
+To see the life-cycle and description of
 :ref:`Action Plan <action_plan_definition>` states, visit :ref:`the Action Plan state
 machine <action_plan_state_machine>`.
 """  # noqa
 
 import datetime
 
+from oslo_log import log
 import pecan
 from pecan import rest
 import wsme
@@ -66,12 +67,15 @@ from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
+from watcher.api.controllers.v1 import efficacy_indicator as efficacyindicator
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher import objects
 from watcher.objects import action_plan as ap_objects
+
+LOG = log.getLogger(__name__)
 
 
 class ActionPlanPatchType(types.JsonPatchType):
@@ -113,6 +117,7 @@ class ActionPlan(base.APIBase):
 
     _audit_uuid = None
     _first_action_uuid = None
+    _efficacy_indicators = None
 
     def _get_audit_uuid(self):
         return self._audit_uuid
@@ -143,6 +148,34 @@ class ActionPlan(base.APIBase):
             except exception.ActionNotFound:
                 self._first_action_uuid = None
 
+    def _get_efficacy_indicators(self):
+        if self._efficacy_indicators is None:
+            self._set_efficacy_indicators(wtypes.Unset)
+        return self._efficacy_indicators
+
+    def _set_efficacy_indicators(self, value):
+        efficacy_indicators = []
+        if value == wtypes.Unset and not self._efficacy_indicators:
+            try:
+                _efficacy_indicators = objects.EfficacyIndicator.list(
+                    pecan.request.context,
+                    filters={"action_plan_uuid": self.uuid})
+
+                for indicator in _efficacy_indicators:
+                    efficacy_indicator = efficacyindicator.EfficacyIndicator(
+                        context=pecan.request.context,
+                        name=indicator.name,
+                        description=indicator.description,
+                        unit=indicator.unit,
+                        value=indicator.value,
+                    )
+                    efficacy_indicators.append(efficacy_indicator.as_dict())
+                self._efficacy_indicators = efficacy_indicators
+            except exception.EfficacyIndicatorNotFound as exc:
+                LOG.exception(exc)
+        elif value and self._efficacy_indicators != value:
+            self._efficacy_indicators = value
+
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
@@ -155,6 +188,14 @@ class ActionPlan(base.APIBase):
                                  mandatory=True)
     """The UUID of the audit this port belongs to"""
 
+    efficacy_indicators = wsme.wsproperty(
+        types.jsontype, _get_efficacy_indicators, _set_efficacy_indicators,
+        mandatory=True)
+    """The list of efficacy indicators associated to this action plan"""
+
+    global_efficacy = wtypes.wsattr(types.jsontype, readonly=True)
+    """The global efficacy of this action plan"""
+
     state = wtypes.text
     """This action plan state"""
 
@@ -163,7 +204,6 @@ class ActionPlan(base.APIBase):
 
     def __init__(self, **kwargs):
         super(ActionPlan, self).__init__()
-
         self.fields = []
         fields = list(objects.ActionPlan.fields)
         for field in fields:
@@ -175,6 +215,7 @@ class ActionPlan(base.APIBase):
 
         self.fields.append('audit_uuid')
         self.fields.append('first_action_uuid')
+        self.fields.append('efficacy_indicators')
 
         setattr(self, 'audit_uuid', kwargs.get('audit_id', wtypes.Unset))
         setattr(self, 'first_action_uuid',
@@ -184,12 +225,13 @@ class ActionPlan(base.APIBase):
     def _convert_with_links(action_plan, url, expand=True):
         if not expand:
             action_plan.unset_fields_except(
-                ['uuid', 'state', 'updated_at',
-                 'audit_uuid', 'first_action_uuid'])
+                ['uuid', 'state', 'efficacy_indicators', 'global_efficacy',
+                 'updated_at', 'audit_uuid', 'first_action_uuid'])
 
-        action_plan.links = [link.Link.make_link(
-            'self', url,
-            'action_plans', action_plan.uuid),
+        action_plan.links = [
+            link.Link.make_link(
+                'self', url,
+                'action_plans', action_plan.uuid),
             link.Link.make_link(
                 'bookmark', url,
                 'action_plans', action_plan.uuid,
@@ -211,6 +253,12 @@ class ActionPlan(base.APIBase):
                      updated_at=datetime.datetime.utcnow())
         sample._first_action_uuid = '57eaf9ab-5aaa-4f7e-bdf7-9a140ac7a720'
         sample._audit_uuid = 'abcee106-14d3-4515-b744-5a26885cf6f6'
+        sample._efficacy_indicators = [{'description': 'Test indicator',
+                                        'name': 'test_indicator',
+                                        'unit': '%'}]
+        sample._global_efficacy = {'description': 'Global efficacy',
+                                   'name': 'test_global_efficacy',
+                                   'unit': '%'}
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 

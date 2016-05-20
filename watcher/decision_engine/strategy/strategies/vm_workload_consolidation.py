@@ -332,7 +332,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        hypervisors = self.model.get_all_hypervisors().values()
+        hypervisors = model.get_all_hypervisors().values()
         rcu = {}
         counters = {}
         for hypervisor in hypervisors:
@@ -517,7 +517,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param original_model: root_model object
         """
         LOG.info(_LI('Executing Smart Strategy'))
-        model = self.get_prediction_model(self.model)
+        model = self.get_prediction_model()
         rcu = self.get_relative_cluster_utilization(model)
         self.ceilometer_vm_data_cache = dict()
 
@@ -546,9 +546,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         LOG.debug(info)
 
-        self.solution.model = model
-        self.solution.efficacy = rcu_after['cpu']
-
     def post_execute(self):
-        # TODO(v-francoise): Add the indicators to the solution
-        pass
+        # self.solution.efficacy = rcu_after['cpu']
+        self.solution.set_efficacy_indicators(
+            released_compute_nodes_count=self.number_of_migrations,
+            vm_migrations_count=self.number_of_released_hypervisors,
+        )

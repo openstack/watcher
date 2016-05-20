@@ -195,5 +195,3 @@ class EfficacyIndicator(base.WatcherObject):
                         object, e.g.: Audit(context)
         """
         self.dbapi.soft_delete_efficacy_indicator(self.uuid)
-        self.state = "DELETED"
-        self.save()

@@ -73,6 +73,7 @@ from watcher.common import utils
 from watcher.db import api as dbapi
 from watcher.objects import action as action_objects
 from watcher.objects import base
+from watcher.objects import efficacy_indicator as indicator_objects
 from watcher.objects import utils as obj_utils
 
 
@@ -98,6 +99,7 @@ class ActionPlan(base.WatcherObject):
         'audit_id': obj_utils.int_or_none,
         'first_action_id': obj_utils.int_or_none,
         'state': obj_utils.str_or_none,
+        'global_efficacy': obj_utils.dict_or_none,
     }
 
     @staticmethod
@@ -192,7 +194,7 @@ class ActionPlan(base.WatcherObject):
         self._from_db_object(self, db_action_plan)
 
     def destroy(self, context=None):
-        """Delete the Action from the DB.
+        """Delete the action plan from the DB.
 
         :param context: Security context. NOTE: This should only
                         be used internally by the indirection_api.
@@ -201,6 +203,14 @@ class ActionPlan(base.WatcherObject):
                         A context should be set when instantiating the
                         object, e.g.: Action(context)
         """
+        related_efficacy_indicators = indicator_objects.EfficacyIndicator.list(
+            context=self._context,
+            filters={"action_plan_uuid": self.uuid})
+
+        # Cascade soft_delete of related efficacy indicators
+        for related_efficacy_indicator in related_efficacy_indicators:
+            related_efficacy_indicator.destroy()
+
         self.dbapi.destroy_action_plan(self.uuid)
         self.obj_reset_changes()
 
@@ -259,6 +269,14 @@ class ActionPlan(base.WatcherObject):
         # Cascade soft_delete of related actions
         for related_action in related_actions:
             related_action.soft_delete()
+
+        related_efficacy_indicators = indicator_objects.EfficacyIndicator.list(
+            context=self._context,
+            filters={"action_plan_uuid": self.uuid})
+
+        # Cascade soft_delete of related efficacy indicators
+        for related_efficacy_indicator in related_efficacy_indicators:
+            related_efficacy_indicator.soft_delete()
 
         self.dbapi.soft_delete_action_plan(self.uuid)
         self.state = State.DELETED

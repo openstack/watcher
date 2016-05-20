@@ -60,7 +60,6 @@ class TestStrategySelector(base.TestCase):
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
     def test_select_no_available_strategy_for_goal(self, m_list_available):
         m_list_available.return_value = {}
-        strategy_selector = default_selector.DefaultStrategySelector(
-            "dummy")
+        strategy_selector = default_selector.DefaultStrategySelector("dummy")
         self.assertRaises(exception.NoAvailableStrategyForGoal,
                           strategy_selector.select)

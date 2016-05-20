@@ -277,8 +277,8 @@ class Syncer(object):
                 display_name=goal_cls.get_translatable_display_name(),
                 efficacy_specification=tuple(
                     IndicatorSpec(**indicator.to_dict())
-                    for indicator in goal_cls.get_efficacy_specification()
-                                             .get_indicators_specifications()))
+                    for indicator in goal_cls.get_efficacy_specification(
+                    ).get_indicators_specifications()))
 
         for _, strategy_cls in implemented_strategies.items():
             strategies_map[strategy_cls.get_name()] = StrategyMapping(

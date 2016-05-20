@@ -141,7 +141,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def check_migration(self, src_hypervisor, dest_hypervisor, vm_to_mig):
         """Check if the migration is possible
 
-        :param self.model: the current state of the cluster
         :param src_hypervisor: the current node of the virtual machine
         :param dest_hypervisor: the destination of the virtual machine
         :param vm_to_mig: the virtual machine
@@ -185,7 +184,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         check the threshold value defined by the ratio of
         aggregated CPU capacity of VMs on one node to CPU capacity
         of this node must not exceed the threshold value.
-        :param self.model: the current state of the cluster
         :param dest_hypervisor: the destination of the virtual machine
         :param total_cores
         :param total_disk
@@ -216,7 +214,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                          total_memory_used):
         """Calculate weight of every resource
 
-        :param self.model:
         :param element:
         :param total_cores_used:
         :param total_disk_used:
@@ -482,4 +479,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         LOG.debug(infos)
 
     def post_execute(self):
-        pass
+        self.solution.set_efficacy_indicators(
+            released_compute_nodes_count=self.number_of_migrations,
+            vm_migrations_count=self.number_of_released_nodes,
+        )

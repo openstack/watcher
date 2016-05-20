@@ -13,13 +13,14 @@
 import datetime
 import itertools
 import mock
-
+import pecan
 
 from oslo_config import cfg
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action_plan as api_action_plan
 from watcher.applier import rpcapi as aapi
+from watcher.common import context
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher import objects
@@ -31,7 +32,11 @@ from watcher.tests.objects import utils as obj_utils
 
 class TestActionPlanObject(base.TestCase):
 
-    def test_action_plan_init(self):
+    @mock.patch.object(objects.EfficacyIndicator,
+                       'list', mock.Mock(return_value=[]))
+    @mock.patch.object(pecan, 'request')
+    def test_action_plan_init(self, m_request):
+        m_request.context = context.make_context()
         act_plan_dict = api_utils.action_plan_post_data()
         del act_plan_dict['state']
         del act_plan_dict['audit_id']
@@ -47,7 +52,8 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual([], response['action_plans'])
 
     def _assert_action_plans_fields(self, action_plan):
-        action_plan_fields = ['state']
+        action_plan_fields = ['uuid', 'audit_uuid', 'state', 'global_efficacy',
+                              'efficacy_indicators']
         for field in action_plan_fields:
             self.assertIn(field, action_plan)
 
@@ -71,10 +77,18 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual([], response['action_plans'])
 
     def test_get_one_ok(self):
-        action_plan = obj_utils.create_action_plan_without_audit(self.context)
+        action_plan = obj_utils.create_test_action_plan(self.context)
+        obj_utils.create_test_efficacy_indicator(
+            self.context, action_plan_id=action_plan['id'])
         response = self.get_json('/action_plans/%s' % action_plan['uuid'])
         self.assertEqual(action_plan.uuid, response['uuid'])
         self._assert_action_plans_fields(response)
+        self.assertEqual(
+            [{'description': 'Test indicator',
+              'name': 'test_indicator',
+              'value': 0.0,
+              'unit': '%'}],
+            response['efficacy_indicators'])
 
     def test_get_one_with_first_action(self):
         action_plan = obj_utils.create_test_action_plan(self.context)

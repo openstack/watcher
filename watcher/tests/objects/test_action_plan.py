@@ -74,19 +74,69 @@ class TestActionPlanObject(base.DbTestCase):
             self.assertEqual(self.context, action_plan._context)
 
     def test_destroy(self):
+        efficacy_indicator = utils.get_test_efficacy_indicator(
+            action_plan_id=self.fake_action_plan['id'])
         uuid = self.fake_action_plan['uuid']
-        with mock.patch.object(self.dbapi, 'get_action_plan_by_uuid',
-                               autospec=True) as mock_get_action_plan:
-            mock_get_action_plan.return_value = self.fake_action_plan
-            with mock.patch.object(self.dbapi, 'destroy_action_plan',
-                                   autospec=True) as mock_destroy_action_plan:
-                action_plan = objects.ActionPlan.get_by_uuid(
-                    self.context, uuid)
-                action_plan.destroy()
-                mock_get_action_plan.assert_called_once_with(
-                    self.context, uuid)
-                mock_destroy_action_plan.assert_called_once_with(uuid)
-                self.assertEqual(self.context, action_plan._context)
+
+        with mock.patch.multiple(
+            self.dbapi, autospec=True,
+            get_action_plan_by_uuid=mock.DEFAULT,
+            destroy_action_plan=mock.DEFAULT,
+            get_efficacy_indicator_list=mock.DEFAULT,
+            destroy_efficacy_indicator=mock.DEFAULT,
+        ) as m_dict:
+            m_get_action_plan = m_dict['get_action_plan_by_uuid']
+            m_destroy_action_plan = m_dict['destroy_action_plan']
+            m_get_efficacy_indicator_list = (
+                m_dict['get_efficacy_indicator_list'])
+            m_destroy_efficacy_indicator = m_dict['destroy_efficacy_indicator']
+            m_get_action_plan.return_value = self.fake_action_plan
+            m_get_efficacy_indicator_list.return_value = [efficacy_indicator]
+            action_plan = objects.ActionPlan.get_by_uuid(self.context, uuid)
+            action_plan.destroy()
+            m_get_action_plan.assert_called_once_with(self.context, uuid)
+            m_get_efficacy_indicator_list.assert_called_once_with(
+                self.context, filters={"action_plan_uuid": uuid},
+                limit=None, marker=None, sort_dir=None, sort_key=None)
+            m_destroy_action_plan.assert_called_once_with(uuid)
+            m_destroy_efficacy_indicator.assert_called_once_with(
+                efficacy_indicator['uuid'])
+            self.assertEqual(self.context, action_plan._context)
+
+    def test_soft_delete(self):
+        efficacy_indicator = utils.get_test_efficacy_indicator(
+            action_plan_id=self.fake_action_plan['id'])
+        uuid = self.fake_action_plan['uuid']
+
+        with mock.patch.multiple(
+            self.dbapi, autospec=True,
+            get_action_plan_by_uuid=mock.DEFAULT,
+            soft_delete_action_plan=mock.DEFAULT,
+            update_action_plan=mock.DEFAULT,
+            get_efficacy_indicator_list=mock.DEFAULT,
+            soft_delete_efficacy_indicator=mock.DEFAULT,
+        ) as m_dict:
+            m_get_action_plan = m_dict['get_action_plan_by_uuid']
+            m_soft_delete_action_plan = m_dict['soft_delete_action_plan']
+            m_get_efficacy_indicator_list = (
+                m_dict['get_efficacy_indicator_list'])
+            m_soft_delete_efficacy_indicator = (
+                m_dict['soft_delete_efficacy_indicator'])
+            m_update_action_plan = m_dict['update_action_plan']
+            m_get_action_plan.return_value = self.fake_action_plan
+            m_get_efficacy_indicator_list.return_value = [efficacy_indicator]
+            action_plan = objects.ActionPlan.get_by_uuid(self.context, uuid)
+            action_plan.soft_delete()
+            m_get_action_plan.assert_called_once_with(self.context, uuid)
+            m_get_efficacy_indicator_list.assert_called_once_with(
+                self.context, filters={"action_plan_uuid": uuid},
+                limit=None, marker=None, sort_dir=None, sort_key=None)
+            m_soft_delete_action_plan.assert_called_once_with(uuid)
+            m_soft_delete_efficacy_indicator.assert_called_once_with(
+                efficacy_indicator['uuid'])
+            m_update_action_plan.assert_called_once_with(
+                uuid, {'state': 'DELETED'})
+            self.assertEqual(self.context, action_plan._context)
 
     def test_save(self):
         uuid = self.fake_action_plan['uuid']
