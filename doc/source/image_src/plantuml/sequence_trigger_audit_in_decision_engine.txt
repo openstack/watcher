@@ -1,31 +1,54 @@
 @startuml
 
-"AMQP Bus" -> "Watcher Decision Engine"  : trigger_audit(new_audit.uuid)
-"Watcher Decision Engine" -> "Watcher Database" : update audit.state = ONGOING
-"AMQP Bus" <[#blue]- "Watcher Decision Engine" : notify new audit state = ONGOING
-"Watcher Decision Engine" -> "Watcher Database" : get audit parameters(goal, ...)
-"Watcher Decision Engine" <-- "Watcher Database" : audit parameters(goal, ...)
+skinparam maxMessageSize 100
+
+"AMQP Bus" -> "Decision Engine"  : trigger audit
+
+activate "Decision Engine"
+
+"Decision Engine" -> "Database" : update audit.state = ONGOING
+"AMQP Bus" <[#blue]- "Decision Engine" : notify new audit state = ONGOING
+"Decision Engine" -> "Database" : get audit parameters (goal, strategy, ...)
+"Decision Engine" <-- "Database" : audit parameters (goal, strategy, ...)
+"Decision Engine" --> "Decision Engine": select appropriate \
+optimization strategy (via the Strategy Selector)
 create Strategy
-"Watcher Decision Engine" -[#red]> "Strategy": select appropriate\noptimization strategy
-loop while enough data to build cluster data model
-  "Watcher Decision Engine" -> "Nova API" : get resource state (host, instance, ...)
-  "Watcher Decision Engine" <-- "Nova API" : resource state
-end
-"Watcher Decision Engine" -[#red]> "Watcher Decision Engine": build cluster_data_model
-"Watcher Decision Engine" -> "Strategy" : execute(cluster_data_model)
+"Decision Engine" -> "Strategy" : execute()
+activate "Strategy"
+create "Cluster Data Model Collector"
+"Strategy" -> "Cluster Data Model Collector" : get cluster data model
+
+activate "Cluster Data Model Collector"
+    loop while enough data to build cluster data model
+      "Cluster Data Model Collector" -> "Nova API" : get resource state (\
+host, instance, ...)
+      "Cluster Data Model Collector" <-- "Nova API" : resource state
+    end
+"Cluster Data Model Collector" -> "Strategy" : cluster data model
+deactivate "Cluster Data Model Collector"
+
 loop while enough history data for the strategy
-"Strategy" -> "Ceilometer API": get_aggregated_metrics\n(resource_id,meter_name,period,aggregate_method)
-"Strategy" <-- "Ceilometer API": aggregated metrics
+    "Strategy" -> "Ceilometer API": get necessary metrics
+    "Strategy" <-- "Ceilometer API": aggregated metrics
 end
-"Strategy" -> "Strategy" : compute solution to achieve goal
-"Watcher Decision Engine" <-- "Strategy" : solution = array of actions (i.e. not scheduled yet)
-create "Watcher Planner"
-"Watcher Decision Engine" -[#red]> "Watcher Planner": select appropriate actions scheduler (i.e. Planner implementation)
-"Watcher Decision Engine" -> "Watcher Planner": schedule(audit_id, solution)
-"Watcher Planner" -> "Watcher Planner": schedule actions according to\nscheduling rules/policies
-"Watcher Decision Engine" <-- "Watcher Planner": new action_plan
-"Watcher Decision Engine" -> "Watcher Database" : save new action_plan in database
-"Watcher Decision Engine" -> "Watcher Database" : update audit.state = SUCCEEDED
-"AMQP Bus" <[#blue]- "Watcher Decision Engine" : notify new audit state = SUCCEEDED
+"Strategy" -> "Strategy" : compute/set needed actions for the solution \
+so it achieves its goal
+"Strategy" -> "Strategy" : compute/set efficacy indicators for the solution
+"Strategy" -> "Strategy" : compute/set the solution global efficacy
+"Decision Engine" <-- "Strategy" : solution (contains a list of unordered \
+actions alongside its efficacy indicators as well as its global efficacy)
+deactivate "Strategy"
+
+"Decision Engine" --> "Planner": load actions scheduler (i.e. Planner plugin)
+create "Planner"
+"Decision Engine" -> "Planner": schedule()
+"Planner" -> "Planner": schedule actions according to \
+scheduling rules/policies
+"Decision Engine" <-- "Planner": new action plan
+"Decision Engine" -> "Database" : save new action plan in database
+"Decision Engine" -> "Database" : update audit.state = SUCCEEDED
+"AMQP Bus" <[#blue]- "Decision Engine" : notify new audit state = SUCCEEDED
+
+deactivate "Decision Engine"
 
 @enduml

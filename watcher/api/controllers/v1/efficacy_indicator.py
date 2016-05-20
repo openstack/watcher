@@ -15,20 +15,20 @@
 # limitations under the License.
 
 """
-An efficacy indicator is a single value
-that gives an indication on how the :ref:`solution <solution_definition>`
-produced by a given :ref:`strategy <strategy_definition>` performed. These
-efficacy indicators are specific to a given :ref:`goal <goal_definition>` and
-are usually used to compute the :ref:`gobal efficacy <efficacy_definition>` of
-the resulting :ref:`action plan <action_plan_definition>`.
+An efficacy indicator is a single value that gives an indication on how the
+:ref:`solution <solution_definition>` produced by a given :ref:`strategy
+<strategy_definition>` performed. These efficacy indicators are specific to a
+given :ref:`goal <goal_definition>` and are usually used to compute the
+:ref:`gobal efficacy <efficacy_definition>` of the resulting :ref:`action plan
+<action_plan_definition>`.
 
 In Watcher, these efficacy indicators are specified alongside the goal they
 relate to. When a strategy (which always relates to a goal) is executed, it
-produces a solution containing the efficacy indicators specified by the
-goal. This solution, which has been translated by the :ref:`Watcher Planner
-<watcher_planner_definition>` into an action plan, will see its
-indicators and global efficacy stored and would now be accessible through the
-:ref:`Watcher API <watcher_api_definition>`.
+produces a solution containing the efficacy indicators specified by the goal.
+This solution, which has been translated by the :ref:`Watcher Planner
+<watcher_planner_definition>` into an action plan, will see its indicators and
+global efficacy stored and would now be accessible through the :ref:`Watcher
+API <archi_watcher_api_definition>`.
 """
 
 import numbers

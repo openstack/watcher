@@ -1,0 +1,44 @@
+@startuml
+
+skinparam maxMessageSize 200
+
+"Decision Engine" -> "Decision Engine" : Execute audit
+activate "Decision Engine"
+"Decision Engine" -> "Decision Engine" : Set the audit state to ONGOING
+
+"Decision Engine" -> "Strategy selector" : Select strategy
+activate "Strategy selector"
+alt A specific strategy is provided
+"Strategy selector" -> "Strategy selector" : Load strategy and inject the \
+cluster data model
+else Only a goal is specified
+"Strategy selector" -> "Strategy selector" : select strategy
+"Strategy selector" -> "Strategy selector" : Load strategy and inject the \
+cluster data model
+end
+"Strategy selector" -> "Decision Engine" : Return loaded Strategy
+deactivate "Strategy selector"
+
+"Decision Engine" -> "Strategy" : Execute the strategy
+activate "Strategy"
+"Strategy" -> "Strategy" : **pre_execute()**Checks if the strategy \
+pre-requisites are all set.
+"Strategy" -> "Strategy" : **do_execute()**Contains the logic of the strategy
+"Strategy" -> "Strategy" : **post_execute()** Set the efficacy indicators
+"Strategy" -> "Strategy" : Compute the global efficacy of the solution \
+based on the provided efficacy indicators
+"Strategy" -> "Decision Engine" : Return the solution
+deactivate "Strategy"
+
+"Decision Engine" -> "Planner" : Plan the solution that was computed by the \
+strategy
+activate "Planner"
+"Planner" -> "Planner" : Store the planned solution as an action plan with its \
+related actions and efficacy indicators
+"Planner" --> "Decision Engine" : Done
+deactivate "Planner"
+"Decision Engine" -> "Decision Engine" : Update the audit state to SUCCEEDED
+
+deactivate "Decision Engine"
+
+@enduml
