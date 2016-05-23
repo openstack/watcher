@@ -25,6 +25,9 @@ from watcher_tempest_plugin.tests.api.admin import base
 class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
     """Tests for audit."""
 
+    audit_states = ['ONGOING', 'SUCCEEDED', 'SUBMITTED', 'FAILED',
+                    'CANCELLED', 'DELETED', 'PENDING']
+
     def assert_expected(self, expected, actual,
                         keys=('created_at', 'updated_at',
                               'deleted_at', 'state')):
@@ -102,7 +105,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         _, audit = self.client.show_audit(body['uuid'])
 
         initial_audit_state = audit.pop('state')
-        self.assertEqual('PENDING', initial_audit_state)
+        self.assertIn(initial_audit_state, self.audit_states)
 
         self.assert_expected(audit, body)
 
