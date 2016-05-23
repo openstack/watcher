@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 import oslo_i18n
+from oslo_i18n import _lazy
 
 # The domain is the name of the App which is used to generate the folder
 # containing the translation files (i.e. the .pot file and the various locales)
@@ -40,6 +41,10 @@ _LI = _translators.log_info
 _LW = _translators.log_warning
 _LE = _translators.log_error
 _LC = _translators.log_critical
+
+
+def lazy_translation_enabled():
+    return _lazy.USE_LAZY
 
 
 def get_available_languages():

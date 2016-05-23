@@ -28,6 +28,7 @@ import prettytable as ptable
 from six.moves import input
 
 from watcher._i18n import _, _LI
+from watcher._i18n import lazy_translation_enabled
 from watcher.common import context
 from watcher.common import exception
 from watcher.common import utils
@@ -56,11 +57,11 @@ class WatcherObjectsMap(object):
     ])
 
     def __init__(self):
-        for attr_name in self.__class__.keys():
+        for attr_name in self.keys():
             setattr(self, attr_name, [])
 
     def values(self):
-        return (getattr(self, key) for key in self.__class__.keys())
+        return (getattr(self, key) for key in self.keys())
 
     @classmethod
     def keys(cls):
@@ -100,8 +101,13 @@ class WatcherObjectsMap(object):
     def get_count_table(self):
         headers = list(self.keymap.values())
         headers.append(_("Total"))  # We also add a total count
+        translated_headers = [
+            h.translate() if lazy_translation_enabled() else h
+            for h in headers
+        ]
+
         counters = [len(cat_vals) for cat_vals in self.values()] + [len(self)]
-        table = ptable.PrettyTable(field_names=headers)
+        table = ptable.PrettyTable(field_names=translated_headers)
         table.add_row(counters)
         return table.get_string()
 
