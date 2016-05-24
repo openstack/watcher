@@ -108,3 +108,38 @@ class TestListOpts(base.TestCase):
 
         strategy_opts = result_map['watcher_strategies.STRATEGY_1']
         self.assertEqual(['test_opt'], [opt.name for opt in strategy_opts])
+
+
+class TestPlugins(base.TestCase):
+
+    def test_show_plugins(self):
+        # Set up the fake Stevedore extensions
+        fake_extmanager_call = extension.ExtensionManager.make_test_instance(
+            extensions=[extension.Extension(
+                name=fake_strategies.FakeDummy1Strategy1.get_name(),
+                entry_point="%s:%s" % (
+                    fake_strategies.FakeDummy1Strategy1.__module__,
+                    fake_strategies.FakeDummy1Strategy1.__name__),
+                plugin=fake_strategies.FakeDummy1Strategy1,
+                obj=None,
+            )],
+            namespace="watcher_strategies",
+        )
+
+        def m_list_available(namespace):
+            if namespace == "watcher_strategies":
+                return fake_extmanager_call
+            else:
+                return extension.ExtensionManager.make_test_instance(
+                    extensions=[], namespace=namespace)
+
+        with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
+            with mock.patch.object(
+                opts, "_show_plugins_ascii_table"
+            ) as m_show:
+                m_ext_manager.side_effect = m_list_available
+                opts.show_plugins()
+                m_show.assert_called_once_with(
+                    [('watcher_strategies.STRATEGY_1', 'STRATEGY_1',
+                      'watcher.tests.decision_engine.'
+                      'fake_strategies.FakeDummy1Strategy1')])

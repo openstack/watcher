@@ -16,6 +16,7 @@
 # limitations under the License.
 
 from keystoneauth1 import loading as ka_loading
+import prettytable as ptable
 
 import watcher.api.app
 from watcher.applier.actions.loading import default as action_loader
@@ -23,6 +24,7 @@ from watcher.applier import manager as applier_manager
 from watcher.applier.workflow_engine.loading import default as \
     workflow_engine_loader
 from watcher.common import clients
+from watcher.common import utils
 from watcher.decision_engine import manager as decision_engine_manger
 from watcher.decision_engine.planner.loading import default as planner_loader
 from watcher.decision_engine.planner import manager as planner_manager
@@ -73,3 +75,26 @@ def list_plugin_opts():
                     (plugin_loader.get_entry_name(plugin_name), plugin_opts))
 
     return plugins_opts
+
+
+def _show_plugins_ascii_table(rows):
+    headers = ["Namespace", "Plugin name", "Import path"]
+    table = ptable.PrettyTable(field_names=headers)
+    for row in rows:
+        table.add_row(row)
+    return table.get_string()
+
+
+def show_plugins():
+    rows = []
+    for plugin_loader_cls in PLUGIN_LOADERS:
+        plugin_loader = plugin_loader_cls()
+        plugins_map = plugin_loader.list_available()
+
+        rows += [
+            (plugin_loader.get_entry_name(plugin_name),
+             plugin_name,
+             utils.get_cls_import_path(plugin_cls))
+            for plugin_name, plugin_cls in plugins_map.items()]
+
+    return _show_plugins_ascii_table(rows)
