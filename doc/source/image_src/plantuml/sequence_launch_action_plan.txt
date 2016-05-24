@@ -2,7 +2,7 @@
 
 actor Administrator
 
-Administrator -> "Watcher CLI" : watcher action-plan-start <action_plan_uuid>
+Administrator -> "Watcher CLI" : watcher actionplan start <action_plan_uuid>
 
 "Watcher CLI" -> "Watcher API" : PATCH action_plan(state=PENDING)
 "Watcher API" -> "Watcher Database" : action_plan.state=PENDING
