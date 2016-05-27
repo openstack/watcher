@@ -281,7 +281,10 @@ class Connection(api.BaseConnection):
 
     def _add_strategies_filters(self, query, filters):
         plain_fields = ['uuid', 'name', 'display_name', 'goal_id']
-        join_fieldmap = {'goal_uuid': ("uuid", models.Goal)}
+        join_fieldmap = {
+            'goal_uuid': ("uuid", models.Goal),
+            'goal_name': ("name", models.Goal)
+        }
 
         return self._add_filters(
             query=query, model=models.Strategy, filters=filters,

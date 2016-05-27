@@ -189,6 +189,9 @@ class StrategiesController(rest.RestController):
 
     def _get_strategies_collection(self, filters, marker, limit, sort_key,
                                    sort_dir, expand=False, resource_url=None):
+        api_utils.validate_search_filters(
+            filters, list(objects.strategy.Strategy.fields.keys()) +
+            ["goal_uuid", "goal_name"])
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -210,27 +213,33 @@ class StrategiesController(rest.RestController):
 
     @wsme_pecan.wsexpose(StrategyCollection, wtypes.text, wtypes.text,
                          int, wtypes.text, wtypes.text)
-    def get_all(self, goal_uuid=None, marker=None, limit=None,
+    def get_all(self, goal=None, marker=None, limit=None,
                 sort_key='id', sort_dir='asc'):
         """Retrieve a list of strategies.
 
-        :param goal_uuid: goal UUID to filter by.
+        :param goal: goal UUID or name to filter by.
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
-        filters = api_utils.as_filters_dict(goal_uuid=goal_uuid)
+        filters = {}
+        if goal:
+            if common_utils.is_uuid_like(goal):
+                filters['goal_uuid'] = goal
+            else:
+                filters['goal_name'] = goal
+
         return self._get_strategies_collection(
             filters, marker, limit, sort_key, sort_dir)
 
     @wsme_pecan.wsexpose(StrategyCollection, wtypes.text, wtypes.text, int,
                          wtypes.text, wtypes.text)
-    def detail(self, goal_uuid=None, marker=None, limit=None,
+    def detail(self, goal=None, marker=None, limit=None,
                sort_key='id', sort_dir='asc'):
         """Retrieve a list of strategies with detail.
 
-        :param goal_uuid: goal UUID to filter by.
+        :param goal: goal UUID or name to filter by.
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
@@ -243,7 +252,13 @@ class StrategiesController(rest.RestController):
         expand = True
         resource_url = '/'.join(['strategies', 'detail'])
 
-        filters = api_utils.as_filters_dict(goal_uuid=goal_uuid)
+        filters = {}
+        if goal:
+            if common_utils.is_uuid_like(goal):
+                filters['goal_uuid'] = goal
+            else:
+                filters['goal_name'] = goal
+
         return self._get_strategies_collection(
             filters, marker, limit, sort_key, sort_dir, expand, resource_url)
 
