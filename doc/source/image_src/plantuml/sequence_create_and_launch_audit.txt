@@ -3,7 +3,7 @@
 
 actor Administrator
 
-Administrator -> "Watcher CLI" : watcher audit-create -a <audit_template_uuid>
+Administrator -> "Watcher CLI" : watcher audit create -a <audit_template>
 
 "Watcher CLI" -> "Watcher API" : POST audit(parameters)
 "Watcher API" -> "Watcher Database" : create new audit in database (status=PENDING)
@@ -14,7 +14,7 @@ Administrator -> "Watcher CLI" : watcher audit-create -a <audit_template_uuid>
 Administrator <-- "Watcher CLI" : new audit uuid
 
 "Watcher API" -> "AMQP Bus" : trigger_audit(new_audit.uuid)
-"AMQP Bus" -> "Watcher Decision Engine" : trigger_audit(new_audit.uuid)
+"AMQP Bus" -> "Watcher Decision Engine" : trigger_audit(new_audit.uuid) (status=ONGOING)
 
 ref over "Watcher Decision Engine"
   Trigger audit in the

@@ -2,7 +2,7 @@
 
 actor Administrator
 
-Administrator -> "Watcher CLI" : watcher audit-template-create <name> <goal> \
+Administrator -> "Watcher CLI" : watcher audittemplate create <name> <goal> \
 [--strategy-uuid <strategy>]
 "Watcher CLI" -> "Watcher API" : POST audit_template(parameters)
 
