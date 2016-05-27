@@ -151,7 +151,37 @@ class TestListStrategy(api_base.FunctionalTest):
                 uuid=utils.generate_uuid(),
                 goal_id=goal2['id'])
 
-        response = self.get_json('/strategies/?goal_uuid=%s' % goal1['uuid'])
+        response = self.get_json('/strategies/?goal=%s' % goal1['uuid'])
+
+        strategies = response['strategies']
+        self.assertEqual(2, len(strategies))
+        for strategy in strategies:
+            self.assertEqual(goal1['uuid'], strategy['goal_uuid'])
+
+    def test_filter_by_goal_name(self):
+        goal1 = obj_utils.create_test_goal(
+            self.context,
+            id=1,
+            uuid=utils.generate_uuid(),
+            name='My_Goal 1')
+        goal2 = obj_utils.create_test_goal(
+            self.context,
+            id=2,
+            uuid=utils.generate_uuid(),
+            name='My Goal 2')
+
+        for id_ in range(1, 3):
+            obj_utils.create_test_strategy(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(),
+                goal_id=goal1['id'])
+        for id_ in range(3, 5):
+            obj_utils.create_test_strategy(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(),
+                goal_id=goal2['id'])
+
+        response = self.get_json('/strategies/?goal=%s' % goal1['name'])
 
         strategies = response['strategies']
         self.assertEqual(2, len(strategies))
