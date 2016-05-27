@@ -61,6 +61,15 @@ class TestMigration(base.TestCase):
         self.action = migration.Migrate()
         self.action.input_parameters = self.input_parameters
 
+        self.input_parameters_cold = {
+            "migration_type": "cold",
+            "src_hypervisor": "hypervisor1-hostname",
+            "dst_hypervisor": "hypervisor2-hostname",
+            baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+        }
+        self.action_cold = migration.Migrate()
+        self.action_cold.input_parameters = self.input_parameters_cold
+
     def test_parameters(self):
         params = {baction.BaseAction.RESOURCE_ID:
                   self.INSTANCE_UUID,
@@ -69,6 +78,15 @@ class TestMigration(base.TestCase):
                   self.action.SRC_HYPERVISOR: 'compute-3'}
         self.action.input_parameters = params
         self.assertEqual(True, self.action.validate_parameters())
+
+    def test_parameters_cold(self):
+        params = {baction.BaseAction.RESOURCE_ID:
+                  self.INSTANCE_UUID,
+                  self.action.MIGRATION_TYPE: 'cold',
+                  self.action.DST_HYPERVISOR: 'compute-2',
+                  self.action.SRC_HYPERVISOR: 'compute-3'}
+        self.action_cold.input_parameters = params
+        self.assertEqual(True, self.action_cold.validate_parameters())
 
     def test_parameters_exception_empty_fields(self):
         parameters = {baction.BaseAction.RESOURCE_ID: None,
@@ -87,7 +105,7 @@ class TestMigration(base.TestCase):
     def test_parameters_exception_migration_type(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
-                      'migration_type': 'cold',
+                      'migration_type': 'unknown',
                       'src_hypervisor': 'compute-2',
                       'dst_hypervisor': 'compute-3'}
         self.action.input_parameters = parameters
@@ -154,6 +172,13 @@ class TestMigration(base.TestCase):
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
         self.assertEqual(self.INSTANCE_UUID, exc.kwargs["name"])
 
+    def test_execute_cold_migration_invalid_instance(self):
+        self.m_helper.find_instance.return_value = None
+        exc = self.assertRaises(
+            exception.InstanceNotFound, self.action_cold.execute)
+        self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
+        self.assertEqual(self.INSTANCE_UUID, exc.kwargs["name"])
+
     def test_execute_live_migration(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID
 
@@ -166,6 +191,20 @@ class TestMigration(base.TestCase):
             instance_id=self.INSTANCE_UUID,
             dest_hostname="hypervisor2-hostname")
 
+    def test_execute_cold_migration(self):
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+
+        try:
+            self.action_cold.execute()
+        except Exception as exc:
+            self.fail(exc)
+
+        self.m_helper.watcher_non_live_migrate_instance.\
+            assert_called_once_with(
+                instance_id=self.INSTANCE_UUID,
+                dest_hostname="hypervisor2-hostname"
+            )
+
     def test_revert_live_migration(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID
 
@@ -176,6 +215,18 @@ class TestMigration(base.TestCase):
             instance_id=self.INSTANCE_UUID,
             dest_hostname="hypervisor1-hostname"
         )
+
+    def test_revert_cold_migration(self):
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+
+        self.action_cold.revert()
+
+        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper.watcher_non_live_migrate_instance.\
+            assert_called_once_with(
+                instance_id=self.INSTANCE_UUID,
+                dest_hostname="hypervisor1-hostname"
+            )
 
     def test_live_migrate_non_shared_storage_instance(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID
