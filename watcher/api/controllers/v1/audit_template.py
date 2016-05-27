@@ -87,48 +87,51 @@ class AuditTemplatePostType(wtypes.Base):
     extra = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False)
     """The metadata of the audit template"""
 
-    goal_uuid = wtypes.wsattr(types.uuid, mandatory=True)
-    """Goal UUID of the audit template"""
+    goal = wtypes.wsattr(wtypes.text, mandatory=True)
+    """Goal UUID or name of the audit template"""
 
-    strategy_uuid = wsme.wsattr(types.uuid, mandatory=False)
-    """Strategy UUID of the audit template"""
+    strategy = wtypes.wsattr(wtypes.text, mandatory=False)
+    """Strategy UUID or name of the audit template"""
 
     version = wtypes.text
     """Internal version of the audit template"""
 
     def as_audit_template(self):
-        related_strategy_uuid = self.strategy_uuid or None
         return AuditTemplate(
             name=self.name,
             description=self.description,
             deadline=self.deadline,
             host_aggregate=self.host_aggregate,
             extra=self.extra,
-            goal_id=self.goal_uuid,  # Dirty trick ...
-            goal_uuid=self.goal_uuid,
-            strategy_id=related_strategy_uuid,  # Dirty trick ...
-            strategy_uuid=related_strategy_uuid,
+            goal_id=self.goal,  # Dirty trick ...
+            goal=self.goal,
+            strategy_id=self.strategy,  # Dirty trick ...
+            strategy_uuid=self.strategy,
             version=self.version,
         )
 
     @staticmethod
     def validate(audit_template):
         available_goals = objects.Goal.list(AuditTemplatePostType._ctx)
-        available_goals_map = {g.uuid: g for g in available_goals}
-        if audit_template.goal_uuid not in available_goals_map:
-            raise exception.InvalidGoal(goal=audit_template.goal_uuid)
+        available_goal_uuids_map = {g.uuid: g for g in available_goals}
+        available_goal_names_map = {g.name: g for g in available_goals}
+        if audit_template.goal in available_goal_uuids_map:
+            goal = available_goal_uuids_map[audit_template.goal]
+        elif audit_template.goal in available_goal_names_map:
+            goal = available_goal_names_map[audit_template.goal]
+        else:
+            raise exception.InvalidGoal(goal=audit_template.goal)
 
-        if audit_template.strategy_uuid:
+        if audit_template.strategy:
             available_strategies = objects.Strategy.list(
                 AuditTemplatePostType._ctx)
             available_strategies_map = {
                 s.uuid: s for s in available_strategies}
-            if audit_template.strategy_uuid not in available_strategies_map:
+            if audit_template.strategy not in available_strategies_map:
                 raise exception.InvalidStrategy(
-                    strategy=audit_template.strategy_uuid)
+                    strategy=audit_template.strategy)
 
-            goal = available_goals_map[audit_template.goal_uuid]
-            strategy = available_strategies_map[audit_template.strategy_uuid]
+            strategy = available_strategies_map[audit_template.strategy]
             # Check that the strategy we indicate is actually related to the
             # specified goal
             if strategy.goal_id != goal.id:
@@ -140,6 +143,12 @@ class AuditTemplatePostType(wtypes.Base):
                         "'%(goal)s' goal. Possible choices: %(choices)s")
                     % dict(strategy=strategy.name, goal=goal.name,
                            choices=", ".join(choices)))
+            audit_template.strategy = strategy.uuid
+
+        # We force the UUID so that we do not need to query the DB with the
+        # name afterwards
+        audit_template.goal = goal.uuid
+
         return audit_template
 
 
@@ -153,43 +162,50 @@ class AuditTemplatePatchType(types.JsonPatchType):
 
     @staticmethod
     def validate(patch):
-        if patch.path == "/goal_uuid" and patch.op != "remove":
+        if patch.path == "/goal" and patch.op != "remove":
             AuditTemplatePatchType._validate_goal(patch)
-        elif patch.path == "/goal_uuid" and patch.op == "remove":
+        elif patch.path == "/goal" and patch.op == "remove":
             raise exception.OperationNotPermitted(
-                _("Cannot remove 'goal_uuid' attribute "
+                _("Cannot remove 'goal' attribute "
                   "from an audit template"))
-        if patch.path == "/strategy_uuid":
+        if patch.path == "/strategy":
             AuditTemplatePatchType._validate_strategy(patch)
         return types.JsonPatchType.validate(patch)
 
     @staticmethod
     def _validate_goal(patch):
         patch.path = "/goal_id"
-        goal_uuid = patch.value
+        goal = patch.value
 
-        if goal_uuid:
+        if goal:
             available_goals = objects.Goal.list(
                 AuditTemplatePatchType._ctx)
-            available_goals_map = {g.uuid: g for g in available_goals}
-            if goal_uuid not in available_goals_map:
-                raise exception.InvalidGoal(goal=goal_uuid)
-
-            patch.value = available_goals_map[goal_uuid].id
+            available_goal_uuids_map = {g.uuid: g for g in available_goals}
+            available_goal_names_map = {g.name: g for g in available_goals}
+            if goal in available_goal_uuids_map:
+                patch.value = available_goal_uuids_map[goal].id
+            elif goal in available_goal_names_map:
+                patch.value = available_goal_names_map[goal].id
+            else:
+                raise exception.InvalidGoal(goal=goal)
 
     @staticmethod
     def _validate_strategy(patch):
         patch.path = "/strategy_id"
-        strategy_uuid = patch.value
-        if strategy_uuid:
+        strategy = patch.value
+        if strategy:
             available_strategies = objects.Strategy.list(
                 AuditTemplatePatchType._ctx)
-            available_strategies_map = {
+            available_strategy_uuids_map = {
                 s.uuid: s for s in available_strategies}
-            if strategy_uuid not in available_strategies_map:
-                raise exception.InvalidStrategy(strategy=strategy_uuid)
-
-            patch.value = available_strategies_map[strategy_uuid].id
+            available_strategy_names_map = {
+                s.name: s for s in available_strategies}
+            if strategy in available_strategy_uuids_map:
+                patch.value = available_strategy_uuids_map[strategy].id
+            elif strategy in available_strategy_names_map:
+                patch.value = available_strategy_names_map[strategy].id
+            else:
+                raise exception.InvalidStrategy(strategy=strategy)
 
 
 class AuditTemplate(base.APIBase):
@@ -201,7 +217,10 @@ class AuditTemplate(base.APIBase):
     """
 
     _goal_uuid = None
+    _goal_name = None
+
     _strategy_uuid = None
+    _strategy_name = None
 
     def _get_goal(self, value):
         if value == wtypes.Unset:
@@ -259,6 +278,26 @@ class AuditTemplate(base.APIBase):
             if strategy:
                 self._strategy_uuid = strategy.uuid
 
+    def _get_goal_name(self):
+        return self._goal_name
+
+    def _set_goal_name(self, value):
+        if value and self._goal_name != value:
+            self._goal_name = None
+            goal = self._get_goal(value)
+            if goal:
+                self._goal_name = goal.name
+
+    def _get_strategy_name(self):
+        return self._strategy_name
+
+    def _set_strategy_name(self, value):
+        if value and self._strategy_name != value:
+            self._strategy_name = None
+            strategy = self._get_strategy(value)
+            if strategy:
+                self._strategy_name = strategy.name
+
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this audit template"""
 
@@ -279,11 +318,19 @@ class AuditTemplate(base.APIBase):
 
     goal_uuid = wsme.wsproperty(
         wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
-    """Goal UUID of the audit template"""
+    """Goal UUID the audit template refers to"""
+
+    goal_name = wsme.wsproperty(
+        wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
+    """The name of the goal this audit template refers to"""
 
     strategy_uuid = wsme.wsproperty(
         wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
-    """Strategy UUID the audit template"""
+    """Strategy UUID the audit template refers to"""
+
+    strategy_name = wsme.wsproperty(
+        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
+    """The name of the strategy this audit template refers to"""
 
     version = wtypes.text
     """Internal version of the audit template"""
@@ -312,17 +359,22 @@ class AuditTemplate(base.APIBase):
         # goal_uuid & strategy_uuid are not part of
         # objects.AuditTemplate.fields because they're API-only attributes.
         self.fields.append('goal_uuid')
+        self.fields.append('goal_name')
         self.fields.append('strategy_uuid')
+        self.fields.append('strategy_name')
         setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
+        setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
         setattr(self, 'strategy_uuid',
+                kwargs.get('strategy_id', wtypes.Unset))
+        setattr(self, 'strategy_name',
                 kwargs.get('strategy_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(audit_template, url, expand=True):
         if not expand:
             audit_template.unset_fields_except(
-                ['uuid', 'name', 'host_aggregate',
-                 'goal_uuid', 'strategy_uuid'])
+                ['uuid', 'name', 'host_aggregate', 'goal_uuid', 'goal_name',
+                 'strategy_uuid', 'strategy_name'])
 
         # The numeric ID should not be exposed to
         # the user, it's internal only.
@@ -404,7 +456,7 @@ class AuditTemplatesController(rest.RestController):
                                         resource_url=None):
         api_utils.validate_search_filters(
             filters, list(objects.audit_template.AuditTemplate.fields.keys()) +
-            ["goal_uuid", "strategy_uuid"])
+            ["goal_uuid", "goal_name", "strategy_uuid", "strategy_name"])
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -428,33 +480,43 @@ class AuditTemplatesController(rest.RestController):
                                                           sort_key=sort_key,
                                                           sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, types.uuid, types.uuid,
+    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, wtypes.text,
                          types.uuid, int, wtypes.text, wtypes.text)
-    def get_all(self, goal_uuid=None, strategy_uuid=None, marker=None,
+    def get_all(self, goal=None, strategy=None, marker=None,
                 limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of audit templates.
 
-        :param goal_uuid: goal UUID to filter by
-        :param strategy_uuid: strategy UUID to filter by
+        :param goal: goal UUID or name to filter by
+        :param strategy: strategy UUID or name to filter by
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
-        filters = api_utils.as_filters_dict(goal_uuid=goal_uuid,
-                                            strategy_uuid=strategy_uuid)
+        filters = {}
+        if goal:
+            if common_utils.is_uuid_like(goal):
+                filters['goal_uuid'] = goal
+            else:
+                filters['goal_name'] = goal
+
+        if strategy:
+            if common_utils.is_uuid_like(strategy):
+                filters['strategy_uuid'] = strategy
+            else:
+                filters['strategy_name'] = strategy
 
         return self._get_audit_templates_collection(
             filters, marker, limit, sort_key, sort_dir)
 
-    @wsme_pecan.wsexpose(AuditTemplateCollection, types.uuid, types.uuid,
+    @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, wtypes.text,
                          types.uuid, int, wtypes.text, wtypes.text)
-    def detail(self, goal_uuid=None, strategy_uuid=None, marker=None,
+    def detail(self, goal=None, strategy=None, marker=None,
                limit=None, sort_key='id', sort_dir='asc'):
         """Retrieve a list of audit templates with detail.
 
-        :param goal_uuid: goal UUID to filter by
-        :param strategy_uuid: strategy UUID to filter by
+        :param goal: goal UUID or name to filter by
+        :param strategy: strategy UUID or name to filter by
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
@@ -465,8 +527,18 @@ class AuditTemplatesController(rest.RestController):
         if parent != "audit_templates":
             raise exception.HTTPNotFound
 
-        filters = api_utils.as_filters_dict(goal_uuid=goal_uuid,
-                                            strategy_uuid=strategy_uuid)
+        filters = {}
+        if goal:
+            if common_utils.is_uuid_like(goal):
+                filters['goal_uuid'] = goal
+            else:
+                filters['goal_name'] = goal
+
+        if strategy:
+            if common_utils.is_uuid_like(strategy):
+                filters['strategy_uuid'] = strategy
+            else:
+                filters['strategy_name'] = strategy
 
         expand = True
         resource_url = '/'.join(['audit_templates', 'detail'])
