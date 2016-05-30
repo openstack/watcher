@@ -20,11 +20,14 @@ from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import outlet_temp_control
 from watcher.decision_engine.strategy.strategies import \
     vm_workload_consolidation
+from watcher.decision_engine.strategy.strategies import workload_stabilization
 
 BasicConsolidation = basic_consolidation.BasicConsolidation
 OutletTempControl = outlet_temp_control.OutletTempControl
 DummyStrategy = dummy_strategy.DummyStrategy
 VMWorkloadConsolidation = vm_workload_consolidation.VMWorkloadConsolidation
+WorkloadStabilization = workload_stabilization.WorkloadStabilization
 
 __all__ = ("BasicConsolidation", "OutletTempControl",
-           "DummyStrategy", "VMWorkloadConsolidation")
+           "DummyStrategy", "VMWorkloadConsolidation",
+           "WorkloadStabilization")

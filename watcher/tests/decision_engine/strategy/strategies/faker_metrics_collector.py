@@ -30,10 +30,16 @@ class FakerMetricsCollector(object):
     def mock_get_statistics(self, resource_id, meter_name, period,
                             aggregate='avg'):
         result = 0
-        if meter_name == "compute.node.cpu.percent":
+        if meter_name == "hardware.cpu.util":
             result = self.get_usage_node_cpu(resource_id)
+        elif meter_name == "compute.node.cpu.percent":
+            result = self.get_usage_node_cpu(resource_id)
+        elif meter_name == "hardware.memory.used":
+            result = self.get_usage_node_ram(resource_id)
         elif meter_name == "cpu_util":
             result = self.get_average_usage_vm_cpu(resource_id)
+        elif meter_name == "memory.resident":
+            result = self.get_average_usage_vm_memory(resource_id)
         elif meter_name == "hardware.ipmi.node.outlet_temperature":
             result = self.get_average_outlet_temperature(resource_id)
         return result
@@ -48,6 +54,20 @@ class FakerMetricsCollector(object):
             mock[uuid] = 100
 
         return mock[str(uuid)]
+
+    def get_usage_node_ram(self, uuid):
+        mock = {}
+        mock['Node_0'] = 7
+        mock['Node_1'] = 5
+        mock['Node_2'] = 29
+        mock['Node_3'] = 8
+        mock['Node_4'] = 4
+
+        if uuid not in mock.keys():
+            # mock[uuid] = random.randint(1, 4)
+            mock[uuid] = 8
+
+        return float(mock[str(uuid)])
 
     def get_usage_node_cpu(self, uuid):
         """The last VM CPU usage values to average
@@ -76,6 +96,12 @@ class FakerMetricsCollector(object):
         mock['Node_19_hostname_19'] = 10
         # node 4
         mock['VM_7_hostname_7'] = 4
+
+        mock['Node_0'] = 7
+        mock['Node_1'] = 5
+        mock['Node_2'] = 10
+        mock['Node_3'] = 4
+        mock['Node_4'] = 2
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
