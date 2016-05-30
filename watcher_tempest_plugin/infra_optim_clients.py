@@ -38,5 +38,5 @@ class BaseManager(clients.Manager):
 class AdminManager(BaseManager):
     def __init__(self):
         super(AdminManager, self).__init__(
-            creds_factory.get_configured_credentials('identity_admin'),
+            creds_factory.get_configured_admin_credentials(),
         )
