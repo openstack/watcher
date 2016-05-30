@@ -9,6 +9,10 @@
 Available Plugins
 =================
 
+In this section we present all the plugins that are shipped along with Watcher.
+If you want to know which plugins your Watcher services have access to, you can
+use the :ref:`Guru Meditation Reports <watcher_gmr>` to display them.
+
 .. _watcher_strategies:
 
 Strategies

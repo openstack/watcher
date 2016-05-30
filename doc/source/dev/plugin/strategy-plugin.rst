@@ -163,8 +163,8 @@ modify your ``NewStrategy`` plugin so it now achieves the latter:
 
     class NewStrategy(NewGoalBaseStrategy):
 
-        def __init__(self, osc=None):
-            super(NewStrategy, self).__init__(osc)
+        def __init__(self, config, osc=None):
+            super(NewStrategy, self).__init__(config, osc)
 
         def execute(self, original_model):
             self.solution.add_action(action_type="nop",
@@ -185,6 +185,49 @@ modify your ``NewStrategy`` plugin so it now achieves the latter:
             return "New strategy"
 
 
+Define configuration parameters
+===============================
+
+At this point, you have a fully functional strategy. However, in more complex
+implementation, you may want to define some configuration options so one can
+tune the strategy to its needs. To do so, you can implement the
+:py:meth:`~.Loadable.get_config_opts` class method as followed:
+
+.. code-block:: python
+
+    from oslo_config import cfg
+
+    class NewStrategy(NewGoalBaseStrategy):
+
+        # [...]
+
+        def execute(self, original_model):
+            assert self.config.test_opt == 0
+            # [...]
+
+        def get_config_opts(self):
+            return [
+                cfg.StrOpt('test_opt', help="Demo Option.", default=0),
+                # Some more options ...
+            ]
+
+
+The configuration options defined within this class method will be included
+within the global ``watcher.conf`` configuration file under a section named by
+convention: ``{namespace}.{plugin_name}``. In our case, the ``watcher.conf``
+configuration would have to be modified as followed:
+
+.. code-block:: ini
+
+    [watcher_strategies.new_strategy]
+    # Option used for testing.
+    test_opt = test_value
+
+Then, the configuration options you define within this method will then be
+injected in each instantiated object via the  ``config`` parameter of the
+:py:meth:`~.BaseStrategy.__init__` method.
+
+
 Abstract Plugin Class
 =====================
 
@@ -192,6 +235,7 @@ Here below is the abstract :py:class:`~.BaseStrategy` class:
 
 .. autoclass:: watcher.decision_engine.strategy.strategies.base.BaseStrategy
     :members:
+    :special-members: __init__
     :noindex:
 
 .. _strategy_plugin_add_entrypoint:

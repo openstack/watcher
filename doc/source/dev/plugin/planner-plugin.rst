@@ -69,6 +69,49 @@ examples, have a look at the implementation of planners already provided by
 Watcher like :py:class:`~.DefaultPlanner`. A list with all available planner
 plugins can be found :ref:`here <watcher_planners>`.
 
+
+Define configuration parameters
+===============================
+
+At this point, you have a fully functional planner. However, in more complex
+implementation, you may want to define some configuration options so one can
+tune the planner to its needs. To do so, you can implement the
+:py:meth:`~.Loadable.get_config_opts` class method as followed:
+
+.. code-block:: python
+
+    from oslo_config import cfg
+
+    class DummyPlanner(base.BasePlanner):
+
+        # [...]
+
+        def schedule(self, context, audit_uuid, solution):
+            assert self.config.test_opt == 0
+            # [...]
+
+        def get_config_opts(self):
+            return [
+                cfg.StrOpt('test_opt', help="Demo Option.", default=0),
+                # Some more options ...
+            ]
+
+The configuration options defined within this class method will be included
+within the global ``watcher.conf`` configuration file under a section named by
+convention: ``{namespace}.{plugin_name}``. In our case, the ``watcher.conf``
+configuration would have to be modified as followed:
+
+.. code-block:: ini
+
+    [watcher_planners.dummy]
+    # Option used for testing.
+    test_opt = test_value
+
+Then, the configuration options you define within this method will then be
+injected in each instantiated object via the  ``config`` parameter of the
+:py:meth:`~.BasePlanner.__init__` method.
+
+
 Abstract Plugin Class
 =====================
 
@@ -77,6 +120,7 @@ should implement:
 
 .. autoclass:: watcher.decision_engine.planner.base.BasePlanner
     :members:
+    :special-members: __init__
     :noindex:
 
 
