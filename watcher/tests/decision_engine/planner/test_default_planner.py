@@ -57,7 +57,7 @@ class SolutionFakerSingleHyp(object):
 
 class TestActionScheduling(base.DbTestCase):
     def test_schedule_actions(self):
-        default_planner = pbase.DefaultPlanner()
+        default_planner = pbase.DefaultPlanner(mock.Mock())
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
         solution = dsol.DefaultSolution()
 
@@ -83,7 +83,7 @@ class TestActionScheduling(base.DbTestCase):
         self.assertEqual("migrate", actions[0].action_type)
 
     def test_schedule_two_actions(self):
-        default_planner = pbase.DefaultPlanner()
+        default_planner = pbase.DefaultPlanner(mock.Mock())
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
         solution = dsol.DefaultSolution()
 
@@ -115,9 +115,10 @@ class TestActionScheduling(base.DbTestCase):
 
 
 class TestDefaultPlanner(base.DbTestCase):
+
     def setUp(self):
         super(TestDefaultPlanner, self).setUp()
-        self.default_planner = pbase.DefaultPlanner()
+        self.default_planner = pbase.DefaultPlanner(mock.Mock())
         obj_utils.create_test_audit_template(self.context)
 
         p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')

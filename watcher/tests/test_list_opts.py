@@ -14,18 +14,97 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from __future__ import absolute_import
-from __future__ import unicode_literals
+import mock
+from stevedore import extension
 
-import watcher.opts as opt
+from watcher import opts
+from watcher.tests import base
+from watcher.tests.decision_engine import fake_strategies
 
-from watcher.tests.base import BaseTestCase
 
-
-class TestListOpts(BaseTestCase):
+class TestListOpts(base.TestCase):
     def setUp(self):
         super(TestListOpts, self).setUp()
+        self.base_sections = [
+            'api', 'watcher_decision_engine', 'watcher_applier',
+            'watcher_planner', 'nova_client', 'glance_client',
+            'cinder_client', 'ceilometer_client', 'neutron_client',
+            'watcher_clients_auth']
 
     def test_run_list_opts(self):
-        result = opt.list_opts()
+        expected_sections = self.base_sections
+
+        result = opts.list_opts()
+
         self.assertIsNotNone(result)
+        for section_name, options in result:
+            self.assertIn(section_name, expected_sections)
+            self.assertTrue(len(options))
+
+    def test_list_opts_no_opts(self):
+        expected_sections = self.base_sections
+        # Set up the fake Stevedore extensions
+        fake_extmanager_call = extension.ExtensionManager.make_test_instance(
+            extensions=[extension.Extension(
+                name=fake_strategies.FakeDummy1Strategy2.get_name(),
+                entry_point="%s:%s" % (
+                    fake_strategies.FakeDummy1Strategy2.__module__,
+                    fake_strategies.FakeDummy1Strategy2.__name__),
+                plugin=fake_strategies.FakeDummy1Strategy2,
+                obj=None,
+            )],
+            namespace="watcher_strategies",
+        )
+
+        def m_list_available(namespace):
+            if namespace == "watcher_strategies":
+                return fake_extmanager_call
+            else:
+                return extension.ExtensionManager.make_test_instance(
+                    extensions=[], namespace=namespace)
+
+        with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
+            m_ext_manager.side_effect = m_list_available
+            result = opts.list_opts()
+
+        self.assertIsNotNone(result)
+        for section_name, options in result:
+            self.assertIn(section_name, expected_sections)
+            self.assertTrue(len(options))
+
+    def test_list_opts_with_opts(self):
+        expected_sections = self.base_sections + [
+            'watcher_strategies.STRATEGY_1']
+        # Set up the fake Stevedore extensions
+        fake_extmanager_call = extension.ExtensionManager.make_test_instance(
+            extensions=[extension.Extension(
+                name=fake_strategies.FakeDummy1Strategy1.get_name(),
+                entry_point="%s:%s" % (
+                    fake_strategies.FakeDummy1Strategy1.__module__,
+                    fake_strategies.FakeDummy1Strategy1.__name__),
+                plugin=fake_strategies.FakeDummy1Strategy1,
+                obj=None,
+            )],
+            namespace="watcher_strategies",
+        )
+
+        def m_list_available(namespace):
+            if namespace == "watcher_strategies":
+                return fake_extmanager_call
+            else:
+                return extension.ExtensionManager.make_test_instance(
+                    extensions=[], namespace=namespace)
+
+        with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
+            m_ext_manager.side_effect = m_list_available
+            result = opts.list_opts()
+
+        self.assertIsNotNone(result)
+        for section_name, options in result:
+            self.assertIn(section_name, expected_sections)
+            self.assertTrue(len(options))
+
+        result_map = dict(result)
+
+        strategy_opts = result_map['watcher_strategies.STRATEGY_1']
+        self.assertEqual(['test_opt'], [opt.name for opt in strategy_opts])

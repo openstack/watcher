@@ -23,17 +23,37 @@ import six
 from watcher.applier.actions import factory
 from watcher.applier.messaging import event_types
 from watcher.common import clients
+from watcher.common.loader import loadable
 from watcher.common.messaging.events import event
 from watcher import objects
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseWorkFlowEngine(object):
-    def __init__(self, context=None, applier_manager=None):
+class BaseWorkFlowEngine(loadable.Loadable):
+
+    def __init__(self, config, context=None, applier_manager=None):
+        """Constructor
+
+        :param config: A mapping containing the configuration of this
+                       workflow engine
+        :type config: dict
+        :param osc: an OpenStackClients object, defaults to None
+        :type osc: :py:class:`~.OpenStackClients` instance, optional
+        """
+        super(BaseWorkFlowEngine, self).__init__(config)
         self._context = context
         self._applier_manager = applier_manager
         self._action_factory = factory.ActionFactory()
         self._osc = None
+
+    @classmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        return []
 
     @property
     def context(self):

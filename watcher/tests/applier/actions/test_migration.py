@@ -58,7 +58,7 @@ class TestMigration(base.TestCase):
             "dst_hypervisor": "hypervisor2-hostname",
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
-        self.action = migration.Migrate()
+        self.action = migration.Migrate(mock.Mock())
         self.action.input_parameters = self.input_parameters
 
         self.input_parameters_cold = {
@@ -67,7 +67,7 @@ class TestMigration(base.TestCase):
             "dst_hypervisor": "hypervisor2-hostname",
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
-        self.action_cold = migration.Migrate()
+        self.action_cold = migration.Migrate(mock.Mock())
         self.action_cold.input_parameters = self.input_parameters_cold
 
     def test_parameters(self):

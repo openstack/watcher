@@ -48,8 +48,14 @@ class DummyStrategy(base.DummyBaseStrategy):
     NOP = "nop"
     SLEEP = "sleep"
 
-    def __init__(self, osc=None):
-        super(DummyStrategy, self).__init__(osc)
+    def __init__(self, config=None, osc=None):
+        """Dummy Strategy implemented for demo and testing purposes
+
+        :param config: A mapping containing the configuration of this strategy
+        :type config: dict
+        :param osc: :py:class:`~.OpenStackClients` instance
+        """
+        super(DummyStrategy, self).__init__(config, osc)
 
     def execute(self, original_model):
         LOG.debug("Executing Dummy strategy")

@@ -78,14 +78,15 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, osc=None):
+    def __init__(self, config=None, osc=None):
         """Outlet temperature control using live migration
 
-        :param name: the name of the strategy
-        :param description: a description of the strategy
-        :param osc: an OpenStackClients object
+        :param config: A mapping containing the configuration of this strategy
+        :type config: dict
+        :param osc: an OpenStackClients object, defaults to None
+        :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
-        super(OutletTempControl, self).__init__(osc)
+        super(OutletTempControl, self).__init__(config, osc)
         # the migration plan will be triggered when the outlet temperature
         # reaches threshold
         # TODO(zhenzanz): Threshold should be configurable for each audit

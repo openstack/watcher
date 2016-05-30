@@ -84,8 +84,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/implemented/zhaw-load-consolidation.rst
     """  # noqa
 
-    def __init__(self, osc=None):
-        super(VMWorkloadConsolidation, self).__init__(osc)
+    def __init__(self, config=None, osc=None):
+        super(VMWorkloadConsolidation, self).__init__(config, osc)
         self._ceilometer = None
         self.number_of_migrations = 0
         self.number_of_released_hypervisors = 0

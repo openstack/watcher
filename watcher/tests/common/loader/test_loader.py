@@ -18,36 +18,88 @@ from __future__ import unicode_literals
 
 import mock
 
-from oslotest.base import BaseTestCase
-from stevedore.driver import DriverManager
+from oslo_config import cfg
+from stevedore import driver as drivermanager
 from stevedore.extension import Extension
 
 from watcher.common import exception
-from watcher.common.loader.default import DefaultLoader
-from watcher.tests.common.loader.FakeLoadable import FakeLoadable
+from watcher.common.loader import default
+from watcher.common.loader import loadable
+from watcher.tests import base
 
 
-class TestLoader(BaseTestCase):
-    @mock.patch("watcher.common.loader.default.DriverManager")
-    def test_load_driver_no_opt(self, m_driver_manager):
-        m_driver_manager.return_value = DriverManager.make_test_instance(
-            extension=Extension(name=FakeLoadable.get_name(),
-                                entry_point="%s:%s" % (
-                                FakeLoadable.__module__,
-                                FakeLoadable.__name__),
-                                plugin=FakeLoadable,
-                                obj=None),
-            namespace=FakeLoadable.namespace())
+class FakeLoadable(loadable.Loadable):
 
-        loader_manager = DefaultLoader(namespace='TESTING')
-        loaded_driver = loader_manager.load(name='fake')
+    @classmethod
+    def get_config_opts(cls):
+        return []
 
-        self.assertEqual(FakeLoadable.get_name(), loaded_driver.get_name())
 
-    @mock.patch("watcher.common.loader.default.DriverManager")
-    def test_load_driver_bad_plugin(self, m_driver_manager):
+class FakeLoadableWithOpts(loadable.Loadable):
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt("test_opt", default="fake_with_opts"),
+        ]
+
+
+class TestLoader(base.TestCase):
+
+    def setUp(self):
+        super(TestLoader, self).setUp()
+
+        def _fake_parse(self, *args, **kw):
+            return cfg.ConfigOpts._parse_cli_opts(cfg.CONF, [])
+
+        cfg.CONF._parse_cli_opts = _fake_parse
+
+    def test_load_loadable_no_opt(self):
+        fake_driver = drivermanager.DriverManager.make_test_instance(
+            extension=Extension(
+                name="fake",
+                entry_point="%s:%s" % (FakeLoadable.__module__,
+                                       FakeLoadable.__name__),
+                plugin=FakeLoadable,
+                obj=None),
+            namespace="TESTING")
+
+        loader_manager = default.DefaultLoader(namespace='TESTING')
+        with mock.patch.object(drivermanager,
+                               "DriverManager") as m_driver_manager:
+            m_driver_manager.return_value = fake_driver
+            loaded_driver = loader_manager.load(name='fake')
+
+        self.assertIsInstance(loaded_driver, FakeLoadable)
+
+    @mock.patch("watcher.common.loader.default.drivermanager.DriverManager")
+    def test_load_loadable_bad_plugin(self, m_driver_manager):
         m_driver_manager.side_effect = Exception()
 
-        loader_manager = DefaultLoader(namespace='TESTING')
+        loader_manager = default.DefaultLoader(namespace='TESTING')
         self.assertRaises(exception.LoadingError, loader_manager.load,
                           name='bad_driver')
+
+    def test_load_loadable_with_opts(self):
+        fake_driver = drivermanager.DriverManager.make_test_instance(
+            extension=Extension(
+                name="fake",
+                entry_point="%s:%s" % (FakeLoadableWithOpts.__module__,
+                                       FakeLoadableWithOpts.__name__),
+                plugin=FakeLoadableWithOpts,
+                obj=None),
+            namespace="TESTING")
+
+        loader_manager = default.DefaultLoader(namespace='TESTING')
+        with mock.patch.object(drivermanager,
+                               "DriverManager") as m_driver_manager:
+            m_driver_manager.return_value = fake_driver
+            loaded_driver = loader_manager.load(name='fake')
+
+        self.assertIsInstance(loaded_driver, FakeLoadableWithOpts)
+
+        self.assertEqual(
+            "fake_with_opts", loaded_driver.config.get("test_opt"))
+
+        self.assertEqual(
+            "fake_with_opts", loaded_driver.config.test_opt)

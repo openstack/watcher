@@ -54,7 +54,8 @@ class TestChangeNovaServiceState(base.TestCase):
             baction.BaseAction.RESOURCE_ID: "compute-1",
             "state": hstate.HypervisorState.ENABLED.value,
         }
-        self.action = change_nova_service_state.ChangeNovaServiceState()
+        self.action = change_nova_service_state.ChangeNovaServiceState(
+            mock.Mock())
         self.action.input_parameters = self.input_parameters
 
     def test_parameters_down(self):

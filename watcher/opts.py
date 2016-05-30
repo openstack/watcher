@@ -18,14 +18,27 @@
 from keystoneauth1 import loading as ka_loading
 
 import watcher.api.app
+from watcher.applier.actions.loading import default as action_loader
 from watcher.applier import manager as applier_manager
+from watcher.applier.workflow_engine.loading import default as \
+    workflow_engine_loader
 from watcher.common import clients
 from watcher.decision_engine import manager as decision_engine_manger
+from watcher.decision_engine.planner.loading import default as planner_loader
 from watcher.decision_engine.planner import manager as planner_manager
+from watcher.decision_engine.strategy.loading import default as strategy_loader
+
+
+PLUGIN_LOADERS = (
+    action_loader.DefaultActionLoader,
+    planner_loader.DefaultPlannerLoader,
+    strategy_loader.DefaultStrategyLoader,
+    workflow_engine_loader.DefaultWorkFlowEngineLoader,
+)
 
 
 def list_opts():
-    return [
+    watcher_opts = [
         ('api', watcher.api.app.API_SERVICE_OPTS),
         ('watcher_decision_engine',
          decision_engine_manger.WATCHER_DECISION_ENGINE_OPTS),
@@ -41,3 +54,22 @@ def list_opts():
           ka_loading.get_auth_plugin_conf_options('password') +
           ka_loading.get_session_conf_options()))
     ]
+
+    watcher_opts += list_plugin_opts()
+
+    return watcher_opts
+
+
+def list_plugin_opts():
+    plugins_opts = []
+    for plugin_loader_cls in PLUGIN_LOADERS:
+        plugin_loader = plugin_loader_cls()
+        plugins_map = plugin_loader.list_available()
+
+        for plugin_name, plugin_cls in plugins_map.items():
+            plugin_opts = plugin_cls.get_config_opts()
+            if plugin_opts:
+                plugins_opts.append(
+                    (plugin_loader.get_entry_name(plugin_name), plugin_opts))
+
+    return plugins_opts
