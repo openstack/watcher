@@ -22,13 +22,11 @@ import sys
 
 from oslo_config import cfg
 from oslo_log import log as logging
-from oslo_reports import guru_meditation_report as gmr
 from oslo_service import service
 
 from watcher._i18n import _LI
 from watcher.applier import manager
 from watcher.common import service as watcher_service
-from watcher import version
 
 LOG = logging.getLogger(__name__)
 CONF = cfg.CONF
@@ -36,7 +34,6 @@ CONF = cfg.CONF
 
 def main():
     watcher_service.prepare_service(sys.argv)
-    gmr.TextGuruMeditation.setup_autorun(version)
 
     LOG.info(_LI('Starting Watcher Applier service in PID %s'), os.getpid())
 

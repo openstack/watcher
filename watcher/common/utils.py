@@ -118,6 +118,14 @@ def is_hostname_safe(hostname):
     :returns: True if valid. False if not.
 
     """
-    m = '^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$'
+    m = r'^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$'
     return (isinstance(hostname, six.string_types) and
             (re.match(m, hostname) is not None))
+
+
+def get_cls_import_path(cls):
+    """Return the import path of a given class"""
+    module = cls.__module__
+    if module is None or module == str.__module__:
+        return cls.__name__
+    return module + '.' + cls.__name__

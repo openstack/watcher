@@ -22,6 +22,7 @@ from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
 import oslo_messaging as om
+from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
@@ -33,6 +34,8 @@ from watcher.common.messaging.events import event_dispatcher as dispatcher
 from watcher.common.messaging import messaging_handler
 from watcher.common import rpc
 from watcher.objects import base
+from watcher import opts
+from watcher import version
 
 service_opts = [
     cfg.IntOpt('periodic_interval',
@@ -219,3 +222,6 @@ def prepare_service(argv=(), conf=cfg.CONF):
                      default_log_levels=_DEFAULT_LOG_LEVELS)
     log.setup(conf, 'python-watcher')
     conf.log_opt_values(LOG, logging.DEBUG)
+
+    gmr.TextGuruMeditation.register_section(_('Plugins'), opts.show_plugins)
+    gmr.TextGuruMeditation.setup_autorun(version)
