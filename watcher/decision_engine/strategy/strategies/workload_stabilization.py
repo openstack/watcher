@@ -108,8 +108,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     MIGRATION = "migrate"
     MEMOIZE = _set_memoize(CONF)
 
-    def __init__(self, osc=None):
-        super(WorkloadStabilization, self).__init__(osc)
+    def __init__(self, config=None, osc=None):
+        super(WorkloadStabilization, self).__init__(config, osc)
         self._ceilometer = None
         self._nova = None
         self.weights = CONF['watcher_strategies.workload_stabilization']\

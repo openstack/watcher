@@ -68,12 +68,12 @@ class WorkloadBalance(base.BaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, osc=None):
+    def __init__(self, config=None, osc=None):
         """Using live migration
 
         :param osc: an OpenStackClients object
         """
-        super(WorkloadBalance, self).__init__(osc)
+        super(WorkloadBalance, self).__init__(config, osc)
         # the migration plan will be triggered when the CPU utlization %
         # reaches threshold
         # TODO(Junjie): Threshold should be configurable for each audit
