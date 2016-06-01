@@ -18,7 +18,6 @@ from oslo_log import log
 from watcher.common import clients
 from watcher.decision_engine.strategy.context import base
 from watcher.decision_engine.strategy.selection import default
-from watcher.metrics_engine.cluster_model_collector import manager
 
 from watcher import objects
 
@@ -30,11 +29,6 @@ class DefaultStrategyContext(base.BaseStrategyContext):
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
-        self._collector_manager = manager.CollectorManager()
-
-    @property
-    def collector(self):
-        return self._collector_manager
 
     def execute_strategy(self, audit_uuid, request_context):
         audit = objects.Audit.get_by_uuid(request_context, audit_uuid)
@@ -46,10 +40,6 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         osc = clients.OpenStackClients()
         # todo(jed) retrieve in audit_template parameters (threshold,...)
         # todo(jed) create ActionPlan
-        collector_manager = self.collector.get_cluster_model_collector(osc=osc)
-
-        # todo(jed) remove call to get_latest_cluster_data_model
-        cluster_data_model = collector_manager.get_latest_cluster_data_model()
 
         strategy_selector = default.DefaultStrategySelector(
             goal_name=objects.Goal.get_by_id(
@@ -59,5 +49,4 @@ class DefaultStrategyContext(base.BaseStrategyContext):
 
         selected_strategy = strategy_selector.select()
 
-        # todo(jed) add parameters and remove cluster_data_model
-        return selected_strategy.execute(cluster_data_model)
+        return selected_strategy.execute()

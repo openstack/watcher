@@ -19,6 +19,7 @@
 from oslo_log import log
 
 from watcher._i18n import _
+from watcher.common import exception
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
@@ -48,16 +49,11 @@ class DummyStrategy(base.DummyBaseStrategy):
     NOP = "nop"
     SLEEP = "sleep"
 
-    def __init__(self, config=None, osc=None):
-        """Dummy Strategy implemented for demo and testing purposes
+    def pre_execute(self):
+        if self.model is None:
+            raise exception.ClusterStateNotDefined()
 
-        :param config: A mapping containing the configuration of this strategy
-        :type config: dict
-        :param osc: :py:class:`~.OpenStackClients` instance
-        """
-        super(DummyStrategy, self).__init__(config, osc)
-
-    def execute(self, original_model):
+    def do_execute(self):
         LOG.debug("Executing Dummy strategy")
         parameters = {'message': 'hello World'}
         self.solution.add_action(action_type=self.NOP,
@@ -69,7 +65,9 @@ class DummyStrategy(base.DummyBaseStrategy):
 
         self.solution.add_action(action_type=self.SLEEP,
                                  input_parameters={'duration': 5.0})
-        return self.solution
+
+    def post_execute(self):
+        pass
 
     @classmethod
     def get_name(cls):

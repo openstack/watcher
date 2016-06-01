@@ -39,12 +39,12 @@ which are dynamically loaded by Watcher at launch time.
 import abc
 import six
 
-from watcher._i18n import _
 from watcher.common import clients
 from watcher.common.loader import loadable
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
+from watcher.metrics_engine.cluster_model_collector import manager
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -56,7 +56,13 @@ class BaseStrategy(loadable.Loadable):
     """
 
     def __init__(self, config, osc=None):
-        """:param osc: an OpenStackClients instance"""
+        """Constructor: the signature should be identical within the subclasses
+
+        :param config: Configuration related to this plugin
+        :type config: :py:class:`~.Struct`
+        :param osc: An OpenStackClients instance
+        :type osc: :py:class:`~.OpenStackClients` instance
+        """
         super(BaseStrategy, self).__init__(config)
         self._name = self.get_name()
         self._display_name = self.get_display_name()
@@ -66,6 +72,9 @@ class BaseStrategy(loadable.Loadable):
         # the solution given by the strategy
         self._solution = default.DefaultSolution()
         self._osc = osc
+        self._collector_manager = None
+        self._model = None
+        self._goal = None
 
     @classmethod
     @abc.abstractmethod
@@ -109,14 +118,60 @@ class BaseStrategy(loadable.Loadable):
         return []
 
     @abc.abstractmethod
-    def execute(self, original_model):
+    def pre_execute(self):
+        """Pre-execution phase
+
+        This can be used to fetch some pre-requisites or data.
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def do_execute(self):
+        """Strategy execution phase
+
+        This phase is where you should put the main logic of your strategy.
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def post_execute(self):
+        """Post-execution phase
+
+        This can be used to compute the global efficacy
+        """
+        raise NotImplementedError()
+
+    def execute(self):
         """Execute a strategy
 
-        :param original_model: The model the strategy is executed on
-        :type model: str
         :return: A computed solution (via a placement algorithm)
-        :rtype: :class:`watcher.decision_engine.solution.base.BaseSolution`
+        :rtype: :py:class:`~.BaseSolution` instance
         """
+        self.pre_execute()
+        self.do_execute()
+        self.post_execute()
+
+        return self.solution
+
+    @property
+    def collector(self):
+        if self._collector_manager is None:
+            self._collector_manager = manager.CollectorManager()
+        return self._collector_manager
+
+    @property
+    def model(self):
+        """Cluster data model
+
+        :returns: Cluster data model the strategy is executed on
+        :rtype model: :py:class:`~.ModelRoot` instance
+        """
+        if self._model is None:
+            collector = self.collector.get_cluster_model_collector(
+                osc=self.osc)
+            self._model = collector.get_latest_cluster_data_model()
+
+        return self._model
 
     @property
     def osc(self):
@@ -139,6 +194,10 @@ class BaseStrategy(loadable.Loadable):
     @property
     def display_name(self):
         return self._display_name
+
+    @property
+    def goal(self):
+        return self._goal
 
     @property
     def strategy_level(self):
@@ -202,11 +261,3 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "workload_balancing"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Workload balancing")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Workload balancing"

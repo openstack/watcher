@@ -28,7 +28,7 @@ from watcher.metrics_engine.cluster_history import ceilometer as ceil
 LOG = log.getLogger(__name__)
 
 
-class WorkloadBalance(base.BaseStrategy):
+class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     """[PoC]Workload balance using live migration
 
     *Description*
@@ -68,10 +68,12 @@ class WorkloadBalance(base.BaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, config=None, osc=None):
-        """Using live migration
+    def __init__(self, config, osc=None):
+        """Workload balance using live migration
 
-        :param osc: an OpenStackClients object
+        :param config: A mapping containing the configuration of this strategy
+        :type config: :py:class:`~.Struct` instance
+        :param osc: :py:class:`~.OpenStackClients` instance
         """
         super(WorkloadBalance, self).__init__(config, osc)
         # the migration plan will be triggered when the CPU utlization %
@@ -104,44 +106,32 @@ class WorkloadBalance(base.BaseStrategy):
     def get_translatable_display_name(cls):
         return "workload balance migration strategy"
 
-    @classmethod
-    def get_goal_name(cls):
-        return "WORKLOAD_OPTIMIZATION"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Workload optimization")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Workload optimization"
-
-    def calculate_used_resource(self, model, hypervisor, cap_cores, cap_mem,
+    def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
-        '''calculate the used vcpus, memory and disk based on VM flavors'''
-        vms = model.get_mapping().get_node_vms(hypervisor)
+        """Calculate the used vcpus, memory and disk based on VM flavors"""
+        vms = self.model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for vm_id in vms:
-            vm = model.get_vm_from_id(vm_id)
+            vm = self.model.get_vm_from_id(vm_id)
             vcpus_used += cap_cores.get_capacity(vm)
             memory_mb_used += cap_mem.get_capacity(vm)
             disk_gb_used += cap_disk.get_capacity(vm)
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
-    def choose_vm_to_migrate(self, model, hosts, avg_workload, workload_cache):
-        """pick up an active vm instance to migrate from provided hosts
+    def choose_vm_to_migrate(self, hosts, avg_workload, workload_cache):
+        """Pick up an active vm instance to migrate from provided hosts
 
-        :param model: it's the origin_model passed from 'execute' function
         :param hosts: the array of dict which contains hypervisor object
         :param avg_workload: the average workload value of all hypervisors
         :param workload_cache: the map contains vm to workload mapping
         """
         for hvmap in hosts:
             source_hypervisor = hvmap['hv']
-            source_vms = model.get_mapping().get_node_vms(source_hypervisor)
+            source_vms = self.model.get_mapping().get_node_vms(
+                source_hypervisor)
             if source_vms:
                 delta_workload = hvmap['workload'] - avg_workload
                 min_delta = 1000000
@@ -149,7 +139,7 @@ class WorkloadBalance(base.BaseStrategy):
                 for vm_id in source_vms:
                     try:
                         # select the first active VM to migrate
-                        vm = model.get_vm_from_id(vm_id)
+                        vm = self.model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.debug("VM not active, skipped: %s",
                                       vm.uuid)
@@ -161,18 +151,20 @@ class WorkloadBalance(base.BaseStrategy):
                     except wexc.InstanceNotFound:
                         LOG.error(_LE("VM not found Error: %s"), vm_id)
                 if instance_id:
-                    return source_hypervisor, model.get_vm_from_id(instance_id)
+                    return source_hypervisor, self.model.get_vm_from_id(
+                        instance_id)
             else:
                 LOG.info(_LI("VM not found from hypervisor: %s"),
                          source_hypervisor.uuid)
 
-    def filter_destination_hosts(self, model, hosts, vm_to_migrate,
+    def filter_destination_hosts(self, hosts, vm_to_migrate,
                                  avg_workload, workload_cache):
         '''Only return hosts with sufficient available resources'''
 
-        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
-        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
-        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
+        cap_cores = self.model.get_resource_from_id(
+            resource.ResourceType.cpu_cores)
+        cap_disk = self.model.get_resource_from_id(resource.ResourceType.disk)
+        cap_mem = self.model.get_resource_from_id(resource.ResourceType.memory)
 
         required_cores = cap_cores.get_capacity(vm_to_migrate)
         required_disk = cap_disk.get_capacity(vm_to_migrate)
@@ -186,20 +178,22 @@ class WorkloadBalance(base.BaseStrategy):
             workload = hvmap['workload']
             # calculate the available resources
             cores_used, mem_used, disk_used = self.calculate_used_resource(
-                model, host, cap_cores, cap_mem, cap_disk)
+                host, cap_cores, cap_mem, cap_disk)
             cores_available = cap_cores.get_capacity(host) - cores_used
             disk_available = cap_disk.get_capacity(host) - disk_used
             mem_available = cap_mem.get_capacity(host) - mem_used
-            if (cores_available >= required_cores and
-                disk_available >= required_disk and
-                mem_available >= required_mem and
-                (src_vm_workload + workload) < self.threshold / 100 *
-                    cap_cores.get_capacity(host)):
+            if (
+                    cores_available >= required_cores and
+                    disk_available >= required_disk and
+                    mem_available >= required_mem and
+                    (src_vm_workload + workload) < self.threshold / 100 *
+                    cap_cores.get_capacity(host)
+            ):
                 destination_hosts.append(hvmap)
 
         return destination_hosts
 
-    def group_hosts_by_cpu_util(self, model):
+    def group_hosts_by_cpu_util(self):
         """Calculate the workloads of each hypervisor
 
         try to find out the hypervisors which have reached threshold
@@ -208,12 +202,13 @@ class WorkloadBalance(base.BaseStrategy):
         and also generate the VM workload map.
         """
 
-        hypervisors = model.get_all_hypervisors()
+        hypervisors = self.model.get_all_hypervisors()
         cluster_size = len(hypervisors)
         if not hypervisors:
             raise wexc.ClusterEmpty()
         # get cpu cores capacity of hypervisors and vms
-        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
+        cap_cores = self.model.get_resource_from_id(
+            resource.ResourceType.cpu_cores)
         overload_hosts = []
         nonoverload_hosts = []
         # total workload of cluster
@@ -222,19 +217,20 @@ class WorkloadBalance(base.BaseStrategy):
         # use workload_cache to store the workload of VMs for reuse purpose
         workload_cache = {}
         for hypervisor_id in hypervisors:
-            hypervisor = model.get_hypervisor_from_id(hypervisor_id)
-            vms = model.get_mapping().get_node_vms(hypervisor)
+            hypervisor = self.model.get_hypervisor_from_id(hypervisor_id)
+            vms = self.model.get_mapping().get_node_vms(hypervisor)
             hypervisor_workload = 0.0
             for vm_id in vms:
-                vm = model.get_vm_from_id(vm_id)
+                vm = self.model.get_vm_from_id(vm_id)
                 try:
                     cpu_util = self.ceilometer.statistic_aggregation(
                         resource_id=vm_id,
                         meter_name=self._meter,
                         period=self._period,
                         aggregate='avg')
-                except Exception as e:
-                    LOG.error(_LE("Can not get cpu_util: %s"), e.message)
+                except Exception as exc:
+                    LOG.exception(exc)
+                    LOG.error(_LE("Can not get cpu_util"))
                     continue
                 if cpu_util is None:
                     LOG.debug("%s: cpu_util is None", vm_id)
@@ -260,15 +256,23 @@ class WorkloadBalance(base.BaseStrategy):
 
         return overload_hosts, nonoverload_hosts, avg_workload, workload_cache
 
-    def execute(self, origin_model):
+    def pre_execute(self):
+        """Pre-execution phase
+
+        This can be used to fetch some pre-requisites or data.
+        """
         LOG.info(_LI("Initializing Workload Balance Strategy"))
 
-        if origin_model is None:
+        if self.model is None:
             raise wexc.ClusterStateNotDefined()
 
-        current_model = origin_model
+    def do_execute(self):
+        """Strategy execution phase
+
+        This phase is where you should put the main logic of your strategy.
+        """
         src_hypervisors, target_hypervisors, avg_workload, workload_cache = (
-            self.group_hosts_by_cpu_util(current_model))
+            self.group_hosts_by_cpu_util())
 
         if not src_hypervisors:
             LOG.debug("No hosts require optimization")
@@ -286,19 +290,14 @@ class WorkloadBalance(base.BaseStrategy):
                                  reverse=True,
                                  key=lambda x: (x[self.METER_NAME]))
 
-        vm_to_migrate = self.choose_vm_to_migrate(current_model,
-                                                  src_hypervisors,
-                                                  avg_workload,
-                                                  workload_cache)
+        vm_to_migrate = self.choose_vm_to_migrate(
+            src_hypervisors, avg_workload, workload_cache)
         if not vm_to_migrate:
             return self.solution
         source_hypervisor, vm_src = vm_to_migrate
         # find the hosts that have enough resource for the VM to be migrated
-        destination_hosts = self.filter_destination_hosts(current_model,
-                                                          target_hypervisors,
-                                                          vm_src,
-                                                          avg_workload,
-                                                          workload_cache)
+        destination_hosts = self.filter_destination_hosts(
+            target_hypervisors, vm_src, avg_workload, workload_cache)
         # sort the filtered result by workload
         # pick up the lowest one as dest server
         if not destination_hosts:
@@ -311,14 +310,18 @@ class WorkloadBalance(base.BaseStrategy):
         # always use the host with lowerest CPU utilization
         mig_dst_hypervisor = destination_hosts[0]['hv']
         # generate solution to migrate the vm to the dest server,
-        if current_model.get_mapping().migrate_vm(vm_src,
-                                                  source_hypervisor,
-                                                  mig_dst_hypervisor):
+        if self.model.get_mapping().migrate_vm(vm_src, source_hypervisor,
+                                               mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
                           'src_hypervisor': source_hypervisor.uuid,
                           'dst_hypervisor': mig_dst_hypervisor.uuid}
             self.solution.add_action(action_type=self.MIGRATION,
                                      resource_id=vm_src.uuid,
                                      input_parameters=parameters)
-        self.solution.model = current_model
-        return self.solution
+
+    def post_execute(self):
+        """Post-execution phase
+
+        This can be used to compute the global efficacy
+        """
+        self.solution.model = self.model

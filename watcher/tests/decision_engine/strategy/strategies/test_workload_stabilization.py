@@ -19,6 +19,7 @@
 
 import mock
 
+from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies \
@@ -28,40 +29,48 @@ from watcher.tests.decision_engine.strategy.strategies \
 
 
 class TestWorkloadStabilization(base.BaseTestCase):
-    # fake metrics
-    fake_metrics = faker_metrics_collector.FakerMetricsCollector()
 
-    # fake cluster
-    fake_cluster = faker_cluster_state.FakerModelCollector()
+    def setUp(self):
+        super(TestWorkloadStabilization, self).setUp()
 
-    hosts_load_assert = {'Node_0':
-                         {'cpu_util': 0.07, 'memory.resident': 7.0,
-                          'vcpus': 40},
-                         'Node_1':
-                         {'cpu_util': 0.05, 'memory.resident': 5,
-                          'vcpus': 40},
-                         'Node_2':
-                         {'cpu_util': 0.1, 'memory.resident': 29,
-                          'vcpus': 40},
-                         'Node_3':
-                         {'cpu_util': 0.04, 'memory.resident': 8,
-                          'vcpus': 40},
-                         'Node_4':
-                         {'cpu_util': 0.02, 'memory.resident': 4,
-                          'vcpus': 40}}
+        # fake metrics
+        self.fake_metrics = faker_metrics_collector.FakerMetricsCollector()
+
+        # fake cluster
+        self.fake_cluster = faker_cluster_state.FakerModelCollector()
+
+        self.hosts_load_assert = {
+            'Node_0': {'cpu_util': 0.07, 'memory.resident': 7.0, 'vcpus': 40},
+            'Node_1': {'cpu_util': 0.05, 'memory.resident': 5, 'vcpus': 40},
+            'Node_2': {'cpu_util': 0.1, 'memory.resident': 29, 'vcpus': 40},
+            'Node_3': {'cpu_util': 0.04, 'memory.resident': 8, 'vcpus': 40},
+            'Node_4': {'cpu_util': 0.02, 'memory.resident': 4, 'vcpus': 40}}
+
+        p_model = mock.patch.object(
+            strategies.WorkloadStabilization, "model",
+            new_callable=mock.PropertyMock)
+        self.m_model = p_model.start()
+        self.addCleanup(p_model.stop)
+
+        p_ceilometer = mock.patch.object(
+            strategies.WorkloadStabilization, "ceilometer",
+            new_callable=mock.PropertyMock)
+        self.m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+
+        self.m_model.return_value = model_root.ModelRoot()
+        self.m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        self.strategy = strategies.WorkloadStabilization(config=mock.Mock())
 
     def test_get_vm_load(self):
-        model = self.fake_cluster.generate_scenario_1()
-        sd = strategies.WorkloadStabilization()
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         vm_0_dict = {'uuid': 'VM_0', 'vcpus': 10,
                      'cpu_util': 7, 'memory.resident': 2}
-        self.assertEqual(sd.get_vm_load("VM_0", model), vm_0_dict)
+        self.assertEqual(vm_0_dict, self.strategy.get_vm_load("VM_0"))
 
     def test_normalize_hosts_load(self):
-        model = self.fake_cluster.generate_scenario_1()
-        sd = strategies.WorkloadStabilization()
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         fake_hosts = {'Node_0': {'cpu_util': 0.07, 'memory.resident': 7},
                       'Node_1': {'cpu_util': 0.05, 'memory.resident': 5}}
         normalized_hosts = {'Node_0':
@@ -70,99 +79,82 @@ class TestWorkloadStabilization(base.BaseTestCase):
                             'Node_1':
                             {'cpu_util': 0.05,
                              'memory.resident': 0.03787878787878788}}
-        self.assertEqual(sd.normalize_hosts_load(fake_hosts, model),
-                         normalized_hosts)
+        self.assertEqual(
+            normalized_hosts,
+            self.strategy.normalize_hosts_load(fake_hosts))
 
     def test_get_hosts_load(self):
-        sd = strategies.WorkloadStabilization()
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.assertEqual(
-            sd.get_hosts_load(self.fake_cluster.generate_scenario_1()),
+            self.strategy.get_hosts_load(),
             self.hosts_load_assert)
 
     def test_get_sd(self):
-        sd = strategies.WorkloadStabilization()
         test_cpu_sd = 0.027
         test_ram_sd = 9.3
         self.assertEqual(
-            round(sd.get_sd(self.hosts_load_assert, 'cpu_util'), 3),
+            round(self.strategy.get_sd(
+                self.hosts_load_assert, 'cpu_util'), 3),
             test_cpu_sd)
         self.assertEqual(
-            round(sd.get_sd(self.hosts_load_assert, 'memory.resident'), 1),
+            round(self.strategy.get_sd(
+                self.hosts_load_assert, 'memory.resident'), 1),
             test_ram_sd)
 
     def test_calculate_weighted_sd(self):
-        sd = strategies.WorkloadStabilization()
         sd_case = [0.5, 0.75]
-        self.assertEqual(sd.calculate_weighted_sd(sd_case), 1.25)
+        self.assertEqual(self.strategy.calculate_weighted_sd(sd_case), 1.25)
 
     def test_calculate_migration_case(self):
-        model = self.fake_cluster.generate_scenario_1()
-        sd = strategies.WorkloadStabilization()
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        self.assertEqual(sd.calculate_migration_case(
-            self.hosts_load_assert, "VM_5", "Node_2", "Node_1",
-            model)[-1]["Node_1"],
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.assertEqual(
+            self.strategy.calculate_migration_case(
+                self.hosts_load_assert, "VM_5",
+                "Node_2", "Node_1")[-1]["Node_1"],
             {'cpu_util': 2.55, 'memory.resident': 21, 'vcpus': 40})
 
     def test_simulate_migrations(self):
-        sd = strategies.WorkloadStabilization()
-        sd.host_choice = 'retry'
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        self.strategy.host_choice = 'retry'
         self.assertEqual(
-            len(sd.simulate_migrations(self.fake_cluster.generate_scenario_1(),
-                                       self.hosts_load_assert)),
-            8)
+            8,
+            len(self.strategy.simulate_migrations(self.hosts_load_assert)))
 
     def test_check_threshold(self):
-        sd = strategies.WorkloadStabilization()
-        sd.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        sd.simulate_migrations = mock.Mock(return_value=True)
-        self.assertTrue(
-            sd.check_threshold(self.fake_cluster.generate_scenario_1()))
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertTrue(self.strategy.check_threshold())
 
     def test_execute_one_migration(self):
-        sd = strategies.WorkloadStabilization()
-        model = self.fake_cluster.generate_scenario_1()
-        sd.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        sd.simulate_migrations = mock.Mock(return_value=[{'vm': 'VM_4',
-                                                          's_host': 'Node_2',
-                                                          'host': 'Node_1'}])
-        with mock.patch.object(sd, 'migrate') as mock_migration:
-            sd.execute(model)
-            mock_migration.assert_called_once_with(model, 'VM_4', 'Node_2',
-                                                   'Node_1')
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
+        self.strategy.simulate_migrations = mock.Mock(
+            return_value=[{'vm': 'VM_4', 's_host': 'Node_2', 'host': 'Node_1'}]
+        )
+        with mock.patch.object(self.strategy, 'migrate') as mock_migration:
+            self.strategy.execute()
+            mock_migration.assert_called_once_with(
+                'VM_4', 'Node_2', 'Node_1')
 
     def test_execute_multiply_migrations(self):
-        sd = strategies.WorkloadStabilization()
-        model = self.fake_cluster.generate_scenario_1()
-        sd.thresholds = {'cpu_util': 0.00001, 'memory.resident': 0.0001}
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        sd.simulate_migrations = mock.Mock(return_value=[{'vm': 'VM_4',
-                                                          's_host': 'Node_2',
-                                                          'host': 'Node_1'},
-                                                         {'vm': 'VM_3',
-                                                          's_host': 'Node_2',
-                                                          'host': 'Node_4'}])
-        with mock.patch.object(sd, 'migrate') as mock_migrate:
-            sd.execute(model)
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.strategy.thresholds = {'cpu_util': 0.00001,
+                                    'memory.resident': 0.0001}
+        self.strategy.simulate_migrations = mock.Mock(
+            return_value=[{'vm': 'VM_4', 's_host': 'Node_2', 'host': 'Node_1'},
+                          {'vm': 'VM_3', 's_host': 'Node_2', 'host': 'Node_3'}]
+        )
+        with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
+            self.strategy.execute()
             self.assertEqual(mock_migrate.call_count, 1)
 
     def test_execute_nothing_to_migrate(self):
-        sd = strategies.WorkloadStabilization()
-        model = self.fake_cluster.generate_scenario_1()
-        sd.thresholds = {'cpu_util': 0.042, 'memory.resident': 0.0001}
-        sd.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        sd.simulate_migrations = mock.Mock(return_value=False)
-        with mock.patch.object(sd, 'migrate') as mock_migrate:
-            sd.execute(model)
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.strategy.thresholds = {'cpu_util': 0.042,
+                                    'memory.resident': 0.0001}
+        self.strategy.simulate_migrations = mock.Mock(return_value=False)
+        with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
+            self.strategy.execute()
             mock_migrate.assert_not_called()

@@ -27,6 +27,7 @@ CONF = cfg.CONF
 
 
 class CollectorManager(object):
+
     def get_cluster_model_collector(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         nova = nova_helper.NovaHelper(osc=osc)
