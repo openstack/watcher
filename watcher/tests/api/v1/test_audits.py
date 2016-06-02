@@ -306,7 +306,7 @@ class TestListAudit(api_base.FunctionalTest):
 
         for id_ in range(0, 2):
             audit = response['audits'][id_]
-            self.assertEqual(None, audit['audit_template_uuid'])
+            self.assertIsNone(audit['audit_template_uuid'])
 
         for id_ in range(2, 4):
             audit = response['audits'][id_]

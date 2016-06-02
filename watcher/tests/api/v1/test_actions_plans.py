@@ -163,7 +163,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
         for id_ in range(0, 2):
             action_plan = response['action_plans'][id_]
-            self.assertEqual(None, action_plan['audit_uuid'])
+            self.assertIsNone(action_plan['audit_uuid'])
 
         for id_ in range(2, 4):
             action_plan = response['action_plans'][id_]
