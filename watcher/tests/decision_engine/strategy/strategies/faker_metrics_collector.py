@@ -42,6 +42,12 @@ class FakerMetricsCollector(object):
             result = self.get_average_usage_vm_memory(resource_id)
         elif meter_name == "hardware.ipmi.node.outlet_temperature":
             result = self.get_average_outlet_temperature(resource_id)
+        elif meter_name == "hardware.ipmi.node.airflow":
+            result = self.get_average_airflow(resource_id)
+        elif meter_name == "hardware.ipmi.node.temperature":
+            result = self.get_average_inletT(resource_id)
+        elif meter_name == "hardware.ipmi.node.power":
+            result = self.get_average_power(resource_id)
         return result
 
     def mock_get_statistics_wb(self, resource_id, meter_name, period,
@@ -74,6 +80,34 @@ class FakerMetricsCollector(object):
             mock[uuid] = 8
 
         return float(mock[str(uuid)])
+
+    def get_average_airflow(self, uuid):
+        """The average outlet temperature for host"""
+        mock = {}
+        mock['Node_0'] = 400
+        # use a big value to make sure it exceeds threshold
+        mock['Node_1'] = 100
+        if uuid not in mock.keys():
+            mock[uuid] = 200
+        return mock[str(uuid)]
+
+    def get_average_inletT(self, uuid):
+        """The average outlet temperature for host"""
+        mock = {}
+        mock['Node_0'] = 24
+        mock['Node_1'] = 26
+        if uuid not in mock.keys():
+            mock[uuid] = 28
+        return mock[str(uuid)]
+
+    def get_average_power(self, uuid):
+        """The average outlet temperature for host"""
+        mock = {}
+        mock['Node_0'] = 260
+        mock['Node_1'] = 240
+        if uuid not in mock.keys():
+            mock[uuid] = 200
+        return mock[str(uuid)]
 
     def get_usage_node_cpu(self, uuid):
         """The last VM CPU usage values to average
