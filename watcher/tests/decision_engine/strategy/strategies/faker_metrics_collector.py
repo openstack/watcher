@@ -103,11 +103,11 @@ class FakerMetricsCollector(object):
         # node 4
         mock['VM_7_hostname_7'] = 4
 
-        mock['Node_0'] = 7
-        mock['Node_1'] = 5
-        mock['Node_2'] = 10
-        mock['Node_3'] = 4
-        mock['Node_4'] = 2
+        mock['Node_0'] = 0.07
+        mock['Node_1'] = 0.05
+        mock['Node_2'] = 0.1
+        mock['Node_3'] = 0.04
+        mock['Node_4'] = 0.02
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)

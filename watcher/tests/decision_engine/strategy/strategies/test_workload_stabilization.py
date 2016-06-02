@@ -35,19 +35,19 @@ class TestWorkloadStabilization(base.BaseTestCase):
     fake_cluster = faker_cluster_state.FakerModelCollector()
 
     hosts_load_assert = {'Node_0':
-                         {'cpu_util': 7.0, 'memory.resident': 7.0,
+                         {'cpu_util': 0.07, 'memory.resident': 7.0,
                           'vcpus': 40},
                          'Node_1':
-                         {'cpu_util': 5.0, 'memory.resident': 5,
+                         {'cpu_util': 0.05, 'memory.resident': 5,
                           'vcpus': 40},
                          'Node_2':
-                         {'cpu_util': 10.0, 'memory.resident': 29,
+                         {'cpu_util': 0.1, 'memory.resident': 29,
                           'vcpus': 40},
                          'Node_3':
-                         {'cpu_util': 4.0, 'memory.resident': 8,
+                         {'cpu_util': 0.04, 'memory.resident': 8,
                           'vcpus': 40},
                          'Node_4':
-                         {'cpu_util': 2.0, 'memory.resident': 4,
+                         {'cpu_util': 0.02, 'memory.resident': 4,
                           'vcpus': 40}}
 
     def test_get_vm_load(self):
@@ -62,8 +62,8 @@ class TestWorkloadStabilization(base.BaseTestCase):
     def test_normalize_hosts_load(self):
         model = self.fake_cluster.generate_scenario_1()
         sd = strategies.WorkloadStabilization()
-        fake_hosts = {'Node_0': {'cpu_util': 7.0, 'memory.resident': 7},
-                      'Node_1': {'cpu_util': 5.0, 'memory.resident': 5}}
+        fake_hosts = {'Node_0': {'cpu_util': 0.07, 'memory.resident': 7},
+                      'Node_1': {'cpu_util': 0.05, 'memory.resident': 5}}
         normalized_hosts = {'Node_0':
                             {'cpu_util': 0.07,
                              'memory.resident': 0.05303030303030303},
@@ -83,10 +83,10 @@ class TestWorkloadStabilization(base.BaseTestCase):
 
     def test_get_sd(self):
         sd = strategies.WorkloadStabilization()
-        test_cpu_sd = 2.7
+        test_cpu_sd = 0.027
         test_ram_sd = 9.3
         self.assertEqual(
-            round(sd.get_sd(self.hosts_load_assert, 'cpu_util'), 1),
+            round(sd.get_sd(self.hosts_load_assert, 'cpu_util'), 3),
             test_cpu_sd)
         self.assertEqual(
             round(sd.get_sd(self.hosts_load_assert, 'memory.resident'), 1),
@@ -105,7 +105,7 @@ class TestWorkloadStabilization(base.BaseTestCase):
         self.assertEqual(sd.calculate_migration_case(
             self.hosts_load_assert, "VM_5", "Node_2", "Node_1",
             model)[-1]["Node_1"],
-            {'cpu_util': 7.5, 'memory.resident': 21, 'vcpus': 40})
+            {'cpu_util': 2.55, 'memory.resident': 21, 'vcpus': 40})
 
     def test_simulate_migrations(self):
         sd = strategies.WorkloadStabilization()
@@ -143,7 +143,7 @@ class TestWorkloadStabilization(base.BaseTestCase):
     def test_execute_multiply_migrations(self):
         sd = strategies.WorkloadStabilization()
         model = self.fake_cluster.generate_scenario_1()
-        sd.thresholds = {'cpu_util': 0.022, 'memory.resident': 0.0001}
+        sd.thresholds = {'cpu_util': 0.00001, 'memory.resident': 0.0001}
         sd.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         sd.simulate_migrations = mock.Mock(return_value=[{'vm': 'VM_4',
@@ -151,10 +151,10 @@ class TestWorkloadStabilization(base.BaseTestCase):
                                                           'host': 'Node_1'},
                                                          {'vm': 'VM_3',
                                                           's_host': 'Node_2',
-                                                          'host': 'Node_3'}])
+                                                          'host': 'Node_4'}])
         with mock.patch.object(sd, 'migrate') as mock_migrate:
             sd.execute(model)
-            self.assertEqual(mock_migrate.call_count, 2)
+            self.assertEqual(mock_migrate.call_count, 1)
 
     def test_execute_nothing_to_migrate(self):
         sd = strategies.WorkloadStabilization()

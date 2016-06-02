@@ -192,9 +192,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def normalize_hosts_load(self, hosts, current_model):
         normalized_hosts = deepcopy(hosts)
         for host in normalized_hosts:
-            if 'cpu_util' in normalized_hosts[host]:
-                normalized_hosts[host]['cpu_util'] /= float(100)
-
             if 'memory.resident' in normalized_hosts[host]:
                 h_memory = current_model.get_resource_from_id(
                     resource.ResourceType.memory).get_capacity(
