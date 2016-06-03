@@ -241,6 +241,32 @@ class TestListAudit(api_base.FunctionalTest):
             self.assertEqual(audit_template_uuid,
                              audit['audit_template_uuid'])
 
+    def test_detail_filter_by_audit_template_uuid(self):
+        audit_template_uuid = utils.generate_uuid()
+        audit_template_name = 'My_Audit_Template'
+
+        audit_template = obj_utils.create_test_audit_template(
+            self.context,
+            uuid=audit_template_uuid,
+            name=audit_template_name)
+        number_of_audits_with_audit_template_id = 5
+        for id_ in range(number_of_audits_with_audit_template_id):
+            obj_utils.create_test_audit(self.context, id=id_,
+                                        uuid=utils.generate_uuid(),
+                                        audit_template_id=audit_template.id)
+        for id_ in range(6, 8):
+            obj_utils.create_test_audit(self.context, id=id_,
+                                        uuid=utils.generate_uuid())
+
+        response = self.get_json('/audits/detail?audit_template=%s'
+                                 % audit_template_uuid)
+
+        audits = response['audits']
+        self.assertEqual(5, len(audits))
+        for audit in audits:
+            self.assertEqual(audit_template_uuid,
+                             audit['audit_template_uuid'])
+
     def test_filter_by_audit_template_name(self):
         audit_template_uuid = utils.generate_uuid()
         audit_template_name = 'My_Audit_Template'
