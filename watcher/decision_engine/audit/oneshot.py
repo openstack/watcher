@@ -20,7 +20,7 @@ from watcher.decision_engine.audit import base
 class OneShotAuditHandler(base.AuditHandler):
     def do_execute(self, audit, request_context):
         # execute the strategy
-        solution = self.strategy_context.execute_strategy(audit.uuid,
-                                                          request_context)
+        solution = self.strategy_context.execute_strategy(
+            audit, request_context)
 
         return solution

@@ -22,6 +22,8 @@ from watcher._i18n import _LI, _LW
 from watcher.common import context
 from watcher.decision_engine.loading import default
 from watcher import objects
+from watcher.objects import action_plan as apobjects
+from watcher.objects import audit as auditobjects
 
 LOG = log.getLogger(__name__)
 
@@ -54,6 +56,8 @@ class Syncer(object):
         self.strategy_mapping = dict()
 
         self.stale_audit_templates_map = {}
+        self.stale_audits_map = {}
+        self.stale_action_plans_map = {}
 
     @property
     def available_goals(self):
@@ -118,7 +122,7 @@ class Syncer(object):
 
             self.strategy_mapping.update(self._sync_strategy(strategy_map))
 
-        self._sync_audit_templates()
+        self._sync_objects()
 
     def _sync_goal(self, goal_map):
         goal_name = goal_map.name
@@ -177,24 +181,44 @@ class Syncer(object):
 
         return strategy_mapping
 
-    def _sync_audit_templates(self):
-        # First we find audit templates that are stale because their associated
-        # goal or strategy has been modified and we update them in-memory
+    def _sync_objects(self):
+        # First we find audit templates, audits and action plans that are stale
+        # because their associated goal or strategy has been modified and we
+        # update them in-memory
         self._find_stale_audit_templates_due_to_goal()
         self._find_stale_audit_templates_due_to_strategy()
 
-        # Then we handle the case where an audit template became
-        # stale because its related goal does not exist anymore.
+        self._find_stale_audits_due_to_goal()
+        self._find_stale_audits_due_to_strategy()
+
+        self._find_stale_action_plans_due_to_strategy()
+        self._find_stale_action_plans_due_to_audit()
+
+        # Then we handle the case where an audit template, an audit or an
+        # action plan becomes stale because its related goal does not
+        # exist anymore.
         self._soft_delete_removed_goals()
-        # Then we handle the case where an audit template became
-        # stale because its related strategy does not exist anymore.
+        # Then we handle the case where an audit template, an audit or an
+        # action plan becomes stale because its related strategy does not
+        # exist anymore.
         self._soft_delete_removed_strategies()
 
         # Finally, we save into the DB the updated stale audit templates
+        # and soft delete stale audits and action plans
         for stale_audit_template in self.stale_audit_templates_map.values():
             stale_audit_template.save()
             LOG.info(_LI("Audit Template '%s' synced"),
                      stale_audit_template.name)
+
+        for stale_audit in self.stale_audits_map.values():
+            stale_audit.save()
+            LOG.info(_LI("Stale audit '%s' synced and cancelled"),
+                     stale_audit.uuid)
+
+        for stale_action_plan in self.stale_action_plans_map.values():
+            stale_action_plan.save()
+            LOG.info(_LI("Stale action plan '%s' synced and cancelled"),
+                     stale_action_plan.uuid)
 
     def _find_stale_audit_templates_due_to_goal(self):
         for goal_id, synced_goal in self.goal_mapping.items():
@@ -228,6 +252,72 @@ class Syncer(object):
                     self.stale_audit_templates_map[
                         audit_template.id].strategy_id = synced_strategy.id
 
+    def _find_stale_audits_due_to_goal(self):
+        for goal_id, synced_goal in self.goal_mapping.items():
+            filters = {"goal_id": goal_id}
+            stale_audits = objects.Audit.list(
+                self.ctx, filters=filters)
+
+            # Update the goal ID for the stale audits (w/o saving)
+            for audit in stale_audits:
+                if audit.id not in self.stale_audits_map:
+                    audit.goal_id = synced_goal.id
+                    self.stale_audits_map[audit.id] = audit
+                else:
+                    self.stale_audits_map[audit.id].goal_id = synced_goal.id
+
+    def _find_stale_audits_due_to_strategy(self):
+        for strategy_id, synced_strategy in self.strategy_mapping.items():
+            filters = {"strategy_id": strategy_id}
+            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            # Update strategy IDs for all stale audits (w/o saving)
+            for audit in stale_audits:
+                if audit.id not in self.stale_audits_map:
+                    audit.strategy_id = synced_strategy.id
+                    audit.state = auditobjects.State.CANCELLED
+                    self.stale_audits_map[audit.id] = audit
+                else:
+                    self.stale_audits_map[
+                        audit.id].strategy_id = synced_strategy.id
+                    self.stale_audits_map[
+                        audit.id].state = auditobjects.State.CANCELLED
+
+    def _find_stale_action_plans_due_to_strategy(self):
+        for strategy_id, synced_strategy in self.strategy_mapping.items():
+            filters = {"strategy_id": strategy_id}
+            stale_action_plans = objects.ActionPlan.list(
+                self.ctx, filters=filters)
+
+            # Update strategy IDs for all stale action plans (w/o saving)
+            for action_plan in stale_action_plans:
+                if action_plan.id not in self.stale_action_plans_map:
+                    action_plan.strategy_id = synced_strategy.id
+                    action_plan.state = apobjects.State.CANCELLED
+                    self.stale_action_plans_map[action_plan.id] = action_plan
+                else:
+                    self.stale_action_plans_map[
+                        action_plan.id].strategy_id = synced_strategy.id
+                    self.stale_action_plans_map[
+                        action_plan.id].state = apobjects.State.CANCELLED
+
+    def _find_stale_action_plans_due_to_audit(self):
+        for audit_id, synced_audit in self.stale_audits_map.items():
+            filters = {"audit_id": audit_id}
+            stale_action_plans = objects.ActionPlan.list(
+                self.ctx, filters=filters)
+
+            # Update audit IDs for all stale action plans (w/o saving)
+            for action_plan in stale_action_plans:
+                if action_plan.id not in self.stale_action_plans_map:
+                    action_plan.audit_id = synced_audit.id
+                    action_plan.state = apobjects.State.CANCELLED
+                    self.stale_action_plans_map[action_plan.id] = action_plan
+                else:
+                    self.stale_action_plans_map[
+                        action_plan.id].audit_id = synced_audit.id
+                    self.stale_action_plans_map[
+                        action_plan.id].state = apobjects.State.CANCELLED
+
     def _soft_delete_removed_goals(self):
         removed_goals = [
             g for g in self.available_goals
@@ -235,12 +325,24 @@ class Syncer(object):
         for removed_goal in removed_goals:
             removed_goal.soft_delete()
             filters = {"goal_id": removed_goal.id}
+
             invalid_ats = objects.AuditTemplate.list(self.ctx, filters=filters)
             for at in invalid_ats:
                 LOG.warning(
                     _LW("Audit Template '%(audit_template)s' references a "
-                        "goal that does not exist"),
-                    audit_template=at.uuid)
+                        "goal that does not exist"), audit_template=at.uuid)
+
+            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            for audit in stale_audits:
+                LOG.warning(
+                    _LW("Audit '%(audit)s' references a "
+                        "goal that does not exist"), audit=audit.uuid)
+                if audit.id not in self.stale_audits_map:
+                    audit.state = auditobjects.State.CANCELLED
+                    self.stale_audits_map[audit.id] = audit
+                else:
+                    self.stale_audits_map[
+                        audit.id].state = auditobjects.State.CANCELLED
 
     def _soft_delete_removed_strategies(self):
         removed_strategies = [
@@ -264,6 +366,32 @@ class Syncer(object):
                     self.stale_audit_templates_map[at.id] = at
                 else:
                     self.stale_audit_templates_map[at.id].strategy_id = None
+
+            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            for audit in stale_audits:
+                LOG.warning(
+                    _LW("Audit '%(audit)s' references a "
+                        "strategy that does not exist"), audit=audit.uuid)
+                if audit.id not in self.stale_audits_map:
+                    audit.state = auditobjects.State.CANCELLED
+                    self.stale_audits_map[audit.id] = audit
+                else:
+                    self.stale_audits_map[
+                        audit.id].state = auditobjects.State.CANCELLED
+
+            stale_action_plans = objects.ActionPlan.list(
+                self.ctx, filters=filters)
+            for action_plan in stale_action_plans:
+                LOG.warning(
+                    _LW("Action Plan '%(action_plan)s' references a "
+                        "strategy that does not exist"),
+                    action_plan=action_plan.uuid)
+                if action_plan.id not in self.stale_action_plans_map:
+                    action_plan.state = apobjects.State.CANCELLED
+                    self.stale_action_plans_map[action_plan.id] = action_plan
+                else:
+                    self.stale_action_plans_map[
+                        action_plan.id].state = apobjects.State.CANCELLED
 
     def _discover(self):
         strategies_map = {}

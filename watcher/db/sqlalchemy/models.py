@@ -211,7 +211,8 @@ class ActionPlan(Base):
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36))
     first_action_id = Column(Integer)
-    audit_id = Column(Integer, ForeignKey('audits.id'), nullable=True)
+    audit_id = Column(Integer, ForeignKey('audits.id'), nullable=False)
+    strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
     state = Column(String(20), nullable=True)
     global_efficacy = Column(JSONEncodedDict, nullable=True)
 

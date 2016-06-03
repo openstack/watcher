@@ -44,7 +44,7 @@ class TestStrategyContext(base.DbTestCase):
         mock_call.return_value = strategies.DummyStrategy(
             config=mock.Mock())
         solution = self.strategy_context.execute_strategy(
-            self.audit.uuid, self.context)
+            self.audit, self.context)
         self.assertIsInstance(solution, default.DefaultSolution)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector",
@@ -65,8 +65,7 @@ class TestStrategyContext(base.DbTestCase):
             uuid=utils.generate_uuid(),
         )
 
-        solution = self.strategy_context.execute_strategy(
-            audit.uuid, self.context)
+        solution = self.strategy_context.execute_strategy(audit, self.context)
 
         self.assertEqual(len(solution.actions), 3)
 
@@ -92,7 +91,6 @@ class TestStrategyContext(base.DbTestCase):
             uuid=utils.generate_uuid(),
         )
 
-        solution = self.strategy_context.execute_strategy(
-            audit.uuid, self.context)
+        solution = self.strategy_context.execute_strategy(audit, self.context)
 
         self.assertEqual(solution, expected_strategy)

@@ -198,7 +198,7 @@ class Audit(base.APIBase):
             else:
                 strategy = objects.Strategy.get_by_name(
                     pecan.request.context, value)
-        except exception.GoalNotFound:
+        except exception.StrategyNotFound:
             pass
         if strategy:
             self.strategy_id = strategy.id

@@ -347,10 +347,15 @@ class Connection(api.BaseConnection):
         if filters is None:
             filters = {}
 
-        plain_fields = ['uuid', 'state', 'audit_id']
-        join_fieldmap = {
-            'audit_uuid': ("uuid", models.Audit),
-        }
+        plain_fields = ['uuid', 'state', 'audit_id', 'strategy_id']
+        join_fieldmap = JoinMap(
+            audit_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.Audit),
+            strategy_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.Strategy),
+            strategy_name=NaturalJoinFilter(
+                join_fieldname="name", join_model=models.Strategy),
+        )
 
         return self._add_filters(
             query=query, model=models.ActionPlan, filters=filters,

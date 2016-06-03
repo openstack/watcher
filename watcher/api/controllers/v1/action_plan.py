@@ -73,6 +73,7 @@ from watcher.api.controllers.v1 import utils as api_utils
 from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher.common import policy
+from watcher.common import utils
 from watcher import objects
 from watcher.objects import action_plan as ap_objects
 
@@ -117,6 +118,8 @@ class ActionPlan(base.APIBase):
     """
 
     _audit_uuid = None
+    _strategy_uuid = None
+    _strategy_name = None
     _first_action_uuid = None
     _efficacy_indicators = None
 
@@ -177,6 +180,43 @@ class ActionPlan(base.APIBase):
         elif value and self._efficacy_indicators != value:
             self._efficacy_indicators = value
 
+    def _get_strategy(self, value):
+        if value == wtypes.Unset:
+            return None
+        strategy = None
+        try:
+            if utils.is_uuid_like(value) or utils.is_int_like(value):
+                strategy = objects.Strategy.get(
+                    pecan.request.context, value)
+            else:
+                strategy = objects.Strategy.get_by_name(
+                    pecan.request.context, value)
+        except exception.StrategyNotFound:
+            pass
+        if strategy:
+            self.strategy_id = strategy.id
+        return strategy
+
+    def _get_strategy_uuid(self):
+        return self._strategy_uuid
+
+    def _set_strategy_uuid(self, value):
+        if value and self._strategy_uuid != value:
+            self._strategy_uuid = None
+            strategy = self._get_strategy(value)
+            if strategy:
+                self._strategy_uuid = strategy.uuid
+
+    def _get_strategy_name(self):
+        return self._strategy_name
+
+    def _set_strategy_name(self, value):
+        if value and self._strategy_name != value:
+            self._strategy_name = None
+            strategy = self._get_strategy(value)
+            if strategy:
+                self._strategy_name = strategy.name
+
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
@@ -188,6 +228,14 @@ class ActionPlan(base.APIBase):
     audit_uuid = wsme.wsproperty(types.uuid, _get_audit_uuid, _set_audit_uuid,
                                  mandatory=True)
     """The UUID of the audit this port belongs to"""
+
+    strategy_uuid = wsme.wsproperty(
+        wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
+    """Strategy UUID the action plan refers to"""
+
+    strategy_name = wsme.wsproperty(
+        wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
+    """The name of the strategy this action plan refers to"""
 
     efficacy_indicators = wsme.wsproperty(
         types.jsontype, _get_efficacy_indicators, _set_efficacy_indicators,
@@ -219,6 +267,10 @@ class ActionPlan(base.APIBase):
         self.fields.append('efficacy_indicators')
 
         setattr(self, 'audit_uuid', kwargs.get('audit_id', wtypes.Unset))
+        fields.append('strategy_uuid')
+        setattr(self, 'strategy_uuid', kwargs.get('strategy_id', wtypes.Unset))
+        fields.append('strategy_name')
+        setattr(self, 'strategy_name', kwargs.get('strategy_id', wtypes.Unset))
         setattr(self, 'first_action_uuid',
                 kwargs.get('first_action_id', wtypes.Unset))
 
@@ -227,7 +279,8 @@ class ActionPlan(base.APIBase):
         if not expand:
             action_plan.unset_fields_except(
                 ['uuid', 'state', 'efficacy_indicators', 'global_efficacy',
-                 'updated_at', 'audit_uuid', 'first_action_uuid'])
+                 'updated_at', 'audit_uuid', 'strategy_uuid', 'strategy_name',
+                 'first_action_uuid'])
 
         action_plan.links = [
             link.Link.make_link(
@@ -275,8 +328,8 @@ class ActionPlanCollection(collection.Collection):
     @staticmethod
     def convert_with_links(rpc_action_plans, limit, url=None, expand=False,
                            **kwargs):
-        collection = ActionPlanCollection()
-        collection.action_plans = [ActionPlan.convert_with_links(
+        ap_collection = ActionPlanCollection()
+        ap_collection.action_plans = [ActionPlan.convert_with_links(
             p, expand) for p in rpc_action_plans]
 
         if 'sort_key' in kwargs:
@@ -284,13 +337,13 @@ class ActionPlanCollection(collection.Collection):
             if kwargs['sort_key'] == 'audit_uuid':
                 if 'sort_dir' in kwargs:
                     reverse = True if kwargs['sort_dir'] == 'desc' else False
-                collection.action_plans = sorted(
-                    collection.action_plans,
+                ap_collection.action_plans = sorted(
+                    ap_collection.action_plans,
                     key=lambda action_plan: action_plan.audit_uuid,
                     reverse=reverse)
 
-        collection.next = collection.get_next(limit, url=url, **kwargs)
-        return collection
+        ap_collection.next = ap_collection.get_next(limit, url=url, **kwargs)
+        return ap_collection
 
     @classmethod
     def sample(cls):
@@ -301,6 +354,7 @@ class ActionPlanCollection(collection.Collection):
 
 class ActionPlansController(rest.RestController):
     """REST controller for Actions."""
+
     def __init__(self):
         super(ActionPlansController, self).__init__()
 
@@ -314,7 +368,8 @@ class ActionPlansController(rest.RestController):
 
     def _get_action_plans_collection(self, marker, limit,
                                      sort_key, sort_dir, expand=False,
-                                     resource_url=None, audit_uuid=None):
+                                     resource_url=None, audit_uuid=None,
+                                     strategy=None):
 
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
@@ -327,6 +382,12 @@ class ActionPlansController(rest.RestController):
         filters = {}
         if audit_uuid:
             filters['audit_uuid'] = audit_uuid
+
+        if strategy:
+            if utils.is_uuid_like(strategy):
+                filters['strategy_uuid'] = strategy
+            else:
+                filters['strategy_name'] = strategy
 
         if sort_key == 'audit_uuid':
             sort_db_key = None
@@ -347,9 +408,9 @@ class ActionPlansController(rest.RestController):
             sort_dir=sort_dir)
 
     @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, types.uuid)
+                         wtypes.text, types.uuid, wtypes.text)
     def get_all(self, marker=None, limit=None,
-                sort_key='id', sort_dir='asc', audit_uuid=None):
+                sort_key='id', sort_dir='asc', audit_uuid=None, strategy=None):
         """Retrieve a list of action plans.
 
         :param marker: pagination marker for large data sets.
@@ -358,18 +419,20 @@ class ActionPlansController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         :param audit_uuid: Optional UUID of an audit, to get only actions
             for that audit.
+        :param strategy: strategy UUID or name to filter by
         """
         context = pecan.request.context
         policy.enforce(context, 'action_plan:get_all',
                        action='action_plan:get_all')
 
         return self._get_action_plans_collection(
-            marker, limit, sort_key, sort_dir, audit_uuid=audit_uuid)
+            marker, limit, sort_key, sort_dir,
+            audit_uuid=audit_uuid, strategy=strategy)
 
     @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, types.uuid)
+                         wtypes.text, types.uuid, wtypes.text)
     def detail(self, marker=None, limit=None,
-               sort_key='id', sort_dir='asc', audit_uuid=None):
+               sort_key='id', sort_dir='asc', audit_uuid=None, strategy=None):
         """Retrieve a list of action_plans with detail.
 
         :param marker: pagination marker for large data sets.
@@ -378,6 +441,7 @@ class ActionPlansController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         :param audit_uuid: Optional UUID of an audit, to get only actions
             for that audit.
+        :param strategy: strategy UUID or name to filter by
         """
         context = pecan.request.context
         policy.enforce(context, 'action_plan:detail',
@@ -391,9 +455,8 @@ class ActionPlansController(rest.RestController):
         expand = True
         resource_url = '/'.join(['action_plans', 'detail'])
         return self._get_action_plans_collection(
-            marker, limit,
-            sort_key, sort_dir, expand,
-            resource_url, audit_uuid=audit_uuid)
+            marker, limit, sort_key, sort_dir, expand,
+            resource_url, audit_uuid=audit_uuid, strategy=strategy)
 
     @wsme_pecan.wsexpose(ActionPlan, types.uuid)
     def get_one(self, action_plan_uuid):
@@ -491,8 +554,8 @@ class ActionPlansController(rest.RestController):
             if action_plan_to_update[field] != patch_val:
                 action_plan_to_update[field] = patch_val
 
-            if (field == 'state'
-                    and patch_val == objects.action_plan.State.PENDING):
+            if (field == 'state'and
+                    patch_val == objects.action_plan.State.PENDING):
                 launch_action_plan = True
 
         action_plan_to_update.save()

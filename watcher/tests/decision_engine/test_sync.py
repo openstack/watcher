@@ -21,6 +21,7 @@ from watcher.common import utils
 from watcher.decision_engine.loading import default
 from watcher.decision_engine import sync
 from watcher import objects
+from watcher.objects import action_plan as ap_objects
 from watcher.tests.db import base
 from watcher.tests.decision_engine import fake_goals
 from watcher.tests.decision_engine import fake_strategies
@@ -72,6 +73,27 @@ class TestSyncer(base.DbTestCase):
         self.addCleanup(p_goals.stop)
         self.addCleanup(p_goals_load.stop)
         self.addCleanup(p_strategies.stop)
+
+    @staticmethod
+    def _find_created_modified_unmodified_ids(befores, afters):
+        created = {
+            a_item.id: a_item for a_item in afters
+            if a_item.uuid not in (b_item.uuid for b_item in befores)
+        }
+
+        modified = {
+            a_item.id: a_item for a_item in afters
+            if a_item.as_dict() not in (
+                b_items.as_dict() for b_items in befores)
+        }
+
+        unmodified = {
+            a_item.id: a_item for a_item in afters
+            if a_item.as_dict() in (
+                b_items.as_dict() for b_items in befores)
+        }
+
+        return created, modified, unmodified
 
     @mock.patch.object(objects.Strategy, "soft_delete")
     @mock.patch.object(objects.Strategy, "save")
@@ -257,15 +279,18 @@ class TestSyncer(base.DbTestCase):
         strategy1 = objects.Strategy(
             self.ctx, id=1, name="strategy_1", uuid=utils.generate_uuid(),
             display_name="Strategy 1", goal_id=goal1.id)
-        # Should stay unmodified after sync()
+        # Should be modified after sync() because its related goal has been
+        # modified
         strategy2 = objects.Strategy(
             self.ctx, id=2, name="strategy_2", uuid=utils.generate_uuid(),
             display_name="Strategy 2", goal_id=goal2.id)
-        # Should be modified by the sync()
+        # Should be modified after sync() because its strategy name has been
+        # modified
         strategy3 = objects.Strategy(
             self.ctx, id=3, name="strategy_3", uuid=utils.generate_uuid(),
-            display_name="Original", goal_id=goal2.id)
-        # Should be modified by the sync()
+            display_name="Original", goal_id=goal1.id)
+        # Should be modified after sync() because both its related goal
+        # and its strategy name have been modified
         strategy4 = objects.Strategy(
             self.ctx, id=4, name="strategy_4", uuid=utils.generate_uuid(),
             display_name="Original", goal_id=goal2.id)
@@ -279,18 +304,18 @@ class TestSyncer(base.DbTestCase):
 
         # Should stay unmodified after sync()
         audit_template1 = objects.AuditTemplate(
-            self.ctx, id=1, uuid=utils.generate_uuid(),
-            name="Synced AT1", goal_id=goal1.id, strategy_id=strategy1.id)
+            self.ctx, id=1, name="Synced AT1", uuid=utils.generate_uuid(),
+            goal_id=goal1.id, strategy_id=strategy1.id)
         # Should be modified by the sync() because its associated goal
-        # should be modified
+        # has been modified (compared to the defined fake goals)
         audit_template2 = objects.AuditTemplate(
             self.ctx, id=2, name="Synced AT2", uuid=utils.generate_uuid(),
             goal_id=goal2.id, strategy_id=strategy2.id)
         # Should be modified by the sync() because its associated strategy
-        # should be modified
+        # has been modified (compared to the defined fake strategies)
         audit_template3 = objects.AuditTemplate(
             self.ctx, id=3, name="Synced AT3", uuid=utils.generate_uuid(),
-            goal_id=goal2.id, strategy_id=strategy3.id)
+            goal_id=goal1.id, strategy_id=strategy3.id)
         # Modified because of both because its associated goal and associated
         # strategy should be modified
         audit_template4 = objects.AuditTemplate(
@@ -301,9 +326,70 @@ class TestSyncer(base.DbTestCase):
         audit_template3.create()
         audit_template4.create()
 
-        before_audit_templates = objects.AuditTemplate.list(self.ctx)
+        # Should stay unmodified after sync()
+        audit1 = objects.Audit(
+            self.ctx, id=1, uuid=utils.generate_uuid(),
+            goal_id=goal1.id, strategy_id=strategy1.id)
+        # Should be modified by the sync() because its associated goal
+        # has been modified (compared to the defined fake goals)
+        audit2 = objects.Audit(
+            self.ctx, id=2, uuid=utils.generate_uuid(),
+            goal_id=goal2.id, strategy_id=strategy2.id)
+        # Should be modified by the sync() because its associated strategy
+        # has been modified (compared to the defined fake strategies)
+        audit3 = objects.Audit(
+            self.ctx, id=3, uuid=utils.generate_uuid(),
+            goal_id=goal1.id, strategy_id=strategy3.id)
+        # Modified because of both because its associated goal and associated
+        # strategy should be modified (compared to the defined fake
+        # goals/strategies)
+        audit4 = objects.Audit(
+            self.ctx, id=4, uuid=utils.generate_uuid(),
+            goal_id=goal2.id, strategy_id=strategy4.id)
+
+        audit1.create()
+        audit2.create()
+        audit3.create()
+        audit4.create()
+
+        # Should stay unmodified after sync()
+        action_plan1 = objects.ActionPlan(
+            self.ctx, id=1, uuid=utils.generate_uuid(),
+            audit_id=audit1.id, strategy_id=strategy1.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+        # Stale after syncing because the goal of the audit has been modified
+        # (compared to the defined fake goals)
+        action_plan2 = objects.ActionPlan(
+            self.ctx, id=2, uuid=utils.generate_uuid(),
+            audit_id=audit2.id, strategy_id=strategy2.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+        # Stale after syncing because the strategy has been modified
+        # (compared to the defined fake strategies)
+        action_plan3 = objects.ActionPlan(
+            self.ctx, id=3, uuid=utils.generate_uuid(),
+            audit_id=audit3.id, strategy_id=strategy3.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+        # Stale after syncing because both the strategy and the related audit
+        # have been modified (compared to the defined fake goals/strategies)
+        action_plan4 = objects.ActionPlan(
+            self.ctx, id=4, uuid=utils.generate_uuid(),
+            audit_id=audit4.id, strategy_id=strategy4.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+
+        action_plan1.create()
+        action_plan2.create()
+        action_plan3.create()
+        action_plan4.create()
+
         before_goals = objects.Goal.list(self.ctx)
         before_strategies = objects.Strategy.list(self.ctx)
+        before_audit_templates = objects.AuditTemplate.list(self.ctx)
+        before_audits = objects.Audit.list(self.ctx)
+        before_action_plans = objects.ActionPlan.list(self.ctx)
 
         # ### Action under test ### #
 
@@ -314,30 +400,51 @@ class TestSyncer(base.DbTestCase):
 
         # ### Assertions ### #
 
-        after_audit_templates = objects.AuditTemplate.list(self.ctx)
         after_goals = objects.Goal.list(self.ctx)
         after_strategies = objects.Strategy.list(self.ctx)
+        after_audit_templates = objects.AuditTemplate.list(self.ctx)
+        after_audits = objects.Audit.list(self.ctx)
+        after_action_plans = objects.ActionPlan.list(self.ctx)
 
         self.assertEqual(2, len(before_goals))
         self.assertEqual(4, len(before_strategies))
         self.assertEqual(4, len(before_audit_templates))
+        self.assertEqual(4, len(before_audits))
+        self.assertEqual(4, len(before_action_plans))
         self.assertEqual(2, len(after_goals))
         self.assertEqual(4, len(after_strategies))
         self.assertEqual(4, len(after_audit_templates))
+        self.assertEqual(4, len(after_audits))
+        self.assertEqual(4, len(after_action_plans))
+
         self.assertEqual(
             {"dummy_1", "dummy_2"},
             set([g.name for g in after_goals]))
         self.assertEqual(
             {"strategy_1", "strategy_2", "strategy_3", "strategy_4"},
             set([s.name for s in after_strategies]))
-        created_goals = {
-            ag.name: ag for ag in after_goals
-            if ag.uuid not in [bg.uuid for bg in before_goals]
-        }
-        created_strategies = {
-            a_s.name: a_s for a_s in after_strategies
-            if a_s.uuid not in [b_s.uuid for b_s in before_strategies]
-        }
+
+        created_goals, modified_goals, unmodified_goals = (
+            self._find_created_modified_unmodified_ids(
+                before_goals, after_goals))
+
+        created_strategies, modified_strategies, unmodified_strategies = (
+            self._find_created_modified_unmodified_ids(
+                before_strategies, after_strategies))
+
+        (created_audit_templates, modified_audit_templates,
+         unmodified_audit_templates) = (
+             self._find_created_modified_unmodified_ids(
+                 before_audit_templates, after_audit_templates))
+
+        created_audits, modified_audits, unmodified_audits = (
+            self._find_created_modified_unmodified_ids(
+                before_audits, after_audits))
+
+        (created_action_plans, modified_action_plans,
+         unmodified_action_plans) = (
+             self._find_created_modified_unmodified_ids(
+                 before_action_plans, after_action_plans))
 
         dummy_1_spec = [
             {'description': 'Dummy indicator', 'name': 'dummy',
@@ -351,40 +458,34 @@ class TestSyncer(base.DbTestCase):
 
         self.assertEqual(1, len(created_goals))
         self.assertEqual(3, len(created_strategies))
-
-        modified_audit_templates = {
-            a_at.id for a_at in after_audit_templates
-            if a_at.goal_id not in (
-                # initial goal IDs
-                b_at.goal_id for b_at in before_audit_templates) or
-            a_at.strategy_id not in (
-                # initial strategy IDs
-                b_at.strategy_id for b_at in before_audit_templates
-                if b_at.strategy_id is not None)
-        }
-
-        unmodified_audit_templates = {
-            a_at.id for a_at in after_audit_templates
-            if a_at.goal_id in (
-                # initial goal IDs
-                b_at.goal_id for b_at in before_audit_templates) and
-            a_at.strategy_id in (
-                # initial strategy IDs
-                b_at.strategy_id for b_at in before_audit_templates
-                if b_at.strategy_id is not None)
-        }
+        self.assertEqual(0, len(created_audits))
+        self.assertEqual(0, len(created_action_plans))
 
         self.assertEqual(2, strategy2.goal_id)
-        self.assertIn(strategy2.name, created_strategies)
-        self.assertNotEqual(strategy2.id,
-                            created_strategies[strategy2.name].id)
 
-        self.assertEqual(set([audit_template2.id,
-                              audit_template3.id,
-                              audit_template4.id]),
-                         modified_audit_templates)
+        self.assertNotEqual(
+            set([strategy2.id, strategy3.id, strategy4.id]),
+            set(modified_strategies))
+        self.assertEqual(set([strategy1.id]), set(unmodified_strategies))
+
+        self.assertEqual(
+            set([audit_template2.id, audit_template3.id, audit_template4.id]),
+            set(modified_audit_templates))
         self.assertEqual(set([audit_template1.id]),
-                         unmodified_audit_templates)
+                         set(unmodified_audit_templates))
+
+        self.assertEqual(
+            set([audit2.id, audit3.id, audit4.id]),
+            set(modified_audits))
+        self.assertEqual(set([audit1.id]), set(unmodified_audits))
+
+        self.assertEqual(
+            set([action_plan2.id, action_plan3.id, action_plan4.id]),
+            set(modified_action_plans))
+        self.assertTrue(
+            all(ap.state == ap_objects.State.CANCELLED
+                for ap in modified_action_plans.values()))
+        self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))
 
     def test_end2end_sync_goals_with_removed_goal_and_strategy(self):
         # ### Setup ### #
@@ -417,11 +518,13 @@ class TestSyncer(base.DbTestCase):
         strategy1 = objects.Strategy(
             self.ctx, id=1, name="strategy_1", uuid=utils.generate_uuid(),
             display_name="Strategy 1", goal_id=goal1.id)
-        # To be removed by the sync()
+        # To be removed by the sync() because strategy entry point does not
+        # exist anymore
         strategy2 = objects.Strategy(
             self.ctx, id=2, name="strategy_2", uuid=utils.generate_uuid(),
             display_name="Strategy 2", goal_id=goal1.id)
-        # To be removed by the sync()
+        # To be removed by the sync() because the goal has been soft deleted
+        # and because the strategy entry point does not exist anymore
         strategy3 = objects.Strategy(
             self.ctx, id=3, name="strategy_3", uuid=utils.generate_uuid(),
             display_name="Original", goal_id=goal2.id)
@@ -435,9 +538,9 @@ class TestSyncer(base.DbTestCase):
         # The strategy of this audit template will be dereferenced
         # as it does not exist anymore
         audit_template1 = objects.AuditTemplate(
-            self.ctx, id=1, uuid=utils.generate_uuid(),
-            name="Synced AT1", goal_id=goal1.id, strategy_id=strategy1.id)
-        # Stale even after syncing because the goal has been soft deleted
+            self.ctx, id=1, name="Synced AT1", uuid=utils.generate_uuid(),
+            goal_id=goal1.id, strategy_id=strategy1.id)
+        # Stale after syncing because the goal has been soft deleted
         audit_template2 = objects.AuditTemplate(
             self.ctx, id=2, name="Synced AT2", uuid=utils.generate_uuid(),
             goal_id=goal2.id, strategy_id=strategy2.id)
@@ -445,9 +548,39 @@ class TestSyncer(base.DbTestCase):
         audit_template1.create()
         audit_template2.create()
 
-        before_audit_templates = objects.AuditTemplate.list(self.ctx)
+        # Should stay unmodified after sync()
+        audit1 = objects.Audit(
+            self.ctx, id=1, uuid=utils.generate_uuid(),
+            goal_id=goal1.id, strategy_id=strategy1.id)
+        # Stale after syncing because the goal has been soft deleted
+        audit2 = objects.Audit(
+            self.ctx, id=2, uuid=utils.generate_uuid(),
+            goal_id=goal2.id, strategy_id=strategy2.id)
+        audit1.create()
+        audit2.create()
+
+        # Stale after syncing because its related strategy has been be
+        # soft deleted
+        action_plan1 = objects.ActionPlan(
+            self.ctx, id=1, uuid=utils.generate_uuid(),
+            audit_id=audit1.id, strategy_id=strategy1.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+        # Stale after syncing because its related goal has been soft deleted
+        action_plan2 = objects.ActionPlan(
+            self.ctx, id=2, uuid=utils.generate_uuid(),
+            audit_id=audit2.id, strategy_id=strategy2.id,
+            first_action_id=None, state='DOESNOTMATTER',
+            global_efficacy={})
+
+        action_plan1.create()
+        action_plan2.create()
+
         before_goals = objects.Goal.list(self.ctx)
         before_strategies = objects.Strategy.list(self.ctx)
+        before_audit_templates = objects.AuditTemplate.list(self.ctx)
+        before_audits = objects.Audit.list(self.ctx)
+        before_action_plans = objects.ActionPlan.list(self.ctx)
 
         # ### Action under test ### #
 
@@ -458,54 +591,66 @@ class TestSyncer(base.DbTestCase):
 
         # ### Assertions ### #
 
-        after_audit_templates = objects.AuditTemplate.list(self.ctx)
         after_goals = objects.Goal.list(self.ctx)
         after_strategies = objects.Strategy.list(self.ctx)
+        after_audit_templates = objects.AuditTemplate.list(self.ctx)
+        after_audits = objects.Audit.list(self.ctx)
+        after_action_plans = objects.ActionPlan.list(self.ctx)
 
         self.assertEqual(2, len(before_goals))
         self.assertEqual(3, len(before_strategies))
         self.assertEqual(2, len(before_audit_templates))
+        self.assertEqual(2, len(before_audits))
+        self.assertEqual(2, len(before_action_plans))
         self.assertEqual(1, len(after_goals))
         self.assertEqual(1, len(after_strategies))
         self.assertEqual(2, len(after_audit_templates))
+        self.assertEqual(2, len(after_audits))
+        self.assertEqual(2, len(after_action_plans))
         self.assertEqual(
             {"dummy_1"},
             set([g.name for g in after_goals]))
         self.assertEqual(
             {"strategy_1"},
             set([s.name for s in after_strategies]))
-        created_goals = [ag for ag in after_goals
-                         if ag.uuid not in [bg.uuid for bg in before_goals]]
-        created_strategies = [
-            a_s for a_s in after_strategies
-            if a_s.uuid not in [b_s.uuid for b_s in before_strategies]]
+
+        created_goals, modified_goals, unmodified_goals = (
+            self._find_created_modified_unmodified_ids(
+                before_goals, after_goals))
+
+        created_strategies, modified_strategies, unmodified_strategies = (
+            self._find_created_modified_unmodified_ids(
+                before_strategies, after_strategies))
+
+        (created_audit_templates, modified_audit_templates,
+         unmodified_audit_templates) = (
+             self._find_created_modified_unmodified_ids(
+                 before_audit_templates, after_audit_templates))
+
+        created_audits, modified_audits, unmodified_audits = (
+            self._find_created_modified_unmodified_ids(
+                before_audits, after_audits))
+
+        (created_action_plans, modified_action_plans,
+         unmodified_action_plans) = (
+             self._find_created_modified_unmodified_ids(
+                 before_action_plans, after_action_plans))
 
         self.assertEqual(0, len(created_goals))
         self.assertEqual(0, len(created_strategies))
-
-        modified_audit_templates = {
-            a_at.id for a_at in after_audit_templates
-            if a_at.goal_id not in (
-                # initial goal IDs
-                b_at.goal_id for b_at in before_audit_templates) or
-            a_at.strategy_id not in (
-                # initial strategy IDs
-                b_at.strategy_id for b_at in before_audit_templates
-                if b_at.strategy_id is not None)
-        }
-
-        unmodified_audit_templates = {
-            a_at.id for a_at in after_audit_templates
-            if a_at.goal_id in (
-                # initial goal IDs
-                b_at.goal_id for b_at in before_audit_templates) and
-            a_at.strategy_id in (
-                # initial strategy IDs
-                b_at.strategy_id for b_at in before_audit_templates
-                if b_at.strategy_id is not None)
-        }
+        self.assertEqual(0, len(created_audits))
+        self.assertEqual(0, len(created_action_plans))
 
         self.assertEqual(set([audit_template2.id]),
-                         modified_audit_templates)
+                         set(modified_audit_templates))
         self.assertEqual(set([audit_template1.id]),
-                         unmodified_audit_templates)
+                         set(unmodified_audit_templates))
+
+        self.assertEqual(set([audit2.id]), set(modified_audits))
+        self.assertEqual(set([audit1.id]), set(unmodified_audits))
+
+        self.assertEqual(set([action_plan2.id]), set(modified_action_plans))
+        self.assertTrue(
+            all(ap.state == ap_objects.State.CANCELLED
+                for ap in modified_action_plans.values()))
+        self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))

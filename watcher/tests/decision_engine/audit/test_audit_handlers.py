@@ -13,10 +13,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import mock
+
 import uuid
 
 from apscheduler.schedulers import background
+import mock
 
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
@@ -30,13 +31,17 @@ from watcher.tests.objects import utils as obj_utils
 
 
 class TestOneShotAuditHandler(base.DbTestCase):
+
     def setUp(self):
         super(TestOneShotAuditHandler, self).setUp()
         obj_utils.create_test_goal(self.context, id=1, name="dummy")
+        self.strategy = obj_utils.create_test_strategy(
+            self.context, name='dummy')
         audit_template = obj_utils.create_test_audit_template(
-            self.context)
+            self.context, strategy_id=self.strategy.id)
         self.audit = obj_utils.create_test_audit(
             self.context,
+            strategy_id=self.strategy.id,
             audit_template_id=audit_template.id)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
@@ -79,11 +84,12 @@ class TestContinuousAuditHandler(base.DbTestCase):
         obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
         audit_template = obj_utils.create_test_audit_template(
             self.context)
-        self.audits = [obj_utils.create_test_audit(
-            self.context,
-            uuid=uuid.uuid4(),
-            audit_template_id=audit_template.id,
-            audit_type=audit_objects.AuditType.CONTINUOUS.value)
+        self.audits = [
+            obj_utils.create_test_audit(
+                self.context,
+                uuid=uuid.uuid4(),
+                audit_template_id=audit_template.id,
+                audit_type=audit_objects.AuditType.CONTINUOUS.value)
             for i in range(2)]
 
     @mock.patch.object(background.BackgroundScheduler, 'add_job')

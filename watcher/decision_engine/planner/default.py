@@ -48,10 +48,11 @@ class DefaultPlanner(base.BasePlanner):
 
     @classmethod
     def get_config_opts(cls):
-        return [cfg.DictOpt(
-            'weights',
-            help="These weights are used to schedule the actions",
-            default=cls.weights_dict),
+        return [
+            cfg.DictOpt(
+                'weights',
+                help="These weights are used to schedule the actions",
+                default=cls.weights_dict),
         ]
 
     def create_action(self,
@@ -113,9 +114,13 @@ class DefaultPlanner(base.BasePlanner):
         return action_plan
 
     def _create_action_plan(self, context, audit_id, solution):
+        strategy = objects.Strategy.get_by_name(
+            context, solution.strategy.name)
+
         action_plan_dict = {
             'uuid': utils.generate_uuid(),
             'audit_id': audit_id,
+            'strategy_id': strategy.id,
             'first_action_id': None,
             'state': objects.action_plan.State.RECOMMENDED,
             'global_efficacy': solution.global_efficacy,
