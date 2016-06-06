@@ -150,6 +150,11 @@ class InvalidIdentity(Invalid):
     msg_fmt = _("Expected a uuid or int but received %(identity)s")
 
 
+class InvalidOperator(Invalid):
+    msg_fmt = _("Filter operator is not valid: %(operator)s not "
+                "in %(valid_operators)s")
+
+
 class InvalidGoal(Invalid):
     msg_fmt = _("Goal %(goal)s is invalid")
 

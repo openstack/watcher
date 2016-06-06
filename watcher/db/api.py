@@ -139,8 +139,6 @@ class BaseConnection(object):
         match the specified filters.
 
         :param context: The security context
-        :param columns: List of column names to return.
-                        Defaults to 'id' column when columns == None.
         :param filters: Filters to apply. Defaults to None.
 
         :param limit: Maximum number of strategies to return.
@@ -221,7 +219,7 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_audit_template_list(self, context, columns=None, filters=None,
+    def get_audit_template_list(self, context, filters=None,
                                 limit=None, marker=None, sort_key=None,
                                 sort_dir=None):
         """Get specific columns for matching audit templates.
@@ -230,8 +228,6 @@ class BaseConnection(object):
         match the specified filters.
 
         :param context: The security context
-        :param columns: List of column names to return.
-                        Defaults to 'id' column when columns == None.
         :param filters: Filters to apply. Defaults to None.
 
         :param limit: Maximum number of audit templates to return.
@@ -320,7 +316,7 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_audit_list(self, context, columns=None, filters=None, limit=None,
+    def get_audit_list(self, context, filters=None, limit=None,
                        marker=None, sort_key=None, sort_dir=None):
         """Get specific columns for matching audits.
 
@@ -328,8 +324,6 @@ class BaseConnection(object):
         specified filters.
 
         :param context: The security context
-        :param columns: List of column names to return.
-                        Defaults to 'id' column when columns == None.
         :param filters: Filters to apply. Defaults to None.
 
         :param limit: Maximum number of audits to return.
@@ -407,7 +401,7 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_action_list(self, context, columns=None, filters=None, limit=None,
+    def get_action_list(self, context, filters=None, limit=None,
                         marker=None, sort_key=None, sort_dir=None):
         """Get specific columns for matching actions.
 
@@ -415,8 +409,6 @@ class BaseConnection(object):
         specified filters.
 
         :param context: The security context
-        :param columns: List of column names to return.
-                        Defaults to 'id' column when columns == None.
         :param filters: Filters to apply. Defaults to None.
 
         :param limit: Maximum number of actions to return.
@@ -490,7 +482,7 @@ class BaseConnection(object):
 
     @abc.abstractmethod
     def get_action_plan_list(
-            self, context, columns=None, filters=None, limit=None,
+            self, context, filters=None, limit=None,
             marker=None, sort_key=None, sort_dir=None):
         """Get specific columns for matching action plans.
 
@@ -498,8 +490,6 @@ class BaseConnection(object):
         match the specified filters.
 
         :param context: The security context
-        :param columns: List of column names to return.
-                        Defaults to 'id' column when columns == None.
         :param filters: Filters to apply. Defaults to None.
 
         :param limit: Maximum number of audits to return.
