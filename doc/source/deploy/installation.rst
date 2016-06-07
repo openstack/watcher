@@ -90,7 +90,7 @@ should be able to run the Watcher services by issuing these commands:
 By default, this will show logging on the console from which it was started.
 Once started, you can use the `Watcher Client`_ to play with Watcher service.
 
-.. _`Watcher Client`: https://git.openstack.org/openstack/python-watcherclient.git
+.. _`Watcher Client`: https://git.openstack.org/cgit/openstack/python-watcherclient
 
 Installing from packages: PyPI
 --------------------------------
