@@ -25,7 +25,6 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultStrategyContext(base.BaseStrategyContext):
-
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
@@ -41,10 +40,20 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         # todo(jed) retrieve in audit_template parameters (threshold,...)
         # todo(jed) create ActionPlan
 
+        goal = objects.Goal.get_by_id(request_context, audit_template.goal_id)
+
+        # NOTE(jed56) In the audit_template object, the 'strategy_id' attribute
+        # is optional. If the admin wants to force the trigger of a Strategy
+        # it could specify the Strategy uuid in the Audit Template.
+        strategy_name = None
+        if audit_template.strategy_id:
+            strategy = objects.Strategy.get_by_id(request_context,
+                                                  audit_template.strategy_id)
+            strategy_name = strategy.name
+
         strategy_selector = default.DefaultStrategySelector(
-            goal_name=objects.Goal.get_by_id(
-                request_context, audit_template.goal_id).name,
-            strategy_name=None,
+            goal_name=goal.name,
+            strategy_name=strategy_name,
             osc=osc)
 
         selected_strategy = strategy_selector.select()
