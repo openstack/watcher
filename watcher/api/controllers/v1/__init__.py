@@ -34,6 +34,7 @@ from watcher.api.controllers.v1 import action_plan
 from watcher.api.controllers.v1 import audit
 from watcher.api.controllers.v1 import audit_template
 from watcher.api.controllers.v1 import goal
+from watcher.api.controllers.v1 import scoring_engine
 from watcher.api.controllers.v1 import strategy
 
 
@@ -101,6 +102,9 @@ class V1(APIBase):
     action_plans = [link.Link]
     """Links to the action plans resource"""
 
+    scoring_engines = [link.Link]
+    """Links to the Scoring Engines resource"""
+
     links = [link.Link]
     """Links that point to a specific URL for this version and documentation"""
 
@@ -147,6 +151,14 @@ class V1(APIBase):
                                 'action_plans', '',
                                 bookmark=True)
             ]
+
+        v1.scoring_engines = [link.Link.make_link(
+            'self', pecan.request.host_url, 'scoring_engines', ''),
+            link.Link.make_link('bookmark',
+                                pecan.request.host_url,
+                                'scoring_engines', '',
+                                bookmark=True)
+            ]
         return v1
 
 
@@ -158,6 +170,7 @@ class Controller(rest.RestController):
     actions = action.ActionsController()
     action_plans = action_plan.ActionPlansController()
     goals = goal.GoalsController()
+    scoring_engines = scoring_engine.ScoringEngineController()
     strategies = strategy.StrategiesController()
 
     @wsme_pecan.wsexpose(V1)

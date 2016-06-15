@@ -37,7 +37,7 @@ class TestV1Root(base.FunctionalTest):
         not_resources = ('id', 'links', 'media_types')
         actual_resources = tuple(set(data.keys()) - set(not_resources))
         expected_resources = ('audit_templates', 'audits', 'actions',
-                              'action_plans')
+                              'action_plans', 'scoring_engines')
         self.assertEqual(sorted(expected_resources), sorted(actual_resources))
 
         self.assertIn({'type': 'application/vnd.openstack.watcher.v1+json',

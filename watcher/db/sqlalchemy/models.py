@@ -29,6 +29,7 @@ from sqlalchemy import Integer
 from sqlalchemy import Numeric
 from sqlalchemy import schema
 from sqlalchemy import String
+from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator, TEXT
 
 from watcher.common import paths
@@ -230,3 +231,21 @@ class EfficacyIndicator(Base):
     value = Column(Numeric())
     action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
                             nullable=False)
+
+
+class ScoringEngine(Base):
+    """Represents a scoring engine."""
+
+    __tablename__ = 'scoring_engines'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', name='uniq_scoring_engines0uuid'),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36), nullable=False)
+    name = Column(String(63), nullable=False)
+    description = Column(String(255), nullable=True)
+    # Metainfo might contain some additional information about the data model.
+    # The format might vary between different models (e.g. be JSON, XML or
+    # even some custom format), the blob type should cover all scenarios.
+    metainfo = Column(Text, nullable=True)

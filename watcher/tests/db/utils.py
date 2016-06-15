@@ -170,6 +170,31 @@ def create_test_goal(**kwargs):
     return dbapi.create_goal(goal)
 
 
+def get_test_scoring_engine(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'uuid': kwargs.get('uuid', 'e8370ede-4f39-11e6-9ffa-08002722cb21'),
+        'name': kwargs.get('name', 'test-se-01'),
+        'description': kwargs.get('description', 'test scoring engine 01'),
+        'metainfo': kwargs.get('metainfo', 'test_attr=test_val'),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_scoring_engine(**kwargs):
+    """Create test scoring engine in DB and return ScoringEngine DB object.
+
+    Function to be used to create test ScoringEngine objects in the database.
+    :param kwargs: kwargs with overriding values for SE'sattributes.
+    :returns: Test ScoringEngine DB object.
+    """
+    scoring_engine = get_test_scoring_engine(**kwargs)
+    dbapi = db_api.get_instance()
+    return dbapi.create_scoring_engine(scoring_engine)
+
+
 def get_test_strategy(**kwargs):
     return {
         'id': kwargs.get('id', 1),
