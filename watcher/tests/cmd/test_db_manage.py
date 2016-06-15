@@ -107,15 +107,15 @@ class TestDBManageRunCommand(base.TestCase):
     def test_run_db_purge(self, m_purge_cls):
         m_purge = mock.Mock()
         m_purge_cls.return_value = m_purge
-        m_purge_cls.get_audit_template_uuid.return_value = 'Some UUID'
+        m_purge_cls.get_goal_uuid.return_value = 'Some UUID'
         cfg.CONF.register_opt(cfg.IntOpt("age_in_days"), group="command")
         cfg.CONF.register_opt(cfg.IntOpt("max_number"), group="command")
-        cfg.CONF.register_opt(cfg.StrOpt("audit_template"), group="command")
+        cfg.CONF.register_opt(cfg.StrOpt("goal"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("exclude_orphans"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("dry_run"), group="command")
         cfg.CONF.set_default("age_in_days", None, group="command")
         cfg.CONF.set_default("max_number", None, group="command")
-        cfg.CONF.set_default("audit_template", None, group="command")
+        cfg.CONF.set_default("goal", None, group="command")
         cfg.CONF.set_default("exclude_orphans", True, group="command")
         cfg.CONF.set_default("dry_run", False, group="command")
 
@@ -130,15 +130,15 @@ class TestDBManageRunCommand(base.TestCase):
     def test_run_db_purge_negative_max_number(self, m_purge_cls, m_exit):
         m_purge = mock.Mock()
         m_purge_cls.return_value = m_purge
-        m_purge_cls.get_audit_template_uuid.return_value = 'Some UUID'
+        m_purge_cls.get_goal_uuid.return_value = 'Some UUID'
         cfg.CONF.register_opt(cfg.IntOpt("age_in_days"), group="command")
         cfg.CONF.register_opt(cfg.IntOpt("max_number"), group="command")
-        cfg.CONF.register_opt(cfg.StrOpt("audit_template"), group="command")
+        cfg.CONF.register_opt(cfg.StrOpt("goal"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("exclude_orphans"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("dry_run"), group="command")
         cfg.CONF.set_default("age_in_days", None, group="command")
         cfg.CONF.set_default("max_number", -1, group="command")
-        cfg.CONF.set_default("audit_template", None, group="command")
+        cfg.CONF.set_default("goal", None, group="command")
         cfg.CONF.set_default("exclude_orphans", True, group="command")
         cfg.CONF.set_default("dry_run", False, group="command")
 
@@ -154,15 +154,15 @@ class TestDBManageRunCommand(base.TestCase):
     def test_run_db_purge_dry_run(self, m_purge_cls, m_exit):
         m_purge = mock.Mock()
         m_purge_cls.return_value = m_purge
-        m_purge_cls.get_audit_template_uuid.return_value = 'Some UUID'
+        m_purge_cls.get_goal_uuid.return_value = 'Some UUID'
         cfg.CONF.register_opt(cfg.IntOpt("age_in_days"), group="command")
         cfg.CONF.register_opt(cfg.IntOpt("max_number"), group="command")
-        cfg.CONF.register_opt(cfg.StrOpt("audit_template"), group="command")
+        cfg.CONF.register_opt(cfg.StrOpt("goal"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("exclude_orphans"), group="command")
         cfg.CONF.register_opt(cfg.BoolOpt("dry_run"), group="command")
         cfg.CONF.set_default("age_in_days", None, group="command")
         cfg.CONF.set_default("max_number", None, group="command")
-        cfg.CONF.set_default("audit_template", None, group="command")
+        cfg.CONF.set_default("goal", None, group="command")
         cfg.CONF.set_default("exclude_orphans", True, group="command")
         cfg.CONF.set_default("dry_run", True, group="command")
 

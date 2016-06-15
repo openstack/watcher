@@ -318,58 +318,6 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertRaises(exception.AuditNotFound,
                           self.dbapi.get_audit_by_id, self.context, 1234)
 
-    def test_get_audit_list_with_filter_by_audit_template_uuid(self):
-
-        audit_template = self.dbapi.create_audit_template(
-            utils.get_test_audit_template(
-                uuid=w_utils.generate_uuid(),
-                name='My Audit Template 1',
-                description='Description of my audit template 1',
-                host_aggregate=5,
-                goal='DUMMY',
-                extra={'automatic': True})
-        )
-
-        audit = self._create_test_audit(
-            audit_type='ONESHOT',
-            uuid=w_utils.generate_uuid(),
-            deadline=None,
-            state='ONGOING',
-            audit_template_id=audit_template.id)
-
-        res = self.dbapi.get_audit_list(
-            self.context,
-            filters={'audit_template_uuid': audit_template.uuid})
-
-        for r in res:
-            self.assertEqual(audit['audit_template_id'], r.audit_template_id)
-
-    def test_get_audit_list_with_filter_by_audit_template_name(self):
-
-        audit_template = self.dbapi.create_audit_template(
-            utils.get_test_audit_template(
-                uuid=w_utils.generate_uuid(),
-                name='My Audit Template 1',
-                description='Description of my audit template 1',
-                host_aggregate=5,
-                goal='DUMMY',
-                extra={'automatic': True})
-        )
-
-        audit = self._create_test_audit(
-            audit_type='ONESHOT',
-            uuid=w_utils.generate_uuid(),
-            deadline=None,
-            state='ONGOING',
-            audit_template_id=audit_template.id)
-
-        res = self.dbapi.get_audit_list(
-            self.context,
-            filters={'audit_template_name': audit_template.name})
-
-        for r in res:
-            self.assertEqual(audit['audit_template_id'], r.audit_template_id)
-
     def test_update_audit(self):
         audit = self._create_test_audit()
         res = self.dbapi.update_audit(audit['id'], {'name': 'updated-model'})

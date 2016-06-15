@@ -45,6 +45,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         )
 
         _, body = self.create_audit(**audit_params)
+        audit_params.pop('audit_template_uuid')
+        audit_params['goal_uuid'] = goal['uuid']
         self.assert_expected(audit_params, body)
 
         _, audit = self.client.show_audit(body['uuid'])
@@ -62,6 +64,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         )
 
         _, body = self.create_audit(**audit_params)
+        audit_params.pop('audit_template_uuid')
+        audit_params['goal_uuid'] = goal['uuid']
         self.assert_expected(audit_params, body)
 
         _, audit = self.client.show_audit(body['uuid'])
@@ -101,6 +105,8 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         )
 
         _, body = self.create_audit(**audit_params)
+        audit_params.pop('audit_template_uuid')
+        audit_params['goal_uuid'] = goal['uuid']
         self.assert_expected(audit_params, body)
 
         _, audit = self.client.show_audit(body['uuid'])
@@ -190,5 +196,5 @@ class TestShowListAudit(base.BaseInfraOptimTest):
     @test.attr(type='smoke')
     def test_list_audits_related_to_given_audit_template(self):
         _, body = self.client.list_audits(
-            audit_template=self.audit_template['uuid'])
+            goal=self.goal['uuid'])
         self.assertIn(self.audit['uuid'], [n['uuid'] for n in body['audits']])

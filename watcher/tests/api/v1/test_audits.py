@@ -34,9 +34,15 @@ from watcher.tests.objects import utils as obj_utils
 def post_get_test_audit(**kw):
     audit = api_utils.audit_post_data(**kw)
     audit_template = db_utils.get_test_audit_template()
-    del audit['audit_template_id']
-    audit['audit_template_uuid'] = kw.get('audit_template_uuid',
-                                          audit_template['uuid'])
+    goal = db_utils.get_test_goal()
+    del_keys = ['goal_id', 'strategy_id']
+    add_keys = {'audit_template_uuid': audit_template['uuid'],
+                'goal': goal['uuid'],
+                }
+    for k in del_keys:
+        del audit[k]
+    for k in add_keys:
+        audit[k] = kw.get(k, add_keys[k])
     return audit
 
 
@@ -44,21 +50,25 @@ def post_get_test_audit_with_predefined_strategy(**kw):
     spec = kw.pop('strategy_parameters_spec', {})
     strategy_id = 2
     strategy = db_utils.get_test_strategy(parameters_spec=spec, id=strategy_id)
-
+    audit = api_utils.audit_post_data(**kw)
     audit_template = db_utils.get_test_audit_template(
         strategy_id=strategy['id'])
-
-    audit = api_utils.audit_post_data(**kw)
-    del audit['audit_template_id']
-    audit['audit_template_uuid'] = audit_template['uuid']
-
+    del_keys = ['goal_id', 'strategy_id']
+    add_keys = {'audit_template_uuid': audit_template['uuid'],
+                }
+    for k in del_keys:
+        del audit[k]
+    for k in add_keys:
+        audit[k] = kw.get(k, add_keys[k])
     return audit
 
 
 class TestAuditObject(base.TestCase):
 
     def test_audit_init(self):
-        audit_dict = api_utils.audit_post_data(audit_template_id=None)
+        audit_dict = api_utils.audit_post_data(audit_template_id=None,
+                                               goal_id=None,
+                                               strategy_id=None)
         del audit_dict['state']
         audit = api_audit.Audit(**audit_dict)
         self.assertEqual(wtypes.Unset, audit.state)
@@ -69,13 +79,16 @@ class TestListAudit(api_base.FunctionalTest):
     def setUp(self):
         super(TestListAudit, self).setUp()
         obj_utils.create_test_audit_template(self.context)
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
 
     def test_empty(self):
         response = self.get_json('/audits')
         self.assertEqual([], response['audits'])
 
     def _assert_audit_fields(self, audit):
-        audit_fields = ['audit_type', 'deadline', 'state']
+        audit_fields = ['audit_type', 'deadline', 'state', 'goal_uuid',
+                        'strategy_uuid', 'host_aggregate']
         for field in audit_fields:
             self.assertIn(field, audit)
 
@@ -180,23 +193,23 @@ class TestListAudit(api_base.FunctionalTest):
         uuids = [s['uuid'] for s in response['audits']]
         self.assertEqual(sorted(audit_list), sorted(uuids))
 
-    def test_many_with_sort_key_audit_template_uuid(self):
-        audit_template_list = []
+    def test_many_with_sort_key_goal_uuid(self):
+        goal_list = []
         for id_ in range(5):
-            audit_template = obj_utils.create_test_audit_template(
+            goal = obj_utils.create_test_goal(
                 self.context,
-                name='at{0}'.format(id_),
+                name='gl{0}'.format(id_),
                 uuid=utils.generate_uuid())
             obj_utils.create_test_audit(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                audit_template_id=audit_template.id)
-            audit_template_list.append(audit_template.uuid)
+                goal_id=goal.id)
+            goal_list.append(goal.uuid)
 
-        response = self.get_json('/audits/?sort_key=audit_template_uuid')
+        response = self.get_json('/audits/?sort_key=goal_uuid')
 
         self.assertEqual(5, len(response['audits']))
-        uuids = [s['audit_template_uuid'] for s in response['audits']]
-        self.assertEqual(sorted(audit_template_list), uuids)
+        uuids = [s['goal_uuid'] for s in response['audits']]
+        self.assertEqual(sorted(goal_list), uuids)
 
     def test_links(self):
         uuid = utils.generate_uuid()
@@ -230,130 +243,6 @@ class TestListAudit(api_base.FunctionalTest):
 
         next_marker = response['audits'][-1]['uuid']
         self.assertIn(next_marker, response['next'])
-
-    def test_filter_by_audit_template_uuid(self):
-        audit_template_uuid = utils.generate_uuid()
-        audit_template_name = 'My_Audit_Template'
-
-        audit_template = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=audit_template_uuid,
-            name=audit_template_name)
-        number_of_audits_with_audit_template_id = 5
-        for id_ in range(number_of_audits_with_audit_template_id):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid(),
-                                        audit_template_id=audit_template.id)
-        for id_ in range(6, 8):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid())
-
-        response = self.get_json('/audits/?audit_template=%s'
-                                 % audit_template_uuid)
-
-        audits = response['audits']
-        self.assertEqual(5, len(audits))
-        for audit in audits:
-            self.assertEqual(audit_template_uuid,
-                             audit['audit_template_uuid'])
-
-    def test_detail_filter_by_audit_template_uuid(self):
-        audit_template_uuid = utils.generate_uuid()
-        audit_template_name = 'My_Audit_Template'
-
-        audit_template = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=audit_template_uuid,
-            name=audit_template_name)
-        number_of_audits_with_audit_template_id = 5
-        for id_ in range(number_of_audits_with_audit_template_id):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid(),
-                                        audit_template_id=audit_template.id)
-        for id_ in range(6, 8):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid())
-
-        response = self.get_json('/audits/detail?audit_template=%s'
-                                 % audit_template_uuid)
-
-        audits = response['audits']
-        self.assertEqual(5, len(audits))
-        for audit in audits:
-            self.assertEqual(audit_template_uuid,
-                             audit['audit_template_uuid'])
-
-    def test_filter_by_audit_template_name(self):
-        audit_template_uuid = utils.generate_uuid()
-        audit_template_name = 'My_Audit_Template'
-
-        audit_template = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=audit_template_uuid,
-            name=audit_template_name)
-
-        number_of_audits_with_audit_template_id = 5
-        for id_ in range(number_of_audits_with_audit_template_id):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid(),
-                                        audit_template_id=audit_template.id)
-        for id_ in range(6, 8):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid())
-
-        response = self.get_json('/audits/?audit_template=%s'
-                                 % audit_template_name)
-
-        audits = response['audits']
-        self.assertEqual(5, len(audits))
-        for audit in audits:
-            self.assertEqual(audit_template_uuid,
-                             audit['audit_template_uuid'])
-
-    def test_many_by_soft_deleted_audit_template(self):
-        audit_list = []
-        audit_template1 = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=utils.generate_uuid(),
-            name='at1',
-            id=3,
-        )
-
-        audit_template2 = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=utils.generate_uuid(),
-            name='at2',
-            id=4,
-        )
-
-        for id_ in range(0, 2):
-            audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(),
-                audit_template_id=audit_template1.id)
-            audit_list.append(audit.uuid)
-
-        for id_ in range(2, 4):
-            audit = obj_utils.create_test_audit(
-                self.context, id=id_,
-                uuid=utils.generate_uuid(),
-                audit_template_id=audit_template2.id)
-            audit_list.append(audit.uuid)
-
-        self.delete('/audit_templates/%s' % audit_template1.uuid)
-
-        response = self.get_json('/audits')
-
-        self.assertEqual(len(audit_list), len(response['audits']))
-
-        for id_ in range(0, 2):
-            audit = response['audits'][id_]
-            self.assertIsNone(audit['audit_template_uuid'])
-
-        for id_ in range(2, 4):
-            audit = response['audits'][id_]
-            self.assertEqual(audit_template2.uuid,
-                             audit['audit_template_uuid'])
 
 
 class TestPatch(api_base.FunctionalTest):
@@ -457,6 +346,8 @@ class TestPost(api_base.FunctionalTest):
     def setUp(self):
         super(TestPost, self).setUp()
         obj_utils.create_test_audit_template(self.context)
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
         p = mock.patch.object(db_api.BaseConnection, 'create_audit')
         self.mock_create_audit = p.start()
         self.mock_create_audit.side_effect = (

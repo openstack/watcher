@@ -59,7 +59,7 @@ class DBCommand(object):
     @staticmethod
     def purge():
         purge.purge(CONF.command.age_in_days, CONF.command.max_number,
-                    CONF.command.audit_template, CONF.command.exclude_orphans,
+                    CONF.command.goal, CONF.command.exclude_orphans,
                     CONF.command.dry_run)
 
 
@@ -115,8 +115,8 @@ def add_command_parsers(subparsers):
                              "Prevents the deletion if exceeded. No limit if "
                              "set to None.",
                         type=int, default=None, nargs='?')
-    parser.add_argument('-t', '--audit-template',
-                        help="UUID or name of the audit template to purge.",
+    parser.add_argument('-t', '--goal',
+                        help="UUID or name of the goal to purge.",
                         type=str, default=None, nargs='?')
     parser.add_argument('-e', '--exclude-orphans', action='store_true',
                         help="Flag to indicate whether or not you want to "
