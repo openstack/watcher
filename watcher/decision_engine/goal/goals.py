@@ -1,0 +1,93 @@
+# -*- encoding: utf-8 -*-
+# Copyright (c) 2016 b<>com
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from watcher._i18n import _
+from watcher.decision_engine.goal import base
+
+
+class Dummy(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "dummy"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Dummy goal")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Dummy goal"
+
+
+class Unclassified(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "unclassified"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Unclassified")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Unclassified"
+
+
+class ServerConsolidation(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "server_consolidation"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Server consolidation")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Server consolidation"
+
+
+class ThermalOptimization(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "thermal_optimization"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Thermal optimization")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Thermal optimization"
+
+
+class WorkloadBalancing(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "workload_balancing"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Workload balancing")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Workload balancing"

@@ -18,7 +18,7 @@
 #
 from oslo_log import log
 
-from watcher._i18n import _LE, _LI, _LW
+from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception as wexc
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state

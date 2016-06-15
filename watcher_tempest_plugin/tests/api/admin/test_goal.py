@@ -24,7 +24,7 @@ from watcher_tempest_plugin.tests.api.admin import base
 class TestShowListGoal(base.BaseInfraOptimTest):
     """Tests for goals"""
 
-    DUMMY_GOAL = "DUMMY"
+    DUMMY_GOAL = "dummy"
 
     @classmethod
     def resource_setup(cls):

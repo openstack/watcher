@@ -123,15 +123,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     @classmethod
     def get_name(cls):
-        return "WORKLOAD_BALANCING"
+        return "workload_stabilization"
 
     @classmethod
     def get_display_name(cls):
-        return _("Workload balancing")
+        return _("Workload stabilization")
 
     @classmethod
     def get_translatable_display_name(cls):
-        return "Workload balancing"
+        return "Workload stabilization"
 
     @property
     def ceilometer(self):

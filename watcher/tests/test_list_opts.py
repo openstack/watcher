@@ -74,7 +74,7 @@ class TestListOpts(base.TestCase):
 
     def test_list_opts_with_opts(self):
         expected_sections = self.base_sections + [
-            'watcher_strategies.STRATEGY_1']
+            'watcher_strategies.strategy_1']
         # Set up the fake Stevedore extensions
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
@@ -105,8 +105,7 @@ class TestListOpts(base.TestCase):
             self.assertTrue(len(options))
 
         result_map = dict(result)
-
-        strategy_opts = result_map['watcher_strategies.STRATEGY_1']
+        strategy_opts = result_map['watcher_strategies.strategy_1']
         self.assertEqual(['test_opt'], [opt.name for opt in strategy_opts])
 
 
@@ -140,6 +139,6 @@ class TestPlugins(base.TestCase):
                 m_ext_manager.side_effect = m_list_available
                 opts.show_plugins()
                 m_show.assert_called_once_with(
-                    [('watcher_strategies.STRATEGY_1', 'STRATEGY_1',
+                    [('watcher_strategies.strategy_1', 'strategy_1',
                       'watcher.tests.decision_engine.'
                       'fake_strategies.FakeDummy1Strategy1')])

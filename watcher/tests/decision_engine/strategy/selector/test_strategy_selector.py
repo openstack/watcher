@@ -18,7 +18,7 @@ import mock
 from oslo_config import cfg
 
 from watcher.common import exception
-from watcher.decision_engine.strategy.loading import default as default_loader
+from watcher.decision_engine.loading import default as default_loader
 from watcher.decision_engine.strategy.selection import (
     default as default_selector)
 from watcher.decision_engine.strategy import strategies
@@ -34,7 +34,7 @@ class TestStrategySelector(base.TestCase):
 
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'load')
     def test_select_with_strategy_name(self, m_load):
-        expected_goal = 'DUMMY'
+        expected_goal = 'dummy'
         expected_strategy = "dummy"
         strategy_selector = default_selector.DefaultStrategySelector(
             expected_goal, expected_strategy, osc=None)
@@ -45,7 +45,7 @@ class TestStrategySelector(base.TestCase):
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
     def test_select_with_goal_name_only(self, m_list_available, m_load):
         m_list_available.return_value = {"dummy": strategies.DummyStrategy}
-        expected_goal = 'DUMMY'
+        expected_goal = 'dummy'
         expected_strategy = "dummy"
         strategy_selector = default_selector.DefaultStrategySelector(
             expected_goal, osc=None)
@@ -54,13 +54,13 @@ class TestStrategySelector(base.TestCase):
 
     def test_select_non_existing_strategy(self):
         strategy_selector = default_selector.DefaultStrategySelector(
-            "DUMMY", "NOT_FOUND")
+            "dummy", "NOT_FOUND")
         self.assertRaises(exception.LoadingError, strategy_selector.select)
 
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'list_available')
     def test_select_no_available_strategy_for_goal(self, m_list_available):
         m_list_available.return_value = {}
         strategy_selector = default_selector.DefaultStrategySelector(
-            "DUMMY")
+            "dummy")
         self.assertRaises(exception.NoAvailableStrategyForGoal,
                           strategy_selector.select)

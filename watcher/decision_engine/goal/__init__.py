@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2015 b<>com
-#
-# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+# Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,15 +13,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
-from __future__ import unicode_literals
+from watcher.decision_engine.goal import goals
 
+Dummy = goals.Dummy
+ServerConsolidation = goals.ServerConsolidation
+ThermalOptimization = goals.ThermalOptimization
+Unclassified = goals.Unclassified
+WorkloadBalancing = goals.WorkloadBalancing
 
-from watcher.common.loader import default
-
-
-class DefaultStrategyLoader(default.DefaultLoader):
-    def __init__(self):
-        super(DefaultStrategyLoader, self).__init__(
-            namespace='watcher_strategies')
+__all__ = ("Dummy", "ServerConsolidation", "ThermalOptimization",
+           "Unclassified", "WorkloadBalancing", )

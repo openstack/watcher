@@ -42,6 +42,7 @@ import six
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common.loader import loadable
+from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
 
@@ -93,18 +94,10 @@ class BaseStrategy(loadable.Loadable):
         raise NotImplementedError()
 
     @classmethod
-    @abc.abstractmethod
-    def get_goal_display_name(cls):
-        """The translated display name related to the goal of the strategy"""
-        raise NotImplementedError()
-
-    @classmethod
-    @abc.abstractmethod
-    def get_translatable_goal_display_name(cls):
-        """The translatable msgid related to the goal of the strategy"""
-        # Note(v-francoise): Defined here to be used as the translation key for
-        # other services
-        raise NotImplementedError()
+    def get_goal(cls):
+        """The goal the strategy achieves"""
+        goal_loader = loading.DefaultGoalLoader()
+        return goal_loader.load(cls.get_goal_name())
 
     @classmethod
     def get_config_opts(cls):
@@ -140,7 +133,7 @@ class BaseStrategy(loadable.Loadable):
         self._solution = s
 
     @property
-    def id(self):
+    def name(self):
         return self._name
 
     @property
@@ -169,15 +162,7 @@ class DummyBaseStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "DUMMY"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Dummy goal")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Dummy goal"
+        return "dummy"
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -192,15 +177,7 @@ class UnclassifiedStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "UNCLASSIFIED"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Unclassified")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Unclassified"
+        return "unclassified"
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -208,15 +185,7 @@ class ServerConsolidationBaseStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "SERVER_CONSOLIDATION"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Server consolidation")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Server consolidation"
+        return "server_consolidation"
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -224,15 +193,7 @@ class ThermalOptimizationBaseStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "THERMAL_OPTIMIZATION"
-
-    @classmethod
-    def get_goal_display_name(cls):
-        return _("Thermal optimization")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Thermal optimization"
+        return "thermal_optimization"
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -240,7 +201,7 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "WORKLOAD_BALANCING"
+        return "workload_balancing"
 
     @classmethod
     def get_goal_display_name(cls):

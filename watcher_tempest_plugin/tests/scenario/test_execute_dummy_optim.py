@@ -29,15 +29,15 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
     """Tests for action plans"""
 
     def test_execute_dummy_action_plan(self):
-        """Execute an action plan based on the DUMMY strategy
+        """Execute an action plan based on the 'dummy' strategy
 
-        - create an audit template with the dummy strategy
+        - create an audit template with the 'dummy' strategy
         - run the audit to create an action plan
         - get the action plan
         - run the action plan
         - get results and make sure it succeeded
         """
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 

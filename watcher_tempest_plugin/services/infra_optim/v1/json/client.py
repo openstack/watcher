@@ -66,7 +66,7 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
             this audit template.
         :param extra: Metadata associated to this audit template.
         :return: A tuple with the server response and the created audit
-            template.
+                 template.
         """
 
         parameters = {k: v for k, v in kwargs.items() if v is not None}

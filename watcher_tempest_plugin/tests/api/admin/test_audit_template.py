@@ -165,7 +165,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_update_audit_template_replace(self):
-        _, new_goal = self.client.show_goal("SERVER_CONSOLIDATION")
+        _, new_goal = self.client.show_goal("server_consolidation")
         _, new_strategy = self.client.show_strategy("basic")
 
         params = {'name': 'my at name %s' % uuid.uuid4(),
