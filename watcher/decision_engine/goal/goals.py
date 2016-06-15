@@ -16,9 +16,14 @@
 
 from watcher._i18n import _
 from watcher.decision_engine.goal import base
+from watcher.decision_engine.goal.efficacy import specs
 
 
 class Dummy(base.Goal):
+    """Dummy
+
+    Reserved goal that is used for testing purposes.
+    """
 
     @classmethod
     def get_name(cls):
@@ -32,8 +37,21 @@ class Dummy(base.Goal):
     def get_translatable_display_name(cls):
         return "Dummy goal"
 
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
+
 
 class Unclassified(base.Goal):
+    """Unclassified
+
+    This goal is used to ease the development process of a strategy. Containing
+    no actual indicator specification, this goal can be used whenever a
+    strategy has yet to be formally associated with an existing goal. If the
+    goal achieve has been identified but there is no available implementation,
+    this Goal can also be used as a transitional stage.
+    """
 
     @classmethod
     def get_name(cls):
@@ -46,6 +64,11 @@ class Unclassified(base.Goal):
     @classmethod
     def get_translatable_display_name(cls):
         return "Unclassified"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
 
 
 class ServerConsolidation(base.Goal):
@@ -62,6 +85,11 @@ class ServerConsolidation(base.Goal):
     def get_translatable_display_name(cls):
         return "Server consolidation"
 
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.ServerConsolidation()
+
 
 class ThermalOptimization(base.Goal):
 
@@ -77,6 +105,11 @@ class ThermalOptimization(base.Goal):
     def get_translatable_display_name(cls):
         return "Thermal optimization"
 
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
+
 
 class WorkloadBalancing(base.Goal):
 
@@ -91,3 +124,8 @@ class WorkloadBalancing(base.Goal):
     @classmethod
     def get_translatable_display_name(cls):
         return "Workload balancing"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
