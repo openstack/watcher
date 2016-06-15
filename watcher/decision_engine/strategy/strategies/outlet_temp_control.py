@@ -30,7 +30,7 @@ telemetries to measure thermal/workload status of server.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LE
+from watcher._i18n import _, _LE, _LI
 from watcher.common import exception as wexc
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state
@@ -78,7 +78,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     MIGRATION = "migrate"
 
-    def __init__(self, config=None, osc=None):
+    def __init__(self, config, osc=None):
         """Outlet temperature control using live migration
 
         :param config: A mapping containing the configuration of this strategy
@@ -116,26 +116,25 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
-    def calc_used_res(self, cluster_data_model, hypervisor, cpu_capacity,
+    def calc_used_res(self, hypervisor, cpu_capacity,
                       memory_capacity, disk_capacity):
-        '''calculate the used vcpus, memory and disk based on VM flavors'''
-        vms = cluster_data_model.get_mapping().get_node_vms(hypervisor)
+        """Calculate the used vcpus, memory and disk based on VM flavors"""
+        vms = self.model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         if len(vms) > 0:
             for vm_id in vms:
-                vm = cluster_data_model.get_vm_from_id(vm_id)
+                vm = self.model.get_vm_from_id(vm_id)
                 vcpus_used += cpu_capacity.get_capacity(vm)
                 memory_mb_used += memory_capacity.get_capacity(vm)
                 disk_gb_used += disk_capacity.get_capacity(vm)
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
-    def group_hosts_by_outlet_temp(self, cluster_data_model):
+    def group_hosts_by_outlet_temp(self):
         """Group hosts based on outlet temp meters"""
-
-        hypervisors = cluster_data_model.get_all_hypervisors()
+        hypervisors = self.model.get_all_hypervisors()
         size_cluster = len(hypervisors)
         if size_cluster == 0:
             raise wexc.ClusterEmpty()
@@ -143,7 +142,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         hosts_need_release = []
         hosts_target = []
         for hypervisor_id in hypervisors:
-            hypervisor = cluster_data_model.get_hypervisor_from_id(
+            hypervisor = self.model.get_hypervisor_from_id(
                 hypervisor_id)
             resource_id = hypervisor.uuid
 
@@ -166,37 +165,35 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 hosts_target.append(hvmap)
         return hosts_need_release, hosts_target
 
-    def choose_vm_to_migrate(self, cluster_data_model, hosts):
-        """pick up an active vm instance to migrate from provided hosts"""
-
+    def choose_vm_to_migrate(self, hosts):
+        """Pick up an active vm instance to migrate from provided hosts"""
         for hvmap in hosts:
             mig_src_hypervisor = hvmap['hv']
-            vms_of_src = cluster_data_model.get_mapping().get_node_vms(
+            vms_of_src = self.model.get_mapping().get_node_vms(
                 mig_src_hypervisor)
             if len(vms_of_src) > 0:
                 for vm_id in vms_of_src:
                     try:
                         # select the first active VM to migrate
-                        vm = cluster_data_model.get_vm_from_id(vm_id)
+                        vm = self.model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.info(_LE("VM not active, skipped: %s"),
                                      vm.uuid)
                             continue
                         return mig_src_hypervisor, vm
                     except wexc.InstanceNotFound as e:
-                        LOG.info("VM not found Error: %s" % e.message)
-                        pass
+                        LOG.exception(e)
+                        LOG.info(_LI("VM not found"))
 
         return None
 
-    def filter_dest_servers(self, cluster_data_model, hosts, vm_to_migrate):
+    def filter_dest_servers(self, hosts, vm_to_migrate):
         """Only return hosts with sufficient available resources"""
-
-        cpu_capacity = cluster_data_model.get_resource_from_id(
+        cpu_capacity = self.model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
-        disk_capacity = cluster_data_model.get_resource_from_id(
+        disk_capacity = self.model.get_resource_from_id(
             resource.ResourceType.disk)
-        memory_capacity = cluster_data_model.get_resource_from_id(
+        memory_capacity = self.model.get_resource_from_id(
             resource.ResourceType.memory)
 
         required_cores = cpu_capacity.get_capacity(vm_to_migrate)
@@ -209,8 +206,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             host = hvmap['hv']
             # available
             cores_used, mem_used, disk_used = self.calc_used_res(
-                cluster_data_model, host, cpu_capacity, memory_capacity,
-                disk_capacity)
+                host, cpu_capacity, memory_capacity, disk_capacity)
             cores_available = cpu_capacity.get_capacity(host) - cores_used
             disk_available = disk_capacity.get_capacity(host) - disk_used
             mem_available = memory_capacity.get_capacity(host) - mem_used
@@ -221,15 +217,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         return dest_servers
 
-    def execute(self, original_model):
+    def pre_execute(self):
         LOG.debug("Initializing Outlet temperature strategy")
 
-        if original_model is None:
+        if self.model is None:
             raise wexc.ClusterStateNotDefined()
 
-        current_model = original_model
-        hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp(
-            current_model)
+    def do_execute(self):
+        hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp()
 
         if len(hosts_need_release) == 0:
             # TODO(zhenzanz): return something right if there's no hot servers
@@ -245,16 +240,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                                     reverse=True,
                                     key=lambda x: (x["outlet_temp"]))
 
-        vm_to_migrate = self.choose_vm_to_migrate(current_model,
-                                                  hosts_need_release)
+        vm_to_migrate = self.choose_vm_to_migrate(hosts_need_release)
         # calculate the vm's cpu cores,memory,disk needs
         if vm_to_migrate is None:
             return self.solution
 
         mig_src_hypervisor, vm_src = vm_to_migrate
-        dest_servers = self.filter_dest_servers(current_model,
-                                                hosts_target,
-                                                vm_src)
+        dest_servers = self.filter_dest_servers(hosts_target, vm_src)
         # sort the filtered result by outlet temp
         # pick up the lowest one as dest server
         if len(dest_servers) == 0:
@@ -267,9 +259,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         # always use the host with lowerest outlet temperature
         mig_dst_hypervisor = dest_servers[0]['hv']
         # generate solution to migrate the vm to the dest server,
-        if current_model.get_mapping().migrate_vm(vm_src,
-                                                  mig_src_hypervisor,
-                                                  mig_dst_hypervisor):
+        if self.model.get_mapping().migrate_vm(
+                vm_src, mig_src_hypervisor, mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
                           'src_hypervisor': mig_src_hypervisor.uuid,
                           'dst_hypervisor': mig_dst_hypervisor.uuid}
@@ -277,6 +268,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                                      resource_id=vm_src.uuid,
                                      input_parameters=parameters)
 
-        self.solution.model = current_model
-
-        return self.solution
+    def post_execute(self):
+        self.solution.model = self.model
+        # TODO(v-francoise): Add the indicators to the solution

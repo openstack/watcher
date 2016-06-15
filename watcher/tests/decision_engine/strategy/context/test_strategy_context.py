@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import mock
 
 from watcher.decision_engine.solution.default import DefaultSolution
@@ -20,10 +21,7 @@ from watcher.decision_engine.strategy.context.default import \
     DefaultStrategyContext
 from watcher.decision_engine.strategy.selection.default import \
     DefaultStrategySelector
-from watcher.decision_engine.strategy.strategies.dummy_strategy import \
-    DummyStrategy
-from watcher.metrics_engine.cluster_model_collector.manager import \
-    CollectorManager
+from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.tests.db import base
 from watcher.tests.objects import utils as obj_utils
 
@@ -32,18 +30,19 @@ class TestStrategyContext(base.DbTestCase):
     def setUp(self):
         super(TestStrategyContext, self).setUp()
         obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
-        audit_template = obj_utils.create_test_audit_template(
-            self.context)
+        audit_template = obj_utils.create_test_audit_template(self.context)
         self.audit = obj_utils.create_test_audit(
             self.context, audit_template_id=audit_template.id)
 
     strategy_context = DefaultStrategyContext()
 
+    @mock.patch.object(dummy_strategy.DummyStrategy, 'model',
+                       new_callable=mock.PropertyMock)
     @mock.patch.object(DefaultStrategySelector, 'select')
-    @mock.patch.object(CollectorManager, "get_cluster_model_collector",
-                       mock.Mock())
-    def test_execute_strategy(self, mock_call):
-        mock_call.return_value = DummyStrategy()
+    def test_execute_strategy(self, mock_call, m_model):
+        m_model.return_value = mock.Mock()
+        mock_call.return_value = dummy_strategy.DummyStrategy(
+            config=mock.Mock())
         solution = self.strategy_context.execute_strategy(
             self.audit.uuid, self.context)
         self.assertIsInstance(solution, DefaultSolution)

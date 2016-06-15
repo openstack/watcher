@@ -84,7 +84,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/implemented/zhaw-load-consolidation.rst
     """  # noqa
 
-    def __init__(self, config=None, osc=None):
+    def __init__(self, config, osc=None):
         super(VMWorkloadConsolidation, self).__init__(config, osc)
         self._ceilometer = None
         self.number_of_migrations = 0
@@ -121,8 +121,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         if isinstance(state, six.string_types):
             return state
-        elif (type(state) == hyper_state.HypervisorState or
-              type(state) == vm_state.VMState):
+        elif isinstance(state, (vm_state.VMState,
+                                hyper_state.HypervisorState)):
             return state.value
         else:
             LOG.error(_LE('Unexpexted resource state type, '
@@ -171,12 +171,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         vm_state_str = self.get_state_str(vm.state)
         if vm_state_str != vm_state.VMState.ACTIVE.value:
-            '''
-            Watcher curently only supports live VM migration and block live
-            VM migration which both requires migrated VM to be active.
-            When supported, the cold migration may be used as a fallback
-            migration mechanism to move non active VMs.
-            '''
+            # Watcher curently only supports live VM migration and block live
+            # VM migration which both requires migrated VM to be active.
+            # When supported, the cold migration may be used as a fallback
+            # migration mechanism to move non active VMs.
             LOG.error(_LE('Cannot live migrate: vm_uuid=%(vm_uuid)s, '
                           'state=%(vm_state)s.'),
                       vm_uuid=vm_uuid,
@@ -209,13 +207,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             if len(model.get_mapping().get_node_vms(hypervisor)) == 0:
                 self.add_action_deactivate_hypervisor(hypervisor)
 
-    def get_prediction_model(self, model):
+    def get_prediction_model(self):
         """Return a deepcopy of a model representing current cluster state.
 
         :param model: model_root object
         :return: model_root object
         """
-        return deepcopy(model)
+        return deepcopy(self.model)
 
     def get_vm_utilization(self, vm_uuid, model, period=3600, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a VM.
@@ -334,7 +332,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        hypervisors = model.get_all_hypervisors().values()
+        hypervisors = self.model.get_all_hypervisors().values()
         rcu = {}
         counters = {}
         for hypervisor in hypervisors:
@@ -452,9 +450,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             key=lambda x: self.get_hypervisor_utilization(x, model)['cpu'])
         for hypervisor in reversed(sorted_hypervisors):
             if self.is_overloaded(hypervisor, model, cc):
-                for vm in sorted(model.get_mapping().get_node_vms(hypervisor),
-                                 key=lambda x: self.get_vm_utilization(
-                        x, model)['cpu']):
+                for vm in sorted(
+                        model.get_mapping().get_node_vms(hypervisor),
+                        key=lambda x: self.get_vm_utilization(
+                            x, model)['cpu']
+                ):
                     for dst_hypervisor in reversed(sorted_hypervisors):
                         if self.vm_fits(vm, dst_hypervisor, model, cc):
                             self.add_migration(vm, hypervisor,
@@ -498,7 +498,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     dsc -= 1
             asc += 1
 
-    def execute(self, original_model):
+    def pre_execute(self):
+        if self.model is None:
+            raise exception.ClusterStateNotDefined()
+
+    def do_execute(self):
         """Execute strategy.
 
         This strategy produces a solution resulting in more
@@ -513,7 +517,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param original_model: root_model object
         """
         LOG.info(_LI('Executing Smart Strategy'))
-        model = self.get_prediction_model(original_model)
+        model = self.get_prediction_model(self.model)
         rcu = self.get_relative_cluster_utilization(model)
         self.ceilometer_vm_data_cache = dict()
 
@@ -545,4 +549,6 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         self.solution.model = model
         self.solution.efficacy = rcu_after['cpu']
 
-        return self.solution
+    def post_execute(self):
+        # TODO(v-francoise): Add the indicators to the solution
+        pass

@@ -14,7 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+
 from watcher.applier.actions.loading import default
+from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies import \
@@ -22,18 +25,33 @@ from watcher.tests.decision_engine.strategy.strategies import \
 
 
 class TestDummyStrategy(base.TestCase):
+
+    def setUp(self):
+        super(TestDummyStrategy, self).setUp()
+        # fake cluster
+        self.fake_cluster = faker_cluster_state.FakerModelCollector()
+
+        p_model = mock.patch.object(
+            strategies.DummyStrategy, "model",
+            new_callable=mock.PropertyMock)
+        self.m_model = p_model.start()
+        self.addCleanup(p_model.stop)
+
+        self.m_model.return_value = model_root.ModelRoot()
+        self.strategy = strategies.DummyStrategy(config=mock.Mock())
+
+        self.m_model.return_value = model_root.ModelRoot()
+        self.strategy = strategies.DummyStrategy(config=mock.Mock())
+
     def test_dummy_strategy(self):
-        dummy = strategies.DummyStrategy()
-        fake_cluster = faker_cluster_state.FakerModelCollector()
-        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
-        solution = dummy.execute(model)
+        dummy = strategies.DummyStrategy(config=mock.Mock())
+        solution = dummy.execute()
         self.assertEqual(3, len(solution.actions))
 
     def test_check_parameters(self):
-        dummy = strategies.DummyStrategy()
-        fake_cluster = faker_cluster_state.FakerModelCollector()
-        model = fake_cluster.generate_scenario_3_with_2_hypervisors()
-        solution = dummy.execute(model)
+        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+        self.m_model.return_value = model
+        solution = self.strategy.execute()
         loader = default.DefaultActionLoader()
         for action in solution.actions:
             loaded_action = loader.load(action['action_type'])
