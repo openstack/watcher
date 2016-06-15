@@ -17,6 +17,8 @@
 
 """SQLAlchemy storage backend."""
 
+import collections
+
 from oslo_config import cfg
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import session as db_session
@@ -102,6 +104,14 @@ def _paginate_query(model, limit=None, marker=None, sort_key=None,
     return query.all()
 
 
+class JoinMap(utils.Struct):
+    """Mapping for the Join-based queries"""
+
+
+NaturalJoinFilter = collections.namedtuple(
+    'NaturalJoinFilter', ['join_fieldname', 'join_model'])
+
+
 class Connection(api.BaseConnection):
     """SqlAlchemy connection."""
 
@@ -185,9 +195,11 @@ class Connection(api.BaseConnection):
     def __add_simple_filter(self, query, model, fieldname, value):
         return query.filter(getattr(model, fieldname) == value)
 
-    def __add_join_filter(self, query, model, join_model, fieldname, value):
+    def __add_natural_join_filter(self, query, join_model,
+                                  join_fieldname, value):
         query = query.join(join_model)
-        return self.__add_simple_filter(query, join_model, fieldname, value)
+        return self.__add_simple_filter(
+            query, join_model, join_fieldname, value)
 
     def _add_filters(self, query, model, filters=None,
                      plain_fields=None, join_fieldmap=None):
@@ -198,20 +210,19 @@ class Connection(api.BaseConnection):
         :param filters: dict with the following structure {"fieldname": value}
         :param plain_fields: a :py:class:`sqlalchemy.orm.query.Query` instance
         :param join_fieldmap: a :py:class:`sqlalchemy.orm.query.Query` instance
-
         """
         filters = filters or {}
         plain_fields = plain_fields or ()
-        join_fieldmap = join_fieldmap or {}
+        join_fieldmap = join_fieldmap or JoinMap()
 
         for fieldname, value in filters.items():
             if fieldname in plain_fields:
                 query = self.__add_simple_filter(
                     query, model, fieldname, value)
             elif fieldname in join_fieldmap:
-                join_field, join_model = join_fieldmap[fieldname]
-                query = self.__add_join_filter(
-                    query, model, join_model, join_field, value)
+                join_fieldname, join_model = join_fieldmap[fieldname]
+                query = self.__add_natural_join_filter(
+                    query, join_model, join_fieldname, value)
 
         query = self.__add_soft_delete_mixin_filters(query, filters, model)
         query = self.__add_timestamp_mixin_filters(query, filters, model)
@@ -281,11 +292,11 @@ class Connection(api.BaseConnection):
 
     def _add_strategies_filters(self, query, filters):
         plain_fields = ['uuid', 'name', 'display_name', 'goal_id']
-        join_fieldmap = {
-            'goal_uuid': ("uuid", models.Goal),
-            'goal_name': ("name", models.Goal)
-        }
-
+        join_fieldmap = JoinMap(
+            goal_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.Goal),
+            goal_name=NaturalJoinFilter(
+                join_fieldname="name", join_model=models.Goal))
         return self._add_filters(
             query=query, model=models.Strategy, filters=filters,
             plain_fields=plain_fields, join_fieldmap=join_fieldmap)
@@ -296,12 +307,16 @@ class Connection(api.BaseConnection):
 
         plain_fields = ['uuid', 'name', 'host_aggregate',
                         'goal_id', 'strategy_id']
-        join_fieldmap = {
-            'goal_uuid': ("uuid", models.Goal),
-            'goal_name': ("name", models.Goal),
-            'strategy_uuid': ("uuid", models.Strategy),
-            'strategy_name': ("name", models.Strategy),
-        }
+        join_fieldmap = JoinMap(
+            goal_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.Goal),
+            goal_name=NaturalJoinFilter(
+                join_fieldname="name", join_model=models.Goal),
+            strategy_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.Strategy),
+            strategy_name=NaturalJoinFilter(
+                join_fieldname="name", join_model=models.Strategy),
+        )
 
         return self._add_filters(
             query=query, model=models.AuditTemplate, filters=filters,
@@ -393,6 +408,20 @@ class Connection(api.BaseConnection):
             query, filters, models.Action)
 
         return query
+
+    def _add_efficacy_indicators_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+
+        plain_fields = ['uuid', 'name', 'unit', 'schema', 'action_plan_id']
+        join_fieldmap = JoinMap(
+            action_plan_uuid=NaturalJoinFilter(
+                join_fieldname="uuid", join_model=models.ActionPlan),
+        )
+
+        return self._add_filters(
+            query=query, model=models.EfficacyIndicator, filters=filters,
+            plain_fields=plain_fields, join_fieldmap=join_fieldmap)
 
     # ### GOALS ### #
 
@@ -923,3 +952,76 @@ class Connection(api.BaseConnection):
                 raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
             query.soft_delete()
+
+    # ### EFFICACY INDICATORS ### #
+
+    def get_efficacy_indicator_list(self, context, filters=None, limit=None,
+                                    marker=None, sort_key=None, sort_dir=None):
+
+        query = model_query(models.EfficacyIndicator)
+        query = self._add_efficacy_indicators_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+        return _paginate_query(models.EfficacyIndicator, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_efficacy_indicator(self, values):
+        # ensure defaults are present for new efficacy indicators
+        if not values.get('uuid'):
+            values['uuid'] = utils.generate_uuid()
+
+        efficacy_indicator = models.EfficacyIndicator()
+        efficacy_indicator.update(values)
+
+        try:
+            efficacy_indicator.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.EfficacyIndicatorAlreadyExists(uuid=values['uuid'])
+        return efficacy_indicator
+
+    def _get_efficacy_indicator(self, context, fieldname, value):
+        try:
+            return self._get(context, model=models.EfficacyIndicator,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.EfficacyIndicatorNotFound(efficacy_indicator=value)
+
+    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id):
+        return self._get_efficacy_indicator(
+            context, fieldname="id", value=efficacy_indicator_id)
+
+    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid):
+        return self._get_efficacy_indicator(
+            context, fieldname="uuid", value=efficacy_indicator_uuid)
+
+    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name):
+        return self._get_efficacy_indicator(
+            context, fieldname="name", value=efficacy_indicator_name)
+
+    def update_efficacy_indicator(self, efficacy_indicator_id, values):
+        if 'uuid' in values:
+            raise exception.Invalid(
+                message=_("Cannot overwrite UUID for an existing "
+                          "efficacy indicator."))
+
+        try:
+            return self._update(
+                models.EfficacyIndicator, efficacy_indicator_id, values)
+        except exception.ResourceNotFound:
+            raise exception.EfficacyIndicatorNotFound(
+                efficacy_indicator=efficacy_indicator_id)
+
+    def soft_delete_efficacy_indicator(self, efficacy_indicator_id):
+        try:
+            self._soft_delete(models.EfficacyIndicator, efficacy_indicator_id)
+        except exception.ResourceNotFound:
+            raise exception.EfficacyIndicatorNotFound(
+                efficacy_indicator=efficacy_indicator_id)
+
+    def destroy_efficacy_indicator(self, efficacy_indicator_id):
+        try:
+            return self._destroy(
+                models.EfficacyIndicator, efficacy_indicator_id)
+        except exception.ResourceNotFound:
+            raise exception.EfficacyIndicatorNotFound(
+                efficacy_indicator=efficacy_indicator_id)

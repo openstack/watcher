@@ -560,3 +560,93 @@ class BaseConnection(object):
         :raises: :py:class:`~.ActionPlanReferenced`
         :raises: :py:class:`~.Invalid`
         """
+
+    @abc.abstractmethod
+    def get_efficacy_indicator_list(self, context, filters=None, limit=None,
+                                    marker=None, sort_key=None, sort_dir=None):
+        """Get specific columns for matching efficacy indicators.
+
+        Return a list of the specified columns for all efficacy indicators that
+        match the specified filters.
+
+        :param context: The security context
+        :param columns: List of column names to return.
+                        Defaults to 'id' column when columns == None.
+        :param filters: Filters to apply. Defaults to None.
+
+        :param limit: Maximum number of efficacy indicators to return.
+        :param marker: The last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: Direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_efficacy_indicator(self, values):
+        """Create a new efficacy indicator.
+
+        :param values: A dict containing items used to identify
+                       and track the efficacy indicator. For example:
+
+                       ::
+
+                        {
+                         'id': 1,
+                         'uuid': utils.generate_uuid(),
+                         'name': 'my_efficacy_indicator',
+                         'display_name': 'My efficacy indicator',
+                         'goal_uuid': utils.generate_uuid(),
+                        }
+        :returns: An efficacy_indicator
+        :raises: :py:class:`~.EfficacyIndicatorAlreadyExists`
+        """
+
+    @abc.abstractmethod
+    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id):
+        """Return an efficacy indicator given its ID.
+
+        :param context: The security context
+        :param efficacy_indicator_id: The ID of an efficacy indicator
+        :returns: An efficacy indicator
+        :raises: :py:class:`~.EfficacyIndicatorNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid):
+        """Return an efficacy indicator given its UUID.
+
+        :param context: The security context
+        :param efficacy_indicator_uuid: The UUID of an efficacy indicator
+        :returns: An efficacy indicator
+        :raises: :py:class:`~.EfficacyIndicatorNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name):
+        """Return an efficacy indicator given its name.
+
+        :param context: The security context
+        :param efficacy_indicator_name: The name of an efficacy indicator
+        :returns: An efficacy indicator
+        :raises: :py:class:`~.EfficacyIndicatorNotFound`
+        """
+
+    @abc.abstractmethod
+    def destroy_efficacy_indicator(self, efficacy_indicator_uuid):
+        """Destroy an efficacy indicator.
+
+        :param efficacy_indicator_uuid: The UUID of an efficacy indicator
+        :raises: :py:class:`~.EfficacyIndicatorNotFound`
+        """
+
+    @abc.abstractmethod
+    def update_efficacy_indicator(self, efficacy_indicator_uuid, values):
+        """Update properties of an efficacy indicator.
+
+        :param efficacy_indicator_uuid: The UUID of an efficacy indicator
+        :returns: An efficacy indicator
+        :raises: :py:class:`~.EfficacyIndicatorNotFound`
+        :raises: :py:class:`~.Invalid`
+        """

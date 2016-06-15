@@ -248,6 +248,14 @@ class ActionFilterCombinationProhibited(Invalid):
                 "prohibited")
 
 
+class EfficacyIndicatorNotFound(ResourceNotFound):
+    msg_fmt = _("Efficacy indicator %(efficacy_indicator)s could not be found")
+
+
+class EfficacyIndicatorAlreadyExists(Conflict):
+    msg_fmt = _("An action with UUID %(uuid)s already exists")
+
+
 class HTTPNotFound(ResourceNotFound):
     pass
 

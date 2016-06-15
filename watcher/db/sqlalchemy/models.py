@@ -27,6 +27,7 @@ from sqlalchemy import DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
+from sqlalchemy import Numeric
 from sqlalchemy import schema
 from sqlalchemy import String
 from sqlalchemy.types import TypeDecorator, TEXT
@@ -205,6 +206,24 @@ class ActionPlan(Base):
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36))
     first_action_id = Column(Integer)
-    audit_id = Column(Integer, ForeignKey('audits.id'),
-                      nullable=True)
+    audit_id = Column(Integer, ForeignKey('audits.id'), nullable=True)
     state = Column(String(20), nullable=True)
+    global_efficacy = Column(JSONEncodedDict, nullable=True)
+
+
+class EfficacyIndicator(Base):
+    """Represents an efficacy indicator."""
+
+    __tablename__ = 'efficacy_indicators'
+    __table_args__ = (
+        schema.UniqueConstraint('uuid', name='uniq_efficacy_indicators0uuid'),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True)
+    uuid = Column(String(36))
+    name = Column(String(63))
+    description = Column(String(255), nullable=True)
+    unit = Column(String(63), nullable=True)
+    value = Column(Numeric())
+    action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
+                            nullable=False)

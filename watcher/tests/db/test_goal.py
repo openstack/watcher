@@ -273,7 +273,12 @@ class DbGoalTestCase(base.DbTestCase):
         self.assertEqual([goal2['uuid']], [r.uuid for r in res])
 
     def test_get_goal_by_uuid(self):
-        created_goal = self._create_test_goal()
+        efficacy_spec = [{"unit": "%", "name": "dummy",
+                          "schema": "Range(min=0, max=100, min_included=True, "
+                                    "max_included=True, msg=None)",
+                          "description": "Dummy indicator"}]
+        created_goal = self._create_test_goal(
+            efficacy_specification=efficacy_spec)
         goal = self.dbapi.get_goal_by_uuid(self.context, created_goal['uuid'])
         self.assertEqual(goal.uuid, created_goal['uuid'])
 

@@ -46,6 +46,15 @@ def datetime_or_str_or_none(val):
     return datetime_or_none(val)
 
 
+def numeric_or_none(val):
+    """Attempt to parse an integer value, or None."""
+    if val is None:
+        return val
+    else:
+        f_val = float(val)
+        return f_val if not f_val.is_integer() else val
+
+
 def int_or_none(val):
     """Attempt to parse an integer value, or None."""
     if val is None:
