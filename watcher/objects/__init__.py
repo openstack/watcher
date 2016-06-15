@@ -17,6 +17,7 @@ from watcher.objects import action
 from watcher.objects import action_plan
 from watcher.objects import audit
 from watcher.objects import audit_template
+from watcher.objects import efficacy_indicator
 from watcher.objects import goal
 from watcher.objects import strategy
 
@@ -26,6 +27,7 @@ Action = action.Action
 ActionPlan = action_plan.ActionPlan
 Goal = goal.Goal
 Strategy = strategy.Strategy
+EfficacyIndicator = efficacy_indicator.EfficacyIndicator
 
-__all__ = ("Audit", "AuditTemplate", "Action",
-           "ActionPlan", "Goal", "Strategy")
+__all__ = ("Audit", "AuditTemplate", "Action", "ActionPlan",
+           "Goal", "Strategy", "EfficacyIndicator")
