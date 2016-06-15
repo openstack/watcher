@@ -37,7 +37,6 @@ class TestOutletTempControl(base.BaseTestCase):
         super(TestOutletTempControl, self).setUp()
         # fake metrics
         self.fake_metrics = faker_metrics_collector.FakerMetricsCollector()
-
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 

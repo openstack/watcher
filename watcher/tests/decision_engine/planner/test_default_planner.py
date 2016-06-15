@@ -53,14 +53,17 @@ class SolutionFakerSingleHyp(object):
             current_state_cluster.generate_scenario_3_with_2_hypervisors())
         sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
+
         return sercon.execute()
 
 
 class TestActionScheduling(base.DbTestCase):
+
     def test_schedule_actions(self):
         default_planner = pbase.DefaultPlanner(mock.Mock())
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
-        solution = dsol.DefaultSolution()
+        solution = dsol.DefaultSolution(
+            goal=mock.Mock(), strategy=mock.Mock())
 
         parameters = {
             "src_uuid_hypervisor": "server1",
@@ -86,7 +89,8 @@ class TestActionScheduling(base.DbTestCase):
     def test_schedule_two_actions(self):
         default_planner = pbase.DefaultPlanner(mock.Mock())
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
-        solution = dsol.DefaultSolution()
+        solution = dsol.DefaultSolution(
+            goal=mock.Mock(), strategy=mock.Mock())
 
         parameters = {
             "src_uuid_hypervisor": "server1",

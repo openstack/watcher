@@ -120,6 +120,7 @@ def get_test_action_plan(**kwargs):
         'uuid': kwargs.get('uuid', '76be87bd-3422-43f9-93a0-e85a577e3061'),
         'state': kwargs.get('state', 'ONGOING'),
         'audit_id': kwargs.get('audit_id', 1),
+        'global_efficacy': kwargs.get('global_efficacy', {}),
         'first_action_id': kwargs.get('first_action_id', 1),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),

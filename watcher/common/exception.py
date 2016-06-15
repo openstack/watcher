@@ -311,6 +311,11 @@ class InvalidIndicatorValue(WatcherException):
                 "and spec type '%(spec_type)s' is invalid.")
 
 
+class GlobalEfficacyComputationError(WatcherException):
+    msg_fmt = _("Could not compute the global efficacy for the '%(goal)s' "
+                "goal using the '%(strategy)s' strategy.")
+
+
 class NoMetricValuesForVM(WatcherException):
     msg_fmt = _("No values returned by %(resource_id)s for %(metric_name)s.")
 

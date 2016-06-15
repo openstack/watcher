@@ -180,7 +180,7 @@ class TestBasicConsolidation(base.BaseTestCase):
         ) as mock_score_call:
             mock_score_call.return_value = 0
             solution = self.strategy.execute()
-            self.assertEqual(0, solution.efficacy)
+            self.assertEqual(0, solution.efficacy.global_efficacy.value)
 
     def test_check_parameters(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()

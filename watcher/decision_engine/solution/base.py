@@ -37,59 +37,62 @@ applied.
 
 Two approaches to dealing with this can be envisaged:
 
--  **fully automated mode**: only the :ref:`Solution <solution_definition>`
-   with the highest ranking (i.e., the highest
-   :ref:`Optimization Efficiency <efficiency_definition>`)
-   will be sent to the :ref:`Watcher Planner <watcher_planner_definition>` and
-   translated into concrete :ref:`Actions <action_definition>`.
--  **manual mode**: several :ref:`Solutions <solution_definition>` are proposed
-   to the :ref:`Administrator <administrator_definition>` with a detailed
-   measurement of the estimated
-   :ref:`Optimization Efficiency <efficiency_definition>` and he/she decides
-   which one will be launched.
+- **fully automated mode**: only the :ref:`Solution <solution_definition>`
+  with the highest ranking (i.e., the highest
+  :ref:`Optimization Efficacy <efficacy_definition>`) will be sent to the
+  :ref:`Watcher Planner <watcher_planner_definition>` and translated into
+  concrete :ref:`Actions <action_definition>`.
+- **manual mode**: several :ref:`Solutions <solution_definition>` are proposed
+  to the :ref:`Administrator <administrator_definition>` with a detailed
+  measurement of the estimated :ref:`Optimization Efficacy
+  <efficacy_definition>` and he/she decides which one will be launched.
 """
 
 import abc
 import six
 
+from watcher.decision_engine.solution import efficacy
+
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseSolution(object):
-    def __init__(self):
-        self._origin = None
-        self._model = None
-        self._efficacy = 0
+    def __init__(self, goal, strategy):
+        """Base Solution constructor
+
+        :param goal: Goal associated to this solution
+        :type goal: :py:class:`~.base.Goal` instance
+        :param strategy: Strategy associated to this solution
+        :type strategy: :py:class:`~.BaseStrategy` instance
+        """
+        self.goal = goal
+        self.strategy = strategy
+        self.origin = None
+        self.model = None
+        self.efficacy = efficacy.Efficacy(self.goal, self.strategy)
 
     @property
-    def efficacy(self):
-        return self._efficacy
-
-    @efficacy.setter
-    def efficacy(self, e):
-        self._efficacy = e
+    def global_efficacy(self):
+        return self.efficacy.global_efficacy
 
     @property
-    def model(self):
-        return self._model
+    def efficacy_indicators(self):
+        return self.efficacy.indicators
 
-    @model.setter
-    def model(self, m):
-        self._model = m
+    def compute_global_efficacy(self):
+        """Compute the global efficacy given a map of efficacy indicators"""
+        self.efficacy.compute_global_efficacy()
 
-    @property
-    def origin(self):
-        return self._origin
+    def set_efficacy_indicators(self, **indicators_map):
+        """Set the efficacy indicators mapping (no validation)
 
-    @origin.setter
-    def origin(self, m):
-        self._origin = m
+        :param indicators_map: mapping between the indicator name and its value
+        :type indicators_map: dict {`str`: `object`}
+        """
+        self.efficacy.set_efficacy_indicators(**indicators_map)
 
     @abc.abstractmethod
-    def add_action(self,
-                   action_type,
-                   resource_id,
-                   input_parameters=None):
-        """Add a new Action in the Action Plan
+    def add_action(self, action_type, resource_id, input_parameters=None):
+        """Add a new Action in the Solution
 
         :param action_type: the unique id of an action type defined in
             entry point 'watcher_actions'

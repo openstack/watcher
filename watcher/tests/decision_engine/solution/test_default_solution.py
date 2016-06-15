@@ -14,13 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
+
 from watcher.decision_engine.solution import default
 from watcher.tests import base
 
 
 class TestDefaultSolution(base.BaseTestCase):
     def test_default_solution(self):
-        solution = default.DefaultSolution()
+        solution = default.DefaultSolution(
+            goal=mock.Mock(), strategy=mock.Mock())
         parameters = {
             "src_uuid_hypervisor": "server1",
             "dst_uuid_hypervisor": "server2",

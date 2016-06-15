@@ -362,7 +362,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     def fill_solution(self):
         self.solution.model = self.model
-        self.solution.efficacy = 100
         return self.solution
 
     def pre_execute(self):
@@ -403,11 +402,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         break
                 if balanced:
                     break
-        return self.fill_solution()
 
     def post_execute(self):
         """Post-execution phase
 
         This can be used to compute the global efficacy
         """
-        self.solution.model = self.model
+        self.fill_solution()
