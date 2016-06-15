@@ -14,6 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+An efficacy specfication is a contract that is associated to each :ref:`Goal
+<goal_definition>` that defines the various :ref:`efficacy indicators
+<efficacy_indicator_definition>` a strategy achieving the associated goal
+should provide within its :ref:`solution <solution_definition>`. Indeed, each
+solution proposed by a strategy will be validated against this contract before
+calculating its :ref:`global efficacy <efficacy_definition>`.
+"""
+
 import abc
 import json
 

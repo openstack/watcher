@@ -4,6 +4,8 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
+.. _implement_action_plugin:
+
 ==================
 Build a new action
 ==================

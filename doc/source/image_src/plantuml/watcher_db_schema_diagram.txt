@@ -1,0 +1,122 @@
+@startuml
+!define table(x) class x << (T,#FFAAAA) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <i><u>x</u></i>
+hide methods
+hide stereotypes
+
+table(goal) {
+    primary_key(id: Integer)
+    uuid : String[36]
+    name : String[63]
+    display_name : String[63]
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(strategy) {
+    primary_key(id: Integer)
+    foreign_key(goal_id : Integer)
+    uuid : String[36]
+    name : String[63]
+    display_name : String[63]
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(audit_template) {
+    primary_key(id: Integer)
+    foreign_key("goal_id : Integer")
+    foreign_key("strategy_id : Integer, nullable")
+    uuid : String[36]
+    name : String[63], nullable
+    description : String[255], nullable
+    host_aggregate : Integer, nullable
+    extra : JSONEncodedDict
+    version : String[15], nullable
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(audit) {
+    primary_key(id: Integer)
+    foreign_key("audit_template_id : Integer")
+    uuid : String[36]
+    type : String[20]
+    state : String[20], nullable
+    deadline  :DateTime, nullable
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(action_plan) {
+    primary_key(id: Integer)
+    foreign_key("audit_id : Integer, nullable")
+    uuid : String[36]
+    first_action_id : Integer
+    state : String[20], nullable
+    global_efficacy : JSONEncodedDict, nullable
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(action) {
+    primary_key(id: Integer)
+    foreign_key("action_plan_id : Integer")
+    uuid : String[36]
+    action_type : String[255]
+    input_parameters : JSONEncodedDict, nullable
+    state : String[20], nullable
+    next : String[36], nullable
+    
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+
+table(efficacy_indicator) {
+    primary_key(id: Integer)
+    foreign_key("action_plan_id : Integer")
+    uuid : String[36]
+    name : String[63]
+    description : String[255], nullable
+    unit : String[63], nullable
+    value : Numeric
+
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+ "goal" <.. "strategy" : Foreign Key
+ "goal" <.. "audit_template" : Foreign Key
+ "strategy" <.. "audit_template" : Foreign Key
+ "audit_template" <.. "audit" : Foreign Key
+ "action_plan" <.. "action" : Foreign Key
+ "action_plan" <.. "efficacy_indicator" : Foreign Key
+ "audit" <.. "action_plan" : Foreign Key
+
+@enduml

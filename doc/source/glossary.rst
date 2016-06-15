@@ -131,7 +131,8 @@ can potentially be hosted on a dedicated machine.
 Compute node
 ============
 
-Please, read `the official OpenStack definition of a Compute Node <http://docs.openstack.org/openstack-ops/content/compute_nodes.html>`_.
+Please, read `the official OpenStack definition of a Compute Node
+<http://docs.openstack.org/openstack-ops/content/compute_nodes.html>`_.
 
 .. _customer_definition:
 
@@ -211,7 +212,23 @@ Here are some examples of
 -  `Sahara Hadoop Cluster <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Sahara::Cluster>`_
 -  ...
 
-It can be any of the `the official list of available resource types defined in OpenStack for HEAT <http://docs.openstack.org/developer/heat/template_guide/openstack.html>`_.
+It can be any of the `the official list of available resource types defined in
+OpenStack for HEAT
+<http://docs.openstack.org/developer/heat/template_guide/openstack.html>`_.
+
+.. _efficacy_indicator_definition:
+
+Efficacy Indicator
+==================
+
+.. watcher-term:: watcher.api.controllers.v1.efficacy_indicator
+
+.. _efficacy_specification_definition:
+
+Efficacy Specification
+======================
+
+.. watcher-term:: watcher.api.controllers.v1.efficacy_specification
 
 .. _efficacy_definition:
 
@@ -234,14 +251,15 @@ to be launched).
 
 For example, if the :ref:`Goal <goal_definition>` is to lower the energy
 consumption, the :ref:`Efficacy <efficacy_definition>` will be computed
-using several indicators (KPIs):
+using several :ref:`efficacy indicators <efficacy_indicator_definition>`
+(KPIs):
 
 -  the percentage of energy gain (which must be the highest possible)
 -  the number of :ref:`SLA violations <sla_violation_definition>`
    (which must be the lowest possible)
 -  the number of virtual machine migrations (which must be the lowest possible)
 
-All those indicators (KPIs) are computed within a given timeframe, which is the
+All those indicators are computed within a given timeframe, which is the
 time taken to execute the whole :ref:`Action Plan <action_plan_definition>`.
 
 The efficacy also enables the :ref:`Administrator <administrator_definition>`
@@ -259,7 +277,8 @@ OpenStack should be owned by a specific :ref:`project <project_definition>`.
 In OpenStack Identity, a :ref:`project <project_definition>` must be owned by a
 specific domain.
 
-Please, read `the official OpenStack definition of a Project <http://docs.openstack.org/glossary/content/glossary.html>`_.
+Please, read `the official OpenStack definition of a Project
+<http://docs.openstack.org/glossary/content/glossary.html>`_.
 
 
 .. _sla_definition:
@@ -364,4 +383,3 @@ Watcher Planner
 ===============
 
 .. watcher-term:: watcher.decision_engine.planner.base
-

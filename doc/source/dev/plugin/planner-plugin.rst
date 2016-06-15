@@ -11,9 +11,10 @@ Build a new planner
 ===================
 
 Watcher :ref:`Decision Engine <watcher_decision_engine_definition>` has an
-external :ref:`planner <planner_definition>` plugin interface which gives
-anyone the ability to integrate an external :ref:`planner <planner_definition>`
-in order to extend the initial set of planners Watcher provides.
+external :ref:`planner <watcher_planner_definition>` plugin interface which
+gives anyone the ability to integrate an external :ref:`planner
+<watcher_planner_definition>` in order to extend the initial set of planners
+Watcher provides.
 
 This section gives some guidelines on how to implement and integrate custom
 planners with Watcher.
