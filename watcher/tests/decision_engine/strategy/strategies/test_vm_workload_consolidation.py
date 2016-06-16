@@ -149,44 +149,44 @@ class TestVMWorkloadConsolidation(base.BaseTestCase):
         res = self.strategy.vm_fits(vm_uuid, h, model, cc)
         self.assertEqual(False, res)
 
-    def test_add_action_activate_hypervisor(self):
+    def test_add_action_enable_hypervisor(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
         h = model.get_hypervisor_from_id('Node_0')
-        self.strategy.add_action_activate_hypervisor(h)
+        self.strategy.add_action_enable_hypervisor(h)
         expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {'state': 'up',
+                     'input_parameters': {'state': 'enabled',
                                           'resource_id': 'Node_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
-    def test_add_action_deactivate_hypervisor(self):
+    def test_add_action_disable_hypervisor(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
         h = model.get_hypervisor_from_id('Node_0')
-        self.strategy.add_action_deactivate_hypervisor(h)
+        self.strategy.add_action_disable_hypervisor(h)
         expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {'state': 'down',
+                     'input_parameters': {'state': 'disabled',
                                           'resource_id': 'Node_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
-    def test_deactivate_unused_hypervisors(self):
+    def test_disable_unused_hypervisors(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
         h1 = model.get_hypervisor_from_id('Node_0')
         h2 = model.get_hypervisor_from_id('Node_1')
         vm_uuid = 'VM_0'
-        self.strategy.deactivate_unused_hypervisors(model)
+        self.strategy.disable_unused_hypervisors(model)
         self.assertEqual(0, len(self.strategy.solution.actions))
 
         # Migrate VM to free the hypervisor
         self.strategy.add_migration(vm_uuid, h1, h2, model)
 
-        self.strategy.deactivate_unused_hypervisors(model)
+        self.strategy.disable_unused_hypervisors(model)
         expected = {'action_type': 'change_nova_service_state',
-                    'input_parameters': {'state': 'down',
+                    'input_parameters': {'state': 'disabled',
                                          'resource_id': 'Node_0'}}
         self.assertEqual(2, len(self.strategy.solution.actions))
         self.assertEqual(expected, self.strategy.solution.actions[1])

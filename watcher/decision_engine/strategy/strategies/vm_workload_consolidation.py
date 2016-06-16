@@ -50,7 +50,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     * Offload phase - handling over-utilized resources
     * Consolidation phase - handling under-utilized resources
     * Solution optimization - reducing number of migrations
-    * Deactivation of unused hypervisors
+    * Disability of unused hypervisors
 
     A capacity coefficients (cc) might be used to adjust optimization
     thresholds. Different resources may require different coefficient
@@ -131,26 +131,26 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                       st=type(state))
             raise exception.WatcherException
 
-    def add_action_activate_hypervisor(self, hypervisor):
-        """Add an action for hypervisor activation into the solution.
+    def add_action_enable_hypervisor(self, hypervisor):
+        """Add an action for hypervisor enabler into the solution.
 
         :param hypervisor: hypervisor object
         :return: None
         """
-        params = {'state': hyper_state.HypervisorState.ONLINE.value}
+        params = {'state': hyper_state.HypervisorState.ENABLED.value}
         self.solution.add_action(
             action_type='change_nova_service_state',
             resource_id=hypervisor.uuid,
             input_parameters=params)
         self.number_of_released_hypervisors -= 1
 
-    def add_action_deactivate_hypervisor(self, hypervisor):
-        """Add an action for hypervisor deactivation into the solution.
+    def add_action_disable_hypervisor(self, hypervisor):
+        """Add an action for hypervisor disablity into the solution.
 
         :param hypervisor: hypervisor object
         :return: None
         """
-        params = {'state': hyper_state.HypervisorState.OFFLINE.value}
+        params = {'state': hyper_state.HypervisorState.DISABLED.value}
         self.solution.add_action(
             action_type='change_nova_service_state',
             resource_id=hypervisor.uuid,
@@ -184,8 +184,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         migration_type = 'live'
 
         dst_hyper_state_str = self.get_state_str(dst_hypervisor.state)
-        if dst_hyper_state_str == hyper_state.HypervisorState.OFFLINE.value:
-            self.add_action_activate_hypervisor(dst_hypervisor)
+        if dst_hyper_state_str == hyper_state.HypervisorState.DISABLED.value:
+            self.add_action_enable_hypervisor(dst_hypervisor)
         model.get_mapping().unmap(src_hypervisor, vm)
         model.get_mapping().map(dst_hypervisor, vm)
 
@@ -197,8 +197,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                                  input_parameters=params)
         self.number_of_migrations += 1
 
-    def deactivate_unused_hypervisors(self, model):
-        """Generate actions for deactivation of unused hypervisors.
+    def disable_unused_hypervisors(self, model):
+        """Generate actions for disablity of unused hypervisors.
 
         :param model: model_root object
         :return: None
@@ -207,7 +207,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             if (len(model.get_mapping().get_node_vms(hypervisor)) == 0 and
                     hypervisor.status !=
                     hyper_state.HypervisorState.DISABLED.value):
-                self.add_action_deactivate_hypervisor(hypervisor)
+                self.add_action_disable_hypervisor(hypervisor)
 
     def get_prediction_model(self):
         """Return a deepcopy of a model representing current cluster state.
@@ -339,7 +339,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         counters = {}
         for hypervisor in hypervisors:
             hyper_state_str = self.get_state_str(hypervisor.state)
-            if hyper_state_str == hyper_state.HypervisorState.ONLINE.value:
+            if hyper_state_str == hyper_state.HypervisorState.ENABLED.value:
                 rhu = self.get_relative_hypervisor_utilization(
                     hypervisor, model)
                 for k in rhu.keys():
@@ -437,12 +437,12 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         the least CPU utilized VM first as live migration these
         generaly causes less troubles. This phase results in a cluster
         with no overloaded hypervisors.
-        * This phase is be able to activate turned off hypervisors (if needed
+        * This phase is be able to enable disabled hypervisors (if needed
         and any available) in the case of the resource capacity provided by
         active hypervisors is not able to accomodate all the load.
         As the offload phase is later followed by the consolidation phase,
-        the hypervisor activation in this phase doesn't necessarily results
-        in more activated hypervisors in the final solution.
+        the hypervisor enabler in this phase doesn't necessarily results
+        in more enabled hypervisors in the final solution.
 
         :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
@@ -514,7 +514,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         * Offload phase - handling over-utilized resources
         * Consolidation phase - handling under-utilized resources
         * Solution optimization - reducing number of migrations
-        * Deactivation of unused hypervisors
+        * Disability of unused hypervisors
 
         :param original_model: root_model object
         """
@@ -534,8 +534,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         # Optimize solution
         self.optimize_solution(model)
 
-        # Deactivate unused hypervisors
-        self.deactivate_unused_hypervisors(model)
+        # disable unused hypervisors
+        self.disable_unused_hypervisors(model)
 
         rcu_after = self.get_relative_cluster_utilization(model)
         info = {

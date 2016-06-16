@@ -56,7 +56,7 @@ class FakerModelCollector(base.BaseClusterModelCollector):
             node = hypervisor.Hypervisor()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
-            node.state = 'up'
+            node.state = 'enabled'
 
             mem.set_capacity(node, 64)
             disk_capacity.set_capacity(node, 250)
