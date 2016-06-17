@@ -295,29 +295,30 @@ class AuditsController(rest.RestController):
                                                   sort_key=sort_key,
                                                   sort_dir=sort_dir)
 
-    @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
+    @wsme_pecan.wsexpose(AuditCollection, wtypes.text, types.uuid, int,
                          wtypes.text, wtypes.text)
-    def get_all(self, marker=None, limit=None,
-                sort_key='id', sort_dir='asc', audit_template=None):
+    def get_all(self, audit_template=None, marker=None, limit=None,
+                sort_key='id', sort_dir='asc'):
         """Retrieve a list of audits.
 
+        :param audit_template: Optional UUID or name of an audit
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
-        :param audit_template: Optional UUID or name of an audit
          template, to get only audits for that audit template.
         """
         return self._get_audits_collection(marker, limit, sort_key,
                                            sort_dir,
                                            audit_template=audit_template)
 
-    @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
-                         wtypes.text)
-    def detail(self, marker=None, limit=None,
+    @wsme_pecan.wsexpose(AuditCollection, wtypes.text, types.uuid, int,
+                         wtypes.text, wtypes.text)
+    def detail(self, audit_template=None, marker=None, limit=None,
                sort_key='id', sort_dir='asc'):
         """Retrieve a list of audits with detail.
 
+        :param audit_template: Optional UUID or name of an audit
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
@@ -332,7 +333,8 @@ class AuditsController(rest.RestController):
         resource_url = '/'.join(['audits', 'detail'])
         return self._get_audits_collection(marker, limit,
                                            sort_key, sort_dir, expand,
-                                           resource_url)
+                                           resource_url,
+                                           audit_template=audit_template)
 
     @wsme_pecan.wsexpose(Audit, types.uuid)
     def get_one(self, audit_uuid):
