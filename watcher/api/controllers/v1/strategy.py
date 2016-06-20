@@ -54,6 +54,7 @@ class Strategy(base.APIBase):
     between the internal object model and the API representation of a strategy.
     """
     _goal_uuid = None
+    _goal_name = None
 
     def _get_goal(self, value):
         if value == wtypes.Unset:
@@ -81,6 +82,16 @@ class Strategy(base.APIBase):
             if goal:
                 self._goal_uuid = goal.uuid
 
+    def _get_goal_name(self):
+        return self._goal_name
+
+    def _set_goal_name(self, value):
+        if value and self._goal_name != value:
+            self._goal_name = None
+            goal = self._get_goal(value)
+            if goal:
+                self._goal_name = goal.name
+
     uuid = types.uuid
     """Unique UUID for this strategy"""
 
@@ -97,6 +108,10 @@ class Strategy(base.APIBase):
                                 mandatory=True)
     """The UUID of the goal this audit refers to"""
 
+    goal_name = wsme.wsproperty(wtypes.text, _get_goal_name, _set_goal_name,
+                                mandatory=False)
+    """The name of the goal this audit refers to"""
+
     def __init__(self, **kwargs):
         super(Strategy, self).__init__()
 
@@ -105,16 +120,18 @@ class Strategy(base.APIBase):
         self.fields.append('name')
         self.fields.append('display_name')
         self.fields.append('goal_uuid')
+        self.fields.append('goal_name')
         setattr(self, 'uuid', kwargs.get('uuid', wtypes.Unset))
         setattr(self, 'name', kwargs.get('name', wtypes.Unset))
         setattr(self, 'display_name', kwargs.get('display_name', wtypes.Unset))
         setattr(self, 'goal_uuid', kwargs.get('goal_id', wtypes.Unset))
+        setattr(self, 'goal_name', kwargs.get('goal_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(strategy, url, expand=True):
         if not expand:
             strategy.unset_fields_except(
-                ['uuid', 'name', 'display_name', 'goal_uuid'])
+                ['uuid', 'name', 'display_name', 'goal_uuid', 'goal_name'])
 
         strategy.links = [
             link.Link.make_link('self', url, 'strategies', strategy.uuid),
