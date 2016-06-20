@@ -38,8 +38,8 @@ def main():
     server = service.WSGIService(
         'watcher-api', CONF.api.enable_ssl_api)
 
-    if host == '0.0.0.0':
-        LOG.info(_LI('serving on 0.0.0.0:%(port)s, '
+    if host == '127.0.0.1':
+        LOG.info(_LI('serving on 127.0.0.1:%(port)s, '
                      'view at %(protocol)s://127.0.0.1:%(port)s') %
                  dict(protocol=protocol, port=port))
     else:

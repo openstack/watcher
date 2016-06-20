@@ -30,7 +30,7 @@ API_SERVICE_OPTS = [
                 default=9322,
                 help=_('The port for the watcher API server')),
     cfg.StrOpt('host',
-               default='0.0.0.0',
+               default='127.0.0.1',
                help=_('The listen IP for the watcher API server')),
     cfg.IntOpt('max_limit',
                default=1000,

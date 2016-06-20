@@ -22,7 +22,7 @@ from watcher.api import hooks
 # See https://pecan.readthedocs.org/en/latest/configuration.html#server-configuration # noqa
 server = {
     'port': '9322',
-    'host': '0.0.0.0'
+    'host': '127.0.0.1'
 }
 
 # Pecan Application Configurations

@@ -22,3 +22,6 @@ sphinxcontrib-pecanwsme>=0.8 # Apache-2.0
 
 # releasenotes
 reno>=1.6.2 # Apache2
+
+# bandit
+bandit>=1.0.1 # Apache-2.0
