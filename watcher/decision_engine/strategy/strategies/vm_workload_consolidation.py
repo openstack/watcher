@@ -204,7 +204,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         for hypervisor in model.get_all_hypervisors().values():
-            if len(model.get_mapping().get_node_vms(hypervisor)) == 0:
+            if (len(model.get_mapping().get_node_vms(hypervisor)) == 0 and
+                    hypervisor.status !=
+                    hyper_state.HypervisorState.DISABLED.value):
                 self.add_action_deactivate_hypervisor(hypervisor)
 
     def get_prediction_model(self):
