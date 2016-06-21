@@ -10,10 +10,10 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from enum import Enum
+import enum
 
 
-class PowerState(Enum):
+class PowerState(enum.Enum):
     # away mode
     g0 = "g0"
     # power on suspend (processor caches are flushed)

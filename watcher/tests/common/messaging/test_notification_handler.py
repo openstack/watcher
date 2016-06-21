@@ -17,8 +17,8 @@
 
 import mock
 import oslo_messaging as messaging
-from watcher.common.messaging.notification_handler import NotificationHandler
-from watcher.common.messaging.utils.observable import Observable
+from watcher.common.messaging import notification_handler
+from watcher.common.messaging.utils import observable
 from watcher.tests import base
 
 PUBLISHER_ID = 'TEST_API'
@@ -28,7 +28,8 @@ class TestNotificationHandler(base.TestCase):
 
     def setUp(self):
         super(TestNotificationHandler, self).setUp()
-        self.notification_handler = NotificationHandler(PUBLISHER_ID)
+        self.notification_handler = notification_handler.NotificationHandler(
+            PUBLISHER_ID)
 
     def _test_notify(self, level_to_call):
         ctx = {}
@@ -37,7 +38,7 @@ class TestNotificationHandler(base.TestCase):
         payload = {}
         metadata = {}
 
-        with mock.patch.object(Observable, 'notify') as mock_call:
+        with mock.patch.object(observable.Observable, 'notify') as mock_call:
             notification_result = level_to_call(ctx, publisher_id, event_type,
                                                 payload, metadata)
             self.assertEqual(messaging.NotificationResult.HANDLED,

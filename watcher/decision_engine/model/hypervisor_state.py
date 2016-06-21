@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
+import enum
 
 
-class HypervisorState(Enum):
+class HypervisorState(enum.Enum):
     ONLINE = 'up'
     OFFLINE = 'down'
     ENABLED = 'enabled'

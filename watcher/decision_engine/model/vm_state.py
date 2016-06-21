@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
+import enum
 
 
-class VMState(Enum):
+class VMState(enum.Enum):
     ACTIVE = 'active'  # VM is running
     BUILDING = 'building'  # VM only exists in DB
     PAUSED = 'paused'

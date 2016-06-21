@@ -17,13 +17,13 @@
 # limitations under the License.
 #
 
-from watcher.decision_engine.model.disk_info import DiskInfo
+from watcher.decision_engine.model import disk_info
 from watcher.tests import base
 
 
 class TestDiskInfo(base.BaseTestCase):
     def test_all(self):
-        disk_information = DiskInfo()
+        disk_information = disk_info.DiskInfo()
         disk_information.set_size(1024)
         self.assertEqual(1024, disk_information.get_size())
 

@@ -16,17 +16,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.decision_engine.model.compute_resource import ComputeResource
+from watcher.decision_engine.model import compute_resource
 from watcher.tests import base
 
 
 class TestNamedElement(base.BaseTestCase):
     def test_namedelement(self):
-        id = ComputeResource()
+        id = compute_resource.ComputeResource()
         id.uuid = "BLABLABLA"
         self.assertEqual("BLABLABLA", id.uuid)
 
     def test_set_get_human_id(self):
-        id = ComputeResource()
+        id = compute_resource.ComputeResource()
         id.human_id = "BLABLABLA"
         self.assertEqual("BLABLABLA", id.human_id)

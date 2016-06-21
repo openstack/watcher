@@ -13,14 +13,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from watcher.decision_engine.model.compute_resource import ComputeResource
-from watcher.decision_engine.model.vm_state import VMState
+from watcher.decision_engine.model import compute_resource
+from watcher.decision_engine.model import vm_state
 
 
-class VM(ComputeResource):
+class VM(compute_resource.ComputeResource):
     def __init__(self):
         super(VM, self).__init__()
-        self._state = VMState.ACTIVE.value
+        self._state = vm_state.VMState.ACTIVE.value
 
     @property
     def state(self):

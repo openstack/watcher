@@ -17,10 +17,10 @@
 # limitations under the License.
 #
 
-from enum import Enum
+import enum
 
 
-class Events(Enum):
+class Events(enum.Enum):
     ALL = '*',
     ACTION_PLAN = "action_plan"
     TRIGGER_AUDIT = "trigger_audit"

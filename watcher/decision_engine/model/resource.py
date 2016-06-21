@@ -14,10 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from enum import Enum
+import enum
 
 
-class ResourceType(Enum):
+class ResourceType(enum.Enum):
     cpu_cores = 'num_cores'
     memory = 'memory'
     disk = 'disk'
