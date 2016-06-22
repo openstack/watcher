@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from watcher.decision_engine.loading import default
 from watcher.decision_engine.planner import base as planner
-from watcher.decision_engine.planner.loading import default
 from watcher.tests import base
 
 

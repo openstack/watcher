@@ -33,3 +33,9 @@ class DefaultGoalLoader(default.DefaultLoader):
     def __init__(self):
         super(DefaultGoalLoader, self).__init__(
             namespace='watcher_goals')
+
+
+class DefaultPlannerLoader(default.DefaultLoader):
+    def __init__(self):
+        super(DefaultPlannerLoader, self).__init__(
+            namespace='watcher_planners')
