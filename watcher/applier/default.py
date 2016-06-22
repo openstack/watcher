@@ -20,7 +20,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.applier import base
-from watcher.applier.workflow_engine.loading import default
+from watcher.applier.loading import default
 from watcher import objects
 
 LOG = log.getLogger(__name__)

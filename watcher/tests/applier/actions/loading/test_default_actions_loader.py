@@ -16,7 +16,7 @@
 from __future__ import unicode_literals
 
 from watcher.applier.actions import base as abase
-from watcher.applier.actions.loading import default
+from watcher.applier.loading import default
 from watcher.tests import base
 
 

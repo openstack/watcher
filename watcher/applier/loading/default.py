@@ -1,6 +1,3 @@
-# -*- encoding: utf-8 -*-
-# Copyright (c) 2015 b<>com
-#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,13 +10,20 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from __future__ import unicode_literals
+
 
 from watcher.common.loader import default
 
 
+class DefaultWorkFlowEngineLoader(default.DefaultLoader):
+    def __init__(self):
+        super(DefaultWorkFlowEngineLoader, self).__init__(
+            namespace='watcher_workflow_engines')
+
+
 class DefaultActionLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultActionLoader, self).__init__(namespace='watcher_actions')
+        super(DefaultActionLoader, self).__init__(
+            namespace='watcher_actions')

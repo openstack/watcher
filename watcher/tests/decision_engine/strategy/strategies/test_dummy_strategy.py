@@ -16,7 +16,7 @@
 
 import mock
 
-from watcher.applier.actions.loading import default
+from watcher.applier.loading import default
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base

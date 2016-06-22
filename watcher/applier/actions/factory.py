@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 from oslo_log import log
 
-from watcher.applier.actions.loading import default
+from watcher.applier.loading import default
 
 LOG = log.getLogger(__name__)
 
