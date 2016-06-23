@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from oslo_log import log
-from threading import Lock
+import threading
 
 LOG = log.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class Mapping(object):
         self.model = model
         self._mapping_hypervisors = {}
         self.mapping_vm = {}
-        self.lock = Lock()
+        self.lock = threading.Lock()
 
     def map(self, hypervisor, vm):
         """Select the hypervisor where the instance are launched

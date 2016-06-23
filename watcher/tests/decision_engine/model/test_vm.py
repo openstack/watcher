@@ -16,15 +16,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from watcher.decision_engine.model.vm import VM
-from watcher.decision_engine.model.vm_state import VMState
+from watcher.decision_engine.model import vm as vm_model
+from watcher.decision_engine.model import vm_state
 from watcher.tests import base
 
 
 class TestVm(base.BaseTestCase):
     def test_namedelement(self):
-        vm = VM()
-        vm.state = VMState.ACTIVE
-        self.assertEqual(VMState.ACTIVE, vm.state)
+        vm = vm_model.VM()
+        vm.state = vm_state.VMState.ACTIVE
+        self.assertEqual(vm_state.VMState.ACTIVE, vm.state)
         vm.human_id = "human_05"
         self.assertEqual("human_05", vm.human_id)

@@ -19,7 +19,7 @@
 
 import mock
 import oslo_messaging as om
-from watcher.applier.rpcapi import ApplierAPI
+from watcher.applier import rpcapi
 
 from watcher.common import exception
 from watcher.common import utils
@@ -30,7 +30,7 @@ class TestApplierAPI(base.TestCase):
     def setUp(self):
         super(TestApplierAPI, self).setUp()
 
-    api = ApplierAPI()
+    api = rpcapi.ApplierAPI()
 
     def test_get_version(self):
         expected_version = self.api.API_VERSION
@@ -43,7 +43,7 @@ class TestApplierAPI(base.TestCase):
             mock_call.assert_called_once_with(
                 expected_context.to_dict(),
                 'check_api_version',
-                api_version=ApplierAPI().API_VERSION)
+                api_version=rpcapi.ApplierAPI().API_VERSION)
 
     def test_execute_audit_without_error(self):
         with mock.patch.object(om.RPCClient, 'call') as mock_call:

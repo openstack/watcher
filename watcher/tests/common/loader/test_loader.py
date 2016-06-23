@@ -20,7 +20,7 @@ import mock
 
 from oslo_config import cfg
 from stevedore import driver as drivermanager
-from stevedore.extension import Extension
+from stevedore import extension as stevedore_extension
 
 from watcher.common import exception
 from watcher.common.loader import default
@@ -56,7 +56,7 @@ class TestLoader(base.TestCase):
 
     def test_load_loadable_no_opt(self):
         fake_driver = drivermanager.DriverManager.make_test_instance(
-            extension=Extension(
+            extension=stevedore_extension.Extension(
                 name="fake",
                 entry_point="%s:%s" % (FakeLoadable.__module__,
                                        FakeLoadable.__name__),
@@ -82,7 +82,7 @@ class TestLoader(base.TestCase):
 
     def test_load_loadable_with_opts(self):
         fake_driver = drivermanager.DriverManager.make_test_instance(
-            extension=Extension(
+            extension=stevedore_extension.Extension(
                 name="fake",
                 entry_point="%s:%s" % (FakeLoadableWithOpts.__module__,
                                        FakeLoadableWithOpts.__name__),

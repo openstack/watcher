@@ -24,10 +24,10 @@ from oslo_config import cfg
 from oslo_service import service
 
 from watcher.cmd import applier
-from watcher.tests.base import BaseTestCase
+from watcher.tests import base
 
 
-class TestApplier(BaseTestCase):
+class TestApplier(base.BaseTestCase):
     def setUp(self):
         super(TestApplier, self).setUp()
 

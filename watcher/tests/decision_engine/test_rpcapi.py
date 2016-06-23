@@ -18,7 +18,7 @@ import mock
 import oslo_messaging as om
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.rpcapi import DecisionEngineAPI
+from watcher.decision_engine import rpcapi
 from watcher.tests import base
 
 
@@ -27,7 +27,7 @@ class TestDecisionEngineAPI(base.TestCase):
     def setUp(self):
         super(TestDecisionEngineAPI, self).setUp()
 
-    api = DecisionEngineAPI()
+    api = rpcapi.DecisionEngineAPI()
 
     def test_get_version(self):
         expected_version = self.api.API_VERSION
@@ -40,7 +40,7 @@ class TestDecisionEngineAPI(base.TestCase):
             mock_call.assert_called_once_with(
                 expected_context.to_dict(),
                 'check_api_version',
-                api_version=DecisionEngineAPI().api_version)
+                api_version=rpcapi.DecisionEngineAPI().api_version)
 
     def test_execute_audit_throw_exception(self):
         audit_uuid = "uuid"

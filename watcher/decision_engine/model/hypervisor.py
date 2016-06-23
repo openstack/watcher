@@ -14,17 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.model.compute_resource import ComputeResource
-from watcher.decision_engine.model.hypervisor_state import HypervisorState
-from watcher.decision_engine.model.power_state import PowerState
+from watcher.decision_engine.model import compute_resource
+from watcher.decision_engine.model import hypervisor_state
+from watcher.decision_engine.model import power_state
 
 
-class Hypervisor(ComputeResource):
+class Hypervisor(compute_resource.ComputeResource):
     def __init__(self):
         super(Hypervisor, self).__init__()
-        self._state = HypervisorState.ONLINE
-        self._status = HypervisorState.ENABLED
-        self._power_state = PowerState.g0
+        self._state = hypervisor_state.HypervisorState.ONLINE
+        self._status = hypervisor_state.HypervisorState.ENABLED
+        self._power_state = power_state.PowerState.g0
 
     @property
     def state(self):

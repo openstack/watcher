@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-from ceilometerclient.exc import HTTPUnauthorized
+from ceilometerclient import exc
 
 from watcher.common import clients
 
@@ -68,7 +68,7 @@ class CeilometerHelper(object):
     def query_retry(self, f, *args, **kargs):
         try:
             return f(*args, **kargs)
-        except HTTPUnauthorized:
+        except exc.HTTPUnauthorized:
             self.osc.reset_clients()
             self.ceilometer = self.osc.ceilometer()
             return f(*args, **kargs)
