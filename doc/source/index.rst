@@ -57,6 +57,7 @@ Getting Started
   deploy/configuration
   deploy/conf-files
   dev/testing
+  dev/rally_link
 
 API References
 --------------
