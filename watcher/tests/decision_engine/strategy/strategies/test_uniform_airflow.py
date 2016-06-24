@@ -41,7 +41,7 @@ class TestUniformAirflow(base.BaseTestCase):
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
         p_model = mock.patch.object(
-            strategies.UniformAirflow, "model",
+            strategies.UniformAirflow, "compute_model",
             new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)

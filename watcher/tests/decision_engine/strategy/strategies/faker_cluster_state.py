@@ -15,7 +15,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+import mock
+
 from watcher.decision_engine.model import hypervisor
 from watcher.decision_engine.model import model_root as modelroot
 from watcher.decision_engine.model import resource
@@ -23,11 +25,14 @@ from watcher.decision_engine.model import vm as modelvm
 from watcher.metrics_engine.cluster_model_collector import base
 
 
-class FakerModelCollector(base.BaseClusterModelCollector):
-    def __init__(self):
-        pass
+class FakerModelCollector(base.BaseClusterDataModelCollector):
 
-    def get_latest_cluster_data_model(self):
+    def __init__(self, config=None, osc=None):
+        if config is None:
+            config = mock.Mock()
+        super(FakerModelCollector, self).__init__(config)
+
+    def execute(self):
         return self.generate_scenario_1()
 
     def generate_scenario_1(self):

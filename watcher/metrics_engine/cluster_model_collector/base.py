@@ -109,11 +109,38 @@ XML File, In Memory Database, ...).
 """
 
 import abc
+import copy
 import six
+
+from watcher.common.loader import loadable
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseClusterModelCollector(object):
+class BaseClusterDataModelCollector(loadable.Loadable):
+
+    def __init__(self, config, osc=None):
+        super(BaseClusterDataModelCollector, self).__init__(config)
+        self.osc = osc
+        self._cluster_data_model = None
+
+    @property
+    def cluster_data_model(self):
+        if self._cluster_data_model is None:
+            self._cluster_data_model = self.execute()
+        return self._cluster_data_model
+
+    @cluster_data_model.setter
+    def cluster_data_model(self, model):
+        self._cluster_data_model = model
+
     @abc.abstractmethod
-    def get_latest_cluster_data_model(self):
+    def execute(self):
+        """Build a cluster data model"""
         raise NotImplementedError()
+
+    @classmethod
+    def get_config_opts(cls):
+        return []
+
+    def get_latest_cluster_data_model(self):
+        return copy.deepcopy(self.cluster_data_model)

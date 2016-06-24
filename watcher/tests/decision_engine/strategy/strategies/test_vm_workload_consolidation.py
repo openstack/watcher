@@ -36,7 +36,7 @@ class TestVMWorkloadConsolidation(base.BaseTestCase):
         self.fake_cluster = faker_cluster_and_metrics.FakerModelCollector()
 
         p_model = mock.patch.object(
-            strategies.VMWorkloadConsolidation, "model",
+            strategies.VMWorkloadConsolidation, "compute_model",
             new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)

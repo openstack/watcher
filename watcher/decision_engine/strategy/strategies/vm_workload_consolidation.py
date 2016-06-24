@@ -16,8 +16,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-from copy import deepcopy
 
 from oslo_log import log
 import six
@@ -208,14 +206,6 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     hypervisor.status !=
                     hyper_state.HypervisorState.DISABLED.value):
                 self.add_action_disable_hypervisor(hypervisor)
-
-    def get_prediction_model(self):
-        """Return a deepcopy of a model representing current cluster state.
-
-        :param model: model_root object
-        :return: model_root object
-        """
-        return deepcopy(self.model)
 
     def get_vm_utilization(self, vm_uuid, model, period=3600, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a VM.
@@ -501,7 +491,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             asc += 1
 
     def pre_execute(self):
-        if self.model is None:
+        if self.compute_model is None:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -519,7 +509,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param original_model: root_model object
         """
         LOG.info(_LI('Executing Smart Strategy'))
-        model = self.get_prediction_model()
+        model = self.compute_model.get_latest_cluster_data_model()
         rcu = self.get_relative_cluster_utilization(model)
         self.ceilometer_vm_data_cache = dict()
 

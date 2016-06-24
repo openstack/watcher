@@ -20,25 +20,28 @@
 
 import mock
 
-from watcher.metrics_engine.cluster_model_collector.nova import \
-    NovaClusterModelCollector
+from watcher.common import nova_helper
+from watcher.metrics_engine.cluster_model_collector import nova
 from watcher.tests import base
 
 
 class TestNovaCollector(base.TestCase):
-    @mock.patch('keystoneclient.v3.client.Client')
-    def setUp(self, mock_ksclient):
+
+    @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
+    @mock.patch.object(nova_helper, 'NovaHelper')
+    def setUp(self, m_nova_helper):
         super(TestNovaCollector, self).setUp()
-        self.wrapper = mock.MagicMock()
-        self.nova_collector = NovaClusterModelCollector(self.wrapper)
+        self.m_nova_helper = m_nova_helper
+        self.nova_collector = nova.NovaClusterDataModelCollector(
+            config=mock.Mock())
 
     def test_nova_collector(self):
         hypervisor = mock.Mock()
-        hypervisor.hypervisor_hostname = "rdev-lannion.eu"
+        hypervisor.hypervisor_hostname = "compute-1"
         hypervisor.service = mock.MagicMock()
         service = mock.Mock()
         service.host = ""
-        self.wrapper.get_hypervisors_list.return_value = {hypervisor}
-        self.wrapper.nova.services.find.get.return_value = service
+        self.m_nova_helper.get_hypervisors_list.return_value = {hypervisor}
+        self.m_nova_helper.nova.services.find.get.return_value = service
         model = self.nova_collector.get_latest_cluster_data_model()
         self.assertIsNotNone(model)

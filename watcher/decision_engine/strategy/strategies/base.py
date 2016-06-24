@@ -75,7 +75,7 @@ class BaseStrategy(loadable.Loadable):
         self._solution = default.DefaultSolution(goal=self.goal, strategy=self)
         self._osc = osc
         self._collector_manager = None
-        self._model = None
+        self._compute_model = None
         self._goal = None
         self._input_parameters = utils.Struct()
 
@@ -159,24 +159,24 @@ class BaseStrategy(loadable.Loadable):
         return self.solution
 
     @property
-    def collector(self):
+    def collector_manager(self):
         if self._collector_manager is None:
             self._collector_manager = manager.CollectorManager()
         return self._collector_manager
 
     @property
-    def model(self):
+    def compute_model(self):
         """Cluster data model
 
         :returns: Cluster data model the strategy is executed on
         :rtype model: :py:class:`~.ModelRoot` instance
         """
-        if self._model is None:
-            collector = self.collector.get_cluster_model_collector(
-                osc=self.osc)
-            self._model = collector.get_latest_cluster_data_model()
+        if self._compute_model is None:
+            collector = self.collector_manager.get_cluster_model_collector(
+                'compute', osc=self.osc)
+            self._compute_model = collector.get_latest_cluster_data_model()
 
-        return self._model
+        return self._compute_model
 
     @classmethod
     def get_schema(cls):

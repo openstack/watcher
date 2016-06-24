@@ -19,8 +19,8 @@
 
 from oslo_config import cfg
 
-from watcher.common import nova_helper
-from watcher.metrics_engine.cluster_model_collector import nova as cnova
+from watcher.common import utils
+from watcher.metrics_engine.loading import default
 
 
 CONF = cfg.CONF
@@ -28,7 +28,29 @@ CONF = cfg.CONF
 
 class CollectorManager(object):
 
-    def get_cluster_model_collector(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
-        nova = nova_helper.NovaHelper(osc=osc)
-        return cnova.NovaClusterModelCollector(nova)
+    def __init__(self):
+        self.collector_loader = default.ClusterDataModelCollectorLoader()
+        self._collectors = None
+
+    def get_collectors(self):
+        if self._collectors is None:
+            collectors = utils.Struct()
+            available_collectors = self.collector_loader.list_available()
+            for collector_name in available_collectors:
+                collector = self.collector_loader.load(collector_name)
+                collectors[collector_name] = collector
+                self._collectors = collectors
+
+        return self._collectors
+
+    def get_cluster_model_collector(self, name, osc=None):
+        """Retrieve cluster data model collector
+
+        :param name: name of the cluster data model collector plugin
+        :type name: str
+        :param osc: an OpenStackClients instance
+        :type osc: :py:class:`~.OpenStackClients` instance
+        :returns: cluster data model collector plugin
+        :rtype: :py:class:`~.BaseClusterDataModelCollector`
+        """
+        return self.collector_loader.load(name, osc=osc)

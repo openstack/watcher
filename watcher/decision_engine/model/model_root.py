@@ -13,8 +13,10 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from watcher._i18n import _
 from watcher.common import exception
+from watcher.common import utils
 from watcher.decision_engine.model import hypervisor
 from watcher.decision_engine.model import mapping
 from watcher.decision_engine.model import vm
@@ -22,10 +24,10 @@ from watcher.decision_engine.model import vm
 
 class ModelRoot(object):
     def __init__(self):
-        self._hypervisors = {}
-        self._vms = {}
+        self._hypervisors = utils.Struct()
+        self._vms = utils.Struct()
         self.mapping = mapping.Mapping(self)
-        self.resource = {}
+        self.resource = utils.Struct()
 
     def assert_hypervisor(self, obj):
         if not isinstance(obj, hypervisor.Hypervisor):

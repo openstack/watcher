@@ -42,7 +42,7 @@ class TestOutletTempControl(base.BaseTestCase):
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
         p_model = mock.patch.object(
-            strategies.OutletTempControl, "model",
+            strategies.OutletTempControl, "compute_model",
             new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)

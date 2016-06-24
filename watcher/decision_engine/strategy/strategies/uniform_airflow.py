@@ -130,12 +130,12 @@ class UniformAirflow(base.BaseStrategy):
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        vms = self.model.get_mapping().get_node_vms(hypervisor)
+        vms = self.compute_model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for vm_id in vms:
-            vm = self.model.get_vm_from_id(vm_id)
+            vm = self.compute_model.get_vm_from_id(vm_id)
             vcpus_used += cap_cores.get_capacity(vm)
             memory_mb_used += cap_mem.get_capacity(vm)
             disk_gb_used += cap_disk.get_capacity(vm)
@@ -150,7 +150,7 @@ class UniformAirflow(base.BaseStrategy):
         vms_tobe_migrate = []
         for hvmap in hosts:
             source_hypervisor = hvmap['hv']
-            source_vms = self.model.get_mapping().get_node_vms(
+            source_vms = self.compute_model.get_mapping().get_node_vms(
                 source_hypervisor)
             if source_vms:
                 inlet_t = self.ceilometer.statistic_aggregation(
@@ -168,7 +168,7 @@ class UniformAirflow(base.BaseStrategy):
                     # hardware issue, migrate all vms from this hypervisor
                     for vm_id in source_vms:
                         try:
-                            vm = self.model.get_vm_from_id(vm_id)
+                            vm = self.compute_model.get_vm_from_id(vm_id)
                             vms_tobe_migrate.append(vm)
                         except wexc.InstanceNotFound:
                             LOG.error(_LE("VM not found; error: %s"), vm_id)
@@ -177,7 +177,7 @@ class UniformAirflow(base.BaseStrategy):
                     # migrate the first active vm
                     for vm_id in source_vms:
                         try:
-                            vm = self.model.get_vm_from_id(vm_id)
+                            vm = self.compute_model.get_vm_from_id(vm_id)
                             if vm.state != vm_state.VMState.ACTIVE.value:
                                 LOG.info(_LI("VM not active; skipped: %s"),
                                          vm.uuid)
@@ -193,10 +193,11 @@ class UniformAirflow(base.BaseStrategy):
     def filter_destination_hosts(self, hosts, vms_to_migrate):
         """Return vm and host with sufficient available resources"""
 
-        cap_cores = self.model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
-        cap_disk = self.model.get_resource_from_id(resource.ResourceType.disk)
-        cap_mem = self.model.get_resource_from_id(
+        cap_disk = self.compute_model.get_resource_from_id(
+            resource.ResourceType.disk)
+        cap_mem = self.compute_model.get_resource_from_id(
             resource.ResourceType.memory)
         # large vm go first
         vms_to_migrate = sorted(vms_to_migrate, reverse=True,
@@ -240,13 +241,14 @@ class UniformAirflow(base.BaseStrategy):
     def group_hosts_by_airflow(self):
         """Group hosts based on airflow meters"""
 
-        hypervisors = self.model.get_all_hypervisors()
+        hypervisors = self.compute_model.get_all_hypervisors()
         if not hypervisors:
             raise wexc.ClusterEmpty()
         overload_hosts = []
         nonoverload_hosts = []
         for hypervisor_id in hypervisors:
-            hypervisor = self.model.get_hypervisor_from_id(hypervisor_id)
+            hypervisor = self.compute_model.get_hypervisor_from_id(
+                hypervisor_id)
             resource_id = hypervisor.uuid
             airflow = self.ceilometer.statistic_aggregation(
                 resource_id=resource_id,
@@ -270,7 +272,7 @@ class UniformAirflow(base.BaseStrategy):
     def pre_execute(self):
         LOG.debug("Initializing Uniform Airflow Strategy")
 
-        if self.model is None:
+        if self.compute_model is None:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -310,9 +312,8 @@ class UniformAirflow(base.BaseStrategy):
         for info in destination_hosts:
             vm_src = info['vm']
             mig_dst_hypervisor = info['hv']
-            if self.model.get_mapping().migrate_vm(vm_src,
-                                                   source_hypervisor,
-                                                   mig_dst_hypervisor):
+            if self.compute_model.get_mapping().migrate_vm(
+                    vm_src, source_hypervisor, mig_dst_hypervisor):
                 parameters = {'migration_type': 'live',
                               'src_hypervisor': source_hypervisor.uuid,
                               'dst_hypervisor': mig_dst_hypervisor.uuid}
@@ -321,5 +322,5 @@ class UniformAirflow(base.BaseStrategy):
                                          input_parameters=parameters)
 
     def post_execute(self):
-        self.solution.model = self.model
+        self.solution.model = self.compute_model
         # TODO(v-francoise): Add the indicators to the solution
