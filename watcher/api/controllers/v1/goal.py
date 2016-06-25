@@ -46,7 +46,7 @@ from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
-from watcher.common import utils as common_utils
+from watcher.common import policy
 from watcher import objects
 
 CONF = cfg.CONF
@@ -201,6 +201,9 @@ class GoalsController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'goal:get_all',
+                       action='goal:get_all')
         return self._get_goals_collection(marker, limit, sort_key, sort_dir)
 
     @wsme_pecan.wsexpose(GoalCollection, wtypes.text, int,
@@ -213,6 +216,9 @@ class GoalsController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'goal:detail',
+                       action='goal:detail')
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "goals":
@@ -231,11 +237,8 @@ class GoalsController(rest.RestController):
         if self.from_goals:
             raise exception.OperationNotPermitted
 
-        if common_utils.is_uuid_like(goal):
-            get_goal_func = objects.Goal.get_by_uuid
-        else:
-            get_goal_func = objects.Goal.get_by_name
-
-        rpc_goal = get_goal_func(pecan.request.context, goal)
+        context = pecan.request.context
+        rpc_goal = api_utils.get_resource('Goal', goal)
+        policy.enforce(context, 'goal:get', rpc_goal, action='goal:get')
 
         return Goal.convert_with_links(rpc_goal)

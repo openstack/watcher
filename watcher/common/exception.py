@@ -123,6 +123,10 @@ class NotAuthorized(WatcherException):
     code = 403
 
 
+class PolicyNotAuthorized(NotAuthorized):
+    msg_fmt = _("Policy doesn't allow %(action)s to be performed.")
+
+
 class OperationNotPermitted(NotAuthorized):
     msg_fmt = _("Operation not permitted")
 

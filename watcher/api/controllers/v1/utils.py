@@ -15,9 +15,12 @@
 
 import jsonpatch
 from oslo_config import cfg
+from oslo_utils import uuidutils
+import pecan
 import wsme
 
 from watcher._i18n import _
+from watcher import objects
 
 CONF = cfg.CONF
 
@@ -75,3 +78,19 @@ def as_filters_dict(**filters):
             filters_dict[filter_name] = filter_value
 
     return filters_dict
+
+
+def get_resource(resource, resource_ident):
+    """Get the resource from the uuid or logical name.
+
+    :param resource: the resource type.
+    :param resource_ident: the UUID or logical name of the resource.
+
+    :returns: The resource.
+    """
+    resource = getattr(objects, resource)
+
+    if uuidutils.is_uuid_like(resource_ident):
+        return resource.get_by_uuid(pecan.request.context, resource_ident)
+
+    return resource.get_by_name(pecan.request.context, resource_ident)

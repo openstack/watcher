@@ -64,6 +64,7 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import context as context_utils
 from watcher.common import exception
+from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher import objects
 
@@ -493,6 +494,9 @@ class AuditTemplatesController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'audit_template:get_all',
+                       action='audit_template:get_all')
         filters = {}
         if goal:
             if common_utils.is_uuid_like(goal):
@@ -522,6 +526,10 @@ class AuditTemplatesController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'audit_template:detail',
+                       action='audit_template:detail')
+
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "audit_templates":
@@ -555,14 +563,11 @@ class AuditTemplatesController(rest.RestController):
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
 
-        if common_utils.is_uuid_like(audit_template):
-            rpc_audit_template = objects.AuditTemplate.get_by_uuid(
-                pecan.request.context,
-                audit_template)
-        else:
-            rpc_audit_template = objects.AuditTemplate.get_by_name(
-                pecan.request.context,
-                audit_template)
+        context = pecan.request.context
+        rpc_audit_template = api_utils.get_resource('AuditTemplate',
+                                                    audit_template)
+        policy.enforce(context, 'audit_template:get', rpc_audit_template,
+                       action='audit_template:get')
 
         return AuditTemplate.convert_with_links(rpc_audit_template)
 
@@ -577,6 +582,10 @@ class AuditTemplatesController(rest.RestController):
         """
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
+
+        context = pecan.request.context
+        policy.enforce(context, 'audit_template:create',
+                       action='audit_template:create')
 
         context = pecan.request.context
         audit_template = audit_template_postdata.as_audit_template()
@@ -601,6 +610,13 @@ class AuditTemplatesController(rest.RestController):
         """
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
+
+        context = pecan.request.context
+        audit_template_to_update = api_utils.get_resource('AuditTemplate',
+                                                          audit_template)
+        policy.enforce(context, 'audit_template:update',
+                       audit_template_to_update,
+                       action='audit_template:update')
 
         if common_utils.is_uuid_like(audit_template):
             audit_template_to_update = objects.AuditTemplate.get_by_uuid(
@@ -639,14 +655,11 @@ class AuditTemplatesController(rest.RestController):
 
         :param audit template_uuid: UUID or name of an audit template.
         """
-
-        if common_utils.is_uuid_like(audit_template):
-            audit_template_to_delete = objects.AuditTemplate.get_by_uuid(
-                pecan.request.context,
-                audit_template)
-        else:
-            audit_template_to_delete = objects.AuditTemplate.get_by_name(
-                pecan.request.context,
-                audit_template)
+        context = pecan.request.context
+        audit_template_to_delete = api_utils.get_resource('AuditTemplate',
+                                                          audit_template)
+        policy.enforce(context, 'audit_template:update',
+                       audit_template_to_delete,
+                       action='audit_template:update')
 
         audit_template_to_delete.soft_delete()

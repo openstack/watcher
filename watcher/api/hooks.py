@@ -56,6 +56,8 @@ class ContextHook(hooks.PecanHook):
         auth_token = headers.get('X-Auth-Token', auth_token)
         show_deleted = headers.get('X-Show-Deleted')
         auth_token_info = state.request.environ.get('keystone.token_info')
+        roles = (headers.get('X-Roles', None) and
+                 headers.get('X-Roles').split(','))
 
         auth_url = headers.get('X-Auth-Url')
         if auth_url is None:
@@ -72,7 +74,8 @@ class ContextHook(hooks.PecanHook):
             project_id=project_id,
             domain_id=domain_id,
             domain_name=domain_name,
-            show_deleted=show_deleted)
+            show_deleted=show_deleted,
+            roles=roles)
 
 
 class NoExceptionTracebackHook(hooks.PecanHook):

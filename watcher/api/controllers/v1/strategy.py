@@ -41,6 +41,7 @@ from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
+from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher import objects
 
@@ -223,6 +224,9 @@ class StrategiesController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'strategy:get_all',
+                       action='strategy:get_all')
         filters = {}
         if goal:
             if common_utils.is_uuid_like(goal):
@@ -245,6 +249,9 @@ class StrategiesController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'strategy:detail',
+                       action='strategy:detail')
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "strategies":
@@ -271,11 +278,9 @@ class StrategiesController(rest.RestController):
         if self.from_strategies:
             raise exception.OperationNotPermitted
 
-        if common_utils.is_uuid_like(strategy):
-            get_strategy_func = objects.Strategy.get_by_uuid
-        else:
-            get_strategy_func = objects.Strategy.get_by_name
-
-        rpc_strategy = get_strategy_func(pecan.request.context, strategy)
+        context = pecan.request.context
+        rpc_strategy = api_utils.get_resource('Strategy', strategy)
+        policy.enforce(context, 'strategy:get', rpc_strategy,
+                       action='strategy:get')
 
         return Strategy.convert_with_links(rpc_strategy)

@@ -70,6 +70,7 @@ from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
+from watcher.common import policy
 from watcher import objects
 
 
@@ -303,6 +304,10 @@ class ActionsController(rest.RestController):
         :param audit_uuid: Optional UUID of an audit,
            to get only actions for that audit.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'action:get_all',
+                       action='action:get_all')
+
         if action_plan_uuid and audit_uuid:
             raise exception.ActionFilterCombinationProhibited
 
@@ -327,6 +332,10 @@ class ActionsController(rest.RestController):
         :param audit_uuid: Optional UUID of an audit,
            to get only actions for that audit.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'action:detail',
+                       action='action:detail')
+
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "actions":
@@ -350,8 +359,10 @@ class ActionsController(rest.RestController):
         if self.from_actions:
             raise exception.OperationNotPermitted
 
-        action = objects.Action.get_by_uuid(pecan.request.context,
-                                            action_uuid)
+        context = pecan.request.context
+        action = api_utils.get_resource('Action', action_uuid)
+        policy.enforce(context, 'action:get', action, action='action:get')
+
         return Action.convert_with_links(action)
 
     @wsme_pecan.wsexpose(Action, body=Action, status_code=201)

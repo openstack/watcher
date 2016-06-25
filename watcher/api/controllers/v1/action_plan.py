@@ -72,6 +72,7 @@ from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.applier import rpcapi
 from watcher.common import exception
+from watcher.common import policy
 from watcher import objects
 from watcher.objects import action_plan as ap_objects
 
@@ -358,6 +359,10 @@ class ActionPlansController(rest.RestController):
         :param audit_uuid: Optional UUID of an audit, to get only actions
             for that audit.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'action_plan:get_all',
+                       action='action_plan:get_all')
+
         return self._get_action_plans_collection(
             marker, limit, sort_key, sort_dir, audit_uuid=audit_uuid)
 
@@ -374,6 +379,10 @@ class ActionPlansController(rest.RestController):
         :param audit_uuid: Optional UUID of an audit, to get only actions
             for that audit.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'action_plan:detail',
+                       action='action_plan:detail')
+
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "action_plans":
@@ -395,8 +404,11 @@ class ActionPlansController(rest.RestController):
         if self.from_actionsPlans:
             raise exception.OperationNotPermitted
 
-        action_plan = objects.ActionPlan.get_by_uuid(
-            pecan.request.context, action_plan_uuid)
+        context = pecan.request.context
+        action_plan = api_utils.get_resource('ActionPlan', action_plan_uuid)
+        policy.enforce(
+            context, 'action_plan:get', action_plan, action='action_plan:get')
+
         return ActionPlan.convert_with_links(action_plan)
 
     @wsme_pecan.wsexpose(None, types.uuid, status_code=204)
@@ -405,11 +417,12 @@ class ActionPlansController(rest.RestController):
 
         :param action_plan_uuid: UUID of a action.
         """
+        context = pecan.request.context
+        action_plan = api_utils.get_resource('ActionPlan', action_plan_uuid)
+        policy.enforce(context, 'action_plan:delete', action_plan,
+                       action='action_plan:delete')
 
-        action_plan_to_delete = objects.ActionPlan.get_by_uuid(
-            pecan.request.context,
-            action_plan_uuid)
-        action_plan_to_delete.soft_delete()
+        action_plan.soft_delete()
 
     @wsme.validate(types.uuid, [ActionPlanPatchType])
     @wsme_pecan.wsexpose(ActionPlan, types.uuid,
@@ -424,9 +437,12 @@ class ActionPlansController(rest.RestController):
         if self.from_actionsPlans:
             raise exception.OperationNotPermitted
 
-        action_plan_to_update = objects.ActionPlan.get_by_uuid(
-            pecan.request.context,
-            action_plan_uuid)
+        context = pecan.request.context
+        action_plan_to_update = api_utils.get_resource('ActionPlan',
+                                                       action_plan_uuid)
+        policy.enforce(context, 'action_plan:update', action_plan_to_update,
+                       action='action_plan:update')
+
         try:
             action_plan_dict = action_plan_to_update.as_dict()
             action_plan = ActionPlan(**api_utils.apply_jsonpatch(
