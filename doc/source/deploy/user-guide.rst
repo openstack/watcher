@@ -99,6 +99,16 @@ or::
 
   $ openstack optimize strategy list --goal-uuid <your_goal_uuid>
 
+You can use the following command to check strategy details including which
+parameters of which format it supports:
+
+.. code:: bash
+
+  $ watcher strategy show <your_strategy>
+
+or::
+
+  $ openstack optimize strategy show <your_strategy>
 
 The command to create your audit template would then be:
 
@@ -139,6 +149,26 @@ or::
 or::
 
   $ openstack optimize audit create -a <your_audit_template>
+
+If your_audit_template was created by --strategy <your_strategy>, and it
+defines some parameters (command `watcher strategy show` to check parameters
+format), your can append `-p` to input required parameters:
+
+.. code:: bash
+
+  $ watcher audit create -a <your_audit_template> \
+    -p <your_strategy_para1>=5.5 -p <your_strategy_para2>=hi
+
+or::
+
+  $ openstack optimize audit create -a <your_audit_template> \
+    -p <your_strategy_para1>=5.5 -p <your_strategy_para2>=hi
+
+Input parameter could cause audit creation failure, when:
+
+- no predefined strategy for audit template
+- no parameters spec in predefined strategy
+- input parameters don't comply with spec
 
 Watcher service will compute an :ref:`Action Plan <action_plan_definition>`
 composed of a list of potential optimization :ref:`actions <action_definition>`
