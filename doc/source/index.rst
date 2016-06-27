@@ -75,6 +75,7 @@ Plugins
   dev/plugin/base-setup
   dev/plugin/goal-plugin
   dev/plugin/strategy-plugin
+  dev/plugin/cdmc-plugin
   dev/plugin/action-plugin
   dev/plugin/planner-plugin
   dev/plugins

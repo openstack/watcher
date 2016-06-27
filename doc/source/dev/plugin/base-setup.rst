@@ -88,10 +88,13 @@ Now that the project skeleton has been created, you can start the
 implementation of your plugin. As of now, you can implement the following
 plugins for Watcher:
 
+- A :ref:`goal plugin <implement_goal_plugin>`
 - A :ref:`strategy plugin <implement_strategy_plugin>`
-- A :ref:`planner plugin <implement_planner_plugin>`
 - An :ref:`action plugin <implement_action_plugin>`
-- A :ref:`workflow engine plugin <implement_workflow_engine_plugin>`
+- A :ref:`planner plugin <implement_planner_plugin>`
+- A workflow engine plugin
+- A :ref:`cluster data model collector plugin
+  <implement_cluster_data_model_collector_plugin>`
 
 If you want to learn more on how to implement them, you can refer to their
 dedicated documentation.

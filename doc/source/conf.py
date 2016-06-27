@@ -19,12 +19,13 @@ from watcher import version as watcher_version
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'oslo_config.sphinxconfiggen',
+    'oslosphinx',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
+    'stevedore.sphinxext',
     'wsmeext.sphinxext',
-    'oslosphinx',
     'watcher.doc',
 ]
 

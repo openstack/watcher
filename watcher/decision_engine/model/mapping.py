@@ -30,7 +30,7 @@ class Mapping(object):
         self.lock = threading.Lock()
 
     def map(self, hypervisor, vm):
-        """Select the hypervisor where the instance are launched
+        """Select the hypervisor where the instance is launched
 
         :param hypervisor: the hypervisor
         :param vm: the virtual machine or instance

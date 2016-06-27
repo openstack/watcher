@@ -18,32 +18,43 @@ use the :ref:`Guru Meditation Reports <watcher_gmr>` to display them.
 Goals
 =====
 
-.. drivers-doc:: watcher_goals
+.. list-plugins:: watcher_goals
+   :detailed:
 
 .. _watcher_strategies:
 
 Strategies
 ==========
 
-.. drivers-doc:: watcher_strategies
+.. list-plugins:: watcher_strategies
+   :detailed:
 
 .. _watcher_actions:
 
 Actions
 =======
 
-.. drivers-doc:: watcher_actions
+.. list-plugins:: watcher_actions
+   :detailed:
 
 .. _watcher_workflow_engines:
 
 Workflow Engines
 ================
 
-.. drivers-doc:: watcher_workflow_engines
+.. list-plugins:: watcher_workflow_engines
+   :detailed:
 
 .. _watcher_planners:
 
 Planners
 ========
 
-.. drivers-doc:: watcher_planners
+.. list-plugins:: watcher_planners
+   :detailed:
+
+Cluster Data Model Collectors
+=============================
+
+.. list-plugins:: watcher_cluster_data_model_collectors
+   :detailed:

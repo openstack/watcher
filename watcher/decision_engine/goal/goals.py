@@ -72,7 +72,7 @@ class Unclassified(base.Goal):
 
 
 class ServerConsolidation(base.Goal):
-    """ServerConsolidation
+    """Server Consolidation
 
     This goal is for efficient usage of compute server resources in order to
     reduce the total number of servers.
@@ -97,7 +97,7 @@ class ServerConsolidation(base.Goal):
 
 
 class ThermalOptimization(base.Goal):
-    """ThermalOptimization
+    """Thermal Optimization
 
     This goal is used to balance the temperature across different servers.
     """
@@ -121,7 +121,7 @@ class ThermalOptimization(base.Goal):
 
 
 class WorkloadBalancing(base.Goal):
-    """WorkloadBalancing
+    """Workload Balancing
 
     This goal is used to evenly distribute workloads across different servers.
     """
@@ -145,6 +145,10 @@ class WorkloadBalancing(base.Goal):
 
 
 class AirflowOptimization(base.Goal):
+    """Workload Balancing
+
+    This goal is used to optimize the air flow within a cloud infrastructure.
+    """
 
     @classmethod
     def get_name(cls):

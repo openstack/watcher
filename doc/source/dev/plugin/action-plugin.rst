@@ -80,12 +80,9 @@ Here is an example showing how you can write a plugin called ``DummyAction``:
             pass
 
 
-This implementation is the most basic one. So if you want to have more advanced
-examples, have a look at the implementation of the actions already provided
-by Watcher like.
-To get a better understanding on how to implement a more advanced action,
-have a look at the :py:class:`~watcher.applier.actions.migration.Migrate`
-class.
+This implementation is the most basic one. So in order to get a better
+understanding on how to implement a more advanced action, have a look at the
+:py:class:`~watcher.applier.actions.migration.Migrate` class.
 
 Input validation
 ----------------
