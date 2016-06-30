@@ -71,8 +71,15 @@ structure that looks like this::
     │       └── test_thirdparty.py
     └── tox.ini
 
+**Note:** You should add `python-watcher`_ as a dependency in the
+requirements.txt file::
+
+    # Watcher-specific requirements
+    python-watcher
+
 .. _cookiecutter: https://github.com/audreyr/cookiecutter
 .. _OpenStack cookiecutter: https://github.com/openstack-dev/cookiecutter
+.. _python-watcher: https://pypi.python.org/pypi/python-watcher
 
 Implementing a plugin for Watcher
 =================================
