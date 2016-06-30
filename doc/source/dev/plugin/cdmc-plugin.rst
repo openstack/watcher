@@ -54,6 +54,10 @@ Define configuration parameters
 ===============================
 
 At this point, you have a fully functional cluster data model collector.
+By default, cluster data model collectors define an ``period`` option (see
+:py:meth:`~.BaseClusterDataModelCollector.get_config_opts`) that corresponds
+to the interval of time between each synchronization of the in-memory model.
+
 However, in more complex implementation, you may want to define some
 configuration options so one can tune the cluster data model collector to its
 needs. To do so, you can implement the :py:meth:`~.Loadable.get_config_opts`
@@ -73,8 +77,10 @@ class method as followed:
             # Do something here...
             return model
 
-        def get_config_opts(self):
-            return [
+        @classmethod
+        def get_config_opts(cls):
+            return super(
+                DummyClusterDataModelCollector, cls).get_config_opts() + [
                 cfg.StrOpt('test_opt', help="Demo Option.", default=0),
                 # Some more options ...
             ]

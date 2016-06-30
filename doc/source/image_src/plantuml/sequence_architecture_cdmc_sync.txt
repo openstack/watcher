@@ -1,0 +1,41 @@
+@startuml
+skinparam maxMessageSize 100
+
+actor "Administrator"
+
+== Initialization ==
+
+"Administrator" -> "Decision Engine" : Start all services
+"Decision Engine" -> "Background Task Scheduler" : Start
+
+activate "Background Task Scheduler"
+"Background Task Scheduler" -> "Cluster Model Collector Loader"\
+: List available cluster data models
+"Cluster Model Collector Loader" --> "Background Task Scheduler"\
+: list of BaseClusterModelCollector instances
+
+loop for every available cluster data model collector
+    "Background Task Scheduler" -> "Background Task Scheduler"\
+    : add periodic synchronization job
+    create "Jobs Pool"
+    "Background Task Scheduler" -> "Jobs Pool" : Create sync job
+end
+deactivate "Background Task Scheduler"
+
+hnote over "Background Task Scheduler" : Idle
+
+== Job workflow ==
+
+"Background Task Scheduler" -> "Jobs Pool" : Trigger synchronization job
+"Jobs Pool" -> "Nova Cluster Data Model Collector" : synchronize
+
+activate "Nova Cluster Data Model Collector"
+    "Nova Cluster Data Model Collector" -> "Nova API"\
+    : Fetch needed data to build the cluster data model
+    "Nova API" --> "Nova Cluster Data Model Collector" : Needed data
+    "Nova Cluster Data Model Collector" -> "Nova Cluster Data Model Collector"\
+    : Build an in-memory cluster data model
+    ]o<-- "Nova Cluster Data Model Collector" : Done
+deactivate "Nova Cluster Data Model Collector"
+
+@enduml

@@ -114,11 +114,14 @@ tune the action to its needs. To do so, you can implement the
         def execute(self):
             assert self.config.test_opt == 0
 
-        def get_config_opts(self):
-            return [
+        @classmethod
+        def get_config_opts(cls):
+            return super(
+                DummyAction, cls).get_config_opts() + [
                 cfg.StrOpt('test_opt', help="Demo Option.", default=0),
                 # Some more options ...
             ]
+
 
 The configuration options defined within this class method will be included
 within the global ``watcher.conf`` configuration file under a section named by
