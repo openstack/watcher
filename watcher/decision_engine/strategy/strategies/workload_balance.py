@@ -265,7 +265,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         """
         LOG.info(_LI("Initializing Workload Balance Strategy"))
 
-        if self.compute_model is None:
+        if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):

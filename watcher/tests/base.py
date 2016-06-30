@@ -27,6 +27,7 @@ from pecan import testing
 import testscenarios
 
 from watcher.common import context as watcher_context
+from watcher.common import service
 from watcher.objects import base as objects_base
 from watcher.tests import conf_fixture
 from watcher.tests import policy_fixture
@@ -90,10 +91,15 @@ class TestCase(BaseTestCase):
         self.addCleanup(p.stop)
 
         self.useFixture(conf_fixture.ConfFixture(cfg.CONF))
+        self._reset_singletons()
 
         self._base_test_obj_backup = copy.copy(
             objects_base.WatcherObject._obj_classes)
         self.addCleanup(self._restore_obj_registry)
+        self.addCleanup(self._reset_singletons)
+
+    def _reset_singletons(self):
+        service.Singleton._instances.clear()
 
     def _restore_obj_registry(self):
         objects_base.WatcherObject._obj_classes = self._base_test_obj_backup

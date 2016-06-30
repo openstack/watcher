@@ -21,16 +21,17 @@ from stevedore import extension as stevedore_extension
 from watcher.common import clients
 from watcher.common import exception
 from watcher.metrics_engine.loading import default as default_loading
+from watcher.tests import base
+from watcher.tests import conf_fixture
 from watcher.tests.decision_engine.strategy.strategies import \
     faker_cluster_state
-
-from watcher.tests import base
 
 
 class TestClusterDataModelCollectorLoader(base.TestCase):
 
     def setUp(self):
         super(TestClusterDataModelCollectorLoader, self).setUp()
+        self.useFixture(conf_fixture.ConfReloadFixture())
         self.collector_loader = (
             default_loading.ClusterDataModelCollectorLoader())
 
@@ -71,6 +72,10 @@ class TestLoadClusterDataModelCollectors(base.TestCase):
          {"collector_name": collector_name, "collector_cls": collector_cls})
         for collector_name, collector_cls
         in collector_loader.list_available().items()]
+
+    def setUp(self):
+        super(TestLoadClusterDataModelCollectors, self).setUp()
+        self.useFixture(conf_fixture.ConfReloadFixture())
 
     @mock.patch.object(clients, 'OpenStackClients', mock.Mock())
     def test_load_cluster_data_model_collectors(self):

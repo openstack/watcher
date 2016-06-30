@@ -168,6 +168,14 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertEqual(expected_num_migrations, num_migrations)
         self.assertEqual(expected_power_state, num_hypervisor_state_change)
 
+    def test_exception_stale_cdm(self):
+        self.fake_cluster.set_cluster_data_model_as_stale()
+        self.m_model.return_value = self.fake_cluster.cluster_data_model
+
+        self.assertRaises(
+            exception.ClusterStateNotDefined,
+            self.strategy.execute)
+
     # calculate_weight
     def test_execute_no_workload(self):
         model = (

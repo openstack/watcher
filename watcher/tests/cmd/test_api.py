@@ -50,7 +50,7 @@ class TestApi(base.BaseTestCase):
 
     @mock.patch.object(wsgi, "Server", mock.Mock())
     @mock.patch("watcher.api.app.pecan.make_app")
-    @mock.patch.object(service, "process_launcher")
+    @mock.patch.object(service, "launch")
     def test_run_api_app(self, m_launcher, m_make_app):
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)
         api.main()
@@ -58,7 +58,7 @@ class TestApi(base.BaseTestCase):
 
     @mock.patch.object(wsgi, "Server", mock.Mock())
     @mock.patch("watcher.api.app.pecan.make_app")
-    @mock.patch.object(service, "process_launcher")
+    @mock.patch.object(service, "launch")
     def test_run_api_app_serve_specific_address(self, m_launcher, m_make_app):
         cfg.CONF.set_default("host", "localhost", group="api")
         m_make_app.return_value = load_test_app(config=api_config.PECAN_CONFIG)

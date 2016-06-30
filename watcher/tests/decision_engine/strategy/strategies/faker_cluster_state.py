@@ -29,7 +29,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
     def __init__(self, config=None, osc=None):
         if config is None:
-            config = mock.Mock()
+            config = mock.Mock(period=777)
         super(FakerModelCollector, self).__init__(config)
 
     def execute(self):

@@ -23,11 +23,18 @@ from watcher.decision_engine.model import vm
 
 
 class ModelRoot(object):
-    def __init__(self):
+
+    def __init__(self, stale=False):
         self._hypervisors = utils.Struct()
         self._vms = utils.Struct()
         self.mapping = mapping.Mapping(self)
         self.resource = utils.Struct()
+        self.stale = stale
+
+    def __nonzero__(self):
+        return not self.stale
+
+    __bool__ = __nonzero__
 
     def assert_hypervisor(self, obj):
         if not isinstance(obj, hypervisor.Hypervisor):

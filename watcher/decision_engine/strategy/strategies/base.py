@@ -40,6 +40,7 @@ import abc
 import six
 
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
 from watcher.decision_engine.loading import default as loading
@@ -175,6 +176,9 @@ class BaseStrategy(loadable.Loadable):
             collector = self.collector_manager.get_cluster_model_collector(
                 'compute', osc=self.osc)
             self._compute_model = collector.get_latest_cluster_data_model()
+
+        if not self._compute_model:
+            raise exception.ClusterStateNotDefined()
 
         return self._compute_model
 

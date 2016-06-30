@@ -324,6 +324,10 @@ class MetricCollectorNotDefined(WatcherException):
     msg_fmt = _("The metrics resource collector is not defined")
 
 
+class ClusterDataModelCollectionError(WatcherException):
+    msg_fmt = _("The cluster data model '%(cdm)s' could not be built")
+
+
 class ClusterStateNotDefined(WatcherException):
     msg_fmt = _("The cluster state is not defined")
 

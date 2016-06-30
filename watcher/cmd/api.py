@@ -46,6 +46,5 @@ def main():
         LOG.info(_LI('serving on %(protocol)s://%(host)s:%(port)s') %
                  dict(protocol=protocol, host=host, port=port))
 
-    launcher = service.process_launcher()
-    launcher.launch_service(server, workers=server.workers)
+    launcher = service.launch(CONF, server, workers=server.workers)
     launcher.wait()

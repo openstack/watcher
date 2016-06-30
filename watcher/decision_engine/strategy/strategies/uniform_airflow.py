@@ -272,7 +272,7 @@ class UniformAirflow(base.BaseStrategy):
     def pre_execute(self):
         LOG.debug("Initializing Uniform Airflow Strategy")
 
-        if self.compute_model is None:
+        if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):

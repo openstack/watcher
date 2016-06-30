@@ -126,6 +126,14 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.m_model.return_value = model
         self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
 
+    def test_exception_stale_cdm(self):
+        self.fake_cluster.set_cluster_data_model_as_stale()
+        self.m_model.return_value = self.fake_cluster.cluster_data_model
+
+        self.assertRaises(
+            exception.ClusterStateNotDefined,
+            self.strategy.execute)
+
     def test_execute_cluster_empty(self):
         model = model_root.ModelRoot()
         self.m_model.return_value = model

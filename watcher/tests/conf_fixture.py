@@ -26,9 +26,9 @@ CONF.import_opt('sqlite_synchronous', 'oslo_db.options', group='database')
 
 
 class ConfFixture(fixtures.Fixture):
-    """Fixture to manage global conf settings."""
+    """Fixture to manage conf settings."""
 
-    def __init__(self, conf):
+    def __init__(self, conf=cfg.CONF):
         self.conf = conf
 
     def setUp(self):

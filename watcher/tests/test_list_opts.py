@@ -29,10 +29,11 @@ class TestListOpts(base.TestCase):
             'api', 'watcher_decision_engine', 'watcher_applier',
             'watcher_planner', 'nova_client', 'glance_client',
             'cinder_client', 'ceilometer_client', 'neutron_client',
-            'watcher_clients_auth', 'watcher_planners.default']
+            'watcher_clients_auth']
+        self.opt_sections = list(dict(opts.list_opts()).keys())
 
     def test_run_list_opts(self):
-        expected_sections = self.base_sections
+        expected_sections = self.opt_sections
 
         result = opts.list_opts()
 

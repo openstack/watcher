@@ -62,6 +62,8 @@ _DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
                        'paramiko=WARN', 'requests=WARN', 'neutronclient=WARN',
                        'glanceclient=WARN', 'watcher.openstack.common=WARN']
 
+Singleton = service.Singleton
+
 
 class WSGIService(service.ServiceBase):
     """Provides ability to launch Watcher API from wsgi app."""
@@ -209,8 +211,8 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
         self.publish_status(evt, payload)
 
 
-def process_launcher(conf=cfg.CONF):
-    return service.ProcessLauncher(conf)
+def launch(conf, service_, workers=1, restart_method='reload'):
+    return service.launch(conf, service_, workers, restart_method)
 
 
 def prepare_service(argv=(), conf=cfg.CONF):
