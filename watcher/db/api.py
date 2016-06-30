@@ -44,7 +44,6 @@ class BaseConnection(object):
 
         :param context: The security context
         :param filters: Filters to apply. Defaults to None.
-
         :param limit: Maximum number of goals to return.
         :param marker: the last item of the previous page; we return the next
                        result set.
@@ -229,7 +228,6 @@ class BaseConnection(object):
 
         :param context: The security context
         :param filters: Filters to apply. Defaults to None.
-
         :param limit: Maximum number of audit templates to return.
         :param marker: the last item of the previous page; we return the next
                        result set.
@@ -325,7 +323,6 @@ class BaseConnection(object):
 
         :param context: The security context
         :param filters: Filters to apply. Defaults to None.
-
         :param limit: Maximum number of audits to return.
         :param marker: the last item of the previous page; we return the next
                        result set.
@@ -410,7 +407,6 @@ class BaseConnection(object):
 
         :param context: The security context
         :param filters: Filters to apply. Defaults to None.
-
         :param limit: Maximum number of actions to return.
         :param marker: the last item of the previous page; we return the next
                        result set.
@@ -491,7 +487,6 @@ class BaseConnection(object):
 
         :param context: The security context
         :param filters: Filters to apply. Defaults to None.
-
         :param limit: Maximum number of audits to return.
         :param marker: the last item of the previous page; we return the next
                        result set.
