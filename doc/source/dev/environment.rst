@@ -17,7 +17,7 @@ To install Watcher from packaging, refer instead to Watcher `User
 Documentation`_.
 
 .. _`Git Repository`: http://git.openstack.org/cgit/openstack/watcher
-.. _`User Documentation`: https://factory.b-com.com/www/watcher/doc/watcher/
+.. _`User Documentation`: http://docs.openstack.org/developer/watcher/
 
 Prerequisites
 =============
