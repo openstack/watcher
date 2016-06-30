@@ -20,10 +20,10 @@ from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception as wexc
+from watcher.decision_engine.cluster.history import ceilometer as ceil
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state
 from watcher.decision_engine.strategy.strategies import base
-from watcher.metrics_engine.cluster_history import ceilometer as ceil
 
 LOG = log.getLogger(__name__)
 

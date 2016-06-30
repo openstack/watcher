@@ -19,7 +19,7 @@
 import mock
 
 from watcher.common import nova_helper
-from watcher.metrics_engine.cluster_model_collector import nova
+from watcher.decision_engine.model.collector import nova
 from watcher.tests import base
 from watcher.tests import conf_fixture
 

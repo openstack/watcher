@@ -16,11 +16,11 @@
 import mock
 
 from watcher.common import utils
+from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.context import default as d_strategy_ctx
 from watcher.decision_engine.strategy.selection import default as d_selector
 from watcher.decision_engine.strategy import strategies
-from watcher.metrics_engine.cluster_model_collector import manager
 from watcher.tests.db import base
 from watcher.tests.objects import utils as obj_utils
 

@@ -28,11 +28,11 @@ from oslo_log import log
 
 from watcher._i18n import _LI, _
 from watcher.common import exception
+from watcher.decision_engine.cluster.history import ceilometer as \
+    ceilometer_cluster_history
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state
 from watcher.decision_engine.strategy.strategies import base
-from watcher.metrics_engine.cluster_history import ceilometer as \
-    ceilometer_cluster_history
 
 LOG = log.getLogger(__name__)
 

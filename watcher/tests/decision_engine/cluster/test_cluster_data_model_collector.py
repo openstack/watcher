@@ -16,8 +16,8 @@
 
 import mock
 
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import model_root
-from watcher.metrics_engine.cluster_model_collector import base
 from watcher.tests import base as test_base
 
 

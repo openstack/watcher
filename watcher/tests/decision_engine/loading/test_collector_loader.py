@@ -20,7 +20,7 @@ from stevedore import extension as stevedore_extension
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.metrics_engine.loading import default as default_loading
+from watcher.decision_engine.loading import default as default_loading
 from watcher.tests import base
 from watcher.tests import conf_fixture
 from watcher.tests.decision_engine.strategy.strategies import \

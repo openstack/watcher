@@ -21,7 +21,8 @@ from oslo_log import log
 
 from watcher.common import exception
 from watcher.common import scheduling
-from watcher.metrics_engine.cluster_model_collector import manager
+
+from watcher.decision_engine.model.collector import manager
 
 LOG = log.getLogger(__name__)
 

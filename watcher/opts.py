@@ -26,15 +26,14 @@ from watcher.common import utils
 from watcher.decision_engine.loading import default as decision_engine_loader
 from watcher.decision_engine import manager as decision_engine_manger
 from watcher.decision_engine.planner import manager as planner_manager
-from watcher.metrics_engine.loading import default as cdm_loader
 
 
 PLUGIN_LOADERS = (
     applier_loader.DefaultActionLoader,
     decision_engine_loader.DefaultPlannerLoader,
     decision_engine_loader.DefaultStrategyLoader,
+    decision_engine_loader.ClusterDataModelCollectorLoader,
     applier_loader.DefaultWorkFlowEngineLoader,
-    cdm_loader.ClusterDataModelCollectorLoader,
 )
 
 

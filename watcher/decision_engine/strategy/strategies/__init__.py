@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from watcher.decision_engine.strategy.strategies import basic_consolidation
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import outlet_temp_control

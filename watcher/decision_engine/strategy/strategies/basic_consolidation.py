@@ -31,12 +31,11 @@ from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception
+from watcher.decision_engine.cluster.history import ceilometer as cch
 from watcher.decision_engine.model import hypervisor_state as hyper_state
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm_state
 from watcher.decision_engine.strategy.strategies import base
-from watcher.metrics_engine.cluster_history import ceilometer as \
-    ceilometer_cluster_history
 
 LOG = log.getLogger(__name__)
 
@@ -123,8 +122,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = (ceilometer_cluster_history.
-                                CeilometerClusterHistory(osc=self.osc))
+            self._ceilometer = cch.CeilometerClusterHistory(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
