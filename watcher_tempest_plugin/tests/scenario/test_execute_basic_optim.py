@@ -96,7 +96,6 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
                                wait_until='ACTIVE',
                                clients=self.mgr)
 
-    @test.services('compute', 'network', 'image')
     def test_execute_basic_action_plan(self):
         """Execute an action plan based on the BASIC strategy
 
@@ -114,7 +113,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(self.has_audit_succeeded, audit['uuid']),
-            duration=300,
+            duration=600,
             sleep_for=2
         ))
         _, action_plans = self.client.list_action_plans(
@@ -132,7 +131,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         self.assertTrue(test.call_until_true(
             func=functools.partial(
                 self.has_action_plan_finished, action_plan['uuid']),
-            duration=300,
+            duration=600,
             sleep_for=2
         ))
         _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
