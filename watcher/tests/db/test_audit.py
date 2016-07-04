@@ -47,10 +47,12 @@ class TestDbAuditFilters(base.DbTestCase):
                 audit_template_id=self.audit_template.id, id=1, uuid=None)
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.audit2 = utils.create_test_audit(
-                audit_template_id=self.audit_template.id, id=2, uuid=None)
+                audit_template_id=self.audit_template.id, id=2, uuid=None,
+                state=audit_objects.State.FAILED)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.audit3 = utils.create_test_audit(
-                audit_template_id=self.audit_template.id, id=3, uuid=None)
+                audit_template_id=self.audit_template.id, id=3, uuid=None,
+                state=audit_objects.State.CANCELLED)
 
     def _soft_delete_audits(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -223,6 +225,26 @@ class TestDbAuditFilters(base.DbTestCase):
 
         self.assertEqual(
             [self.audit1['id'], self.audit2['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_state_in(self):
+        res = self.dbapi.get_audit_list(
+            self.context,
+            filters={'state__in': (audit_objects.State.FAILED,
+                                   audit_objects.State.CANCELLED)})
+
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id']],
+            [r.id for r in res])
+
+    def test_get_audit_list_filter_state_notin(self):
+        res = self.dbapi.get_audit_list(
+            self.context,
+            filters={'state__notin': (audit_objects.State.FAILED,
+                                      audit_objects.State.CANCELLED)})
+
+        self.assertEqual(
+            [self.audit1['id']],
             [r.id for r in res])
 
 
