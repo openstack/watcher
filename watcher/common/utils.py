@@ -16,6 +16,7 @@
 
 """Utilities and helper functions."""
 
+from jsonschema import validators
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -129,3 +130,25 @@ def get_cls_import_path(cls):
     if module is None or module == str.__module__:
         return cls.__name__
     return module + '.' + cls.__name__
+
+
+# Default value feedback extension as jsonschema doesn't support it
+def extend_with_default(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def set_defaults(validator, properties, instance, schema):
+        for prop, subschema in properties.items():
+            if "default" in subschema:
+                instance.setdefault(prop, subschema["default"])
+
+            for error in validate_properties(
+                validator, properties, instance, schema,
+            ):
+                yield error
+
+    return validators.extend(
+        validator_class, {"properties": set_defaults},
+    )
+
+DefaultValidatingDraft4Validator = extend_with_default(
+    validators.Draft4Validator)

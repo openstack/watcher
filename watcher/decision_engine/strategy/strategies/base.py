@@ -41,6 +41,7 @@ import six
 
 from watcher.common import clients
 from watcher.common.loader import loadable
+from watcher.common import utils
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
@@ -76,6 +77,7 @@ class BaseStrategy(loadable.Loadable):
         self._collector_manager = None
         self._model = None
         self._goal = None
+        self._input_parameters = utils.Struct()
 
     @classmethod
     @abc.abstractmethod
@@ -175,6 +177,23 @@ class BaseStrategy(loadable.Loadable):
             self._model = collector.get_latest_cluster_data_model()
 
         return self._model
+
+    @classmethod
+    def get_schema(cls):
+        """Defines a Schema that the input parameters shall comply to
+
+        :return: A jsonschema format (mandatory default setting)
+        :rtype: dict
+        """
+        return {}
+
+    @property
+    def input_parameters(self):
+        return self._input_parameters
+
+    @input_parameters.setter
+    def input_parameters(self, p):
+        self._input_parameters = p
 
     @property
     def osc(self):

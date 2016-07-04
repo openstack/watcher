@@ -17,6 +17,7 @@
 import mock
 
 from watcher.applier.loading import default
+from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -45,12 +46,16 @@ class TestDummyStrategy(base.TestCase):
 
     def test_dummy_strategy(self):
         dummy = strategies.DummyStrategy(config=mock.Mock())
+        dummy.input_parameters = utils.Struct()
+        dummy.input_parameters.update({'para1': 4.0, 'para2': 'Hi'})
         solution = dummy.execute()
         self.assertEqual(3, len(solution.actions))
 
     def test_check_parameters(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
         self.m_model.return_value = model
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'para1': 4.0, 'para2': 'Hi'})
         solution = self.strategy.execute()
         loader = default.DefaultActionLoader()
         for action in solution.actions:

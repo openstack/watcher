@@ -61,6 +61,7 @@ def get_test_audit(**kwargs):
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
+        'parameters': kwargs.get('parameters', {}),
     }
 
 
@@ -178,6 +179,7 @@ def get_test_strategy(**kwargs):
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
+        'parameters_spec': kwargs.get('parameters_spec', {})
     }
 
 

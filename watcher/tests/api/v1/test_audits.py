@@ -39,6 +39,21 @@ def post_get_test_audit(**kw):
     return audit
 
 
+def post_get_test_audit_with_predefined_strategy(**kw):
+    spec = kw.pop('strategy_parameters_spec', {})
+    strategy_id = 2
+    strategy = db_utils.get_test_strategy(parameters_spec=spec, id=strategy_id)
+
+    audit_template = db_utils.get_test_audit_template(
+        strategy_id=strategy['id'])
+
+    audit = api_utils.audit_post_data(**kw)
+    del audit['audit_template_id']
+    audit['audit_template_uuid'] = audit_template['uuid']
+
+    return audit
+
+
 class TestAuditObject(base.TestCase):
 
     def test_audit_init(self):
@@ -561,6 +576,43 @@ class TestPost(api_base.FunctionalTest):
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(400, response.status_int)
+        assert not mock_trigger_audit.called
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_parameters_no_predefined_strategy(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        audit_dict = post_get_test_audit(parameters={'name': 'Tom'})
+        del audit_dict['uuid']
+        del audit_dict['state']
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(400, response.status_int)
+        expected_error_msg = ('Specify parameters but no predefined '
+                              'strategy for audit template, or no '
+                              'parameter spec in predefined strategy')
+        self.assertTrue(response.json['error_message'])
+        self.assertTrue(expected_error_msg in response.json['error_message'])
+        assert not mock_trigger_audit.called
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_parameters_no_schema(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        audit_dict = post_get_test_audit_with_predefined_strategy(
+            parameters={'name': 'Tom'})
+        del audit_dict['uuid']
+        del audit_dict['state']
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(400, response.status_int)
+        expected_error_msg = ('Specify parameters but no predefined '
+                              'strategy for audit template, or no '
+                              'parameter spec in predefined strategy')
+        self.assertTrue(response.json['error_message'])
+        self.assertTrue(expected_error_msg in response.json['error_message'])
         assert not mock_trigger_audit.called
 
 

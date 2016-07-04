@@ -154,7 +154,8 @@ class TestSyncer(base.DbTestCase):
         ]
         m_s_list.return_value = [
             objects.Strategy(self.ctx, id=1, name="strategy_1",
-                             goal_id=1, display_name="Strategy 1")
+                             goal_id=1, display_name="Strategy 1",
+                             parameters_spec='{}')
         ]
         self.syncer.sync()
 
@@ -218,7 +219,8 @@ class TestSyncer(base.DbTestCase):
         ]
         m_s_list.return_value = [
             objects.Strategy(self.ctx, id=1, name="strategy_1",
-                             goal_id=1, display_name="original")
+                             goal_id=1, display_name="original",
+                             parameters_spec='{}')
         ]
         self.syncer.sync()
 

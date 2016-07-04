@@ -21,6 +21,7 @@ import mock
 
 from watcher.applier.loading import default
 from watcher.common import exception
+from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.strategy import strategies
@@ -56,6 +57,10 @@ class TestOutletTempControl(base.BaseTestCase):
         self.m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy = strategies.OutletTempControl(config=mock.Mock())
+
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'threshold': 34.3})
+        self.strategy.threshold = 34.3
 
     def test_calc_used_res(self):
         model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()

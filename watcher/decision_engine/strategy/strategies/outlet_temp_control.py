@@ -73,8 +73,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     # The meter to report outlet temperature in ceilometer
     METER_NAME = "hardware.ipmi.node.outlet_temperature"
-    # Unit: degree C
-    THRESHOLD = 35.0
 
     MIGRATION = "migrate"
 
@@ -87,10 +85,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
         super(OutletTempControl, self).__init__(config, osc)
-        # the migration plan will be triggered when the outlet temperature
-        # reaches threshold
-        # TODO(zhenzanz): Threshold should be configurable for each audit
-        self.threshold = self.THRESHOLD
         self._meter = self.METER_NAME
         self._ceilometer = None
 
@@ -105,6 +99,19 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Outlet temperature based strategy"
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "threshold": {
+                    "description": "temperature threshold for migration",
+                    "type": "number",
+                    "default": 35.0
+                },
+            },
+        }
 
     @property
     def ceilometer(self):
@@ -224,6 +231,11 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
+        # the migration plan will be triggered when the outlet temperature
+        # reaches threshold
+        self.threshold = self.input_parameters.threshold
+        LOG.debug("Initializing Outlet temperature strategy with threshold=%d",
+                  self.threshold)
         hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp()
 
         if len(hosts_need_release) == 0:

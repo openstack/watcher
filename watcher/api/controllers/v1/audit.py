@@ -60,6 +60,9 @@ class AuditPostType(wtypes.Base):
     state = wsme.wsattr(wtypes.text, readonly=True,
                         default=objects.audit.State.PENDING)
 
+    parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
+                               default={})
+
     def as_audit(self):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.type not in audit_type_values:
@@ -68,7 +71,9 @@ class AuditPostType(wtypes.Base):
         return Audit(
             audit_template_id=self.audit_template_uuid,
             type=self.type,
-            deadline=self.deadline)
+            deadline=self.deadline,
+            parameters=self.parameters,
+            )
 
 
 class AuditPatchType(types.JsonPatchType):
@@ -147,6 +152,9 @@ class Audit(base.APIBase):
                                           _set_audit_template_name,
                                           mandatory=False)
     """The name of the audit template this audit refers to"""
+
+    parameters = {wtypes.text: types.jsontype}
+    """The strategy parameters for this audit"""
 
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit links"""
@@ -363,6 +371,25 @@ class AuditsController(rest.RestController):
             raise exception.Invalid(
                 message=_('The audit template UUID or name specified is '
                           'invalid'))
+
+        audit_template = objects.AuditTemplate.get(pecan.request.context,
+                                                   audit._audit_template_uuid)
+        strategy_id = audit_template.strategy_id
+        no_schema = True
+        if strategy_id is not None:
+            # validate parameter when predefined strategy in audit template
+            strategy = objects.Strategy.get(pecan.request.context, strategy_id)
+            schema = strategy.parameters_spec
+            if schema:
+                # validate input parameter with default value feedback
+                no_schema = False
+                utils.DefaultValidatingDraft4Validator(schema).validate(
+                    audit.parameters)
+
+        if no_schema and audit.parameters:
+            raise exception.Invalid(_('Specify parameters but no predefined '
+                                      'strategy for audit template, or no '
+                                      'parameter spec in predefined strategy'))
 
         audit_dict = audit.as_dict()
         context = pecan.request.context

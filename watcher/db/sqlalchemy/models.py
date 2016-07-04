@@ -124,6 +124,7 @@ class Strategy(Base):
     name = Column(String(63), nullable=False)
     display_name = Column(String(63), nullable=False)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
+    parameters_spec = Column(JSONEncodedDict, nullable=True)
 
 
 class Goal(Base):
@@ -175,6 +176,7 @@ class Audit(Base):
     deadline = Column(DateTime, nullable=True)
     audit_template_id = Column(Integer, ForeignKey('audit_templates.id'),
                                nullable=False)
+    parameters = Column(JSONEncodedDict, nullable=True)
 
 
 class Action(Base):

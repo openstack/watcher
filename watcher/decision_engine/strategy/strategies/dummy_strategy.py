@@ -54,7 +54,10 @@ class DummyStrategy(base.DummyBaseStrategy):
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):
-        LOG.debug("Executing Dummy strategy")
+        para1 = self.input_parameters.para1
+        para2 = self.input_parameters.para2
+        LOG.debug("Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",
+                  {'p1': para1, 'p2': para2})
         parameters = {'message': 'hello World'}
         self.solution.add_action(action_type=self.NOP,
                                  input_parameters=parameters)
@@ -80,3 +83,23 @@ class DummyStrategy(base.DummyBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Dummy strategy"
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "para1": {
+                    "description": "number parameter example",
+                    "type": "number",
+                    "default": 3.2,
+                    "minimum": 1.0,
+                    "maximum": 10.2,
+                },
+                "para2": {
+                    "description": "string parameter example",
+                    "type": "string",
+                    "default": "hello"
+                },
+            },
+        }
