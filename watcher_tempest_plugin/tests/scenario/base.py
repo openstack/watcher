@@ -111,7 +111,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
 
     # ### AUDITS ### #
 
-    def create_audit(self, audit_template_uuid, type='ONESHOT',
+    def create_audit(self, audit_template_uuid, audit_type='ONESHOT',
                      state=None, deadline=None):
         """Wrapper utility for creating a test audit
 
@@ -120,7 +120,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
         :return: A tuple with The HTTP response and its body
         """
         resp, body = self.client.create_audit(
-            audit_template_uuid=audit_template_uuid, type=type,
+            audit_template_uuid=audit_template_uuid, audit_type=audit_type,
             state=state, deadline=deadline)
 
         self.addCleanup(self.delete_audit, audit_uuid=body["uuid"])

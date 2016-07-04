@@ -41,7 +41,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
-            type='ONESHOT',
+            audit_type='ONESHOT',
         )
 
         _, body = self.create_audit(**audit_params)
@@ -57,7 +57,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
-            type='CONTINUOUS',
+            audit_type='CONTINUOUS',
         )
 
         _, body = self.create_audit(**audit_params)
@@ -70,7 +70,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
     def test_create_audit_with_wrong_audit_template(self):
         audit_params = dict(
             audit_template_uuid='INVALID',
-            type='ONESHOT',
+            audit_type='ONESHOT',
         )
 
         self.assertRaises(

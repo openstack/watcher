@@ -58,7 +58,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_template_unicode_description(self):
-        goal_name = "DUMMY"
+        goal_name = "dummy"
         _, goal = self.client.show_goal(goal_name)
         # Use a unicode string for testing:
         params = {

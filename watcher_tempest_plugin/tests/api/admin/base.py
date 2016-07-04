@@ -155,7 +155,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
     # ### AUDITS ### #
 
     @classmethod
-    def create_audit(cls, audit_template_uuid, type='ONESHOT',
+    def create_audit(cls, audit_template_uuid, audit_type='ONESHOT',
                      state=None, deadline=None):
         """Wrapper utility for creating a test audit
 
@@ -166,7 +166,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
         :return: A tuple with The HTTP response and its body
         """
         resp, body = cls.client.create_audit(
-            audit_template_uuid=audit_template_uuid, type=type,
+            audit_template_uuid=audit_template_uuid, audit_type=audit_type,
             state=state, deadline=deadline)
 
         cls.created_audits.add(body['uuid'])

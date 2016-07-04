@@ -53,7 +53,7 @@ class AuditPostType(wtypes.Base):
 
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=True)
 
-    type = wtypes.wsattr(wtypes.text, mandatory=True)
+    audit_type = wtypes.wsattr(wtypes.text, mandatory=True)
 
     deadline = wtypes.wsattr(datetime.datetime, mandatory=False)
 
@@ -65,12 +65,12 @@ class AuditPostType(wtypes.Base):
 
     def as_audit(self):
         audit_type_values = [val.value for val in objects.audit.AuditType]
-        if self.type not in audit_type_values:
-            raise exception.AuditTypeNotFound(audit_type=self.type)
+        if self.audit_type not in audit_type_values:
+            raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
         return Audit(
             audit_template_id=self.audit_template_uuid,
-            type=self.type,
+            audit_type=self.audit_type,
             deadline=self.deadline,
             parameters=self.parameters,
             )
@@ -132,7 +132,7 @@ class Audit(base.APIBase):
     uuid = types.uuid
     """Unique UUID for this audit"""
 
-    type = wtypes.text
+    audit_type = wtypes.text
     """Type of this audit"""
 
     deadline = datetime.datetime
@@ -184,7 +184,7 @@ class Audit(base.APIBase):
     @staticmethod
     def _convert_with_links(audit, url, expand=True):
         if not expand:
-            audit.unset_fields_except(['uuid', 'type', 'deadline',
+            audit.unset_fields_except(['uuid', 'audit_type', 'deadline',
                                        'state', 'audit_template_uuid',
                                        'audit_template_name'])
 
@@ -209,7 +209,7 @@ class Audit(base.APIBase):
     @classmethod
     def sample(cls, expand=True):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
-                     type='ONESHOT',
+                     audit_type='ONESHOT',
                      state='PENDING',
                      deadline=None,
                      created_at=datetime.datetime.utcnow(),

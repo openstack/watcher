@@ -171,7 +171,7 @@ class Audit(Base):
     )
     id = Column(Integer, primary_key=True)
     uuid = Column(String(36))
-    type = Column(String(20))
+    audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
     deadline = Column(DateTime, nullable=True)
     audit_template_id = Column(Integer, ForeignKey('audit_templates.id'),

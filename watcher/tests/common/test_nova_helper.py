@@ -107,9 +107,9 @@ class TestNovaHelper(base.TestCase):
         instance = mock.MagicMock(id=self.instance_uuid)
         setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_hypervisor)
         addresses = mock.MagicMock()
-        type = mock.MagicMock()
+        network_type = mock.MagicMock()
         networks = []
-        networks.append(("lan", type))
+        networks.append(("lan", network_type))
         addresses.items.return_value = networks
         attached_volumes = mock.MagicMock()
         setattr(instance, 'addresses', addresses)
