@@ -90,7 +90,7 @@ plugins for Watcher:
 
 - A :ref:`strategy plugin <implement_strategy_plugin>`
 - A :ref:`planner plugin <implement_planner_plugin>`
-- An :ref:`action plugin <implement_strategy_plugin>`
+- An :ref:`action plugin <implement_action_plugin>`
 - A :ref:`workflow engine plugin <implement_workflow_engine_plugin>`
 
 If you want to learn more on how to implement them, you can refer to their
