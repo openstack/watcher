@@ -146,13 +146,6 @@ class TestDefaultPlanner(base.DbTestCase):
         action.create()
         return action
 
-    def test_scheduler_w(self):
-        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
-        fake_solution = SolutionFaker.build()
-        action_plan = self.default_planner.schedule(self.context,
-                                                    audit.id, fake_solution)
-        self.assertIsNotNone(action_plan.uuid)
-
     def test_schedule_scheduled_empty(self):
         audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
         fake_solution = SolutionFakerSingleHyp.build()
