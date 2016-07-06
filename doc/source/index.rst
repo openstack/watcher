@@ -91,6 +91,7 @@ Introduction
 
   deploy/installation
   deploy/user-guide
+  deploy/policy
   deploy/gmr
 
 Watcher Manual Pages
