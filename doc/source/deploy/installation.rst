@@ -108,3 +108,54 @@ installed on your system.
 Once installed, you still need to declare Watcher as a new service into
 Keystone and to configure its different modules, which you can find described
 in :doc:`configuration`.
+
+
+Installing from packages: Debian (experimental)
+-----------------------------------------------
+
+Experimental Debian packages are available on `Debian repositories`_. The best
+way to use them is to install them into a Docker_ container.
+
+Here is single Dockerfile snippet you can use to run your Docker container:
+
+.. code-block:: bash
+
+    FROM debian:experimental
+    MAINTAINER David TARDIVEL <david.tardivel@b-com.com>
+
+    RUN  apt-get update
+    RUN  apt-get dist-upgrade -y
+    RUN  apt-get install -y vim  net-tools
+    RUN  apt-get install -yt experimental watcher-api
+
+    CMD ["/usr/bin/watcher-api"]
+
+Build your container from this Dockerfile:
+
+.. code-block:: bash
+
+    $ docker build -t watcher/api .
+
+To run your container, execute this command:
+
+.. code-block:: bash
+
+    $ docker run -d -p 9322:9322 watcher/api
+
+Check in your logs Watcher API is started
+
+.. code-block:: bash
+
+    $ docker logs <container ID>
+
+You can run similar container with Watcher Decision Engine (package
+``watcher-decision-engine``) and with the Watcher Applier (package
+``watcher-applier``).
+
+.. _Docker: https://www.docker.com/
+.. _`Debian repositories`: https://packages.debian.org/experimental/allpackages
+
+
+
+
+
