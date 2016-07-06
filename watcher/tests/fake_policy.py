@@ -16,9 +16,40 @@
 policy_data = """
 {
     "admin_api": "role:admin or role:administrator",
-    "public_api": "is_public_api:True",
-    "trusted_call": "rule:admin_api or rule:public_api",
-    "default": "rule:trusted_call",
+    "show_password": "!",
+    "default": "rule:admin_api",
+
+    "action:detail": "",
+    "action:get": "",
+    "action:get_all": "",
+
+    "action_plan:delete": "",
+    "action_plan:detail": "",
+    "action_plan:get": "",
+    "action_plan:get_all": "",
+    "action_plan:update": "",
+
+    "audit:create": "",
+    "audit:delete": "",
+    "audit:detail": "",
+    "audit:get": "",
+    "audit:get_all": "",
+    "audit:update": "",
+
+    "audit_template:create": "",
+    "audit_template:delete": "",
+    "audit_template:detail": "",
+    "audit_template:get": "",
+    "audit_template:get_all": "",
+    "audit_template:update": "",
+
+    "goal:detail": "",
+    "goal:get": "",
+    "goal:get_all": "",
+
+    "strategy:detail": "",
+    "strategy:get": "",
+    "strategy:get_all": ""
 }
 """
 

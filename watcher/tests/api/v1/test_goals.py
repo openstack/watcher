@@ -10,6 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import json
+
 from oslo_config import cfg
 from six.moves.urllib import parse as urlparse
 
@@ -118,3 +120,49 @@ class TestListGoal(api_base.FunctionalTest):
         cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
+
+
+class TestGoalPolicyEnforcement(api_base.FunctionalTest):
+
+    def _common_policy_check(self, rule, func, *arg, **kwarg):
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            rule: "rule:defaut"})
+        response = func(*arg, **kwarg)
+        self.assertEqual(403, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(
+            "Policy doesn't allow %s to be performed." % rule,
+            json.loads(response.json['error_message'])['faultstring'])
+
+    def test_policy_disallow_get_all(self):
+        self._common_policy_check(
+            "goal:get_all", self.get_json, '/goals',
+            expect_errors=True)
+
+    def test_policy_disallow_get_one(self):
+        goal = obj_utils.create_test_goal(self.context)
+        self._common_policy_check(
+            "goal:get", self.get_json,
+            '/goals/%s' % goal.uuid,
+            expect_errors=True)
+
+    def test_policy_disallow_detail(self):
+        self._common_policy_check(
+            "goal:detail", self.get_json,
+            '/goals/detail',
+            expect_errors=True)
+
+
+class TestGoalPolicyEnforcementWithAdminContext(TestListGoal,
+                                                api_base.AdminRoleTest):
+
+    def setUp(self):
+        super(TestGoalPolicyEnforcementWithAdminContext, self).setUp()
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            "goal:detail": "rule:default",
+            "goal:get_all": "rule:default",
+            "goal:get_one": "rule:default"})

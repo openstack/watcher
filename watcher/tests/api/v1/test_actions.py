@@ -11,8 +11,9 @@
 #    limitations under the License.
 
 import datetime
-
+import json
 import mock
+
 from oslo_config import cfg
 from wsme import types as wtypes
 
@@ -482,3 +483,49 @@ class TestDelete(api_base.FunctionalTest):
         self.assertEqual(403, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
+
+
+class TestActionPolicyEnforcement(api_base.FunctionalTest):
+
+    def _common_policy_check(self, rule, func, *arg, **kwarg):
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            rule: "rule:defaut"})
+        response = func(*arg, **kwarg)
+        self.assertEqual(403, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(
+            "Policy doesn't allow %s to be performed." % rule,
+            json.loads(response.json['error_message'])['faultstring'])
+
+    def test_policy_disallow_get_all(self):
+        self._common_policy_check(
+            "action:get_all", self.get_json, '/actions',
+            expect_errors=True)
+
+    def test_policy_disallow_get_one(self):
+        action = obj_utils.create_test_action(self.context)
+        self._common_policy_check(
+            "action:get", self.get_json,
+            '/actions/%s' % action.uuid,
+            expect_errors=True)
+
+    def test_policy_disallow_detail(self):
+        self._common_policy_check(
+            "action:detail", self.get_json,
+            '/actions/detail',
+            expect_errors=True)
+
+
+class TestActionPolicyEnforcementWithAdminContext(TestListAction,
+                                                  api_base.AdminRoleTest):
+
+    def setUp(self):
+        super(TestActionPolicyEnforcementWithAdminContext, self).setUp()
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            "action:detail": "rule:default",
+            "action:get": "rule:default",
+            "action:get_all": "rule:default"})

@@ -11,8 +11,9 @@
 #    limitations under the License.
 
 import datetime
-
+import json
 import mock
+
 from oslo_config import cfg
 from oslo_utils import timeutils
 from wsme import types as wtypes
@@ -684,3 +685,74 @@ class TestDelete(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
+
+
+class TestAuaditPolicyEnforcement(api_base.FunctionalTest):
+
+    def _common_policy_check(self, rule, func, *arg, **kwarg):
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            rule: "rule:defaut"})
+        response = func(*arg, **kwarg)
+        self.assertEqual(403, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(
+            "Policy doesn't allow %s to be performed." % rule,
+            json.loads(response.json['error_message'])['faultstring'])
+
+    def test_policy_disallow_get_all(self):
+        self._common_policy_check(
+            "audit:get_all", self.get_json, '/audits',
+            expect_errors=True)
+
+    def test_policy_disallow_get_one(self):
+        audit = obj_utils.create_test_audit(self.context)
+        self._common_policy_check(
+            "audit:get", self.get_json,
+            '/audits/%s' % audit.uuid,
+            expect_errors=True)
+
+    def test_policy_disallow_detail(self):
+        self._common_policy_check(
+            "audit:detail", self.get_json,
+            '/audits/detail',
+            expect_errors=True)
+
+    def test_policy_disallow_update(self):
+        audit = obj_utils.create_test_audit(self.context)
+        self._common_policy_check(
+            "audit:update", self.patch_json,
+            '/audits/%s' % audit.uuid,
+            [{'path': '/state', 'value': 'SUBMITTED', 'op': 'replace'}],
+            expect_errors=True)
+
+    def test_policy_disallow_create(self):
+        audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
+        del audit_dict['uuid']
+        del audit_dict['state']
+        self._common_policy_check(
+            "audit:create", self.post_json, '/audits', audit_dict,
+            expect_errors=True)
+
+    def test_policy_disallow_delete(self):
+        audit = obj_utils.create_test_audit(self.context)
+        self._common_policy_check(
+            "audit:delete", self.delete,
+            '/audits/%s' % audit.uuid, expect_errors=True)
+
+
+class TestAuditEnforcementWithAdminContext(TestListAudit,
+                                           api_base.AdminRoleTest):
+
+    def setUp(self):
+        super(TestAuditEnforcementWithAdminContext, self).setUp()
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            "audit:create": "rule:default",
+            "audit:delete": "rule:default",
+            "audit:detail": "rule:default",
+            "audit:get": "rule:default",
+            "audit:get_all": "rule:default",
+            "audit:update": "rule:default"})

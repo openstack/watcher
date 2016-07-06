@@ -12,8 +12,9 @@
 
 import datetime
 import itertools
-
+import json
 import mock
+
 from oslo_config import cfg
 from oslo_utils import timeutils
 from six.moves.urllib import parse as urlparse
@@ -654,3 +655,81 @@ class TestDelete(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
+
+
+class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
+
+    def _common_policy_check(self, rule, func, *arg, **kwarg):
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            rule: "rule:defaut"})
+        response = func(*arg, **kwarg)
+        self.assertEqual(403, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(
+            "Policy doesn't allow %s to be performed." % rule,
+            json.loads(response.json['error_message'])['faultstring'])
+
+    def test_policy_disallow_get_all(self):
+        self._common_policy_check(
+            "audit_template:get_all", self.get_json, '/audit_templates',
+            expect_errors=True)
+
+    def test_policy_disallow_get_one(self):
+        audit_template = obj_utils.create_test_audit_template(self.context)
+        self._common_policy_check(
+            "audit_template:get", self.get_json,
+            '/audit_templates/%s' % audit_template.uuid,
+            expect_errors=True)
+
+    def test_policy_disallow_detail(self):
+        self._common_policy_check(
+            "audit_template:detail", self.get_json,
+            '/audit_templates/detail',
+            expect_errors=True)
+
+    def test_policy_disallow_update(self):
+        audit_template = obj_utils.create_test_audit_template(self.context)
+        self._common_policy_check(
+            "audit_template:update", self.patch_json,
+            '/audit_templates/%s' % audit_template.uuid,
+            [{'path': '/state', 'value': 'SUBMITTED', 'op': 'replace'}],
+            expect_errors=True)
+
+    def test_policy_disallow_create(self):
+        fake_goal1 = obj_utils.get_test_goal(
+            self.context, id=1, uuid=utils.generate_uuid(), name="dummy_1")
+        fake_goal1.create()
+        fake_strategy1 = obj_utils.get_test_strategy(
+            self.context, id=1, uuid=utils.generate_uuid(), name="strategy_1",
+            goal_id=fake_goal1.id)
+        fake_strategy1.create()
+
+        audit_template_dict = post_get_test_audit_template(
+            goal=fake_goal1.uuid,
+            strategy=fake_strategy1.uuid)
+        self._common_policy_check(
+            "audit_template:create", self.post_json, '/audit_templates',
+            audit_template_dict, expect_errors=True)
+
+    def test_policy_disallow_delete(self):
+        audit_template = obj_utils.create_test_audit_template(self.context)
+        self._common_policy_check(
+            "audit_template:delete", self.delete,
+            '/audit_templates/%s' % audit_template.uuid, expect_errors=True)
+
+
+class TestAuditTemplatePolicyWithAdminContext(TestListAuditTemplate,
+                                              api_base.AdminRoleTest):
+    def setUp(self):
+        super(TestAuditTemplatePolicyWithAdminContext, self).setUp()
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            "audit_template:create": "rule:default",
+            "audit_template:delete": "rule:default",
+            "audit_template:detail": "rule:default",
+            "audit_template:get": "rule:default",
+            "audit_template:get_all": "rule:default",
+            "audit_template:update": "rule:default"})

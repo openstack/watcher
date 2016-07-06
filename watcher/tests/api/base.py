@@ -21,14 +21,17 @@
 #       https://bugs.launchpad.net/watcher/+bug/1255115.
 
 # NOTE(deva): import auth_token so we can override a config option
-from keystonemiddleware import auth_token  # noqa
-# import mock
+
+import copy
+import mock
+
 from oslo_config import cfg
 import pecan
 import pecan.testing
 from six.moves.urllib import parse as urlparse
 
 from watcher.api import hooks
+from watcher.common import context as watcher_context
 from watcher.tests.db import base
 
 PATH_PREFIX = '/v1'
@@ -243,3 +246,41 @@ class FunctionalTest(base.DbTestCase):
             return True
         except Exception:
             return False
+
+
+class AdminRoleTest(base.DbTestCase):
+    def setUp(self):
+        super(AdminRoleTest, self).setUp()
+        token_info = {
+            'token': {
+                'project': {
+                    'id': 'admin'
+                },
+                'user': {
+                    'id': 'admin'
+                }
+            }
+        }
+        self.context = watcher_context.RequestContext(
+            auth_token_info=token_info,
+            project_id='admin',
+            user_id='admin')
+
+        def make_context(*args, **kwargs):
+            # If context hasn't been constructed with token_info
+            if not kwargs.get('auth_token_info'):
+                kwargs['auth_token_info'] = copy.deepcopy(token_info)
+            if not kwargs.get('project_id'):
+                kwargs['project_id'] = 'admin'
+            if not kwargs.get('user_id'):
+                kwargs['user_id'] = 'admin'
+            if not kwargs.get('roles'):
+                kwargs['roles'] = ['admin']
+
+            context = watcher_context.RequestContext(*args, **kwargs)
+            return watcher_context.RequestContext.from_dict(context.to_dict())
+
+        p = mock.patch.object(watcher_context, 'make_context',
+                              side_effect=make_context)
+        self.mock_make_context = p.start()
+        self.addCleanup(p.stop)

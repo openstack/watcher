@@ -44,6 +44,7 @@ from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import types
 from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
+from watcher.common import policy
 from watcher.common import utils
 from watcher.decision_engine import rpcapi
 from watcher import objects
@@ -316,6 +317,9 @@ class AuditsController(rest.RestController):
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
          template, to get only audits for that audit template.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'audit:get_all',
+                       action='audit:get_all')
         return self._get_audits_collection(marker, limit, sort_key,
                                            sort_dir,
                                            audit_template=audit_template)
@@ -332,6 +336,9 @@ class AuditsController(rest.RestController):
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'audit:detail',
+                       action='audit:detail')
         # NOTE(lucasagomes): /detail should only work agaist collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "audits":
@@ -353,8 +360,10 @@ class AuditsController(rest.RestController):
         if self.from_audits:
             raise exception.OperationNotPermitted
 
-        rpc_audit = objects.Audit.get_by_uuid(pecan.request.context,
-                                              audit_uuid)
+        context = pecan.request.context
+        rpc_audit = api_utils.get_resource('Audit', audit_uuid)
+        policy.enforce(context, 'audit:get', rpc_audit, action='audit:get')
+
         return Audit.convert_with_links(rpc_audit)
 
     @wsme_pecan.wsexpose(Audit, body=AuditPostType, status_code=201)
@@ -363,6 +372,10 @@ class AuditsController(rest.RestController):
 
         :param audit_p: a audit within the request body.
         """
+        context = pecan.request.context
+        policy.enforce(context, 'audit:create',
+                       action='audit:create')
+
         audit = audit_p.as_audit()
         if self.from_audits:
             raise exception.OperationNotPermitted
@@ -417,6 +430,12 @@ class AuditsController(rest.RestController):
         if self.from_audits:
             raise exception.OperationNotPermitted
 
+        context = pecan.request.context
+        audit_to_update = api_utils.get_resource('Audit',
+                                                 audit_uuid)
+        policy.enforce(context, 'audit:update', audit_to_update,
+                       action='audit:update')
+
         audit_to_update = objects.Audit.get_by_uuid(pecan.request.context,
                                                     audit_uuid)
         try:
@@ -446,8 +465,9 @@ class AuditsController(rest.RestController):
 
         :param audit_uuid: UUID of a audit.
         """
+        context = pecan.request.context
+        audit_to_delete = api_utils.get_resource('Audit', audit_uuid)
+        policy.enforce(context, 'audit:update', audit_to_delete,
+                       action='audit:update')
 
-        audit_to_delete = objects.Audit.get_by_uuid(
-            pecan.request.context,
-            audit_uuid)
         audit_to_delete.soft_delete()

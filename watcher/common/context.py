@@ -20,7 +20,7 @@ class RequestContext(context.RequestContext):
                  domain_name=None, user=None, user_id=None, project=None,
                  project_id=None, is_admin=False, is_public_api=False,
                  read_only=False, show_deleted=False, request_id=None,
-                 trust_id=None, auth_token_info=None):
+                 trust_id=None, auth_token_info=None, roles=None):
         """Stores several additional request parameters:
 
         :param domain_id: The ID of the domain.
@@ -44,7 +44,8 @@ class RequestContext(context.RequestContext):
                                              is_admin=is_admin,
                                              read_only=read_only,
                                              show_deleted=show_deleted,
-                                             request_id=request_id)
+                                             request_id=request_id,
+                                             roles=roles)
 
     def to_dict(self):
         return {'auth_token': self.auth_token,
@@ -61,7 +62,8 @@ class RequestContext(context.RequestContext):
                 'show_deleted': self.show_deleted,
                 'request_id': self.request_id,
                 'trust_id': self.trust_id,
-                'auth_token_info': self.auth_token_info}
+                'auth_token_info': self.auth_token_info,
+                'roles': self.roles}
 
     @classmethod
     def from_dict(cls, values):

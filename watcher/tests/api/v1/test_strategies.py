@@ -10,6 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import json
+
 from oslo_config import cfg
 from six.moves.urllib import parse as urlparse
 
@@ -187,3 +189,49 @@ class TestListStrategy(api_base.FunctionalTest):
         self.assertEqual(2, len(strategies))
         for strategy in strategies:
             self.assertEqual(goal1['uuid'], strategy['goal_uuid'])
+
+
+class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
+
+    def _common_policy_check(self, rule, func, *arg, **kwarg):
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            rule: "rule:defaut"})
+        response = func(*arg, **kwarg)
+        self.assertEqual(403, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(
+            "Policy doesn't allow %s to be performed." % rule,
+            json.loads(response.json['error_message'])['faultstring'])
+
+    def test_policy_disallow_get_all(self):
+        self._common_policy_check(
+            "strategy:get_all", self.get_json, '/strategies',
+            expect_errors=True)
+
+    def test_policy_disallow_get_one(self):
+        strategy = obj_utils.create_test_strategy(self.context)
+        self._common_policy_check(
+            "strategy:get", self.get_json,
+            '/strategies/%s' % strategy.uuid,
+            expect_errors=True)
+
+    def test_policy_disallow_detail(self):
+        self._common_policy_check(
+            "strategy:detail", self.get_json,
+            '/strategies/detail',
+            expect_errors=True)
+
+
+class TestStrategyEnforcementWithAdminContext(TestListStrategy,
+                                              api_base.AdminRoleTest):
+
+    def setUp(self):
+        super(TestStrategyEnforcementWithAdminContext, self).setUp()
+        self.policy.set_rules({
+            "admin_api": "(role:admin or role:administrator)",
+            "default": "rule:admin_api",
+            "strategy:detail": "rule:default",
+            "strategy:get": "rule:default",
+            "strategy:get_all": "rule:default"})

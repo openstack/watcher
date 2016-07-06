@@ -1,5 +1,37 @@
 {
     "admin_api": "role:admin or role:administrator",
     "show_password": "!",
-    "default": "rule:admin_api"
+    "default": "rule:admin_api",
+
+    "action:detail": "rule:default",
+    "action:get": "rule:default",
+    "action:get_all": "rule:default",
+
+    "action_plan:delete": "rule:default",
+    "action_plan:detail": "rule:default",
+    "action_plan:get": "rule:default",
+    "action_plan:get_all": "rule:default",
+    "action_plan:update": "rule:default",
+
+    "audit:create": "rule:default",
+    "audit:delete": "rule:default",
+    "audit:detail": "rule:default",
+    "audit:get": "rule:default",
+    "audit:get_all": "rule:default",
+    "audit:update": "rule:default",
+
+    "audit_template:create": "rule:default",
+    "audit_template:delete": "rule:default",
+    "audit_template:detail": "rule:default",
+    "audit_template:get": "rule:default",
+    "audit_template:get_all": "rule:default",
+    "audit_template:update": "rule:default",
+
+    "goal:detail": "rule:default",
+    "goal:get": "rule:default",
+    "goal:get_all": "rule:default",
+
+    "strategy:detail": "rule:default",
+    "strategy:get": "rule:default",
+    "strategy:get_all": "rule:default"
 }

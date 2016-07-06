@@ -15,55 +15,80 @@
 
 """Policy Engine For Watcher."""
 
-from oslo_concurrency import lockutils
 from oslo_config import cfg
-
 from oslo_policy import policy
+
+from watcher.common import exception
+
 
 _ENFORCER = None
 CONF = cfg.CONF
 
 
-@lockutils.synchronized('policy_enforcer', 'watcher-')
-def init_enforcer(policy_file=None, rules=None,
-                  default_rule=None, use_conf=True):
-    """Synchronously initializes the policy enforcer
+# we can get a policy enforcer by this init.
+# oslo policy support change policy rule dynamically.
+# at present, policy.enforce will reload the policy rules when it checks
+# the policy files have been touched.
+def init(policy_file=None, rules=None,
+         default_rule=None, use_conf=True, overwrite=True):
+    """Init an Enforcer class.
 
-       :param policy_file: Custom policy file to use, if none is specified,
-                           `CONF.policy_file` will be used.
-       :param rules: Default dictionary / Rules to use. It will be
-                     considered just in the first instantiation.
-       :param default_rule: Default rule to use, CONF.default_rule will
-                            be used if none is specified.
-       :param use_conf: Whether to load rules from config file.
-
+        :param policy_file: Custom policy file to use, if none is
+                            specified, ``conf.policy_file`` will be
+                            used.
+        :param rules: Default dictionary / Rules to use. It will be
+                      considered just in the first instantiation. If
+                      :meth:`load_rules` with ``force_reload=True``,
+                      :meth:`clear` or :meth:`set_rules` with
+                      ``overwrite=True`` is called this will be overwritten.
+        :param default_rule: Default rule to use, conf.default_rule will
+                             be used if none is specified.
+        :param use_conf: Whether to load rules from cache or config file.
+        :param overwrite: Whether to overwrite existing rules when reload rules
+                          from config file.
     """
     global _ENFORCER
-
-    if _ENFORCER:
-        return
-
-    _ENFORCER = policy.Enforcer(policy_file=policy_file,
-                                rules=rules,
-                                default_rule=default_rule,
-                                use_conf=use_conf)
-
-
-def get_enforcer():
-    """Provides access to the single instance of Policy enforcer."""
-
     if not _ENFORCER:
-        init_enforcer()
-
+        # http://docs.openstack.org/developer/oslo.policy/usage.html
+        _ENFORCER = policy.Enforcer(CONF,
+                                    policy_file=policy_file,
+                                    rules=rules,
+                                    default_rule=default_rule,
+                                    use_conf=use_conf,
+                                    overwrite=overwrite)
     return _ENFORCER
 
 
-def enforce(rule, target, creds, do_raise=False, exc=None, *args, **kwargs):
-    """A shortcut for policy.Enforcer.enforce()
+def enforce(context, rule=None, target=None,
+            do_raise=True, exc=None, *args, **kwargs):
 
-    Checks authorization of a rule against the target and credentials.
+    """Checks authorization of a rule against the target and credentials.
 
+        :param dict context: As much information about the user performing the
+                             action as possible.
+        :param rule: The rule to evaluate.
+        :param dict target: As much information about the object being operated
+                            on as possible.
+        :param do_raise: Whether to raise an exception or not if check
+                         fails.
+        :param exc: Class of the exception to raise if the check fails.
+                    Any remaining arguments passed to :meth:`enforce` (both
+                    positional and keyword arguments) will be passed to
+                    the exception class. If not specified,
+                    :class:`PolicyNotAuthorized` will be used.
+
+        :return: ``False`` if the policy does not allow the action and `exc` is
+                 not provided; otherwise, returns a value that evaluates to
+                 ``True``.  Note: for rules using the "case" expression, this
+                 ``True`` value will be the specified string from the
+                 expression.
     """
-    enforcer = get_enforcer()
-    return enforcer.enforce(rule, target, creds, do_raise=do_raise,
-                            exc=exc, *args, **kwargs)
+    enforcer = init()
+    credentials = context.to_dict()
+    if not exc:
+        exc = exception.PolicyNotAuthorized
+    if target is None:
+        target = {'project_id': context.project_id,
+                  'user_id': context.user_id}
+    return enforcer.enforce(rule, target, credentials,
+                            do_raise=do_raise, exc=exc, *args, **kwargs)
