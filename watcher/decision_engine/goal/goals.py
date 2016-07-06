@@ -72,6 +72,11 @@ class Unclassified(base.Goal):
 
 
 class ServerConsolidation(base.Goal):
+    """ServerConsolidation
+
+    This goal is for efficient usage of compute server resources in order to
+    reduce the total number of servers.
+    """
 
     @classmethod
     def get_name(cls):
@@ -92,6 +97,10 @@ class ServerConsolidation(base.Goal):
 
 
 class ThermalOptimization(base.Goal):
+    """ThermalOptimization
+
+    This goal is used to balance the temperature across different servers.
+    """
 
     @classmethod
     def get_name(cls):
@@ -112,6 +121,10 @@ class ThermalOptimization(base.Goal):
 
 
 class WorkloadBalancing(base.Goal):
+    """WorkloadBalancing
+
+    This goal is used to evenly distribute workloads across different servers.
+    """
 
     @classmethod
     def get_name(cls):

@@ -228,7 +228,7 @@ Efficacy Indicator
 Efficacy Specification
 ======================
 
-.. watcher-term:: watcher.api.controllers.v1.efficacy_specification
+.. watcher-term:: watcher.decision_engine.goal.efficacy.base
 
 .. _efficacy_definition:
 
