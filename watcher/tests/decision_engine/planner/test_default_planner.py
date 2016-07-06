@@ -50,7 +50,7 @@ class SolutionFakerSingleHyp(object):
         current_state_cluster = faker_cluster_state.FakerModelCollector()
         sercon = strategies.BasicConsolidation(config=mock.Mock())
         sercon._compute_model = (
-            current_state_cluster.generate_scenario_3_with_2_hypervisors())
+            current_state_cluster.generate_scenario_3_with_2_nodes())
         sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
 
@@ -66,8 +66,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=mock.Mock())
 
         parameters = {
-            "src_uuid_hypervisor": "server1",
-            "dst_uuid_hypervisor": "server2",
+            "source_node": "server1",
+            "destination_node": "server2",
         }
         solution.add_action(action_type="migrate",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
@@ -93,8 +93,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=mock.Mock())
 
         parameters = {
-            "src_uuid_hypervisor": "server1",
-            "dst_uuid_hypervisor": "server2",
+            "source_node": "server1",
+            "destination_node": "server2",
         }
         solution.add_action(action_type="migrate",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
@@ -125,8 +125,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=mock.Mock())
 
         parameters = {
-            "src_uuid_hypervisor": "server1",
-            "dst_uuid_hypervisor": "server2",
+            "src_uuid_node": "server1",
+            "dst_uuid_node": "server2",
         }
         solution.add_action(action_type="migrate",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",

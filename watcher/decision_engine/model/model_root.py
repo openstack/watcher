@@ -17,16 +17,14 @@
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.model import hypervisor
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import mapping
-from watcher.decision_engine.model import vm
 
 
 class ModelRoot(object):
-
     def __init__(self, stale=False):
-        self._hypervisors = utils.Struct()
-        self._vms = utils.Struct()
+        self._nodes = utils.Struct()
+        self._instances = utils.Struct()
         self.mapping = mapping.Mapping(self)
         self.resource = utils.Struct()
         self.stale = stale
@@ -36,46 +34,46 @@ class ModelRoot(object):
 
     __bool__ = __nonzero__
 
-    def assert_hypervisor(self, obj):
-        if not isinstance(obj, hypervisor.Hypervisor):
+    def assert_node(self, obj):
+        if not isinstance(obj, element.ComputeNode):
             raise exception.IllegalArgumentException(
                 message=_("'obj' argument type is not valid"))
 
-    def assert_vm(self, obj):
-        if not isinstance(obj, vm.VM):
+    def assert_instance(self, obj):
+        if not isinstance(obj, element.Instance):
             raise exception.IllegalArgumentException(
                 message=_("'obj' argument type is not valid"))
 
-    def add_hypervisor(self, hypervisor):
-        self.assert_hypervisor(hypervisor)
-        self._hypervisors[hypervisor.uuid] = hypervisor
+    def add_node(self, node):
+        self.assert_node(node)
+        self._nodes[node.uuid] = node
 
-    def remove_hypervisor(self, hypervisor):
-        self.assert_hypervisor(hypervisor)
-        if str(hypervisor.uuid) not in self._hypervisors.keys():
-            raise exception.HypervisorNotFound(hypervisor.uuid)
+    def remove_node(self, node):
+        self.assert_node(node)
+        if str(node.uuid) not in self._nodes:
+            raise exception.ComputeNodeNotFound(node.uuid)
         else:
-            del self._hypervisors[hypervisor.uuid]
+            del self._nodes[node.uuid]
 
-    def add_vm(self, vm):
-        self.assert_vm(vm)
-        self._vms[vm.uuid] = vm
+    def add_instance(self, instance):
+        self.assert_instance(instance)
+        self._instances[instance.uuid] = instance
 
-    def get_all_hypervisors(self):
-        return self._hypervisors
+    def get_all_compute_nodes(self):
+        return self._nodes
 
-    def get_hypervisor_from_id(self, hypervisor_uuid):
-        if str(hypervisor_uuid) not in self._hypervisors.keys():
-            raise exception.HypervisorNotFound(hypervisor_uuid)
-        return self._hypervisors[str(hypervisor_uuid)]
+    def get_node_from_id(self, node_uuid):
+        if str(node_uuid) not in self._nodes:
+            raise exception.ComputeNodeNotFound(node_uuid)
+        return self._nodes[str(node_uuid)]
 
-    def get_vm_from_id(self, uuid):
-        if str(uuid) not in self._vms.keys():
+    def get_instance_from_id(self, uuid):
+        if str(uuid) not in self._instances:
             raise exception.InstanceNotFound(name=uuid)
-        return self._vms[str(uuid)]
+        return self._instances[str(uuid)]
 
-    def get_all_vms(self):
-        return self._vms
+    def get_all_instances(self):
+        return self._instances
 
     def get_mapping(self):
         return self.mapping
@@ -83,5 +81,5 @@ class ModelRoot(object):
     def create_resource(self, r):
         self.resource[str(r.name)] = r
 
-    def get_resource_from_id(self, id):
-        return self.resource[str(id)]
+    def get_resource_from_id(self, resource_id):
+        return self.resource[str(resource_id)]

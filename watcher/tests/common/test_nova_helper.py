@@ -36,8 +36,8 @@ class TestNovaHelper(base.TestCase):
     def setUp(self):
         super(TestNovaHelper, self).setUp()
         self.instance_uuid = "fb5311b7-37f3-457e-9cde-6494a3c59bfe"
-        self.source_hypervisor = "ldev-indeedsrv005"
-        self.destination_hypervisor = "ldev-indeedsrv006"
+        self.source_node = "ldev-indeedsrv005"
+        self.destination_node = "ldev-indeedsrv006"
 
     def test_stop_instance(self, mock_glance, mock_cinder, mock_neutron,
                            mock_nova):
@@ -71,7 +71,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.servers = mock.MagicMock()
         nova_util.nova.servers.list.return_value = [server]
         instance = nova_util.live_migrate_instance(
-            self.instance_uuid, self.destination_hypervisor
+            self.instance_uuid, self.destination_node
         )
         self.assertIsNotNone(instance)
 
@@ -83,7 +83,7 @@ class TestNovaHelper(base.TestCase):
 
         is_success = nova_util.watcher_non_live_migrate_instance(
             self.instance_uuid,
-            self.destination_hypervisor)
+            self.destination_node)
 
         self.assertFalse(is_success)
 
@@ -92,12 +92,12 @@ class TestNovaHelper(base.TestCase):
             self, mock_glance, mock_cinder, mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = mock.MagicMock(id=self.instance_uuid)
-        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_hypervisor)
+        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_node)
         nova_util.nova.servers.list.return_value = [instance]
         nova_util.nova.servers.find.return_value = instance
         instance = nova_util.watcher_non_live_migrate_instance(
             self.instance_uuid,
-            self.destination_hypervisor)
+            self.destination_node)
         self.assertIsNotNone(instance)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
@@ -105,7 +105,7 @@ class TestNovaHelper(base.TestCase):
             self, mock_glance, mock_cinder, mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = mock.MagicMock(id=self.instance_uuid)
-        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_hypervisor)
+        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_node)
         addresses = mock.MagicMock()
         network_type = mock.MagicMock()
         networks = []
@@ -119,7 +119,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.servers.find.return_value = instance
         instance = nova_util.watcher_non_live_migrate_instance(
             self.instance_uuid,
-            self.destination_hypervisor, keep_original_image_name=False)
+            self.destination_node, keep_original_image_name=False)
         self.assertIsNotNone(instance)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
@@ -128,7 +128,7 @@ class TestNovaHelper(base.TestCase):
         nova_util = nova_helper.NovaHelper()
         instance = mock.MagicMock()
         image = mock.MagicMock()
-        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_hypervisor)
+        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_node)
         nova_util.nova.servers.list.return_value = [instance]
         nova_util.nova.servers.find.return_value = instance
         image_uuid = 'fake-image-uuid'

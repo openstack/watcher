@@ -23,7 +23,7 @@ from watcher.applier.actions import base as baction
 from watcher.applier.actions import change_nova_service_state
 from watcher.common import clients
 from watcher.common import nova_helper
-from watcher.decision_engine.model import hypervisor_state as hstate
+from watcher.decision_engine.model import element
 from watcher.tests import base
 
 
@@ -52,7 +52,7 @@ class TestChangeNovaServiceState(base.TestCase):
 
         self.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            "state": hstate.HypervisorState.ENABLED.value,
+            "state": element.ServiceState.ENABLED.value,
         }
         self.action = change_nova_service_state.ChangeNovaServiceState(
             mock.Mock())
@@ -61,13 +61,13 @@ class TestChangeNovaServiceState(base.TestCase):
     def test_parameters_down(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            self.action.STATE: hstate.HypervisorState.DISABLED.value}
+            self.action.STATE: element.ServiceState.DISABLED.value}
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_up(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
-            self.action.STATE: hstate.HypervisorState.ENABLED.value}
+            self.action.STATE: element.ServiceState.ENABLED.value}
         self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_exception_wrong_state(self):
@@ -82,7 +82,7 @@ class TestChangeNovaServiceState(base.TestCase):
 
     def test_parameters_resource_id_empty(self):
         self.action.input_parameters = {
-            self.action.STATE: hstate.HypervisorState.ENABLED.value,
+            self.action.STATE: element.ServiceState.ENABLED.value,
         }
         exc = self.assertRaises(
             voluptuous.Invalid, self.action.validate_parameters)
@@ -123,7 +123,7 @@ class TestChangeNovaServiceState(base.TestCase):
 
     def test_execute_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
-            hstate.HypervisorState.DISABLED.value)
+            element.ServiceState.DISABLED.value)
         self.action.execute()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
@@ -139,7 +139,7 @@ class TestChangeNovaServiceState(base.TestCase):
 
     def test_revert_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
-            hstate.HypervisorState.DISABLED.value)
+            element.ServiceState.DISABLED.value)
         self.action.revert()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)

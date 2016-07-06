@@ -35,7 +35,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
     def test_nova_cdmc_execute(self, m_nova_helper_cls):
         m_nova_helper = mock.Mock()
         m_nova_helper_cls.return_value = m_nova_helper
-        fake_hypervisor = mock.Mock(
+        fake_compute_node = mock.Mock(
             service={'id': 123},
             hypervisor_hostname='test_hostname',
             memory_mb=333,
@@ -45,19 +45,19 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             state='TEST_STATE',
             status='TEST_STATUS',
         )
-        fake_vm = mock.Mock(
+        fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
-            state=mock.Mock(**{'OS-EXT-STS:vm_state': 'VM_STATE'}),
+            state=mock.Mock(**{'OS-EXT-STS:instance_state': 'VM_STATE'}),
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4},
         )
-        m_nova_helper.get_hypervisors_list.return_value = [fake_hypervisor]
-        m_nova_helper.get_vms_by_hypervisor.return_value = [fake_vm]
+        m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
+        m_nova_helper.get_instances_by_node.return_value = [fake_instance]
         m_nova_helper.nova.services.find.return_value = mock.Mock(
             host='test_hostname')
 
-        def m_get_flavor_instance(vm, cache):
-            vm.flavor = {'ram': 333, 'disk': 222, 'vcpus': 4}
-            return vm
+        def m_get_flavor_instance(instance, cache):
+            instance.flavor = {'ram': 333, 'disk': 222, 'vcpus': 4}
+            return instance
 
         m_nova_helper.get_flavor_instance.side_effect = m_get_flavor_instance
 
@@ -69,14 +69,14 @@ class TestNovaClusterDataModelCollector(base.TestCase):
 
         model = nova_cdmc.execute()
 
-        hypervisors = model.get_all_hypervisors()
-        vms = model.get_all_vms()
+        compute_nodes = model.get_all_compute_nodes()
+        instances = model.get_all_instances()
 
-        self.assertEqual(1, len(hypervisors))
-        self.assertEqual(1, len(vms))
+        self.assertEqual(1, len(compute_nodes))
+        self.assertEqual(1, len(instances))
 
-        hypervisor = list(hypervisors.values())[0]
-        vm = list(vms.values())[0]
+        node = list(compute_nodes.values())[0]
+        instance = list(instances.values())[0]
 
-        self.assertEqual(hypervisor.uuid, 'test_hostname')
-        self.assertEqual(vm.uuid, 'ef500f7e-dac8-470f-960c-169486fce71b')
+        self.assertEqual(node.uuid, 'test_hostname')
+        self.assertEqual(instance.uuid, 'ef500f7e-dac8-470f-960c-169486fce71b')

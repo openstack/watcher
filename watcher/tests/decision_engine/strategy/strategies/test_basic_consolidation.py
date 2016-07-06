@@ -30,7 +30,7 @@ from watcher.tests.decision_engine.strategy.strategies \
     import faker_metrics_collector
 
 
-class TestBasicConsolidation(base.BaseTestCase):
+class TestBasicConsolidation(base.TestCase):
 
     def setUp(self):
         super(TestBasicConsolidation, self).setUp()
@@ -58,63 +58,75 @@ class TestBasicConsolidation(base.BaseTestCase):
 
     def test_cluster_size(self):
         size_cluster = len(
-            self.fake_cluster.generate_scenario_1().get_all_hypervisors())
+            self.fake_cluster.generate_scenario_1().get_all_compute_nodes())
         size_cluster_assert = 5
         self.assertEqual(size_cluster_assert, size_cluster)
 
-    def test_basic_consolidation_score_hypervisor(self):
+    def test_basic_consolidation_score_node(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         node_1_score = 0.023333333333333317
         self.assertEqual(node_1_score, self.strategy.calculate_score_node(
-            model.get_hypervisor_from_id("Node_1")))
+            model.get_node_from_id("Node_1")))
         node_2_score = 0.26666666666666666
         self.assertEqual(node_2_score, self.strategy.calculate_score_node(
-            model.get_hypervisor_from_id("Node_2")))
+            model.get_node_from_id("Node_2")))
         node_0_score = 0.023333333333333317
         self.assertEqual(node_0_score, self.strategy.calculate_score_node(
-            model.get_hypervisor_from_id("Node_0")))
+            model.get_node_from_id("Node_0")))
 
-    def test_basic_consolidation_score_vm(self):
+    def test_basic_consolidation_score_instance(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
-        vm_0 = model.get_vm_from_id("VM_0")
-        vm_0_score = 0.023333333333333317
-        self.assertEqual(vm_0_score, self.strategy.calculate_score_vm(vm_0))
+        instance_0 = model.get_instance_from_id("INSTANCE_0")
+        instance_0_score = 0.023333333333333317
+        self.assertEqual(
+            instance_0_score,
+            self.strategy.calculate_score_instance(instance_0))
 
-        vm_1 = model.get_vm_from_id("VM_1")
-        vm_1_score = 0.023333333333333317
-        self.assertEqual(vm_1_score, self.strategy.calculate_score_vm(vm_1))
-        vm_2 = model.get_vm_from_id("VM_2")
-        vm_2_score = 0.033333333333333326
-        self.assertEqual(vm_2_score, self.strategy.calculate_score_vm(vm_2))
-        vm_6 = model.get_vm_from_id("VM_6")
-        vm_6_score = 0.02666666666666669
-        self.assertEqual(vm_6_score, self.strategy.calculate_score_vm(vm_6))
-        vm_7 = model.get_vm_from_id("VM_7")
-        vm_7_score = 0.013333333333333345
-        self.assertEqual(vm_7_score, self.strategy.calculate_score_vm(vm_7))
+        instance_1 = model.get_instance_from_id("INSTANCE_1")
+        instance_1_score = 0.023333333333333317
+        self.assertEqual(
+            instance_1_score,
+            self.strategy.calculate_score_instance(instance_1))
+        instance_2 = model.get_instance_from_id("INSTANCE_2")
+        instance_2_score = 0.033333333333333326
+        self.assertEqual(
+            instance_2_score,
+            self.strategy.calculate_score_instance(instance_2))
+        instance_6 = model.get_instance_from_id("INSTANCE_6")
+        instance_6_score = 0.02666666666666669
+        self.assertEqual(
+            instance_6_score,
+            self.strategy.calculate_score_instance(instance_6))
+        instance_7 = model.get_instance_from_id("INSTANCE_7")
+        instance_7_score = 0.013333333333333345
+        self.assertEqual(
+            instance_7_score,
+            self.strategy.calculate_score_instance(instance_7))
 
-    def test_basic_consolidation_score_vm_disk(self):
-        model = self.fake_cluster.generate_scenario_5_with_vm_disk_0()
+    def test_basic_consolidation_score_instance_disk(self):
+        model = self.fake_cluster.generate_scenario_5_with_instance_disk_0()
         self.m_model.return_value = model
-        vm_0 = model.get_vm_from_id("VM_0")
-        vm_0_score = 0.023333333333333355
-        self.assertEqual(vm_0_score, self.strategy.calculate_score_vm(vm_0, ))
+        instance_0 = model.get_instance_from_id("INSTANCE_0")
+        instance_0_score = 0.023333333333333355
+        self.assertEqual(
+            instance_0_score,
+            self.strategy.calculate_score_instance(instance_0, ))
 
     def test_basic_consolidation_weight(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
-        vm_0 = model.get_vm_from_id("VM_0")
+        instance_0 = model.get_instance_from_id("INSTANCE_0")
         cores = 16
         # 80 Go
         disk = 80
         # mem 8 Go
         mem = 8
-        vm_0_weight_assert = 3.1999999999999997
+        instance_0_weight_assert = 3.1999999999999997
         self.assertEqual(
-            vm_0_weight_assert,
-            self.strategy.calculate_weight(vm_0, cores, disk, mem))
+            instance_0_weight_assert,
+            self.strategy.calculate_weight(instance_0, cores, disk, mem))
 
     def test_calculate_migration_efficacy(self):
         self.strategy.calculate_migration_efficacy()
@@ -130,28 +142,28 @@ class TestBasicConsolidation(base.BaseTestCase):
         self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
 
     def test_check_migration(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = model
 
-        all_vms = model.get_all_vms()
-        all_hyps = model.get_all_hypervisors()
-        vm0 = all_vms[list(all_vms.keys())[0]]
-        hyp0 = all_hyps[list(all_hyps.keys())[0]]
+        all_instances = model.get_all_instances()
+        all_nodes = model.get_all_compute_nodes()
+        instance0 = all_instances[list(all_instances.keys())[0]]
+        node0 = all_nodes[list(all_nodes.keys())[0]]
 
-        self.strategy.check_migration(hyp0, hyp0, vm0)
+        self.strategy.check_migration(node0, node0, instance0)
 
     def test_threshold(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = model
 
-        all_hyps = model.get_all_hypervisors()
-        hyp0 = all_hyps[list(all_hyps.keys())[0]]
+        all_nodes = model.get_all_compute_nodes()
+        node0 = all_nodes[list(all_nodes.keys())[0]]
 
         self.assertFalse(self.strategy.check_threshold(
-            hyp0, 1000, 1000, 1000))
+            node0, 1000, 1000, 1000))
 
     def test_basic_consolidation_migration(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = model
 
         solution = self.strategy.execute()
@@ -163,10 +175,10 @@ class TestBasicConsolidation(base.BaseTestCase):
         expected_power_state = 0
 
         num_migrations = actions_counter.get("migrate", 0)
-        num_hypervisor_state_change = actions_counter.get(
-            "change_hypervisor_state", 0)
+        num_node_state_change = actions_counter.get(
+            "change_node_state", 0)
         self.assertEqual(expected_num_migrations, num_migrations)
-        self.assertEqual(expected_power_state, num_hypervisor_state_change)
+        self.assertEqual(expected_power_state, num_node_state_change)
 
     def test_exception_stale_cdm(self):
         self.fake_cluster.set_cluster_data_model_as_stale()
@@ -180,7 +192,7 @@ class TestBasicConsolidation(base.BaseTestCase):
     def test_execute_no_workload(self):
         model = (
             self.fake_cluster
-            .generate_scenario_4_with_1_hypervisor_no_vm())
+            .generate_scenario_4_with_1_node_no_instance())
         self.m_model.return_value = model
 
         with mock.patch.object(
@@ -191,7 +203,7 @@ class TestBasicConsolidation(base.BaseTestCase):
             self.assertEqual(0, solution.efficacy.global_efficacy.value)
 
     def test_check_parameters(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = model
         solution = self.strategy.execute()
         loader = default.DefaultActionLoader()

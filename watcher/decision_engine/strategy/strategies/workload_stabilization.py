@@ -30,8 +30,7 @@ from watcher._i18n import _LI, _
 from watcher.common import exception
 from watcher.decision_engine.cluster.history import ceilometer as \
     ceilometer_cluster_history
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
@@ -39,8 +38,8 @@ LOG = log.getLogger(__name__)
 metrics = ['cpu_util', 'memory.resident']
 thresholds_dict = {'cpu_util': 0.2, 'memory.resident': 0.2}
 weights_dict = {'cpu_util_weight': 1.0, 'memory.resident_weight': 1.0}
-vm_host_measures = {'cpu_util': 'hardware.cpu.util',
-                    'memory.resident': 'hardware.memory.used'}
+instance_host_measures = {'cpu_util': 'hardware.cpu.util',
+                          'memory.resident': 'hardware.memory.used'}
 
 ws_opts = [
     cfg.ListOpt('metrics',
@@ -154,73 +153,75 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
-    def transform_vm_cpu(self, vm_load, host_vcpus):
-        """This method transforms vm cpu utilization to overall host cpu utilization.
+    def transform_instance_cpu(self, instance_load, host_vcpus):
+        """Transform instance cpu utilization to overall host cpu utilization.
 
-        :param vm_load: dict that contains vm uuid and utilization info.
+        :param instance_load: dict that contains instance uuid and
+            utilization info.
         :param host_vcpus: int
         :return: float value
         """
-        return vm_load['cpu_util'] * (vm_load['vcpus'] / float(host_vcpus))
+        return (instance_load['cpu_util'] *
+                (instance_load['vcpus'] / float(host_vcpus)))
 
     @MEMOIZE
-    def get_vm_load(self, vm_uuid):
-        """Gathering vm load through ceilometer statistic.
+    def get_instance_load(self, instance_uuid):
+        """Gathering instance load through ceilometer statistic.
 
-        :param vm_uuid: vm for which statistic is gathered.
+        :param instance_uuid: instance for which statistic is gathered.
         :return: dict
         """
-        LOG.debug('get_vm_load started')
-        vm_vcpus = self.compute_model.get_resource_from_id(
-            resource.ResourceType.cpu_cores).get_capacity(
-                self.compute_model.get_vm_from_id(vm_uuid))
-        vm_load = {'uuid': vm_uuid, 'vcpus': vm_vcpus}
+        LOG.debug('get_instance_load started')
+        instance_vcpus = self.compute_model.get_resource_from_id(
+            element.ResourceType.cpu_cores).get_capacity(
+                self.compute_model.get_instance_from_id(instance_uuid))
+        instance_load = {'uuid': instance_uuid, 'vcpus': instance_vcpus}
         for meter in self.metrics:
             avg_meter = self.ceilometer.statistic_aggregation(
-                resource_id=vm_uuid,
+                resource_id=instance_uuid,
                 meter_name=meter,
                 period="120",
                 aggregate='min'
             )
             if avg_meter is None:
-                raise exception.NoMetricValuesForVM(resource_id=vm_uuid,
-                                                    metric_name=meter)
-            vm_load[meter] = avg_meter
-        return vm_load
+                raise exception.NoMetricValuesForInstance(
+                    resource_id=instance_uuid, metric_name=meter)
+            instance_load[meter] = avg_meter
+        return instance_load
 
     def normalize_hosts_load(self, hosts):
         normalized_hosts = deepcopy(hosts)
         for host in normalized_hosts:
             if 'memory.resident' in normalized_hosts[host]:
                 h_memory = self.compute_model.get_resource_from_id(
-                    resource.ResourceType.memory).get_capacity(
-                        self.compute_model.get_hypervisor_from_id(host))
+                    element.ResourceType.memory).get_capacity(
+                        self.compute_model.get_node_from_id(host))
                 normalized_hosts[host]['memory.resident'] /= float(h_memory)
 
         return normalized_hosts
 
     def get_hosts_load(self):
-        """Get load of every host by gathering vms load"""
+        """Get load of every host by gathering instances load"""
         hosts_load = {}
-        for hypervisor_id in self.compute_model.get_all_hypervisors():
-            hosts_load[hypervisor_id] = {}
+        for node_id in self.compute_model.get_all_compute_nodes():
+            hosts_load[node_id] = {}
             host_vcpus = self.compute_model.get_resource_from_id(
-                resource.ResourceType.cpu_cores).get_capacity(
-                    self.compute_model.get_hypervisor_from_id(hypervisor_id))
-            hosts_load[hypervisor_id]['vcpus'] = host_vcpus
+                element.ResourceType.cpu_cores).get_capacity(
+                    self.compute_model.get_node_from_id(node_id))
+            hosts_load[node_id]['vcpus'] = host_vcpus
 
             for metric in self.metrics:
                 avg_meter = self.ceilometer.statistic_aggregation(
-                    resource_id=hypervisor_id,
-                    meter_name=vm_host_measures[metric],
+                    resource_id=node_id,
+                    meter_name=instance_host_measures[metric],
                     period="60",
                     aggregate='avg'
                 )
                 if avg_meter is None:
                     raise exception.NoSuchMetricForHost(
-                        metric=vm_host_measures[metric],
-                        host=hypervisor_id)
-                hosts_load[hypervisor_id][metric] = avg_meter
+                        metric=instance_host_measures[metric],
+                        host=node_id)
+                hosts_load[node_id][metric] = avg_meter
         return hosts_load
 
     def get_sd(self, hosts, meter_name):
@@ -249,33 +250,34 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                       " for %s in weight dict.") % metric)
         return weighted_sd
 
-    def calculate_migration_case(self, hosts, vm_id, src_hp_id, dst_hp_id):
+    def calculate_migration_case(self, hosts, instance_id,
+                                 src_node_id, dst_node_id):
         """Calculate migration case
 
         Return list of standard deviation values, that appearing in case of
-        migration of vm from source host to destination host
+        migration of instance from source host to destination host
         :param hosts: hosts with their workload
-        :param vm_id: the virtual machine
-        :param src_hp_id: the source hypervisor id
-        :param dst_hp_id: the destination hypervisor id
+        :param instance_id: the virtual machine
+        :param src_node_id: the source node id
+        :param dst_node_id: the destination node id
         :return: list of standard deviation values
         """
         migration_case = []
         new_hosts = deepcopy(hosts)
-        vm_load = self.get_vm_load(vm_id)
-        d_host_vcpus = new_hosts[dst_hp_id]['vcpus']
-        s_host_vcpus = new_hosts[src_hp_id]['vcpus']
+        instance_load = self.get_instance_load(instance_id)
+        d_host_vcpus = new_hosts[dst_node_id]['vcpus']
+        s_host_vcpus = new_hosts[src_node_id]['vcpus']
         for metric in self.metrics:
             if metric is 'cpu_util':
-                new_hosts[src_hp_id][metric] -= self.transform_vm_cpu(
-                    vm_load,
+                new_hosts[src_node_id][metric] -= self.transform_instance_cpu(
+                    instance_load,
                     s_host_vcpus)
-                new_hosts[dst_hp_id][metric] += self.transform_vm_cpu(
-                    vm_load,
+                new_hosts[dst_node_id][metric] += self.transform_instance_cpu(
+                    instance_load,
                     d_host_vcpus)
             else:
-                new_hosts[src_hp_id][metric] -= vm_load[metric]
-                new_hosts[dst_hp_id][metric] += vm_load[metric]
+                new_hosts[src_node_id][metric] -= instance_load[metric]
+                new_hosts[dst_node_id][metric] += instance_load[metric]
         normalized_hosts = self.normalize_hosts_load(new_hosts)
         for metric in self.metrics:
             migration_case.append(self.get_sd(normalized_hosts, metric))
@@ -283,45 +285,46 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         return migration_case
 
     def simulate_migrations(self, hosts):
-        """Make sorted list of pairs vm:dst_host"""
-        def yield_hypervisors(hypervisors):
+        """Make sorted list of pairs instance:dst_host"""
+        def yield_nodes(nodes):
             ct = CONF['watcher_strategies.workload_stabilization'].retry_count
             if self.host_choice == 'cycle':
-                for i in itertools.cycle(hypervisors):
+                for i in itertools.cycle(nodes):
                     yield [i]
             if self.host_choice == 'retry':
                 while True:
-                    yield random.sample(hypervisors, ct)
+                    yield random.sample(nodes, ct)
             if self.host_choice == 'fullsearch':
                 while True:
-                    yield hypervisors
+                    yield nodes
 
-        vm_host_map = []
-        for source_hp_id in self.compute_model.get_all_hypervisors():
-            hypervisors = list(self.compute_model.get_all_hypervisors())
-            hypervisors.remove(source_hp_id)
-            hypervisor_list = yield_hypervisors(hypervisors)
-            vms_id = self.compute_model.get_mapping(). \
-                get_node_vms_from_id(source_hp_id)
-            for vm_id in vms_id:
+        instance_host_map = []
+        for source_hp_id in self.compute_model.get_all_compute_nodes():
+            nodes = list(self.compute_model.get_all_compute_nodes())
+            nodes.remove(source_hp_id)
+            node_list = yield_nodes(nodes)
+            instances_id = self.compute_model.get_mapping(). \
+                get_node_instances_from_id(source_hp_id)
+            for instance_id in instances_id:
                 min_sd_case = {'value': len(self.metrics)}
-                vm = self.compute_model.get_vm_from_id(vm_id)
-                if vm.state not in [vm_state.VMState.ACTIVE.value,
-                                    vm_state.VMState.PAUSED.value]:
+                instance = self.compute_model.get_instance_from_id(instance_id)
+                if instance.state not in [element.InstanceState.ACTIVE.value,
+                                          element.InstanceState.PAUSED.value]:
                     continue
-                for dst_hp_id in next(hypervisor_list):
-                    sd_case = self.calculate_migration_case(hosts, vm_id,
+                for dst_node_id in next(node_list):
+                    sd_case = self.calculate_migration_case(hosts, instance_id,
                                                             source_hp_id,
-                                                            dst_hp_id)
+                                                            dst_node_id)
 
                     weighted_sd = self.calculate_weighted_sd(sd_case[:-1])
 
                     if weighted_sd < min_sd_case['value']:
-                        min_sd_case = {'host': dst_hp_id, 'value': weighted_sd,
-                                       's_host': source_hp_id, 'vm': vm_id}
-                        vm_host_map.append(min_sd_case)
+                        min_sd_case = {
+                            'host': dst_node_id, 'value': weighted_sd,
+                            's_host': source_hp_id, 'instance': instance_id}
+                        instance_host_map.append(min_sd_case)
                     break
-        return sorted(vm_host_map, key=lambda x: x['value'])
+        return sorted(instance_host_map, key=lambda x: x['value'])
 
     def check_threshold(self):
         """Check if cluster is needed in balancing"""
@@ -335,32 +338,32 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def add_migration(self,
                       resource_id,
                       migration_type,
-                      src_hypervisor,
-                      dst_hypervisor):
+                      source_node,
+                      destination_node):
         parameters = {'migration_type': migration_type,
-                      'src_hypervisor': src_hypervisor,
-                      'dst_hypervisor': dst_hypervisor}
+                      'source_node': source_node,
+                      'destination_node': destination_node}
         self.solution.add_action(action_type=self.MIGRATION,
                                  resource_id=resource_id,
                                  input_parameters=parameters)
 
-    def create_migration_vm(self, mig_vm, mig_src_hypervisor,
-                            mig_dst_hypervisor):
+    def create_migration_instance(self, mig_instance, mig_source_node,
+                                  mig_destination_node):
         """Create migration VM """
-        if self.compute_model.get_mapping().migrate_vm(
-                mig_vm, mig_src_hypervisor, mig_dst_hypervisor):
-            self.add_migration(mig_vm.uuid, 'live',
-                               mig_src_hypervisor.uuid,
-                               mig_dst_hypervisor.uuid)
+        if self.compute_model.get_mapping().migrate_instance(
+                mig_instance, mig_source_node, mig_destination_node):
+            self.add_migration(mig_instance.uuid, 'live',
+                               mig_source_node.uuid,
+                               mig_destination_node.uuid)
 
-    def migrate(self, vm_uuid, src_host, dst_host):
-        mig_vm = self.compute_model.get_vm_from_id(vm_uuid)
-        mig_src_hypervisor = self.compute_model.get_hypervisor_from_id(
+    def migrate(self, instance_uuid, src_host, dst_host):
+        mig_instance = self.compute_model.get_instance_from_id(instance_uuid)
+        mig_source_node = self.compute_model.get_node_from_id(
             src_host)
-        mig_dst_hypervisor = self.compute_model.get_hypervisor_from_id(
+        mig_destination_node = self.compute_model.get_node_from_id(
             dst_host)
-        self.create_migration_vm(mig_vm, mig_src_hypervisor,
-                                 mig_dst_hypervisor)
+        self.create_migration_instance(mig_instance, mig_source_node,
+                                       mig_destination_node)
 
     def fill_solution(self):
         self.solution.model = self.compute_model
@@ -378,28 +381,29 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             hosts_load = self.get_hosts_load()
             min_sd = 1
             balanced = False
-            for vm_host in migration:
+            for instance_host in migration:
                 dst_hp_disk = self.compute_model.get_resource_from_id(
-                    resource.ResourceType.disk).get_capacity(
-                        self.compute_model.get_hypervisor_from_id(
-                            vm_host['host']))
-                vm_disk = self.compute_model.get_resource_from_id(
-                    resource.ResourceType.disk).get_capacity(
-                        self.compute_model.get_vm_from_id(vm_host['vm']))
-                if vm_disk > dst_hp_disk:
+                    element.ResourceType.disk).get_capacity(
+                        self.compute_model.get_node_from_id(
+                            instance_host['host']))
+                instance_disk = self.compute_model.get_resource_from_id(
+                    element.ResourceType.disk).get_capacity(
+                        self.compute_model.get_instance_from_id(
+                            instance_host['instance']))
+                if instance_disk > dst_hp_disk:
                     continue
-                vm_load = self.calculate_migration_case(hosts_load,
-                                                        vm_host['vm'],
-                                                        vm_host['s_host'],
-                                                        vm_host['host'])
-                weighted_sd = self.calculate_weighted_sd(vm_load[:-1])
+                instance_load = self.calculate_migration_case(
+                    hosts_load, instance_host['instance'],
+                    instance_host['s_host'], instance_host['host'])
+                weighted_sd = self.calculate_weighted_sd(instance_load[:-1])
                 if weighted_sd < min_sd:
                     min_sd = weighted_sd
-                    hosts_load = vm_load[-1]
-                    self.migrate(vm_host['vm'],
-                                 vm_host['s_host'], vm_host['host'])
+                    hosts_load = instance_load[-1]
+                    self.migrate(instance_host['instance'],
+                                 instance_host['s_host'],
+                                 instance_host['host'])
 
-                for metric, value in zip(self.metrics, vm_load[:-1]):
+                for metric, value in zip(self.metrics, instance_load[:-1]):
                     if value < float(self.thresholds[metric]):
                         balanced = True
                         break

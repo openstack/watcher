@@ -27,7 +27,7 @@ of the OpenStack :ref:`Cluster <cluster_definition>` such as:
 -  Live migration of an instance from one compute node to another compute
    node with Nova
 -  Changing the power level of a compute node (ACPI level, ...)
--  Changing the current state of an hypervisor (enable or disable) with Nova
+-  Changing the current state of a compute node (enable or disable) with Nova
 
 In most cases, an :ref:`Action <action_definition>` triggers some concrete
 commands on an existing OpenStack module (Nova, Neutron, Cinder, Ironic, etc.).

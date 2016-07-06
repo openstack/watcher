@@ -15,7 +15,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 import random
 
@@ -37,9 +36,9 @@ class FakerMetricsCollector(object):
         elif meter_name == "hardware.memory.used":
             result = self.get_usage_node_ram(resource_id)
         elif meter_name == "cpu_util":
-            result = self.get_average_usage_vm_cpu(resource_id)
+            result = self.get_average_usage_instance_cpu(resource_id)
         elif meter_name == "memory.resident":
-            result = self.get_average_usage_vm_memory(resource_id)
+            result = self.get_average_usage_instance_memory(resource_id)
         elif meter_name == "hardware.ipmi.node.outlet_temperature":
             result = self.get_average_outlet_temperature(resource_id)
         elif meter_name == "hardware.ipmi.node.airflow":
@@ -54,7 +53,7 @@ class FakerMetricsCollector(object):
                                aggregate='avg'):
         result = 0
         if meter_name == "cpu_util":
-            result = self.get_average_usage_vm_cpu_wb(resource_id)
+            result = self.get_average_usage_instance_cpu_wb(resource_id)
         return result
 
     def get_average_outlet_temperature(self, uuid):
@@ -135,7 +134,7 @@ class FakerMetricsCollector(object):
         mock['Node_6_hostname_6'] = 8
         mock['Node_19_hostname_19'] = 10
         # node 4
-        mock['VM_7_hostname_7'] = 4
+        mock['INSTANCE_7_hostname_7'] = 4
 
         mock['Node_0'] = 0.07
         mock['Node_1'] = 0.05
@@ -149,7 +148,7 @@ class FakerMetricsCollector(object):
 
         return float(mock[str(uuid)])
 
-    def get_average_usage_vm_cpu_wb(self, uuid):
+    def get_average_usage_instance_cpu_wb(self, uuid):
         """The last VM CPU usage values to average
 
             :param uuid:00
@@ -162,14 +161,14 @@ class FakerMetricsCollector(object):
         # Normalize
         mock = {}
         # node 0
-        mock['VM_1'] = 80
+        mock['INSTANCE_1'] = 80
         mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 50
         # node 1
-        mock['VM_3'] = 20
-        mock['VM_4'] = 10
+        mock['INSTANCE_3'] = 20
+        mock['INSTANCE_4'] = 10
         return float(mock[str(uuid)])
 
-    def get_average_usage_vm_cpu(self, uuid):
+    def get_average_usage_instance_cpu(self, uuid):
         """The last VM CPU usage values to average
 
         :param uuid:00
@@ -182,66 +181,66 @@ class FakerMetricsCollector(object):
         # Normalize
         mock = {}
         # node 0
-        mock['VM_0'] = 7
-        mock['VM_1'] = 7
+        mock['INSTANCE_0'] = 7
+        mock['INSTANCE_1'] = 7
         # node 1
-        mock['VM_2'] = 10
+        mock['INSTANCE_2'] = 10
         # node 2
-        mock['VM_3'] = 5
-        mock['VM_4'] = 5
-        mock['VM_5'] = 10
+        mock['INSTANCE_3'] = 5
+        mock['INSTANCE_4'] = 5
+        mock['INSTANCE_5'] = 10
 
         # node 3
-        mock['VM_6'] = 8
+        mock['INSTANCE_6'] = 8
 
         # node 4
-        mock['VM_7'] = 4
+        mock['INSTANCE_7'] = 4
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
             mock[uuid] = 8
 
         return mock[str(uuid)]
 
-    def get_average_usage_vm_memory(self, uuid):
+    def get_average_usage_instance_memory(self, uuid):
         mock = {}
         # node 0
-        mock['VM_0'] = 2
-        mock['VM_1'] = 5
+        mock['INSTANCE_0'] = 2
+        mock['INSTANCE_1'] = 5
         # node 1
-        mock['VM_2'] = 5
+        mock['INSTANCE_2'] = 5
         # node 2
-        mock['VM_3'] = 8
-        mock['VM_4'] = 5
-        mock['VM_5'] = 16
+        mock['INSTANCE_3'] = 8
+        mock['INSTANCE_4'] = 5
+        mock['INSTANCE_5'] = 16
 
         # node 3
-        mock['VM_6'] = 8
+        mock['INSTANCE_6'] = 8
 
         # node 4
-        mock['VM_7'] = 4
+        mock['INSTANCE_7'] = 4
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
             mock[uuid] = 10
 
         return mock[str(uuid)]
 
-    def get_average_usage_vm_disk(self, uuid):
+    def get_average_usage_instance_disk(self, uuid):
         mock = {}
         # node 0
-        mock['VM_0'] = 2
-        mock['VM_1'] = 2
+        mock['INSTANCE_0'] = 2
+        mock['INSTANCE_1'] = 2
         # node 1
-        mock['VM_2'] = 2
+        mock['INSTANCE_2'] = 2
         # node 2
-        mock['VM_3'] = 10
-        mock['VM_4'] = 15
-        mock['VM_5'] = 20
+        mock['INSTANCE_3'] = 10
+        mock['INSTANCE_4'] = 15
+        mock['INSTANCE_5'] = 20
 
         # node 3
-        mock['VM_6'] = 8
+        mock['INSTANCE_6'] = 8
 
         # node 4
-        mock['VM_7'] = 4
+        mock['INSTANCE_7'] = 4
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
@@ -249,7 +248,7 @@ class FakerMetricsCollector(object):
 
         return mock[str(uuid)]
 
-    def get_virtual_machine_capacity(self, vm_uuid):
+    def get_virtual_machine_capacity(self, instance_uuid):
         return random.randint(1, 4)
 
     def get_average_network_incomming(self, node):

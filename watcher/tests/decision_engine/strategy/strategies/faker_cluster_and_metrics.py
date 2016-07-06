@@ -20,11 +20,8 @@
 import mock
 
 from watcher.decision_engine.model.collector import base
-from watcher.decision_engine.model import hypervisor
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm as modelvm
-from watcher.decision_engine.model import vm_state
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
@@ -38,17 +35,17 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         return self.generate_scenario_1()
 
     def generate_scenario_1(self):
-        """Simulates cluster with 2 hypervisors and 2 VMs using 1:1 mapping"""
+        """Simulates cluster with 2 nodes and 2 instances using 1:1 mapping"""
 
         current_state_cluster = modelroot.ModelRoot()
         count_node = 2
-        count_vm = 2
+        count_instance = 2
 
-        mem = resource.Resource(resource.ResourceType.memory)
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        mem = element.Resource(element.ResourceType.memory)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
         disk_capacity =\
-            resource.Resource(resource.ResourceType.disk_capacity)
+            element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
@@ -57,7 +54,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, count_node):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
             node.state = 'enabled'
@@ -65,43 +62,43 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             mem.set_capacity(node, 64)
             disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
-        for i in range(0, count_vm):
-            vm_uuid = "VM_{0}".format(i)
-            vm = modelvm.VM()
-            vm.uuid = vm_uuid
-            vm.state = vm_state.VMState.ACTIVE
-            mem.set_capacity(vm, 2)
-            disk.set_capacity(vm, 20)
-            num_cores.set_capacity(vm, 10)
-            current_state_cluster.add_vm(vm)
-
-        current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_0"),
-            current_state_cluster.get_vm_from_id("VM_0"))
+        for i in range(0, count_instance):
+            instance_uuid = "INSTANCE_{0}".format(i)
+            instance = element.Instance()
+            instance.uuid = instance_uuid
+            instance.state = element.InstanceState.ACTIVE.value
+            mem.set_capacity(instance, 2)
+            disk.set_capacity(instance, 20)
+            num_cores.set_capacity(instance, 10)
+            current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_1"),
-            current_state_cluster.get_vm_from_id("VM_1"))
+            current_state_cluster.get_node_from_id("Node_0"),
+            current_state_cluster.get_instance_from_id("INSTANCE_0"))
+
+        current_state_cluster.get_mapping().map(
+            current_state_cluster.get_node_from_id("Node_1"),
+            current_state_cluster.get_instance_from_id("INSTANCE_1"))
 
         return current_state_cluster
 
     def generate_scenario_2(self):
         """Simulates a cluster
 
-        With 4 hypervisors and  6 VMs all mapped to one hypervisor
+        With 4 nodes and 6 instances all mapped to a single node
         """
 
         current_state_cluster = modelroot.ModelRoot()
         count_node = 4
-        count_vm = 6
+        count_instance = 6
 
-        mem = resource.Resource(resource.ResourceType.memory)
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        mem = element.Resource(element.ResourceType.memory)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
         disk_capacity =\
-            resource.Resource(resource.ResourceType.disk_capacity)
+            element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
@@ -110,7 +107,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, count_node):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
             node.state = 'up'
@@ -118,39 +115,39 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             mem.set_capacity(node, 64)
             disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 16)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
-        for i in range(0, count_vm):
-            vm_uuid = "VM_{0}".format(i)
-            vm = modelvm.VM()
-            vm.uuid = vm_uuid
-            vm.state = vm_state.VMState.ACTIVE
-            mem.set_capacity(vm, 2)
-            disk.set_capacity(vm, 20)
-            num_cores.set_capacity(vm, 10)
-            current_state_cluster.add_vm(vm)
+        for i in range(0, count_instance):
+            instance_uuid = "INSTANCE_{0}".format(i)
+            instance = element.Instance()
+            instance.uuid = instance_uuid
+            instance.state = element.InstanceState.ACTIVE.value
+            mem.set_capacity(instance, 2)
+            disk.set_capacity(instance, 20)
+            num_cores.set_capacity(instance, 10)
+            current_state_cluster.add_instance(instance)
 
             current_state_cluster.get_mapping().map(
-                current_state_cluster.get_hypervisor_from_id("Node_0"),
-                current_state_cluster.get_vm_from_id("VM_%s" % str(i)))
+                current_state_cluster.get_node_from_id("Node_0"),
+                current_state_cluster.get_instance_from_id("INSTANCE_%s" % i))
 
         return current_state_cluster
 
     def generate_scenario_3(self):
         """Simulates a cluster
 
-        With 4 hypervisors and 6 VMs all mapped to one hypervisor
+        With 4 nodes and 6 instances all mapped to one node
         """
 
         current_state_cluster = modelroot.ModelRoot()
         count_node = 2
-        count_vm = 4
+        count_instance = 4
 
-        mem = resource.Resource(resource.ResourceType.memory)
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        mem = element.Resource(element.ResourceType.memory)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
         disk_capacity =\
-            resource.Resource(resource.ResourceType.disk_capacity)
+            element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
@@ -159,7 +156,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, count_node):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
             node.state = 'up'
@@ -167,21 +164,21 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             mem.set_capacity(node, 64)
             disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 10)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
-        for i in range(6, 6 + count_vm):
-            vm_uuid = "VM_{0}".format(i)
-            vm = modelvm.VM()
-            vm.uuid = vm_uuid
-            vm.state = vm_state.VMState.ACTIVE
-            mem.set_capacity(vm, 2)
-            disk.set_capacity(vm, 20)
-            num_cores.set_capacity(vm, 2 ** (i-6))
-            current_state_cluster.add_vm(vm)
+        for i in range(6, 6 + count_instance):
+            instance_uuid = "INSTANCE_{0}".format(i)
+            instance = element.Instance()
+            instance.uuid = instance_uuid
+            instance.state = element.InstanceState.ACTIVE.value
+            mem.set_capacity(instance, 2)
+            disk.set_capacity(instance, 20)
+            num_cores.set_capacity(instance, 2 ** (i-6))
+            current_state_cluster.add_instance(instance)
 
             current_state_cluster.get_mapping().map(
-                current_state_cluster.get_hypervisor_from_id("Node_0"),
-                current_state_cluster.get_vm_from_id("VM_%s" % str(i)))
+                current_state_cluster.get_node_from_id("Node_0"),
+                current_state_cluster.get_instance_from_id("INSTANCE_%s" % i))
 
         return current_state_cluster
 
@@ -193,76 +190,77 @@ class FakeCeilometerMetrics(object):
     def mock_get_statistics(self, resource_id, meter_name, period=3600,
                             aggregate='avg'):
         if meter_name == "compute.node.cpu.percent":
-            return self.get_hypervisor_cpu_util(resource_id)
+            return self.get_node_cpu_util(resource_id)
         elif meter_name == "cpu_util":
-            return self.get_vm_cpu_util(resource_id)
+            return self.get_instance_cpu_util(resource_id)
         elif meter_name == "memory.usage":
-            return self.get_vm_ram_util(resource_id)
+            return self.get_instance_ram_util(resource_id)
         elif meter_name == "disk.root.size":
-            return self.get_vm_disk_root_size(resource_id)
+            return self.get_instance_disk_root_size(resource_id)
 
-    def get_hypervisor_cpu_util(self, r_id):
-        """Calculates hypervisor utilization dynamicaly.
+    def get_node_cpu_util(self, r_id):
+        """Calculates node utilization dynamicaly.
 
-        Hypervisor CPU utilization should consider
-        and corelate with actual VM-hypervisor mappings
+        node CPU utilization should consider
+        and corelate with actual instance-node mappings
         provided within a cluster model.
-        Returns relative hypervisor CPU utilization <0, 100>.
+        Returns relative node CPU utilization <0, 100>.
         :param r_id: resource id
         """
 
         id = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
-        vms = self.model.get_mapping().get_node_vms_from_id(id)
+        instances = self.model.get_mapping().get_node_instances_from_id(id)
         util_sum = 0.0
-        hypervisor_cpu_cores = self.model.get_resource_from_id(
-            resource.ResourceType.cpu_cores).get_capacity_from_id(id)
-        for vm_uuid in vms:
-            vm_cpu_cores = self.model.get_resource_from_id(
-                resource.ResourceType.cpu_cores).\
-                get_capacity(self.model.get_vm_from_id(vm_uuid))
-            total_cpu_util = vm_cpu_cores * self.get_vm_cpu_util(vm_uuid)
+        node_cpu_cores = self.model.get_resource_from_id(
+            element.ResourceType.cpu_cores).get_capacity_from_id(id)
+        for instance_uuid in instances:
+            instance_cpu_cores = self.model.get_resource_from_id(
+                element.ResourceType.cpu_cores).\
+                get_capacity(self.model.get_instance_from_id(instance_uuid))
+            total_cpu_util = instance_cpu_cores * self.get_instance_cpu_util(
+                instance_uuid)
             util_sum += total_cpu_util / 100.0
-        util_sum /= hypervisor_cpu_cores
+        util_sum /= node_cpu_cores
         return util_sum * 100.0
 
-    def get_vm_cpu_util(self, r_id):
-        vm_cpu_util = dict()
-        vm_cpu_util['VM_0'] = 10
-        vm_cpu_util['VM_1'] = 30
-        vm_cpu_util['VM_2'] = 60
-        vm_cpu_util['VM_3'] = 20
-        vm_cpu_util['VM_4'] = 40
-        vm_cpu_util['VM_5'] = 50
-        vm_cpu_util['VM_6'] = 100
-        vm_cpu_util['VM_7'] = 100
-        vm_cpu_util['VM_8'] = 100
-        vm_cpu_util['VM_9'] = 100
-        return vm_cpu_util[str(r_id)]
+    def get_instance_cpu_util(self, r_id):
+        instance_cpu_util = dict()
+        instance_cpu_util['INSTANCE_0'] = 10
+        instance_cpu_util['INSTANCE_1'] = 30
+        instance_cpu_util['INSTANCE_2'] = 60
+        instance_cpu_util['INSTANCE_3'] = 20
+        instance_cpu_util['INSTANCE_4'] = 40
+        instance_cpu_util['INSTANCE_5'] = 50
+        instance_cpu_util['INSTANCE_6'] = 100
+        instance_cpu_util['INSTANCE_7'] = 100
+        instance_cpu_util['INSTANCE_8'] = 100
+        instance_cpu_util['INSTANCE_9'] = 100
+        return instance_cpu_util[str(r_id)]
 
-    def get_vm_ram_util(self, r_id):
-        vm_ram_util = dict()
-        vm_ram_util['VM_0'] = 1
-        vm_ram_util['VM_1'] = 2
-        vm_ram_util['VM_2'] = 4
-        vm_ram_util['VM_3'] = 8
-        vm_ram_util['VM_4'] = 3
-        vm_ram_util['VM_5'] = 2
-        vm_ram_util['VM_6'] = 1
-        vm_ram_util['VM_7'] = 2
-        vm_ram_util['VM_8'] = 4
-        vm_ram_util['VM_9'] = 8
-        return vm_ram_util[str(r_id)]
+    def get_instance_ram_util(self, r_id):
+        instance_ram_util = dict()
+        instance_ram_util['INSTANCE_0'] = 1
+        instance_ram_util['INSTANCE_1'] = 2
+        instance_ram_util['INSTANCE_2'] = 4
+        instance_ram_util['INSTANCE_3'] = 8
+        instance_ram_util['INSTANCE_4'] = 3
+        instance_ram_util['INSTANCE_5'] = 2
+        instance_ram_util['INSTANCE_6'] = 1
+        instance_ram_util['INSTANCE_7'] = 2
+        instance_ram_util['INSTANCE_8'] = 4
+        instance_ram_util['INSTANCE_9'] = 8
+        return instance_ram_util[str(r_id)]
 
-    def get_vm_disk_root_size(self, r_id):
-        vm_disk_util = dict()
-        vm_disk_util['VM_0'] = 10
-        vm_disk_util['VM_1'] = 15
-        vm_disk_util['VM_2'] = 30
-        vm_disk_util['VM_3'] = 35
-        vm_disk_util['VM_4'] = 20
-        vm_disk_util['VM_5'] = 25
-        vm_disk_util['VM_6'] = 25
-        vm_disk_util['VM_7'] = 25
-        vm_disk_util['VM_8'] = 25
-        vm_disk_util['VM_9'] = 25
-        return vm_disk_util[str(r_id)]
+    def get_instance_disk_root_size(self, r_id):
+        instance_disk_util = dict()
+        instance_disk_util['INSTANCE_0'] = 10
+        instance_disk_util['INSTANCE_1'] = 15
+        instance_disk_util['INSTANCE_2'] = 30
+        instance_disk_util['INSTANCE_3'] = 35
+        instance_disk_util['INSTANCE_4'] = 20
+        instance_disk_util['INSTANCE_5'] = 25
+        instance_disk_util['INSTANCE_6'] = 25
+        instance_disk_util['INSTANCE_7'] = 25
+        instance_disk_util['INSTANCE_8'] = 25
+        instance_disk_util['INSTANCE_9'] = 25
+        return instance_disk_util[str(r_id)]

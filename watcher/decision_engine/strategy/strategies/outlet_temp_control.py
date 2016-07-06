@@ -30,11 +30,10 @@ telemetries to measure thermal/workload status of server.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LI, _LW
+from watcher._i18n import _, _LW, _LI
 from watcher.common import exception as wexc
 from watcher.decision_engine.cluster.history import ceilometer as ceil
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
 
@@ -122,35 +121,35 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
-    def calc_used_res(self, hypervisor, cpu_capacity,
+    def calc_used_res(self, node, cpu_capacity,
                       memory_capacity, disk_capacity):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        vms = self.compute_model.get_mapping().get_node_vms(hypervisor)
+        instances = self.compute_model.mapping.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
-        if len(vms) > 0:
-            for vm_id in vms:
-                vm = self.compute_model.get_vm_from_id(vm_id)
-                vcpus_used += cpu_capacity.get_capacity(vm)
-                memory_mb_used += memory_capacity.get_capacity(vm)
-                disk_gb_used += disk_capacity.get_capacity(vm)
+        if len(instances) > 0:
+            for instance_id in instances:
+                instance = self.compute_model.get_instance_from_id(instance_id)
+                vcpus_used += cpu_capacity.get_capacity(instance)
+                memory_mb_used += memory_capacity.get_capacity(instance)
+                disk_gb_used += disk_capacity.get_capacity(instance)
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
     def group_hosts_by_outlet_temp(self):
         """Group hosts based on outlet temp meters"""
-        hypervisors = self.compute_model.get_all_hypervisors()
-        size_cluster = len(hypervisors)
+        nodes = self.compute_model.get_all_compute_nodes()
+        size_cluster = len(nodes)
         if size_cluster == 0:
             raise wexc.ClusterEmpty()
 
         hosts_need_release = []
         hosts_target = []
-        for hypervisor_id in hypervisors:
-            hypervisor = self.compute_model.get_hypervisor_from_id(
-                hypervisor_id)
-            resource_id = hypervisor.uuid
+        for node_id in nodes:
+            node = self.compute_model.get_node_from_id(
+                node_id)
+            resource_id = node.uuid
 
             outlet_temp = self.ceilometer.statistic_aggregation(
                 resource_id=resource_id,
@@ -163,53 +162,55 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 continue
 
             LOG.debug("%s: outlet temperature %f" % (resource_id, outlet_temp))
-            hvmap = {'hv': hypervisor, 'outlet_temp': outlet_temp}
+            instance_data = {'node': node, 'outlet_temp': outlet_temp}
             if outlet_temp >= self.threshold:
-                # mark the hypervisor to release resources
-                hosts_need_release.append(hvmap)
+                # mark the node to release resources
+                hosts_need_release.append(instance_data)
             else:
-                hosts_target.append(hvmap)
+                hosts_target.append(instance_data)
         return hosts_need_release, hosts_target
 
-    def choose_vm_to_migrate(self, hosts):
-        """Pick up an active vm instance to migrate from provided hosts"""
-        for hvmap in hosts:
-            mig_src_hypervisor = hvmap['hv']
-            vms_of_src = self.compute_model.get_mapping().get_node_vms(
-                mig_src_hypervisor)
-            if len(vms_of_src) > 0:
-                for vm_id in vms_of_src:
+    def choose_instance_to_migrate(self, hosts):
+        """Pick up an active instance to migrate from provided hosts"""
+        for instance_data in hosts:
+            mig_source_node = instance_data['node']
+            instances_of_src = self.compute_model.mapping.get_node_instances(
+                mig_source_node)
+            if len(instances_of_src) > 0:
+                for instance_id in instances_of_src:
                     try:
-                        # select the first active VM to migrate
-                        vm = self.compute_model.get_vm_from_id(vm_id)
-                        if vm.state != vm_state.VMState.ACTIVE.value:
-                            LOG.info(_LI("VM not active, skipped: %s"),
-                                     vm.uuid)
+                        # select the first active instance to migrate
+                        instance = self.compute_model.get_instance_from_id(
+                            instance_id)
+                        if (instance.state !=
+                                element.InstanceState.ACTIVE.value):
+                            LOG.info(_LI("Instance not active, skipped: %s"),
+                                     instance.uuid)
                             continue
-                        return mig_src_hypervisor, vm
+                        return mig_source_node, instance
                     except wexc.InstanceNotFound as e:
                         LOG.exception(e)
-                        LOG.info(_LI("VM not found"))
+                        LOG.info(_LI("Instance not found"))
 
         return None
 
-    def filter_dest_servers(self, hosts, vm_to_migrate):
+    def filter_dest_servers(self, hosts, instance_to_migrate):
         """Only return hosts with sufficient available resources"""
         cpu_capacity = self.compute_model.get_resource_from_id(
-            resource.ResourceType.cpu_cores)
+            element.ResourceType.cpu_cores)
         disk_capacity = self.compute_model.get_resource_from_id(
-            resource.ResourceType.disk)
+            element.ResourceType.disk)
         memory_capacity = self.compute_model.get_resource_from_id(
-            resource.ResourceType.memory)
+            element.ResourceType.memory)
 
-        required_cores = cpu_capacity.get_capacity(vm_to_migrate)
-        required_disk = disk_capacity.get_capacity(vm_to_migrate)
-        required_memory = memory_capacity.get_capacity(vm_to_migrate)
+        required_cores = cpu_capacity.get_capacity(instance_to_migrate)
+        required_disk = disk_capacity.get_capacity(instance_to_migrate)
+        required_memory = memory_capacity.get_capacity(instance_to_migrate)
 
-        # filter hypervisors without enough resource
+        # filter nodes without enough resource
         dest_servers = []
-        for hvmap in hosts:
-            host = hvmap['hv']
+        for instance_data in hosts:
+            host = instance_data['node']
             # available
             cores_used, mem_used, disk_used = self.calc_used_res(
                 host, cpu_capacity, memory_capacity, disk_capacity)
@@ -219,7 +220,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             if cores_available >= required_cores \
                     and disk_available >= required_disk \
                     and mem_available >= required_memory:
-                dest_servers.append(hvmap)
+                dest_servers.append(instance_data)
 
         return dest_servers
 
@@ -251,13 +252,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                                     reverse=True,
                                     key=lambda x: (x["outlet_temp"]))
 
-        vm_to_migrate = self.choose_vm_to_migrate(hosts_need_release)
-        # calculate the vm's cpu cores,memory,disk needs
-        if vm_to_migrate is None:
+        instance_to_migrate = self.choose_instance_to_migrate(
+            hosts_need_release)
+        # calculate the instance's cpu cores,memory,disk needs
+        if instance_to_migrate is None:
             return self.solution
 
-        mig_src_hypervisor, vm_src = vm_to_migrate
-        dest_servers = self.filter_dest_servers(hosts_target, vm_src)
+        mig_source_node, instance_src = instance_to_migrate
+        dest_servers = self.filter_dest_servers(hosts_target, instance_src)
         # sort the filtered result by outlet temp
         # pick up the lowest one as dest server
         if len(dest_servers) == 0:
@@ -268,15 +270,15 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         dest_servers = sorted(dest_servers, key=lambda x: (x["outlet_temp"]))
         # always use the host with lowerest outlet temperature
-        mig_dst_hypervisor = dest_servers[0]['hv']
-        # generate solution to migrate the vm to the dest server,
-        if self.compute_model.get_mapping().migrate_vm(
-                vm_src, mig_src_hypervisor, mig_dst_hypervisor):
+        mig_destination_node = dest_servers[0]['node']
+        # generate solution to migrate the instance to the dest server,
+        if self.compute_model.mapping.migrate_instance(
+                instance_src, mig_source_node, mig_destination_node):
             parameters = {'migration_type': 'live',
-                          'src_hypervisor': mig_src_hypervisor.uuid,
-                          'dst_hypervisor': mig_dst_hypervisor.uuid}
+                          'source_node': mig_source_node.uuid,
+                          'destination_node': mig_destination_node.uuid}
             self.solution.add_action(action_type=self.MIGRATION,
-                                     resource_id=vm_src.uuid,
+                                     resource_id=instance_src.uuid,
                                      input_parameters=parameters)
 
     def post_execute(self):

@@ -312,7 +312,7 @@ Using that you can now query the values for that specific metric:
 
 .. code-block:: py
 
-    query_history.statistic_aggregation(resource_id=hypervisor.uuid,
+    query_history.statistic_aggregation(resource_id=compute_node.uuid,
                                   meter_name='compute.node.cpu.percent',
                                   period="7200",
                                   aggregate='avg'

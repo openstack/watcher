@@ -317,7 +317,7 @@ class KeystoneFailure(WatcherException):
 
 
 class ClusterEmpty(WatcherException):
-    msg_fmt = _("The list of hypervisor(s) in the cluster is empty")
+    msg_fmt = _("The list of compute node(s) in the cluster is empty")
 
 
 class MetricCollectorNotDefined(WatcherException):
@@ -346,7 +346,7 @@ class GlobalEfficacyComputationError(WatcherException):
                 "goal using the '%(strategy)s' strategy.")
 
 
-class NoMetricValuesForVM(WatcherException):
+class NoMetricValuesForInstance(WatcherException):
     msg_fmt = _("No values returned by %(resource_id)s for %(metric_name)s.")
 
 
@@ -357,11 +357,11 @@ class NoSuchMetricForHost(WatcherException):
 # Model
 
 class InstanceNotFound(WatcherException):
-    msg_fmt = _("The instance '%(name)s' is not found")
+    msg_fmt = _("The instance '%(name)s' could not be found")
 
 
-class HypervisorNotFound(WatcherException):
-    msg_fmt = _("The hypervisor is not found")
+class ComputeNodeNotFound(WatcherException):
+    msg_fmt = _("The compute node %s could not be found")
 
 
 class LoadingError(WatcherException):

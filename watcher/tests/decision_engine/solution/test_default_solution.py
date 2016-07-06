@@ -20,13 +20,14 @@ from watcher.decision_engine.solution import default
 from watcher.tests import base
 
 
-class TestDefaultSolution(base.BaseTestCase):
+class TestDefaultSolution(base.TestCase):
+
     def test_default_solution(self):
         solution = default.DefaultSolution(
             goal=mock.Mock(), strategy=mock.Mock())
         parameters = {
-            "src_uuid_hypervisor": "server1",
-            "dst_uuid_hypervisor": "server2",
+            "source_node": "server1",
+            "destination_node": "server2",
         }
         solution.add_action(action_type="nop",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
@@ -34,8 +35,8 @@ class TestDefaultSolution(base.BaseTestCase):
         self.assertEqual(1, len(solution.actions))
         expected_action_type = "nop"
         expected_parameters = {
-            "src_uuid_hypervisor": "server1",
-            "dst_uuid_hypervisor": "server2",
+            "source_node": "server1",
+            "destination_node": "server2",
             "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
         }
         self.assertEqual(expected_action_type,

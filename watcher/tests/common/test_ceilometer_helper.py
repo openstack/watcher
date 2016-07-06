@@ -56,7 +56,7 @@ class TestCeilometerHelper(base.BaseTestCase):
         mock_ceilometer.return_value = ceilometer
         cm = ceilometer_helper.CeilometerHelper()
         val = cm.statistic_aggregation(
-            resource_id="VM_ID",
+            resource_id="INSTANCE_ID",
             meter_name="cpu_util",
             period="7300"
         )

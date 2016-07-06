@@ -24,9 +24,7 @@ from watcher._i18n import _, _LE, _LI
 from watcher.common import exception
 from watcher.decision_engine.cluster.history import ceilometer \
     as ceilometer_cluster_history
-from watcher.decision_engine.model import hypervisor_state as hyper_state
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
@@ -48,26 +46,26 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     * Offload phase - handling over-utilized resources
     * Consolidation phase - handling under-utilized resources
     * Solution optimization - reducing number of migrations
-    * Disability of unused hypervisors
+    * Disability of unused compute nodes
 
     A capacity coefficients (cc) might be used to adjust optimization
     thresholds. Different resources may require different coefficient
     values as well as setting up different coefficient values in both
-    phases may lead to more efficient consolidation in the end.
+    phases may lead to to more efficient consolidation in the end.
     If the cc equals 1 the full resource capacity may be used, cc
     values lower than 1 will lead to resource under utilization and
     values higher than 1 will lead to resource overbooking.
-    e.g. If targeted utilization is 80 percent of hypervisor capacity,
+    e.g. If targeted utilization is 80 percent of a compute node capacity,
     the coefficient in the consolidation phase will be 0.8, but
     may any lower value in the offloading phase. The lower it gets
     the cluster will appear more released (distributed) for the
     following consolidation phase.
 
-    As this strategy leverages VM live migration to move the load
-    from one hypervisor to another, this feature needs to be set up
-    correctly on all hypervisors within the cluster.
+    As this strategy laverages VM live migration to move the load
+    from one compute node to another, this feature needs to be set up
+    correctly on all compute nodes within the cluster.
     This strategy assumes it is possible to live migrate any VM from
-    an active hypervisor to any other active hypervisor.
+    an active compute node to any other active compute node.
 
     *Requirements*
 
@@ -86,8 +84,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         super(VMWorkloadConsolidation, self).__init__(config, osc)
         self._ceilometer = None
         self.number_of_migrations = 0
-        self.number_of_released_hypervisors = 0
-        self.ceilometer_vm_data_cache = dict()
+        self.number_of_released_nodes = 0
+        self.ceilometer_instance_data_cache = dict()
 
     @classmethod
     def get_name(cls):
@@ -119,200 +117,203 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         if isinstance(state, six.string_types):
             return state
-        elif isinstance(state, (vm_state.VMState,
-                                hyper_state.HypervisorState)):
+        elif isinstance(state, (element.InstanceState, element.ServiceState)):
             return state.value
         else:
-            LOG.error(_LE('Unexpected resource state type, '
+            LOG.error(_LE('Unexpexted resource state type, '
                           'state=%(state)s, state_type=%(st)s.'),
                       state=state,
                       st=type(state))
             raise exception.WatcherException
 
-    def add_action_enable_hypervisor(self, hypervisor):
-        """Add an action for hypervisor enabler into the solution.
+    def add_action_enable_compute_node(self, node):
+        """Add an action for node enabler into the solution.
 
-        :param hypervisor: hypervisor object
+        :param node: node object
         :return: None
         """
-        params = {'state': hyper_state.HypervisorState.ENABLED.value}
+        params = {'state': element.ServiceState.ENABLED.value}
         self.solution.add_action(
             action_type='change_nova_service_state',
-            resource_id=hypervisor.uuid,
+            resource_id=node.uuid,
             input_parameters=params)
-        self.number_of_released_hypervisors -= 1
+        self.number_of_released_nodes -= 1
 
-    def add_action_disable_hypervisor(self, hypervisor):
-        """Add an action for hypervisor disablity into the solution.
+    def add_action_disable_node(self, node):
+        """Add an action for node disablity into the solution.
 
-        :param hypervisor: hypervisor object
+        :param node: node object
         :return: None
         """
-        params = {'state': hyper_state.HypervisorState.DISABLED.value}
+        params = {'state': element.ServiceState.DISABLED.value}
         self.solution.add_action(
             action_type='change_nova_service_state',
-            resource_id=hypervisor.uuid,
+            resource_id=node.uuid,
             input_parameters=params)
-        self.number_of_released_hypervisors += 1
+        self.number_of_released_nodes += 1
 
-    def add_migration(self, vm_uuid, src_hypervisor,
-                      dst_hypervisor, model):
+    def add_migration(self, instance_uuid, source_node,
+                      destination_node, model):
         """Add an action for VM migration into the solution.
 
-        :param vm_uuid: vm uuid
-        :param src_hypervisor: hypervisor object
-        :param dst_hypervisor: hypervisor object
+        :param instance_uuid: instance uuid
+        :param source_node: node object
+        :param destination_node: node object
         :param model: model_root object
         :return: None
         """
-        vm = model.get_vm_from_id(vm_uuid)
+        instance = model.get_instance_from_id(instance_uuid)
 
-        vm_state_str = self.get_state_str(vm.state)
-        if vm_state_str != vm_state.VMState.ACTIVE.value:
+        instance_state_str = self.get_state_str(instance.state)
+        if instance_state_str != element.InstanceState.ACTIVE.value:
             # Watcher curently only supports live VM migration and block live
             # VM migration which both requires migrated VM to be active.
             # When supported, the cold migration may be used as a fallback
             # migration mechanism to move non active VMs.
-            LOG.error(_LE('Cannot live migrate: vm_uuid=%(vm_uuid)s, '
-                          'state=%(vm_state)s.'),
-                      vm_uuid=vm_uuid,
-                      vm_state=vm_state_str)
+            LOG.error(
+                _LE('Cannot live migrate: instance_uuid=%(instance_uuid)s, '
+                    'state=%(instance_state)s.'),
+                instance_uuid=instance_uuid,
+                instance_state=instance_state_str)
             raise exception.WatcherException
 
         migration_type = 'live'
 
-        dst_hyper_state_str = self.get_state_str(dst_hypervisor.state)
-        if dst_hyper_state_str == hyper_state.HypervisorState.DISABLED.value:
-            self.add_action_enable_hypervisor(dst_hypervisor)
-        model.get_mapping().unmap(src_hypervisor, vm)
-        model.get_mapping().map(dst_hypervisor, vm)
+        destination_node_state_str = self.get_state_str(destination_node.state)
+        if destination_node_state_str == element.ServiceState.DISABLED.value:
+            self.add_action_enable_compute_node(destination_node)
+        model.mapping.unmap(source_node, instance)
+        model.mapping.map(destination_node, instance)
 
         params = {'migration_type': migration_type,
-                  'src_hypervisor': src_hypervisor.uuid,
-                  'dst_hypervisor': dst_hypervisor.uuid}
+                  'source_node': source_node.uuid,
+                  'destination_node': destination_node.uuid}
         self.solution.add_action(action_type='migrate',
-                                 resource_id=vm.uuid,
+                                 resource_id=instance.uuid,
                                  input_parameters=params)
         self.number_of_migrations += 1
 
-    def disable_unused_hypervisors(self, model):
-        """Generate actions for disablity of unused hypervisors.
+    def disable_unused_nodes(self, model):
+        """Generate actions for disablity of unused nodes.
 
         :param model: model_root object
         :return: None
         """
-        for hypervisor in model.get_all_hypervisors().values():
-            if (len(model.get_mapping().get_node_vms(hypervisor)) == 0 and
-                    hypervisor.status !=
-                    hyper_state.HypervisorState.DISABLED.value):
-                self.add_action_disable_hypervisor(hypervisor)
+        for node in model.get_all_compute_nodes().values():
+            if (len(model.mapping.get_node_instances(node)) == 0 and
+                    node.status !=
+                    element.ServiceState.DISABLED.value):
+                self.add_action_disable_node(node)
 
-    def get_vm_utilization(self, vm_uuid, model, period=3600, aggr='avg'):
+    def get_instance_utilization(self, instance_uuid, model,
+                                 period=3600, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a VM.
 
-        :param vm_uuid: vm object
+        :param instance_uuid: instance object
         :param model: model_root object
         :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of vcpus used), ram(MB used), disk(B used))
         """
-        if vm_uuid in self.ceilometer_vm_data_cache.keys():
-            return self.ceilometer_vm_data_cache.get(vm_uuid)
+        if instance_uuid in self.ceilometer_instance_data_cache.keys():
+            return self.ceilometer_instance_data_cache.get(instance_uuid)
 
         cpu_util_metric = 'cpu_util'
         ram_util_metric = 'memory.usage'
 
         ram_alloc_metric = 'memory'
         disk_alloc_metric = 'disk.root.size'
-        vm_cpu_util = self.ceilometer.statistic_aggregation(
-            resource_id=vm_uuid, meter_name=cpu_util_metric,
+        instance_cpu_util = self.ceilometer.statistic_aggregation(
+            resource_id=instance_uuid, meter_name=cpu_util_metric,
             period=period, aggregate=aggr)
-        vm_cpu_cores = model.get_resource_from_id(
-            resource.ResourceType.cpu_cores).get_capacity(
-                model.get_vm_from_id(vm_uuid))
+        instance_cpu_cores = model.get_resource_from_id(
+            element.ResourceType.cpu_cores).get_capacity(
+                model.get_instance_from_id(instance_uuid))
 
-        if vm_cpu_util:
-            total_cpu_utilization = vm_cpu_cores * (vm_cpu_util / 100.0)
+        if instance_cpu_util:
+            total_cpu_utilization = (
+                instance_cpu_cores * (instance_cpu_util / 100.0))
         else:
-            total_cpu_utilization = vm_cpu_cores
+            total_cpu_utilization = instance_cpu_cores
 
-        vm_ram_util = self.ceilometer.statistic_aggregation(
-            resource_id=vm_uuid, meter_name=ram_util_metric,
+        instance_ram_util = self.ceilometer.statistic_aggregation(
+            resource_id=instance_uuid, meter_name=ram_util_metric,
             period=period, aggregate=aggr)
 
-        if not vm_ram_util:
-            vm_ram_util = self.ceilometer.statistic_aggregation(
-                resource_id=vm_uuid, meter_name=ram_alloc_metric,
+        if not instance_ram_util:
+            instance_ram_util = self.ceilometer.statistic_aggregation(
+                resource_id=instance_uuid, meter_name=ram_alloc_metric,
                 period=period, aggregate=aggr)
 
-        vm_disk_util = self.ceilometer.statistic_aggregation(
-            resource_id=vm_uuid, meter_name=disk_alloc_metric,
+        instance_disk_util = self.ceilometer.statistic_aggregation(
+            resource_id=instance_uuid, meter_name=disk_alloc_metric,
             period=period, aggregate=aggr)
 
-        if not vm_ram_util or not vm_disk_util:
+        if not instance_ram_util or not instance_disk_util:
             LOG.error(
                 _LE('No values returned by %(resource_id)s '
                     'for memory.usage or disk.root.size'),
-                resource_id=vm_uuid
+                resource_id=instance_uuid
             )
             raise exception.NoDataFound
 
-        self.ceilometer_vm_data_cache[vm_uuid] = dict(
-            cpu=total_cpu_utilization, ram=vm_ram_util, disk=vm_disk_util)
-        return self.ceilometer_vm_data_cache.get(vm_uuid)
+        self.ceilometer_instance_data_cache[instance_uuid] = dict(
+            cpu=total_cpu_utilization, ram=instance_ram_util,
+            disk=instance_disk_util)
+        return self.ceilometer_instance_data_cache.get(instance_uuid)
 
-    def get_hypervisor_utilization(self, hypervisor, model, period=3600,
-                                   aggr='avg'):
-        """Collect cpu, ram and disk utilization statistics of a hypervisor.
+    def get_node_utilization(self, node, model, period=3600, aggr='avg'):
+        """Collect cpu, ram and disk utilization statistics of a node.
 
-        :param hypervisor: hypervisor object
+        :param node: node object
         :param model: model_root object
         :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
-        hypervisor_vms = model.get_mapping().get_node_vms_from_id(
-            hypervisor.uuid)
-        hypervisor_ram_util = 0
-        hypervisor_disk_util = 0
-        hypervisor_cpu_util = 0
-        for vm_uuid in hypervisor_vms:
-            vm_util = self.get_vm_utilization(vm_uuid, model, period, aggr)
-            hypervisor_cpu_util += vm_util['cpu']
-            hypervisor_ram_util += vm_util['ram']
-            hypervisor_disk_util += vm_util['disk']
+        node_instances = model.mapping.get_node_instances_from_id(
+            node.uuid)
+        node_ram_util = 0
+        node_disk_util = 0
+        node_cpu_util = 0
+        for instance_uuid in node_instances:
+            instance_util = self.get_instance_utilization(
+                instance_uuid, model, period, aggr)
+            node_cpu_util += instance_util['cpu']
+            node_ram_util += instance_util['ram']
+            node_disk_util += instance_util['disk']
 
-        return dict(cpu=hypervisor_cpu_util, ram=hypervisor_ram_util,
-                    disk=hypervisor_disk_util)
+        return dict(cpu=node_cpu_util, ram=node_ram_util,
+                    disk=node_disk_util)
 
-    def get_hypervisor_capacity(self, hypervisor, model):
-        """Collect cpu, ram and disk capacity of a hypervisor.
+    def get_node_capacity(self, node, model):
+        """Collect cpu, ram and disk capacity of a node.
 
-        :param hypervisor: hypervisor object
+        :param node: node object
         :param model: model_root object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        hypervisor_cpu_capacity = model.get_resource_from_id(
-            resource.ResourceType.cpu_cores).get_capacity(hypervisor)
+        node_cpu_capacity = model.get_resource_from_id(
+            element.ResourceType.cpu_cores).get_capacity(node)
 
-        hypervisor_disk_capacity = model.get_resource_from_id(
-            resource.ResourceType.disk_capacity).get_capacity(hypervisor)
+        node_disk_capacity = model.get_resource_from_id(
+            element.ResourceType.disk_capacity).get_capacity(node)
 
-        hypervisor_ram_capacity = model.get_resource_from_id(
-            resource.ResourceType.memory).get_capacity(hypervisor)
-        return dict(cpu=hypervisor_cpu_capacity, ram=hypervisor_ram_capacity,
-                    disk=hypervisor_disk_capacity)
+        node_ram_capacity = model.get_resource_from_id(
+            element.ResourceType.memory).get_capacity(node)
+        return dict(cpu=node_cpu_capacity, ram=node_ram_capacity,
+                    disk=node_disk_capacity)
 
-    def get_relative_hypervisor_utilization(self, hypervisor, model):
-        """Return relative hypervisor utilization (rhu).
+    def get_relative_node_utilization(self, node, model):
+        """Return relative node utilization (rhu).
 
-        :param hypervisor: hypervisor object
+        :param node: node object
         :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
         rhu = {}
-        util = self.get_hypervisor_utilization(hypervisor, model)
-        cap = self.get_hypervisor_capacity(hypervisor, model)
+        util = self.get_node_utilization(node, model)
+        cap = self.get_node_capacity(node, model)
         for k in util.keys():
             rhu[k] = float(util[k]) / float(cap[k])
         return rhu
@@ -320,18 +321,18 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def get_relative_cluster_utilization(self, model):
         """Calculate relative cluster utilization (rcu).
 
-        RCU is an average of relative utilizations (rhu) of active hypervisors.
+        RCU is an average of relative utilizations (rhu) of active nodes.
         :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        hypervisors = model.get_all_hypervisors().values()
+        nodes = model.get_all_compute_nodes().values()
         rcu = {}
         counters = {}
-        for hypervisor in hypervisors:
-            hyper_state_str = self.get_state_str(hypervisor.state)
-            if hyper_state_str == hyper_state.HypervisorState.ENABLED.value:
-                rhu = self.get_relative_hypervisor_utilization(
-                    hypervisor, model)
+        for node in nodes:
+            node_state_str = self.get_state_str(node.state)
+            if node_state_str == element.ServiceState.ENABLED.value:
+                rhu = self.get_relative_node_utilization(
+                    node, model)
                 for k in rhu.keys():
                     if k not in rcu:
                         rcu[k] = 0
@@ -343,42 +344,43 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             rcu[k] /= counters[k]
         return rcu
 
-    def is_overloaded(self, hypervisor, model, cc):
-        """Indicate whether a hypervisor is overloaded.
+    def is_overloaded(self, node, model, cc):
+        """Indicate whether a node is overloaded.
 
         This considers provided resource capacity coefficients (cc).
-        :param hypervisor: hypervisor object
+        :param node: node object
         :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         :return: [True, False]
         """
-        hypervisor_capacity = self.get_hypervisor_capacity(hypervisor, model)
-        hypervisor_utilization = self.get_hypervisor_utilization(
-            hypervisor, model)
+        node_capacity = self.get_node_capacity(node, model)
+        node_utilization = self.get_node_utilization(
+            node, model)
         metrics = ['cpu']
         for m in metrics:
-            if hypervisor_utilization[m] > hypervisor_capacity[m] * cc[m]:
+            if node_utilization[m] > node_capacity[m] * cc[m]:
                 return True
         return False
 
-    def vm_fits(self, vm_uuid, hypervisor, model, cc):
-        """Indicate whether is a hypervisor able to accommodate a VM.
+    def instance_fits(self, instance_uuid, node, model, cc):
+        """Indicate whether is a node able to accommodate a VM.
 
         This considers provided resource capacity coefficients (cc).
-        :param vm_uuid: string
-        :param hypervisor: hypervisor object
+        :param instance_uuid: string
+        :param node: node object
         :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         :return: [True, False]
         """
-        hypervisor_capacity = self.get_hypervisor_capacity(hypervisor, model)
-        hypervisor_utilization = self.get_hypervisor_utilization(
-            hypervisor, model)
-        vm_utilization = self.get_vm_utilization(vm_uuid, model)
+        node_capacity = self.get_node_capacity(node, model)
+        node_utilization = self.get_node_utilization(
+            node, model)
+        instance_utilization = self.get_instance_utilization(
+            instance_uuid, model)
         metrics = ['cpu', 'ram', 'disk']
         for m in metrics:
-            if (vm_utilization[m] + hypervisor_utilization[m] >
-                    hypervisor_capacity[m] * cc[m]):
+            if (instance_utilization[m] + node_utilization[m] >
+                    node_capacity[m] * cc[m]):
                 return False
         return True
 
@@ -391,7 +393,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         * A->B, B->C => replace migrations A->B, B->C with
           a single migration A->C as both solution result in
-          VM running on hypervisor C which can be achieved with
+          VM running on node C which can be achieved with
           one migration instead of two.
         * A->B, B->A => remove A->B and B->A as they do not result
           in a new VM placement.
@@ -401,58 +403,59 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         migrate_actions = (
             a for a in self.solution.actions if a[
                 'action_type'] == 'migrate')
-        vm_to_be_migrated = (a['input_parameters']['resource_id']
-                             for a in migrate_actions)
-        vm_uuids = list(set(vm_to_be_migrated))
-        for vm_uuid in vm_uuids:
+        instance_to_be_migrated = (
+            a['input_parameters']['resource_id'] for a in migrate_actions)
+        instance_uuids = list(set(instance_to_be_migrated))
+        for instance_uuid in instance_uuids:
             actions = list(
                 a for a in self.solution.actions if a[
                     'input_parameters'][
-                        'resource_id'] == vm_uuid)
+                        'resource_id'] == instance_uuid)
             if len(actions) > 1:
-                src = actions[0]['input_parameters']['src_hypervisor']
-                dst = actions[-1]['input_parameters']['dst_hypervisor']
+                src = actions[0]['input_parameters']['source_node']
+                dst = actions[-1]['input_parameters']['destination_node']
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
                 if src != dst:
-                    self.add_migration(vm_uuid, src, dst, model)
+                    self.add_migration(instance_uuid, src, dst, model)
 
     def offload_phase(self, model, cc):
         """Perform offloading phase.
 
         This considers provided resource capacity coefficients.
         Offload phase performing first-fit based bin packing to offload
-        overloaded hypervisors. This is done in a fashion of moving
+        overloaded nodes. This is done in a fashion of moving
         the least CPU utilized VM first as live migration these
         generaly causes less troubles. This phase results in a cluster
-        with no overloaded hypervisors.
-        * This phase is be able to enable disabled hypervisors (if needed
+        with no overloaded nodes.
+        * This phase is be able to enable disabled nodes (if needed
         and any available) in the case of the resource capacity provided by
-        active hypervisors is not able to accomodate all the load.
+        active nodes is not able to accomodate all the load.
         As the offload phase is later followed by the consolidation phase,
-        the hypervisor enabler in this phase doesn't necessarily results
-        in more enabled hypervisors in the final solution.
+        the node enabler in this phase doesn't necessarily results
+        in more enabled nodes in the final solution.
 
         :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         """
-        sorted_hypervisors = sorted(
-            model.get_all_hypervisors().values(),
-            key=lambda x: self.get_hypervisor_utilization(x, model)['cpu'])
-        for hypervisor in reversed(sorted_hypervisors):
-            if self.is_overloaded(hypervisor, model, cc):
-                for vm in sorted(
-                        model.get_mapping().get_node_vms(hypervisor),
-                        key=lambda x: self.get_vm_utilization(
+        sorted_nodes = sorted(
+            model.get_all_compute_nodes().values(),
+            key=lambda x: self.get_node_utilization(x, model)['cpu'])
+        for node in reversed(sorted_nodes):
+            if self.is_overloaded(node, model, cc):
+                for instance in sorted(
+                        model.mapping.get_node_instances(node),
+                        key=lambda x: self.get_instance_utilization(
                             x, model)['cpu']
                 ):
-                    for dst_hypervisor in reversed(sorted_hypervisors):
-                        if self.vm_fits(vm, dst_hypervisor, model, cc):
-                            self.add_migration(vm, hypervisor,
-                                               dst_hypervisor, model)
+                    for destination_node in reversed(sorted_nodes):
+                        if self.instance_fits(
+                                instance, destination_node, model, cc):
+                            self.add_migration(instance, node,
+                                               destination_node, model)
                             break
-                    if not self.is_overloaded(hypervisor, model, cc):
+                    if not self.is_overloaded(node, model, cc):
                         break
 
     def consolidation_phase(self, model, cc):
@@ -460,8 +463,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         This considers provided resource capacity coefficients.
         Consolidation phase performing first-fit based bin packing.
-        First, hypervisors with the lowest cpu utilization are consolidated
-        by moving their load to hypervisors with the highest cpu utilization
+        First, nodes with the lowest cpu utilization are consolidated
+        by moving their load to nodes with the highest cpu utilization
         which can accomodate the load. In this phase the most cpu utilizied
         VMs are prioritizied as their load is more difficult to accomodate
         in the system than less cpu utilizied VMs which can be later used
@@ -470,22 +473,23 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         """
-        sorted_hypervisors = sorted(
-            model.get_all_hypervisors().values(),
-            key=lambda x: self.get_hypervisor_utilization(x, model)['cpu'])
+        sorted_nodes = sorted(
+            model.get_all_compute_nodes().values(),
+            key=lambda x: self.get_node_utilization(x, model)['cpu'])
         asc = 0
-        for hypervisor in sorted_hypervisors:
-            vms = sorted(model.get_mapping().get_node_vms(hypervisor),
-                         key=lambda x: self.get_vm_utilization(x,
-                                                               model)['cpu'])
-            for vm in reversed(vms):
-                dsc = len(sorted_hypervisors) - 1
-                for dst_hypervisor in reversed(sorted_hypervisors):
+        for node in sorted_nodes:
+            instances = sorted(
+                model.mapping.get_node_instances(node),
+                key=lambda x: self.get_instance_utilization(x, model)['cpu'])
+            for instance in reversed(instances):
+                dsc = len(sorted_nodes) - 1
+                for destination_node in reversed(sorted_nodes):
                     if asc >= dsc:
                         break
-                    if self.vm_fits(vm, dst_hypervisor, model, cc):
-                        self.add_migration(vm, hypervisor,
-                                           dst_hypervisor, model)
+                    if self.instance_fits(
+                            instance, destination_node, model, cc):
+                        self.add_migration(instance, node,
+                                           destination_node, model)
                         break
                     dsc -= 1
             asc += 1
@@ -504,7 +508,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         * Offload phase - handling over-utilized resources
         * Consolidation phase - handling under-utilized resources
         * Solution optimization - reducing number of migrations
-        * Disability of unused hypervisors
+        * Disability of unused nodes
 
         :param original_model: root_model object
         """
@@ -524,14 +528,14 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         # Optimize solution
         self.optimize_solution(model)
 
-        # disable unused hypervisors
-        self.disable_unused_hypervisors(model)
+        # disable unused nodes
+        self.disable_unused_nodes(model)
 
         rcu_after = self.get_relative_cluster_utilization(model)
         info = {
             'number_of_migrations': self.number_of_migrations,
-            'number_of_released_hypervisors':
-                self.number_of_released_hypervisors,
+            'number_of_released_nodes':
+                self.number_of_released_nodes,
             'relative_cluster_utilization_before': str(rcu),
             'relative_cluster_utilization_after': str(rcu_after)
         }
@@ -542,5 +546,5 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         # self.solution.efficacy = rcu_after['cpu']
         self.solution.set_efficacy_indicators(
             released_compute_nodes_count=self.number_of_migrations,
-            vm_migrations_count=self.number_of_released_hypervisors,
+            instance_migrations_count=self.number_of_released_nodes,
         )

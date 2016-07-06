@@ -20,10 +20,8 @@ from oslo_log import log
 
 from watcher.common import nova_helper
 from watcher.decision_engine.model.collector import base
-from watcher.decision_engine.model import hypervisor as obj_hypervisor
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm as obj_vm
 
 LOG = log.getLogger(__name__)
 
@@ -50,45 +48,46 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         LOG.debug("Building latest Nova cluster data model")
 
         model = model_root.ModelRoot()
-        mem = resource.Resource(resource.ResourceType.memory)
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
-        disk_capacity = resource.Resource(resource.ResourceType.disk_capacity)
+        mem = element.Resource(element.ResourceType.memory)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
         model.create_resource(mem)
         model.create_resource(num_cores)
         model.create_resource(disk)
         model.create_resource(disk_capacity)
 
         flavor_cache = {}
-        hypervisors = self.wrapper.get_hypervisors_list()
-        for h in hypervisors:
-            service = self.wrapper.nova.services.find(id=h.service['id'])
-            # create hypervisor in cluster_model_collector
-            hypervisor = obj_hypervisor.Hypervisor()
-            hypervisor.uuid = service.host
-            hypervisor.hostname = h.hypervisor_hostname
+        nodes = self.wrapper.get_compute_node_list()
+        for n in nodes:
+            service = self.wrapper.nova.services.find(id=n.service['id'])
+            # create node in cluster_model_collector
+            node = element.ComputeNode()
+            node.uuid = service.host
+            node.hostname = n.hypervisor_hostname
             # set capacity
-            mem.set_capacity(hypervisor, h.memory_mb)
-            disk.set_capacity(hypervisor, h.free_disk_gb)
-            disk_capacity.set_capacity(hypervisor, h.local_gb)
-            num_cores.set_capacity(hypervisor, h.vcpus)
-            hypervisor.state = h.state
-            hypervisor.status = h.status
-            model.add_hypervisor(hypervisor)
-            vms = self.wrapper.get_vms_by_hypervisor(str(service.host))
-            for v in vms:
+            mem.set_capacity(node, n.memory_mb)
+            disk.set_capacity(node, n.free_disk_gb)
+            disk_capacity.set_capacity(node, n.local_gb)
+            num_cores.set_capacity(node, n.vcpus)
+            node.state = n.state
+            node.status = n.status
+            model.add_node(node)
+            instances = self.wrapper.get_instances_by_node(str(service.host))
+            for v in instances:
                 # create VM in cluster_model_collector
-                vm = obj_vm.VM()
-                vm.uuid = v.id
-                # nova/nova/compute/vm_states.py
-                vm.state = getattr(v, 'OS-EXT-STS:vm_state')
+                instance = element.Instance()
+                instance.uuid = v.id
+                # nova/nova/compute/instance_states.py
+                instance.state = getattr(v, 'OS-EXT-STS:instance_state')
 
                 # set capacity
                 self.wrapper.get_flavor_instance(v, flavor_cache)
-                mem.set_capacity(vm, v.flavor['ram'])
-                disk.set_capacity(vm, v.flavor['disk'])
-                num_cores.set_capacity(vm, v.flavor['vcpus'])
+                mem.set_capacity(instance, v.flavor['ram'])
+                disk.set_capacity(instance, v.flavor['disk'])
+                num_cores.set_capacity(instance, v.flavor['vcpus'])
 
-                model.get_mapping().map(hypervisor, vm)
-                model.add_vm(vm)
+                model.get_mapping().map(node, instance)
+                model.add_instance(instance)
+
         return model

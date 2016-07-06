@@ -14,17 +14,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.model import compute_resource
-from watcher.decision_engine.model import hypervisor_state
-from watcher.decision_engine.model import power_state
+import enum
+
+from watcher.decision_engine.model.element import compute_resource
 
 
-class Hypervisor(compute_resource.ComputeResource):
+class ServiceState(enum.Enum):
+    ONLINE = 'up'
+    OFFLINE = 'down'
+    ENABLED = 'enabled'
+    DISABLED = 'disabled'
+
+
+class PowerState(enum.Enum):
+    # away mode
+    g0 = "g0"
+    # power on suspend (processor caches are flushed)
+    # The power to the CPU(s) and RAM is maintained
+    g1_S1 = "g1_S1"
+    # CPU powered off. Dirty cache is flushed to RAM
+    g1_S2 = "g1_S2"
+    # Suspend to RAM
+    g1_S3 = "g1_S3"
+    # Suspend to Disk
+    g1_S4 = "g1_S4"
+    # switch outlet X OFF on the PDU (Power Distribution Unit)
+    switch_off = "switch_off"
+    # switch outlet X ON on the PDU (Power Distribution Unit)
+    switch_on = "switch_on"
+
+
+class ComputeNode(compute_resource.ComputeResource):
+
     def __init__(self):
-        super(Hypervisor, self).__init__()
-        self._state = hypervisor_state.HypervisorState.ONLINE
-        self._status = hypervisor_state.HypervisorState.ENABLED
-        self._power_state = power_state.PowerState.g0
+        super(ComputeNode, self).__init__()
+        self._state = ServiceState.ONLINE
+        self._status = ServiceState.ENABLED
+        self._power_state = PowerState.g0
+
+    def accept(self, visitor):
+        raise NotImplementedError()
 
     @property
     def state(self):

@@ -22,8 +22,8 @@ import mock
 from watcher.applier.loading import default
 from watcher.common import exception
 from watcher.common import utils
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
-from watcher.decision_engine.model import resource
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies \
@@ -32,7 +32,7 @@ from watcher.tests.decision_engine.strategy.strategies \
     import faker_metrics_collector
 
 
-class TestWorkloadBalance(base.BaseTestCase):
+class TestWorkloadBalance(base.TestCase):
 
     def setUp(self):
         super(TestWorkloadBalance, self).setUp()
@@ -59,59 +59,64 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.strategy = strategies.WorkloadBalance(config=mock.Mock())
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update({'threshold': 25.0,
-                                              'period': 300})
+                                               'period': 300})
         self.strategy.threshold = 25.0
         self.strategy._period = 300
 
     def test_calc_used_res(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        hypervisor = model.get_hypervisor_from_id('Node_0')
-        cap_cores = model.get_resource_from_id(resource.ResourceType.cpu_cores)
-        cap_mem = model.get_resource_from_id(resource.ResourceType.memory)
-        cap_disk = model.get_resource_from_id(resource.ResourceType.disk)
+        node = model.get_node_from_id('Node_0')
+        cap_cores = model.get_resource_from_id(element.ResourceType.cpu_cores)
+        cap_mem = model.get_resource_from_id(element.ResourceType.memory)
+        cap_disk = model.get_resource_from_id(element.ResourceType.disk)
         cores_used, mem_used, disk_used = (
             self.strategy.calculate_used_resource(
-                hypervisor, cap_cores, cap_mem, cap_disk))
+                node, cap_cores, cap_mem, cap_disk))
 
         self.assertEqual((cores_used, mem_used, disk_used), (20, 4, 40))
 
     def test_group_hosts_by_cpu_util(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         self.strategy.threshold = 30
-        h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
-        self.assertEqual(h1[0]['hv'].uuid, 'Node_0')
-        self.assertEqual(h2[0]['hv'].uuid, 'Node_1')
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        self.assertEqual(n1[0]['node'].uuid, 'Node_0')
+        self.assertEqual(n2[0]['node'].uuid, 'Node_1')
         self.assertEqual(avg, 8.0)
 
-    def test_choose_vm_to_migrate(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+    def test_choose_instance_to_migrate(self):
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
-        vm_to_mig = self.strategy.choose_vm_to_migrate(h1, avg, w_map)
-        self.assertEqual(vm_to_mig[0].uuid, 'Node_0')
-        self.assertEqual(vm_to_mig[1].uuid,
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        instance_to_mig = self.strategy.choose_instance_to_migrate(
+            n1, avg, w_map)
+        self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
+        self.assertEqual(instance_to_mig[1].uuid,
                          "73b09e16-35b7-4922-804e-e8f5d9b740fc")
 
-    def test_choose_vm_notfound(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+    def test_choose_instance_notfound(self):
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
-        vms = model.get_all_vms()
-        vms.clear()
-        vm_to_mig = self.strategy.choose_vm_to_migrate(h1, avg, w_map)
-        self.assertIsNone(vm_to_mig)
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        instances = model.get_all_instances()
+        instances.clear()
+        instance_to_mig = self.strategy.choose_instance_to_migrate(
+            n1, avg, w_map)
+        self.assertIsNone(instance_to_mig)
 
     def test_filter_destination_hosts(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
-        vm_to_mig = self.strategy.choose_vm_to_migrate(h1, avg, w_map)
+        self.strategy.ceilometer = mock.MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        instance_to_mig = self.strategy.choose_instance_to_migrate(
+            n1, avg, w_map)
         dest_hosts = self.strategy.filter_destination_hosts(
-            h2, vm_to_mig[1], avg, w_map)
+            n2, instance_to_mig[1], avg, w_map)
         self.assertEqual(len(dest_hosts), 1)
-        self.assertEqual(dest_hosts[0]['hv'].uuid, 'Node_1')
+        self.assertEqual(dest_hosts[0]['node'].uuid, 'Node_1')
 
     def test_exception_model(self):
         self.m_model.return_value = None
@@ -137,13 +142,13 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
 
     def test_execute_no_workload(self):
-        model = self.fake_cluster.generate_scenario_4_with_1_hypervisor_no_vm()
+        model = self.fake_cluster.generate_scenario_4_with_1_node_no_instance()
         self.m_model.return_value = model
         solution = self.strategy.execute()
         self.assertEqual([], solution.actions)
 
     def test_execute(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
@@ -153,7 +158,7 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.assertEqual(num_migrations, 1)
 
     def test_check_parameters(self):
-        model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         solution = self.strategy.execute()
         loader = default.DefaultActionLoader()

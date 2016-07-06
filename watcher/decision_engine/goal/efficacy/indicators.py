@@ -118,11 +118,11 @@ class ReleasedComputeNodesCount(IndicatorSpecification):
             voluptuous.Range(min=0), required=True)
 
 
-class VmMigrationsCount(IndicatorSpecification):
+class InstanceMigrationsCount(IndicatorSpecification):
     def __init__(self):
-        super(VmMigrationsCount, self).__init__(
-            name="vm_migrations_count",
-            description=_("The number of migrations to be performed."),
+        super(InstanceMigrationsCount, self).__init__(
+            name="instance_migrations_count",
+            description=_("The number of VM migrations to be performed."),
             unit=None,
         )
 

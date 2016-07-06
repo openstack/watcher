@@ -14,14 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from watcher.decision_engine.model.element import base
 
-class DiskInfo(object):
+
+class DiskInfo(base.Element):
+
     def __init__(self):
         self.name = ""
         self.major = 0
         self.minor = 0
         self.size = 0
         self.scheduler = ""
+
+    def accept(self, visitor):
+        raise NotImplementedError()
 
     def set_size(self, size):
         """DiskInfo

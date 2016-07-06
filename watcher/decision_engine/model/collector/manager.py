@@ -16,7 +16,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from oslo_config import cfg
 
@@ -40,7 +39,7 @@ class CollectorManager(object):
             for collector_name in available_collectors:
                 collector = self.collector_loader.load(collector_name)
                 collectors[collector_name] = collector
-                self._collectors = collectors
+            self._collectors = collectors
 
         return self._collectors
 

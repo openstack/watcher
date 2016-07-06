@@ -28,7 +28,7 @@ from watcher.tests.decision_engine.strategy.strategies \
     import faker_metrics_collector
 
 
-class TestWorkloadStabilization(base.BaseTestCase):
+class TestWorkloadStabilization(base.TestCase):
 
     def setUp(self):
         super(TestWorkloadStabilization, self).setUp()
@@ -63,11 +63,13 @@ class TestWorkloadStabilization(base.BaseTestCase):
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy = strategies.WorkloadStabilization(config=mock.Mock())
 
-    def test_get_vm_load(self):
+    def test_get_instance_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
-        vm_0_dict = {'uuid': 'VM_0', 'vcpus': 10,
-                     'cpu_util': 7, 'memory.resident': 2}
-        self.assertEqual(vm_0_dict, self.strategy.get_vm_load("VM_0"))
+        instance_0_dict = {
+            'uuid': 'INSTANCE_0', 'vcpus': 10,
+            'cpu_util': 7, 'memory.resident': 2}
+        self.assertEqual(
+            instance_0_dict, self.strategy.get_instance_load("INSTANCE_0"))
 
     def test_normalize_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
@@ -109,7 +111,7 @@ class TestWorkloadStabilization(base.BaseTestCase):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.assertEqual(
             self.strategy.calculate_migration_case(
-                self.hosts_load_assert, "VM_5",
+                self.hosts_load_assert, "INSTANCE_5",
                 "Node_2", "Node_1")[-1]["Node_1"],
             {'cpu_util': 2.55, 'memory.resident': 21, 'vcpus': 40})
 
@@ -131,20 +133,25 @@ class TestWorkloadStabilization(base.BaseTestCase):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
         self.strategy.simulate_migrations = mock.Mock(
-            return_value=[{'vm': 'VM_4', 's_host': 'Node_2', 'host': 'Node_1'}]
+            return_value=[
+                {'instance': 'INSTANCE_4', 's_host': 'Node_2',
+                 'host': 'Node_1'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migration:
             self.strategy.execute()
             mock_migration.assert_called_once_with(
-                'VM_4', 'Node_2', 'Node_1')
+                'INSTANCE_4', 'Node_2', 'Node_1')
 
     def test_execute_multiply_migrations(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.00001,
                                     'memory.resident': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(
-            return_value=[{'vm': 'VM_4', 's_host': 'Node_2', 'host': 'Node_1'},
-                          {'vm': 'VM_3', 's_host': 'Node_2', 'host': 'Node_3'}]
+            return_value=[
+                {'instance': 'INSTANCE_4', 's_host': 'Node_2',
+                 'host': 'Node_1'},
+                {'instance': 'INSTANCE_3', 's_host': 'Node_2',
+                 'host': 'Node_3'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
             self.strategy.execute()

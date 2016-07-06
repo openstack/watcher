@@ -23,7 +23,7 @@ from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
-from watcher.decision_engine.model import hypervisor_state as hstate
+from watcher.decision_engine.model import element
 
 
 class ChangeNovaServiceState(base.BaseAction):
@@ -57,7 +57,7 @@ class ChangeNovaServiceState(base.BaseAction):
                     voluptuous.Length(min=1)),
             voluptuous.Required(self.STATE):
                 voluptuous.Any(*[state.value
-                                 for state in list(hstate.HypervisorState)]),
+                                 for state in list(element.ServiceState)]),
         })
 
     @property
@@ -70,17 +70,17 @@ class ChangeNovaServiceState(base.BaseAction):
 
     def execute(self):
         target_state = None
-        if self.state == hstate.HypervisorState.DISABLED.value:
+        if self.state == element.ServiceState.DISABLED.value:
             target_state = False
-        elif self.state == hstate.HypervisorState.ENABLED.value:
+        elif self.state == element.ServiceState.ENABLED.value:
             target_state = True
         return self._nova_manage_service(target_state)
 
     def revert(self):
         target_state = None
-        if self.state == hstate.HypervisorState.DISABLED.value:
+        if self.state == element.ServiceState.DISABLED.value:
             target_state = True
-        elif self.state == hstate.HypervisorState.ENABLED.value:
+        elif self.state == element.ServiceState.ENABLED.value:
             target_state = False
         return self._nova_manage_service(target_state)
 

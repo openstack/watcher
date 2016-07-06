@@ -18,92 +18,99 @@
 #
 import uuid
 
-from watcher.decision_engine.model import hypervisor as modelhyp
-from watcher.decision_engine.model import vm_state
+from watcher.decision_engine.model import element
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies import \
     faker_cluster_state
 
 
-class TestMapping(base.BaseTestCase):
+class TestMapping(base.TestCase):
 
-    VM1_UUID = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
-    VM2_UUID = "a4cab39b-9828-413a-bf88-f76921bf1517"
+    INST1_UUID = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+    INST2_UUID = "a4cab39b-9828-413a-bf88-f76921bf1517"
 
     def setUp(self):
         super(TestMapping, self).setUp()
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
-    def test_get_node_from_vm(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+    def test_get_node_from_instance(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
 
-        vms = model.get_all_vms()
-        keys = list(vms.keys())
-        vm = vms[keys[0]]
-        if vm.uuid != self.VM1_UUID:
-            vm = vms[keys[1]]
-        node = model.mapping.get_node_from_vm(vm)
+        instances = model.get_all_instances()
+        keys = list(instances.keys())
+        instance = instances[keys[0]]
+        if instance.uuid != self.INST1_UUID:
+            instance = instances[keys[1]]
+        node = model.mapping.get_node_from_instance(instance)
         self.assertEqual('Node_0', node.uuid)
 
-    def test_get_node_from_vm_id(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+    def test_get_node_from_instance_id(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
 
-        hyps = model.mapping.get_node_vms_from_id("BLABLABLA")
-        self.assertEqual(0, hyps.__len__())
+        nodes = model.mapping.get_node_instances_from_id("BLABLABLA")
+        self.assertEqual(0, len(nodes))
 
-    def test_get_all_vms(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
+    def test_get_all_instances(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
 
-        vms = model.get_all_vms()
-        self.assertEqual(2, vms.__len__())
-        self.assertEqual(vm_state.VMState.ACTIVE.value,
-                         vms[self.VM1_UUID].state)
-        self.assertEqual(self.VM1_UUID, vms[self.VM1_UUID].uuid)
-        self.assertEqual(vm_state.VMState.ACTIVE.value,
-                         vms[self.VM2_UUID].state)
-        self.assertEqual(self.VM2_UUID, vms[self.VM2_UUID].uuid)
+        instances = model.get_all_instances()
+        self.assertEqual(2, len(instances))
+        self.assertEqual(element.InstanceState.ACTIVE.value,
+                         instances[self.INST1_UUID].state)
+        self.assertEqual(self.INST1_UUID, instances[self.INST1_UUID].uuid)
+        self.assertEqual(element.InstanceState.ACTIVE.value,
+                         instances[self.INST2_UUID].state)
+        self.assertEqual(self.INST2_UUID, instances[self.INST2_UUID].uuid)
 
     def test_get_mapping(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
-        mapping_vm = model.mapping.get_mapping_vm()
-        self.assertEqual(2, mapping_vm.__len__())
-        self.assertEqual('Node_0', mapping_vm[self.VM1_UUID])
-        self.assertEqual('Node_1', mapping_vm[self.VM2_UUID])
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        instance_mapping = model.mapping.instance_mapping
+        self.assertEqual(2, len(instance_mapping))
+        self.assertEqual('Node_0', instance_mapping[self.INST1_UUID])
+        self.assertEqual('Node_1', instance_mapping[self.INST2_UUID])
 
-    def test_migrate_vm(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
-        vms = model.get_all_vms()
-        keys = list(vms.keys())
-        vm0 = vms[keys[0]]
-        hyp0 = model.mapping.get_node_from_vm_id(vm0.uuid)
-        vm1 = vms[keys[1]]
-        hyp1 = model.mapping.get_node_from_vm_id(vm1.uuid)
+    def test_migrate_instance(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        instances = model.get_all_instances()
+        keys = list(instances.keys())
+        instance0 = instances[keys[0]]
+        node0 = model.mapping.get_node_from_instance_id(instance0.uuid)
+        instance1 = instances[keys[1]]
+        node1 = model.mapping.get_node_from_instance_id(instance1.uuid)
 
-        self.assertEqual(False, model.mapping.migrate_vm(vm1, hyp1, hyp1))
-        self.assertEqual(False, model.mapping.migrate_vm(vm1, hyp0, hyp0))
-        self.assertEqual(True, model.mapping.migrate_vm(vm1, hyp1, hyp0))
-        self.assertEqual(True, model.mapping.migrate_vm(vm1, hyp0, hyp1))
+        self.assertEqual(
+            False,
+            model.mapping.migrate_instance(instance1, node1, node1))
+        self.assertEqual(
+            False,
+            model.mapping.migrate_instance(instance1, node0, node0))
+        self.assertEqual(
+            True,
+            model.mapping.migrate_instance(instance1, node1, node0))
+        self.assertEqual(
+            True,
+            model.mapping.migrate_instance(instance1, node0, node1))
 
     def test_unmap_from_id_log_warning(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
-        vms = model.get_all_vms()
-        keys = list(vms.keys())
-        vm0 = vms[keys[0]]
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = modelhyp.Hypervisor()
-        hypervisor.uuid = id
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        instances = model.get_all_instances()
+        keys = list(instances.keys())
+        instance0 = instances[keys[0]]
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
 
-        model.mapping.unmap_from_id(hypervisor.uuid, vm0.uuid)
-        # self.assertEqual(len(model.mapping.get_node_vms_from_id(
-        # hypervisor.uuid)), 1)
+        model.mapping.unmap_from_id(node.uuid, instance0.uuid)
+        # self.assertEqual(len(model.mapping.get_node_instances_from_id(
+        # node.uuid)), 1)
 
     def test_unmap_from_id(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_hypervisors()
-        vms = model.get_all_vms()
-        keys = list(vms.keys())
-        vm0 = vms[keys[0]]
-        hyp0 = model.mapping.get_node_from_vm_id(vm0.uuid)
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        instances = model.get_all_instances()
+        keys = list(instances.keys())
+        instance0 = instances[keys[0]]
+        node0 = model.mapping.get_node_from_instance_id(instance0.uuid)
 
-        model.mapping.unmap_from_id(hyp0.uuid, vm0.uuid)
-        self.assertEqual(0, len(model.mapping.get_node_vms_from_id(
-            hyp0.uuid)))
+        model.mapping.unmap_from_id(node0.uuid, instance0.uuid)
+        self.assertEqual(0, len(model.mapping.get_node_instances_from_id(
+            node0.uuid)))

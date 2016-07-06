@@ -19,10 +19,8 @@
 import mock
 
 from watcher.decision_engine.model.collector import base
-from watcher.decision_engine.model import hypervisor
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
-from watcher.decision_engine.model import resource
-from watcher.decision_engine.model import vm as modelvm
 
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
@@ -36,292 +34,292 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         return self.generate_scenario_1()
 
     def generate_scenario_1(self):
-        vms = []
+        instances = []
 
         current_state_cluster = modelroot.ModelRoot()
         # number of nodes
-        count_node = 5
-        # number max of vm per node
-        node_count_vm = 7
+        node_count = 5
+        # number max of instance per node
+        node_instance_count = 7
         # total number of virtual machine
-        count_vm = (count_node * node_count_vm)
+        instance_count = (node_count * node_instance_count)
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
 
-        for i in range(0, count_node):
+        for i in range(0, node_count):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
-        for i in range(0, count_vm):
-            vm_uuid = "VM_{0}".format(i)
-            vm = modelvm.VM()
-            vm.uuid = vm_uuid
-            mem.set_capacity(vm, 2)
-            disk.set_capacity(vm, 20)
-            num_cores.set_capacity(vm, 10)
-            vms.append(vm)
-            current_state_cluster.add_vm(vm)
-
-        current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_0"),
-            current_state_cluster.get_vm_from_id("VM_0"))
+        for i in range(0, instance_count):
+            instance_uuid = "INSTANCE_{0}".format(i)
+            instance = element.Instance()
+            instance.uuid = instance_uuid
+            mem.set_capacity(instance, 2)
+            disk.set_capacity(instance, 20)
+            num_cores.set_capacity(instance, 10)
+            instances.append(instance)
+            current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_0"),
-            current_state_cluster.get_vm_from_id("VM_1"))
+            current_state_cluster.get_node_from_id("Node_0"),
+            current_state_cluster.get_instance_from_id("INSTANCE_0"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_1"),
-            current_state_cluster.get_vm_from_id("VM_2"))
+            current_state_cluster.get_node_from_id("Node_0"),
+            current_state_cluster.get_instance_from_id("INSTANCE_1"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_2"),
-            current_state_cluster.get_vm_from_id("VM_3"))
+            current_state_cluster.get_node_from_id("Node_1"),
+            current_state_cluster.get_instance_from_id("INSTANCE_2"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_2"),
-            current_state_cluster.get_vm_from_id("VM_4"))
+            current_state_cluster.get_node_from_id("Node_2"),
+            current_state_cluster.get_instance_from_id("INSTANCE_3"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_2"),
-            current_state_cluster.get_vm_from_id("VM_5"))
+            current_state_cluster.get_node_from_id("Node_2"),
+            current_state_cluster.get_instance_from_id("INSTANCE_4"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_3"),
-            current_state_cluster.get_vm_from_id("VM_6"))
+            current_state_cluster.get_node_from_id("Node_2"),
+            current_state_cluster.get_instance_from_id("INSTANCE_5"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_4"),
-            current_state_cluster.get_vm_from_id("VM_7"))
+            current_state_cluster.get_node_from_id("Node_3"),
+            current_state_cluster.get_instance_from_id("INSTANCE_6"))
+
+        current_state_cluster.get_mapping().map(
+            current_state_cluster.get_node_from_id("Node_4"),
+            current_state_cluster.get_instance_from_id("INSTANCE_7"))
 
         return current_state_cluster
 
-    def map(self, model, h_id, vm_id):
+    def map(self, model, h_id, instance_id):
         model.get_mapping().map(
-            model.get_hypervisor_from_id(h_id),
-            model.get_vm_from_id(vm_id))
+            model.get_node_from_id(h_id),
+            model.get_instance_from_id(instance_id))
 
-    def generate_scenario_3_with_2_hypervisors(self):
-        vms = []
+    def generate_scenario_3_with_2_nodes(self):
+        instances = []
 
         root = modelroot.ModelRoot()
         # number of nodes
-        count_node = 2
+        node_count = 2
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
         root.create_resource(disk)
 
-        for i in range(0, count_node):
+        for i in range(0, node_count):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            root.add_hypervisor(node)
+            root.add_node(node)
 
-        vm1 = modelvm.VM()
-        vm1.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
-        mem.set_capacity(vm1, 2)
-        disk.set_capacity(vm1, 20)
-        num_cores.set_capacity(vm1, 10)
-        vms.append(vm1)
-        root.add_vm(vm1)
+        instance1 = element.Instance()
+        instance1.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+        mem.set_capacity(instance1, 2)
+        disk.set_capacity(instance1, 20)
+        num_cores.set_capacity(instance1, 10)
+        instances.append(instance1)
+        root.add_instance(instance1)
 
-        vm2 = modelvm.VM()
-        vm2.uuid = "a4cab39b-9828-413a-bf88-f76921bf1517"
-        mem.set_capacity(vm2, 2)
-        disk.set_capacity(vm2, 20)
-        num_cores.set_capacity(vm2, 10)
-        vms.append(vm2)
-        root.add_vm(vm2)
+        instance2 = element.Instance()
+        instance2.uuid = "a4cab39b-9828-413a-bf88-f76921bf1517"
+        mem.set_capacity(instance2, 2)
+        disk.set_capacity(instance2, 20)
+        num_cores.set_capacity(instance2, 10)
+        instances.append(instance2)
+        root.add_instance(instance2)
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_0"),
-                               root.get_vm_from_id(str(vm1.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_0"),
+                               root.get_instance_from_id(str(instance1.uuid)))
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_1"),
-                               root.get_vm_from_id(str(vm2.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_1"),
+                               root.get_instance_from_id(str(instance2.uuid)))
 
         return root
 
-    def generate_scenario_4_with_1_hypervisor_no_vm(self):
+    def generate_scenario_4_with_1_node_no_instance(self):
         current_state_cluster = modelroot.ModelRoot()
         # number of nodes
-        count_node = 1
+        node_count = 1
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
 
-        for i in range(0, count_node):
+        for i in range(0, node_count):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 1)
             disk.set_capacity(node, 1)
             num_cores.set_capacity(node, 1)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
         return current_state_cluster
 
-    def generate_scenario_5_with_vm_disk_0(self):
-        vms = []
+    def generate_scenario_5_with_instance_disk_0(self):
+        instances = []
         current_state_cluster = modelroot.ModelRoot()
         # number of nodes
-        count_node = 1
-        # number of vms
-        count_vm = 1
+        node_count = 1
+        # number of instances
+        instance_count = 1
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
 
-        for i in range(0, count_node):
+        for i in range(0, node_count):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 4)
             disk.set_capacity(node, 4)
             num_cores.set_capacity(node, 4)
-            current_state_cluster.add_hypervisor(node)
+            current_state_cluster.add_node(node)
 
-        for i in range(0, count_vm):
-            vm_uuid = "VM_{0}".format(i)
-            vm = modelvm.VM()
-            vm.uuid = vm_uuid
-            mem.set_capacity(vm, 2)
-            disk.set_capacity(vm, 0)
-            num_cores.set_capacity(vm, 4)
-            vms.append(vm)
-            current_state_cluster.add_vm(vm)
+        for i in range(0, instance_count):
+            instance_uuid = "INSTANCE_{0}".format(i)
+            instance = element.Instance()
+            instance.uuid = instance_uuid
+            mem.set_capacity(instance, 2)
+            disk.set_capacity(instance, 0)
+            num_cores.set_capacity(instance, 4)
+            instances.append(instance)
+            current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_hypervisor_from_id("Node_0"),
-            current_state_cluster.get_vm_from_id("VM_0"))
+            current_state_cluster.get_node_from_id("Node_0"),
+            current_state_cluster.get_instance_from_id("INSTANCE_0"))
 
         return current_state_cluster
 
-    def generate_scenario_6_with_2_hypervisors(self):
-        vms = []
+    def generate_scenario_6_with_2_nodes(self):
+        instances = []
         root = modelroot.ModelRoot()
         # number of nodes
-        count_node = 2
+        node_count = 2
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
         root.create_resource(disk)
 
-        for i in range(0, count_node):
+        for i in range(0, node_count):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
-            root.add_hypervisor(node)
+            root.add_node(node)
 
-        vm1 = modelvm.VM()
-        vm1.uuid = "VM_1"
-        mem.set_capacity(vm1, 2)
-        disk.set_capacity(vm1, 20)
-        num_cores.set_capacity(vm1, 10)
-        vms.append(vm1)
-        root.add_vm(vm1)
+        instance1 = element.Instance()
+        instance1.uuid = "INSTANCE_1"
+        mem.set_capacity(instance1, 2)
+        disk.set_capacity(instance1, 20)
+        num_cores.set_capacity(instance1, 10)
+        instances.append(instance1)
+        root.add_instance(instance1)
 
-        vm11 = modelvm.VM()
-        vm11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
-        mem.set_capacity(vm11, 2)
-        disk.set_capacity(vm11, 20)
-        num_cores.set_capacity(vm11, 10)
-        vms.append(vm11)
-        root.add_vm(vm11)
+        instance11 = element.Instance()
+        instance11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+        mem.set_capacity(instance11, 2)
+        disk.set_capacity(instance11, 20)
+        num_cores.set_capacity(instance11, 10)
+        instances.append(instance11)
+        root.add_instance(instance11)
 
-        vm2 = modelvm.VM()
-        vm2.uuid = "VM_3"
-        mem.set_capacity(vm2, 2)
-        disk.set_capacity(vm2, 20)
-        num_cores.set_capacity(vm2, 10)
-        vms.append(vm2)
-        root.add_vm(vm2)
+        instance2 = element.Instance()
+        instance2.uuid = "INSTANCE_3"
+        mem.set_capacity(instance2, 2)
+        disk.set_capacity(instance2, 20)
+        num_cores.set_capacity(instance2, 10)
+        instances.append(instance2)
+        root.add_instance(instance2)
 
-        vm21 = modelvm.VM()
-        vm21.uuid = "VM_4"
-        mem.set_capacity(vm21, 2)
-        disk.set_capacity(vm21, 20)
-        num_cores.set_capacity(vm21, 10)
-        vms.append(vm21)
-        root.add_vm(vm21)
+        instance21 = element.Instance()
+        instance21.uuid = "INSTANCE_4"
+        mem.set_capacity(instance21, 2)
+        disk.set_capacity(instance21, 20)
+        num_cores.set_capacity(instance21, 10)
+        instances.append(instance21)
+        root.add_instance(instance21)
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_0"),
-                               root.get_vm_from_id(str(vm1.uuid)))
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_0"),
-                               root.get_vm_from_id(str(vm11.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_0"),
+                               root.get_instance_from_id(str(instance1.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_0"),
+                               root.get_instance_from_id(str(instance11.uuid)))
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_1"),
-                               root.get_vm_from_id(str(vm2.uuid)))
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_1"),
-                               root.get_vm_from_id(str(vm21.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_1"),
+                               root.get_instance_from_id(str(instance2.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_1"),
+                               root.get_instance_from_id(str(instance21.uuid)))
         return root
 
-    def generate_scenario_7_with_2_hypervisors(self):
-        vms = []
+    def generate_scenario_7_with_2_nodes(self):
+        instances = []
         root = modelroot.ModelRoot()
         # number of nodes
         count_node = 2
 
         # define ressouce ( CPU, MEM disk, ... )
-        mem = resource.Resource(resource.ResourceType.memory)
+        mem = element.Resource(element.ResourceType.memory)
         # 2199.954 Mhz
-        num_cores = resource.Resource(resource.ResourceType.cpu_cores)
-        disk = resource.Resource(resource.ResourceType.disk)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
@@ -329,54 +327,54 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, count_node):
             node_uuid = "Node_{0}".format(i)
-            node = hypervisor.Hypervisor()
+            node = element.ComputeNode()
             node.uuid = node_uuid
             node.hostname = "hostname_{0}".format(i)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
             num_cores.set_capacity(node, 50)
-            root.add_hypervisor(node)
+            root.add_node(node)
 
-        vm1 = modelvm.VM()
-        vm1.uuid = "cae81432-1631-4d4e-b29c-6f3acdcde906"
-        mem.set_capacity(vm1, 2)
-        disk.set_capacity(vm1, 20)
-        num_cores.set_capacity(vm1, 15)
-        vms.append(vm1)
-        root.add_vm(vm1)
+        instance1 = element.Instance()
+        instance1.uuid = "cae81432-1631-4d4e-b29c-6f3acdcde906"
+        mem.set_capacity(instance1, 2)
+        disk.set_capacity(instance1, 20)
+        num_cores.set_capacity(instance1, 15)
+        instances.append(instance1)
+        root.add_instance(instance1)
 
-        vm11 = modelvm.VM()
-        vm11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
-        mem.set_capacity(vm11, 2)
-        disk.set_capacity(vm11, 20)
-        num_cores.set_capacity(vm11, 10)
-        vms.append(vm11)
-        root.add_vm(vm11)
+        instance11 = element.Instance()
+        instance11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
+        mem.set_capacity(instance11, 2)
+        disk.set_capacity(instance11, 20)
+        num_cores.set_capacity(instance11, 10)
+        instances.append(instance11)
+        root.add_instance(instance11)
 
-        vm2 = modelvm.VM()
-        vm2.uuid = "VM_3"
-        mem.set_capacity(vm2, 2)
-        disk.set_capacity(vm2, 20)
-        num_cores.set_capacity(vm2, 10)
-        vms.append(vm2)
-        root.add_vm(vm2)
+        instance2 = element.Instance()
+        instance2.uuid = "INSTANCE_3"
+        mem.set_capacity(instance2, 2)
+        disk.set_capacity(instance2, 20)
+        num_cores.set_capacity(instance2, 10)
+        instances.append(instance2)
+        root.add_instance(instance2)
 
-        vm21 = modelvm.VM()
-        vm21.uuid = "VM_4"
-        mem.set_capacity(vm21, 2)
-        disk.set_capacity(vm21, 20)
-        num_cores.set_capacity(vm21, 10)
-        vms.append(vm21)
-        root.add_vm(vm21)
+        instance21 = element.Instance()
+        instance21.uuid = "INSTANCE_4"
+        mem.set_capacity(instance21, 2)
+        disk.set_capacity(instance21, 20)
+        num_cores.set_capacity(instance21, 10)
+        instances.append(instance21)
+        root.add_instance(instance21)
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_0"),
-                               root.get_vm_from_id(str(vm1.uuid)))
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_0"),
-                               root.get_vm_from_id(str(vm11.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_0"),
+                               root.get_instance_from_id(str(instance1.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_0"),
+                               root.get_instance_from_id(str(instance11.uuid)))
 
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_1"),
-                               root.get_vm_from_id(str(vm2.uuid)))
-        root.get_mapping().map(root.get_hypervisor_from_id("Node_1"),
-                               root.get_vm_from_id(str(vm21.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_1"),
+                               root.get_instance_from_id(str(instance2.uuid)))
+        root.get_mapping().map(root.get_node_from_id("Node_1"),
+                               root.get_instance_from_id(str(instance21.uuid)))
         return root

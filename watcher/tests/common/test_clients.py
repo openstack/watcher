@@ -26,7 +26,7 @@ from watcher.common import clients
 from watcher.tests import base
 
 
-class TestClients(base.BaseTestCase):
+class TestClients(base.TestCase):
 
     def setUp(self):
         super(TestClients, self).setUp()

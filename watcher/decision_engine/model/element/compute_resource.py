@@ -14,8 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import abc
 
-class ComputeResource(object):
+import six
+
+from watcher.decision_engine.model.element import base
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ComputeResource(base.Element):
 
     def __init__(self):
         self._uuid = ""

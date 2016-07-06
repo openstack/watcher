@@ -54,8 +54,8 @@ class TestMigration(base.TestCase):
 
         self.input_parameters = {
             "migration_type": "live",
-            "src_hypervisor": "hypervisor1-hostname",
-            "dst_hypervisor": "hypervisor2-hostname",
+            "source_node": "compute1-hostname",
+            "destination_node": "compute2-hostname",
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
         self.action = migration.Migrate(mock.Mock())
@@ -63,8 +63,8 @@ class TestMigration(base.TestCase):
 
         self.input_parameters_cold = {
             "migration_type": "cold",
-            "src_hypervisor": "hypervisor1-hostname",
-            "dst_hypervisor": "hypervisor2-hostname",
+            "source_node": "compute1-hostname",
+            "destination_node": "compute2-hostname",
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
         self.action_cold = migration.Migrate(mock.Mock())
@@ -74,8 +74,8 @@ class TestMigration(base.TestCase):
         params = {baction.BaseAction.RESOURCE_ID:
                   self.INSTANCE_UUID,
                   self.action.MIGRATION_TYPE: 'live',
-                  self.action.DST_HYPERVISOR: 'compute-2',
-                  self.action.SRC_HYPERVISOR: 'compute-3'}
+                  self.action.DESTINATION_NODE: 'compute-2',
+                  self.action.SOURCE_NODE: 'compute-3'}
         self.action.input_parameters = params
         self.assertTrue(self.action.validate_parameters())
 
@@ -83,31 +83,31 @@ class TestMigration(base.TestCase):
         params = {baction.BaseAction.RESOURCE_ID:
                   self.INSTANCE_UUID,
                   self.action.MIGRATION_TYPE: 'cold',
-                  self.action.DST_HYPERVISOR: 'compute-2',
-                  self.action.SRC_HYPERVISOR: 'compute-3'}
+                  self.action.DESTINATION_NODE: 'compute-2',
+                  self.action.SOURCE_NODE: 'compute-3'}
         self.action_cold.input_parameters = params
         self.assertTrue(self.action_cold.validate_parameters())
 
     def test_parameters_exception_empty_fields(self):
         parameters = {baction.BaseAction.RESOURCE_ID: None,
                       'migration_type': None,
-                      'src_hypervisor': None,
-                      'dst_hypervisor': None}
+                      'source_node': None,
+                      'destination_node': None}
         self.action.input_parameters = parameters
         exc = self.assertRaises(
             voluptuous.MultipleInvalid, self.action.validate_parameters)
         self.assertEqual(
             sorted([(['migration_type'], voluptuous.ScalarInvalid),
-                    (['src_hypervisor'], voluptuous.TypeInvalid),
-                    (['dst_hypervisor'], voluptuous.TypeInvalid)]),
+                    (['source_node'], voluptuous.TypeInvalid),
+                    (['destination_node'], voluptuous.TypeInvalid)]),
             sorted([(e.path, type(e)) for e in exc.errors]))
 
     def test_parameters_exception_migration_type(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
                       'migration_type': 'unknown',
-                      'src_hypervisor': 'compute-2',
-                      'dst_hypervisor': 'compute-3'}
+                      'source_node': 'compute-2',
+                      'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
         exc = self.assertRaises(
             voluptuous.Invalid, self.action.validate_parameters)
@@ -115,37 +115,37 @@ class TestMigration(base.TestCase):
             [(['migration_type'], voluptuous.ScalarInvalid)],
             [(e.path, type(e)) for e in exc.errors])
 
-    def test_parameters_exception_src_hypervisor(self):
+    def test_parameters_exception_source_node(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
                       'migration_type': 'live',
-                      'src_hypervisor': None,
-                      'dst_hypervisor': 'compute-3'}
+                      'source_node': None,
+                      'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
         exc = self.assertRaises(
             voluptuous.MultipleInvalid, self.action.validate_parameters)
         self.assertEqual(
-            [(['src_hypervisor'], voluptuous.TypeInvalid)],
+            [(['source_node'], voluptuous.TypeInvalid)],
             [(e.path, type(e)) for e in exc.errors])
 
-    def test_parameters_exception_dst_hypervisor(self):
+    def test_parameters_exception_destination_node(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
                       'migration_type': 'live',
-                      'src_hypervisor': 'compute-1',
-                      'dst_hypervisor': None}
+                      'source_node': 'compute-1',
+                      'destination_node': None}
         self.action.input_parameters = parameters
         exc = self.assertRaises(
             voluptuous.MultipleInvalid, self.action.validate_parameters)
         self.assertEqual(
-            [(['dst_hypervisor'], voluptuous.TypeInvalid)],
+            [(['destination_node'], voluptuous.TypeInvalid)],
             [(e.path, type(e)) for e in exc.errors])
 
     def test_parameters_exception_resource_id(self):
         parameters = {baction.BaseAction.RESOURCE_ID: "EFEF",
                       'migration_type': 'live',
-                      'src_hypervisor': 'compute-2',
-                      'dst_hypervisor': 'compute-3'}
+                      'source_node': 'compute-2',
+                      'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
         exc = self.assertRaises(
             voluptuous.MultipleInvalid, self.action.validate_parameters)
@@ -189,7 +189,7 @@ class TestMigration(base.TestCase):
 
         self.m_helper.live_migrate_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID,
-            dest_hostname="hypervisor2-hostname")
+            dest_hostname="compute2-hostname")
 
     def test_execute_cold_migration(self):
         self.m_helper.find_instance.return_value = self.INSTANCE_UUID
@@ -202,7 +202,7 @@ class TestMigration(base.TestCase):
         self.m_helper.watcher_non_live_migrate_instance.\
             assert_called_once_with(
                 instance_id=self.INSTANCE_UUID,
-                dest_hostname="hypervisor2-hostname"
+                dest_hostname="compute2-hostname"
             )
 
     def test_revert_live_migration(self):
@@ -213,7 +213,7 @@ class TestMigration(base.TestCase):
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.live_migrate_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID,
-            dest_hostname="hypervisor1-hostname"
+            dest_hostname="compute1-hostname"
         )
 
     def test_revert_cold_migration(self):
@@ -225,7 +225,7 @@ class TestMigration(base.TestCase):
         self.m_helper.watcher_non_live_migrate_instance.\
             assert_called_once_with(
                 instance_id=self.INSTANCE_UUID,
-                dest_hostname="hypervisor1-hostname"
+                dest_hostname="compute1-hostname"
             )
 
     def test_live_migrate_non_shared_storage_instance(self):
@@ -241,16 +241,16 @@ class TestMigration(base.TestCase):
 
         self.m_helper.live_migrate_instance.assert_has_calls([
             mock.call(instance_id=self.INSTANCE_UUID,
-                      dest_hostname="hypervisor2-hostname"),
+                      dest_hostname="compute2-hostname"),
             mock.call(instance_id=self.INSTANCE_UUID,
-                      dest_hostname="hypervisor2-hostname",
+                      dest_hostname="compute2-hostname",
                       block_migration=True)
-            ])
+        ])
 
         expected = [mock.call.first(instance_id=self.INSTANCE_UUID,
-                                    dest_hostname="hypervisor2-hostname"),
+                                    dest_hostname="compute2-hostname"),
                     mock.call.second(instance_id=self.INSTANCE_UUID,
-                                     dest_hostname="hypervisor2-hostname",
+                                     dest_hostname="compute2-hostname",
                                      block_migration=True)
                     ]
         self.m_helper.live_migrate_instance.mock_calls == expected

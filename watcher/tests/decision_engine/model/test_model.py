@@ -19,120 +19,107 @@
 import uuid
 
 from watcher.common import exception
-from watcher.decision_engine.model import hypervisor as hypervisor_model
-from watcher.decision_engine.model import hypervisor_state
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies \
     import faker_cluster_state
 
 
-class TestModel(base.BaseTestCase):
+class TestModel(base.TestCase):
     def test_model(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
 
-        self.assertEqual(5, len(model._hypervisors))
-        self.assertEqual(35, len(model._vms))
-        self.assertEqual(5, len(model.get_mapping().get_mapping()))
+        self.assertEqual(5, len(model._nodes))
+        self.assertEqual(35, len(model._instances))
+        self.assertEqual(5, len(model.mapping.get_mapping()))
 
-    def test_add_hypervisor(self):
+    def test_add_node(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
-        self.assertEqual(hypervisor, model.get_hypervisor_from_id(id))
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_from_id(id_))
 
-    def test_delete_hypervisor(self):
+    def test_delete_node(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
-        self.assertEqual(hypervisor, model.get_hypervisor_from_id(id))
-        model.remove_hypervisor(hypervisor)
-        self.assertRaises(exception.HypervisorNotFound,
-                          model.get_hypervisor_from_id, id)
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_from_id(id_))
+        model.remove_node(node)
+        self.assertRaises(exception.ComputeNodeNotFound,
+                          model.get_node_from_id, id_)
 
-    def test_get_all_hypervisors(self):
+    def test_get_all_compute_nodes(self):
         model = model_root.ModelRoot()
-        for i in range(10):
-            id = "{0}".format(uuid.uuid4())
-            hypervisor = hypervisor_model.Hypervisor()
-            hypervisor.uuid = id
-            model.add_hypervisor(hypervisor)
-        all_hypervisors = model.get_all_hypervisors()
-        for id in all_hypervisors:
-            hyp = model.get_hypervisor_from_id(id)
-            model.assert_hypervisor(hyp)
+        for _ in range(10):
+            id_ = "{0}".format(uuid.uuid4())
+            node = element.ComputeNode()
+            node.uuid = id_
+            model.add_node(node)
+        all_nodes = model.get_all_compute_nodes()
+        for id_ in all_nodes:
+            node = model.get_node_from_id(id_)
+            model.assert_node(node)
 
-    def test_set_get_state_hypervisors(self):
+    def test_set_get_state_nodes(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
 
-        self.assertIsInstance(hypervisor.state,
-                              hypervisor_state.HypervisorState)
+        self.assertIsInstance(node.state, element.ServiceState)
 
-        hyp = model.get_hypervisor_from_id(id)
-        hyp.state = hypervisor_state.HypervisorState.OFFLINE
-        self.assertIsInstance(hyp.state, hypervisor_state.HypervisorState)
+        node = model.get_node_from_id(id_)
+        node.state = element.ServiceState.OFFLINE
+        self.assertIsInstance(node.state, element.ServiceState)
 
-    # /watcher/decision_engine/framework/model/hypervisor.py
-    # set_state accept any char chain.
-    # verification (IsInstance) should be used in the function
-    #        hyp.set_state('blablabla')
-    #       self.assertEqual(hyp.get_state(), 'blablabla')
-    #        self.assertIsInstance(hyp.get_state(), HypervisorState)
-
-    #    def test_get_all_vms(self):
-    #        model = ModelRoot()
-    #        vms = model.get_all_vms()
-    #        self.assert(len(model._vms))
-    def test_hypervisor_from_id_raise(self):
+    def test_node_from_id_raise(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
 
         id2 = "{0}".format(uuid.uuid4())
-        self.assertRaises(exception.HypervisorNotFound,
-                          model.get_hypervisor_from_id, id2)
+        self.assertRaises(exception.ComputeNodeNotFound,
+                          model.get_node_from_id, id2)
 
-    def test_remove_hypervisor_raise(self):
+    def test_remove_node_raise(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
 
         id2 = "{0}".format(uuid.uuid4())
-        hypervisor2 = hypervisor_model.Hypervisor()
-        hypervisor2.uuid = id2
+        node2 = element.ComputeNode()
+        node2.uuid = id2
 
-        self.assertRaises(exception.HypervisorNotFound,
-                          model.remove_hypervisor, hypervisor2)
+        self.assertRaises(exception.ComputeNodeNotFound,
+                          model.remove_node, node2)
 
-    def test_assert_hypervisor_raise(self):
+    def test_assert_node_raise(self):
         model = model_root.ModelRoot()
-        id = "{0}".format(uuid.uuid4())
-        hypervisor = hypervisor_model.Hypervisor()
-        hypervisor.uuid = id
-        model.add_hypervisor(hypervisor)
+        id_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode()
+        node.uuid = id_
+        model.add_node(node)
         self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_hypervisor, "objet_qcq")
+                          model.assert_node, "objet_qcq")
 
-    def test_vm_from_id_raise(self):
+    def test_instance_from_id_raise(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
         self.assertRaises(exception.InstanceNotFound,
-                          model.get_vm_from_id, "valeur_qcq")
+                          model.get_instance_from_id, "valeur_qcq")
 
-    def test_assert_vm_raise(self):
+    def test_assert_instance_raise(self):
         model = model_root.ModelRoot()
         self.assertRaises(exception.IllegalArgumentException,
-                          model.assert_vm, "valeur_qcq")
+                          model.assert_instance, "valeur_qcq")
