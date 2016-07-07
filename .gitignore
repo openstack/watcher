@@ -68,3 +68,6 @@ cover
 
 # Files created by releasenotes build
 releasenotes/build
+
+# Desktop Service Store
+*.DS_Store
