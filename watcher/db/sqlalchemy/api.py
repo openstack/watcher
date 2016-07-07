@@ -330,7 +330,7 @@ class Connection(api.BaseConnection):
         if filters is None:
             filters = {}
 
-        plain_fields = ['uuid', 'type', 'state', 'audit_template_id']
+        plain_fields = ['uuid', 'audit_type', 'state', 'audit_template_id']
         join_fieldmap = {
             'audit_template_uuid': ("uuid", models.AuditTemplate),
             'audit_template_name': ("name", models.AuditTemplate),

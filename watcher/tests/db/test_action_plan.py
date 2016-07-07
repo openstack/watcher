@@ -252,7 +252,7 @@ class DbActionPlanTestCase(base.DbTestCase):
     def test_get_action_plan_list_with_filters(self):
         audit = self._create_test_audit(
             id=1,
-            type='ONESHOT',
+            audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             deadline=None,
             state='ONGOING')

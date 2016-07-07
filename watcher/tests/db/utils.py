@@ -54,7 +54,7 @@ def get_test_audit(**kwargs):
     return {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
-        'type': kwargs.get('type', 'ONESHOT'),
+        'audit_type': kwargs.get('audit_type', 'ONESHOT'),
         'state': kwargs.get('state'),
         'deadline': kwargs.get('deadline'),
         'audit_template_id': kwargs.get('audit_template_id', 1),
