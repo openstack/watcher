@@ -29,7 +29,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_template(self):
-        goal_name = "DUMMY"
+        goal_name = "dummy"
         _, goal = self.client.show_goal(goal_name)
 
         params = {
@@ -58,7 +58,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_template_unicode_description(self):
-        goal_name = "DUMMY"
+        goal_name = "dummy"
         _, goal = self.client.show_goal(goal_name)
         # Use a unicode string for testing:
         params = {
@@ -86,7 +86,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_delete_audit_template(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, body = self.create_audit_template(goal=goal['uuid'])
         audit_uuid = body['uuid']
 
@@ -102,7 +102,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestAuditTemplate, cls).resource_setup()
-        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.goal = cls.client.show_goal("dummy")
         _, cls.strategy = cls.client.show_strategy("dummy")
         _, cls.audit_template = cls.create_audit_template(
             goal=cls.goal['uuid'], strategy=cls.strategy['uuid'])
