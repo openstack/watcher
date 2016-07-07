@@ -39,3 +39,22 @@ class ConfFixture(fixtures.Fixture):
         self.conf.set_default('verbose', True)
         config.parse_args([], default_config_files=[])
         self.addCleanup(self.conf.reset)
+
+
+class ConfReloadFixture(ConfFixture):
+    """Fixture to manage reloads of conf settings."""
+
+    def __init__(self, conf=cfg.CONF):
+        self.conf = conf
+        self._original_parse_cli_opts = self.conf._parse_cli_opts
+
+    def _fake_parser(self, *args, **kw):
+        return cfg.ConfigOpts._parse_cli_opts(self.conf, [])
+
+    def _restore_parser(self):
+        self.conf._parse_cli_opts = self._original_parse_cli_opts
+
+    def setUp(self):
+        super(ConfReloadFixture, self).setUp()
+        self.conf._parse_cli_opts = self._fake_parser
+        self.addCleanup(self._restore_parser)

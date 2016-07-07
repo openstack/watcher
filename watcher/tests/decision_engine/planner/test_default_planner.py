@@ -76,9 +76,9 @@ class TestActionScheduling(base.DbTestCase):
         with mock.patch.object(
                 pbase.DefaultPlanner, "create_action",
                 wraps=default_planner.create_action) as m_create_action:
-            action_plan = default_planner.schedule(
-                self.context, audit.id, solution
-            )
+            default_planner.config.weights = {'migrate': 3}
+            action_plan = default_planner.schedule(self.context,
+                                                   audit.id, solution)
 
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_action.call_count)
@@ -107,9 +107,9 @@ class TestActionScheduling(base.DbTestCase):
         with mock.patch.object(
                 pbase.DefaultPlanner, "create_action",
                 wraps=default_planner.create_action) as m_create_action:
-            action_plan = default_planner.schedule(
-                self.context, audit.id, solution
-            )
+            default_planner.config.weights = {'migrate': 3, 'nop': 0}
+            action_plan = default_planner.schedule(self.context,
+                                                   audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(2, m_create_action.call_count)
         # check order
@@ -118,12 +118,45 @@ class TestActionScheduling(base.DbTestCase):
         self.assertEqual("nop", actions[0].action_type)
         self.assertEqual("migrate", actions[1].action_type)
 
+    def test_schedule_actions_with_unknown_action(self):
+        default_planner = pbase.DefaultPlanner(mock.Mock())
+        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        solution = dsol.DefaultSolution(
+            goal=mock.Mock(), strategy=mock.Mock())
+
+        parameters = {
+            "src_uuid_hypervisor": "server1",
+            "dst_uuid_hypervisor": "server2",
+        }
+        solution.add_action(action_type="migrate",
+                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36",
+                            input_parameters=parameters)
+
+        solution.add_action(action_type="new_action_type",
+                            resource_id="",
+                            input_parameters={})
+
+        with mock.patch.object(
+                pbase.DefaultPlanner, "create_action",
+                wraps=default_planner.create_action) as m_create_action:
+            default_planner.config.weights = {'migrate': 0}
+            self.assertRaises(KeyError, default_planner.schedule,
+                              self.context, audit.id, solution)
+        self.assertEqual(2, m_create_action.call_count)
+
 
 class TestDefaultPlanner(base.DbTestCase):
 
     def setUp(self):
         super(TestDefaultPlanner, self).setUp()
         self.default_planner = pbase.DefaultPlanner(mock.Mock())
+        self.default_planner.config.weights = {
+            'nop': 0,
+            'sleep': 1,
+            'change_nova_service_state': 2,
+            'migrate': 3
+        }
+
         obj_utils.create_test_audit_template(self.context)
 
         p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')

@@ -205,6 +205,9 @@ By doing so, your action will be saved within the Watcher Database, ready to be
 processed by the planner for creating an action plan which can then be executed
 by the Watcher Applier via its workflow engine.
 
+At the last, remember to add the action into the weights in ``watcher.conf``,
+otherwise you will get an error when the action be referenced in a strategy.
+
 
 Scheduling of an action plugin
 ==============================
