@@ -119,6 +119,70 @@ for which the goal has yet to be defined or in case a :ref:`new goal
 <implement_goal_plugin>` has yet to be implemented.
 
 
+Define Strategy Parameters
+==========================
+
+For each new added strategy, you can add parameters spec so that an operator
+can input strategy parameters when creating an audit to control the
+:py:meth:`~.BaseStrategy.execute` behavior of strategy. This is useful to
+define some threshold for your strategy, and tune them at runtime.
+
+To define parameters, just implements :py:meth:`~.BaseStrategy.get_schema` to
+return parameters spec with `jsonschema
+<http://json-schema.org/>`_ format.
+It is strongly encouraged that provide default value for each parameter, or
+else reference fails if operator specify no parameters.
+
+Here is an example showing how you can define 2 parameters for
+``DummyStrategy``:
+
+.. code-block:: python
+
+    class DummyStrategy(base.DummyBaseStrategy):
+
+        @classmethod
+        def get_schema(cls):
+            return {
+                "properties": {
+                    "para1": {
+                        "description": "number parameter example",
+                        "type": "number",
+                        "default": 3.2,
+                        "minimum": 1.0,
+                        "maximum": 10.2,
+                    },
+                    "para2": {
+                        "description": "string parameter example",
+                        "type": "string",
+                        "default": "hello",
+                    },
+                },
+            }
+
+
+You can reference parameters in :py:meth:`~.BaseStrategy.execute`:
+
+.. code-block:: python
+
+    class DummyStrategy(base.DummyBaseStrategy):
+
+        def execute(self):
+            para1 = self.input_parameters.para1
+            para2 = self.input_parameters.para2
+
+            if para1 > 5:
+                ...
+
+
+Operator can specify parameters with following commands:
+
+.. code:: bash
+
+  $ watcher audit create -a <your_audit_template> -p para1=6.0 -p para2=hi
+
+Pls. check user-guide for details.
+
+
 Abstract Plugin Class
 =====================
 
