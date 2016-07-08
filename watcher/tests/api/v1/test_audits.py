@@ -477,6 +477,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -517,6 +518,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit()
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
             '01234567-8910-1112-1314-151617181920')
@@ -537,6 +539,7 @@ class TestPost(api_base.FunctionalTest):
         state = audit_dict['state']
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
         with mock.patch.object(self.dbapi, 'create_audit',
                                wraps=self.dbapi.create_audit) as cn_mock:
             response = self.post_json('/audits', audit_dict)
@@ -552,6 +555,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit()
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -560,12 +564,66 @@ class TestPost(api_base.FunctionalTest):
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_continuous_audit_with_period(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit()
+        del audit_dict['uuid']
+        del audit_dict['state']
+        audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
+        audit_dict['interval'] = 1200
+
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertEqual(objects.audit.State.PENDING,
+                         response.json['state'])
+        self.assertEqual(audit_dict['interval'], response.json['interval'])
+        self.assertTrue(utils.is_uuid_like(response.json['uuid']))
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_continuous_audit_without_period(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit()
+        del audit_dict['uuid']
+        del audit_dict['state']
+        audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
+        del audit_dict['interval']
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        expected_error_msg = ('Interval of audit must be specified '
+                              'for CONTINUOUS.')
+        self.assertTrue(response.json['error_message'])
+        self.assertTrue(expected_error_msg in response.json['error_message'])
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_oneshot_audit_with_period(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit()
+        del audit_dict['uuid']
+        del audit_dict['state']
+        audit_dict['audit_type'] = objects.audit.AuditType.ONESHOT.value
+        audit_dict['interval'] = 1200
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        expected_error_msg = 'Interval of audit must not be set for ONESHOT.'
+        self.assertTrue(response.json['error_message'])
+        self.assertTrue(expected_error_msg in response.json['error_message'])
+
     def test_create_audit_trigger_decision_engine(self):
         with mock.patch.object(deapi.DecisionEngineAPI,
                                'trigger_audit') as de_mock:
             audit_dict = post_get_test_audit(state=objects.audit.State.PENDING)
             del audit_dict['uuid']
             del audit_dict['state']
+            del audit_dict['interval']
             response = self.post_json('/audits', audit_dict)
             de_mock.assert_called_once_with(mock.ANY, response.json['uuid'])
 
@@ -586,6 +644,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(parameters={'name': 'Tom'})
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -605,6 +664,7 @@ class TestPost(api_base.FunctionalTest):
             parameters={'name': 'Tom'})
         del audit_dict['uuid']
         del audit_dict['state']
+        del audit_dict['interval']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)

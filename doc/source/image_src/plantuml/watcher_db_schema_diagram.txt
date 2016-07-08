@@ -10,7 +10,7 @@ table(goal) {
     uuid : String[36]
     name : String[63]
     display_name : String[63]
-    
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime
@@ -24,7 +24,7 @@ table(strategy) {
     uuid : String[36]
     name : String[63]
     display_name : String[63]
-    
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime
@@ -42,7 +42,7 @@ table(audit_template) {
     host_aggregate : Integer, nullable
     extra : JSONEncodedDict
     version : String[15], nullable
-    
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime
@@ -54,10 +54,11 @@ table(audit) {
     primary_key(id: Integer)
     foreign_key("audit_template_id : Integer")
     uuid : String[36]
-    type : String[20]
+    audit_type : String[20]
     state : String[20], nullable
     deadline  :DateTime, nullable
-    
+    interval : Integer, nullable
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime
@@ -72,7 +73,7 @@ table(action_plan) {
     first_action_id : Integer
     state : String[20], nullable
     global_efficacy : JSONEncodedDict, nullable
-    
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime
@@ -88,7 +89,7 @@ table(action) {
     input_parameters : JSONEncodedDict, nullable
     state : String[20], nullable
     next : String[36], nullable
-    
+
     created_at : DateTime
     updated_at : DateTime
     deleted_at : DateTime

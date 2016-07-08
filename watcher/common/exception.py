@@ -221,6 +221,14 @@ class AuditAlreadyExists(Conflict):
     msg_fmt = _("An audit with UUID %(uuid)s already exists")
 
 
+class AuditIntervalNotSpecified(Invalid):
+    msg_fmt = _("Interval of audit must be specified for %(audit_type)s.")
+
+
+class AuditIntervalNotAllowed(Invalid):
+    msg_fmt = _("Interval of audit must not be set for %(audit_type)s.")
+
+
 class AuditReferenced(Invalid):
     msg_fmt = _("Audit %(audit)s is referenced by one or multiple action "
                 "plans")
