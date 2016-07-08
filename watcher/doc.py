@@ -57,7 +57,7 @@ class BaseWatcherDirective(rst.Directive):
 
         if not obj_raw_docstring:
             # Raise a warning to make the tests fail wit doc8
-            raise self.error("No docstring available for this plugin!")
+            raise self.error("No docstring available for %s!" % obj)
 
         obj_docstring = inspect.cleandoc(obj_raw_docstring)
         self.add_textblock(obj_docstring)
