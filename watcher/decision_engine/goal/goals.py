@@ -142,3 +142,23 @@ class WorkloadBalancing(base.Goal):
     def get_efficacy_specification(cls):
         """The efficacy spec for the current goal"""
         return specs.Unclassified()
+
+
+class AirflowOptimization(base.Goal):
+
+    @classmethod
+    def get_name(cls):
+        return "airflow optimization"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Airflow optimization")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Airflow optimization"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()

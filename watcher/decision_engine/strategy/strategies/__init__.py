@@ -18,6 +18,7 @@
 from watcher.decision_engine.strategy.strategies import basic_consolidation
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import outlet_temp_control
+from watcher.decision_engine.strategy.strategies import uniform_airflow
 from watcher.decision_engine.strategy.strategies import \
     vm_workload_consolidation
 from watcher.decision_engine.strategy.strategies import workload_balance
@@ -29,7 +30,8 @@ DummyStrategy = dummy_strategy.DummyStrategy
 VMWorkloadConsolidation = vm_workload_consolidation.VMWorkloadConsolidation
 WorkloadBalance = workload_balance.WorkloadBalance
 WorkloadStabilization = workload_stabilization.WorkloadStabilization
+UniformAirflow = uniform_airflow.UniformAirflow
 
 __all__ = ("BasicConsolidation", "OutletTempControl", "DummyStrategy",
            "VMWorkloadConsolidation", "WorkloadBalance",
-           "WorkloadStabilization")
+           "WorkloadStabilization", "UniformAirflow")
