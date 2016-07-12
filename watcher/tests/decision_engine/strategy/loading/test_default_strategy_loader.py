@@ -75,4 +75,4 @@ class TestLoadStrategiesWithDefaultStrategyLoader(base.TestCase):
     def test_load_strategies(self):
         strategy = self.strategy_loader.load(self.strategy_name)
         self.assertIsNotNone(strategy)
-        self.assertEqual(self.strategy_cls.get_name(), strategy.name)
+        self.assertEqual(self.strategy_name, strategy.name)
