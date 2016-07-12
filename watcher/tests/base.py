@@ -50,6 +50,7 @@ class TestCase(BaseTestCase):
 
     def setUp(self):
         super(TestCase, self).setUp()
+        self.useFixture(conf_fixture.ConfReloadFixture())
         self.app = testing.load_test_app(os.path.join(
             os.path.dirname(__file__),
             'config.py'

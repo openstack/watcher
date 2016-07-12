@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _LW
@@ -30,17 +31,28 @@ LOG = log.getLogger(__name__)
 class DefaultPlanner(base.BasePlanner):
     """Default planner implementation
 
-    This implementation comes with basic rules with a fixed set of action types
-    that are weighted. An action having a lower weight will be scheduled before
-    the other ones.
+    This implementation comes with basic rules with a set of action types that
+    are weighted. An action having a lower weight will be scheduled before the
+    other ones. The set of action types can be specified by 'weights' in the
+    ``watcher.conf``. You need to associate a different weight to all available
+    actions into the configuration file, otherwise you will get an error when
+    the new action will be referenced in the solution produced by a strategy.
     """
 
-    priorities = {
+    weights_dict = {
         'nop': 0,
         'sleep': 1,
         'change_nova_service_state': 2,
         'migrate': 3,
     }
+
+    @classmethod
+    def get_config_opts(cls):
+        return [cfg.DictOpt(
+            'weights',
+            help="These weights are used to schedule the actions",
+            default=cls.weights_dict),
+        ]
 
     def create_action(self,
                       action_plan_id,
@@ -59,6 +71,7 @@ class DefaultPlanner(base.BasePlanner):
 
     def schedule(self, context, audit_id, solution):
         LOG.debug('Create an action plan for the audit uuid: %s ', audit_id)
+        priorities = self.config.weights
         action_plan = self._create_action_plan(context, audit_id, solution)
 
         actions = list(solution.actions)
@@ -68,7 +81,7 @@ class DefaultPlanner(base.BasePlanner):
                 action_plan_id=action_plan.id,
                 action_type=action.get('action_type'),
                 input_parameters=action.get('input_parameters'))
-            to_schedule.append((self.priorities[action.get('action_type')],
+            to_schedule.append((priorities[action.get('action_type')],
                                 json_action))
 
         self._create_efficacy_indicators(
