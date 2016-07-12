@@ -106,7 +106,7 @@ class UniformAirflow(base.BaseStrategy):
 
     @classmethod
     def get_name(cls):
-        return "uniform airflow"
+        return "uniform_airflow"
 
     @classmethod
     def get_display_name(cls):

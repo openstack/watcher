@@ -148,7 +148,7 @@ class AirflowOptimization(base.Goal):
 
     @classmethod
     def get_name(cls):
-        return "airflow optimization"
+        return "airflow_optimization"
 
     @classmethod
     def get_display_name(cls):
