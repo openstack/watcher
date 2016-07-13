@@ -56,6 +56,7 @@ class TestApi(base.BaseTestCase):
         api.main()
         self.assertEqual(1, m_launcher.call_count)
 
+    @mock.patch.object(wsgi, "Server", mock.Mock())
     @mock.patch("watcher.api.app.pecan.make_app")
     @mock.patch.object(service, "process_launcher")
     def test_run_api_app_serve_specific_address(self, m_launcher, m_make_app):
