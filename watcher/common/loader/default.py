@@ -70,7 +70,6 @@ class DefaultLoader(base.BaseLoader):
         """Load the config of the plugin"""
         config = utils.Struct()
         config_opts = driver_cls.get_config_opts()
-
         if not config_opts:
             return config
 

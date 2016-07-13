@@ -75,4 +75,4 @@ class TestLoadGoalsWithDefaultGoalLoader(base.TestCase):
     def test_load_goals(self):
         goal = self.goal_loader.load(self.goal_name)
         self.assertIsNotNone(goal)
-        self.assertEqual(self.goal_cls.get_name(), goal.name)
+        self.assertEqual(self.goal_name, goal.name)
