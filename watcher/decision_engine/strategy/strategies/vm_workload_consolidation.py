@@ -55,7 +55,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     A capacity coefficients (cc) might be used to adjust optimization
     thresholds. Different resources may require different coefficient
     values as well as setting up different coefficient values in both
-    phases may lead to to more efficient consolidation in the end.
+    phases may lead to more efficient consolidation in the end.
     If the cc equals 1 the full resource capacity may be used, cc
     values lower than 1 will lead to resource under utilization and
     values higher than 1 will lead to resource overbooking.
@@ -65,7 +65,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     the cluster will appear more released (distributed) for the
     following consolidation phase.
 
-    As this strategy laverages VM live migration to move the load
+    As this strategy leverages VM live migration to move the load
     from one hypervisor to another, this feature needs to be set up
     correctly on all hypervisors within the cluster.
     This strategy assumes it is possible to live migrate any VM from
@@ -125,7 +125,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                                 hyper_state.HypervisorState)):
             return state.value
         else:
-            LOG.error(_LE('Unexpexted resource state type, '
+            LOG.error(_LE('Unexpected resource state type, '
                           'state=%(state)s, state_type=%(st)s.'),
                       state=state,
                       st=type(state))
