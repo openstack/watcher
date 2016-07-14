@@ -64,7 +64,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
             job_to_delete = [job for job in self.jobs
-                             if job.keys()[0] == audit.uuid][0]
+                             if list(job.keys())[0] == audit.uuid][0]
             self.jobs.remove(job_to_delete)
             job_to_delete[audit.uuid].remove()
 
