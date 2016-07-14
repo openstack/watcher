@@ -21,6 +21,7 @@ import mock
 
 from watcher.applier.loading import default
 from watcher.common import exception
+from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.strategy import strategies
@@ -47,15 +48,20 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.addCleanup(p_model.stop)
 
         p_ceilometer = mock.patch.object(
-            strategies.BasicConsolidation, "ceilometer",
+            strategies.WorkloadBalance, "ceilometer",
             new_callable=mock.PropertyMock)
         self.m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
 
         self.m_model.return_value = model_root.ModelRoot()
         self.m_ceilometer.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         self.strategy = strategies.WorkloadBalance(config=mock.Mock())
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'threshold': 25.0,
+                                              'period': 300})
+        self.strategy.threshold = 25.0
+        self.strategy._period = 300
 
     def test_calc_used_res(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
@@ -74,10 +80,7 @@ class TestWorkloadBalance(base.BaseTestCase):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
         self.strategy.threshold = 30
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
-        # print h1, h2, avg, w_map
         self.assertEqual(h1[0]['hv'].uuid, 'Node_0')
         self.assertEqual(h2[0]['hv'].uuid, 'Node_1')
         self.assertEqual(avg, 8.0)
@@ -85,8 +88,6 @@ class TestWorkloadBalance(base.BaseTestCase):
     def test_choose_vm_to_migrate(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
         vm_to_mig = self.strategy.choose_vm_to_migrate(h1, avg, w_map)
         self.assertEqual(vm_to_mig[0].uuid, 'Node_0')
@@ -96,8 +97,6 @@ class TestWorkloadBalance(base.BaseTestCase):
     def test_choose_vm_notfound(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
         vms = model.get_all_vms()
         vms.clear()
@@ -107,8 +106,6 @@ class TestWorkloadBalance(base.BaseTestCase):
     def test_filter_destination_hosts(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         h1, h2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
         vm_to_mig = self.strategy.choose_vm_to_migrate(h1, avg, w_map)
         dest_hosts = self.strategy.filter_destination_hosts(
@@ -129,23 +126,17 @@ class TestWorkloadBalance(base.BaseTestCase):
     def test_execute_cluster_empty(self):
         model = model_root.ModelRoot()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
 
     def test_execute_no_workload(self):
         model = self.fake_cluster.generate_scenario_4_with_1_hypervisor_no_vm()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         solution = self.strategy.execute()
         self.assertEqual([], solution.actions)
 
     def test_execute(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
             [action.get('action_type') for action in solution.actions])
@@ -156,8 +147,6 @@ class TestWorkloadBalance(base.BaseTestCase):
     def test_check_parameters(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         solution = self.strategy.execute()
         loader = default.DefaultActionLoader()
         for action in solution.actions:

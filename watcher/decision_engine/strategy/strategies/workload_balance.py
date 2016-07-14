@@ -59,11 +59,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     # The meter to report CPU utilization % of VM in ceilometer
     METER_NAME = "cpu_util"
     # Unit: %, value range is [0 , 100]
-    # TODO(Junjie): make it configurable
-    THRESHOLD = 25.0
-    # choose 300 seconds as the default duration of meter aggregation
-    # TODO(Junjie): make it configurable
-    PERIOD = 300
 
     MIGRATION = "migrate"
 
@@ -77,11 +72,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         super(WorkloadBalance, self).__init__(config, osc)
         # the migration plan will be triggered when the CPU utlization %
         # reaches threshold
-        # TODO(Junjie): Threshold should be configurable for each audit
-        self.threshold = self.THRESHOLD
         self._meter = self.METER_NAME
         self._ceilometer = None
-        self._period = self.PERIOD
 
     @property
     def ceilometer(self):
@@ -104,6 +96,24 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Workload Balance Migration Strategy"
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "threshold": {
+                    "description": "workload threshold for migration",
+                    "type": "number",
+                    "default": 25.0
+                },
+                "period": {
+                    "description": "aggregate time period of ceilometer",
+                    "type": "number",
+                    "default": 300
+                },
+            },
+        }
 
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
@@ -270,6 +280,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         This phase is where you should put the main logic of your strategy.
         """
+        self.threshold = self.input_parameters.threshold
+        self._period = self.input_parameters.period
         src_hypervisors, target_hypervisors, avg_workload, workload_cache = (
             self.group_hosts_by_cpu_util())
 
