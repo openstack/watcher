@@ -79,6 +79,7 @@ class MessagingHandler(threading.Thread):
     def build_server(self, target):
         return om.get_rpc_server(self.__transport, target,
                                  self.__endpoints,
+                                 executor='evenlet',
                                  serializer=self.__serializer)
 
     def _configure(self):

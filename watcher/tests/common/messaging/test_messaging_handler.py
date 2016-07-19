@@ -58,6 +58,7 @@ class TestMessagingHandler(base.TestCase):
             handler.transport,
             m_target,
             [self.ENDPOINT],
+            executor='evenlet',
             serializer=None,
         )
 
