@@ -29,6 +29,14 @@ class RequestContext(context.RequestContext):
                               without authentication.
 
         """
+        super(RequestContext, self).__init__(auth_token=auth_token,
+                                             user=user, tenant=project,
+                                             is_admin=is_admin,
+                                             read_only=read_only,
+                                             show_deleted=show_deleted,
+                                             request_id=request_id,
+                                             roles=roles)
+
         self.is_public_api = is_public_api
         self.user_id = user_id
         self.project = project
@@ -38,14 +46,6 @@ class RequestContext(context.RequestContext):
         self.auth_url = auth_url
         self.auth_token_info = auth_token_info
         self.trust_id = trust_id
-
-        super(RequestContext, self).__init__(auth_token=auth_token,
-                                             user=user, tenant=project,
-                                             is_admin=is_admin,
-                                             read_only=read_only,
-                                             show_deleted=show_deleted,
-                                             request_id=request_id,
-                                             roles=roles)
 
     def to_dict(self):
         return {'auth_token': self.auth_token,
