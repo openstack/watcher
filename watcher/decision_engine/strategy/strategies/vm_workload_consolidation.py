@@ -372,7 +372,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         return False
 
     def vm_fits(self, vm_uuid, hypervisor, model, cc):
-        """Indicate whether is a hypervisor able to accomodate a VM.
+        """Indicate whether is a hypervisor able to accommodate a VM.
 
         This considers provided resource capacity coefficients (cc).
         :param vm_uuid: string

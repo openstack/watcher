@@ -54,7 +54,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
          reason why we only plan a single virtual machine migration at a time.
          So it's better to use this algorithm with `CONTINUOUS` audits.
        - It assume that live migrations are possible
-
     """
 
     # The meter to report CPU utilization % of VM in ceilometer
@@ -100,11 +99,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
     @classmethod
     def get_display_name(cls):
-        return _("workload balance migration strategy")
+        return _("Workload Balance Migration Strategy")
 
     @classmethod
     def get_translatable_display_name(cls):
-        return "workload balance migration strategy"
+        return "Workload Balance Migration Strategy"
 
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
@@ -141,7 +140,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         # select the first active VM to migrate
                         vm = self.model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
-                            LOG.debug("VM not active, skipped: %s",
+                            LOG.debug("VM not active; skipped: %s",
                                       vm.uuid)
                             continue
                         current_delta = delta_workload - workload_cache[vm_id]
@@ -149,12 +148,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                             min_delta = current_delta
                             instance_id = vm_id
                     except wexc.InstanceNotFound:
-                        LOG.error(_LE("VM not found Error: %s"), vm_id)
+                        LOG.error(_LE("VM not found; error: %s"), vm_id)
                 if instance_id:
                     return source_hypervisor, self.model.get_vm_from_id(
                         instance_id)
             else:
-                LOG.info(_LI("VM not found from hypervisor: %s"),
+                LOG.info(_LI("VM not found on hypervisor: %s"),
                          source_hypervisor.uuid)
 
     def filter_destination_hosts(self, hosts, vm_to_migrate,
@@ -230,15 +229,15 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         aggregate='avg')
                 except Exception as exc:
                     LOG.exception(exc)
-                    LOG.error(_LE("Can not get cpu_util"))
+                    LOG.error(_LE("Can not get cpu_util from Ceilometer"))
                     continue
                 if cpu_util is None:
-                    LOG.debug("%s: cpu_util is None", vm_id)
+                    LOG.debug("VM (%s): cpu_util is None", vm_id)
                     continue
                 vm_cores = cap_cores.get_capacity(vm)
                 workload_cache[vm_id] = cpu_util * vm_cores / 100
                 hypervisor_workload += workload_cache[vm_id]
-                LOG.debug("%s: cpu_util %f", vm_id, cpu_util)
+                LOG.debug("VM (%s): cpu_util %f", vm_id, cpu_util)
             hypervisor_cores = cap_cores.get_capacity(hypervisor)
             hy_cpu_util = hypervisor_workload / hypervisor_cores * 100
 
@@ -281,7 +280,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         if not target_hypervisors:
             LOG.warning(_LW("No hosts current have CPU utilization under %s "
                             "percent, therefore there are no possible target "
-                            "hosts for any migration"),
+                            "hosts for any migrations"),
                         self.threshold)
             return self.solution
 
@@ -301,15 +300,15 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # sort the filtered result by workload
         # pick up the lowest one as dest server
         if not destination_hosts:
-            # for instance.
-            LOG.warning(_LW("No proper target host could be found, it might "
-                            "be because of there's no enough CPU/Memory/DISK"))
+            LOG.warning(_LW("No target host could be found; it might "
+                            "be because there is not enough CPU, memory "
+                            "or disk"))
             return self.solution
         destination_hosts = sorted(destination_hosts,
                                    key=lambda x: (x["cpu_util"]))
         # always use the host with lowerest CPU utilization
         mig_dst_hypervisor = destination_hosts[0]['hv']
-        # generate solution to migrate the vm to the dest server,
+        # generate solution to migrate the vm to the dest server
         if self.model.get_mapping().migrate_vm(vm_src, source_hypervisor,
                                                mig_dst_hypervisor):
             parameters = {'migration_type': 'live',

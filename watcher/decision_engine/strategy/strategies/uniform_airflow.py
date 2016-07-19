@@ -33,13 +33,13 @@ class UniformAirflow(base.BaseStrategy):
 
     *Description*
 
-        It is a migration strategy based on the Airflow of physical
-        servers. It generates solutions to move vm whenever a server's
-        Airflow is higher than the specified threshold.
+        It is a migration strategy based on the airflow of physical
+        servers. It generates solutions to move VM whenever a server's
+        airflow is higher than the specified threshold.
 
     *Requirements*
 
-        * Hardware: compute node with NodeManager3.0 support
+        * Hardware: compute node with NodeManager 3.0 support
         * Software: Ceilometer component ceilometer-agent-compute running
           in each compute node, and Ceilometer API can report such telemetry
           "airflow, system power, inlet temperature" successfully.
@@ -47,12 +47,11 @@ class UniformAirflow(base.BaseStrategy):
 
     *Limitations*
 
-       - This is a proof of concept that is not meant to be used in production
+       - This is a proof of concept that is not meant to be used in production.
        - We cannot forecast how many servers should be migrated. This is the
          reason why we only plan a single virtual machine migration at a time.
          So it's better to use this algorithm with `CONTINUOUS` audits.
-       - It assume that live migrations are possible
-
+       - It assumes that live migrations are possible.
     """
 
     # The meter to report Airflow of physical server in ceilometer
@@ -82,7 +81,7 @@ class UniformAirflow(base.BaseStrategy):
         :param osc: an OpenStackClients object
         """
         super(UniformAirflow, self).__init__(config, osc)
-        # The migration plan will be triggered when the Ariflow reaches
+        # The migration plan will be triggered when the airflow reaches
         # threshold
         # TODO(Junjie): Threshold should be configurable for each audit
         self.threshold_airflow = self.THRESHOLD_AIRFLOW
@@ -110,11 +109,11 @@ class UniformAirflow(base.BaseStrategy):
 
     @classmethod
     def get_display_name(cls):
-        return _("uniform airflow migration strategy")
+        return _("Uniform airflow migration strategy")
 
     @classmethod
     def get_translatable_display_name(cls):
-        return "uniform airflow migration strategy"
+        return "Uniform airflow migration strategy"
 
     @classmethod
     def get_goal_name(cls):
@@ -122,7 +121,7 @@ class UniformAirflow(base.BaseStrategy):
 
     @classmethod
     def get_goal_display_name(cls):
-        return _("AIRFLOW optimization")
+        return _("Airflow optimization")
 
     @classmethod
     def get_translatable_goal_display_name(cls):
@@ -130,7 +129,7 @@ class UniformAirflow(base.BaseStrategy):
 
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
-        '''calculate the used vcpus, memory and disk based on VM flavors'''
+        """Calculate the used vcpus, memory and disk based on VM flavors"""
         vms = self.model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
@@ -144,7 +143,7 @@ class UniformAirflow(base.BaseStrategy):
         return vcpus_used, memory_mb_used, disk_gb_used
 
     def choose_vm_to_migrate(self, hosts):
-        """pick up an active vm instance to migrate from provided hosts
+        """Pick up an active vm instance to migrate from provided hosts
 
         :param hosts: the array of dict which contains hypervisor object
         """
@@ -172,7 +171,7 @@ class UniformAirflow(base.BaseStrategy):
                             vm = self.model.get_vm_from_id(vm_id)
                             vms_tobe_migrate.append(vm)
                         except wexc.InstanceNotFound:
-                            LOG.error(_LE("VM not found Error: %s"), vm_id)
+                            LOG.error(_LE("VM not found; error: %s"), vm_id)
                     return source_hypervisor, vms_tobe_migrate
                 else:
                     # migrate the first active vm
@@ -180,19 +179,19 @@ class UniformAirflow(base.BaseStrategy):
                         try:
                             vm = self.model.get_vm_from_id(vm_id)
                             if vm.state != vm_state.VMState.ACTIVE.value:
-                                LOG.info(_LE("VM not active, skipped: %s"),
+                                LOG.info(_LE("VM not active; skipped: %s"),
                                          vm.uuid)
                                 continue
                             vms_tobe_migrate.append(vm)
                             return source_hypervisor, vms_tobe_migrate
                         except wexc.InstanceNotFound:
-                            LOG.error(_LE("VM not found Error: %s"), vm_id)
+                            LOG.error(_LE("VM not found; error: %s"), vm_id)
             else:
-                LOG.info(_LI("VM not found from hypervisor: %s"),
+                LOG.info(_LI("VM not found on hypervisor: %s"),
                          source_hypervisor.uuid)
 
     def filter_destination_hosts(self, hosts, vms_to_migrate):
-        '''return vm and host with sufficient available resources'''
+        """Return vm and host with sufficient available resources"""
 
         cap_cores = self.model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
@@ -233,8 +232,8 @@ class UniformAirflow(base.BaseStrategy):
                     break
         # check if all vms have target hosts
         if len(destination_hosts) != len(vms_to_migrate):
-            LOG.warning(_LW("Not all target hosts could be found, it might "
-                            "be because of there's no enough resource"))
+            LOG.warning(_LW("Not all target hosts could be found; it might "
+                            "be because there is not enough resource"))
             return None
         return destination_hosts
 
@@ -283,8 +282,8 @@ class UniformAirflow(base.BaseStrategy):
             return self.solution
 
         if not target_hypervisors:
-            LOG.warning(_LW("No hosts current have airflow under %s "
-                            ", therefore there are no possible target "
+            LOG.warning(_LW("No hosts currently have airflow under %s, "
+                            "therefore there are no possible target "
                             "hosts for any migration"),
                         self.threshold_airflow)
             return self.solution
@@ -304,8 +303,8 @@ class UniformAirflow(base.BaseStrategy):
         destination_hosts = self.filter_destination_hosts(target_hypervisors,
                                                           vms_src)
         if not destination_hosts:
-            LOG.warning(_LW("No proper target host could be found, it might "
-                            "be because of there's no enough resource"))
+            LOG.warning(_LW("No target host could be found; it might "
+                            "be because there is not enough resources"))
             return self.solution
         # generate solution to migrate the vm to the dest server,
         for info in destination_hosts:
