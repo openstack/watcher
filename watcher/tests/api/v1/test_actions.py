@@ -11,10 +11,10 @@
 #    limitations under the License.
 
 import datetime
-import json
 import mock
 
 from oslo_config import cfg
+from oslo_serialization import jsonutils
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action as api_action
@@ -497,7 +497,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,
-            json.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(

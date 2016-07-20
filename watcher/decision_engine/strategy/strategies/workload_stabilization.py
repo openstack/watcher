@@ -170,7 +170,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :param vm_uuid: vm for which statistic is gathered.
         :return: dict
         """
-        LOG.debug(_LI('get_vm_load started'))
+        LOG.debug('get_vm_load started')
         vm_vcpus = self.model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(
                 self.model.get_vm_from_id(vm_uuid))

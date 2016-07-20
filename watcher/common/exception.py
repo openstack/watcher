@@ -91,7 +91,8 @@ class WatcherException(Exception):
                 # log the issue and the kwargs
                 LOG.exception(_LE('Exception in string format operation'))
                 for name, value in kwargs.items():
-                    LOG.error("%s: %s", name, value)
+                    LOG.error(_LE("%(name)s: %(value)s"),
+                              {'name': name, 'value': value})
 
                 if CONF.fatal_exception_format_errors:
                     raise e

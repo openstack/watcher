@@ -77,7 +77,7 @@ class TestMigration(base.TestCase):
                   self.action.DST_HYPERVISOR: 'compute-2',
                   self.action.SRC_HYPERVISOR: 'compute-3'}
         self.action.input_parameters = params
-        self.assertEqual(True, self.action.validate_parameters())
+        self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_cold(self):
         params = {baction.BaseAction.RESOURCE_ID:
@@ -86,7 +86,7 @@ class TestMigration(base.TestCase):
                   self.action.DST_HYPERVISOR: 'compute-2',
                   self.action.SRC_HYPERVISOR: 'compute-3'}
         self.action_cold.input_parameters = params
-        self.assertEqual(True, self.action_cold.validate_parameters())
+        self.assertTrue(self.action_cold.validate_parameters())
 
     def test_parameters_exception_empty_fields(self):
         parameters = {baction.BaseAction.RESOURCE_ID: None,

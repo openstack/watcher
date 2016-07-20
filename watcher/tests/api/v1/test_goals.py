@@ -10,9 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import json
-
 from oslo_config import cfg
+from oslo_serialization import jsonutils
 from six.moves.urllib import parse as urlparse
 
 from watcher.common import utils
@@ -134,7 +133,7 @@ class TestGoalPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,
-            json.loads(response.json['error_message'])['faultstring'])
+            jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
         self._common_policy_check(

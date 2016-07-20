@@ -139,7 +139,7 @@ class TestWorkloadBalance(base.BaseTestCase):
         self.strategy.ceilometer = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         solution = self.strategy.execute()
-        self.assertEqual(solution.actions, [])
+        self.assertEqual([], solution.actions)
 
     def test_execute(self):
         model = self.fake_cluster.generate_scenario_6_with_2_hypervisors()

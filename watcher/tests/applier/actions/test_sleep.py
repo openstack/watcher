@@ -29,7 +29,7 @@ class TestSleep(base.TestCase):
 
     def test_parameters_duration(self):
         self.s.input_parameters = {self.s.DURATION: 1.0}
-        self.assertEqual(True, self.s.validate_parameters())
+        self.assertTrue(self.s.validate_parameters())
 
     def test_parameters_duration_empty(self):
         self.s.input_parameters = {self.s.DURATION: None}

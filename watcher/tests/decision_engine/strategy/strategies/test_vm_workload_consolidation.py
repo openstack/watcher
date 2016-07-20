@@ -125,15 +125,15 @@ class TestVMWorkloadConsolidation(base.BaseTestCase):
         h1 = model.get_hypervisor_from_id('Node_0')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         res = self.strategy.is_overloaded(h1, model, cc)
-        self.assertEqual(False, res)
+        self.assertFalse(res)
 
         cc = {'cpu': 0.025, 'ram': 1.0, 'disk': 1.0}
         res = self.strategy.is_overloaded(h1, model, cc)
-        self.assertEqual(False, res)
+        self.assertFalse(res)
 
         cc = {'cpu': 0.024, 'ram': 1.0, 'disk': 1.0}
         res = self.strategy.is_overloaded(h1, model, cc)
-        self.assertEqual(True, res)
+        self.assertTrue(res)
 
     def test_vm_fits(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -143,11 +143,11 @@ class TestVMWorkloadConsolidation(base.BaseTestCase):
         vm_uuid = 'VM_0'
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         res = self.strategy.vm_fits(vm_uuid, h, model, cc)
-        self.assertEqual(True, res)
+        self.assertTrue(res)
 
         cc = {'cpu': 0.025, 'ram': 1.0, 'disk': 1.0}
         res = self.strategy.vm_fits(vm_uuid, h, model, cc)
-        self.assertEqual(False, res)
+        self.assertFalse(res)
 
     def test_add_action_enable_hypervisor(self):
         model = self.fake_cluster.generate_scenario_1()

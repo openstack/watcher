@@ -62,13 +62,13 @@ class TestChangeNovaServiceState(base.TestCase):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
             self.action.STATE: hstate.HypervisorState.DISABLED.value}
-        self.assertEqual(True, self.action.validate_parameters())
+        self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_up(self):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
             self.action.STATE: hstate.HypervisorState.ENABLED.value}
-        self.assertEqual(True, self.action.validate_parameters())
+        self.assertTrue(self.action.validate_parameters())
 
     def test_parameters_exception_wrong_state(self):
         self.action.input_parameters = {
