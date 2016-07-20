@@ -47,19 +47,19 @@ CONF = cfg.CONF
 WATCHER_DECISION_ENGINE_OPTS = [
     cfg.StrOpt('conductor_topic',
                default='watcher.decision.control',
-               help='The topic name used for'
+               help='The topic name used for '
                     'control events, this topic '
-                    'used for rpc call '),
+                    'used for RPC calls'),
     cfg.StrOpt('status_topic',
                default='watcher.decision.status',
                help='The topic name used for '
-                    'status events, this topic '
+                    'status events; this topic '
                     'is used so as to notify'
                     'the others components '
                     'of the system'),
     cfg.StrOpt('publisher_id',
                default='watcher.decision.api',
-               help='The identifier used by watcher '
+               help='The identifier used by the Watcher '
                     'module on the message broker'),
     cfg.IntOpt('max_workers',
                default=2,

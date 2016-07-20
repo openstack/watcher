@@ -73,7 +73,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     # The meter to report outlet temperature in ceilometer
     METER_NAME = "hardware.ipmi.node.outlet_temperature"
-
     MIGRATION = "migrate"
 
     def __init__(self, config, osc=None):

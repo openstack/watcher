@@ -33,8 +33,8 @@ CONF = cfg.CONF
 WATCHER_CONTINUOUS_OPTS = [
     cfg.IntOpt('continuous_audit_interval',
                default=10,
-               help='Interval, in seconds, for checking new created'
-                    'continuous audit.')
+               help='Interval (in seconds) for checking newly created '
+                    'continuous audits.')
 ]
 
 CONF.register_opts(WATCHER_CONTINUOUS_OPTS, 'watcher_decision_engine')

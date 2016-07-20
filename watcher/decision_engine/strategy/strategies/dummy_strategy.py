@@ -30,8 +30,8 @@ class DummyStrategy(base.DummyBaseStrategy):
 
     *Description*
 
-    This strategy does not provide any useful optimization. Indeed, its only
-    purpose is to be used by Tempest tests.
+    This strategy does not provide any useful optimization. Its only purpose
+    is to be used by Tempest tests.
 
     *Requirements*
 

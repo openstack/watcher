@@ -58,7 +58,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     - It has been developed only for tests.
     - It assumes that the virtual machine and the compute node are on the same
       private network.
-    - It assume that live migrations are possible
+    - It assumes that live migrations are possible.
 
     *Spec URL*
 
@@ -92,20 +92,20 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         self._ceilometer = None
 
-        # TODO(jed) improve threshold overbooking ?,...
+        # TODO(jed): improve threshold overbooking?
         self.threshold_mem = 1
         self.threshold_disk = 1
         self.threshold_cores = 1
 
-        # TODO(jed) target efficacy
+        # TODO(jed): target efficacy
         self.target_efficacy = 60
 
-        # TODO(jed) weight
+        # TODO(jed): weight
         self.weight_cpu = 1
         self.weight_mem = 1
         self.weight_disk = 1
 
-        # TODO(jed) bound migration attempts (80 %)
+        # TODO(jed): bound migration attempts (80 %)
         self.bound_migration = 0.80
 
     @classmethod
@@ -149,7 +149,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if src_hypervisor == dest_hypervisor:
             return False
 
-        LOG.debug('Migrate VM %s from %s to  %s',
+        LOG.debug('Migrate VM %s from %s to %s',
                   vm_to_mig, src_hypervisor, dest_hypervisor)
 
         total_cores = 0
@@ -181,13 +181,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                         total_disk, total_mem):
         """Check threshold
 
-        check the threshold value defined by the ratio of
+        Check the threshold value defined by the ratio of
         aggregated CPU capacity of VMs on one node to CPU capacity
         of this node must not exceed the threshold value.
+
         :param dest_hypervisor: the destination of the virtual machine
-        :param total_cores
-        :param total_disk
-        :param total_mem
+        :param total_cores: total cores of the virtual machine
+        :param total_disk: total disk size used by the virtual machine
+        :param total_mem: total memory used by the virtual machine
         :return: True if the threshold is not exceed
         """
         cpu_capacity = self.model.get_resource_from_id(
@@ -205,7 +206,8 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """Allowed migration
 
         Maximum allowed number of migrations this allows us to fix
-        the upper bound of the number of migrations
+        the upper bound of the number of migrations.
+
         :return:
         """
         return self.migration_attempts
@@ -232,7 +234,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
                        float(cpu_capacity))
 
-        # It's possible that disk_capacity is 0, e.g. m1.nano.disk = 0
+        # It's possible that disk_capacity is 0, e.g., m1.nano.disk = 0
         if disk_capacity == 0:
             score_disk = 0
         else:
@@ -242,7 +244,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         score_memory = (
             1 - (float(memory_capacity) - float(total_memory_used)) /
             float(memory_capacity))
-        # todo(jed) take in account weight
+        # TODO(jed): take in account weight
         return (score_cores + score_disk + score_memory) / 3
 
     def calculate_score_node(self, hypervisor):
@@ -351,7 +353,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         return score
 
     def node_and_vm_score(self, sorted_score, score):
-        """Get List of VMs from Node"""
+        """Get List of VMs from node"""
         node_to_release = sorted_score[len(score) - 1][0]
         vms_to_mig = self.model.get_mapping().get_node_vms_from_id(
             node_to_release)
