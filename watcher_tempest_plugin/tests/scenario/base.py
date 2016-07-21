@@ -142,6 +142,9 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
 
     def has_audit_succeeded(self, audit_uuid):
         _, audit = self.client.show_audit(audit_uuid)
+        if audit.get('state') in ('FAILED', 'CANCELLED'):
+            raise ValueError()
+
         return audit.get('state') == 'SUCCEEDED'
 
     # ### ACTION PLANS ### #
