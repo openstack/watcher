@@ -3,7 +3,6 @@
 # process, which may cause wedges in the gate later.
 
 coverage>=3.6 # Apache-2.0
-discover # BSD
 doc8 # Apache-2.0
 freezegun # Apache-2.0
 hacking<0.11,>=0.10.2
