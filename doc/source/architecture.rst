@@ -398,7 +398,7 @@ be one of the following:
    :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`
 -  **SUCCEEDED** : the :ref:`Audit <audit_definition>` has been executed
    successfully and at least one solution was found
--  **FAILED** : an error occured while executing the
+-  **FAILED** : an error occurred while executing the
    :ref:`Audit <audit_definition>`
 -  **DELETED** : the :ref:`Audit <audit_definition>` is still stored in the
    :ref:`Watcher database <watcher_database_definition>` but is not returned
@@ -434,7 +434,7 @@ state may be one of the following:
 -  **SUCCEEDED** : the :ref:`Action Plan <action_plan_definition>` has been
    executed successfully (i.e. all :ref:`Actions <action_definition>` that it
    contains have been executed successfully)
--  **FAILED** : an error occured while executing the
+-  **FAILED** : an error occurred while executing the
    :ref:`Action Plan <action_plan_definition>`
 -  **DELETED** : the :ref:`Action Plan <action_plan_definition>` is still
    stored in the :ref:`Watcher database <watcher_database_definition>` but is
