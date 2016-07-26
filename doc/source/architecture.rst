@@ -139,7 +139,7 @@ The Watcher Dashboard can be used to interact with the Watcher system through
 Horizon in order to control it or to know its current status.
 
 Please, read `the detailed documentation about Watcher Dashboard
-<https://factory.b-com.com/www/watcher/doc/watcher-dashboard/>`_.
+<http://docs.openstack.org/developer/watcher-dashboard/>`_.
 
 .. _archi_watcher_database_definition:
 
