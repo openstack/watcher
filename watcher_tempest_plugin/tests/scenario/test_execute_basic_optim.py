@@ -108,14 +108,21 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         self.addCleanup(self.rollback_compute_nodes_status)
         self._create_one_instance_per_host()
         _, goal = self.client.show_goal(self.BASIC_GOAL)
-        _, audit_template = self.create_audit_template(goal['uuid'])
+        _, strategy = self.client.show_strategy("basic")
+        _, audit_template = self.create_audit_template(
+            goal['uuid'], strategy=strategy['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
-        self.assertTrue(test.call_until_true(
-            func=functools.partial(self.has_audit_succeeded, audit['uuid']),
-            duration=600,
-            sleep_for=2
-        ))
+        try:
+            self.assertTrue(test.call_until_true(
+                func=functools.partial(
+                    self.has_audit_succeeded, audit['uuid']),
+                duration=600,
+                sleep_for=2
+            ))
+        except ValueError:
+            self.fail("The audit has failed!")
+
         _, action_plans = self.client.list_action_plans(
             audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]

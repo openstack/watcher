@@ -156,18 +156,19 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit(cls, audit_template_uuid, audit_type='ONESHOT',
-                     state=None, deadline=None):
+                     state=None, deadline=None, interval=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
         :param type: Audit type (either ONESHOT or CONTINUOUS)
         :param state: Audit state (str)
         :param deadline: Audit deadline (datetime)
+        :param interval: Audit interval in seconds (int)
         :return: A tuple with The HTTP response and its body
         """
         resp, body = cls.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state, deadline=deadline)
+            state=state, deadline=deadline, interval=interval)
 
         cls.created_audits.add(body['uuid'])
         cls.created_action_plans_audit_uuids.add(body['uuid'])

@@ -71,11 +71,11 @@ class AuditPostType(wtypes.Base):
             raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
         if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
-           self.interval != wtypes.Unset):
+                self.interval not in (wtypes.Unset, None)):
             raise exception.AuditIntervalNotAllowed(audit_type=self.audit_type)
 
         if (self.audit_type == objects.audit.AuditType.CONTINUOUS.value and
-           self.interval == wtypes.Unset):
+           self.interval in (wtypes.Unset, None)):
             raise exception.AuditIntervalNotSpecified(
                 audit_type=self.audit_type)
 

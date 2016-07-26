@@ -482,6 +482,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def post_execute(self):
         self.solution.set_efficacy_indicators(
-            released_compute_nodes_count=self.number_of_migrations,
-            vm_migrations_count=self.number_of_released_nodes,
+            released_compute_nodes_count=self.number_of_released_nodes,
+            vm_migrations_count=self.number_of_migrations,
         )
