@@ -24,7 +24,7 @@ calculating its :ref:`global efficacy <efficacy_definition>`.
 """
 
 import abc
-import json
+from oslo_serialization import jsonutils
 
 import six
 import voluptuous
@@ -81,4 +81,4 @@ class EfficacySpecification(object):
                 for indicator in self.indicators_specs]
 
     def serialize_indicators_specs(self):
-        return json.dumps(self.get_indicators_specs_dicts())
+        return jsonutils.dumps(self.get_indicators_specs_dicts())

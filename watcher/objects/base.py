@@ -351,13 +351,21 @@ class WatcherObject(object):
 
         NOTE(danms): May be removed in the future.
         """
+        return self._iteritems()
+
+    # dictish syntactic sugar, internal to pass hacking checks
+    def _iteritems(self):
+        """For backwards-compatibility with dict-based objects.
+
+        NOTE(danms): May be removed in the future.
+        """
         for name in list(self.fields.keys()) + self.obj_extra_fields:
             if (hasattr(self, get_attrname(name)) or
                     name in self.obj_extra_fields):
                 yield name, getattr(self, name)
 
     def items(self):
-        return list(self.iteritems())
+        return list(self._iteritems())
 
     def __getitem__(self, name):
         """For backwards-compatibility with dict-based objects.

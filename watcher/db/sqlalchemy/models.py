@@ -16,11 +16,10 @@
 SQLAlchemy models for watcher service
 """
 
-import json
-
 from oslo_config import cfg
 from oslo_db import options as db_options
 from oslo_db.sqlalchemy import models
+from oslo_serialization import jsonutils
 import six.moves.urllib.parse as urlparse
 from sqlalchemy import Column
 from sqlalchemy import DateTime
@@ -70,12 +69,12 @@ class JsonEncodedType(TypeDecorator):
                             % (self.__class__.__name__,
                                self.type.__name__,
                                type(value).__name__))
-        serialized_value = json.dumps(value)
+        serialized_value = jsonutils.dumps(value)
         return serialized_value
 
     def process_result_value(self, value, dialect):
         if value is not None:
-            value = json.loads(value)
+            value = jsonutils.loads(value)
         return value
 
 

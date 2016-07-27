@@ -18,7 +18,7 @@ import collections
 
 from oslo_log import log
 
-from watcher._i18n import _LE, _LI
+from watcher._i18n import _LI, _LW
 from watcher.common import context
 from watcher.decision_engine.loading import default
 from watcher import objects
@@ -238,7 +238,7 @@ class Syncer(object):
             invalid_ats = objects.AuditTemplate.list(self.ctx, filters=filters)
             for at in invalid_ats:
                 LOG.warning(
-                    _LE("Audit Template '%(audit_template)s' references a "
+                    _LW("Audit Template '%(audit_template)s' references a "
                         "goal that does not exist"),
                     audit_template=at.uuid)
 
@@ -275,7 +275,7 @@ class Syncer(object):
         strategy_loader = default.DefaultStrategyLoader()
         implemented_strategies = strategy_loader.list_available()
 
-        for _, goal_cls in implemented_goals.items():
+        for goal_cls in implemented_goals.values():
             goals_map[goal_cls.get_name()] = GoalMapping(
                 name=goal_cls.get_name(),
                 display_name=goal_cls.get_translatable_display_name(),
@@ -284,7 +284,7 @@ class Syncer(object):
                     for indicator in goal_cls.get_efficacy_specification(
                     ).get_indicators_specifications()))
 
-        for _, strategy_cls in implemented_strategies.items():
+        for strategy_cls in implemented_strategies.values():
             strategies_map[strategy_cls.get_name()] = StrategyMapping(
                 name=strategy_cls.get_name(),
                 goal_name=strategy_cls.get_goal_name(),

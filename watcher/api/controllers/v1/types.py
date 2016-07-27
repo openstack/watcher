@@ -15,7 +15,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import json
+from oslo_serialization import jsonutils
 from oslo_utils import strutils
 import six
 import wsme
@@ -118,7 +118,7 @@ class JsonType(wtypes.UserType):
     @staticmethod
     def validate(value):
         try:
-            json.dumps(value)
+            jsonutils.dumps(value, default=None)
         except TypeError:
             raise exception.Invalid(_('%s is not JSON serializable') % value)
         else:

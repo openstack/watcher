@@ -179,7 +179,7 @@ class UniformAirflow(base.BaseStrategy):
                         try:
                             vm = self.model.get_vm_from_id(vm_id)
                             if vm.state != vm_state.VMState.ACTIVE.value:
-                                LOG.info(_LE("VM not active; skipped: %s"),
+                                LOG.info(_LI("VM not active; skipped: %s"),
                                          vm.uuid)
                                 continue
                             vms_tobe_migrate.append(vm)
@@ -255,7 +255,7 @@ class UniformAirflow(base.BaseStrategy):
                 aggregate='avg')
             # some hosts may not have airflow meter, remove from target
             if airflow is None:
-                LOG.warning(_LE("%s: no airflow data"), resource_id)
+                LOG.warning(_LW("%s: no airflow data"), resource_id)
                 continue
 
             LOG.debug("%s: airflow %f" % (resource_id, airflow))

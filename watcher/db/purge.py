@@ -438,7 +438,7 @@ class PurgeCommand(object):
             print(_("Here below is a table containing the objects "
                     "that can be purged%s:") % _orphans_note)
 
-        LOG.info("\n%s", self._objects_map.get_count_table())
+        LOG.info(_LI("\n%s"), self._objects_map.get_count_table())
         print(self._objects_map.get_count_table())
         LOG.info(_LI("Purge process completed"))
 
@@ -465,11 +465,11 @@ def purge(age_in_days, max_number, audit_template, exclude_orphans, dry_run):
         if max_number and max_number < 0:
             raise exception.NegativeLimitError
 
-        LOG.info("[options] age_in_days = %s", age_in_days)
-        LOG.info("[options] max_number = %s", max_number)
-        LOG.info("[options] audit_template = %s", audit_template)
-        LOG.info("[options] exclude_orphans = %s", exclude_orphans)
-        LOG.info("[options] dry_run = %s", dry_run)
+        LOG.info(_LI("[options] age_in_days = %s"), age_in_days)
+        LOG.info(_LI("[options] max_number = %s"), max_number)
+        LOG.info(_LI("[options] audit_template = %s"), audit_template)
+        LOG.info(_LI("[options] exclude_orphans = %s"), exclude_orphans)
+        LOG.info(_LI("[options] dry_run = %s"), dry_run)
 
         uuid = PurgeCommand.get_audit_template_uuid(audit_template)
 

@@ -13,8 +13,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from oslo_log import log
 import threading
+
+from watcher._i18n import _LW
 
 LOG = log.getLogger(__name__)
 
@@ -72,10 +75,10 @@ class Mapping(object):
                 # remove vm
                 self.mapping_vm.pop(vm_uuid)
             else:
-                LOG.warning(
-                    "trying to delete the virtual machine {0}  but it was not "
-                    "found on hypervisor {1}".format(
-                        vm_uuid, node_uuid))
+                LOG.warning(_LW(
+                    "trying to delete the virtual machine %(vm)s but it was "
+                    "not found on hypervisor %(hyp)s"),
+                    {'vm': vm_uuid, 'hyp': node_uuid})
         finally:
             self.lock.release()
 

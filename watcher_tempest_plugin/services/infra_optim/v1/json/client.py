@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
+from oslo_serialization import jsonutils
 import uuid
 
 from watcher_tempest_plugin.services.infra_optim import base
@@ -27,11 +27,11 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
     def serialize(self, object_dict):
         """Serialize an Watcher object."""
-        return json.dumps(object_dict)
+        return jsonutils.dumps(object_dict)
 
     def deserialize(self, object_str):
         """Deserialize an Watcher object."""
-        return json.loads(object_str.decode('utf-8'))
+        return jsonutils.loads(object_str.decode('utf-8'))
 
     # ### AUDIT TEMPLATES ### #
 
@@ -201,7 +201,7 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :param audit_uuid: The unique identifier of the related Audit
         """
 
-        _, action_plans = self.list_action_plans(audit_uuid=audit_uuid)
+        action_plans = self.list_action_plans(audit_uuid=audit_uuid)[1]
 
         for action_plan in action_plans:
             self.delete_action_plan(action_plan['uuid'])
