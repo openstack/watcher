@@ -17,38 +17,31 @@ from cinderclient.v1 import client as ciclient_v1
 from glanceclient import client as glclient
 from keystoneauth1 import loading as ka_loading
 import mock
+from monascaclient import client as monclient
+from monascaclient.v2_0 import client as monclient_v2
 from neutronclient.neutron import client as netclient
 from neutronclient.v2_0 import client as netclient_v2
 from novaclient import client as nvclient
-from oslo_config import cfg
 
 from watcher.common import clients
+from watcher import conf
 from watcher.tests import base
+
+CONF = conf.CONF
 
 
 class TestClients(base.TestCase):
 
-    def setUp(self):
-        super(TestClients, self).setUp()
-
-        cfg.CONF.import_opt('api_version', 'watcher.common.clients',
-                            group='nova_client')
-        cfg.CONF.import_opt('api_version', 'watcher.common.clients',
-                            group='glance_client')
-        cfg.CONF.import_opt('api_version', 'watcher.common.clients',
-                            group='cinder_client')
-        cfg.CONF.import_opt('api_version', 'watcher.common.clients',
-                            group='ceilometer_client')
-        cfg.CONF.import_opt('api_version', 'watcher.common.clients',
-                            group='neutron_client')
-
-    def test_get_keystone_session(self):
+    def _register_watcher_clients_auth_opts(self):
         _AUTH_CONF_GROUP = 'watcher_clients_auth'
-        ka_loading.register_auth_conf_options(cfg.CONF, _AUTH_CONF_GROUP)
-        ka_loading.register_session_conf_options(cfg.CONF, _AUTH_CONF_GROUP)
+        ka_loading.register_auth_conf_options(CONF, _AUTH_CONF_GROUP)
+        ka_loading.register_session_conf_options(CONF, _AUTH_CONF_GROUP)
+        CONF.set_override('auth_type', 'password', group=_AUTH_CONF_GROUP)
 
-        cfg.CONF.set_override('auth_type', 'password',
-                              group=_AUTH_CONF_GROUP)
+        # ka_loading.load_auth_from_conf_options(CONF, _AUTH_CONF_GROUP)
+        # ka_loading.load_session_from_conf_options(CONF, _AUTH_CONF_GROUP)
+        # CONF.set_override(
+        #     'auth-url', 'http://server.ip:35357', group=_AUTH_CONF_GROUP)
 
         # If we don't clean up the _AUTH_CONF_GROUP conf options, then other
         # tests that run after this one will fail, complaining about required
@@ -56,26 +49,24 @@ class TestClients(base.TestCase):
         def cleanup_conf_from_loading():
             # oslo_config doesn't seem to allow unregistering groups through a
             # single method, so we do this instead
-            cfg.CONF.reset()
-            del cfg.CONF._groups[_AUTH_CONF_GROUP]
+            CONF.reset()
+            del CONF._groups[_AUTH_CONF_GROUP]
 
         self.addCleanup(cleanup_conf_from_loading)
 
-        osc = clients.OpenStackClients()
+        def reset_register_opts_mock(conf_obj, original_method):
+            conf_obj.register_opts = original_method
+
+        original_register_opts = CONF.register_opts
+        self.addCleanup(reset_register_opts_mock,
+                        CONF,
+                        original_register_opts)
 
         expected = {'username': 'foousername',
                     'password': 'foopassword',
                     'auth_url': 'http://server.ip:35357',
                     'user_domain_id': 'foouserdomainid',
                     'project_domain_id': 'fooprojdomainid'}
-
-        def reset_register_opts_mock(conf_obj, original_method):
-            conf_obj.register_opts = original_method
-
-        original_register_opts = cfg.CONF.register_opts
-        self.addCleanup(reset_register_opts_mock,
-                        cfg.CONF,
-                        original_register_opts)
 
         # Because some of the conf options for auth plugins are not registered
         # until right before they are loaded, and because the method that does
@@ -88,10 +79,21 @@ class TestClients(base.TestCase):
             ret = original_register_opts(*args, **kwargs)
             if 'group' in kwargs and kwargs['group'] == _AUTH_CONF_GROUP:
                 for key, value in expected.items():
-                    cfg.CONF.set_override(key, value, group=_AUTH_CONF_GROUP)
+                    CONF.set_override(key, value, group=_AUTH_CONF_GROUP)
             return ret
 
-        cfg.CONF.register_opts = mock_register_opts
+        CONF.register_opts = mock_register_opts
+
+    def test_get_keystone_session(self):
+        self._register_watcher_clients_auth_opts()
+
+        osc = clients.OpenStackClients()
+
+        expected = {'username': 'foousername',
+                    'password': 'foopassword',
+                    'auth_url': 'http://server.ip:35357',
+                    'user_domain_id': 'foouserdomainid',
+                    'project_domain_id': 'fooprojdomainid'}
 
         sess = osc.session
         self.assertEqual(expected['auth_url'], sess.auth.auth_url)
@@ -107,13 +109,12 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._nova = None
         osc.nova()
-        mock_call.assert_called_once_with(cfg.CONF.nova_client.api_version,
+        mock_call.assert_called_once_with(CONF.nova_client.api_version,
                                           session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_diff_vers(self, mock_session):
-        cfg.CONF.set_override('api_version', '2.3',
-                              group='nova_client')
+        CONF.set_override('api_version', '2.3', group='nova_client')
         osc = clients.OpenStackClients()
         osc._nova = None
         osc.nova()
@@ -133,13 +134,12 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._glance = None
         osc.glance()
-        mock_call.assert_called_once_with(cfg.CONF.glance_client.api_version,
+        mock_call.assert_called_once_with(CONF.glance_client.api_version,
                                           session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_glance_diff_vers(self, mock_session):
-        cfg.CONF.set_override('api_version', '1',
-                              group='glance_client')
+        CONF.set_override('api_version', '1', group='glance_client')
         osc = clients.OpenStackClients()
         osc._glance = None
         osc.glance()
@@ -159,13 +159,12 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
-        mock_call.assert_called_once_with(cfg.CONF.cinder_client.api_version,
+        mock_call.assert_called_once_with(CONF.cinder_client.api_version,
                                           session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_vers(self, mock_session):
-        cfg.CONF.set_override('api_version', '1',
-                              group='cinder_client')
+        CONF.set_override('api_version', '1', group='cinder_client')
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
@@ -186,7 +185,7 @@ class TestClients(base.TestCase):
         osc._ceilometer = None
         osc.ceilometer()
         mock_call.assert_called_once_with(
-            cfg.CONF.ceilometer_client.api_version,
+            CONF.ceilometer_client.api_version,
             None,
             session=mock_session)
 
@@ -196,8 +195,8 @@ class TestClients(base.TestCase):
                                           mock_session):
         '''ceilometerclient currently only has one version (v2)'''
         mock_get_alarm_client.return_value = [mock.Mock(), mock.Mock()]
-        cfg.CONF.set_override('api_version', '2',
-                              group='ceilometer_client')
+        CONF.set_override('api_version', '2',
+                          group='ceilometer_client')
         osc = clients.OpenStackClients()
         osc._ceilometer = None
         osc.ceilometer()
@@ -221,14 +220,14 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._neutron = None
         osc.neutron()
-        mock_call.assert_called_once_with(cfg.CONF.neutron_client.api_version,
+        mock_call.assert_called_once_with(CONF.neutron_client.api_version,
                                           session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_diff_vers(self, mock_session):
         '''neutronclient currently only has one version (v2)'''
-        cfg.CONF.set_override('api_version', '2.0',
-                              group='neutron_client')
+        CONF.set_override('api_version', '2.0',
+                          group='neutron_client')
         osc = clients.OpenStackClients()
         osc._neutron = None
         osc.neutron()
@@ -242,3 +241,51 @@ class TestClients(base.TestCase):
         neutron = osc.neutron()
         neutron_cached = osc.neutron()
         self.assertEqual(neutron, neutron_cached)
+
+    @mock.patch.object(monclient, 'Client')
+    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
+    def test_clients_monasca(self, mock_session, mock_call):
+        mock_session.return_value = mock.Mock(
+            get_endpoint=mock.Mock(return_value='test_endpoint'),
+            get_token=mock.Mock(return_value='test_token'),)
+
+        self._register_watcher_clients_auth_opts()
+
+        osc = clients.OpenStackClients()
+        osc._monasca = None
+        osc.monasca()
+        mock_call.assert_called_once_with(
+            CONF.monasca_client.api_version,
+            'test_endpoint',
+            auth_url='http://server.ip:35357', cert_file=None, insecure=False,
+            key_file=None, keystone_timeout=None, os_cacert=None,
+            password='foopassword', service_type='monitoring',
+            token='test_token', username='foousername')
+
+    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
+    def test_clients_monasca_diff_vers(self, mock_session):
+        mock_session.return_value = mock.Mock(
+            get_endpoint=mock.Mock(return_value='test_endpoint'),
+            get_token=mock.Mock(return_value='test_token'),)
+
+        self._register_watcher_clients_auth_opts()
+
+        CONF.set_override('api_version', '2_0', group='monasca_client')
+        osc = clients.OpenStackClients()
+        osc._monasca = None
+        osc.monasca()
+        self.assertEqual(monclient_v2.Client, type(osc.monasca()))
+
+    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
+    def test_clients_monasca_cached(self, mock_session):
+        mock_session.return_value = mock.Mock(
+            get_endpoint=mock.Mock(return_value='test_endpoint'),
+            get_token=mock.Mock(return_value='test_token'),)
+
+        self._register_watcher_clients_auth_opts()
+
+        osc = clients.OpenStackClients()
+        osc._monasca = None
+        monasca = osc.monasca()
+        monasca_cached = osc.monasca()
+        self.assertEqual(monasca, monasca_cached)

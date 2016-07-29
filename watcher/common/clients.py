@@ -15,9 +15,9 @@ from cinderclient import client as ciclient
 from glanceclient import client as glclient
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
+from monascaclient import client as monclient
 from neutronclient.neutron import client as netclient
 from novaclient import client as nvclient
-from oslo_config import cfg
 
 from watcher.common import exception
 
@@ -41,12 +41,13 @@ class OpenStackClients(object):
         self._glance = None
         self._cinder = None
         self._ceilometer = None
+        self._monasca = None
         self._neutron = None
 
     def _get_keystone_session(self):
-        auth = ka_loading.load_auth_from_conf_options(cfg.CONF,
+        auth = ka_loading.load_auth_from_conf_options(CONF,
                                                       _CLIENTS_AUTH_GROUP)
-        sess = ka_loading.load_session_from_conf_options(cfg.CONF,
+        sess = ka_loading.load_session_from_conf_options(CONF,
                                                          _CLIENTS_AUTH_GROUP,
                                                          auth=auth)
         return sess
@@ -62,7 +63,7 @@ class OpenStackClients(object):
         return self._session
 
     def _get_client_option(self, client, option):
-        return getattr(getattr(cfg.CONF, '%s_client' % client), option)
+        return getattr(getattr(CONF, '%s_client' % client), option)
 
     @exception.wrap_keystone_exception
     def keystone(self):
@@ -111,6 +112,35 @@ class OpenStackClients(object):
         self._ceilometer = ceclient.get_client(ceilometerclient_version,
                                                session=self.session)
         return self._ceilometer
+
+    @exception.wrap_keystone_exception
+    def monasca(self):
+        if self._monasca:
+            return self._monasca
+
+        monascaclient_version = self._get_client_option(
+            'monasca', 'api_version')
+        token = self.session.get_token()
+        watcher_clients_auth_config = CONF.get(_CLIENTS_AUTH_GROUP)
+        service_type = 'monitoring'
+        monasca_kwargs = {
+            'auth_url': watcher_clients_auth_config.auth_url,
+            'cert_file': watcher_clients_auth_config.certfile,
+            'insecure': watcher_clients_auth_config.insecure,
+            'key_file': watcher_clients_auth_config.keyfile,
+            'keystone_timeout': watcher_clients_auth_config.timeout,
+            'os_cacert': watcher_clients_auth_config.cafile,
+            'service_type': service_type,
+            'token': token,
+            'username': watcher_clients_auth_config.username,
+            'password': watcher_clients_auth_config.password,
+        }
+        endpoint = self.session.get_endpoint(service_type=service_type)
+
+        self._monasca = monclient.Client(
+            monascaclient_version, endpoint, **monasca_kwargs)
+
+        return self._monasca
 
     @exception.wrap_keystone_exception
     def neutron(self):

@@ -58,8 +58,7 @@ import six
 
 from watcher._i18n import _, _LE, _LI
 from watcher.common import exception
-from watcher.decision_engine.cluster.history import ceilometer \
-    as ceilometer_cluster_history
+from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -91,8 +90,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = (ceilometer_cluster_history.
-                                CeilometerClusterHistory(osc=self.osc))
+            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
