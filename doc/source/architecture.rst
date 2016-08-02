@@ -176,29 +176,41 @@ associated :ref:`Audit Template <audit_template_definition>` and knows the
 :ref:`Goal <goal_definition>` to achieve.
 
 It then selects the most appropriate :ref:`Strategy <strategy_definition>`
-depending on how Watcher was configured for this :ref:`Goal <goal_definition>`.
+from the list of available strategies achieving this goal.
 
 The :ref:`Strategy <strategy_definition>` is then dynamically loaded (via
-`stevedore <https://github.com/openstack/stevedore/>`_). The
-:ref:`Watcher Decision Engine <watcher_decision_engine_definition>` calls the
-**execute()** method of the :ref:`Strategy <strategy_definition>` class which
-generates a solution composed of a set of :ref:`Actions <action_definition>`.
+`stevedore <http://docs.openstack.org/developer/stevedore/>`_). The
+:ref:`Watcher Decision Engine <watcher_decision_engine_definition>` executes
+the strategy.
+
+In order to compute the potential :ref:`Solution <solution_definition>` for the
+Audit, the :ref:`Strategy <strategy_definition>` relies on different sets of
+data:
+
+- :ref:`Cluster data models <cluster_data_model_definition>` that are
+  periodically synchronized through pluggable cluster data model collectors.
+  These models contain the current state of various
+  :ref:`Managed resources <managed_resource_definition>` (e.g., the data stored
+  in the Nova database). These models gives a strategy the ability to reason on
+  the current state of a given :ref:`cluster <cluster_definition>`.
+- The data stored in the :ref:`Cluster History Database
+  <cluster_history_db_definition>` which provides information about the past of
+  the :ref:`Cluster <cluster_definition>`.
+
+Here below is a sequence diagram showing how the Decision Engine builds and
+maintains the :ref:`cluster data models <cluster_data_model_definition>` that
+are used by the strategies.
+
+.. image:: ./images/sequence_architecture_cdmc_sync.png
+   :width: 100%
+
+The execution of a strategy then yields a solution composed of a set of
+:ref:`Actions <action_definition>` as well as a set of :ref:`efficacy
+indicators <efficacy_indicator_definition>`.
 
 These :ref:`Actions <action_definition>` are scheduled in time by the
 :ref:`Watcher Planner <watcher_planner_definition>` (i.e., it generates an
 :ref:`Action Plan <action_plan_definition>`).
-
-In order to compute the potential :ref:`Solution <solution_definition>` for the
-Audit, the :ref:`Strategy <strategy_definition>` relies on two sets of data:
-
--   the current state of the
-    :ref:`Managed resources <managed_resource_definition>`
-    (e.g., the data stored in the Nova database)
--   the data stored in the
-    :ref:`Cluster History Database <cluster_history_db_definition>`
-    which provides information about the past of the
-    :ref:`Cluster <cluster_definition>`
-
 
 .. _data_model:
 
@@ -216,8 +228,6 @@ Here below is a diagram representing the main objects in Watcher from a
 database perspective:
 
 .. image:: ./images/watcher_db_schema_diagram.png
-   :width: 100%
-
 
 
 .. _sequence_diagrams:

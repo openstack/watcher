@@ -91,8 +91,10 @@ tune the planner to its needs. To do so, you can implement the
             assert self.config.test_opt == 0
             # [...]
 
-        def get_config_opts(self):
-            return [
+        @classmethod
+        def get_config_opts(cls):
+            return super(
+                DummyPlanner, cls).get_config_opts() + [
                 cfg.StrOpt('test_opt', help="Demo Option.", default=0),
                 # Some more options ...
             ]

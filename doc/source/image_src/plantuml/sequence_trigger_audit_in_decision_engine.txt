@@ -10,45 +10,41 @@ activate "Decision Engine"
 "AMQP Bus" <[#blue]- "Decision Engine" : notify new audit state = ONGOING
 "Decision Engine" -> "Database" : get audit parameters (goal, strategy, ...)
 "Decision Engine" <-- "Database" : audit parameters (goal, strategy, ...)
-"Decision Engine" --> "Decision Engine": select appropriate \
-optimization strategy (via the Strategy Selector)
+"Decision Engine" --> "Decision Engine"\
+: select appropriate optimization strategy (via the Strategy Selector)
 create Strategy
-"Decision Engine" -> "Strategy" : execute()
+"Decision Engine" -> "Strategy" : execute strategy
 activate "Strategy"
-create "Cluster Data Model Collector"
-"Strategy" -> "Cluster Data Model Collector" : get cluster data model
-
-activate "Cluster Data Model Collector"
-    loop while enough data to build cluster data model
-      "Cluster Data Model Collector" -> "Nova API" : get resource state (\
-host, instance, ...)
-      "Cluster Data Model Collector" <-- "Nova API" : resource state
+    "Strategy" -> "Cluster Data Model Collector" : get cluster data model
+    "Cluster Data Model Collector" --> "Strategy"\
+    : copy of the in-memory cluster data model
+    loop while enough history data for the strategy
+        "Strategy" -> "Ceilometer API" : get necessary metrics
+        "Strategy" <-- "Ceilometer API" : aggregated metrics
     end
-"Cluster Data Model Collector" -> "Strategy" : cluster data model
-deactivate "Cluster Data Model Collector"
-
-loop while enough history data for the strategy
-    "Strategy" -> "Ceilometer API": get necessary metrics
-    "Strategy" <-- "Ceilometer API": aggregated metrics
-end
-"Strategy" -> "Strategy" : compute/set needed actions for the solution \
-so it achieves its goal
-"Strategy" -> "Strategy" : compute/set efficacy indicators for the solution
-"Strategy" -> "Strategy" : compute/set the solution global efficacy
-"Decision Engine" <-- "Strategy" : solution (contains a list of unordered \
-actions alongside its efficacy indicators as well as its global efficacy)
+    "Strategy" -> "Strategy"\
+    : compute/set needed actions for the solution so it achieves its goal
+    "Strategy" -> "Strategy" : compute/set efficacy indicators for the solution
+    "Strategy" -> "Strategy" : compute/set the solution global efficacy
+    "Decision Engine" <-- "Strategy"\
+    : solution (unordered actions, efficacy indicators and global efficacy)
 deactivate "Strategy"
 
-"Decision Engine" --> "Planner": load actions scheduler (i.e. Planner plugin)
 create "Planner"
-"Decision Engine" -> "Planner": schedule()
-"Planner" -> "Planner": schedule actions according to \
-scheduling rules/policies
-"Decision Engine" <-- "Planner": new action plan
+"Decision Engine" -> "Planner" : load actions scheduler
+"Planner" --> "Decision Engine" : planner plugin
+"Decision Engine" -> "Planner" : schedule actions
+activate "Planner"
+    "Planner" -> "Planner"\
+    : schedule actions according to scheduling rules/policies
+    "Decision Engine" <-- "Planner" : new action plan
+deactivate "Planner"
 "Decision Engine" -> "Database" : save new action plan in database
 "Decision Engine" -> "Database" : update audit.state = SUCCEEDED
 "AMQP Bus" <[#blue]- "Decision Engine" : notify new audit state = SUCCEEDED
 
 deactivate "Decision Engine"
+
+hnote over "Decision Engine" : Idle
 
 @enduml
