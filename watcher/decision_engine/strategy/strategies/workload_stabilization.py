@@ -171,9 +171,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :return: dict
         """
         LOG.debug('get_vm_load started')
-        vm_vcpus = self.model.get_resource_from_id(
+        vm_vcpus = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(
-                self.model.get_vm_from_id(vm_uuid))
+                self.compute_model.get_vm_from_id(vm_uuid))
         vm_load = {'uuid': vm_uuid, 'vcpus': vm_vcpus}
         for meter in self.metrics:
             avg_meter = self.ceilometer.statistic_aggregation(
@@ -192,9 +192,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_hosts = deepcopy(hosts)
         for host in normalized_hosts:
             if 'memory.resident' in normalized_hosts[host]:
-                h_memory = self.model.get_resource_from_id(
+                h_memory = self.compute_model.get_resource_from_id(
                     resource.ResourceType.memory).get_capacity(
-                        self.model.get_hypervisor_from_id(host))
+                        self.compute_model.get_hypervisor_from_id(host))
                 normalized_hosts[host]['memory.resident'] /= float(h_memory)
 
         return normalized_hosts
@@ -202,11 +202,11 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def get_hosts_load(self):
         """Get load of every host by gathering vms load"""
         hosts_load = {}
-        for hypervisor_id in self.model.get_all_hypervisors():
+        for hypervisor_id in self.compute_model.get_all_hypervisors():
             hosts_load[hypervisor_id] = {}
-            host_vcpus = self.model.get_resource_from_id(
+            host_vcpus = self.compute_model.get_resource_from_id(
                 resource.ResourceType.cpu_cores).get_capacity(
-                    self.model.get_hypervisor_from_id(hypervisor_id))
+                    self.compute_model.get_hypervisor_from_id(hypervisor_id))
             hosts_load[hypervisor_id]['vcpus'] = host_vcpus
 
             for metric in self.metrics:
@@ -297,15 +297,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     yield hypervisors
 
         vm_host_map = []
-        for source_hp_id in self.model.get_all_hypervisors():
-            hypervisors = list(self.model.get_all_hypervisors())
+        for source_hp_id in self.compute_model.get_all_hypervisors():
+            hypervisors = list(self.compute_model.get_all_hypervisors())
             hypervisors.remove(source_hp_id)
             hypervisor_list = yield_hypervisors(hypervisors)
-            vms_id = self.model.get_mapping(). \
+            vms_id = self.compute_model.get_mapping(). \
                 get_node_vms_from_id(source_hp_id)
             for vm_id in vms_id:
                 min_sd_case = {'value': len(self.metrics)}
-                vm = self.model.get_vm_from_id(vm_id)
+                vm = self.compute_model.get_vm_from_id(vm_id)
                 if vm.state not in [vm_state.VMState.ACTIVE.value,
                                     vm_state.VMState.PAUSED.value]:
                     continue
@@ -347,27 +347,29 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def create_migration_vm(self, mig_vm, mig_src_hypervisor,
                             mig_dst_hypervisor):
         """Create migration VM """
-        if self.model.get_mapping().migrate_vm(
+        if self.compute_model.get_mapping().migrate_vm(
                 mig_vm, mig_src_hypervisor, mig_dst_hypervisor):
             self.add_migration(mig_vm.uuid, 'live',
                                mig_src_hypervisor.uuid,
                                mig_dst_hypervisor.uuid)
 
     def migrate(self, vm_uuid, src_host, dst_host):
-        mig_vm = self.model.get_vm_from_id(vm_uuid)
-        mig_src_hypervisor = self.model.get_hypervisor_from_id(src_host)
-        mig_dst_hypervisor = self.model.get_hypervisor_from_id(dst_host)
+        mig_vm = self.compute_model.get_vm_from_id(vm_uuid)
+        mig_src_hypervisor = self.compute_model.get_hypervisor_from_id(
+            src_host)
+        mig_dst_hypervisor = self.compute_model.get_hypervisor_from_id(
+            dst_host)
         self.create_migration_vm(mig_vm, mig_src_hypervisor,
                                  mig_dst_hypervisor)
 
     def fill_solution(self):
-        self.solution.model = self.model
+        self.solution.model = self.compute_model
         return self.solution
 
     def pre_execute(self):
         LOG.info(_LI("Initializing Workload Stabilization"))
 
-        if self.model is None:
+        if self.compute_model is None:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -377,12 +379,13 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             min_sd = 1
             balanced = False
             for vm_host in migration:
-                dst_hp_disk = self.model.get_resource_from_id(
+                dst_hp_disk = self.compute_model.get_resource_from_id(
                     resource.ResourceType.disk).get_capacity(
-                        self.model.get_hypervisor_from_id(vm_host['host']))
-                vm_disk = self.model.get_resource_from_id(
+                        self.compute_model.get_hypervisor_from_id(
+                            vm_host['host']))
+                vm_disk = self.compute_model.get_resource_from_id(
                     resource.ResourceType.disk).get_capacity(
-                        self.model.get_vm_from_id(vm_host['vm']))
+                        self.compute_model.get_vm_from_id(vm_host['vm']))
                 if vm_disk > dst_hp_disk:
                     continue
                 vm_load = self.calculate_migration_case(hosts_load,

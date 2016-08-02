@@ -155,16 +155,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         total_cores = 0
         total_disk = 0
         total_mem = 0
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
-        disk_capacity = self.model.get_resource_from_id(
+        disk_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.disk)
-        memory_capacity = self.model.get_resource_from_id(
+        memory_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.memory)
 
-        for vm_id in self.model. \
+        for vm_id in self.compute_model. \
                 get_mapping().get_node_vms(dest_hypervisor):
-            vm = self.model.get_vm_from_id(vm_id)
+            vm = self.compute_model.get_vm_from_id(vm_id)
             total_cores += cpu_capacity.get_capacity(vm)
             total_disk += disk_capacity.get_capacity(vm)
             total_mem += memory_capacity.get_capacity(vm)
@@ -191,11 +191,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param total_mem: total memory used by the virtual machine
         :return: True if the threshold is not exceed
         """
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(dest_hypervisor)
-        disk_capacity = self.model.get_resource_from_id(
+        disk_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.disk).get_capacity(dest_hypervisor)
-        memory_capacity = self.model.get_resource_from_id(
+        memory_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.memory).get_capacity(dest_hypervisor)
 
         return (cpu_capacity >= total_cores * self.threshold_cores and
@@ -222,13 +222,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param total_memory_used:
         :return:
         """
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(element)
 
-        disk_capacity = self.model.get_resource_from_id(
+        disk_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.disk).get_capacity(element)
 
-        memory_capacity = self.model.get_resource_from_id(
+        memory_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.memory).get_capacity(element)
 
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
@@ -269,7 +269,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             )
             host_avg_cpu_util = 100
 
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(hypervisor)
 
         total_cores_used = cpu_capacity * (host_avg_cpu_util / 100)
@@ -292,7 +292,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """Calculate Score of virtual machine
 
         :param vm: the virtual machine
-        :param self.model: the cluster model
         :return: score
         """
         vm_cpu_utilization = self.ceilometer. \
@@ -311,7 +310,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             )
             vm_cpu_utilization = 100
 
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores).get_capacity(vm)
 
         total_cores_used = cpu_capacity * (vm_cpu_utilization / 100.0)
@@ -338,10 +337,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def score_of_nodes(self, score):
         """Calculate score of nodes based on load by VMs"""
-        for hypervisor_id in self.model.get_all_hypervisors():
-            hypervisor = self.model. \
+        for hypervisor_id in self.compute_model.get_all_hypervisors():
+            hypervisor = self.compute_model. \
                 get_hypervisor_from_id(hypervisor_id)
-            count = self.model.get_mapping(). \
+            count = self.compute_model.get_mapping(). \
                 get_node_vms_from_id(hypervisor_id)
             if len(count) > 0:
                 result = self.calculate_score_node(hypervisor)
@@ -355,12 +354,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def node_and_vm_score(self, sorted_score, score):
         """Get List of VMs from node"""
         node_to_release = sorted_score[len(score) - 1][0]
-        vms_to_mig = self.model.get_mapping().get_node_vms_from_id(
+        vms_to_mig = self.compute_model.get_mapping().get_node_vms_from_id(
             node_to_release)
 
         vm_score = []
         for vm_id in vms_to_mig:
-            vm = self.model.get_vm_from_id(vm_id)
+            vm = self.compute_model.get_vm_from_id(vm_id)
             if vm.state == vm_state.VMState.ACTIVE.value:
                 vm_score.append(
                     (vm_id, self.calculate_score_vm(vm)))
@@ -370,13 +369,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def create_migration_vm(self, mig_vm, mig_src_hypervisor,
                             mig_dst_hypervisor):
         """Create migration VM"""
-        if self.model.get_mapping().migrate_vm(
+        if self.compute_model.get_mapping().migrate_vm(
                 mig_vm, mig_src_hypervisor, mig_dst_hypervisor):
             self.add_migration(mig_vm.uuid, 'live',
                                mig_src_hypervisor.uuid,
                                mig_dst_hypervisor.uuid)
 
-        if len(self.model.get_mapping().get_node_vms(
+        if len(self.compute_model.get_mapping().get_node_vms(
                 mig_src_hypervisor)) == 0:
             self.add_change_service_state(mig_src_hypervisor.
                                           uuid,
@@ -389,10 +388,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         number_migrations = 0
         for vm in sorted_vms:
             for j in range(0, len(sorted_score)):
-                mig_vm = self.model.get_vm_from_id(vm[0])
-                mig_src_hypervisor = self.model.get_hypervisor_from_id(
+                mig_vm = self.compute_model.get_vm_from_id(vm[0])
+                mig_src_hypervisor = self.compute_model.get_hypervisor_from_id(
                     node_to_release)
-                mig_dst_hypervisor = self.model.get_hypervisor_from_id(
+                mig_dst_hypervisor = self.compute_model.get_hypervisor_from_id(
                     sorted_score[j][0])
 
                 result = self.check_migration(
@@ -414,7 +413,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def pre_execute(self):
         LOG.info(_LI("Initializing Sercon Consolidation"))
-        if self.model is None:
+        if self.compute_model is None:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -423,15 +422,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         unsuccessful_migration = 0
 
         first_migration = True
-        size_cluster = len(self.model.get_all_hypervisors())
+        size_cluster = len(self.compute_model.get_all_hypervisors())
         if size_cluster == 0:
             raise exception.ClusterEmpty()
 
         self.compute_attempts(size_cluster)
 
-        for hypervisor_id in self.model.get_all_hypervisors():
-            hypervisor = self.model.get_hypervisor_from_id(hypervisor_id)
-            count = self.model.get_mapping(). \
+        for hypervisor_id in self.compute_model.get_all_hypervisors():
+            hypervisor = self.compute_model.get_hypervisor_from_id(
+                hypervisor_id)
+            count = self.compute_model.get_mapping(). \
                 get_node_vms_from_id(hypervisor_id)
             if len(count) == 0:
                 if hypervisor.state == hyper_state.HypervisorState.ENABLED:

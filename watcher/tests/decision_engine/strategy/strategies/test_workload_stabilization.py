@@ -47,7 +47,7 @@ class TestWorkloadStabilization(base.BaseTestCase):
             'Node_4': {'cpu_util': 0.02, 'memory.resident': 4, 'vcpus': 40}}
 
         p_model = mock.patch.object(
-            strategies.WorkloadStabilization, "model",
+            strategies.WorkloadStabilization, "compute_model",
             new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)

@@ -125,13 +125,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def calc_used_res(self, hypervisor, cpu_capacity,
                       memory_capacity, disk_capacity):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        vms = self.model.get_mapping().get_node_vms(hypervisor)
+        vms = self.compute_model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         if len(vms) > 0:
             for vm_id in vms:
-                vm = self.model.get_vm_from_id(vm_id)
+                vm = self.compute_model.get_vm_from_id(vm_id)
                 vcpus_used += cpu_capacity.get_capacity(vm)
                 memory_mb_used += memory_capacity.get_capacity(vm)
                 disk_gb_used += disk_capacity.get_capacity(vm)
@@ -140,7 +140,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     def group_hosts_by_outlet_temp(self):
         """Group hosts based on outlet temp meters"""
-        hypervisors = self.model.get_all_hypervisors()
+        hypervisors = self.compute_model.get_all_hypervisors()
         size_cluster = len(hypervisors)
         if size_cluster == 0:
             raise wexc.ClusterEmpty()
@@ -148,7 +148,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         hosts_need_release = []
         hosts_target = []
         for hypervisor_id in hypervisors:
-            hypervisor = self.model.get_hypervisor_from_id(
+            hypervisor = self.compute_model.get_hypervisor_from_id(
                 hypervisor_id)
             resource_id = hypervisor.uuid
 
@@ -175,13 +175,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         """Pick up an active vm instance to migrate from provided hosts"""
         for hvmap in hosts:
             mig_src_hypervisor = hvmap['hv']
-            vms_of_src = self.model.get_mapping().get_node_vms(
+            vms_of_src = self.compute_model.get_mapping().get_node_vms(
                 mig_src_hypervisor)
             if len(vms_of_src) > 0:
                 for vm_id in vms_of_src:
                     try:
                         # select the first active VM to migrate
-                        vm = self.model.get_vm_from_id(vm_id)
+                        vm = self.compute_model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.info(_LI("VM not active, skipped: %s"),
                                      vm.uuid)
@@ -195,11 +195,11 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     def filter_dest_servers(self, hosts, vm_to_migrate):
         """Only return hosts with sufficient available resources"""
-        cpu_capacity = self.model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
-        disk_capacity = self.model.get_resource_from_id(
+        disk_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.disk)
-        memory_capacity = self.model.get_resource_from_id(
+        memory_capacity = self.compute_model.get_resource_from_id(
             resource.ResourceType.memory)
 
         required_cores = cpu_capacity.get_capacity(vm_to_migrate)
@@ -226,7 +226,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def pre_execute(self):
         LOG.debug("Initializing Outlet temperature strategy")
 
-        if self.model is None:
+        if self.compute_model is None:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -270,7 +270,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         # always use the host with lowerest outlet temperature
         mig_dst_hypervisor = dest_servers[0]['hv']
         # generate solution to migrate the vm to the dest server,
-        if self.model.get_mapping().migrate_vm(
+        if self.compute_model.get_mapping().migrate_vm(
                 vm_src, mig_src_hypervisor, mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
                           'src_hypervisor': mig_src_hypervisor.uuid,
@@ -280,5 +280,5 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                                      input_parameters=parameters)
 
     def post_execute(self):
-        self.solution.model = self.model
+        self.solution.model = self.compute_model
         # TODO(v-francoise): Add the indicators to the solution

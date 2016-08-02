@@ -108,12 +108,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        vms = self.model.get_mapping().get_node_vms(hypervisor)
+        vms = self.compute_model.get_mapping().get_node_vms(hypervisor)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for vm_id in vms:
-            vm = self.model.get_vm_from_id(vm_id)
+            vm = self.compute_model.get_vm_from_id(vm_id)
             vcpus_used += cap_cores.get_capacity(vm)
             memory_mb_used += cap_mem.get_capacity(vm)
             disk_gb_used += cap_disk.get_capacity(vm)
@@ -129,7 +129,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         """
         for hvmap in hosts:
             source_hypervisor = hvmap['hv']
-            source_vms = self.model.get_mapping().get_node_vms(
+            source_vms = self.compute_model.get_mapping().get_node_vms(
                 source_hypervisor)
             if source_vms:
                 delta_workload = hvmap['workload'] - avg_workload
@@ -138,7 +138,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 for vm_id in source_vms:
                     try:
                         # select the first active VM to migrate
-                        vm = self.model.get_vm_from_id(vm_id)
+                        vm = self.compute_model.get_vm_from_id(vm_id)
                         if vm.state != vm_state.VMState.ACTIVE.value:
                             LOG.debug("VM not active; skipped: %s",
                                       vm.uuid)
@@ -150,8 +150,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     except wexc.InstanceNotFound:
                         LOG.error(_LE("VM not found; error: %s"), vm_id)
                 if instance_id:
-                    return source_hypervisor, self.model.get_vm_from_id(
-                        instance_id)
+                    return (source_hypervisor,
+                            self.compute_model.get_vm_from_id(instance_id))
             else:
                 LOG.info(_LI("VM not found on hypervisor: %s"),
                          source_hypervisor.uuid)
@@ -160,10 +160,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                                  avg_workload, workload_cache):
         '''Only return hosts with sufficient available resources'''
 
-        cap_cores = self.model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
-        cap_disk = self.model.get_resource_from_id(resource.ResourceType.disk)
-        cap_mem = self.model.get_resource_from_id(resource.ResourceType.memory)
+        cap_disk = self.compute_model.get_resource_from_id(
+            resource.ResourceType.disk)
+        cap_mem = self.compute_model.get_resource_from_id(
+            resource.ResourceType.memory)
 
         required_cores = cap_cores.get_capacity(vm_to_migrate)
         required_disk = cap_disk.get_capacity(vm_to_migrate)
@@ -201,12 +203,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         and also generate the VM workload map.
         """
 
-        hypervisors = self.model.get_all_hypervisors()
+        hypervisors = self.compute_model.get_all_hypervisors()
         cluster_size = len(hypervisors)
         if not hypervisors:
             raise wexc.ClusterEmpty()
         # get cpu cores capacity of hypervisors and vms
-        cap_cores = self.model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_from_id(
             resource.ResourceType.cpu_cores)
         overload_hosts = []
         nonoverload_hosts = []
@@ -216,11 +218,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # use workload_cache to store the workload of VMs for reuse purpose
         workload_cache = {}
         for hypervisor_id in hypervisors:
-            hypervisor = self.model.get_hypervisor_from_id(hypervisor_id)
-            vms = self.model.get_mapping().get_node_vms(hypervisor)
+            hypervisor = self.compute_model.get_hypervisor_from_id(
+                hypervisor_id)
+            vms = self.compute_model.get_mapping().get_node_vms(hypervisor)
             hypervisor_workload = 0.0
             for vm_id in vms:
-                vm = self.model.get_vm_from_id(vm_id)
+                vm = self.compute_model.get_vm_from_id(vm_id)
                 try:
                     cpu_util = self.ceilometer.statistic_aggregation(
                         resource_id=vm_id,
@@ -262,7 +265,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         """
         LOG.info(_LI("Initializing Workload Balance Strategy"))
 
-        if self.model is None:
+        if self.compute_model is None:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
@@ -308,9 +311,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                                    key=lambda x: (x["cpu_util"]))
         # always use the host with lowerest CPU utilization
         mig_dst_hypervisor = destination_hosts[0]['hv']
-        # generate solution to migrate the vm to the dest server
-        if self.model.get_mapping().migrate_vm(vm_src, source_hypervisor,
-                                               mig_dst_hypervisor):
+        # generate solution to migrate the vm to the dest server,
+        if self.compute_model.get_mapping().migrate_vm(
+                vm_src, source_hypervisor, mig_dst_hypervisor):
             parameters = {'migration_type': 'live',
                           'src_hypervisor': source_hypervisor.uuid,
                           'dst_hypervisor': mig_dst_hypervisor.uuid}
@@ -323,4 +326,4 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         This can be used to compute the global efficacy
         """
-        self.solution.model = self.model
+        self.solution.model = self.compute_model

@@ -36,7 +36,7 @@ class TestStrategyContext(base.DbTestCase):
 
     strategy_context = d_strategy_ctx.DefaultStrategyContext()
 
-    @mock.patch.object(strategies.DummyStrategy, 'model',
+    @mock.patch.object(strategies.DummyStrategy, 'compute_model',
                        new_callable=mock.PropertyMock)
     @mock.patch.object(d_selector.DefaultStrategySelector, 'select')
     def test_execute_strategy(self, mock_call, m_model):

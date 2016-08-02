@@ -15,10 +15,10 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from oslo_log import log
 
+from watcher.common import nova_helper
 from watcher.decision_engine.model import hypervisor as obj_hypervisor
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
@@ -28,23 +28,36 @@ from watcher.metrics_engine.cluster_model_collector import base
 LOG = log.getLogger(__name__)
 
 
-class NovaClusterModelCollector(base.BaseClusterModelCollector):
-    def __init__(self, wrapper):
-        super(NovaClusterModelCollector, self).__init__()
-        self.wrapper = wrapper
+class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
+    """nova
 
-    def get_latest_cluster_data_model(self):
-        LOG.debug("Getting latest cluster data model")
+    *Description*
 
-        cluster = model_root.ModelRoot()
+    This Nova cluster data model collector creates an in-memory representation
+    of the resources exposed by the compute service.
+
+    *Spec URL*
+
+    <None>
+    """
+
+    def __init__(self, config, osc=None):
+        super(NovaClusterDataModelCollector, self).__init__(config, osc)
+        self.wrapper = nova_helper.NovaHelper(osc=self.osc)
+
+    def execute(self):
+        """Build the compute cluster data model"""
+        LOG.debug("Building latest Nova cluster data model")
+
+        model = model_root.ModelRoot()
         mem = resource.Resource(resource.ResourceType.memory)
         num_cores = resource.Resource(resource.ResourceType.cpu_cores)
         disk = resource.Resource(resource.ResourceType.disk)
         disk_capacity = resource.Resource(resource.ResourceType.disk_capacity)
-        cluster.create_resource(mem)
-        cluster.create_resource(num_cores)
-        cluster.create_resource(disk)
-        cluster.create_resource(disk_capacity)
+        model.create_resource(mem)
+        model.create_resource(num_cores)
+        model.create_resource(disk)
+        model.create_resource(disk_capacity)
 
         flavor_cache = {}
         hypervisors = self.wrapper.get_hypervisors_list()
@@ -61,7 +74,7 @@ class NovaClusterModelCollector(base.BaseClusterModelCollector):
             num_cores.set_capacity(hypervisor, h.vcpus)
             hypervisor.state = h.state
             hypervisor.status = h.status
-            cluster.add_hypervisor(hypervisor)
+            model.add_hypervisor(hypervisor)
             vms = self.wrapper.get_vms_by_hypervisor(str(service.host))
             for v in vms:
                 # create VM in cluster_model_collector
@@ -76,6 +89,6 @@ class NovaClusterModelCollector(base.BaseClusterModelCollector):
                 disk.set_capacity(vm, v.flavor['disk'])
                 num_cores.set_capacity(vm, v.flavor['vcpus'])
 
-                cluster.get_mapping().map(hypervisor, vm)
-                cluster.add_vm(vm)
-        return cluster
+                model.get_mapping().map(hypervisor, vm)
+                model.add_vm(vm)
+        return model

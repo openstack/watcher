@@ -37,7 +37,7 @@ class SolutionFaker(object):
         metrics = fake.FakerMetricsCollector()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
         sercon = strategies.BasicConsolidation(config=mock.Mock())
-        sercon._model = current_state_cluster.generate_scenario_1()
+        sercon._compute_model = current_state_cluster.generate_scenario_1()
         sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
         return sercon.execute()
@@ -49,7 +49,7 @@ class SolutionFakerSingleHyp(object):
         metrics = fake.FakerMetricsCollector()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
         sercon = strategies.BasicConsolidation(config=mock.Mock())
-        sercon._model = (
+        sercon._compute_model = (
             current_state_cluster.generate_scenario_3_with_2_hypervisors())
         sercon.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)

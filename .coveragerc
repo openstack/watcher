@@ -1,7 +1,9 @@
 [run]
 branch = True
 source = watcher
-omit = watcher/tests/*
+omit =
+    watcher/tests/*
+    watcher/hacking/*
 
 [report]
 ignore_errors = True
