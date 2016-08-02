@@ -59,15 +59,9 @@ class TestStrategyContext(base.DbTestCase):
                                                   uuid=utils.generate_uuid(),
                                                   name="dummy")
 
-        audit_template = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=utils.generate_uuid(),
-            strategy_id=strategy.id,
-            name="my_template")
-
         audit = obj_utils.create_test_audit(
             self.context,
-            audit_template_id=audit_template.id,
+            strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )
 
@@ -92,15 +86,9 @@ class TestStrategyContext(base.DbTestCase):
                                                   uuid=utils.generate_uuid(),
                                                   name=expected_strategy)
 
-        audit_template = obj_utils.create_test_audit_template(
-            self.context,
-            uuid=utils.generate_uuid(),
-            strategy_id=strategy.id,
-            name="my_template")
-
         audit = obj_utils.create_test_audit(
             self.context,
-            audit_template_id=audit_template.id,
+            strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )
 

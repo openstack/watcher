@@ -57,12 +57,14 @@ def get_test_audit(**kwargs):
         'audit_type': kwargs.get('audit_type', 'ONESHOT'),
         'state': kwargs.get('state'),
         'deadline': kwargs.get('deadline'),
-        'audit_template_id': kwargs.get('audit_template_id', 1),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
         'parameters': kwargs.get('parameters', {}),
         'interval': kwargs.get('period', 3600),
+        'goal_id': kwargs.get('goal_id', 1),
+        'strategy_id': kwargs.get('strategy_id', None),
+        'host_aggregate': kwargs.get('host_aggregate', 1),
     }
 
 

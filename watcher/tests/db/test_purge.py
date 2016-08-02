@@ -143,14 +143,14 @@ class TestPurgeCommand(base.DbTestCase):
 
         with freezegun.freeze_time(self.expired_date):
             self.audit1 = obj_utils.create_test_audit(
-                self.context, audit_template_id=self.audit_template1.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                goal_id=self.goal1.id, strategy_id=self.strategy1.id)
             self.audit2 = obj_utils.create_test_audit(
-                self.context, audit_template_id=self.audit_template2.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                goal_id=self.goal2.id, strategy_id=self.strategy2.id)
             self.audit3 = obj_utils.create_test_audit(
-                self.context, audit_template_id=self.audit_template3.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                goal_id=self.goal3.id, strategy_id=self.strategy3.id)
             self.audit1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
@@ -316,11 +316,11 @@ class TestPurgeCommand(base.DbTestCase):
 
         m_destroy_audit_template.assert_called_once_with(
             self.audit_template1.uuid)
-        m_destroy_audit.assert_called_once_with(
+        m_destroy_audit.assert_called_with(
             self.audit1.uuid)
-        m_destroy_action_plan.assert_called_once_with(
+        m_destroy_action_plan.assert_called_with(
             self.action_plan1.uuid)
-        m_destroy_action.assert_called_once_with(
+        m_destroy_action.assert_called_with(
             self.action1.uuid)
 
     @mock.patch.object(dbapi.Connection, "destroy_action")
@@ -404,31 +404,22 @@ class TestPurgeCommand(base.DbTestCase):
     @mock.patch.object(dbapi.Connection, "destroy_audit_template")
     @mock.patch.object(dbapi.Connection, "destroy_strategy")
     @mock.patch.object(dbapi.Connection, "destroy_goal")
-    def test_purge_command_with_audit_template_ok(
+    def test_purge_command_with_strategy_uuid(
             self, m_destroy_goal, m_destroy_strategy,
             m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
-        self.cmd.orphans = False
-        self.cmd.uuid = self.audit_template1.uuid
+        self.cmd.exclude_orphans = False
+        self.cmd.uuid = self.strategy1.uuid
 
         with freezegun.freeze_time(self.fake_today):
             self.cmd.execute()
 
         self.assertEqual(m_destroy_goal.call_count, 0)
-        self.assertEqual(m_destroy_strategy.call_count, 0)
+        self.assertEqual(m_destroy_strategy.call_count, 1)
         self.assertEqual(m_destroy_audit_template.call_count, 1)
         self.assertEqual(m_destroy_audit.call_count, 1)
         self.assertEqual(m_destroy_action_plan.call_count, 1)
         self.assertEqual(m_destroy_action.call_count, 1)
-
-        m_destroy_audit_template.assert_called_once_with(
-            self.audit_template1.uuid)
-        m_destroy_audit.assert_called_once_with(
-            self.audit1.uuid)
-        m_destroy_action_plan.assert_called_once_with(
-            self.action_plan1.uuid)
-        m_destroy_action.assert_called_once_with(
-            self.action1.uuid)
 
     @mock.patch.object(dbapi.Connection, "destroy_action")
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")
@@ -440,7 +431,7 @@ class TestPurgeCommand(base.DbTestCase):
             self, m_destroy_goal, m_destroy_strategy,
             m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
-        self.cmd.orphans = False
+        self.cmd.exclude_orphans = True
         self.cmd.uuid = self.audit_template2.uuid
 
         with freezegun.freeze_time(self.fake_today):
@@ -463,7 +454,7 @@ class TestPurgeCommand(base.DbTestCase):
             self, m_destroy_goal, m_destroy_strategy,
             m_destroy_audit_template, m_destroy_audit,
             m_destroy_action_plan, m_destroy_action):
-        self.cmd.orphans = False
+        self.cmd.exclude_orphans = False
         self.cmd.uuid = self.audit_template3.uuid
 
         with freezegun.freeze_time(self.fake_today):

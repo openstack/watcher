@@ -151,8 +151,6 @@ class Action(base.APIBase):
 
         self.fields = []
         fields = list(objects.Action.fields)
-        # audit_template_uuid is not part of objects.Audit.fields
-        # because it's an API-only attribute.
         fields.append('action_plan_uuid')
         fields.append('next_uuid')
         for field in fields:

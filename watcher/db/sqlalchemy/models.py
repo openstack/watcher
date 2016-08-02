@@ -173,10 +173,11 @@ class Audit(Base):
     audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
     deadline = Column(DateTime, nullable=True)
-    audit_template_id = Column(Integer, ForeignKey('audit_templates.id'),
-                               nullable=False)
     parameters = Column(JSONEncodedDict, nullable=True)
     interval = Column(Integer, nullable=True)
+    host_aggregate = Column(Integer, nullable=True)
+    goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
+    strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
 
 
 class Action(Base):

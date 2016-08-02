@@ -33,23 +33,19 @@ class DefaultStrategyContext(base.BaseStrategyContext):
     def execute_strategy(self, audit_uuid, request_context):
         audit = objects.Audit.get_by_uuid(request_context, audit_uuid)
 
-        # Retrieve the Audit Template
-        audit_template = objects.AuditTemplate.get_by_id(
-            request_context, audit.audit_template_id)
-
         osc = clients.OpenStackClients()
-        # todo(jed) retrieve in audit_template parameters (threshold,...)
+        # todo(jed) retrieve in audit parameters (threshold,...)
         # todo(jed) create ActionPlan
 
-        goal = objects.Goal.get_by_id(request_context, audit_template.goal_id)
+        goal = objects.Goal.get_by_id(request_context, audit.goal_id)
 
-        # NOTE(jed56) In the audit_template object, the 'strategy_id' attribute
+        # NOTE(jed56) In the audit object, the 'strategy_id' attribute
         # is optional. If the admin wants to force the trigger of a Strategy
-        # it could specify the Strategy uuid in the Audit Template.
+        # it could specify the Strategy uuid in the Audit.
         strategy_name = None
-        if audit_template.strategy_id:
+        if audit.strategy_id:
             strategy = objects.Strategy.get_by_id(request_context,
-                                                  audit_template.strategy_id)
+                                                  audit.strategy_id)
             strategy_name = strategy.name
 
         strategy_selector = default.DefaultStrategySelector(

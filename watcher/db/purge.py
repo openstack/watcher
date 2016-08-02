@@ -145,27 +145,27 @@ class PurgeCommand(object):
         return expiry_date
 
     @classmethod
-    def get_audit_template_uuid(cls, uuid_or_name):
+    def get_goal_uuid(cls, uuid_or_name):
         if uuid_or_name is None:
             return
 
         query_func = None
         if not utils.is_uuid_like(uuid_or_name):
-            query_func = objects.AuditTemplate.get_by_name
+            query_func = objects.Goal.get_by_name
         else:
-            query_func = objects.AuditTemplate.get_by_uuid
+            query_func = objects.Goal.get_by_uuid
 
         try:
-            audit_template = query_func(cls.ctx, uuid_or_name)
+            goal = query_func(cls.ctx, uuid_or_name)
         except Exception as exc:
             LOG.exception(exc)
-            raise exception.AuditTemplateNotFound(audit_template=uuid_or_name)
+            raise exception.GoalNotFound(goal=uuid_or_name)
 
-        if not audit_template.deleted_at:
+        if not goal.deleted_at:
             raise exception.NotSoftDeletedStateError(
-                name=_('Audit Template'), id=uuid_or_name)
+                name=_('Goal'), id=uuid_or_name)
 
-        return audit_template.uuid
+        return goal.uuid
 
     def _find_goals(self, filters=None):
         return objects.Goal.list(self.ctx, filters=filters)
@@ -209,11 +209,11 @@ class PurgeCommand(object):
             (audit_template.strategy_id and
              audit_template.strategy_id not in strategy_ids)]
 
-        audit_template_ids = [at.id for at in audit_templates
-                              if at not in orphans.audit_templates]
         orphans.audits = [
             audit for audit in audits
-            if audit.audit_template_id not in audit_template_ids]
+            if audit.goal_id not in goal_ids or
+            (audit.strategy_id and
+             audit.strategy_id not in strategy_ids)]
 
         # Objects with orphan parents are themselves orphans
         audit_ids = [audit.id for audit in audits
@@ -270,6 +270,7 @@ class PurgeCommand(object):
             related_objs = WatcherObjectsMap()
             related_objs.strategies = self._find_strategies(filters)
             related_objs.audit_templates = self._find_audit_templates(filters)
+            related_objs.audits = self._find_audits(filters)
             objects_map += related_objs
 
         for strategy in objects_map.strategies:
@@ -278,13 +279,6 @@ class PurgeCommand(object):
             filters.update(dict(strategy_id=strategy.id))
             related_objs = WatcherObjectsMap()
             related_objs.audit_templates = self._find_audit_templates(filters)
-            objects_map += related_objs
-
-        for audit_template in objects_map.audit_templates:
-            filters = {}
-            filters.update(base_filters)
-            filters.update(dict(audit_template_id=audit_template.id))
-            related_objs = WatcherObjectsMap()
             related_objs.audits = self._find_audits(filters)
             objects_map += related_objs
 
@@ -355,12 +349,9 @@ class PurgeCommand(object):
             ]
 
             # audits
-            audit_template_ids = [
-                audit_template.id
-                for audit_template in related_objs.audit_templates]
             related_objs.audits = [
                 audit for audit in self._objects_map.audits
-                if audit.audit_template_id in audit_template_ids
+                if audit.goal_id in goal_ids
             ]
 
             # action plans
@@ -443,7 +434,7 @@ class PurgeCommand(object):
         LOG.info(_LI("Purge process completed"))
 
 
-def purge(age_in_days, max_number, audit_template, exclude_orphans, dry_run):
+def purge(age_in_days, max_number, goal, exclude_orphans, dry_run):
     """Removes soft deleted objects from the database
 
     :param age_in_days: Number of days since deletion (from today)
@@ -452,8 +443,8 @@ def purge(age_in_days, max_number, audit_template, exclude_orphans, dry_run):
     :param max_number: Max number of objects expected to be deleted.
                   Prevents the deletion if exceeded. No limit if set to None.
     :type max_number: int
-    :param audit_template: UUID or name of the audit template to purge.
-    :type audit_template: str
+    :param goal: UUID or name of the goal to purge.
+    :type goal: str
     :param exclude_orphans: Flag to indicate whether or not you want to
                             exclude orphans from deletion (default: False).
     :type exclude_orphans: bool
@@ -467,11 +458,11 @@ def purge(age_in_days, max_number, audit_template, exclude_orphans, dry_run):
 
         LOG.info(_LI("[options] age_in_days = %s"), age_in_days)
         LOG.info(_LI("[options] max_number = %s"), max_number)
-        LOG.info(_LI("[options] audit_template = %s"), audit_template)
+        LOG.info(_LI("[options] goal = %s"), goal)
         LOG.info(_LI("[options] exclude_orphans = %s"), exclude_orphans)
         LOG.info(_LI("[options] dry_run = %s"), dry_run)
 
-        uuid = PurgeCommand.get_audit_template_uuid(audit_template)
+        uuid = PurgeCommand.get_goal_uuid(goal)
 
         cmd = PurgeCommand(age_in_days, max_number, uuid,
                            exclude_orphans, dry_run)
