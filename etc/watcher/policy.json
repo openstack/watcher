@@ -31,6 +31,10 @@
     "goal:get": "rule:default",
     "goal:get_all": "rule:default",
 
+    "scoring_engine:detail": "rule:default",
+    "scoring_engine:get": "rule:default",
+    "scoring_engine:get_all": "rule:default",
+
     "strategy:detail": "rule:default",
     "strategy:get": "rule:default",
     "strategy:get_all": "rule:default"

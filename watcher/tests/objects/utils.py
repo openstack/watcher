@@ -164,6 +164,30 @@ def create_test_goal(context, **kw):
     return goal
 
 
+def get_test_scoring_engine(context, **kw):
+    """Return a ScoringEngine object with appropriate attributes.
+
+    NOTE: The object leaves the attributes marked as changed, such
+    that a create() could be used to commit it to the DB.
+    """
+    db_scoring_engine = db_utils.get_test_scoring_engine(**kw)
+    scoring_engine = objects.ScoringEngine(context)
+    for key in db_scoring_engine:
+        setattr(scoring_engine, key, db_scoring_engine[key])
+    return scoring_engine
+
+
+def create_test_scoring_engine(context, **kw):
+    """Create and return a test scoring engine object.
+
+    Create a scoring engine in the DB and return a ScoringEngine object with
+    appropriate attributes.
+    """
+    scoring_engine = get_test_scoring_engine(context, **kw)
+    scoring_engine.create()
+    return scoring_engine
+
+
 def get_test_strategy(context, **kw):
     """Return a Strategy object with appropriate attributes.
 

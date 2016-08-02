@@ -977,3 +977,86 @@ class Connection(api.BaseConnection):
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(
                 efficacy_indicator=efficacy_indicator_id)
+
+    # ### SCORING ENGINES ### #
+
+    def _add_scoring_engine_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+
+        plain_fields = ['id', 'description']
+
+        return self._add_filters(
+            query=query, model=models.ScoringEngine, filters=filters,
+            plain_fields=plain_fields)
+
+    def get_scoring_engine_list(
+        self, context, columns=None, filters=None, limit=None,
+            marker=None, sort_key=None, sort_dir=None):
+        query = model_query(models.ScoringEngine)
+        query = self._add_scoring_engine_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+
+        return _paginate_query(models.ScoringEngine, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_scoring_engine(self, values):
+        # ensure defaults are present for new scoring engines
+        if not values.get('uuid'):
+            values['uuid'] = utils.generate_uuid()
+
+        scoring_engine = models.ScoringEngine()
+        scoring_engine.update(values)
+
+        try:
+            scoring_engine.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.ScoringEngineAlreadyExists(uuid=values['uuid'])
+        return scoring_engine
+
+    def _get_scoring_engine(self, context, fieldname, value):
+        try:
+            return self._get(context, model=models.ScoringEngine,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.ScoringEngineNotFound(scoring_engine=value)
+
+    def get_scoring_engine_by_id(self, context, scoring_engine_id):
+        return self._get_scoring_engine(
+            context, fieldname="id", value=scoring_engine_id)
+
+    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid):
+        return self._get_scoring_engine(
+            context, fieldname="uuid", value=scoring_engine_uuid)
+
+    def get_scoring_engine_by_name(self, context, scoring_engine_name):
+        return self._get_scoring_engine(
+            context, fieldname="name", value=scoring_engine_name)
+
+    def destroy_scoring_engine(self, scoring_engine_id):
+        try:
+            return self._destroy(models.ScoringEngine, scoring_engine_id)
+        except exception.ResourceNotFound:
+            raise exception.ScoringEngineNotFound(
+                scoring_engine=scoring_engine_id)
+
+    def update_scoring_engine(self, scoring_engine_id, values):
+        if 'id' in values:
+            raise exception.Invalid(
+                message=_("Cannot overwrite ID for an existing "
+                          "Scoring Engine."))
+
+        try:
+            return self._update(
+                models.ScoringEngine, scoring_engine_id, values)
+        except exception.ResourceNotFound:
+            raise exception.ScoringEngineNotFound(
+                scoring_engine=scoring_engine_id)
+
+    def soft_delete_scoring_engine(self, scoring_engine_id):
+        try:
+            return self._soft_delete(models.ScoringEngine, scoring_engine_id)
+        except exception.ResourceNotFound:
+            raise exception.ScoringEngineNotFound(
+                scoring_engine=scoring_engine_id)

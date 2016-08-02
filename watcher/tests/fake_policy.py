@@ -47,6 +47,10 @@ policy_data = """
     "goal:get": "",
     "goal:get_all": "",
 
+    "scoring_engine:detail": "",
+    "scoring_engine:get": "",
+    "scoring_engine:get_all": "",
+
     "strategy:detail": "",
     "strategy:get": "",
     "strategy:get_all": ""

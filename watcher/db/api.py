@@ -635,3 +635,83 @@ class BaseConnection(object):
         :raises: :py:class:`~.EfficacyIndicatorNotFound`
         :raises: :py:class:`~.Invalid`
         """
+
+    @abc.abstractmethod
+    def get_scoring_engine_list(
+            self, context, columns=None, filters=None, limit=None,
+            marker=None, sort_key=None, sort_dir=None):
+        """Get specific columns for matching scoring engines.
+
+        Return a list of the specified columns for all scoring engines that
+        match the specified filters.
+
+        :param context: The security context
+        :param columns: List of column names to return.
+                        Defaults to 'id' column when columns == None.
+        :param filters: Filters to apply. Defaults to None.
+        :param limit: Maximum number of scoring engines to return.
+        :param marker: the last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_scoring_engine(self, values):
+        """Create a new scoring engine.
+
+        :param values: A dict containing several items used to identify
+                       and track the scoring engine.
+        :returns: A scoring engine.
+        :raises: :py:class:`~.ScoringEngineAlreadyExists`
+        """
+
+    @abc.abstractmethod
+    def get_scoring_engine_by_id(self, context, scoring_engine_id):
+        """Return a scoring engine by its id.
+
+        :param context: The security context
+        :param scoring_engine_id: The id of a scoring engine.
+        :returns: A scoring engine.
+        :raises: :py:class:`~.ScoringEngineNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid):
+        """Return a scoring engine by its uuid.
+
+        :param context: The security context
+        :param scoring_engine_uuid: The uuid of a scoring engine.
+        :returns: A scoring engine.
+        :raises: :py:class:`~.ScoringEngineNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_scoring_engine_by_name(self, context, scoring_engine_name):
+        """Return a scoring engine by its name.
+
+        :param context: The security context
+        :param scoring_engine_name: The name of a scoring engine.
+        :returns: A scoring engine.
+        :raises: :py:class:`~.ScoringEngineNotFound`
+        """
+
+    @abc.abstractmethod
+    def destroy_scoring_engine(self, scoring_engine_id):
+        """Destroy a scoring engine.
+
+        :param scoring_engine_id: The id of a scoring engine.
+        :raises: :py:class:`~.ScoringEngineNotFound`
+        """
+
+    @abc.abstractmethod
+    def update_scoring_engine(self, scoring_engine_id, values):
+        """Update properties of a scoring engine.
+
+        :param scoring_engine_id: The id of a scoring engine.
+        :returns: A scoring engine.
+        :raises: :py:class:`~.ScoringEngineNotFound`
+        :raises: :py:class:`~.Invalid`
+        """

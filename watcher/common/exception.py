@@ -274,6 +274,14 @@ class EfficacyIndicatorAlreadyExists(Conflict):
     msg_fmt = _("An action with UUID %(uuid)s already exists")
 
 
+class ScoringEngineAlreadyExists(Conflict):
+    msg_fmt = _("A scoring engine with UUID %(uuid)s already exists")
+
+
+class ScoringEngineNotFound(ResourceNotFound):
+    msg_fmt = _("ScoringEngine %(scoring_engine)s could not be found")
+
+
 class HTTPNotFound(ResourceNotFound):
     pass
 

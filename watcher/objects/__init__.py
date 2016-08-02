@@ -19,6 +19,7 @@ from watcher.objects import audit
 from watcher.objects import audit_template
 from watcher.objects import efficacy_indicator
 from watcher.objects import goal
+from watcher.objects import scoring_engine
 from watcher.objects import strategy
 
 Audit = audit.Audit
@@ -26,8 +27,9 @@ AuditTemplate = audit_template.AuditTemplate
 Action = action.Action
 ActionPlan = action_plan.ActionPlan
 Goal = goal.Goal
+ScoringEngine = scoring_engine.ScoringEngine
 Strategy = strategy.Strategy
 EfficacyIndicator = efficacy_indicator.EfficacyIndicator
 
 __all__ = ("Audit", "AuditTemplate", "Action", "ActionPlan",
-           "Goal", "Strategy", "EfficacyIndicator")
+           "Goal", "ScoringEngine", "Strategy", "EfficacyIndicator")
