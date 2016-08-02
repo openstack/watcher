@@ -82,7 +82,7 @@ class TestListGoal(api_base.FunctionalTest):
                 name='GOAL_{0}'.format(idx))
             goal_list.append(goal.uuid)
         response = self.get_json('/goals')
-        self.assertTrue(len(response['goals']) > 2)
+        self.assertGreater(len(response['goals']), 2)
 
     def test_many_without_soft_deleted(self):
         goal_list = []

@@ -376,7 +376,8 @@ class TestSyncer(base.DbTestCase):
 
         self.assertEqual(2, strategy2.goal_id)
         self.assertIn(strategy2.name, created_strategies)
-        self.assertTrue(strategy2.id != created_strategies[strategy2.name].id)
+        self.assertNotEqual(strategy2.id,
+                            created_strategies[strategy2.name].id)
 
         self.assertEqual(set([audit_template2.id,
                               audit_template3.id,
