@@ -491,7 +491,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             asc += 1
 
     def pre_execute(self):
-        if self.compute_model is None:
+        if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):

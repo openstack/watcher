@@ -413,7 +413,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def pre_execute(self):
         LOG.info(_LI("Initializing Sercon Consolidation"))
-        if self.compute_model is None:
+        if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):

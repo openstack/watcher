@@ -103,28 +103,44 @@ strategies.
 
 import abc
 import copy
+import threading
+
+from oslo_config import cfg
 import six
 
+from watcher.common import clients
 from watcher.common.loader import loadable
+from watcher.decision_engine.model import model_root
 
 
 @six.add_metaclass(abc.ABCMeta)
-class BaseClusterDataModelCollector(loadable.Loadable):
+class BaseClusterDataModelCollector(loadable.LoadableSingleton):
+
+    STALE_MODEL = model_root.ModelRoot(stale=True)
 
     def __init__(self, config, osc=None):
         super(BaseClusterDataModelCollector, self).__init__(config)
-        self.osc = osc
+        self.osc = osc if osc else clients.OpenStackClients()
         self._cluster_data_model = None
+        self.lock = threading.RLock()
 
     @property
     def cluster_data_model(self):
         if self._cluster_data_model is None:
+            self.lock.acquire()
             self._cluster_data_model = self.execute()
+            self.lock.release()
+
         return self._cluster_data_model
 
     @cluster_data_model.setter
     def cluster_data_model(self, model):
+        self.lock.acquire()
         self._cluster_data_model = model
+        self.lock.release()
+
+    def set_cluster_data_model_as_stale(self):
+        self.cluster_data_model = self.STALE_MODEL
 
     @abc.abstractmethod
     def execute(self):
@@ -133,7 +149,21 @@ class BaseClusterDataModelCollector(loadable.Loadable):
 
     @classmethod
     def get_config_opts(cls):
-        return []
+        return [
+            cfg.IntOpt(
+                'period',
+                default=3600,
+                help='The time interval (in seconds) between each '
+                     'synchronization of the model'),
+        ]
 
     def get_latest_cluster_data_model(self):
         return copy.deepcopy(self.cluster_data_model)
+
+    def synchronize(self):
+        """Synchronize the cluster data model
+
+        Whenever called this synchronization will perform a drop-in replacement
+        with the existing cluster data model
+        """
+        self.cluster_data_model = self.execute()

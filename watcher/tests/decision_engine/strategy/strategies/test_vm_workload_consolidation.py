@@ -20,6 +20,7 @@
 
 import mock
 
+from watcher.common import exception
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -55,6 +56,14 @@ class TestVMWorkloadConsolidation(base.BaseTestCase):
         self.m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy = strategies.VMWorkloadConsolidation(config=mock.Mock())
+
+    def test_exception_stale_cdm(self):
+        self.fake_cluster.set_cluster_data_model_as_stale()
+        self.m_model.return_value = self.fake_cluster.cluster_data_model
+
+        self.assertRaises(
+            exception.ClusterStateNotDefined,
+            self.strategy.execute)
 
     def test_get_vm_utilization(self):
         model = self.fake_cluster.generate_scenario_1()

@@ -369,7 +369,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def pre_execute(self):
         LOG.info(_LI("Initializing Workload Stabilization"))
 
-        if self.compute_model is None:
+        if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
     def do_execute(self):

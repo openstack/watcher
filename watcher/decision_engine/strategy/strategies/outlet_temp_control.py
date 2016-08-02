@@ -226,7 +226,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def pre_execute(self):
         LOG.debug("Initializing Outlet temperature strategy")
 
-        if self.compute_model is None:
+        if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
