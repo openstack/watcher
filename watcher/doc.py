@@ -22,7 +22,6 @@ import inspect
 from docutils import nodes
 from docutils.parsers import rst
 from docutils import statemachine
-from stevedore import extension
 
 from watcher.version import version_info
 
@@ -98,74 +97,6 @@ class WatcherTerm(BaseWatcherDirective):
         return node.children
 
 
-class DriversDoc(BaseWatcherDirective):
-    """Directive to import an RST formatted docstring into the Watcher doc
-
-    This directive imports the RST formatted docstring of every driver declared
-    within an entry point namespace provided as argument
-
-    **How to use it**
-
-    # inside your .py file
-    class DocumentedClassReferencedInEntrypoint(object):
-        '''My *.rst* docstring'''
-
-        def foo(self):
-            '''Foo docstring'''
-
-    # Inside your .rst file
-    .. drivers-doc:: entrypoint_namespace
-       :append_methods_doc: foo
-
-    This directive will then import the docstring and then interprete it.
-
-    Note that no section/sub-section can be imported via this directive as it
-    is a Sphinx restriction.
-    """
-
-    # You need to put an import path as an argument for this directive to work
-    required_arguments = 1
-    optional_arguments = 0
-    final_argument_whitespace = True
-    has_content = False
-
-    option_spec = dict(
-        # CSV formatted list of method names whose return values will be zipped
-        # together in the given order
-        append_methods_doc=lambda opts: [
-            opt.strip() for opt in opts.split(",") if opt.strip()],
-        # By default, we always start by adding the driver object docstring
-        exclude_driver_docstring=rst.directives.flag,
-    )
-
-    def run(self):
-        ext_manager = extension.ExtensionManager(namespace=self.arguments[0])
-        extensions = ext_manager.extensions
-        # Aggregates drivers based on their module name (i.e import path)
-        classes = [(ext.name, ext.plugin) for ext in extensions]
-
-        for name, cls in classes:
-            self.add_line(".. rubric:: %s" % name)
-            self.add_line("")
-
-            if "exclude_driver_docstring" not in self.options:
-                self.add_object_docstring(cls)
-                self.add_line("")
-
-            for method_name in self.options.get("append_methods_doc", []):
-                if hasattr(cls, method_name):
-                    method = getattr(cls, method_name)
-                    method_result = inspect.cleandoc(method)
-                    self.add_textblock(method_result())
-                    self.add_line("")
-
-        node = nodes.paragraph()
-        node.document = self.state.document
-        self.state.nested_parse(self.result, 0, node)
-        return node.children
-
-
 def setup(app):
-    app.add_directive('drivers-doc', DriversDoc)
     app.add_directive('watcher-term', WatcherTerm)
     return {'version': version_info.version_string()}
