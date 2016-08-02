@@ -111,7 +111,7 @@ class TestUniformAirflow(base.BaseTestCase):
         vms = model.get_all_vms()
         vms.clear()
         vm_to_mig = self.strategy.choose_vm_to_migrate(h1)
-        self.assertEqual(vm_to_mig, None)
+        self.assertIsNone(vm_to_mig)
 
     def test_filter_destination_hosts(self):
         model = self.fake_cluster.generate_scenario_7_with_2_hypervisors()

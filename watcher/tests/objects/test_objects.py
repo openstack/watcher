@@ -293,7 +293,7 @@ class TestObjectSerializer(test_base.TestCase):
         ser = base.WatcherObjectSerializer()
         obj = MyObj(self.context)
         primitive = ser.serialize_entity(self.context, obj)
-        self.assertTrue('watcher_object.name' in primitive)
+        self.assertIn('watcher_object.name', primitive)
         obj2 = ser.deserialize_entity(self.context, primitive)
         self.assertIsInstance(obj2, MyObj)
         self.assertEqual(self.context, obj2._context)

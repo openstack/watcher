@@ -529,7 +529,7 @@ class TestPost(api_base.FunctionalTest):
         expected_error_msg = ('The audit template UUID or name specified is '
                               'invalid')
         self.assertTrue(response.json['error_message'])
-        self.assertTrue(expected_error_msg in response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_doesnt_contain_id(self, mock_trigger_audit):
@@ -598,7 +598,7 @@ class TestPost(api_base.FunctionalTest):
         expected_error_msg = ('Interval of audit must be specified '
                               'for CONTINUOUS.')
         self.assertTrue(response.json['error_message'])
-        self.assertTrue(expected_error_msg in response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_oneshot_audit_with_period(self, mock_trigger_audit):
@@ -615,7 +615,7 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         expected_error_msg = 'Interval of audit must not be set for ONESHOT.'
         self.assertTrue(response.json['error_message'])
-        self.assertTrue(expected_error_msg in response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
 
     def test_create_audit_trigger_decision_engine(self):
         with mock.patch.object(deapi.DecisionEngineAPI,
@@ -653,7 +653,7 @@ class TestPost(api_base.FunctionalTest):
                               'strategy for audit template, or no '
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
-        self.assertTrue(expected_error_msg in response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -673,7 +673,7 @@ class TestPost(api_base.FunctionalTest):
                               'strategy for audit template, or no '
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
-        self.assertTrue(expected_error_msg in response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
 
