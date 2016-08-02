@@ -2,6 +2,7 @@
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#          Vincent FRANCOISE <vincent.francoise@b-com.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +21,7 @@
 from oslo_config import cfg
 
 from watcher.common import utils
-from watcher.metrics_engine.loading import default
+from watcher.decision_engine.loading import default
 
 
 CONF = cfg.CONF

@@ -44,9 +44,9 @@ from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
 from watcher.decision_engine.loading import default as loading
+from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
-from watcher.metrics_engine.cluster_model_collector import manager
 
 
 @six.add_metaclass(abc.ABCMeta)

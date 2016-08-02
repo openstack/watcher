@@ -257,7 +257,7 @@ pluggable backend.
 Finally, if your strategy requires new metrics not covered by Ceilometer, you
 can add them through a Ceilometer `plugin`_.
 
-.. _`Helper`: https://github.com/openstack/watcher/blob/master/watcher/metrics_engine/cluster_history/ceilometer.py#L31
+.. _`Helper`: https://github.com/openstack/watcher/blob/master/watcher/decision_engine/cluster/history/ceilometer.py
 .. _`Ceilometer developer guide`: http://docs.openstack.org/developer/ceilometer/architecture.html#storing-the-data
 .. _`here`: http://docs.openstack.org/developer/ceilometer/install/dbreco.html#choosing-a-database-backend
 .. _`plugin`: http://docs.openstack.org/developer/ceilometer/plugins.html
@@ -296,16 +296,15 @@ Read usage metrics using the Watcher Cluster History Helper
 
 Here below is the abstract ``BaseClusterHistory`` class of the Helper.
 
-.. autoclass:: watcher.metrics_engine.cluster_history.base.BaseClusterHistory
+.. autoclass:: watcher.decision_engine.cluster.history.base.BaseClusterHistory
     :members:
     :noindex:
-
 
 The following code snippet shows how to create a Cluster History class:
 
 .. code-block:: py
 
-    from watcher.metrics_engine.cluster_history import ceilometer as ceil
+    from watcher.decision_engine.cluster.history import ceilometer as ceil
 
     query_history  = ceil.CeilometerClusterHistory()
 

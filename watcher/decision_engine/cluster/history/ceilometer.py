@@ -21,7 +21,7 @@
 from oslo_config import cfg
 from watcher.common import ceilometer_helper
 
-from watcher.metrics_engine.cluster_history import base
+from watcher.decision_engine.cluster.history import base
 
 CONF = cfg.CONF
 

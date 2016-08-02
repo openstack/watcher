@@ -21,8 +21,8 @@ from apscheduler.triggers import interval as interval_trigger
 import eventlet
 import mock
 
+from watcher.decision_engine.loading import default as default_loading
 from watcher.decision_engine import scheduling
-from watcher.metrics_engine.loading import default as default_loading
 from watcher.tests import base
 from watcher.tests.decision_engine.strategy.strategies import \
     faker_cluster_state

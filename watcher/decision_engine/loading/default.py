@@ -2,6 +2,7 @@
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#          Vincent FRANCOISE <vincent.francoise@b-com.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,3 +40,9 @@ class DefaultPlannerLoader(default.DefaultLoader):
     def __init__(self):
         super(DefaultPlannerLoader, self).__init__(
             namespace='watcher_planners')
+
+
+class ClusterDataModelCollectorLoader(default.DefaultLoader):
+    def __init__(self):
+        super(ClusterDataModelCollectorLoader, self).__init__(
+            namespace='watcher_cluster_data_model_collectors')

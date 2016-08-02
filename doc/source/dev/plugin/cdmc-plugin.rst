@@ -36,7 +36,7 @@ Here is an example showing how you can write a plugin called
     # Import path = thirdparty.dummy
 
     from watcher.decision_engine.model import model_root
-    from watcher.metrics_engine.cluster_model_collector import base
+    from watcher.decision_engine.model.collector import base
 
 
     class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
@@ -67,7 +67,7 @@ class method as followed:
 
     from oslo_config import cfg
     from watcher.decision_engine.model import model_root
-    from watcher.metrics_engine.cluster_model_collector import base
+    from watcher.decision_engine.model.collector import base
 
 
     class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
@@ -107,7 +107,7 @@ Abstract Plugin Class
 Here below is the abstract ``BaseClusterDataModelCollector`` class that every
 single cluster data model collector should implement:
 
-.. autoclass:: watcher.metrics_engine.cluster_model_collector.base.BaseClusterDataModelCollector
+.. autoclass:: watcher.decision_engine.model.collector.base.BaseClusterDataModelCollector
     :members:
     :special-members: __init__
     :noindex:
@@ -116,9 +116,9 @@ single cluster data model collector should implement:
 Register a new entry point
 ==========================
 
-In order for the Watcher Decision Engine to load your new cluster data model
-collector, the latter must be registered as a named entry point under the
-``watcher_cluster_data_model_collectors`` entry point of your ``setup.py``
+In order for the Watcher Applier to load your new cluster data model collector,
+the cluster data model collector must be registered as a named entry point
+under the ``decision_engine.model.collector`` entry point of your ``setup.py``
 file. If you are using pbr_, this entry point should be placed in your
 ``setup.cfg`` file.
 

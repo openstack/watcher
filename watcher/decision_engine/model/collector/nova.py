@@ -19,11 +19,11 @@
 from oslo_log import log
 
 from watcher.common import nova_helper
+from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import hypervisor as obj_hypervisor
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.model import vm as obj_vm
-from watcher.metrics_engine.cluster_model_collector import base
 
 LOG = log.getLogger(__name__)
 

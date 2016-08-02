@@ -21,7 +21,7 @@ from apscheduler.schedulers import background
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.messaging import events
-from watcher.metrics_engine.cluster_model_collector import manager
+from watcher.decision_engine.model.collector import manager
 from watcher.objects import audit as audit_objects
 from watcher.tests.db import base
 from watcher.tests.decision_engine.strategy.strategies import \
