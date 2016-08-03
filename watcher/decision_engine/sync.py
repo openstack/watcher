@@ -21,6 +21,7 @@ from oslo_log import log
 from watcher._i18n import _LI, _LW
 from watcher.common import context
 from watcher.decision_engine.loading import default
+from watcher.decision_engine.scoring import scoring_factory
 from watcher import objects
 from watcher.objects import action_plan as apobjects
 from watcher.objects import audit as auditobjects
@@ -32,6 +33,9 @@ GoalMapping = collections.namedtuple(
 StrategyMapping = collections.namedtuple(
     'StrategyMapping',
     ['name', 'goal_name', 'display_name', 'parameters_spec'])
+ScoringEngineMapping = collections.namedtuple(
+    'ScoringEngineMapping',
+    ['name', 'description', 'metainfo'])
 
 IndicatorSpec = collections.namedtuple(
     'IndicatorSpec', ['name', 'description', 'unit', 'schema'])
@@ -50,10 +54,15 @@ class Syncer(object):
         self._available_strategies = None
         self._available_strategies_map = None
 
+        self._available_scoringengines = None
+        self._available_scoringengines_map = None
+
         # This goal mapping maps stale goal IDs to the synced goal
         self.goal_mapping = dict()
         # This strategy mapping maps stale strategy IDs to the synced goal
         self.strategy_mapping = dict()
+        # Maps stale scoring engine IDs to the synced scoring engines
+        self.se_mapping = dict()
 
         self.stale_audit_templates_map = {}
         self.stale_audits_map = {}
@@ -72,6 +81,14 @@ class Syncer(object):
         if self._available_strategies is None:
             self._available_strategies = objects.Strategy.list(self.ctx)
         return self._available_strategies
+
+    @property
+    def available_scoringengines(self):
+        """Scoring Engines loaded from DB"""
+        if self._available_scoringengines is None:
+            self._available_scoringengines = (objects.ScoringEngine
+                                              .list(self.ctx))
+        return self._available_scoringengines
 
     @property
     def available_goals_map(self):
@@ -101,10 +118,22 @@ class Syncer(object):
             }
         return self._available_strategies_map
 
+    @property
+    def available_scoringengines_map(self):
+        if self._available_scoringengines_map is None:
+            self._available_scoringengines_map = {
+                ScoringEngineMapping(
+                    name=s.id, description=s.description,
+                    metainfo=s.metainfo): s
+                for s in self.available_scoringengines
+            }
+        return self._available_scoringengines_map
+
     def sync(self):
         self.discovered_map = self._discover()
         goals_map = self.discovered_map["goals"]
         strategies_map = self.discovered_map["strategies"]
+        scoringengines_map = self.discovered_map["scoringengines"]
 
         for goal_name, goal_map in goals_map.items():
             if goal_map in self.available_goals_map:
@@ -122,7 +151,16 @@ class Syncer(object):
 
             self.strategy_mapping.update(self._sync_strategy(strategy_map))
 
+        for se_name, se_map in scoringengines_map.items():
+            if se_map in self.available_scoringengines_map:
+                LOG.info(_LI("Scoring Engine %s already exists"),
+                         se_name)
+                continue
+
+            self.se_mapping.update(self._sync_scoringengine(se_map))
+
         self._sync_objects()
+        self._soft_delete_removed_scoringengines()
 
     def _sync_goal(self, goal_map):
         goal_name = goal_map.name
@@ -180,6 +218,32 @@ class Syncer(object):
                 strategy_mapping[matching_strategy.id] = strategy
 
         return strategy_mapping
+
+    def _sync_scoringengine(self, scoringengine_map):
+        scoringengine_name = scoringengine_map.name
+        se_mapping = dict()
+        # Scoring Engines matching by id with discovered Scoring engine
+        matching_scoringengines = [se for se in self.available_scoringengines
+                                   if se.name == scoringengine_name]
+        stale_scoringengines = self._soft_delete_stale_scoringengines(
+            scoringengine_map, matching_scoringengines)
+
+        if stale_scoringengines or not matching_scoringengines:
+            scoringengine = objects.ScoringEngine(self.ctx)
+            scoringengine.name = scoringengine_name
+            scoringengine.description = scoringengine_map.description
+            scoringengine.metainfo = scoringengine_map.metainfo
+            scoringengine.create()
+            LOG.info(_LI("Scoring Engine %s created"), scoringengine_name)
+
+            # Updating the internal states
+            self.available_scoringengines_map[scoringengine] = \
+                scoringengine_map
+            # Map the old scoring engine names to the new (equivalent) SE
+            for matching_scoringengine in matching_scoringengines:
+                se_mapping[matching_scoringengine.name] = scoringengine
+
+        return se_mapping
 
     def _sync_objects(self):
         # First we find audit templates, audits and action plans that are stale
@@ -393,10 +457,22 @@ class Syncer(object):
                     self.stale_action_plans_map[
                         action_plan.id].state = apobjects.State.CANCELLED
 
+    def _soft_delete_removed_scoringengines(self):
+        removed_se = [
+            se for se in self.available_scoringengines
+            if se.name not in self.discovered_map['scoringengines']]
+        for se in removed_se:
+            LOG.info(_LI("Scoring Engine %s removed"), se.name)
+            se.soft_delete()
+
     def _discover(self):
         strategies_map = {}
         goals_map = {}
-        discovered_map = {"goals": goals_map, "strategies": strategies_map}
+        scoringengines_map = {}
+        discovered_map = {
+            "goals": goals_map,
+            "strategies": strategies_map,
+            "scoringengines": scoringengines_map}
         goal_loader = default.DefaultGoalLoader()
         implemented_goals = goal_loader.list_available()
 
@@ -418,6 +494,12 @@ class Syncer(object):
                 goal_name=strategy_cls.get_goal_name(),
                 display_name=strategy_cls.get_translatable_display_name(),
                 parameters_spec=str(strategy_cls.get_schema()))
+
+        for se in scoring_factory.get_scoring_engine_list():
+            scoringengines_map[se.get_name()] = ScoringEngineMapping(
+                name=se.get_name(),
+                description=se.get_description(),
+                metainfo=se.get_metainfo())
 
         return discovered_map
 
@@ -462,3 +544,21 @@ class Syncer(object):
                 stale_strategies.append(matching_strategy)
 
         return stale_strategies
+
+    def _soft_delete_stale_scoringengines(
+            self, scoringengine_map, matching_scoringengines):
+        se_name = scoringengine_map.name
+        se_description = scoringengine_map.description
+        se_metainfo = scoringengine_map.metainfo
+
+        stale_scoringengines = []
+        for matching_scoringengine in matching_scoringengines:
+            if (matching_scoringengine.description == se_description and
+                    matching_scoringengine.metainfo == se_metainfo):
+                LOG.info(_LI("Scoring Engine %s unchanged"), se_name)
+            else:
+                LOG.info(_LI("Scoring Engine %s modified"), se_name)
+                matching_scoringengine.soft_delete()
+                stale_scoringengines.append(matching_scoringengine)
+
+        return stale_scoringengines

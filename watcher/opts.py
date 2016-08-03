@@ -31,6 +31,8 @@ from watcher.decision_engine.planner import manager as planner_manager
 PLUGIN_LOADERS = (
     applier_loader.DefaultActionLoader,
     decision_engine_loader.DefaultPlannerLoader,
+    decision_engine_loader.DefaultScoringLoader,
+    decision_engine_loader.DefaultScoringContainerLoader,
     decision_engine_loader.DefaultStrategyLoader,
     decision_engine_loader.ClusterDataModelCollectorLoader,
     applier_loader.DefaultWorkFlowEngineLoader,
