@@ -60,15 +60,7 @@ class UniformAirflow(base.BaseStrategy):
     METER_NAME_INLET_T = "hardware.ipmi.node.temperature"
     # The meter to report system power of physical server in ceilometer
     METER_NAME_POWER = "hardware.ipmi.node.power"
-    # TODO(Junjie): make below thresholds configurable
-    # Unit: 0.1 CFM
-    THRESHOLD_AIRFLOW = 400.0
-    # Unit: degree C
-    THRESHOLD_INLET_T = 28.0
-    # Unit: watts
-    THRESHOLD_POWER = 350.0
     # choose 300 seconds as the default duration of meter aggregation
-    # TODO(Junjie): make it configurable
     PERIOD = 300
 
     MIGRATION = "migrate"
@@ -83,10 +75,6 @@ class UniformAirflow(base.BaseStrategy):
         super(UniformAirflow, self).__init__(config, osc)
         # The migration plan will be triggered when the airflow reaches
         # threshold
-        # TODO(Junjie): Threshold should be configurable for each audit
-        self.threshold_airflow = self.THRESHOLD_AIRFLOW
-        self.threshold_inlet_t = self.THRESHOLD_INLET_T
-        self.threshold_power = self.THRESHOLD_POWER
         self.meter_name_airflow = self.METER_NAME_AIRFLOW
         self.meter_name_inlet_t = self.METER_NAME_INLET_T
         self.meter_name_power = self.METER_NAME_POWER
@@ -126,6 +114,37 @@ class UniformAirflow(base.BaseStrategy):
     @classmethod
     def get_translatable_goal_display_name(cls):
         return "Airflow optimization"
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "threshold_airflow": {
+                    "description": "airflow threshold for migration, Unit is\
+                                    0.1CFM",
+                    "type": "number",
+                    "default": 400.0
+                },
+                "threshold_inlet_t": {
+                    "description": "inlet temperature threshold for migration\
+                                    decision",
+                    "type": "number",
+                    "default": 28.0
+                },
+                "threshold_power": {
+                    "description": "system power threshold for migration\
+                                    decision",
+                    "type": "number",
+                    "default": 350.0
+                },
+                "period": {
+                    "description": "aggregate time period of ceilometer",
+                    "type": "number",
+                    "default": 300
+                },
+            },
+        }
 
     def calculate_used_resource(self, hypervisor, cap_cores, cap_mem,
                                 cap_disk):
@@ -276,6 +295,10 @@ class UniformAirflow(base.BaseStrategy):
             raise wexc.ClusterStateNotDefined()
 
     def do_execute(self):
+        self.threshold_airflow = self.input_parameters.threshold_airflow
+        self.threshold_inlet_t = self.input_parameters.threshold_inlet_t
+        self.threshold_power = self.input_parameters.threshold_power
+        self._period = self.input_parameters.period
         src_hypervisors, target_hypervisors = (
             self.group_hosts_by_airflow())
 

@@ -21,6 +21,7 @@ import mock
 
 from watcher.applier.loading import default
 from watcher.common import exception
+from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model import resource
 from watcher.decision_engine.strategy import strategies
@@ -56,6 +57,15 @@ class TestUniformAirflow(base.BaseTestCase):
         self.m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy = strategies.UniformAirflow(config=mock.Mock())
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update({'threshold_airflow': 400.0,
+                                               'threshold_inlet_t': 28.0,
+                                               'threshold_power': 350.0,
+                                               'period': 300})
+        self.strategy.threshold_airflow = 400
+        self.strategy.threshold_inlet_t = 28
+        self.strategy.threshold_power = 350
+        self._period = 300
 
     def test_calc_used_res(self):
         model = self.fake_cluster.generate_scenario_7_with_2_hypervisors()
