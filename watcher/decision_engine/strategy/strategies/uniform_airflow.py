@@ -107,14 +107,6 @@ class UniformAirflow(base.BaseStrategy):
         return "airflow_optimization"
 
     @classmethod
-    def get_goal_display_name(cls):
-        return _("Airflow optimization")
-
-    @classmethod
-    def get_translatable_goal_display_name(cls):
-        return "Airflow optimization"
-
-    @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element
         return {
