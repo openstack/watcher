@@ -16,8 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import time
 
+import time
 
 from oslo_log import log
 import voluptuous
@@ -53,16 +53,16 @@ class Sleep(base.BaseAction):
         return int(self.input_parameters.get(self.DURATION))
 
     def execute(self):
-        LOG.debug("Starting action Sleep duration:%s ", self.duration)
+        LOG.debug("Starting action sleep with duration: %s ", self.duration)
         time.sleep(self.duration)
         return True
 
     def revert(self):
-        LOG.debug("revert action Sleep")
+        LOG.debug("Revert action sleep")
         return True
 
-    def precondition(self):
+    def pre_condition(self):
         pass
 
-    def postcondition(self):
+    def post_condition(self):
         pass

@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 import six
 import voluptuous
 
@@ -95,8 +96,8 @@ class ChangeNovaServiceState(base.BaseAction):
         else:
             return nova.disable_service_nova_compute(self.host)
 
-    def precondition(self):
+    def pre_condition(self):
         pass
 
-    def postcondition(self):
+    def post_condition(self):
         pass

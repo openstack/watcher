@@ -67,10 +67,11 @@ class DefaultPlanner(base.BasePlanner):
             'state': objects.action.State.PENDING,
             'next': None,
         }
+
         return action
 
     def schedule(self, context, audit_id, solution):
-        LOG.debug('Create an action plan for the audit uuid: %s ', audit_id)
+        LOG.debug('Creating an action plan for the audit uuid: %s', audit_id)
         priorities = self.config.weights
         action_plan = self._create_action_plan(context, audit_id, solution)
 
@@ -145,7 +146,7 @@ class DefaultPlanner(base.BasePlanner):
 
     def _create_action(self, context, _action, parent_action):
         try:
-            LOG.debug("Creating the %s in watcher db",
+            LOG.debug("Creating the %s in the Watcher database",
                       _action.get("action_type"))
 
             new_action = objects.Action(context, **_action)

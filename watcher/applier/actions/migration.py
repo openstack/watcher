@@ -66,8 +66,8 @@ class Migrate(base.BaseAction):
         if (value is not None and
                 len(value) > 0 and not
                 utils.is_uuid_like(value)):
-            raise voluptuous.Invalid(_("The parameter"
-                                       " resource_id is invalid."))
+            raise voluptuous.Invalid(_("The parameter "
+                                       "resource_id is invalid."))
 
     @property
     def schema(self):
@@ -116,11 +116,11 @@ class Migrate(base.BaseAction):
                     dest_hostname=destination,
                     block_migration=True)
             else:
-                LOG.debug("Nova client exception occured while live migrating "
-                          "instance %s.Exception: %s" %
+                LOG.debug("Nova client exception occurred while live "
+                          "migrating instance %s.Exception: %s" %
                           (self.instance_uuid, e))
         except Exception:
-            LOG.critical(_LC("Unexpected error occured. Migration failed for"
+            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
                              "instance %s. Leaving instance on previous "
                              "host."), self.instance_uuid)
 
@@ -134,7 +134,7 @@ class Migrate(base.BaseAction):
                 dest_hostname=destination)
         except Exception as exc:
             LOG.exception(exc)
-            LOG.critical(_LC("Unexpected error occured. Migration failed for"
+            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
                              "instance %s. Leaving instance on previous "
                              "host."), self.instance_uuid)
 
@@ -152,8 +152,8 @@ class Migrate(base.BaseAction):
                 return self._cold_migrate_instance(nova, destination)
             else:
                 raise exception.Invalid(
-                    message=(_('Migration of type %(migration_type)s is not '
-                               'supported.') %
+                    message=(_("Migration of type '%(migration_type)s' is not "
+                               "supported.") %
                              {'migration_type': self.migration_type}))
         else:
             raise exception.InstanceNotFound(name=self.instance_uuid)
@@ -164,11 +164,11 @@ class Migrate(base.BaseAction):
     def revert(self):
         return self.migrate(destination=self.source_node)
 
-    def precondition(self):
-        # todo(jed) check if the instance exist/ check if the instance is on
+    def pre_condition(self):
+        # TODO(jed): check if the instance exists / check if the instance is on
         # the source_node
         pass
 
-    def postcondition(self):
-        # todo(jed) we can image to check extra parameters (nework reponse,ect)
+    def post_condition(self):
+        # TODO(jed): check extra parameters (network response, etc.)
         pass

@@ -102,15 +102,15 @@ class TestChangeNovaServiceState(base.TestCase):
             sorted([([str(p) for p in e.path], type(e)) for e in exc.errors],
                    key=lambda x: str(x[0])))
 
-    def test_change_service_state_precondition(self):
+    def test_change_service_state_pre_condition(self):
         try:
-            self.action.precondition()
+            self.action.pre_condition()
         except Exception as exc:
             self.fail(exc)
 
-    def test_change_service_state_postcondition(self):
+    def test_change_service_state_post_condition(self):
         try:
-            self.action.postcondition()
+            self.action.post_condition()
         except Exception as exc:
             self.fail(exc)
 

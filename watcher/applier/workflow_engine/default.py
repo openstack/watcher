@@ -109,8 +109,8 @@ class TaskFlowActionContainer(task.Task):
         try:
             self.engine.notify(self._db_action,
                                obj_action.State.ONGOING)
-            LOG.debug("Precondition action %s", self.name)
-            self.action.precondition()
+            LOG.debug("Pre-condition action: %s", self.name)
+            self.action.pre_condition()
         except Exception as e:
             LOG.exception(e)
             self.engine.notify(self._db_action,
@@ -119,15 +119,15 @@ class TaskFlowActionContainer(task.Task):
 
     def execute(self, *args, **kwargs):
         try:
-            LOG.debug("Running action %s", self.name)
+            LOG.debug("Running action: %s", self.name)
 
             self.action.execute()
             self.engine.notify(self._db_action,
                                obj_action.State.SUCCEEDED)
         except Exception as e:
             LOG.exception(e)
-            LOG.error(_LE('The WorkFlow Engine has failed '
-                          'to execute the action %s'), self.name)
+            LOG.error(_LE('The workflow engine has failed '
+                          'to execute the action: %s'), self.name)
 
             self.engine.notify(self._db_action,
                                obj_action.State.FAILED)
@@ -135,8 +135,8 @@ class TaskFlowActionContainer(task.Task):
 
     def post_execute(self):
         try:
-            LOG.debug("postcondition action %s", self.name)
-            self.action.postcondition()
+            LOG.debug("Post-condition action: %s", self.name)
+            self.action.post_condition()
         except Exception as e:
             LOG.exception(e)
             self.engine.notify(self._db_action,
@@ -144,19 +144,19 @@ class TaskFlowActionContainer(task.Task):
             raise
 
     def revert(self, *args, **kwargs):
-        LOG.warning(_LW("Revert action %s"), self.name)
+        LOG.warning(_LW("Revert action: %s"), self.name)
         try:
-            # todo(jed) do we need to update the states in case of failure ?
+            # TODO(jed): do we need to update the states in case of failure?
             self.action.revert()
         except Exception as e:
             LOG.exception(e)
-            LOG.critical(_LC("Oops! We need disaster recover plan"))
+            LOG.critical(_LC("Oops! We need a disaster recover plan."))
 
 
 class TaskFlowNop(task.Task):
-    """This class is use in case of the workflow have only one Action.
+    """This class is used in case of the workflow have only one Action.
 
-    We need at least two atoms to create a link
+    We need at least two atoms to create a link.
     """
     def execute(self):
         pass

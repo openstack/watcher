@@ -15,8 +15,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
 
 import abc
 
@@ -28,7 +26,7 @@ from watcher.common.loader import loadable
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseAction(loadable.Loadable):
-    # NOTE(jed) by convention we decided
+    # NOTE(jed): by convention we decided
     # that the attribute "resource_id" is the unique id of
     # the resource to which the Action applies to allow us to use it in the
     # watcher dashboard and will be nested in input_parameters
@@ -99,7 +97,7 @@ class BaseAction(loadable.Loadable):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def precondition(self):
+    def pre_condition(self):
         """Hook: called before the execution of an action
 
         This method can be used to perform some initializations or to make
@@ -110,7 +108,7 @@ class BaseAction(loadable.Loadable):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def postcondition(self):
+    def post_condition(self):
         """Hook: called after the execution of an action
 
         This function is called regardless of whether an action succeded or

@@ -53,15 +53,15 @@ class Nop(base.BaseAction):
         return self.input_parameters.get(self.MESSAGE)
 
     def execute(self):
-        LOG.debug("executing action NOP message:%s ", self.message)
+        LOG.debug("Executing action NOP message: %s ", self.message)
         return True
 
     def revert(self):
-        LOG.debug("revert action NOP")
+        LOG.debug("Revert action NOP")
         return True
 
-    def precondition(self):
+    def pre_condition(self):
         pass
 
-    def postcondition(self):
+    def post_condition(self):
         pass

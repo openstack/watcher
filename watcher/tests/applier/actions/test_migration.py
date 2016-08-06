@@ -153,15 +153,15 @@ class TestMigration(base.TestCase):
             [(['resource_id'], voluptuous.Invalid)],
             [(e.path, type(e)) for e in exc.errors])
 
-    def test_migration_precondition(self):
+    def test_migration_pre_condition(self):
         try:
-            self.action.precondition()
+            self.action.pre_condition()
         except Exception as exc:
             self.fail(exc)
 
-    def test_migration_postcondition(self):
+    def test_migration_post_condition(self):
         try:
-            self.action.postcondition()
+            self.action.post_condition()
         except Exception as exc:
             self.fail(exc)
 

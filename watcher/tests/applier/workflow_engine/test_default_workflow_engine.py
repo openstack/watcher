@@ -39,10 +39,10 @@ class FakeAction(abase.BaseAction):
     def schema(self):
         pass
 
-    def postcondition(self):
+    def post_condition(self):
         pass
 
-    def precondition(self):
+    def pre_condition(self):
         pass
 
     def revert(self):
