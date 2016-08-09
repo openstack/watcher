@@ -72,6 +72,7 @@ class NovaHelper(object):
         else:
             raise Exception("Volume %s did not reach status %s after %d s"
                             % (volume.id, status, timeout))
+        return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, node_id,
                                           keep_original_image_name=True):
@@ -426,6 +427,8 @@ class NovaHelper(object):
                                                             metadata)
 
                 image = self.glance.images.get(image_uuid)
+                if not image:
+                    return None
 
                 # Waiting for the new image to be officially in ACTIVE state
                 # in order to make sure it can be used
@@ -436,6 +439,8 @@ class NovaHelper(object):
                     retry -= 1
                     # Retrieve the instance again so the status field updates
                     image = self.glance.images.get(image_uuid)
+                    if not image:
+                        break
                     status = image.status
                     LOG.debug("Current image status: %s" % status)
 
