@@ -22,6 +22,7 @@ from watcher.common import nova_helper
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.model.notification import nova
 
 LOG = log.getLogger(__name__)
 
@@ -42,6 +43,26 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
     def __init__(self, config, osc=None):
         super(NovaClusterDataModelCollector, self).__init__(config, osc)
         self.wrapper = nova_helper.NovaHelper(osc=self.osc)
+
+    @property
+    def notification_endpoints(self):
+        """Associated notification endpoints
+
+        :return: Associated notification endpoints
+        :rtype: List of :py:class:`~.EventsNotificationEndpoint` instances
+        """
+        return [
+            nova.ServiceUpdated(self),
+
+            nova.InstanceCreated(self),
+            nova.InstanceUpdated(self),
+            nova.InstanceDeletedEnd(self),
+
+            nova.LegacyInstanceCreatedEnd(self),
+            nova.LegacyInstanceUpdated(self),
+            nova.LegacyInstanceDeletedEnd(self),
+            nova.LegacyLiveMigratedEnd(self),
+        ]
 
     def execute(self):
         """Build the compute cluster data model"""
@@ -87,7 +108,6 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                 disk.set_capacity(instance, v.flavor['disk'])
                 num_cores.set_capacity(instance, v.flavor['vcpus'])
 
-                model.get_mapping().map(node, instance)
-                model.add_instance(instance)
+                model.map_instance(instance, node)
 
         return model

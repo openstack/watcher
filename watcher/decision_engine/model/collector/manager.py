@@ -31,6 +31,7 @@ class CollectorManager(object):
     def __init__(self):
         self.collector_loader = default.ClusterDataModelCollectorLoader()
         self._collectors = None
+        self._notification_endpoints = None
 
     def get_collectors(self):
         if self._collectors is None:
@@ -42,6 +43,15 @@ class CollectorManager(object):
             self._collectors = collectors
 
         return self._collectors
+
+    def get_notification_endpoints(self):
+        if self._notification_endpoints is None:
+            endpoints = []
+            for collector in self.get_collectors().values():
+                endpoints.extend(collector.notification_endpoints)
+            self._notification_endpoints = endpoints
+
+        return self._notification_endpoints
 
     def get_cluster_model_collector(self, name, osc=None):
         """Retrieve cluster data model collector

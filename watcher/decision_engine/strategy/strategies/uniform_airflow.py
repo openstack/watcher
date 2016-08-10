@@ -333,7 +333,7 @@ class UniformAirflow(base.BaseStrategy):
         for info in destination_hosts:
             instance = info['instance']
             destination_node = info['node']
-            if self.compute_model.mapping.migrate_instance(
+            if self.compute_model.migrate_instance(
                     instance, source_node, destination_node):
                 parameters = {'migration_type': 'live',
                               'source_node': source_node.uuid,

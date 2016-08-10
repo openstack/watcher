@@ -68,6 +68,8 @@ class ApplierManager(object):
 
     conductor_endpoints = [trigger.TriggerActionPlan]
     status_endpoints = []
+    notification_endpoints = []
+    notification_topics = []
 
     def __init__(self):
         self.publisher_id = CONF.watcher_applier.publisher_id

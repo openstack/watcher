@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import six
+
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
@@ -51,7 +53,7 @@ class ModelRoot(object):
     def remove_node(self, node):
         self.assert_node(node)
         if str(node.uuid) not in self._nodes:
-            raise exception.ComputeNodeNotFound(node.uuid)
+            raise exception.ComputeNodeNotFound(name=node.uuid)
         else:
             del self._nodes[node.uuid]
 
@@ -59,18 +61,92 @@ class ModelRoot(object):
         self.assert_instance(instance)
         self._instances[instance.uuid] = instance
 
+    def remove_instance(self, instance):
+        self.assert_instance(instance)
+        del self._instances[instance.uuid]
+
+    def map_instance(self, instance, node):
+        """Map a newly created instance to a node
+
+        :param instance: :py:class:`~.Instance` object or instance UUID
+        :type instance: str or :py:class:`~.Instance`
+        :param node: :py:class:`~.ComputeNode` object or node UUID
+        :type node: str or :py:class:`~.Instance`
+        """
+        if isinstance(instance, six.string_types):
+            instance = self.get_instance_from_id(instance)
+        if isinstance(node, six.string_types):
+            node = self.get_node_from_id(node)
+
+        self.add_instance(instance)
+        self.mapping.map(node, instance)
+
+    def unmap_instance(self, instance, node):
+        """Unmap an instance from a node
+
+        :param instance: :py:class:`~.Instance` object or instance UUID
+        :type instance: str or :py:class:`~.Instance`
+        :param node: :py:class:`~.ComputeNode` object or node UUID
+        :type node: str or :py:class:`~.Instance`
+        """
+        if isinstance(instance, six.string_types):
+            instance = self.get_instance_from_id(instance)
+        if isinstance(node, six.string_types):
+            node = self.get_node_from_id(node)
+
+        self.add_instance(instance)
+        self.mapping.unmap(node, instance)
+
+    def delete_instance(self, instance, node):
+        self.remove_instance(instance)
+
+        self.mapping.unmap(node, instance)
+
+        for resource in self.resource.values():
+            try:
+                resource.unset_capacity(instance)
+            except KeyError:
+                pass
+
+    def migrate_instance(self, instance, source_node, destination_node):
+        """Migrate single instance from source_node to destination_node
+
+        :param instance:
+        :param source_node:
+        :param destination_node:
+        :return:
+        """
+        if source_node == destination_node:
+            return False
+        # unmap
+        self.mapping.unmap(source_node, instance)
+        # map
+        self.mapping.map(destination_node, instance)
+        return True
+
     def get_all_compute_nodes(self):
         return self._nodes
 
     def get_node_from_id(self, node_uuid):
         if str(node_uuid) not in self._nodes:
-            raise exception.ComputeNodeNotFound(node_uuid)
+            raise exception.ComputeNodeNotFound(name=node_uuid)
         return self._nodes[str(node_uuid)]
 
     def get_instance_from_id(self, uuid):
         if str(uuid) not in self._instances:
             raise exception.InstanceNotFound(name=uuid)
         return self._instances[str(uuid)]
+
+    def get_node_from_instance_id(self, instance_uuid):
+        """Getting host information from the guest instance
+
+        :param instance_uuid: the uuid of the instance
+        :return: node
+        """
+        if str(instance_uuid) not in self.mapping.instance_mapping:
+            raise exception.InstanceNotFound(name=instance_uuid)
+        return self.get_node_from_id(
+            self.mapping.instance_mapping[str(instance_uuid)])
 
     def get_all_instances(self):
         return self._instances

@@ -82,8 +82,7 @@ class BaseWorkFlowEngine(loadable.Loadable):
         ev.data = {}
         payload = {'action_uuid': action.uuid,
                    'action_state': state}
-        self.applier_manager.status_topic_handler.publish_event(
-            ev.type.name, payload)
+        self.applier_manager.publish_status_event(ev.type.name, payload)
 
     @abc.abstractmethod
     def execute(self, actions):

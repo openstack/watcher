@@ -30,6 +30,7 @@ LOG = log.getLogger(__name__)
 
 
 class AuditEndpoint(object):
+
     def __init__(self, messaging):
         self._messaging = messaging
         self._executor = futures.ThreadPoolExecutor(

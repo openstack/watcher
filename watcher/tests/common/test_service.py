@@ -27,13 +27,15 @@ class DummyManager(object):
 
     API_VERSION = '1.0'
 
-    conductor_endpoints = []
-    status_endpoints = []
+    conductor_endpoints = [mock.Mock()]
+    status_endpoints = [mock.Mock()]
+    notification_endpoints = [mock.Mock()]
 
     def __init__(self):
         self.publisher_id = "pub_id"
         self.conductor_topic = "conductor_topic"
         self.status_topic = "status_topic"
+        self.notification_topics = []
         self.api_version = self.API_VERSION
 
 
@@ -84,7 +86,7 @@ class TestService(base.TestCase):
         m_handler.publish_event.assert_called_once_with(event, payload)
 
     @mock.patch.object(messaging_handler, "MessagingHandler")
-    def test_publish_status(self, m_handler_cls):
+    def test_publish_status_event(self, m_handler_cls):
         m_handler = mock.Mock()
         m_handler_cls.return_value = m_handler
         payload = {
@@ -92,10 +94,10 @@ class TestService(base.TestCase):
         }
         event = "myevent"
         dummy_service = service.Service(DummyManager)
-        dummy_service.publish_status(event, payload)
+        dummy_service.publish_status_event(event, payload)
         m_handler.publish_event.assert_called_once_with(event, payload, None)
 
-    @mock.patch.object(service.Service, 'publish_status')
+    @mock.patch.object(service.Service, 'publish_status_event')
     def test_response(self, mock_call):
         event = "My event"
         context = {'request_id': 12}

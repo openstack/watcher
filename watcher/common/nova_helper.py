@@ -93,7 +93,6 @@ class NovaHelper(object):
             used as the name of the intermediate image used for migration.
             If this flag is False, a temporary image name is built
         """
-
         new_image_name = ""
 
         LOG.debug(
@@ -298,7 +297,6 @@ class NovaHelper(object):
         :param dest_hostname: the name of the destination compute node.
         :param block_migration:  No shared storage is required.
         """
-
         LOG.debug("Trying a live migrate of instance %s to host '%s'" % (
             instance_id, dest_hostname))
 
@@ -458,7 +456,6 @@ class NovaHelper(object):
 
         :param instance_id: the unique id of the instance to delete.
         """
-
         LOG.debug("Trying to remove instance %s ..." % instance_id)
 
         instance = self.find_instance(instance_id)
@@ -476,7 +473,6 @@ class NovaHelper(object):
 
         :param instance_id: the unique id of the instance to stop.
         """
-
         LOG.debug("Trying to stop instance %s ..." % instance_id)
 
         instance = self.find_instance(instance_id)
@@ -504,7 +500,6 @@ class NovaHelper(object):
         :param retry: how many times to retry
         :param sleep: seconds to sleep between the retries
         """
-
         if not server:
             return False
 
@@ -526,7 +521,6 @@ class NovaHelper(object):
         :param retry: how many times to retry
         :param sleep: seconds to sleep between the retries
         """
-
         if not instance:
             return False
 
@@ -550,7 +544,6 @@ class NovaHelper(object):
         it with the new instance
         It returns the unique id of the created instance.
         """
-
         LOG.debug(
             "Trying to create new instance '%s' "
             "from image '%s' with flavor '%s' ..." % (

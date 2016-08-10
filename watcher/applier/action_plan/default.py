@@ -28,11 +28,11 @@ LOG = log.getLogger(__name__)
 
 
 class DefaultActionPlanHandler(base.BaseActionPlanHandler):
-    def __init__(self, context, applier_manager, action_plan_uuid):
+    def __init__(self, context, service, action_plan_uuid):
         super(DefaultActionPlanHandler, self).__init__()
         self.ctx = context
+        self.service = service
         self.action_plan_uuid = action_plan_uuid
-        self.applier_manager = applier_manager
 
     def notify(self, uuid, event_type, state):
         action_plan = ap_objects.ActionPlan.get_by_uuid(self.ctx, uuid)
@@ -43,8 +43,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         ev.data = {}
         payload = {'action_plan__uuid': uuid,
                    'action_plan_state': state}
-        self.applier_manager.status_topic_handler.publish_event(
-            ev.type.name, payload)
+        self.service.publish_status_event(ev.type.name, payload)
 
     def execute(self):
         try:
@@ -52,10 +51,9 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             self.notify(self.action_plan_uuid,
                         event_types.EventTypes.LAUNCH_ACTION_PLAN,
                         ap_objects.State.ONGOING)
-            applier = default.DefaultApplier(self.ctx, self.applier_manager)
+            applier = default.DefaultApplier(self.ctx, self.service)
             applier.execute(self.action_plan_uuid)
             state = ap_objects.State.SUCCEEDED
-
         except Exception as e:
             LOG.exception(e)
             state = ap_objects.State.FAILED

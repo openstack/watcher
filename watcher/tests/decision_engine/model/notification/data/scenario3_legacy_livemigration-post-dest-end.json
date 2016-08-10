@@ -1,0 +1,61 @@
+{
+  "event_type": "compute.instance.live_migration.post.dest.end",
+  "metadata": {
+    "message_id": "9f58cad4-ff90-40f8-a8e4-633807f4a995",
+    "timestamp": "2016-08-19 10:13:44.645575"
+  },
+  "payload": {
+    "access_ip_v4": null,
+    "access_ip_v6": null,
+    "architecture": null,
+    "availability_zone": "nova",
+    "cell_name": "",
+    "created_at": "2016-08-18 09:49:23+00:00",
+    "deleted_at": "",
+    "disk_gb": 1,
+    "display_name": "INSTANCE_0",
+    "ephemeral_gb": 0,
+    "fixed_ips": [
+      {
+        "address": "192.168.1.196",
+        "floating_ips": [],
+        "label": "demo-net",
+        "meta": {},
+        "type": "fixed",
+        "version": 4,
+        "vif_mac": "fa:16:3e:cc:ba:81"
+      }
+    ],
+    "host": "Node_1",
+    "hostname": "INSTANCE_0",
+    "image_meta": {
+      "base_image_ref": "205f96f5-91f9-42eb-9138-03fffcea2b97",
+      "container_format": "bare",
+      "disk_format": "qcow2",
+      "min_disk": "1",
+      "min_ram": "0"
+    },
+    "image_ref_url": "http://10.50.254.222:9292/images/205f96f5-91f9-42eb-9138-03fffcea2b97",
+    "instance_flavor_id": "1",
+    "instance_id": "73b09e16-35b7-4922-804e-e8f5d9b740fc",
+    "instance_type": "m1.tiny",
+    "instance_type_id": 2,
+    "kernel_id": "",
+    "launched_at": "2016-08-18T09:49:33.000000",
+    "memory_mb": 512,
+    "metadata": {},
+    "node": "Node_1",
+    "os_type": null,
+    "progress": "",
+    "ramdisk_id": "",
+    "reservation_id": "r-he04tfco",
+    "root_gb": 1,
+    "state": "active",
+    "state_description": "",
+    "tenant_id": "57ab04ad6d3b495789a58258bc00842b",
+    "terminated_at": "",
+    "user_id": "cd7d93be51e4460ab51514b2a925b23a",
+    "vcpus": 1
+  },
+  "publisher_id": "compute.Node_1"
+}

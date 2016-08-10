@@ -21,6 +21,7 @@ import os
 import mock
 from oslo_config import cfg
 from oslo_log import log
+from oslo_messaging import conffixture
 from oslotest import base
 import pecan
 from pecan import testing
@@ -52,10 +53,19 @@ class TestCase(BaseTestCase):
     def setUp(self):
         super(TestCase, self).setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
-        self.app = testing.load_test_app(os.path.join(
-            os.path.dirname(__file__),
-            'config.py'
-        ))
+        self.policy = self.useFixture(policy_fixture.PolicyFixture())
+        self.messaging_conf = self.useFixture(conffixture.ConfFixture(CONF))
+        self.messaging_conf.transport_driver = 'fake'
+
+        cfg.CONF.set_override("auth_type", "admin_token",
+                              group='keystone_authtoken',
+                              enforce_type=True)
+        cfg.CONF.set_override("auth_uri", "http://127.0.0.1/identity",
+                              group='keystone_authtoken',
+                              enforce_type=True)
+
+        app_config_path = os.path.join(os.path.dirname(__file__), 'config.py')
+        self.app = testing.load_test_app(app_config_path)
         token_info = {
             'token': {
                 'project': {
@@ -70,8 +80,6 @@ class TestCase(BaseTestCase):
             auth_token_info=token_info,
             project_id='fake_project',
             user_id='fake_user')
-
-        self.policy = self.useFixture(policy_fixture.PolicyFixture())
 
         def make_context(*args, **kwargs):
             # If context hasn't been constructed with token_info
@@ -120,11 +128,8 @@ class TestCase(BaseTestCase):
         :param project_file: File whose path to return. Default: None.
         :returns: path to the specified file, or path to project root.
         """
-        root = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                            '..',
-                                            '..',
-                                            )
-                               )
+        root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), '..', '..'))
         if project_file:
             return os.path.join(root, project_file)
         else:

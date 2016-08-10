@@ -350,7 +350,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def create_migration_instance(self, mig_instance, mig_source_node,
                                   mig_destination_node):
         """Create migration VM """
-        if self.compute_model.get_mapping().migrate_instance(
+        if self.compute_model.migrate_instance(
                 mig_instance, mig_source_node, mig_destination_node):
             self.add_migration(mig_instance.uuid, 'live',
                                mig_source_node.uuid,

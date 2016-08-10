@@ -15,7 +15,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 """
 This component is responsible for computing a set of potential optimization
@@ -40,6 +39,7 @@ See :doc:`../architecture` for more details on this component.
 from oslo_config import cfg
 
 from watcher.decision_engine.messaging import audit_endpoint
+from watcher.decision_engine.model.collector import manager
 
 
 CONF = cfg.CONF
@@ -57,6 +57,10 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     'is used so as to notify'
                     'the others components '
                     'of the system'),
+    cfg.ListOpt('notification_topics',
+                default=['versioned_notifications', 'watcher_notifications'],
+                help='The topic names from which notification events '
+                     'will be listened to'),
     cfg.StrOpt('publisher_id',
                default='watcher.decision.api',
                help='The identifier used by the Watcher '
@@ -65,8 +69,7 @@ WATCHER_DECISION_ENGINE_OPTS = [
                default=2,
                required=True,
                help='The maximum number of threads that can be used to '
-                    'execute strategies',
-               ),
+                    'execute strategies'),
 ]
 decision_engine_opt_group = cfg.OptGroup(name='watcher_decision_engine',
                                          title='Defines the parameters of '
@@ -79,11 +82,19 @@ class DecisionEngineManager(object):
 
     API_VERSION = '1.0'
 
-    conductor_endpoints = [audit_endpoint.AuditEndpoint]
-    status_endpoints = []
-
     def __init__(self):
+        self.api_version = self.API_VERSION
+
         self.publisher_id = CONF.watcher_decision_engine.publisher_id
         self.conductor_topic = CONF.watcher_decision_engine.conductor_topic
         self.status_topic = CONF.watcher_decision_engine.status_topic
-        self.api_version = self.API_VERSION
+        self.notification_topics = (
+            CONF.watcher_decision_engine.notification_topics)
+
+        self.conductor_endpoints = [audit_endpoint.AuditEndpoint]
+
+        self.status_endpoints = []
+
+        self.collector_manager = manager.CollectorManager()
+        self.notification_endpoints = (
+            self.collector_manager.get_notification_endpoints())

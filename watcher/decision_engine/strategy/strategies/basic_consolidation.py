@@ -209,24 +209,24 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """
         return self.migration_attempts
 
-    def calculate_weight(self, node, total_cores_used, total_disk_used,
-                         total_memory_used):
+    def calculate_weight(self, compute_resource, total_cores_used,
+                         total_disk_used, total_memory_used):
         """Calculate weight of every resource
 
-        :param element:
+        :param compute_resource:
         :param total_cores_used:
         :param total_disk_used:
         :param total_memory_used:
         :return:
         """
         cpu_capacity = self.compute_model.get_resource_from_id(
-            element.ResourceType.cpu_cores).get_capacity(node)
+            element.ResourceType.cpu_cores).get_capacity(compute_resource)
 
         disk_capacity = self.compute_model.get_resource_from_id(
-            element.ResourceType.disk).get_capacity(node)
+            element.ResourceType.disk).get_capacity(compute_resource)
 
         memory_capacity = self.compute_model.get_resource_from_id(
-            element.ResourceType.memory).get_capacity(node)
+            element.ResourceType.memory).get_capacity(compute_resource)
 
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
                        float(cpu_capacity))
@@ -261,10 +261,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if host_avg_cpu_util is None:
             LOG.error(
                 _LE("No values returned by %(resource_id)s "
-                    "for %(metric_name)s"),
-                resource_id=resource_id,
-                metric_name=self.HOST_CPU_USAGE_METRIC_NAME,
-            )
+                    "for %(metric_name)s") % dict(
+                        resource_id=resource_id,
+                        metric_name=self.HOST_CPU_USAGE_METRIC_NAME))
             host_avg_cpu_util = 100
 
         cpu_capacity = self.compute_model.get_resource_from_id(
@@ -302,10 +301,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if instance_cpu_utilization is None:
             LOG.error(
                 _LE("No values returned by %(resource_id)s "
-                    "for %(metric_name)s"),
-                resource_id=instance.uuid,
-                metric_name=self.INSTANCE_CPU_USAGE_METRIC_NAME,
-            )
+                    "for %(metric_name)s") % dict(
+                        resource_id=instance.uuid,
+                        metric_name=self.INSTANCE_CPU_USAGE_METRIC_NAME))
             instance_cpu_utilization = 100
 
         cpu_capacity = self.compute_model.get_resource_from_id(
@@ -335,18 +333,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def score_of_nodes(self, score):
         """Calculate score of nodes based on load by VMs"""
-        for node_id in self.compute_model.get_all_compute_nodes():
-            node = self.compute_model. \
-                get_node_from_id(node_id)
-            count = self.compute_model.get_mapping(). \
-                get_node_instances_from_id(node_id)
+        for node in self.compute_model.get_all_compute_nodes().values():
+            count = self.compute_model.mapping.get_node_instances_from_id(
+                node.uuid)
             if len(count) > 0:
                 result = self.calculate_score_node(node)
             else:
                 # The node has not VMs
                 result = 0
             if len(count) > 0:
-                score.append((node_id, result))
+                score.append((node.uuid, result))
         return score
 
     def node_and_instance_score(self, sorted_score, score):
@@ -368,7 +364,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def create_migration_instance(self, mig_instance, mig_source_node,
                                   mig_destination_node):
         """Create migration VM"""
-        if self.compute_model.get_mapping().migrate_instance(
+        if self.compute_model.migrate_instance(
                 mig_instance, mig_source_node, mig_destination_node):
             self.add_migration(mig_instance.uuid, 'live',
                                mig_source_node.uuid,
@@ -427,14 +423,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         self.compute_attempts(size_cluster)
 
-        for node_id in self.compute_model.get_all_compute_nodes():
-            node = self.compute_model.get_node_from_id(node_id)
-            count = self.compute_model.get_mapping(). \
-                get_node_instances_from_id(node_id)
-            if len(count) == 0:
+        for node_uuid, node in self.compute_model.get_all_compute_nodes(
+        ).items():
+            node_instances = (self.compute_model.mapping
+                              .get_node_instances_from_id(node_uuid))
+            if node_instances:
                 if node.state == element.ServiceState.ENABLED:
                     self.add_change_service_state(
-                        node_id, element.ServiceState.DISABLED.value)
+                        node_uuid, element.ServiceState.DISABLED.value)
 
         while self.get_allowed_migration_attempts() >= unsuccessful_migration:
             if not first_migration:

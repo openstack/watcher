@@ -13,11 +13,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-
 from oslo_config import cfg
+from oslo_log import log
 import oslo_messaging as messaging
-from oslo_serialization import jsonutils
 
+from watcher._i18n import _LE
 from watcher.common import context as watcher_context
 from watcher.common import exception
 
@@ -36,7 +36,9 @@ __all__ = [
 ]
 
 CONF = cfg.CONF
+LOG = log.getLogger(__name__)
 TRANSPORT = None
+NOTIFICATION_TRANSPORT = None
 NOTIFIER = None
 
 ALLOWED_EXMODS = [
@@ -55,23 +57,36 @@ TRANSPORT_ALIASES = {
     'watcher.rpc.impl_zmq': 'zmq',
 }
 
+JsonPayloadSerializer = messaging.JsonPayloadSerializer
+
 
 def init(conf):
-    global TRANSPORT, NOTIFIER
+    global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     exmods = get_allowed_exmods()
     TRANSPORT = messaging.get_transport(conf,
                                         allowed_remote_exmods=exmods,
                                         aliases=TRANSPORT_ALIASES)
+    NOTIFICATION_TRANSPORT = messaging.get_notification_transport(
+        conf,
+        allowed_remote_exmods=exmods,
+        aliases=TRANSPORT_ALIASES)
+
     serializer = RequestContextSerializer(JsonPayloadSerializer())
-    NOTIFIER = messaging.Notifier(TRANSPORT, serializer=serializer)
+    NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT,
+                                  serializer=serializer)
+
+
+def initialized():
+    return None not in [TRANSPORT, NOTIFIER]
 
 
 def cleanup():
-    global TRANSPORT, NOTIFIER
-    assert TRANSPORT is not None
-    assert NOTIFIER is not None
+    global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
+    if NOTIFIER is None:
+        LOG.exception(_LE("RPC cleanup: NOTIFIER is None"))
     TRANSPORT.cleanup()
-    TRANSPORT = NOTIFIER = None
+    NOTIFICATION_TRANSPORT.cleanup()
+    TRANSPORT = NOTIFICATION_TRANSPORT = NOTIFIER = None
 
 
 def set_defaults(control_exchange):
@@ -88,12 +103,6 @@ def clear_extra_exmods():
 
 def get_allowed_exmods():
     return ALLOWED_EXMODS + EXTRA_EXMODS
-
-
-class JsonPayloadSerializer(messaging.NoOpSerializer):
-    @staticmethod
-    def serialize_entity(context, entity):
-        return jsonutils.to_primitive(entity, convert_instances=True)
 
 
 class RequestContextSerializer(messaging.Serializer):
@@ -116,10 +125,6 @@ class RequestContextSerializer(messaging.Serializer):
 
     def deserialize_context(self, context):
         return watcher_context.RequestContext.from_dict(context)
-
-
-def get_transport_url(url_str=None):
-    return messaging.TransportURL.parse(CONF, url_str, TRANSPORT_ALIASES)
 
 
 def get_client(target, version_cap=None, serializer=None):

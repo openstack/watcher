@@ -110,7 +110,6 @@ class MessagingHandler(threading.Thread):
 
     def stop(self):
         LOG.debug('Stopped server')
-        self.__server.wait()
         self.__server.stop()
 
     def publish_event(self, event_type, payload, request_id=None):
