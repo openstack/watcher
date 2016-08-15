@@ -13,8 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+
 import mock
-from testtools.matchers import HasLength
+from testtools import matchers
 
 from watcher.common import exception
 from watcher import objects
@@ -57,7 +58,7 @@ class TestStrategyObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_strategy]
             strategies = objects.Strategy.list(self.context)
             self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertThat(strategies, HasLength(1))
+            self.assertThat(strategies, matchers.HasLength(1))
             self.assertIsInstance(strategies[0], objects.Strategy)
             self.assertEqual(self.context, strategies[0]._context)
 
