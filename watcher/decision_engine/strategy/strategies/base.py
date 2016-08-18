@@ -77,7 +77,6 @@ class BaseStrategy(loadable.Loadable):
         self._osc = osc
         self._collector_manager = None
         self._compute_model = None
-        self._goal = None
         self._input_parameters = utils.Struct()
 
     @classmethod
