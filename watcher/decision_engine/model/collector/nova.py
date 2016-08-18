@@ -79,7 +79,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                 instance = element.Instance()
                 instance.uuid = v.id
                 # nova/nova/compute/instance_states.py
-                instance.state = getattr(v, 'OS-EXT-STS:instance_state')
+                instance.state = getattr(v, 'OS-EXT-STS:vm_state')
 
                 # set capacity
                 self.wrapper.get_flavor_instance(v, flavor_cache)

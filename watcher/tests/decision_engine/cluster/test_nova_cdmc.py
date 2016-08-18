@@ -47,7 +47,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         )
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
-            state=mock.Mock(**{'OS-EXT-STS:instance_state': 'VM_STATE'}),
+            state=mock.Mock(**{'OS-EXT-STS:vm_state': 'VM_STATE'}),
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4},
         )
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
