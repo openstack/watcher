@@ -27,14 +27,14 @@ from oslo_serialization import jsonutils
 import six
 import webob
 
-from watcher._i18n import _
-from watcher._i18n import _LE
+from watcher._i18n import _, _LE
 
 LOG = log.getLogger(__name__)
 
 
 class ParsableErrorMiddleware(object):
     """Replace error body with something the client can parse."""
+
     def __init__(self, app):
         self.app = app
 
@@ -59,8 +59,7 @@ class ParsableErrorMiddleware(object):
                     # compute the length.
                     headers = [(h, v)
                                for (h, v) in headers
-                               if h not in ('Content-Length', 'Content-Type')
-                               ]
+                               if h not in ('Content-Length', 'Content-Type')]
                 # Save the headers in case we need to modify them.
                 state['headers'] = headers
                 return start_response(status, headers, exc_info)
@@ -68,24 +67,27 @@ class ParsableErrorMiddleware(object):
         app_iter = self.app(environ, replacement_start_response)
         if (state['status_code'] // 100) not in (2, 3):
             req = webob.Request(environ)
-            if (req.accept.best_match(['application/json', 'application/xml']
-                                      ) == 'application/xml'):
+            if (
+                    req.accept.best_match(
+                        ['application/json',
+                         'application/xml']) == 'application/xml'
+            ):
                 try:
                     # simple check xml is valid
-                    body = [et.ElementTree.tostring(
-                            et.ElementTree.Element('error_message',
-                                                   text='\n'.join(app_iter)))]
+                    body = [
+                        et.ElementTree.tostring(
+                            et.ElementTree.Element(
+                                'error_message', text='\n'.join(app_iter)))]
                 except et.ElementTree.ParseError as err:
                     LOG.error(_LE('Error parsing HTTP response: %s'), err)
-                    body = [et.ElementTree.tostring(
-                            et.ElementTree.Element('error_message',
-                                                   text=state['status_code']))]
+                    body = ['<error_message>%s'
+                            '</error_message>' % state['status_code']]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
                 if six.PY3:
                     app_iter = [i.decode('utf-8') for i in app_iter]
                 body = [jsonutils.dumps(
-                        {'error_message': '\n'.join(app_iter)})]
+                    {'error_message': '\n'.join(app_iter)})]
                 if six.PY3:
                     body = [item.encode('utf-8') for item in body]
                 state['headers'].append(('Content-Type', 'application/json'))
