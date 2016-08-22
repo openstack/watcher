@@ -14,7 +14,6 @@
 #    under the License.
 
 import mock
-from testtools import matchers
 
 from watcher import objects
 from watcher.tests.db import base
@@ -43,7 +42,7 @@ class TestServiceObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_service]
             services = objects.Service.list(self.context)
             self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertThat(services, matchers.HasLength(1))
+            self.assertEqual(1, len(services))
             self.assertIsInstance(services[0], objects.Service)
             self.assertEqual(self.context, services[0]._context)
 

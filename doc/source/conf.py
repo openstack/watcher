@@ -16,6 +16,9 @@ import sys
 import os
 
 from watcher import version as watcher_version
+from watcher import objects
+
+objects.register_all()
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the

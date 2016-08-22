@@ -16,9 +16,9 @@
 
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
+from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
 class ServiceStatus(object):
@@ -26,33 +26,24 @@ class ServiceStatus(object):
     FAILED = 'FAILED'
 
 
-class Service(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class Service(base.WatcherPersistentObject, base.WatcherObject,
+              base.WatcherObjectDictCompat):
 
-    dbapi = dbapi.get_instance()
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    dbapi = db_api.get_instance()
 
     fields = {
-        'id': int,
-        'name': obj_utils.str_or_none,
-        'host': obj_utils.str_or_none,
-        'last_seen_up': obj_utils.datetime_or_str_or_none
+        'id': wfields.IntegerField(),
+        'name': wfields.StringField(),
+        'host': wfields.StringField(),
+        'last_seen_up': wfields.DateTimeField(
+            tzinfo_aware=False, nullable=True),
     }
 
-    @staticmethod
-    def _from_db_object(service, db_service):
-        """Converts a database entity to a formal object."""
-        for field in service.fields:
-            service[field] = db_service[field]
-
-        service.obj_reset_changes()
-        return service
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [Service._from_db_object(cls(context), obj)
-                for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, service_id):
         """Find a service based on its id
 
@@ -72,7 +63,7 @@ class Service(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=service_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_name(cls, context, name):
         """Find a service based on name
 
@@ -85,7 +76,7 @@ class Service(base.WatcherObject):
         service = cls._from_db_object(cls(context), db_service)
         return service
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of :class:`Service` objects.
@@ -110,69 +101,41 @@ class Service(base.WatcherObject):
             marker=marker,
             sort_key=sort_key,
             sort_dir=sort_dir)
-        return Service._from_db_object_list(db_services, cls, context)
 
-    def create(self, context=None):
-        """Create a :class:`Service` record in the DB.
+        return [cls._from_db_object(cls(context), obj) for obj in db_services]
 
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Service(context)
-        """
-
+    @base.remotable
+    def create(self):
+        """Create a :class:`Service` record in the DB."""
         values = self.obj_get_changes()
         db_service = self.dbapi.create_service(values)
         self._from_db_object(self, db_service)
 
-    def save(self, context=None):
+    @base.remotable
+    def save(self):
         """Save updates to this :class:`Service`.
 
         Updates will be made column by column based on the result
         of self.what_changed().
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Service(context)
         """
         updates = self.obj_get_changes()
         self.dbapi.update_service(self.id, updates)
 
         self.obj_reset_changes()
 
-    def refresh(self, context=None):
+    def refresh(self):
         """Loads updates for this :class:`Service`.
 
         Loads a service with the same id from the database and
         checks for updated attributes. Updates are applied from
         the loaded service column by column, if there are any updates.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Service(context)
         """
-        current = self.__class__.get(self._context, service_id=self.id)
+        current = self.get(self._context, service_id=self.id)
         for field in self.fields:
             if (hasattr(self, base.get_attrname(field)) and
                     self[field] != current[field]):
                 self[field] = current[field]
 
-    def soft_delete(self, context=None):
-        """Soft Delete the :class:`Service` from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Service(context)
-        """
+    def soft_delete(self):
+        """Soft Delete the :class:`Service` from the DB."""
         self.dbapi.soft_delete_service(self.id)

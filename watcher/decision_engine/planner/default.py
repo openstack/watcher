@@ -128,7 +128,7 @@ class DefaultPlanner(base.BasePlanner):
         }
 
         new_action_plan = objects.ActionPlan(context, **action_plan_dict)
-        new_action_plan.create(context)
+        new_action_plan.create()
 
         return new_action_plan
 
@@ -145,7 +145,7 @@ class DefaultPlanner(base.BasePlanner):
             }
             new_efficacy_indicator = objects.EfficacyIndicator(
                 context, **efficacy_indicator_dict)
-            new_efficacy_indicator.create(context)
+            new_efficacy_indicator.create()
 
             efficacy_indicators.append(new_efficacy_indicator)
         return efficacy_indicators
@@ -156,7 +156,7 @@ class DefaultPlanner(base.BasePlanner):
                       _action.get("action_type"))
 
             new_action = objects.Action(context, **_action)
-            new_action.create(context)
+            new_action.create()
             new_action.save()
 
             if parent_action:

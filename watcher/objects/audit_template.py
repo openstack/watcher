@@ -51,41 +51,28 @@ from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as dbapi
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
-class AuditTemplate(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class AuditTemplate(base.WatcherPersistentObject, base.WatcherObject,
+                    base.WatcherObjectDictCompat):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
     dbapi = dbapi.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'name': obj_utils.str_or_none,
-        'description': obj_utils.str_or_none,
-        'goal_id': obj_utils.int_or_none,
-        'strategy_id': obj_utils.int_or_none,
-        'scope': obj_utils.list_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'name': wfields.StringField(),
+        'description': wfields.StringField(nullable=True),
+        'scope': wfields.FlexibleListOfDictField(nullable=True),
+        'goal_id': wfields.IntegerField(),
+        'strategy_id': wfields.IntegerField(nullable=True),
     }
 
-    @staticmethod
-    def _from_db_object(audit_template, db_audit_template):
-        """Converts a database entity to a formal object."""
-        for field in audit_template.fields:
-            audit_template[field] = db_audit_template[field]
-
-        audit_template.obj_reset_changes()
-        return audit_template
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [AuditTemplate._from_db_object(cls(context), obj)
-                for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, audit_template_id):
         """Find an audit template based on its id or uuid
 
@@ -98,7 +85,6 @@ class AuditTemplate(base.WatcherObject):
         :param audit_template_id: the id *or* uuid of a audit_template.
         :returns: a :class:`AuditTemplate` object.
         """
-
         if utils.is_int_like(audit_template_id):
             return cls.get_by_id(context, audit_template_id)
         elif utils.is_uuid_like(audit_template_id):
@@ -106,7 +92,7 @@ class AuditTemplate(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=audit_template_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, audit_template_id):
         """Find an audit template based on its integer id
 
@@ -119,7 +105,6 @@ class AuditTemplate(base.WatcherObject):
         :param audit_template_id: the id of a audit_template.
         :returns: a :class:`AuditTemplate` object.
         """
-
         db_audit_template = cls.dbapi.get_audit_template_by_id(
             context,
             audit_template_id)
@@ -127,7 +112,7 @@ class AuditTemplate(base.WatcherObject):
                                                        db_audit_template)
         return audit_template
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find an audit template based on uuid
 
@@ -140,13 +125,12 @@ class AuditTemplate(base.WatcherObject):
         :param uuid: the uuid of a audit_template.
         :returns: a :class:`AuditTemplate` object.
         """
-
         db_audit_template = cls.dbapi.get_audit_template_by_uuid(context, uuid)
         audit_template = AuditTemplate._from_db_object(cls(context),
                                                        db_audit_template)
         return audit_template
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_name(cls, context, name):
         """Find an audit template based on name
 
@@ -154,13 +138,12 @@ class AuditTemplate(base.WatcherObject):
         :param context: Security context
         :returns: a :class:`AuditTemplate` object.
         """
-
         db_audit_template = cls.dbapi.get_audit_template_by_name(context, name)
         audit_template = AuditTemplate._from_db_object(cls(context),
                                                        db_audit_template)
         return audit_template
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, filters=None, limit=None, marker=None,
              sort_key=None, sort_dir=None):
         """Return a list of :class:`AuditTemplate` objects.
@@ -178,7 +161,6 @@ class AuditTemplate(base.WatcherObject):
         :param sort_dir: direction to sort. "asc" or "desc".
         :returns: a list of :class:`AuditTemplate` object.
         """
-
         db_audit_templates = cls.dbapi.get_audit_template_list(
             context,
             filters=filters,
@@ -186,87 +168,46 @@ class AuditTemplate(base.WatcherObject):
             marker=marker,
             sort_key=sort_key,
             sort_dir=sort_dir)
-        return AuditTemplate._from_db_object_list(db_audit_templates,
-                                                  cls, context)
 
-    def create(self, context=None):
-        """Create a :class:`AuditTemplate` record in the DB.
+        return [cls._from_db_object(cls(context), obj)
+                for obj in db_audit_templates]
 
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: AuditTemplate(context)
-        """
-
+    @base.remotable
+    def create(self):
+        """Create a :class:`AuditTemplate` record in the DB"""
         values = self.obj_get_changes()
         db_audit_template = self.dbapi.create_audit_template(values)
         self._from_db_object(self, db_audit_template)
 
-    def destroy(self, context=None):
-        """Delete the :class:`AuditTemplate` from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: AuditTemplate(context)
-        """
-
+    def destroy(self):
+        """Delete the :class:`AuditTemplate` from the DB"""
         self.dbapi.destroy_audit_template(self.uuid)
         self.obj_reset_changes()
 
-    def save(self, context=None):
+    @base.remotable
+    def save(self):
         """Save updates to this :class:`AuditTemplate`.
 
         Updates will be made column by column based on the result
         of self.what_changed().
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: AuditTemplate(context)
         """
-
         updates = self.obj_get_changes()
         self.dbapi.update_audit_template(self.uuid, updates)
 
         self.obj_reset_changes()
 
-    def refresh(self, context=None):
+    @base.remotable
+    def refresh(self):
         """Loads updates for this :class:`AuditTemplate`.
 
         Loads a audit_template with the same uuid from the database and
         checks for updated attributes. Updates are applied from
         the loaded audit_template column by column, if there are any updates.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: AuditTemplate(context)
         """
-
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
-        for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
-                self[field] = current[field]
+        self.obj_refresh(current)
 
-    def soft_delete(self, context=None):
-        """soft Delete the :class:`AuditTemplate` from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: AuditTemplate(context)
-        """
-
+    @base.remotable
+    def soft_delete(self):
+        """Soft Delete the :class:`AuditTemplate` from the DB"""
         self.dbapi.soft_delete_audit_template(self.uuid)

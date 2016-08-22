@@ -14,46 +14,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
+from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
-class EfficacyIndicator(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class EfficacyIndicator(base.WatcherPersistentObject, base.WatcherObject,
+                        base.WatcherObjectDictCompat):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    dbapi = dbapi.get_instance()
+    dbapi = db_api.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'action_plan_id': obj_utils.int_or_none,
-        'name': obj_utils.str_or_none,
-        'description': obj_utils.str_or_none,
-        'unit': obj_utils.str_or_none,
-        'value': obj_utils.numeric_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'action_plan_id': wfields.IntegerField(),
+        'name': wfields.StringField(),
+        'description': wfields.StringField(nullable=True),
+        'unit': wfields.StringField(nullable=True),
+        'value': wfields.NumericField(),
     }
 
-    @staticmethod
-    def _from_db_object(efficacy_indicator, db_efficacy_indicator):
-        """Converts a database entity to a formal object."""
-        for field in efficacy_indicator.fields:
-            efficacy_indicator[field] = db_efficacy_indicator[field]
-
-        efficacy_indicator.obj_reset_changes()
-        return efficacy_indicator
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [EfficacyIndicator._from_db_object(cls(context), obj)
-                for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, efficacy_indicator_id):
         """Find an efficacy indicator object given its ID or UUID
 
@@ -67,7 +53,7 @@ class EfficacyIndicator(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=efficacy_indicator_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, efficacy_indicator_id):
         """Find an efficacy indicator given its integer ID
 
@@ -80,7 +66,7 @@ class EfficacyIndicator(base.WatcherObject):
             cls(context), db_efficacy_indicator)
         return efficacy_indicator
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find an efficacy indicator given its UUID
 
@@ -94,7 +80,7 @@ class EfficacyIndicator(base.WatcherObject):
             cls(context), db_efficacy_indicator)
         return efficacy_indicator
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of EfficacyIndicator objects.
@@ -115,9 +101,11 @@ class EfficacyIndicator(base.WatcherObject):
             filters=filters,
             sort_key=sort_key,
             sort_dir=sort_dir)
-        return EfficacyIndicator._from_db_object_list(
-            db_efficacy_indicators, cls, context)
 
+        return [cls._from_db_object(cls(context), obj)
+                for obj in db_efficacy_indicators]
+
+    @base.remotable
     def create(self, context=None):
         """Create a EfficacyIndicator record in the DB.
 
@@ -146,6 +134,7 @@ class EfficacyIndicator(base.WatcherObject):
         self.dbapi.destroy_efficacy_indicator(self.uuid)
         self.obj_reset_changes()
 
+    @base.remotable
     def save(self, context=None):
         """Save updates to this EfficacyIndicator.
 
@@ -164,6 +153,7 @@ class EfficacyIndicator(base.WatcherObject):
 
         self.obj_reset_changes()
 
+    @base.remotable
     def refresh(self, context=None):
         """Loads updates for this EfficacyIndicator.
 
@@ -179,11 +169,9 @@ class EfficacyIndicator(base.WatcherObject):
                         object, e.g.: EfficacyIndicator(context)
         """
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
-        for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
-                self[field] = current[field]
+        self.obj_refresh(current)
 
+    @base.remotable
     def soft_delete(self, context=None):
         """Soft Delete the efficacy indicator from the DB.
 

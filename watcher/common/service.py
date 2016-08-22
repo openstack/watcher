@@ -36,8 +36,8 @@ from watcher.common.messaging.events import event_dispatcher as dispatcher
 from watcher.common.messaging import messaging_handler
 from watcher.common import rpc
 from watcher.common import scheduling
+from watcher import objects
 from watcher.objects import base
-from watcher.objects import service as service_object
 from watcher import opts
 from watcher import version
 
@@ -118,7 +118,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
 
     def send_beat(self):
         host = CONF.host
-        watcher_list = service_object.Service.list(
+        watcher_list = objects.Service.list(
             self.context, filters={'name': self.service_name,
                                    'host': host})
         if watcher_list:
@@ -126,7 +126,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
             watcher_service.last_seen_up = datetime.datetime.utcnow()
             watcher_service.save()
         else:
-            watcher_service = service_object.Service(self.context)
+            watcher_service = objects.Service(self.context)
             watcher_service.name = self.service_name
             watcher_service.host = host
             watcher_service.create()
@@ -333,6 +333,7 @@ def prepare_service(argv=(), conf=cfg.CONF):
                      default_log_levels=_DEFAULT_LOG_LEVELS)
     log.setup(conf, 'python-watcher')
     conf.log_opt_values(LOG, logging.DEBUG)
+    objects.register_all()
 
     gmr.TextGuruMeditation.register_section(_('Plugins'), opts.show_plugins)
     gmr.TextGuruMeditation.setup_autorun(version, conf=conf)

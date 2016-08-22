@@ -34,9 +34,7 @@ from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api
 from watcher.db.sqlalchemy import models
-from watcher.objects import action as action_objects
-from watcher.objects import action_plan as ap_objects
-from watcher.objects import audit as audit_objects
+from watcher import objects
 
 CONF = cfg.CONF
 
@@ -70,7 +68,6 @@ def model_query(model, *args, **kwargs):
 
     :param session: if present, the session to use
     """
-
     session = kwargs.get('session') or get_session()
     query = session.query(model, *args)
     return query
@@ -647,7 +644,7 @@ class Connection(api.BaseConnection):
         query = self._add_audits_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
-                ~(models.Audit.state == audit_objects.State.DELETED))
+                ~(models.Audit.state == objects.audit.State.DELETED))
 
         return _paginate_query(models.Audit, limit, marker,
                                sort_key, sort_dir, query)
@@ -658,7 +655,7 @@ class Connection(api.BaseConnection):
             values['uuid'] = utils.generate_uuid()
 
         if values.get('state') is None:
-            values['state'] = audit_objects.State.PENDING
+            values['state'] = objects.audit.State.PENDING
 
         audit = models.Audit()
         audit.update(values)
@@ -734,7 +731,7 @@ class Connection(api.BaseConnection):
         query = self._add_actions_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
-                ~(models.Action.state == action_objects.State.DELETED))
+                ~(models.Action.state == objects.action.State.DELETED))
         return _paginate_query(models.Action, limit, marker,
                                sort_key, sort_dir, query)
 
@@ -821,7 +818,8 @@ class Connection(api.BaseConnection):
         query = self._add_action_plans_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
-                ~(models.ActionPlan.state == ap_objects.State.DELETED))
+                ~(models.ActionPlan.state ==
+                  objects.action_plan.State.DELETED))
 
         return _paginate_query(models.ActionPlan, limit, marker,
                                sort_key, sort_dir, query)

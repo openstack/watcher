@@ -23,8 +23,6 @@ from watcher.common import context
 from watcher.decision_engine.loading import default
 from watcher.decision_engine.scoring import scoring_factory
 from watcher import objects
-from watcher.objects import action_plan as apobjects
-from watcher.objects import audit as auditobjects
 
 LOG = log.getLogger(__name__)
 
@@ -338,13 +336,13 @@ class Syncer(object):
             for audit in stale_audits:
                 if audit.id not in self.stale_audits_map:
                     audit.strategy_id = synced_strategy.id
-                    audit.state = auditobjects.State.CANCELLED
+                    audit.state = objects.audit.State.CANCELLED
                     self.stale_audits_map[audit.id] = audit
                 else:
                     self.stale_audits_map[
                         audit.id].strategy_id = synced_strategy.id
                     self.stale_audits_map[
-                        audit.id].state = auditobjects.State.CANCELLED
+                        audit.id].state = objects.audit.State.CANCELLED
 
     def _find_stale_action_plans_due_to_strategy(self):
         for strategy_id, synced_strategy in self.strategy_mapping.items():
@@ -356,13 +354,14 @@ class Syncer(object):
             for action_plan in stale_action_plans:
                 if action_plan.id not in self.stale_action_plans_map:
                     action_plan.strategy_id = synced_strategy.id
-                    action_plan.state = apobjects.State.CANCELLED
+                    action_plan.state = objects.action_plan.State.CANCELLED
                     self.stale_action_plans_map[action_plan.id] = action_plan
                 else:
                     self.stale_action_plans_map[
                         action_plan.id].strategy_id = synced_strategy.id
                     self.stale_action_plans_map[
-                        action_plan.id].state = apobjects.State.CANCELLED
+                        action_plan.id].state = (
+                            objects.action_plan.State.CANCELLED)
 
     def _find_stale_action_plans_due_to_audit(self):
         for audit_id, synced_audit in self.stale_audits_map.items():
@@ -374,13 +373,14 @@ class Syncer(object):
             for action_plan in stale_action_plans:
                 if action_plan.id not in self.stale_action_plans_map:
                     action_plan.audit_id = synced_audit.id
-                    action_plan.state = apobjects.State.CANCELLED
+                    action_plan.state = objects.action_plan.State.CANCELLED
                     self.stale_action_plans_map[action_plan.id] = action_plan
                 else:
                     self.stale_action_plans_map[
                         action_plan.id].audit_id = synced_audit.id
                     self.stale_action_plans_map[
-                        action_plan.id].state = apobjects.State.CANCELLED
+                        action_plan.id].state = (
+                            objects.action_plan.State.CANCELLED)
 
     def _soft_delete_removed_goals(self):
         removed_goals = [
@@ -402,11 +402,11 @@ class Syncer(object):
                     _LW("Audit '%(audit)s' references a "
                         "goal that does not exist"), audit=audit.uuid)
                 if audit.id not in self.stale_audits_map:
-                    audit.state = auditobjects.State.CANCELLED
+                    audit.state = objects.audit.State.CANCELLED
                     self.stale_audits_map[audit.id] = audit
                 else:
                     self.stale_audits_map[
-                        audit.id].state = auditobjects.State.CANCELLED
+                        audit.id].state = objects.audit.State.CANCELLED
 
     def _soft_delete_removed_strategies(self):
         removed_strategies = [
@@ -437,11 +437,11 @@ class Syncer(object):
                     _LW("Audit '%(audit)s' references a "
                         "strategy that does not exist"), audit=audit.uuid)
                 if audit.id not in self.stale_audits_map:
-                    audit.state = auditobjects.State.CANCELLED
+                    audit.state = objects.audit.State.CANCELLED
                     self.stale_audits_map[audit.id] = audit
                 else:
                     self.stale_audits_map[
-                        audit.id].state = auditobjects.State.CANCELLED
+                        audit.id].state = objects.audit.State.CANCELLED
 
             stale_action_plans = objects.ActionPlan.list(
                 self.ctx, filters=filters)
@@ -451,11 +451,12 @@ class Syncer(object):
                         "strategy that does not exist"),
                     action_plan=action_plan.uuid)
                 if action_plan.id not in self.stale_action_plans_map:
-                    action_plan.state = apobjects.State.CANCELLED
+                    action_plan.state = objects.action_plan.State.CANCELLED
                     self.stale_action_plans_map[action_plan.id] = action_plan
                 else:
                     self.stale_action_plans_map[
-                        action_plan.id].state = apobjects.State.CANCELLED
+                        action_plan.id].state = (
+                            objects.action_plan.State.CANCELLED)
 
     def _soft_delete_removed_scoringengines(self):
         removed_se = [
