@@ -15,11 +15,15 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
+import datetime
 
 from ceilometerclient import exc
+from oslo_utils import timeutils
 
+from watcher._i18n import _
 from watcher.common import clients
+from watcher.common import exception
 
 
 class CeilometerHelper(object):
@@ -29,18 +33,20 @@ class CeilometerHelper(object):
         self.ceilometer = self.osc.ceilometer()
 
     def build_query(self, user_id=None, tenant_id=None, resource_id=None,
-                    user_ids=None, tenant_ids=None, resource_ids=None):
+                    user_ids=None, tenant_ids=None, resource_ids=None,
+                    start_time=None, end_time=None):
         """Returns query built from given parameters.
 
         This query can be then used for querying resources, meters and
         statistics.
-        :Parameters:
-        - `user_id`: user_id, has a priority over list of ids
-        - `tenant_id`: tenant_id, has a priority over list of ids
-        - `resource_id`: resource_id, has a priority over list of ids
-        - `user_ids`: list of user_ids
-        - `tenant_ids`: list of tenant_ids
-        - `resource_ids`: list of resource_ids
+        :param user_id: user_id, has a priority over list of ids
+        :param tenant_id: tenant_id, has a priority over list of ids
+        :param resource_id: resource_id, has a priority over list of ids
+        :param user_ids: list of user_ids
+        :param tenant_ids: list of tenant_ids
+        :param resource_ids: list of resource_ids
+        :param start_time: datetime from which measurements should be collected
+        :param end_time: datetime until which measurements should be collected
         """
 
         user_ids = user_ids or []
@@ -63,6 +69,32 @@ class CeilometerHelper(object):
         for r_id in resource_ids:
             query.append({"field": "resource_id", "op": "eq", "value": r_id})
 
+        start_timestamp = None
+        end_timestamp = None
+
+        if start_time:
+            start_timestamp = start_time
+            if isinstance(start_time, datetime.datetime):
+                start_timestamp = start_time.isoformat()
+
+        if end_time:
+            end_timestamp = end_time
+            if isinstance(end_time, datetime.datetime):
+                end_timestamp = end_time.isoformat()
+
+        if (start_timestamp and end_timestamp and
+                timeutils.parse_isotime(start_timestamp) >
+                timeutils.parse_isotime(end_timestamp)):
+            raise exception.Invalid(
+                _("Invalid query: %(start_time)s > %(end_time)s") % dict(
+                    start_time=start_timestamp, end_time=end_timestamp))
+
+        if start_timestamp:
+            query.append({"field": "timestamp", "op": "ge",
+                          "value": start_timestamp})
+        if end_timestamp:
+            query.append({"field": "timestamp", "op": "le",
+                          "value": end_timestamp})
         return query
 
     def query_retry(self, f, *args, **kargs):
@@ -112,7 +144,10 @@ class CeilometerHelper(object):
         :return:
         """
 
-        query = self.build_query(resource_id=resource_id)
+        start_time = (datetime.datetime.utcnow() -
+                      datetime.timedelta(seconds=int(period)))
+        query = self.build_query(
+            resource_id=resource_id, start_time=start_time)
         statistic = self.query_retry(f=self.ceilometer.statistics.list,
                                      meter_name=meter_name,
                                      q=query,
