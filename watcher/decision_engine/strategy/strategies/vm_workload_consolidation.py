@@ -513,7 +513,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param original_model: root_model object
         """
         LOG.info(_LI('Executing Smart Strategy'))
-        model = self.compute_model.get_latest_cluster_data_model()
+        model = self.compute_model
         rcu = self.get_relative_cluster_utilization(model)
         self.ceilometer_vm_data_cache = dict()
 
