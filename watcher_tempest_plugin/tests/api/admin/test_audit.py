@@ -16,6 +16,8 @@
 
 from __future__ import unicode_literals
 
+import functools
+
 from tempest.lib import exceptions
 from tempest import test
 
@@ -123,10 +125,28 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         _, body = self.create_audit(audit_template['uuid'])
         audit_uuid = body['uuid']
 
+        test.call_until_true(
+            func=functools.partial(
+                self.is_audit_idle, audit_uuid),
+            duration=10,
+            sleep_for=.5
+        )
+
+        def is_audit_deleted(uuid):
+            try:
+                return not bool(self.client.show_audit(uuid))
+            except exceptions.NotFound:
+                return True
+
         self.delete_audit(audit_uuid)
 
-        self.assertRaises(
-            exceptions.NotFound, self.client.show_audit, audit_uuid)
+        test.call_until_true(
+            func=functools.partial(is_audit_deleted, audit_uuid),
+            duration=5,
+            sleep_for=1
+        )
+
+        self.assertTrue(is_audit_deleted(audit_uuid))
 
 
 class TestShowListAudit(base.BaseInfraOptimTest):
