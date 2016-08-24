@@ -58,7 +58,7 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         schema = selected_strategy.get_schema()
         if not audit.parameters and schema:
             # Default value feedback if no predefined strategy
-            utils.DefaultValidatingDraft4Validator(schema).validate(
+            utils.StrictDefaultValidatingDraft4Validator(schema).validate(
                 audit.parameters)
 
         selected_strategy.input_parameters.update({

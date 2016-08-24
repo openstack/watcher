@@ -567,6 +567,62 @@ class TestPost(api_base.FunctionalTest):
         self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_parameter_not_allowed(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        audit_template = self.prepare_audit_template_strategy_with_parameter()
+
+        audit_dict = api_utils.audit_post_data(
+            parameters={'fake1': 1, 'fake2': "hello"})
+
+        audit_dict['audit_template_uuid'] = audit_template['uuid']
+        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval']
+        for k in del_keys:
+            del audit_dict[k]
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual("application/json", response.content_type)
+        expected_error_msg = 'Audit parameter fake2 are not allowed'
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
+
+    def prepare_audit_template_strategy_with_parameter(self):
+        fake_spec = {
+            "properties": {
+                "fake1": {
+                    "description": "number parameter example",
+                    "type": "number",
+                    "default": 3.2,
+                    "minimum": 1.0,
+                    "maximum": 10.2,
+                }
+            }
+        }
+        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a67'
+        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a68'
+        template_name = 'my template'
+        strategy_name = 'my strategy'
+        strategy_id = 3
+        strategy = db_utils.get_test_strategy(parameters_spec=fake_spec,
+                                              id=strategy_id,
+                                              uuid=strategy_uuid,
+                                              name=strategy_name)
+        obj_utils.create_test_strategy(self.context,
+                                       parameters_spec=fake_spec,
+                                       id=strategy_id,
+                                       uuid=strategy_uuid,
+                                       name=strategy_name)
+        obj_utils.create_test_audit_template(self.context,
+                                             strategy_id=strategy_id,
+                                             uuid=template_uuid,
+                                             name='name')
+        audit_template = db_utils.get_test_audit_template(
+            strategy_id=strategy['id'], uuid=template_uuid, name=template_name)
+        return audit_template
+
 
 # class TestDelete(api_base.FunctionalTest):
 

@@ -19,6 +19,7 @@
 from jsonschema import validators
 from oslo_config import cfg
 from oslo_log import log as logging
+from watcher.common import exception
 
 import re
 import six
@@ -142,13 +143,29 @@ def extend_with_default(validator_class):
                 instance.setdefault(prop, subschema["default"])
 
             for error in validate_properties(
-                validator, properties, instance, schema,
+                validator, properties, instance, schema
             ):
                 yield error
 
-    return validators.extend(
-        validator_class, {"properties": set_defaults},
-    )
+    return validators.extend(validator_class,
+                             {"properties": set_defaults})
 
-DefaultValidatingDraft4Validator = extend_with_default(
-    validators.Draft4Validator)
+
+# Parameter strict check extension as jsonschema doesn't support it
+def extend_with_strict_schema(validator_class):
+    validate_properties = validator_class.VALIDATORS["properties"]
+
+    def strict_schema(validator, properties, instance, schema):
+        for para in instance.keys():
+            if para not in properties.keys():
+                raise exception.AuditParameterNotAllowed(parameter=para)
+
+            for error in validate_properties(
+                    validator, properties, instance, schema
+            ):
+                yield error
+
+    return validators.extend(validator_class, {"properties": strict_schema})
+
+StrictDefaultValidatingDraft4Validator = extend_with_default(
+    extend_with_strict_schema(validators.Draft4Validator))

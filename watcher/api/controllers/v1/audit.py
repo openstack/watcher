@@ -519,7 +519,7 @@ class AuditsController(rest.RestController):
             if schema:
                 # validate input parameter with default value feedback
                 no_schema = False
-                utils.DefaultValidatingDraft4Validator(schema).validate(
+                utils.StrictDefaultValidatingDraft4Validator(schema).validate(
                     audit.parameters)
 
         if no_schema and audit.parameters:
