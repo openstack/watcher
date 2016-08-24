@@ -250,7 +250,6 @@ class BaseConnection(object):
                          'uuid': utils.generate_uuid(),
                          'name': 'example',
                          'description': 'free text description'
-                         'host_aggregate': 'nova aggregate name or id'
                          'goal': 'DUMMY'
                          'extra': {'automatic': True}
                         }

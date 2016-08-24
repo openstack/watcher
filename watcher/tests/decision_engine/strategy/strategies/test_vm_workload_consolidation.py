@@ -47,6 +47,15 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
 
+        p_audit_scope = mock.patch.object(
+            strategies.VMWorkloadConsolidation, "audit_scope",
+            new_callable=mock.PropertyMock
+        )
+        self.m_audit_scope = p_audit_scope.start()
+        self.addCleanup(p_audit_scope.stop)
+
+        self.m_audit_scope.return_value = mock.Mock()
+
         # fake metrics
         self.fake_metrics = faker_cluster_and_metrics.FakeCeilometerMetrics(
             self.m_model.return_value)

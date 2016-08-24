@@ -148,7 +148,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.launch_audits_periodically()
         mock_add_job.assert_has_calls(calls)
 
-        audit_handler.update_audit_state(self.context, audits[1],
+        audit_handler.update_audit_state(audits[1],
                                          audit_objects.State.CANCELLED)
         is_inactive = audit_handler._is_audit_inactive(audits[1])
         self.assertTrue(is_inactive)

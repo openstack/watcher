@@ -54,6 +54,8 @@ class AuditPostType(wtypes.Base):
 
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=False)
 
+    scope = wtypes.wsattr(types.jsontype, readonly=True)
+
     goal = wtypes.wsattr(wtypes.text, mandatory=False)
 
     strategy = wtypes.wsattr(wtypes.text, mandatory=False)
@@ -68,9 +70,6 @@ class AuditPostType(wtypes.Base):
     parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
                                default={})
     interval = wsme.wsattr(int, mandatory=False)
-
-    host_aggregate = wsme.wsattr(wtypes.IntegerType(minimum=1),
-                                 mandatory=False)
 
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
@@ -100,7 +99,7 @@ class AuditPostType(wtypes.Base):
             at2a = {
                 'goal': 'goal_id',
                 'strategy': 'strategy_id',
-                'host_aggregate': 'host_aggregate'
+                'scope': 'scope',
             }
             to_string_fields = set(['goal', 'strategy'])
             for k in at2a:
@@ -117,9 +116,9 @@ class AuditPostType(wtypes.Base):
             deadline=self.deadline,
             parameters=self.parameters,
             goal_id=self.goal,
-            host_aggregate=self.host_aggregate,
             strategy_id=self.strategy,
-            interval=self.interval)
+            interval=self.interval,
+            scope=self.scope,)
 
 
 class AuditPatchType(types.JsonPatchType):
@@ -261,8 +260,8 @@ class Audit(base.APIBase):
     interval = wsme.wsattr(int, mandatory=False)
     """Launch audit periodically (in seconds)"""
 
-    host_aggregate = wtypes.IntegerType(minimum=1)
-    """ID of the Nova host aggregate targeted by the audit template"""
+    scope = wsme.wsattr(types.jsontype, mandatory=False)
+    """Audit Scope"""
 
     def __init__(self, **kwargs):
         self.fields = []
@@ -294,8 +293,8 @@ class Audit(base.APIBase):
         if not expand:
             audit.unset_fields_except(['uuid', 'audit_type', 'deadline',
                                        'state', 'goal_uuid', 'interval',
-                                       'strategy_uuid', 'host_aggregate',
-                                       'goal_name', 'strategy_name'])
+                                       'strategy_uuid', 'goal_name',
+                                       'strategy_name'])
 
         audit.links = [link.Link.make_link('self', url,
                                            'audits', audit.uuid),
@@ -320,11 +319,11 @@ class Audit(base.APIBase):
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow(),
-                     interval=7200)
+                     interval=7200,
+                     scope=[])
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'
-        sample.host_aggregate = 1
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -381,7 +380,7 @@ class AuditsController(rest.RestController):
     def _get_audits_collection(self, marker, limit,
                                sort_key, sort_dir, expand=False,
                                resource_url=None, goal=None,
-                               strategy=None, host_aggregate=None):
+                               strategy=None):
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
         marker_obj = None
@@ -426,7 +425,7 @@ class AuditsController(rest.RestController):
                          wtypes.text, wtypes.text, wtypes.text, int)
     def get_all(self, marker=None, limit=None,
                 sort_key='id', sort_dir='asc', goal=None,
-                strategy=None, host_aggregate=None):
+                strategy=None):
         """Retrieve a list of audits.
 
         :param marker: pagination marker for large data sets.
@@ -436,7 +435,6 @@ class AuditsController(rest.RestController):
          id.
         :param goal: goal UUID or name to filter by
         :param strategy: strategy UUID or name to filter by
-        :param host_aggregate: Optional host_aggregate
         """
 
         context = pecan.request.context
@@ -445,8 +443,7 @@ class AuditsController(rest.RestController):
 
         return self._get_audits_collection(marker, limit, sort_key,
                                            sort_dir, goal=goal,
-                                           strategy=strategy,
-                                           host_aggregate=host_aggregate)
+                                           strategy=strategy)
 
     @wsme_pecan.wsexpose(AuditCollection, wtypes.text, types.uuid, int,
                          wtypes.text, wtypes.text)

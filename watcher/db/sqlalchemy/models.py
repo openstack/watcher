@@ -157,11 +157,11 @@ class AuditTemplate(Base):
     uuid = Column(String(36))
     name = Column(String(63), nullable=True)
     description = Column(String(255), nullable=True)
-    host_aggregate = Column(Integer, nullable=True)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     extra = Column(JSONEncodedDict)
     version = Column(String(15), nullable=True)
+    scope = Column(JSONEncodedList)
 
 
 class Audit(Base):
@@ -179,9 +179,9 @@ class Audit(Base):
     deadline = Column(DateTime, nullable=True)
     parameters = Column(JSONEncodedDict, nullable=True)
     interval = Column(Integer, nullable=True)
-    host_aggregate = Column(Integer, nullable=True)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
+    scope = Column(JSONEncodedList, nullable=True)
 
 
 class Action(Base):

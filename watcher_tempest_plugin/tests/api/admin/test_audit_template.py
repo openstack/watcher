@@ -35,7 +35,6 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         params = {
             'name': 'my at name %s' % uuid.uuid4(),
             'description': 'my at description',
-            'host_aggregate': 12,
             'goal': goal['uuid'],
             'extra': {'str': 'value', 'int': 123, 'float': 0.123,
                       'bool': True, 'list': [1, 2, 3],
@@ -43,7 +42,6 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         expected_data = {
             'name': params['name'],
             'description': params['description'],
-            'host_aggregate': params['host_aggregate'],
             'goal_uuid': params['goal'],
             'goal_name': goal_name,
             'strategy_uuid': None,
@@ -64,14 +62,12 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         params = {
             'name': 'my at name %s' % uuid.uuid4(),
             'description': 'my àt déscrïptïôn',
-            'host_aggregate': 12,
             'goal': goal['uuid'],
             'extra': {'foo': 'bar'}}
 
         expected_data = {
             'name': params['name'],
             'description': params['description'],
-            'host_aggregate': params['host_aggregate'],
             'goal_uuid': params['goal'],
             'goal_name': goal_name,
             'strategy_uuid': None,
@@ -170,7 +166,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
         params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
-                  'host_aggregate': 12,
                   'goal': self.goal['uuid'],
                   'extra': {'key1': 'value1', 'key2': 'value2'}}
 
@@ -178,7 +173,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
         new_name = 'my at new name %s' % uuid.uuid4()
         new_description = 'my new at description'
-        new_host_aggregate = 10
         new_extra = {'key1': 'new-value1', 'key2': 'new-value2'}
 
         patch = [{'path': '/name',
@@ -187,9 +181,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
                  {'path': '/description',
                   'op': 'replace',
                   'value': new_description},
-                 {'path': '/host_aggregate',
-                  'op': 'replace',
-                  'value': new_host_aggregate},
                  {'path': '/goal',
                   'op': 'replace',
                   'value': new_goal['uuid']},
@@ -208,7 +199,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, body = self.client.show_audit_template(body['uuid'])
         self.assertEqual(new_name, body['name'])
         self.assertEqual(new_description, body['description'])
-        self.assertEqual(new_host_aggregate, body['host_aggregate'])
         self.assertEqual(new_goal['uuid'], body['goal_uuid'])
         self.assertEqual(new_strategy['uuid'], body['strategy_uuid'])
         self.assertEqual(new_extra, body['extra'])
@@ -220,7 +210,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         name = 'my at name %s' % uuid.uuid4()
         params = {'name': name,
                   'description': description,
-                  'host_aggregate': 12,
                   'goal': self.goal['uuid'],
                   'extra': extra}
 
@@ -242,13 +231,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, body = self.client.show_audit_template(audit_template['uuid'])
         self.assertEqual({}, body['extra'])
 
-        # Removing the Host Aggregate ID
-        self.client.update_audit_template(
-            audit_template['uuid'],
-            [{'path': '/host_aggregate', 'op': 'remove'}])
-        _, body = self.client.show_audit_template(audit_template['uuid'])
-        self.assertEqual({}, body['extra'])
-
         # Assert nothing else was changed
         self.assertEqual(name, body['name'])
         self.assertEqual(description, body['description'])
@@ -258,7 +240,6 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     def test_update_audit_template_add(self):
         params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
-                  'host_aggregate': 12,
                   'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)

@@ -80,7 +80,7 @@ class AuditHandler(BaseAuditHandler):
                    'audit_status': status}
         self.messaging.publish_status_event(event.type.name, payload)
 
-    def update_audit_state(self, request_context, audit, state):
+    def update_audit_state(self, audit, state):
         LOG.debug("Update audit state: %s", state)
         audit.state = state
         audit.save()
@@ -89,15 +89,13 @@ class AuditHandler(BaseAuditHandler):
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
         # change state of the audit to ONGOING
-        self.update_audit_state(request_context, audit,
-                                audit_objects.State.ONGOING)
+        self.update_audit_state(audit, audit_objects.State.ONGOING)
 
     def post_execute(self, audit, solution, request_context):
         self.planner.schedule(request_context, audit.id, solution)
 
         # change state of the audit to SUCCEEDED
-        self.update_audit_state(request_context, audit,
-                                audit_objects.State.SUCCEEDED)
+        self.update_audit_state(audit, audit_objects.State.SUCCEEDED)
 
     def execute(self, audit, request_context):
         try:
@@ -106,5 +104,4 @@ class AuditHandler(BaseAuditHandler):
             self.post_execute(audit, solution, request_context)
         except Exception as e:
             LOG.exception(e)
-            self.update_audit_state(request_context, audit,
-                                    audit_objects.State.FAILED)
+            self.update_audit_state(audit, audit_objects.State.FAILED)

@@ -53,6 +53,8 @@ class DefaultStrategyContext(base.BaseStrategyContext):
 
         selected_strategy = strategy_selector.select()
 
+        selected_strategy.audit_scope = audit.scope
+
         schema = selected_strategy.get_schema()
         if not audit.parameters and schema:
             # Default value feedback if no predefined strategy

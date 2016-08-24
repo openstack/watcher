@@ -31,9 +31,8 @@ to know the current relationships between the different :ref:`resources
 during an :ref:`Audit <audit_definition>` and enables the :ref:`Strategy
 <strategy_definition>` to request information such as:
 
-- What compute nodes are in a given :ref:`Availability Zone
-  <availability_zone_definition>` or a given :ref:`Host Aggregate
-  <host_aggregates_definition>`?
+- What compute nodes are in a given :ref:`Audit Scope
+  <audit_scope_definition>`?
 - What :ref:`Instances <instance_definition>` are hosted on a given compute
   node?
 - What is the current load of a compute node?

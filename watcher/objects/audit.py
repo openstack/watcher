@@ -88,7 +88,7 @@ class Audit(base.WatcherObject):
         'interval': obj_utils.int_or_none,
         'goal_id': obj_utils.int_or_none,
         'strategy_id': obj_utils.int_or_none,
-        'host_aggregate': obj_utils.int_or_none,
+        'scope': obj_utils.list_or_none,
     }
 
     @staticmethod
