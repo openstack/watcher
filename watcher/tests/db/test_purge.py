@@ -155,14 +155,14 @@ class TestPurgeCommand(base.DbTestCase):
 
         with freezegun.freeze_time(self.expired_date):
             self.action_plan1 = obj_utils.create_test_action_plan(
-                self.context, audit_id=self.audit1.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                audit_id=self.audit1.id, strategy_id=self.strategy1.id)
             self.action_plan2 = obj_utils.create_test_action_plan(
-                self.context, audit_id=self.audit2.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                audit_id=self.audit2.id, strategy_id=self.strategy2.id)
             self.action_plan3 = obj_utils.create_test_action_plan(
-                self.context, audit_id=self.audit3.id,
-                id=self._generate_id(), uuid=None)
+                self.context, id=self._generate_id(), uuid=None,
+                audit_id=self.audit3.id, strategy_id=self.strategy3.id)
 
             self.action1 = obj_utils.create_test_action(
                 self.context, action_plan_id=self.action_plan1.id,

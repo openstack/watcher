@@ -30,9 +30,7 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
 
-    def execute_strategy(self, audit_uuid, request_context):
-        audit = objects.Audit.get_by_uuid(request_context, audit_uuid)
-
+    def execute_strategy(self, audit, request_context):
         osc = clients.OpenStackClients()
         # todo(jed) retrieve in audit parameters (threshold,...)
         # todo(jed) create ActionPlan

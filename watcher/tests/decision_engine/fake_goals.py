@@ -81,8 +81,3 @@ class FakeDummy1(FakeGoal):
 class FakeDummy2(FakeGoal):
     NAME = "dummy_2"
     DISPLAY_NAME = "Dummy 2"
-
-
-class FakeOtherDummy2(FakeGoal):
-    NAME = "dummy_2"
-    DISPLAY_NAME = "Other Dummy 2"

@@ -22,6 +22,16 @@ import six
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseStrategyContext(object):
+
     @abc.abstractmethod
-    def execute_strategy(self, audit_uuid, request_context):
+    def execute_strategy(self, audit, request_context):
+        """Execute the strategy for the given an audit
+
+        :param audit: Audit object
+        :type audit: :py:class:`~.objects.audit.Audit` instance
+        :param request_context: Current request context
+        :type request_context: :py:class:`~.RequestContext` instance
+        :returns: The computed solution
+        :rtype: :py:class:`~.BaseSolution` instance
+        """
         raise NotImplementedError()

@@ -100,16 +100,6 @@ def create_test_action_plan(context, **kw):
     return action_plan
 
 
-def create_action_plan_without_audit(context, **kw):
-    """Create and return a test action_plan object.
-
-    Create a action plan in the DB and return a ActionPlan object with
-    appropriate attributes.
-    """
-    kw['audit_id'] = None
-    return create_test_action_plan(context, **kw)
-
-
 def get_test_action(context, **kw):
     """Return a Action object with appropriate attributes.
 

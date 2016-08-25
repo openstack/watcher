@@ -220,7 +220,8 @@ class PurgeCommand(object):
                      if audit not in orphans.audits]
         orphans.action_plans = [
             ap for ap in action_plans
-            if ap.audit_id not in audit_ids]
+            if ap.audit_id not in audit_ids or
+            ap.strategy_id not in strategy_ids]
 
         # Objects with orphan parents are themselves orphans
         action_plan_ids = [ap.id for ap in action_plans

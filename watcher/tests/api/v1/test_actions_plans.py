@@ -13,37 +13,16 @@
 import datetime
 import itertools
 import mock
-import pecan
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-from wsme import types as wtypes
 
-from watcher.api.controllers.v1 import action_plan as api_action_plan
 from watcher.applier import rpcapi as aapi
-from watcher.common import context
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher import objects
 from watcher.tests.api import base as api_base
-from watcher.tests.api import utils as api_utils
-from watcher.tests import base
 from watcher.tests.objects import utils as obj_utils
-
-
-class TestActionPlanObject(base.TestCase):
-
-    @mock.patch.object(objects.EfficacyIndicator,
-                       'list', mock.Mock(return_value=[]))
-    @mock.patch.object(pecan, 'request')
-    def test_action_plan_init(self, m_request):
-        m_request.context = context.make_context()
-        act_plan_dict = api_utils.action_plan_post_data()
-        del act_plan_dict['state']
-        del act_plan_dict['audit_id']
-        del act_plan_dict['first_action_id']
-        act_plan = api_action_plan.ActionPlan(**act_plan_dict)
-        self.assertEqual(wtypes.Unset, act_plan.state)
 
 
 class TestListActionPlan(api_base.FunctionalTest):
@@ -53,20 +32,21 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual([], response['action_plans'])
 
     def _assert_action_plans_fields(self, action_plan):
-        action_plan_fields = ['uuid', 'audit_uuid', 'state', 'global_efficacy',
-                              'efficacy_indicators']
+        action_plan_fields = [
+            'uuid', 'audit_uuid', 'strategy_uuid', 'strategy_name',
+            'state', 'global_efficacy', 'efficacy_indicators']
         for field in action_plan_fields:
             self.assertIn(field, action_plan)
 
     def test_one(self):
-        action_plan = obj_utils.create_action_plan_without_audit(self.context)
+        action_plan = obj_utils.create_test_action_plan(self.context)
         response = self.get_json('/action_plans')
         self.assertEqual(action_plan.uuid,
                          response['action_plans'][0]["uuid"])
         self._assert_action_plans_fields(response['action_plans'][0])
 
     def test_one_soft_deleted(self):
-        action_plan = obj_utils.create_action_plan_without_audit(self.context)
+        action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
         response = self.get_json('/action_plans',
                                  headers={'X-Show-Deleted': 'True'})
@@ -100,7 +80,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         self._assert_action_plans_fields(response)
 
     def test_get_one_soft_deleted(self):
-        action_plan = obj_utils.create_action_plan_without_audit(self.context)
+        action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
         response = self.get_json('/action_plans/%s' % action_plan['uuid'],
                                  headers={'X-Show-Deleted': 'True'})
@@ -112,15 +92,14 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
 
     def test_detail(self):
-        action_plan = obj_utils.create_test_action_plan(self.context,
-                                                        audit_id=None)
+        action_plan = obj_utils.create_test_action_plan(self.context)
         response = self.get_json('/action_plans/detail')
         self.assertEqual(action_plan.uuid,
                          response['action_plans'][0]["uuid"])
         self._assert_action_plans_fields(response['action_plans'][0])
 
     def test_detail_soft_deleted(self):
-        action_plan = obj_utils.create_action_plan_without_audit(self.context)
+        action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
         response = self.get_json('/action_plans/detail',
                                  headers={'X-Show-Deleted': 'True'})
@@ -141,7 +120,7 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many(self):
         action_plan_list = []
         for id_ in range(5):
-            action_plan = obj_utils.create_action_plan_without_audit(
+            action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid())
             action_plan_list.append(action_plan.uuid)
         response = self.get_json('/action_plans')
@@ -225,7 +204,7 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_without_soft_deleted(self):
         action_plan_list = []
         for id_ in [1, 2, 3]:
-            action_plan = obj_utils.create_action_plan_without_audit(
+            action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid())
             action_plan_list.append(action_plan.uuid)
         for id_ in [4, 5]:
@@ -240,11 +219,11 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_with_soft_deleted(self):
         action_plan_list = []
         for id_ in [1, 2, 3]:
-            action_plan = obj_utils.create_action_plan_without_audit(
+            action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid())
             action_plan_list.append(action_plan.uuid)
         for id_ in [4, 5]:
-            action_plan = obj_utils.create_action_plan_without_audit(
+            action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid())
             action_plan.soft_delete()
             action_plan_list.append(action_plan.uuid)
@@ -272,8 +251,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_links(self):
         uuid = utils.generate_uuid()
-        obj_utils.create_action_plan_without_audit(self.context,
-                                                   id=1, uuid=uuid)
+        obj_utils.create_test_action_plan(self.context, id=1, uuid=uuid)
         response = self.get_json('/action_plans/%s' % uuid)
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
@@ -284,7 +262,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_collection_links(self):
         for id_ in range(5):
-            obj_utils.create_action_plan_without_audit(
+            obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid())
         response = self.get_json('/action_plans/?limit=3')
         self.assertEqual(3, len(response['action_plans']))
@@ -296,9 +274,8 @@ class TestListActionPlan(api_base.FunctionalTest):
         cfg.CONF.set_override('max_limit', 3, 'api',
                               enforce_type=True)
         for id_ in range(5):
-            obj_utils.create_action_plan_without_audit(
-                self.context, id=id_, uuid=utils.generate_uuid(),
-                audit_id=None)
+            obj_utils.create_test_action_plan(
+                self.context, id=id_, uuid=utils.generate_uuid())
         response = self.get_json('/action_plans')
         self.assertEqual(3, len(response['action_plans']))
 
@@ -310,7 +287,7 @@ class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestDelete, self).setUp()
-        self.action_plan = obj_utils.create_action_plan_without_audit(
+        self.action_plan = obj_utils.create_test_action_plan(
             self.context)
         p = mock.patch.object(db_api.BaseConnection, 'destroy_action_plan')
         self.mock_action_plan_delete = p.start()
@@ -366,7 +343,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPatch, self).setUp()
-        self.action_plan = obj_utils.create_action_plan_without_audit(
+        self.action_plan = obj_utils.create_test_action_plan(
             self.context, state=objects.action_plan.State.RECOMMENDED)
         p = mock.patch.object(db_api.BaseConnection, 'update_action_plan')
         self.mock_action_plan_update = p.start()
@@ -459,7 +436,7 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json(
             '/action_plans/%s' % self.action_plan.uuid,
             [{'path': '/state', 'value': new_state,
-             'op': 'replace'}])
+              'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(200, response.status_code)
         applier_mock.assert_called_once_with(mock.ANY,
@@ -509,7 +486,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
     def test_replace_state_pending_denied(self):
-        action_plan = obj_utils.create_action_plan_without_audit(
+        action_plan = obj_utils.create_test_action_plan(
             self.context, state=self.original_state)
 
         initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
@@ -533,7 +510,7 @@ class TestPatchStateDeletedNotFound(api_base.FunctionalTest):
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
     def test_replace_state_pending_not_found(self):
-        action_plan = obj_utils.create_action_plan_without_audit(
+        action_plan = obj_utils.create_test_action_plan(
             self.context, state=objects.action_plan.State.DELETED)
 
         response = self.get_json(
@@ -561,15 +538,14 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
     @mock.patch.object(aapi.ApplierAPI, 'launch_action_plan', mock.Mock())
     def test_replace_state_pending_ok(self):
-        action_plan = obj_utils.create_action_plan_without_audit(
+        action_plan = obj_utils.create_test_action_plan(
             self.context, state=self.original_state)
 
         initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
 
         response = self.patch_json(
             '/action_plans/%s' % action_plan.uuid,
-            [{'path': '/state', 'value': self.new_state,
-             'op': 'replace'}])
+            [{'path': '/state', 'value': self.new_state, 'op': 'replace'}])
         updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
 
         self.assertNotEqual(self.new_state, initial_ap['state'])
