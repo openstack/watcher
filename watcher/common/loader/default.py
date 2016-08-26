@@ -61,7 +61,7 @@ class DefaultLoader(base.BaseLoader):
         return driver
 
     def _reload_config(self):
-        self.conf()
+        self.conf(default_config_files=self.conf.default_config_files)
 
     def get_entry_name(self, name):
         return ".".join([self.namespace, name])
