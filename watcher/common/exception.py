@@ -86,7 +86,7 @@ class WatcherException(Exception):
         if not message:
             try:
                 message = self.msg_fmt % kwargs
-            except Exception as e:
+            except Exception:
                 # kwargs doesn't match a variable in msg_fmt
                 # log the issue and the kwargs
                 LOG.exception(_LE('Exception in string format operation'))
@@ -95,7 +95,7 @@ class WatcherException(Exception):
                               {'name': name, 'value': value})
 
                 if CONF.fatal_exception_format_errors:
-                    raise e
+                    raise
                 else:
                     # at least get the core msg_fmt out if something happened
                     message = self.msg_fmt
