@@ -139,6 +139,15 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
         self._cluster_data_model = model
         self.lock.release()
 
+    @abc.abstractproperty
+    def notification_endpoints(self):
+        """Associated notification endpoints
+
+        :return: Associated notification endpoints
+        :rtype: List of :py:class:`~.EventsNotificationEndpoint` instances
+        """
+        raise NotImplementedError()
+
     def set_cluster_data_model_as_stale(self):
         self.cluster_data_model = self.STALE_MODEL
 

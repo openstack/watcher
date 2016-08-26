@@ -21,7 +21,6 @@ from oslo_log import log
 
 from watcher.applier import manager
 from watcher.common import exception
-from watcher.common.messaging import notification_handler as notification
 from watcher.common import service
 from watcher.common import utils
 
@@ -51,7 +50,9 @@ class ApplierAPIManager(object):
     API_VERSION = '1.0'
 
     conductor_endpoints = []
-    status_endpoints = [notification.NotificationHandler]
+    status_endpoints = []
+    notification_endpoints = []
+    notification_topics = []
 
     def __init__(self):
         self.publisher_id = CONF.watcher_applier.publisher_id

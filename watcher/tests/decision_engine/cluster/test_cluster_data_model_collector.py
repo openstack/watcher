@@ -23,6 +23,10 @@ from watcher.tests import base as test_base
 
 class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
 
+    @property
+    def notification_endpoints(self):
+        return []
+
     def execute(self):
         model = model_root.ModelRoot()
         # Do something here...

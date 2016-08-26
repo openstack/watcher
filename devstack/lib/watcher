@@ -44,6 +44,9 @@ WATCHER_CONF_DIR=/etc/watcher
 WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
 WATCHER_POLICY_JSON=$WATCHER_CONF_DIR/policy.json
 
+NOVA_CONF_DIR=/etc/nova
+NOVA_CONF=$NOVA_CONF_DIR/nova.conf
+
 if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
     WATCHER_SERVICE_PROTOCOL="https"
 fi
@@ -122,6 +125,8 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
+
+    iniset $NOVA_CONF oslo_messaging_notifications topics "notifications,watcher_notifications"
 
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"

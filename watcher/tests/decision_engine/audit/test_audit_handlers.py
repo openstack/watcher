@@ -73,9 +73,9 @@ class TestOneShotAuditHandler(base.DbTestCase):
             'audit_uuid': self.audit.uuid})
 
         calls = [call_on_going, call_succeeded]
-        messaging.status_topic_handler.publish_event.assert_has_calls(calls)
+        messaging.publish_status_event.assert_has_calls(calls)
         self.assertEqual(
-            2, messaging.status_topic_handler.publish_event.call_count)
+            2, messaging.publish_status_event.call_count)
 
 
 class TestContinuousAuditHandler(base.DbTestCase):

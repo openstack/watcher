@@ -73,11 +73,11 @@ class TestModel(base.TestCase):
         node.uuid = id_
         model.add_node(node)
 
-        self.assertIsInstance(node.state, element.ServiceState)
+        self.assertIn(node.state, [el.value for el in element.ServiceState])
 
         node = model.get_node_from_id(id_)
-        node.state = element.ServiceState.OFFLINE
-        self.assertIsInstance(node.state, element.ServiceState)
+        node.state = element.ServiceState.OFFLINE.value
+        self.assertIn(node.state, [el.value for el in element.ServiceState])
 
     def test_node_from_id_raise(self):
         model = model_root.ModelRoot()

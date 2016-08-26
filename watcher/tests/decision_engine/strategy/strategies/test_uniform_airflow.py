@@ -95,10 +95,12 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.threshold_inlet_t = 22
         n1, n2 = self.strategy.group_hosts_by_airflow()
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
+
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
         self.assertEqual(len(instance_to_mig[1]), 1)
-        self.assertEqual(instance_to_mig[1][0].uuid,
-                         "cae81432-1631-4d4e-b29c-6f3acdcde906")
+        self.assertIn(instance_to_mig[1][0].uuid,
+                      {'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                       '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
 
     def test_choose_instance_to_migrate_all(self):
         model = self.fake_cluster.generate_scenario_7_with_2_nodes()
@@ -107,10 +109,12 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.threshold_inlet_t = 25
         n1, n2 = self.strategy.group_hosts_by_airflow()
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
+
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
         self.assertEqual(len(instance_to_mig[1]), 2)
-        self.assertEqual(instance_to_mig[1][1].uuid,
-                         "73b09e16-35b7-4922-804e-e8f5d9b740fc")
+        self.assertEqual({'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                          '73b09e16-35b7-4922-804e-e8f5d9b740fc'},
+                         {inst.uuid for inst in instance_to_mig[1]})
 
     def test_choose_instance_notfound(self):
         model = self.fake_cluster.generate_scenario_7_with_2_nodes()
@@ -132,10 +136,12 @@ class TestUniformAirflow(base.TestCase):
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
         dest_hosts = self.strategy.filter_destination_hosts(
             n2, instance_to_mig[1])
+
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['node'].uuid, 'Node_1')
-        self.assertEqual(dest_hosts[0]['instance'].uuid,
-                         'cae81432-1631-4d4e-b29c-6f3acdcde906')
+        self.assertIn(instance_to_mig[1][0].uuid,
+                      {'cae81432-1631-4d4e-b29c-6f3acdcde906',
+                       '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
 
     def test_exception_model(self):
         self.m_model.return_value = None

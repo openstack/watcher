@@ -31,6 +31,10 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             config = mock.Mock()
         super(FakerModelCollector, self).__init__(config)
 
+    @property
+    def notification_endpoints(self):
+        return []
+
     def execute(self):
         return self.generate_scenario_1()
 

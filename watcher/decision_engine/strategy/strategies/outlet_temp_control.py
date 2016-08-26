@@ -272,7 +272,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         # always use the host with lowerest outlet temperature
         mig_destination_node = dest_servers[0]['node']
         # generate solution to migrate the instance to the dest server,
-        if self.compute_model.mapping.migrate_instance(
+        if self.compute_model.migrate_instance(
                 instance_src, mig_source_node, mig_destination_node):
             parameters = {'migration_type': 'live',
                           'source_node': mig_source_node.uuid,

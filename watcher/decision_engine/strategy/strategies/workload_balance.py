@@ -329,7 +329,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # always use the host with lowerest CPU utilization
         mig_destination_node = destination_hosts[0]['node']
         # generate solution to migrate the instance to the dest server,
-        if self.compute_model.mapping.migrate_instance(
+        if self.compute_model.migrate_instance(
                 instance_src, source_node, mig_destination_node):
             parameters = {'migration_type': 'live',
                           'source_node': source_node.uuid,

@@ -27,7 +27,7 @@ from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
 
-from watcher._i18n import _
+from watcher._i18n import _, _LI
 from watcher.api import app
 from watcher.common import config
 from watcher.common.messaging.events import event_dispatcher as dispatcher
@@ -111,8 +111,10 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
 
         self.publisher_id = self.manager.publisher_id
         self.api_version = self.manager.API_VERSION
+
         self.conductor_topic = self.manager.conductor_topic
         self.status_topic = self.manager.status_topic
+        self.notification_topics = self.manager.notification_topics
 
         self.conductor_endpoints = [
             ep(self) for ep in self.manager.conductor_endpoints
@@ -120,28 +122,52 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
         self.status_endpoints = [
             ep(self.publisher_id) for ep in self.manager.status_endpoints
         ]
+        self.notification_endpoints = self.manager.notification_endpoints
 
         self.serializer = rpc.RequestContextSerializer(
             base.WatcherObjectSerializer())
 
-        self.conductor_topic_handler = self.build_topic_handler(
-            self.conductor_topic, self.conductor_endpoints)
-        self.status_topic_handler = self.build_topic_handler(
-            self.status_topic, self.status_endpoints)
-
+        self._transport = None
+        self._notification_transport = None
         self._conductor_client = None
         self._status_client = None
+
+        self.conductor_topic_handler = None
+        self.status_topic_handler = None
+        self.notification_handler = None
+
+        if self.conductor_topic and self.conductor_endpoints:
+            self.conductor_topic_handler = self.build_topic_handler(
+                self.conductor_topic, self.conductor_endpoints)
+        if self.status_topic and self.status_endpoints:
+            self.status_topic_handler = self.build_topic_handler(
+                self.status_topic, self.status_endpoints)
+        if self.notification_topics and self.notification_endpoints:
+            self.notification_handler = self.build_notification_handler(
+                self.notification_topics, self.notification_endpoints
+            )
+
+    @property
+    def transport(self):
+        if self._transport is None:
+            self._transport = om.get_transport(CONF)
+        return self._transport
+
+    @property
+    def notification_transport(self):
+        if self._notification_transport is None:
+            self._notification_transport = om.get_notification_transport(CONF)
+        return self._notification_transport
 
     @property
     def conductor_client(self):
         if self._conductor_client is None:
-            transport = om.get_transport(CONF)
             target = om.Target(
                 topic=self.conductor_topic,
                 version=self.API_VERSION,
             )
             self._conductor_client = om.RPCClient(
-                transport, target, serializer=self.serializer)
+                self.transport, target, serializer=self.serializer)
         return self._conductor_client
 
     @conductor_client.setter
@@ -151,13 +177,12 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
     @property
     def status_client(self):
         if self._status_client is None:
-            transport = om.get_transport(CONF)
             target = om.Target(
                 topic=self.status_topic,
                 version=self.API_VERSION,
             )
             self._status_client = om.RPCClient(
-                transport, target, serializer=self.serializer)
+                self.transport, target, serializer=self.serializer)
         return self._status_client
 
     @status_client.setter
@@ -169,17 +194,33 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
             self.publisher_id, topic_name, [self.manager] + list(endpoints),
             self.api_version, self.serializer)
 
+    def build_notification_handler(self, topic_names, endpoints=()):
+        serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
+        targets = [om.Target(topic=topic_name) for topic_name in topic_names]
+        return om.get_notification_listener(
+            self.notification_transport, targets, endpoints,
+            executor='eventlet', serializer=serializer,
+            allow_requeue=False)
+
     def start(self):
         LOG.debug("Connecting to '%s' (%s)",
                   CONF.transport_url, CONF.rpc_backend)
-        self.conductor_topic_handler.start()
-        self.status_topic_handler.start()
+        if self.conductor_topic_handler:
+            self.conductor_topic_handler.start()
+        if self.status_topic_handler:
+            self.status_topic_handler.start()
+        if self.notification_handler:
+            self.notification_handler.start()
 
     def stop(self):
         LOG.debug("Disconnecting from '%s' (%s)",
                   CONF.transport_url, CONF.rpc_backend)
-        self.conductor_topic_handler.stop()
-        self.status_topic_handler.stop()
+        if self.conductor_topic_handler:
+            self.conductor_topic_handler.stop()
+        if self.status_topic_handler:
+            self.status_topic_handler.stop()
+        if self.notification_handler:
+            self.notification_handler.stop()
 
     def reset(self):
         """Reset a service in case it received a SIGHUP."""
@@ -190,9 +231,14 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
     def publish_control(self, event, payload):
         return self.conductor_topic_handler.publish_event(event, payload)
 
-    def publish_status(self, event, payload, request_id=None):
-        return self.status_topic_handler.publish_event(
-            event, payload, request_id)
+    def publish_status_event(self, event, payload, request_id=None):
+        if self.status_topic_handler:
+            return self.status_topic_handler.publish_event(
+                event, payload, request_id)
+        else:
+            LOG.info(
+                _LI("No status notifier declared: notification '%s' not sent"),
+                event)
 
     def get_version(self):
         return self.api_version
@@ -208,7 +254,7 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
             'request_id': ctx['request_id'],
             'msg': message
         }
-        self.publish_status(evt, payload)
+        self.publish_status_event(evt, payload)
 
 
 def launch(conf, service_, workers=1, restart_method='reload'):

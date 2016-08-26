@@ -365,7 +365,7 @@ class InstanceNotFound(WatcherException):
 
 
 class ComputeNodeNotFound(WatcherException):
-    msg_fmt = _("The compute node %s could not be found")
+    msg_fmt = _("The compute node %(name)s could not be found")
 
 
 class LoadingError(WatcherException):

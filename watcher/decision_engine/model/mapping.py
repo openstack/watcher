@@ -36,17 +36,15 @@ class Mapping(object):
         :param node: the node
         :param instance: the virtual machine or instance
         """
-
         try:
             self.lock.acquire()
 
             # init first
             if node.uuid not in self.compute_node_mapping.keys():
-                self.compute_node_mapping[node.uuid] = []
+                self.compute_node_mapping[node.uuid] = set()
 
             # map node => instances
-            self.compute_node_mapping[node.uuid].append(
-                instance.uuid)
+            self.compute_node_mapping[node.uuid].add(instance.uuid)
 
             # map instance => node
             self.instance_mapping[instance.uuid] = node.uuid
@@ -60,7 +58,6 @@ class Mapping(object):
         :param node: the node
         :param instance: the virtual machine or instance
         """
-
         self.unmap_from_id(node.uuid, instance.uuid)
 
     def unmap_from_id(self, node_uuid, instance_uuid):
@@ -68,7 +65,6 @@ class Mapping(object):
 
         :rtype : object
         """
-
         try:
             self.lock.acquire()
             if str(node_uuid) in self.compute_node_mapping:
@@ -77,9 +73,9 @@ class Mapping(object):
                 # remove instance
                 self.instance_mapping.pop(instance_uuid)
             else:
-                LOG.warning(_LW(
-                    "Trying to delete the instance %(instance)s but it was "
-                    "not found on node %(node)s"),
+                LOG.warning(
+                    _LW("Trying to delete the instance %(instance)s but it "
+                        "was not found on node %(node)s") %
                     {'instance': instance_uuid, 'node': node_uuid})
         finally:
             self.lock.release()
@@ -96,7 +92,6 @@ class Mapping(object):
         :param instance: the uuid of the instance
         :return: node
         """
-
         return self.model.get_node_from_id(
             self.instance_mapping[str(instance_uuid)])
 
@@ -113,21 +108,4 @@ class Mapping(object):
             return self.compute_node_mapping[str(node_uuid)]
         else:
             # empty
-            return []
-
-    def migrate_instance(self, instance, source_node, destination_node):
-        """Migrate single instance from source_node to destination_node
-
-        :param instance:
-        :param source_node:
-        :param destination_node:
-        :return:
-        """
-
-        if source_node == destination_node:
-            return False
-        # unmap
-        self.unmap(source_node, instance)
-        # map
-        self.map(destination_node, instance)
-        return True
+            return set()

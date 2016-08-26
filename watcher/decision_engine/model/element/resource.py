@@ -47,6 +47,9 @@ class Resource(object):
     def set_capacity(self, element, value):
         self.mapping[element.uuid] = value
 
+    def unset_capacity(self, element):
+        del self.mapping[element.uuid]
+
     def get_capacity_from_id(self, uuid):
         if str(uuid) in self.mapping.keys():
             return self.mapping[str(uuid)]

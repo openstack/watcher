@@ -22,7 +22,6 @@ from watcher.decision_engine.model.element import node
 from watcher.decision_engine.model.element import resource
 
 ServiceState = node.ServiceState
-PowerState = node.PowerState
 ComputeNode = node.ComputeNode
 
 InstanceState = instance.InstanceState
@@ -35,5 +34,5 @@ Resource = resource.Resource
 
 
 __all__ = [
-    'ServiceState', 'PowerState', 'ComputeNode', 'InstanceState', 'Instance',
+    'ServiceState', 'ComputeNode', 'InstanceState', 'Instance',
     'DiskInfo', 'ResourceType', 'Resource']

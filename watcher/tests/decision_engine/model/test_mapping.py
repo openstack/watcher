@@ -80,16 +80,16 @@ class TestMapping(base.TestCase):
 
         self.assertEqual(
             False,
-            model.mapping.migrate_instance(instance1, node1, node1))
+            model.migrate_instance(instance1, node1, node1))
         self.assertEqual(
             False,
-            model.mapping.migrate_instance(instance1, node0, node0))
+            model.migrate_instance(instance1, node0, node0))
         self.assertEqual(
             True,
-            model.mapping.migrate_instance(instance1, node1, node0))
+            model.migrate_instance(instance1, node1, node0))
         self.assertEqual(
             True,
-            model.mapping.migrate_instance(instance1, node0, node1))
+            model.migrate_instance(instance1, node0, node1))
 
     def test_unmap_from_id_log_warning(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()

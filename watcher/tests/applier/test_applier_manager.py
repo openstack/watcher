@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 
-from mock import patch
+import mock
 
 from watcher.applier import manager as applier_manager
 from watcher.common.messaging import messaging_handler
@@ -30,10 +30,10 @@ class TestApplierManager(base.TestCase):
         super(TestApplierManager, self).setUp()
         self.applier = service.Service(applier_manager.ApplierManager)
 
-    @patch.object(messaging_handler.MessagingHandler, "stop")
-    @patch.object(messaging_handler.MessagingHandler, "start")
+    @mock.patch.object(messaging_handler.MessagingHandler, "stop")
+    @mock.patch.object(messaging_handler.MessagingHandler, "start")
     def test_start(self, m_messaging_start, m_messaging_stop):
         self.applier.start()
         self.applier.stop()
-        self.assertEqual(2, m_messaging_start.call_count)
-        self.assertEqual(2, m_messaging_stop.call_count)
+        self.assertEqual(1, m_messaging_start.call_count)
+        self.assertEqual(1, m_messaging_stop.call_count)

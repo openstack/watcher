@@ -52,6 +52,8 @@ class DecisionEngineAPIManager(object):
 
     conductor_endpoints = []
     status_endpoints = [notification_handler.NotificationHandler]
+    notification_endpoints = []
+    notification_topics = []
 
     def __init__(self):
         self.publisher_id = CONF.watcher_decision_engine.publisher_id

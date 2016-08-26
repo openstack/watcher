@@ -78,8 +78,7 @@ class AuditHandler(BaseAuditHandler):
         event.data = {}
         payload = {'audit_uuid': audit_uuid,
                    'audit_status': status}
-        self.messaging.status_topic_handler.publish_event(
-            event.type.name, payload)
+        self.messaging.publish_status_event(event.type.name, payload)
 
     def update_audit_state(self, request_context, audit, state):
         LOG.debug("Update audit state: %s", state)

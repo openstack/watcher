@@ -32,18 +32,17 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
             self.context)
 
     def test_launch_action_plan(self):
-        command = default.DefaultActionPlanHandler(self.context,
-                                                   mock.MagicMock(),
-                                                   self.action_plan.uuid)
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
         command.execute()
-        action_plan = ap_objects.ActionPlan.get_by_uuid(self.context,
-                                                        self.action_plan.uuid)
+        action_plan = ap_objects.ActionPlan.get_by_uuid(
+            self.context, self.action_plan.uuid)
         self.assertEqual(ap_objects.State.SUCCEEDED, action_plan.state)
 
     def test_trigger_audit_send_notification(self):
         messaging = mock.MagicMock()
-        command = default.DefaultActionPlanHandler(self.context, messaging,
-                                                   self.action_plan.uuid)
+        command = default.DefaultActionPlanHandler(
+            self.context, messaging, self.action_plan.uuid)
         command.execute()
 
         call_on_going = mock.call(ev.EventTypes.LAUNCH_ACTION_PLAN.name, {
@@ -54,6 +53,5 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
             'action_plan__uuid': self.action_plan.uuid})
 
         calls = [call_on_going, call_succeeded]
-        messaging.status_topic_handler.publish_event.assert_has_calls(calls)
-        self.assertEqual(
-            2, messaging.status_topic_handler.publish_event.call_count)
+        messaging.publish_status_event.assert_has_calls(calls)
+        self.assertEqual(2, messaging.publish_status_event.call_count)

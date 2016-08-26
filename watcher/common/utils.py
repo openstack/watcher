@@ -133,6 +133,10 @@ def get_cls_import_path(cls):
     return module + '.' + cls.__name__
 
 
+def strtime(at):
+    return at.strftime("%Y-%m-%dT%H:%M:%S.%f")
+
+
 # Default value feedback extension as jsonschema doesn't support it
 def extend_with_default(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]
