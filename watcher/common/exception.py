@@ -105,12 +105,12 @@ class WatcherException(Exception):
     def __str__(self):
         """Encode to utf-8 then wsme api can consume it as well"""
         if not six.PY3:
-            return unicode(self.args[0]).encode('utf-8')
+            return six.text_type(self.args[0]).encode('utf-8')
         else:
             return self.args[0]
 
     def __unicode__(self):
-        return unicode(self.args[0])
+        return six.text_type(self.args[0])
 
     def format_message(self):
         if self.__class__.__name__.endswith('_Remote'):
