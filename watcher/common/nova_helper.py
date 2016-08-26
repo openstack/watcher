@@ -339,8 +339,6 @@ class NovaHelper(object):
 
             return True
 
-        return False
-
     def enable_service_nova_compute(self, hostname):
         if self.nova.services.enable(host=hostname,
                                      binary='nova-compute'). \
