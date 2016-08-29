@@ -18,8 +18,6 @@ from oslo_config import cfg
 
 from watcher.decision_engine.strategy.strategies import base as base_strategy
 
-CONF = cfg.CONF
-
 
 class FakeStrategy(base_strategy.BaseStrategy):
 

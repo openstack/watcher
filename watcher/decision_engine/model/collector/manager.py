@@ -17,13 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
 from watcher.common import utils
 from watcher.decision_engine.loading import default
-
-
-CONF = cfg.CONF
 
 
 class CollectorManager(object):

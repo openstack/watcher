@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
@@ -23,7 +22,6 @@ from watcher.decision_engine.loading import default
 from watcher.decision_engine.strategy.selection import base
 
 LOG = log.getLogger(__name__)
-CONF = cfg.CONF
 
 
 class DefaultStrategySelector(base.BaseSelector):

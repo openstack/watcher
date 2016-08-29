@@ -32,8 +32,6 @@ Here are some examples of :ref:`Goals <goal_definition>`:
    modification, ...
 """
 
-from oslo_config import cfg
-
 import pecan
 from pecan import rest
 import wsme
@@ -48,8 +46,6 @@ from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import policy
 from watcher import objects
-
-CONF = cfg.CONF
 
 
 class Goal(base.APIBase):

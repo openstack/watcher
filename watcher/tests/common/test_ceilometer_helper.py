@@ -18,13 +18,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 
 import mock
-from oslo_config import cfg
 
 from watcher.common import ceilometer_helper
 from watcher.common import clients
 from watcher.tests import base
-
-CONF = cfg.CONF
 
 
 @mock.patch.object(clients.OpenStackClients, 'ceilometer')

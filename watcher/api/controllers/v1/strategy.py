@@ -27,8 +27,6 @@ Some strategies may provide better optimization results but may take more time
 to find an optimal :ref:`Solution <solution_definition>`.
 """
 
-from oslo_config import cfg
-
 import pecan
 from pecan import rest
 import wsme
@@ -44,8 +42,6 @@ from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher import objects
-
-CONF = cfg.CONF
 
 
 class Strategy(base.APIBase):
