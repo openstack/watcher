@@ -17,11 +17,7 @@
 import abc
 import six
 
-from oslo_log import log
-
 from watcher.common.loader import loadable
-
-LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)

@@ -18,11 +18,9 @@
 #
 
 from oslo_config import cfg
-from oslo_log import log
 
 from watcher.applier.messaging import trigger
 
-LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
