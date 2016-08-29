@@ -1,0 +1,4 @@
+---
+features:
+  - Added a way to create periodic audit to be able to
+    optimize continuously the cloud infrastructure.

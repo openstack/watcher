@@ -1,0 +1,4 @@
+---
+features:
+  - Added a way to add a new action without having to
+    amend the source code of the default planner.

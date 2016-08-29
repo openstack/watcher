@@ -1,0 +1,6 @@
+---
+features:
+  - Added an in-memory cache of the cluster model
+    built up and kept fresh via notifications from
+    services of interest in addition to periodic
+    syncing logic.

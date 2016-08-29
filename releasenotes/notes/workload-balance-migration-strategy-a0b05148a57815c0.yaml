@@ -1,0 +1,7 @@
+---
+features:
+  - Added a strategy based on the VM workloads of
+    hypervisors. This strategy makes decisions to
+    migrate workloads to make the total VM workloads
+    of each hypervisor balanced, when the total VM
+    workloads of hypervisor reaches threshold.

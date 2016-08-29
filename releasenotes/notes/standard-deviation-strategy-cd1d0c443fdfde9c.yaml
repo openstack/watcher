@@ -1,0 +1,7 @@
+---
+features:
+  - Added a strategy that monitors if there is a higher
+    load on some hosts compared to other hosts in the
+    cluster and re-balances the work across hosts to
+    minimize the standard deviation of the loads in
+    the cluster.

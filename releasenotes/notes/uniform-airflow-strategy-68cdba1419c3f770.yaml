@@ -1,0 +1,5 @@
+---
+features:
+  - Added a new strategy based on the airflow
+    of servers. This strategy makes decisions
+    to migrate VMs to make the airflow uniform.
