@@ -95,3 +95,32 @@ class ScoringEngine(loadable.Loadable):
         :rtype: list of :class:`oslo_config.cfg.Opt` instances
         """
         return []
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ScoringEngineContainer(loadable.Loadable):
+    """A base class for all the Scoring Engines Containers.
+
+    A Scoring Engine Container is an abstraction which allows to plugin
+    multiple Scoring Engines as a single Stevedore plugin. This enables some
+    more advanced scenarios like dynamic reloading of Scoring Engine
+    implementations without having to restart any Watcher services.
+    """
+
+    @classmethod
+    @abc.abstractmethod
+    def get_scoring_engine_list(self):
+        """Returns a list of Scoring Engine instances.
+
+        :return: A list of Scoring Engine instances
+        :rtype: :class: `~.scoring_engine.ScoringEngine`
+        """
+
+    @classmethod
+    def get_config_opts(cls):
+        """Defines the configuration options to be associated to this loadable
+
+        :return: A list of configuration options relative to this Loadable
+        :rtype: list of :class:`oslo_config.cfg.Opt` instances
+        """
+        return []

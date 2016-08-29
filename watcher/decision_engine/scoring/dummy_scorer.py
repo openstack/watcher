@@ -22,12 +22,12 @@ from oslo_serialization import jsonutils
 from oslo_utils import units
 
 from watcher._i18n import _
-from watcher.decision_engine.scoring import scoring_engine
+from watcher.decision_engine.scoring import base
 
 LOG = log.getLogger(__name__)
 
 
-class DummyScorer(scoring_engine.ScoringEngine):
+class DummyScorer(base.ScoringEngine):
     """Sample Scoring Engine implementing simplified workload classification.
 
     Typically a scoring engine would be implemented using machine learning

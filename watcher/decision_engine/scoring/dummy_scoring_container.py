@@ -21,13 +21,12 @@ from oslo_log import log
 from oslo_serialization import jsonutils
 
 from watcher._i18n import _
-from watcher.decision_engine.scoring import scoring_container
-from watcher.decision_engine.scoring import scoring_engine
+from watcher.decision_engine.scoring import base
 
 LOG = log.getLogger(__name__)
 
 
-class DummyScoringContainer(scoring_container.ScoringEngineContainer):
+class DummyScoringContainer(base.ScoringEngineContainer):
     """Sample Scoring Engine container returning a list of scoring engines.
 
     Please note that it can be used in dynamic scenarios and the returned list
@@ -55,7 +54,7 @@ class DummyScoringContainer(scoring_container.ScoringEngineContainer):
         ]
 
 
-class SimpleFunctionScorer(scoring_engine.ScoringEngine):
+class SimpleFunctionScorer(base.ScoringEngine):
     """A simple generic scoring engine for demonstration purposes only.
 
     A generic scoring engine implementation, which is expecting a JSON
