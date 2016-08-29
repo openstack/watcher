@@ -17,13 +17,9 @@
 # limitations under the License.
 #
 
-
-from oslo_config import cfg
 from watcher.common import ceilometer_helper
 
 from watcher.decision_engine.cluster.history import base
-
-CONF = cfg.CONF
 
 
 class CeilometerClusterHistory(base.BaseClusterHistory):

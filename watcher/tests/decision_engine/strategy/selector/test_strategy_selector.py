@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import mock
-from oslo_config import cfg
 
 from watcher.common import exception
 from watcher.decision_engine.loading import default as default_loader
@@ -23,8 +22,6 @@ from watcher.decision_engine.strategy.selection import (
     default as default_selector)
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
-
-CONF = cfg.CONF
 
 
 class TestStrategySelector(base.TestCase):
