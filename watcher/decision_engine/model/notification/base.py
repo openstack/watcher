@@ -19,11 +19,7 @@
 import abc
 import six
 
-from oslo_log import log
-
 from watcher.common import rpc
-
-LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)

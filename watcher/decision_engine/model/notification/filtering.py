@@ -18,11 +18,8 @@
 
 import re
 
-from oslo_log import log
 import oslo_messaging as om
 import six
-
-LOG = log.getLogger(__name__)
 
 
 class NotificationFilter(om.NotificationFilter):

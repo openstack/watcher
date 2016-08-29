@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 from oslo_config import cfg
-from oslo_log import log
 
 from watcher.applier import manager
 from watcher.common import exception
@@ -25,7 +24,6 @@ from watcher.common import service
 from watcher.common import utils
 
 
-LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 CONF.register_group(manager.opt_group)
 CONF.register_opts(manager.APPLIER_MANAGER_OPTS, manager.opt_group)
