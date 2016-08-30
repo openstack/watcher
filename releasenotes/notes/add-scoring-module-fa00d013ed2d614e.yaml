@@ -1,0 +1,7 @@
+---
+features:
+  - Added a generic scoring engine module, which
+    will standarize interactions with scoring engines
+    through the common API. It is possible to use the
+    scoring engine by different Strategies, which
+    improve the code and data model re-use.
