@@ -15,7 +15,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
 
 from oslo_log import log
 from oslo_serialization import jsonutils
@@ -33,6 +32,7 @@ class DummyScorer(base.ScoringEngine):
     Typically a scoring engine would be implemented using machine learning
     techniques. For example, for workload classification problem the solution
     could consist of the following steps:
+
     1. Define a problem to solve: we want to detect the workload on the
        machine based on the collected metrics like power consumption,
        temperature, CPU load, memory usage, disk usage, network usage, etc.

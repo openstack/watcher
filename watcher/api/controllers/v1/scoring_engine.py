@@ -16,8 +16,10 @@
 # limitations under the License.
 
 """
-A :ref:`Scoring Engine <scoring_engine_definition>` is an instance of a data
-model, to which a learning data was applied.
+A :ref:`Scoring Engine <scoring_engine_definition>` is an executable that has
+a well-defined input, a well-defined output, and performs a purely mathematical
+task. That is, the calculation does not depend on the environment in which it
+is running - it would produce the same result anywhere.
 
 Because there might be multiple algorithms used to build a particular data
 model (and therefore a scoring engine), the usage of scoring engine might
