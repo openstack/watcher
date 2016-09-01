@@ -207,7 +207,7 @@ class AuditTemplateAlreadyExists(Conflict):
 
 class AuditTemplateReferenced(Invalid):
     msg_fmt = _("AuditTemplate %(audit_template)s is referenced by one or "
-                "multiple audit")
+                "multiple audits")
 
 
 class AuditTypeNotFound(Invalid):
@@ -317,7 +317,7 @@ class AuthorizationFailure(WatcherException):
 
 
 class KeystoneFailure(WatcherException):
-    msg_fmt = _("'Keystone API endpoint is missing''")
+    msg_fmt = _("Keystone API endpoint is missing")
 
 
 class ClusterEmpty(WatcherException):
