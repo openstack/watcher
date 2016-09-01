@@ -251,7 +251,7 @@ class ActionPlan(base.WatcherObject):
         for field in self.fields:
             if (hasattr(self, base.get_attrname(field)) and
                     self[field] != current[field]):
-                    self[field] = current[field]
+                self[field] = current[field]
 
     def soft_delete(self, context=None):
         """Soft Delete the Action plan from the DB.

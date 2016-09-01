@@ -258,7 +258,7 @@ class AuditTemplate(base.WatcherObject):
         for field in self.fields:
             if (hasattr(self, base.get_attrname(field)) and
                     self[field] != current[field]):
-                    self[field] = current[field]
+                self[field] = current[field]
 
     def soft_delete(self, context=None):
         """soft Delete the :class:`AuditTemplate` from the DB.
