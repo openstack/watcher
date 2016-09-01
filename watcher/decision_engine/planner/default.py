@@ -94,6 +94,7 @@ class DefaultPlanner(base.BasePlanner):
         if len(scheduled) == 0:
             LOG.warning(_LW("The action plan is empty"))
             action_plan.first_action_id = None
+            action_plan.state = objects.action_plan.State.SUCCEEDED
             action_plan.save()
         else:
             # create the first action
