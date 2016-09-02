@@ -30,12 +30,12 @@ class TestDummyScorer(base.TestCase):
     def test_metadata(self):
         scorer = dummy_scorer.DummyScorer(config=None)
         self.assertEqual('dummy_scorer', scorer.get_name())
-        self.assertTrue('Dummy' in scorer.get_description())
+        self.assertIn('Dummy', scorer.get_description())
 
         metainfo = scorer.get_metainfo()
-        self.assertTrue('feature_columns' in metainfo)
-        self.assertTrue('result_columns' in metainfo)
-        self.assertTrue('workloads' in metainfo)
+        self.assertIn('feature_columns', metainfo)
+        self.assertIn('result_columns', metainfo)
+        self.assertIn('workloads', metainfo)
 
     def test_calculate_score(self):
         scorer = dummy_scorer.DummyScorer(config=None)
