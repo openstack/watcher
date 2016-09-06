@@ -77,9 +77,9 @@ class ModelRoot(object):
         :type node: str or :py:class:`~.Instance`
         """
         if isinstance(instance, six.string_types):
-            instance = self.get_instance_from_id(instance)
+            instance = self.get_instance_by_uuid(instance)
         if isinstance(node, six.string_types):
-            node = self.get_node_from_id(node)
+            node = self.get_node_by_uuid(node)
 
         self.add_instance(instance)
         self.mapping.map(node, instance)
@@ -93,17 +93,18 @@ class ModelRoot(object):
         :type node: str or :py:class:`~.Instance`
         """
         if isinstance(instance, six.string_types):
-            instance = self.get_instance_from_id(instance)
+            instance = self.get_instance_by_uuid(instance)
         if isinstance(node, six.string_types):
-            node = self.get_node_from_id(node)
+            node = self.get_node_by_uuid(node)
 
         self.add_instance(instance)
         self.mapping.unmap(node, instance)
 
-    def delete_instance(self, instance, node):
-        self.remove_instance(instance)
+    def delete_instance(self, instance, node=None):
+        if node is not None:
+            self.mapping.unmap(node, instance)
 
-        self.mapping.unmap(node, instance)
+        self.remove_instance(instance)
 
         for resource in self.resource.values():
             try:
@@ -130,17 +131,17 @@ class ModelRoot(object):
     def get_all_compute_nodes(self):
         return self._nodes
 
-    def get_node_from_id(self, node_uuid):
+    def get_node_by_uuid(self, node_uuid):
         if str(node_uuid) not in self._nodes:
             raise exception.ComputeNodeNotFound(name=node_uuid)
         return self._nodes[str(node_uuid)]
 
-    def get_instance_from_id(self, uuid):
+    def get_instance_by_uuid(self, uuid):
         if str(uuid) not in self._instances:
             raise exception.InstanceNotFound(name=uuid)
         return self._instances[str(uuid)]
 
-    def get_node_from_instance_id(self, instance_uuid):
+    def get_node_by_instance_uuid(self, instance_uuid):
         """Getting host information from the guest instance
 
         :param instance_uuid: the uuid of the instance
@@ -148,7 +149,7 @@ class ModelRoot(object):
         """
         if str(instance_uuid) not in self.mapping.instance_mapping:
             raise exception.InstanceNotFound(name=instance_uuid)
-        return self.get_node_from_id(
+        return self.get_node_by_uuid(
             self.mapping.instance_mapping[str(instance_uuid)])
 
     def get_all_instances(self):
@@ -160,7 +161,7 @@ class ModelRoot(object):
     def create_resource(self, r):
         self.resource[str(r.name)] = r
 
-    def get_resource_from_id(self, resource_id):
+    def get_resource_by_uuid(self, resource_id):
         return self.resource[str(resource_id)]
 
     def get_node_instances(self, node):
@@ -168,11 +169,12 @@ class ModelRoot(object):
 
     def _build_compute_node_element(self, compute_node):
         attrib = collections.OrderedDict(
-            uuid=compute_node.uuid, human_id=compute_node.human_id,
-            hostname=compute_node.hostname, state=compute_node.state,
-            status=compute_node.status)
+            id=six.text_type(compute_node.id), uuid=compute_node.uuid,
+            human_id=compute_node.human_id, hostname=compute_node.hostname,
+            state=compute_node.state, status=compute_node.status)
 
-        for resource_name, resource in self.resource.items():
+        for resource_name, resource in sorted(
+                self.resource.items(), key=lambda x: x[0]):
             res_value = resource.get_capacity(compute_node)
             if res_value is not None:
                 attrib[resource_name] = six.text_type(res_value)
@@ -186,7 +188,8 @@ class ModelRoot(object):
             uuid=instance.uuid, human_id=instance.human_id,
             hostname=instance.hostname, state=instance.state)
 
-        for resource_name, resource in self.resource.items():
+        for resource_name, resource in sorted(
+                self.resource.items(), key=lambda x: x[0]):
             res_value = resource.get_capacity(instance)
             if res_value is not None:
                 attrib[resource_name] = six.text_type(res_value)
@@ -205,7 +208,7 @@ class ModelRoot(object):
             # Build mapped instance tree
             node_instance_uuids = self.get_node_instances(cn)
             for instance_uuid in sorted(node_instance_uuids):
-                instance = self.get_instance_from_id(instance_uuid)
+                instance = self.get_instance_by_uuid(instance_uuid)
                 instance_el = self._build_instance_element(instance)
                 compute_node_el.append(instance_el)
 
@@ -215,7 +218,7 @@ class ModelRoot(object):
         for instance in sorted(self.get_all_instances().values(),
                                key=lambda inst: inst.uuid):
             try:
-                self.get_node_from_instance_id(instance.uuid)
+                self.get_node_by_instance_uuid(instance.uuid)
             except exception.InstanceNotFound:
                 root.append(self._build_instance_element(instance))
 

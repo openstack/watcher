@@ -162,7 +162,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param model: model_root object
         :return: None
         """
-        instance = model.get_instance_from_id(instance_uuid)
+        instance = model.get_instance_by_uuid(instance_uuid)
 
         instance_state_str = self.get_state_str(instance.state)
         if instance_state_str != element.InstanceState.ACTIVE.value:
@@ -226,9 +226,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         instance_cpu_util = self.ceilometer.statistic_aggregation(
             resource_id=instance_uuid, meter_name=cpu_util_metric,
             period=period, aggregate=aggr)
-        instance_cpu_cores = model.get_resource_from_id(
+        instance_cpu_cores = model.get_resource_by_uuid(
             element.ResourceType.cpu_cores).get_capacity(
-                model.get_instance_from_id(instance_uuid))
+                model.get_instance_by_uuid(instance_uuid))
 
         if instance_cpu_util:
             total_cpu_utilization = (
@@ -271,7 +271,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
-        node_instances = model.mapping.get_node_instances_from_id(
+        node_instances = model.mapping.get_node_instances_by_uuid(
             node.uuid)
         node_ram_util = 0
         node_disk_util = 0
@@ -293,13 +293,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param model: model_root object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        node_cpu_capacity = model.get_resource_from_id(
+        node_cpu_capacity = model.get_resource_by_uuid(
             element.ResourceType.cpu_cores).get_capacity(node)
 
-        node_disk_capacity = model.get_resource_from_id(
+        node_disk_capacity = model.get_resource_by_uuid(
             element.ResourceType.disk_capacity).get_capacity(node)
 
-        node_ram_capacity = model.get_resource_from_id(
+        node_ram_capacity = model.get_resource_by_uuid(
             element.ResourceType.memory).get_capacity(node)
         return dict(cpu=node_cpu_capacity, ram=node_ram_capacity,
                     disk=node_disk_capacity)

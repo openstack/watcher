@@ -83,7 +83,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         for n in nodes:
             service = self.wrapper.nova.services.find(id=n.service['id'])
             # create node in cluster_model_collector
-            node = element.ComputeNode()
+            node = element.ComputeNode(n.id)
             node.uuid = service.host
             node.hostname = n.hypervisor_hostname
             # set capacity
@@ -105,7 +105,10 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                 # set capacity
                 self.wrapper.get_flavor_instance(v, flavor_cache)
                 mem.set_capacity(instance, v.flavor['ram'])
+                # FIXME: update all strategies to use disk_capacity
+                # for instances instead of disk
                 disk.set_capacity(instance, v.flavor['disk'])
+                disk_capacity.set_capacity(instance, v.flavor['disk'])
                 num_cores.set_capacity(instance, v.flavor['vcpus'])
 
                 model.map_instance(instance, node)

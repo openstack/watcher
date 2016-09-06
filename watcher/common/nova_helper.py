@@ -26,6 +26,8 @@ import cinderclient.exceptions as ciexceptions
 import novaclient.exceptions as nvexceptions
 
 from watcher.common import clients
+from watcher.common import exception
+from watcher.common import utils
 
 LOG = log.getLogger(__name__)
 
@@ -42,6 +44,24 @@ class NovaHelper(object):
 
     def get_compute_node_list(self):
         return self.nova.hypervisors.list()
+
+    def get_compute_node_by_id(self, node_id):
+        """Get compute node by ID (*not* UUID)"""
+        # We need to pass an object with an 'id' attribute to make it work
+        return self.nova.hypervisors.get(utils.Struct(id=node_id))
+
+    def get_compute_node_by_hostname(self, node_hostname):
+        """Get compute node by ID (*not* UUID)"""
+        # We need to pass an object with an 'id' attribute to make it work
+        try:
+            compute_nodes = self.nova.hypervisors.search(node_hostname)
+            if len(compute_nodes) != 1:
+                raise exception.ComputeNodeNotFound(name=node_hostname)
+
+            return self.get_compute_node_by_id(compute_nodes[0].id)
+        except Exception as exc:
+            LOG.exception(exc)
+            raise exception.ComputeNodeNotFound(name=node_hostname)
 
     def find_instance(self, instance_id):
         search_opts = {'all_tenants': True}

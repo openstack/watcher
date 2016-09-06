@@ -53,19 +53,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
+        current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, node_count):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, node_count):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
+            disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
             current_state_cluster.add_node(node)
 
@@ -75,48 +78,49 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             instance.uuid = instance_uuid
             mem.set_capacity(instance, 2)
             disk.set_capacity(instance, 20)
+            disk_capacity.set_capacity(instance, 20)
             num_cores.set_capacity(instance, 10)
             instances.append(instance)
             current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_0"),
-            current_state_cluster.get_instance_from_id("INSTANCE_0"))
+            current_state_cluster.get_node_by_uuid("Node_0"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_0"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_0"),
-            current_state_cluster.get_instance_from_id("INSTANCE_1"))
+            current_state_cluster.get_node_by_uuid("Node_0"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_1"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_1"),
-            current_state_cluster.get_instance_from_id("INSTANCE_2"))
+            current_state_cluster.get_node_by_uuid("Node_1"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_2"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_2"),
-            current_state_cluster.get_instance_from_id("INSTANCE_3"))
+            current_state_cluster.get_node_by_uuid("Node_2"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_3"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_2"),
-            current_state_cluster.get_instance_from_id("INSTANCE_4"))
+            current_state_cluster.get_node_by_uuid("Node_2"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_4"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_2"),
-            current_state_cluster.get_instance_from_id("INSTANCE_5"))
+            current_state_cluster.get_node_by_uuid("Node_2"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_5"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_3"),
-            current_state_cluster.get_instance_from_id("INSTANCE_6"))
+            current_state_cluster.get_node_by_uuid("Node_3"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_6"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_4"),
-            current_state_cluster.get_instance_from_id("INSTANCE_7"))
+            current_state_cluster.get_node_by_uuid("Node_4"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_7"))
 
         return current_state_cluster
 
     def map(self, model, h_id, instance_id):
         model.get_mapping().map(
-            model.get_node_from_id(h_id),
-            model.get_instance_from_id(instance_id))
+            model.get_node_by_uuid(h_id),
+            model.get_instance_by_uuid(instance_id))
 
     def generate_scenario_3_with_2_nodes(self):
         instances = []
@@ -130,19 +134,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
         root.create_resource(disk)
+        root.create_resource(disk_capacity)
 
-        for i in range(0, node_count):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, node_count):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
+            disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
             root.add_node(node)
 
@@ -150,6 +157,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance1.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
         mem.set_capacity(instance1, 2)
         disk.set_capacity(instance1, 20)
+        disk_capacity.set_capacity(instance1, 20)
         num_cores.set_capacity(instance1, 10)
         instances.append(instance1)
         root.add_instance(instance1)
@@ -158,15 +166,16 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance2.uuid = "a4cab39b-9828-413a-bf88-f76921bf1517"
         mem.set_capacity(instance2, 2)
         disk.set_capacity(instance2, 20)
+        disk_capacity.set_capacity(instance2, 20)
         num_cores.set_capacity(instance2, 10)
         instances.append(instance2)
         root.add_instance(instance2)
 
-        root.get_mapping().map(root.get_node_from_id("Node_0"),
-                               root.get_instance_from_id(str(instance1.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_0"),
+                               root.get_instance_by_uuid(str(instance1.uuid)))
 
-        root.get_mapping().map(root.get_node_from_id("Node_1"),
-                               root.get_instance_from_id(str(instance2.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_1"),
+                               root.get_instance_by_uuid(str(instance2.uuid)))
 
         return root
 
@@ -180,19 +189,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
+        current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, node_count):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, node_count):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 1)
             disk.set_capacity(node, 1)
+            disk_capacity.set_capacity(node, 1)
             num_cores.set_capacity(node, 1)
             current_state_cluster.add_node(node)
 
@@ -211,19 +223,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         current_state_cluster.create_resource(mem)
         current_state_cluster.create_resource(num_cores)
         current_state_cluster.create_resource(disk)
+        current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, node_count):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, node_count):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 4)
             disk.set_capacity(node, 4)
+            disk_capacity.set_capacity(node, 4)
             num_cores.set_capacity(node, 4)
             current_state_cluster.add_node(node)
 
@@ -233,13 +248,14 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             instance.uuid = instance_uuid
             mem.set_capacity(instance, 2)
             disk.set_capacity(instance, 0)
+            disk_capacity.set_capacity(instance, 0)
             num_cores.set_capacity(instance, 4)
             instances.append(instance)
             current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_0"),
-            current_state_cluster.get_instance_from_id("INSTANCE_0"))
+            current_state_cluster.get_node_by_uuid("Node_0"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_0"))
 
         return current_state_cluster
 
@@ -254,19 +270,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
         root.create_resource(disk)
+        root.create_resource(disk_capacity)
 
-        for i in range(0, node_count):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, node_count):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
+            disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 40)
             root.add_node(node)
 
@@ -274,6 +293,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance1.uuid = "INSTANCE_1"
         mem.set_capacity(instance1, 2)
         disk.set_capacity(instance1, 20)
+        disk_capacity.set_capacity(instance1, 20)
         num_cores.set_capacity(instance1, 10)
         instances.append(instance1)
         root.add_instance(instance1)
@@ -282,6 +302,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
         mem.set_capacity(instance11, 2)
         disk.set_capacity(instance11, 20)
+        disk_capacity.set_capacity(instance11, 20)
         num_cores.set_capacity(instance11, 10)
         instances.append(instance11)
         root.add_instance(instance11)
@@ -290,6 +311,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance2.uuid = "INSTANCE_3"
         mem.set_capacity(instance2, 2)
         disk.set_capacity(instance2, 20)
+        disk_capacity.set_capacity(instance2, 20)
         num_cores.set_capacity(instance2, 10)
         instances.append(instance2)
         root.add_instance(instance2)
@@ -298,19 +320,20 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance21.uuid = "INSTANCE_4"
         mem.set_capacity(instance21, 2)
         disk.set_capacity(instance21, 20)
+        disk_capacity.set_capacity(instance21, 20)
         num_cores.set_capacity(instance21, 10)
         instances.append(instance21)
         root.add_instance(instance21)
 
-        root.get_mapping().map(root.get_node_from_id("Node_0"),
-                               root.get_instance_from_id(str(instance1.uuid)))
-        root.get_mapping().map(root.get_node_from_id("Node_0"),
-                               root.get_instance_from_id(str(instance11.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_0"),
+                               root.get_instance_by_uuid(str(instance1.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_0"),
+                               root.get_instance_by_uuid(str(instance11.uuid)))
 
-        root.get_mapping().map(root.get_node_from_id("Node_1"),
-                               root.get_instance_from_id(str(instance2.uuid)))
-        root.get_mapping().map(root.get_node_from_id("Node_1"),
-                               root.get_instance_from_id(str(instance21.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_1"),
+                               root.get_instance_by_uuid(str(instance2.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_1"),
+                               root.get_instance_by_uuid(str(instance21.uuid)))
         return root
 
     def generate_scenario_7_with_2_nodes(self):
@@ -324,19 +347,22 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # 2199.954 Mhz
         num_cores = element.Resource(element.ResourceType.cpu_cores)
         disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
 
         root.create_resource(mem)
         root.create_resource(num_cores)
         root.create_resource(disk)
+        root.create_resource(disk_capacity)
 
-        for i in range(0, count_node):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, count_node):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
 
             mem.set_capacity(node, 132)
             disk.set_capacity(node, 250)
+            disk_capacity.set_capacity(node, 250)
             num_cores.set_capacity(node, 50)
             root.add_node(node)
 
@@ -344,6 +370,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance1.uuid = "cae81432-1631-4d4e-b29c-6f3acdcde906"
         mem.set_capacity(instance1, 2)
         disk.set_capacity(instance1, 20)
+        disk_capacity.set_capacity(instance1, 20)
         num_cores.set_capacity(instance1, 15)
         instances.append(instance1)
         root.add_instance(instance1)
@@ -352,6 +379,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance11.uuid = "73b09e16-35b7-4922-804e-e8f5d9b740fc"
         mem.set_capacity(instance11, 2)
         disk.set_capacity(instance11, 20)
+        disk_capacity.set_capacity(instance11, 20)
         num_cores.set_capacity(instance11, 10)
         instances.append(instance11)
         root.add_instance(instance11)
@@ -360,6 +388,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance2.uuid = "INSTANCE_3"
         mem.set_capacity(instance2, 2)
         disk.set_capacity(instance2, 20)
+        disk_capacity.set_capacity(instance2, 20)
         num_cores.set_capacity(instance2, 10)
         instances.append(instance2)
         root.add_instance(instance2)
@@ -368,17 +397,18 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance21.uuid = "INSTANCE_4"
         mem.set_capacity(instance21, 2)
         disk.set_capacity(instance21, 20)
+        disk_capacity.set_capacity(instance21, 20)
         num_cores.set_capacity(instance21, 10)
         instances.append(instance21)
         root.add_instance(instance21)
 
-        root.get_mapping().map(root.get_node_from_id("Node_0"),
-                               root.get_instance_from_id(str(instance1.uuid)))
-        root.get_mapping().map(root.get_node_from_id("Node_0"),
-                               root.get_instance_from_id(str(instance11.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_0"),
+                               root.get_instance_by_uuid(str(instance1.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_0"),
+                               root.get_instance_by_uuid(str(instance11.uuid)))
 
-        root.get_mapping().map(root.get_node_from_id("Node_1"),
-                               root.get_instance_from_id(str(instance2.uuid)))
-        root.get_mapping().map(root.get_node_from_id("Node_1"),
-                               root.get_instance_from_id(str(instance21.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_1"),
+                               root.get_instance_by_uuid(str(instance2.uuid)))
+        root.get_mapping().map(root.get_node_by_uuid("Node_1"),
+                               root.get_instance_by_uuid(str(instance21.uuid)))
         return root

@@ -23,6 +23,7 @@ from oslo_serialization import jsonutils
 
 from watcher.common import context
 from watcher.common import exception
+from watcher.common import nova_helper
 from watcher.common import service as watcher_service
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
@@ -125,7 +126,7 @@ class TestNovaNotifications(NotificationTestCase):
         handler = novanotification.ServiceUpdated(self.fake_cdmc)
 
         node0_uuid = 'Node_0'
-        node0 = compute_model.get_node_from_id(node0_uuid)
+        node0 = compute_model.get_node_by_uuid(node0_uuid)
 
         message = self.load_message('scenario3_service-update.json')
 
@@ -151,7 +152,7 @@ class TestNovaNotifications(NotificationTestCase):
         handler = novanotification.InstanceUpdated(self.fake_cdmc)
 
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
 
         message = self.load_message('scenario3_instance-update.json')
 
@@ -167,40 +168,106 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
-    def test_nova_instance_update_notfound_creates(self):
+    @mock.patch.object(nova_helper, "NovaHelper")
+    def test_nova_instance_update_notfound_still_creates(
+            self, m_nova_helper_cls):
+        m_get_compute_node_by_hostname = mock.Mock(
+            side_effect=lambda uuid: mock.Mock(
+                name='m_get_compute_node_by_hostname',
+                id=3,
+                uuid=uuid,
+                memory_mb=7777,
+                vcpus=42,
+                free_disk_gb=974,
+                local_gb=1337))
+        m_nova_helper_cls.return_value = mock.Mock(
+            get_compute_node_by_hostname=m_get_compute_node_by_hostname,
+            name='m_nova_helper')
+
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.InstanceUpdated(self.fake_cdmc)
 
-        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
 
-        message = self.load_message('scenario3_instance-update.json')
+        message = self.load_message('scenario3_notfound_instance-update.json')
 
-        with mock.patch.object(
-            model_root.ModelRoot, 'get_instance_from_id'
-        ) as m_get_instance_from_id:
-            m_get_instance_from_id.side_effect = exception.InstanceNotFound(
-                name='TEST')
-            handler.info(
-                ctxt=self.context,
-                publisher_id=message['publisher_id'],
-                event_type=message['event_type'],
-                payload=message['payload'],
-                metadata=self.FAKE_METADATA,
-            )
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
 
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_from_id(
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        disk_capacity = compute_model.get_resource_from_id(
+        disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_from_id(
+        disk_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk_capacity)
+        memory_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
         self.assertEqual(1, cpu_capacity.get_capacity(instance0))
         self.assertEqual(1, disk_capacity.get_capacity(instance0))
         self.assertEqual(512, memory_capacity.get_capacity(instance0))
+
+        m_get_compute_node_by_hostname.assert_called_once_with('Node_2')
+        node_2 = compute_model.get_node_by_uuid('Node_2')
+        self.assertEqual(7777, memory_capacity.get_capacity(node_2))
+        self.assertEqual(42, cpu_capacity.get_capacity(node_2))
+        self.assertEqual(974, disk.get_capacity(node_2))
+        self.assertEqual(1337, disk_capacity.get_capacity(node_2))
+
+    @mock.patch.object(nova_helper, "NovaHelper")
+    def test_instance_update_node_notfound_set_unmapped(
+            self, m_nova_helper_cls):
+        m_get_compute_node_by_hostname = mock.Mock(
+            side_effect=exception.ComputeNodeNotFound)
+        m_nova_helper_cls.return_value = mock.Mock(
+            get_compute_node_by_hostname=m_get_compute_node_by_hostname,
+            name='m_nova_helper')
+
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.InstanceUpdated(self.fake_cdmc)
+
+        instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
+
+        message = self.load_message(
+            'scenario3_notfound_instance-update.json')
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.cpu_cores)
+        disk = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk)
+        disk_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk_capacity)
+        memory_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.memory)
+
+        self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
+        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
+        self.assertEqual(1, disk.get_capacity(instance0))
+        self.assertEqual(1, disk_capacity.get_capacity(instance0))
+        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+
+        m_get_compute_node_by_hostname.assert_any_call('Node_2')
+        self.assertRaises(
+            exception.ComputeNodeNotFound,
+            compute_model.get_node_by_uuid, 'Node_2')
 
     def test_nova_instance_create(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -211,7 +278,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_from_id, instance0_uuid)
+            compute_model.get_instance_by_uuid, instance0_uuid)
 
         message = self.load_message('scenario3_instance-create.json')
         handler.info(
@@ -222,12 +289,12 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_from_id(
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        disk_capacity = compute_model.get_resource_from_id(
+        disk_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_from_id(
+        memory_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
@@ -243,7 +310,7 @@ class TestNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
 
         # Before
-        self.assertTrue(compute_model.get_instance_from_id(instance0_uuid))
+        self.assertTrue(compute_model.get_instance_by_uuid(instance0_uuid))
         for resource in compute_model.resource.values():
             self.assertIn(instance0_uuid, resource.mapping)
 
@@ -259,7 +326,7 @@ class TestNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_from_id, instance0_uuid)
+            compute_model.get_instance_by_uuid, instance0_uuid)
 
         for resource in compute_model.resource.values():
             self.assertNotIn(instance0_uuid, resource.mapping)
@@ -282,7 +349,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         instance0_uuid = 'c03c0bf9-f46e-4e4f-93f1-817568567ee2'
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_from_id, instance0_uuid)
+            compute_model.get_instance_by_uuid, instance0_uuid)
 
         message = self.load_message(
             'scenario3_legacy_instance-create-end.json')
@@ -295,12 +362,12 @@ class TestLegacyNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_from_id(
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        disk_capacity = compute_model.get_resource_from_id(
+        disk_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_from_id(
+        memory_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
@@ -314,7 +381,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         handler = novanotification.LegacyInstanceUpdated(self.fake_cdmc)
 
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
 
         message = self.load_message('scenario3_legacy_instance-update.json')
 
@@ -330,7 +397,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
-    def test_legacy_instance_update_notfound_creates(self):
+    def test_legacy_instance_update_instance_notfound_creates(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.LegacyInstanceUpdated(self.fake_cdmc)
@@ -340,9 +407,9 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         message = self.load_message('scenario3_legacy_instance-update.json')
 
         with mock.patch.object(
-            model_root.ModelRoot, 'get_instance_from_id'
-        ) as m_get_instance_from_id:
-            m_get_instance_from_id.side_effect = exception.InstanceNotFound(
+            model_root.ModelRoot, 'get_instance_by_uuid'
+        ) as m_get_instance_by_uuid:
+            m_get_instance_by_uuid.side_effect = exception.InstanceNotFound(
                 name='TEST')
             handler.info(
                 ctxt=self.context,
@@ -352,48 +419,111 @@ class TestLegacyNovaNotifications(NotificationTestCase):
                 metadata=self.FAKE_METADATA,
             )
 
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
-    def test_legacy_instance_update_node_notfound_stil_creates(self):
+    @mock.patch.object(nova_helper, "NovaHelper")
+    def test_legacy_instance_update_node_notfound_still_creates(
+            self, m_nova_helper_cls):
+        m_get_compute_node_by_hostname = mock.Mock(
+            side_effect=lambda uuid: mock.Mock(
+                name='m_get_compute_node_by_hostname',
+                id=3,
+                uuid=uuid,
+                memory_mb=7777,
+                vcpus=42,
+                free_disk_gb=974,
+                local_gb=1337))
+        m_nova_helper_cls.return_value = mock.Mock(
+            get_compute_node_by_hostname=m_get_compute_node_by_hostname,
+            name='m_nova_helper')
+
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.LegacyInstanceUpdated(self.fake_cdmc)
 
-        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
 
-        message = self.load_message('scenario3_legacy_instance-update.json')
+        message = self.load_message(
+            'scenario3_notfound_legacy_instance-update.json')
 
-        with mock.patch.object(
-            model_root.ModelRoot, 'get_instance_from_id'
-        ) as m_get_instance_from_id:
-            m_get_instance_from_id.side_effect = exception.InstanceNotFound(
-                name='TEST')
-            with mock.patch.object(
-                model_root.ModelRoot, 'get_node_from_id'
-            ) as m_get_node_from_id:
-                m_get_node_from_id.side_effect = exception.ComputeNodeNotFound(
-                    name='TEST')
-                handler.info(
-                    ctxt=self.context,
-                    publisher_id=message['publisher_id'],
-                    event_type=message['event_type'],
-                    payload=message['payload'],
-                    metadata=self.FAKE_METADATA,
-                )
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
 
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_from_id(
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        disk_capacity = compute_model.get_resource_from_id(
+        disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_from_id(
+        disk_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk_capacity)
+        memory_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
         self.assertEqual(1, cpu_capacity.get_capacity(instance0))
+        self.assertEqual(1, disk.get_capacity(instance0))
         self.assertEqual(1, disk_capacity.get_capacity(instance0))
         self.assertEqual(512, memory_capacity.get_capacity(instance0))
+
+        m_get_compute_node_by_hostname.assert_any_call('Node_2')
+        node_2 = compute_model.get_node_by_uuid('Node_2')
+        self.assertEqual(7777, memory_capacity.get_capacity(node_2))
+        self.assertEqual(42, cpu_capacity.get_capacity(node_2))
+        self.assertEqual(974, disk.get_capacity(node_2))
+        self.assertEqual(1337, disk_capacity.get_capacity(node_2))
+
+    @mock.patch.object(nova_helper, "NovaHelper")
+    def test_legacy_instance_update_node_notfound_set_unmapped(
+            self, m_nova_helper_cls):
+        m_get_compute_node_by_hostname = mock.Mock(
+            side_effect=exception.ComputeNodeNotFound)
+        m_nova_helper_cls.return_value = mock.Mock(
+            get_compute_node_by_hostname=m_get_compute_node_by_hostname,
+            name='m_nova_helper')
+
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.LegacyInstanceUpdated(self.fake_cdmc)
+
+        instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
+
+        message = self.load_message(
+            'scenario3_notfound_legacy_instance-update.json')
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        cpu_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.cpu_cores)
+        disk = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk)
+        disk_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.disk_capacity)
+        memory_capacity = compute_model.get_resource_by_uuid(
+            element.ResourceType.memory)
+
+        self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
+        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
+        self.assertEqual(1, disk.get_capacity(instance0))
+        self.assertEqual(1, disk_capacity.get_capacity(instance0))
+        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+
+        m_get_compute_node_by_hostname.assert_any_call('Node_2')
+        self.assertRaises(
+            exception.ComputeNodeNotFound,
+            compute_model.get_node_by_uuid, 'Node_2')
 
     def test_legacy_live_migrated_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -401,9 +531,9 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         handler = novanotification.LegacyLiveMigratedEnd(self.fake_cdmc)
 
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
-        instance0 = compute_model.get_instance_from_id(instance0_uuid)
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
 
-        node = compute_model.get_node_from_instance_id(instance0_uuid)
+        node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('Node_0', node.uuid)
 
         message = self.load_message(
@@ -415,7 +545,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
             payload=message['payload'],
             metadata=self.FAKE_METADATA,
         )
-        node = compute_model.get_node_from_instance_id(instance0_uuid)
+        node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('Node_1', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
@@ -427,7 +557,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
 
         # Before
-        self.assertTrue(compute_model.get_instance_from_id(instance0_uuid))
+        self.assertTrue(compute_model.get_instance_by_uuid(instance0_uuid))
         for resource in compute_model.resource.values():
             self.assertIn(instance0_uuid, resource.mapping)
 
@@ -444,7 +574,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.InstanceNotFound,
-            compute_model.get_instance_from_id, instance0_uuid)
+            compute_model.get_instance_by_uuid, instance0_uuid)
 
         for resource in compute_model.resource.values():
             self.assertNotIn(instance0_uuid, resource.mapping)

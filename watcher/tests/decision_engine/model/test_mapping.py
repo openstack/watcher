@@ -44,10 +44,10 @@ class TestMapping(base.TestCase):
         node = model.mapping.get_node_from_instance(instance)
         self.assertEqual('Node_0', node.uuid)
 
-    def test_get_node_from_instance_id(self):
+    def test_get_node_by_instance_uuid(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
 
-        nodes = model.mapping.get_node_instances_from_id("BLABLABLA")
+        nodes = model.mapping.get_node_instances_by_uuid("BLABLABLA")
         self.assertEqual(0, len(nodes))
 
     def test_get_all_instances(self):
@@ -74,9 +74,9 @@ class TestMapping(base.TestCase):
         instances = model.get_all_instances()
         keys = list(instances.keys())
         instance0 = instances[keys[0]]
-        node0 = model.mapping.get_node_from_instance_id(instance0.uuid)
+        node0 = model.mapping.get_node_by_instance_uuid(instance0.uuid)
         instance1 = instances[keys[1]]
-        node1 = model.mapping.get_node_from_instance_id(instance1.uuid)
+        node1 = model.mapping.get_node_by_instance_uuid(instance1.uuid)
 
         self.assertEqual(
             False,
@@ -91,26 +91,24 @@ class TestMapping(base.TestCase):
             True,
             model.migrate_instance(instance1, node0, node1))
 
-    def test_unmap_from_id_log_warning(self):
+    def test_unmap_by_uuid_log_warning(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         instances = model.get_all_instances()
         keys = list(instances.keys())
         instance0 = instances[keys[0]]
-        id_ = "{0}".format(uuid.uuid4())
-        node = element.ComputeNode()
-        node.uuid = id_
+        uuid_ = "{0}".format(uuid.uuid4())
+        node = element.ComputeNode(id=1)
+        node.uuid = uuid_
 
-        model.mapping.unmap_from_id(node.uuid, instance0.uuid)
-        # self.assertEqual(len(model.mapping.get_node_instances_from_id(
-        # node.uuid)), 1)
+        model.mapping.unmap_by_uuid(node.uuid, instance0.uuid)
 
-    def test_unmap_from_id(self):
+    def test_unmap_by_uuid(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         instances = model.get_all_instances()
         keys = list(instances.keys())
         instance0 = instances[keys[0]]
-        node0 = model.mapping.get_node_from_instance_id(instance0.uuid)
+        node0 = model.mapping.get_node_by_instance_uuid(instance0.uuid)
 
-        model.mapping.unmap_from_id(node0.uuid, instance0.uuid)
-        self.assertEqual(0, len(model.mapping.get_node_instances_from_id(
+        model.mapping.unmap_by_uuid(node0.uuid, instance0.uuid)
+        self.assertEqual(0, len(model.mapping.get_node_instances_by_uuid(
             node0.uuid)))

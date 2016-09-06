@@ -20,7 +20,9 @@ import collections
 import mock
 
 from watcher.applier.loading import default
+from watcher.common import clients
 from watcher.common import exception
+from watcher.decision_engine.model.collector import nova
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -39,9 +41,13 @@ class TestBasicConsolidation(base.TestCase):
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
+        p_osc = mock.patch.object(
+            clients, "OpenStackClients")
+        self.m_osc = p_osc.start()
+        self.addCleanup(p_osc.stop)
+
         p_model = mock.patch.object(
-            strategies.BasicConsolidation, "compute_model",
-            new_callable=mock.PropertyMock)
+            nova.NovaClusterDataModelCollector, "execute")
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
@@ -67,39 +73,39 @@ class TestBasicConsolidation(base.TestCase):
         self.m_model.return_value = model
         node_1_score = 0.023333333333333317
         self.assertEqual(node_1_score, self.strategy.calculate_score_node(
-            model.get_node_from_id("Node_1")))
+            model.get_node_by_uuid("Node_1")))
         node_2_score = 0.26666666666666666
         self.assertEqual(node_2_score, self.strategy.calculate_score_node(
-            model.get_node_from_id("Node_2")))
+            model.get_node_by_uuid("Node_2")))
         node_0_score = 0.023333333333333317
         self.assertEqual(node_0_score, self.strategy.calculate_score_node(
-            model.get_node_from_id("Node_0")))
+            model.get_node_by_uuid("Node_0")))
 
     def test_basic_consolidation_score_instance(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
-        instance_0 = model.get_instance_from_id("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_0_score = 0.023333333333333317
         self.assertEqual(
             instance_0_score,
             self.strategy.calculate_score_instance(instance_0))
 
-        instance_1 = model.get_instance_from_id("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
         instance_1_score = 0.023333333333333317
         self.assertEqual(
             instance_1_score,
             self.strategy.calculate_score_instance(instance_1))
-        instance_2 = model.get_instance_from_id("INSTANCE_2")
+        instance_2 = model.get_instance_by_uuid("INSTANCE_2")
         instance_2_score = 0.033333333333333326
         self.assertEqual(
             instance_2_score,
             self.strategy.calculate_score_instance(instance_2))
-        instance_6 = model.get_instance_from_id("INSTANCE_6")
+        instance_6 = model.get_instance_by_uuid("INSTANCE_6")
         instance_6_score = 0.02666666666666669
         self.assertEqual(
             instance_6_score,
             self.strategy.calculate_score_instance(instance_6))
-        instance_7 = model.get_instance_from_id("INSTANCE_7")
+        instance_7 = model.get_instance_by_uuid("INSTANCE_7")
         instance_7_score = 0.013333333333333345
         self.assertEqual(
             instance_7_score,
@@ -108,7 +114,7 @@ class TestBasicConsolidation(base.TestCase):
     def test_basic_consolidation_score_instance_disk(self):
         model = self.fake_cluster.generate_scenario_5_with_instance_disk_0()
         self.m_model.return_value = model
-        instance_0 = model.get_instance_from_id("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_0_score = 0.023333333333333355
         self.assertEqual(
             instance_0_score,
@@ -117,7 +123,7 @@ class TestBasicConsolidation(base.TestCase):
     def test_basic_consolidation_weight(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
-        instance_0 = model.get_instance_from_id("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
         cores = 16
         # 80 Go
         disk = 80
@@ -161,6 +167,14 @@ class TestBasicConsolidation(base.TestCase):
 
         self.assertFalse(self.strategy.check_threshold(
             node0, 1000, 1000, 1000))
+
+    def test_basic_consolidation_works_on_model_copy(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        self.m_model.return_value = model
+
+        self.assertEqual(
+            model.to_string(), self.strategy.compute_model.to_string())
+        self.assertIsNot(model, self.strategy.compute_model)
 
     def test_basic_consolidation_migration(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
