@@ -14,6 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import collections
+
+from lxml import etree
 import six
 
 from watcher._i18n import _
@@ -159,3 +162,61 @@ class ModelRoot(object):
 
     def get_resource_from_id(self, resource_id):
         return self.resource[str(resource_id)]
+
+    def get_node_instances(self, node):
+        return self.mapping.get_node_instances(node)
+
+    def _build_compute_node_element(self, compute_node):
+        attrib = collections.OrderedDict(
+            uuid=compute_node.uuid, human_id=compute_node.human_id,
+            hostname=compute_node.hostname, state=compute_node.state,
+            status=compute_node.status)
+
+        for resource_name, resource in self.resource.items():
+            res_value = resource.get_capacity(compute_node)
+            if res_value is not None:
+                attrib[resource_name] = six.text_type(res_value)
+
+        compute_node_el = etree.Element("ComputeNode", attrib=attrib)
+
+        return compute_node_el
+
+    def _build_instance_element(self, instance):
+        attrib = collections.OrderedDict(
+            uuid=instance.uuid, human_id=instance.human_id,
+            hostname=instance.hostname, state=instance.state)
+
+        for resource_name, resource in self.resource.items():
+            res_value = resource.get_capacity(instance)
+            if res_value is not None:
+                attrib[resource_name] = six.text_type(res_value)
+
+        instance_el = etree.Element("Instance", attrib=attrib)
+
+        return instance_el
+
+    def to_string(self):
+        root = etree.Element("ModelRoot")
+        # Build compute node tree
+        for cn in sorted(self.get_all_compute_nodes().values(),
+                         key=lambda cn: cn.uuid):
+            compute_node_el = self._build_compute_node_element(cn)
+
+            # Build mapped instance tree
+            node_instance_uuids = self.get_node_instances(cn)
+            for instance_uuid in sorted(node_instance_uuids):
+                instance = self.get_instance_from_id(instance_uuid)
+                instance_el = self._build_instance_element(instance)
+                compute_node_el.append(instance_el)
+
+            root.append(compute_node_el)
+
+        # Build unmapped instance tree (i.e. not assigned to any compute node)
+        for instance in sorted(self.get_all_instances().values(),
+                               key=lambda inst: inst.uuid):
+            try:
+                self.get_node_from_instance_id(instance.uuid)
+            except exception.InstanceNotFound:
+                root.append(self._build_instance_element(instance))
+
+        return etree.tostring(root, pretty_print=True).decode('utf-8')
