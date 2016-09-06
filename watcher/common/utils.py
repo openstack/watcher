@@ -165,7 +165,7 @@ def extend_with_strict_schema(validator_class):
                 raise exception.AuditParameterNotAllowed(parameter=para)
 
             for error in validate_properties(
-                    validator, properties, instance, schema
+                validator, properties, instance, schema
             ):
                 yield error
 
