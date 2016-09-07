@@ -21,6 +21,22 @@ Goals
 .. list-plugins:: watcher_goals
    :detailed:
 
+.. _watcher_scoring_engines:
+
+Scoring Engines
+===============
+
+.. list-plugins:: watcher_scoring_engines
+   :detailed:
+
+.. _watcher_scoring_engine_containers:
+
+Scoring Engine Containers
+=========================
+
+.. list-plugins:: watcher_scoring_engine_containers
+   :detailed:
+
 .. _watcher_strategies:
 
 Strategies

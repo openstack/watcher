@@ -280,6 +280,12 @@ specific domain.
 Please, read `the official OpenStack definition of a Project
 <http://docs.openstack.org/glossary/content/glossary.html>`_.
 
+.. _scoring_engine_definition:
+
+Scoring Engine
+==============
+
+.. watcher-term::  watcher.api.controllers.v1.scoring_engine
 
 .. _sla_definition:
 
