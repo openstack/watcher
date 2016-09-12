@@ -498,6 +498,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
+        LOG.debug(self.compute_model.to_string())
+
     def do_execute(self):
         """Execute strategy.
 
@@ -548,3 +550,5 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             released_compute_nodes_count=self.number_of_migrations,
             instance_migrations_count=self.number_of_released_nodes,
         )
+
+        LOG.debug(self.compute_model.to_string())

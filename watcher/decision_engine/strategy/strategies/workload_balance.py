@@ -283,6 +283,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
+        LOG.debug(self.compute_model.to_string())
+
     def do_execute(self):
         """Strategy execution phase
 
@@ -344,3 +346,5 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         This can be used to compute the global efficacy
         """
         self.solution.model = self.compute_model
+
+        LOG.debug(self.compute_model.to_string())

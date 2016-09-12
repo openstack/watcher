@@ -363,7 +363,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     def create_migration_instance(self, mig_instance, mig_source_node,
                                   mig_destination_node):
-        """Create migration VM """
+        """Create migration VM"""
         if self.compute_model.migrate_instance(
                 mig_instance, mig_source_node, mig_destination_node):
             self.add_migration(mig_instance.uuid, 'live',
@@ -437,3 +437,5 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         This can be used to compute the global efficacy
         """
         self.fill_solution()
+
+        LOG.debug(self.compute_model.to_string())

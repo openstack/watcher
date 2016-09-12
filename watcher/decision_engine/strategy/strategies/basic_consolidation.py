@@ -479,3 +479,4 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             released_compute_nodes_count=self.number_of_released_nodes,
             instance_migrations_count=self.number_of_migrations,
         )
+        LOG.debug(self.compute_model.to_string())

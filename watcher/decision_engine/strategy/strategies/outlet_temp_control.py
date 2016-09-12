@@ -230,6 +230,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
+        LOG.debug(self.compute_model.to_string())
+
     def do_execute(self):
         # the migration plan will be triggered when the outlet temperature
         # reaches threshold
@@ -284,3 +286,5 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def post_execute(self):
         self.solution.model = self.compute_model
         # TODO(v-francoise): Add the indicators to the solution
+
+        LOG.debug(self.compute_model.to_string())
