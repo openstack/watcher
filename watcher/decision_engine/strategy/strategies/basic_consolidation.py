@@ -252,11 +252,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :rtype: float
         """
         resource_id = "%s_%s" % (node.uuid, node.hostname)
-        host_avg_cpu_util = self.ceilometer. \
-            statistic_aggregation(resource_id=resource_id,
-                                  meter_name=self.HOST_CPU_USAGE_METRIC_NAME,
-                                  period="7200",
-                                  aggregate='avg')
+        host_avg_cpu_util = self.ceilometer.statistic_aggregation(
+            resource_id=resource_id,
+            meter_name=self.HOST_CPU_USAGE_METRIC_NAME,
+            period="7200",
+            aggregate='avg')
 
         if host_avg_cpu_util is None:
             LOG.error(
@@ -269,7 +269,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         cpu_capacity = self.compute_model.get_resource_from_id(
             element.ResourceType.cpu_cores).get_capacity(node)
 
-        total_cores_used = cpu_capacity * (host_avg_cpu_util / 100)
+        total_cores_used = cpu_capacity * (host_avg_cpu_util / 100.0)
 
         return self.calculate_weight(node, total_cores_used, 0, 0)
 

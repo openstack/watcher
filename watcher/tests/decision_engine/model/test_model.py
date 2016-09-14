@@ -15,8 +15,11 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 import uuid
+
+from lxml import etree
+import six
 
 from watcher.common import exception
 from watcher.decision_engine.model import element
@@ -27,13 +30,157 @@ from watcher.tests.decision_engine.strategy.strategies \
 
 
 class TestModel(base.TestCase):
-    def test_model(self):
+
+    def test_model_structure(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
 
         self.assertEqual(5, len(model._nodes))
         self.assertEqual(35, len(model._instances))
         self.assertEqual(5, len(model.mapping.get_mapping()))
+
+        expected_struct_str = """
+        <ModelRoot>
+          <ComputeNode ResourceType.cpu_cores="40" ResourceType.disk="250"
+            ResourceType.memory="132" hostname="hostname_0" human_id=""
+            state="up" status="enabled" uuid="Node_0">
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_0"/>
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_1"/>
+          </ComputeNode>
+          <ComputeNode ResourceType.cpu_cores="40" ResourceType.disk="250"
+            ResourceType.memory="132" hostname="hostname_1" human_id=""
+            state="up" status="enabled" uuid="Node_1">
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_2"/>
+          </ComputeNode>
+          <ComputeNode ResourceType.cpu_cores="40" ResourceType.disk="250"
+            ResourceType.memory="132" hostname="hostname_2" human_id=""
+            state="up" status="enabled" uuid="Node_2">
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_3"/>
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_4"/>
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_5"/>
+          </ComputeNode>
+          <ComputeNode ResourceType.cpu_cores="40" ResourceType.disk="250"
+            ResourceType.memory="132" hostname="hostname_3" human_id=""
+            state="up" status="enabled" uuid="Node_3">
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_6"/>
+          </ComputeNode>
+          <ComputeNode ResourceType.cpu_cores="40" ResourceType.disk="250"
+            ResourceType.memory="132" hostname="hostname_4" human_id=""
+            state="up" status="enabled" uuid="Node_4">
+            <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+              ResourceType.memory="2" hostname="" human_id=""
+              state="active" uuid="INSTANCE_7"/>
+          </ComputeNode>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_10"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_11"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_12"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_13"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_14"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_15"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_16"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_17"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_18"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_19"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_20"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_21"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_22"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_23"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_24"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_25"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_26"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_27"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_28"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_29"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_30"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_31"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_32"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_33"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_34"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_8"/>
+          <Instance ResourceType.cpu_cores="10" ResourceType.disk="20"
+            ResourceType.memory="2" hostname="" human_id=""
+            state="active" uuid="INSTANCE_9"/>
+        </ModelRoot>
+        """
+        parser = etree.XMLParser(remove_blank_text=True)
+        expected_struct = etree.fromstring(expected_struct_str, parser)
+        model_structure = etree.fromstring(model.to_string(), parser)
+
+        normalized_expected_output = six.BytesIO()
+        normalized_model_output = six.BytesIO()
+        expected_struct.getroottree().write_c14n(normalized_expected_output)
+        model_structure.getroottree().write_c14n(normalized_model_output)
+
+        normalized_expected_struct = normalized_expected_output.getvalue()
+        normalized_model_struct = normalized_model_output.getvalue()
+
+        self.assertEqual(normalized_expected_struct, normalized_model_struct)
 
     def test_add_node(self):
         model = model_root.ModelRoot()
