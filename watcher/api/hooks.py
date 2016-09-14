@@ -18,6 +18,7 @@
 from oslo_config import cfg
 from oslo_utils import importutils
 from pecan import hooks
+from six.moves import http_client
 
 from watcher.common import context
 
@@ -95,18 +96,20 @@ class NoExceptionTracebackHook(hooks.PecanHook):
             return
 
         # Do nothing if there is no error.
-        if 200 <= state.response.status_int < 400:
+        # Status codes in the range 200 (OK) to 399 (400 = BAD_REQUEST) are not
+        # an error.
+        if (http_client.OK <= state.response.status_int <
+                http_client.BAD_REQUEST):
             return
 
         json_body = state.response.json
-        # Do not remove traceback when server in debug mode (except 'Server'
-        # errors when 'debuginfo' will be used for traces).
-        if cfg.CONF.debug and json_body.get('faultcode') != 'Server':
+        # Do not remove traceback when traceback config is set
+        if cfg.CONF.debug:
             return
 
         faultstring = json_body.get('faultstring')
         traceback_marker = 'Traceback (most recent call last):'
-        if faultstring and (traceback_marker in faultstring):
+        if faultstring and traceback_marker in faultstring:
             # Cut-off traceback.
             faultstring = faultstring.split(traceback_marker, 1)[0]
             # Remove trailing newlines and spaces if any.

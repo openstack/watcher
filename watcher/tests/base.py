@@ -66,7 +66,7 @@ class TestCase(BaseTestCase):
 
         app_config_path = os.path.join(os.path.dirname(__file__), 'config.py')
         self.app = testing.load_test_app(app_config_path)
-        token_info = {
+        self.token_info = {
             'token': {
                 'project': {
                     'id': 'fake_project'
@@ -77,14 +77,16 @@ class TestCase(BaseTestCase):
             }
         }
         self.context = watcher_context.RequestContext(
-            auth_token_info=token_info,
+            auth_token_info=self.token_info,
             project_id='fake_project',
             user_id='fake_user')
+
+        self.policy = self.useFixture(policy_fixture.PolicyFixture())
 
         def make_context(*args, **kwargs):
             # If context hasn't been constructed with token_info
             if not kwargs.get('auth_token_info'):
-                kwargs['auth_token_info'] = copy.deepcopy(token_info)
+                kwargs['auth_token_info'] = copy.deepcopy(self.token_info)
             if not kwargs.get('project_id'):
                 kwargs['project_id'] = 'fake_project'
             if not kwargs.get('user_id'):
