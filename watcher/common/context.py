@@ -51,7 +51,7 @@ class RequestContext(context.RequestContext):
             show_deleted=kwargs.pop('show_deleted', False),
             request_id=request_id,
             resource_uuid=kwargs.pop('resource_uuid', None),
-            is_admin_project=kwargs.pop('is_admin_project', None),
+            is_admin_project=kwargs.pop('is_admin_project', True),
             overwrite=overwrite,
             roles=roles)
 
