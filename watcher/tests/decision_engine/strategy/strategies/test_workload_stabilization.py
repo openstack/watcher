@@ -19,6 +19,7 @@
 
 import mock
 
+from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -62,6 +63,26 @@ class TestWorkloadStabilization(base.TestCase):
         self.m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy = strategies.WorkloadStabilization(config=mock.Mock())
+        self.strategy.input_parameters = utils.Struct()
+        self.strategy.input_parameters.update(
+            {'metrics': ["cpu_util", "memory.resident"],
+             'thresholds': {"cpu_util": 0.2, "memory.resident": 0.2},
+             'weights': {"cpu_util_weight": 1.0,
+                         "memory.resident_weight": 1.0},
+             'instance_metrics':
+                 {"cpu_util": "hardware.cpu.util",
+                  "memory.resident": "hardware.memory.used"},
+             'host_choice': 'retry',
+             'retry_count': 1})
+        self.strategy.metrics = ["cpu_util", "memory.resident"]
+        self.strategy.thresholds = {"cpu_util": 0.2, "memory.resident": 0.2}
+        self.strategy.weights = {"cpu_util_weight": 1.0,
+                                 "memory.resident_weight": 1.0}
+        self.strategy.instance_metrics = {"cpu_util": "hardware.cpu.util",
+                                          "memory.resident":
+                                              "hardware.memory.used"}
+        self.strategy.host_choice = 'retry'
+        self.strategy.retry_count = 1
 
     def test_get_instance_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
@@ -138,7 +159,7 @@ class TestWorkloadStabilization(base.TestCase):
                  'host': 'Node_1'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migration:
-            self.strategy.execute()
+            self.strategy.do_execute()
             mock_migration.assert_called_once_with(
                 'INSTANCE_4', 'Node_2', 'Node_1')
 
@@ -154,7 +175,7 @@ class TestWorkloadStabilization(base.TestCase):
                  'host': 'Node_3'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
-            self.strategy.execute()
+            self.strategy.do_execute()
             self.assertEqual(mock_migrate.call_count, 1)
 
     def test_execute_nothing_to_migrate(self):
