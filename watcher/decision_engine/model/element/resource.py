@@ -16,6 +16,8 @@
 
 import enum
 
+from watcher.common import exception
+
 
 class ResourceType(enum.Enum):
     cpu_cores = 'num_cores'
@@ -50,12 +52,12 @@ class Resource(object):
     def unset_capacity(self, element):
         del self.mapping[element.uuid]
 
-    def get_capacity_from_id(self, uuid):
-        if str(uuid) in self.mapping.keys():
+    def get_capacity_by_uuid(self, uuid):
+        try:
             return self.mapping[str(uuid)]
-        else:
-            # TODO(jed) throw exception
-            return None
+        except KeyError:
+            raise exception.CapacityNotDefined(
+                capacity=self.name.value, resource=str(uuid))
 
     def get_capacity(self, element):
-        return self.get_capacity_from_id(element.uuid)
+        return self.get_capacity_by_uuid(element.uuid)

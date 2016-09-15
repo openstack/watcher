@@ -70,10 +70,10 @@ class TestUniformAirflow(base.TestCase):
     def test_calc_used_res(self):
         model = self.fake_cluster.generate_scenario_7_with_2_nodes()
         self.m_model.return_value = model
-        node = model.get_node_from_id('Node_0')
-        cap_cores = model.get_resource_from_id(element.ResourceType.cpu_cores)
-        cap_mem = model.get_resource_from_id(element.ResourceType.memory)
-        cap_disk = model.get_resource_from_id(element.ResourceType.disk)
+        node = model.get_node_by_uuid('Node_0')
+        cap_cores = model.get_resource_by_uuid(element.ResourceType.cpu_cores)
+        cap_mem = model.get_resource_by_uuid(element.ResourceType.memory)
+        cap_disk = model.get_resource_by_uuid(element.ResourceType.disk)
         cores_used, mem_used, disk_used = self.\
             strategy.calculate_used_resource(
                 node, cap_cores, cap_mem, cap_disk)

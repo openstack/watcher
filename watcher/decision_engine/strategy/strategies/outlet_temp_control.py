@@ -130,7 +130,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         disk_gb_used = 0
         if len(instances) > 0:
             for instance_id in instances:
-                instance = self.compute_model.get_instance_from_id(instance_id)
+                instance = self.compute_model.get_instance_by_uuid(instance_id)
                 vcpus_used += cpu_capacity.get_capacity(instance)
                 memory_mb_used += memory_capacity.get_capacity(instance)
                 disk_gb_used += disk_capacity.get_capacity(instance)
@@ -147,7 +147,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         hosts_need_release = []
         hosts_target = []
         for node_id in nodes:
-            node = self.compute_model.get_node_from_id(
+            node = self.compute_model.get_node_by_uuid(
                 node_id)
             resource_id = node.uuid
 
@@ -180,7 +180,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 for instance_id in instances_of_src:
                     try:
                         # select the first active instance to migrate
-                        instance = self.compute_model.get_instance_from_id(
+                        instance = self.compute_model.get_instance_by_uuid(
                             instance_id)
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):
@@ -196,11 +196,11 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     def filter_dest_servers(self, hosts, instance_to_migrate):
         """Only return hosts with sufficient available resources"""
-        cpu_capacity = self.compute_model.get_resource_from_id(
+        cpu_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        disk_capacity = self.compute_model.get_resource_from_id(
+        disk_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        memory_capacity = self.compute_model.get_resource_from_id(
+        memory_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         required_cores = cpu_capacity.get_capacity(instance_to_migrate)

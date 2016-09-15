@@ -49,6 +49,8 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         enabled_compute_nodes = [cn for cn in cls.initial_compute_nodes_setup
                                  if cn.get('status') == 'enabled']
 
+        cls.wait_for_compute_node_setup()
+
         if len(enabled_compute_nodes) < 2:
             raise cls.skipException(
                 "Less than 2 compute nodes are enabled, "
@@ -61,6 +63,32 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
 
         return [srv for srv in available_services
                 if srv.get('binary') == 'nova-compute']
+
+    @classmethod
+    def wait_for_compute_node_setup(cls):
+
+        def _are_compute_nodes_setup():
+            try:
+                hypervisors_client = cls.mgr.hypervisor_client
+                hypervisors = hypervisors_client.list_hypervisors(
+                    detail=True)['hypervisors']
+                available_hypervisors = set(
+                    hyp['hypervisor_hostname'] for hyp in hypervisors)
+                available_services = set(
+                    service['host']
+                    for service in cls.get_compute_nodes_setup())
+
+                return (
+                    available_hypervisors == available_services and
+                    len(hypervisors) >= 2)
+            except Exception:
+                return False
+
+        assert test.call_until_true(
+            func=_are_compute_nodes_setup,
+            duration=600,
+            sleep_for=2
+        )
 
     @classmethod
     def rollback_compute_nodes_status(cls):
@@ -107,6 +135,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         """
         self.addCleanup(self.rollback_compute_nodes_status)
         self._create_one_instance_per_host()
+
         _, goal = self.client.show_goal(self.BASIC_GOAL)
         _, strategy = self.client.show_strategy("basic")
         _, audit_template = self.create_audit_template(

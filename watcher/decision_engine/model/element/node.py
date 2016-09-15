@@ -28,8 +28,9 @@ class ServiceState(enum.Enum):
 
 class ComputeNode(compute_resource.ComputeResource):
 
-    def __init__(self):
+    def __init__(self, id):
         super(ComputeNode, self).__init__()
+        self.id = id
         self._state = ServiceState.ONLINE.value
         self._status = ServiceState.ENABLED.value
 

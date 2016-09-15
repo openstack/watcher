@@ -56,11 +56,11 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         current_state_cluster.create_resource(disk)
         current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, count_node):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, count_node):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
             node.state = 'enabled'
 
             mem.set_capacity(node, 64)
@@ -79,12 +79,12 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             current_state_cluster.add_instance(instance)
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_0"),
-            current_state_cluster.get_instance_from_id("INSTANCE_0"))
+            current_state_cluster.get_node_by_uuid("Node_0"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_0"))
 
         current_state_cluster.get_mapping().map(
-            current_state_cluster.get_node_from_id("Node_1"),
-            current_state_cluster.get_instance_from_id("INSTANCE_1"))
+            current_state_cluster.get_node_by_uuid("Node_1"),
+            current_state_cluster.get_instance_by_uuid("INSTANCE_1"))
 
         return current_state_cluster
 
@@ -109,11 +109,11 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         current_state_cluster.create_resource(disk)
         current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, count_node):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, count_node):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
             node.state = 'up'
 
             mem.set_capacity(node, 64)
@@ -132,8 +132,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             current_state_cluster.add_instance(instance)
 
             current_state_cluster.get_mapping().map(
-                current_state_cluster.get_node_from_id("Node_0"),
-                current_state_cluster.get_instance_from_id("INSTANCE_%s" % i))
+                current_state_cluster.get_node_by_uuid("Node_0"),
+                current_state_cluster.get_instance_by_uuid("INSTANCE_%s" % i))
 
         return current_state_cluster
 
@@ -158,11 +158,11 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         current_state_cluster.create_resource(disk)
         current_state_cluster.create_resource(disk_capacity)
 
-        for i in range(0, count_node):
-            node_uuid = "Node_{0}".format(i)
-            node = element.ComputeNode()
+        for id_ in range(0, count_node):
+            node_uuid = "Node_{0}".format(id_)
+            node = element.ComputeNode(id_)
             node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(i)
+            node.hostname = "hostname_{0}".format(id_)
             node.state = 'up'
 
             mem.set_capacity(node, 64)
@@ -177,12 +177,12 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             instance.state = element.InstanceState.ACTIVE.value
             mem.set_capacity(instance, 2)
             disk.set_capacity(instance, 20)
-            num_cores.set_capacity(instance, 2 ** (i-6))
+            num_cores.set_capacity(instance, 2 ** (i - 6))
             current_state_cluster.add_instance(instance)
 
             current_state_cluster.get_mapping().map(
-                current_state_cluster.get_node_from_id("Node_0"),
-                current_state_cluster.get_instance_from_id("INSTANCE_%s" % i))
+                current_state_cluster.get_node_by_uuid("Node_0"),
+                current_state_cluster.get_instance_by_uuid("INSTANCE_%s" % i))
 
         return current_state_cluster
 
@@ -213,14 +213,14 @@ class FakeCeilometerMetrics(object):
         """
 
         id = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
-        instances = self.model.get_mapping().get_node_instances_from_id(id)
+        instances = self.model.get_mapping().get_node_instances_by_uuid(id)
         util_sum = 0.0
-        node_cpu_cores = self.model.get_resource_from_id(
-            element.ResourceType.cpu_cores).get_capacity_from_id(id)
+        node_cpu_cores = self.model.get_resource_by_uuid(
+            element.ResourceType.cpu_cores).get_capacity_by_uuid(id)
         for instance_uuid in instances:
-            instance_cpu_cores = self.model.get_resource_from_id(
+            instance_cpu_cores = self.model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).\
-                get_capacity(self.model.get_instance_from_id(instance_uuid))
+                get_capacity(self.model.get_instance_by_uuid(instance_uuid))
             total_cpu_util = instance_cpu_cores * self.get_instance_cpu_util(
                 instance_uuid)
             util_sum += total_cpu_util / 100.0

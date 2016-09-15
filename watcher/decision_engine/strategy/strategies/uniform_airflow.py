@@ -144,7 +144,7 @@ class UniformAirflow(base.BaseStrategy):
         memory_mb_used = 0
         disk_gb_used = 0
         for instance_id in instances:
-            instance = self.compute_model.get_instance_from_id(
+            instance = self.compute_model.get_instance_by_uuid(
                 instance_id)
             vcpus_used += cap_cores.get_capacity(instance)
             memory_mb_used += cap_mem.get_capacity(instance)
@@ -179,7 +179,7 @@ class UniformAirflow(base.BaseStrategy):
                     for instance_id in source_instances:
                         try:
                             instance = (self.compute_model.
-                                        get_instance_from_id(instance_id))
+                                        get_instance_by_uuid(instance_id))
                             instances_tobe_migrate.append(instance)
                         except wexc.InstanceNotFound:
                             LOG.error(_LE("Instance not found; error: %s"),
@@ -190,7 +190,7 @@ class UniformAirflow(base.BaseStrategy):
                     for instance_id in source_instances:
                         try:
                             instance = (self.compute_model.
-                                        get_instance_from_id(instance_id))
+                                        get_instance_by_uuid(instance_id))
                             if (instance.state !=
                                     element.InstanceState.ACTIVE.value):
                                 LOG.info(
@@ -209,11 +209,11 @@ class UniformAirflow(base.BaseStrategy):
     def filter_destination_hosts(self, hosts, instances_to_migrate):
         """Find instance and host with sufficient available resources"""
 
-        cap_cores = self.compute_model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        cap_disk = self.compute_model.get_resource_from_id(
+        cap_disk = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        cap_mem = self.compute_model.get_resource_from_id(
+        cap_mem = self.compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
         # large instance go first
         instances_to_migrate = sorted(
@@ -265,7 +265,7 @@ class UniformAirflow(base.BaseStrategy):
         overload_hosts = []
         nonoverload_hosts = []
         for node_id in nodes:
-            node = self.compute_model.get_node_from_id(
+            node = self.compute_model.get_node_by_uuid(
                 node_id)
             resource_id = node.uuid
             airflow = self.ceilometer.statistic_aggregation(

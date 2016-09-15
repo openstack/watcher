@@ -58,9 +58,9 @@ class Mapping(object):
         :param node: the node
         :param instance: the virtual machine or instance
         """
-        self.unmap_from_id(node.uuid, instance.uuid)
+        self.unmap_by_uuid(node.uuid, instance.uuid)
 
-    def unmap_from_id(self, node_uuid, instance_uuid):
+    def unmap_by_uuid(self, node_uuid, instance_uuid):
         """Remove the instance (by id) from the node (by id)
 
         :rtype : object
@@ -84,15 +84,15 @@ class Mapping(object):
         return self.compute_node_mapping
 
     def get_node_from_instance(self, instance):
-        return self.get_node_from_instance_id(instance.uuid)
+        return self.get_node_by_instance_uuid(instance.uuid)
 
-    def get_node_from_instance_id(self, instance_uuid):
+    def get_node_by_instance_uuid(self, instance_uuid):
         """Getting host information from the guest instance
 
         :param instance: the uuid of the instance
         :return: node
         """
-        return self.model.get_node_from_id(
+        return self.model.get_node_by_uuid(
             self.instance_mapping[str(instance_uuid)])
 
     def get_node_instances(self, node):
@@ -101,9 +101,9 @@ class Mapping(object):
         :param node:
         :return:
         """
-        return self.get_node_instances_from_id(node.uuid)
+        return self.get_node_instances_by_uuid(node.uuid)
 
-    def get_node_instances_from_id(self, node_uuid):
+    def get_node_instances_by_uuid(self, node_uuid):
         if str(node_uuid) in self.compute_node_mapping.keys():
             return self.compute_node_mapping[str(node_uuid)]
         else:

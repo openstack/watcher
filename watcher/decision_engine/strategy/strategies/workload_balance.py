@@ -122,7 +122,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         memory_mb_used = 0
         disk_gb_used = 0
         for instance_id in instances:
-            instance = self.compute_model.get_instance_from_id(instance_id)
+            instance = self.compute_model.get_instance_by_uuid(instance_id)
             vcpus_used += cap_cores.get_capacity(instance)
             memory_mb_used += cap_mem.get_capacity(instance)
             disk_gb_used += cap_disk.get_capacity(instance)
@@ -147,7 +147,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 for inst_id in source_instances:
                     try:
                         # select the first active VM to migrate
-                        instance = self.compute_model.get_instance_from_id(
+                        instance = self.compute_model.get_instance_by_uuid(
                             inst_id)
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):
@@ -164,7 +164,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                                   instance_id)
                 if instance_id:
                     return (source_node,
-                            self.compute_model.get_instance_from_id(
+                            self.compute_model.get_instance_by_uuid(
                                 instance_id))
             else:
                 LOG.info(_LI("VM not found from node: %s"),
@@ -174,11 +174,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                                  avg_workload, workload_cache):
         '''Only return hosts with sufficient available resources'''
 
-        cap_cores = self.compute_model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
-        cap_disk = self.compute_model.get_resource_from_id(
+        cap_disk = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
-        cap_mem = self.compute_model.get_resource_from_id(
+        cap_mem = self.compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
         required_cores = cap_cores.get_capacity(instance_to_migrate)
@@ -222,7 +222,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         if not nodes:
             raise wexc.ClusterEmpty()
         # get cpu cores capacity of nodes and instances
-        cap_cores = self.compute_model.get_resource_from_id(
+        cap_cores = self.compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores)
         overload_hosts = []
         nonoverload_hosts = []
@@ -232,12 +232,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # use workload_cache to store the workload of VMs for reuse purpose
         workload_cache = {}
         for node_id in nodes:
-            node = self.compute_model.get_node_from_id(
+            node = self.compute_model.get_node_by_uuid(
                 node_id)
             instances = self.compute_model.mapping.get_node_instances(node)
             node_workload = 0.0
             for instance_id in instances:
-                instance = self.compute_model.get_instance_from_id(instance_id)
+                instance = self.compute_model.get_instance_by_uuid(instance_id)
                 try:
                     cpu_util = self.ceilometer.statistic_aggregation(
                         resource_id=instance_id,

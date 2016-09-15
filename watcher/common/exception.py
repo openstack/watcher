@@ -336,6 +336,10 @@ class ClusterStateNotDefined(WatcherException):
     msg_fmt = _("The cluster state is not defined")
 
 
+class CapacityNotDefined(WatcherException):
+    msg_fmt = _("The capacity %(capacity)s is not defined for '%(resource)s'")
+
+
 class NoAvailableStrategyForGoal(WatcherException):
     msg_fmt = _("No strategy could be found to achieve the '%(goal)s' goal.")
 

@@ -187,9 +187,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :return: dict
         """
         LOG.debug('get_instance_load started')
-        instance_vcpus = self.compute_model.get_resource_from_id(
+        instance_vcpus = self.compute_model.get_resource_by_uuid(
             element.ResourceType.cpu_cores).get_capacity(
-                self.compute_model.get_instance_from_id(instance_uuid))
+                self.compute_model.get_instance_by_uuid(instance_uuid))
         instance_load = {'uuid': instance_uuid, 'vcpus': instance_vcpus}
         for meter in self.metrics:
             avg_meter = self.ceilometer.statistic_aggregation(
@@ -208,9 +208,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_hosts = copy.deepcopy(hosts)
         for host in normalized_hosts:
             if 'memory.resident' in normalized_hosts[host]:
-                h_memory = self.compute_model.get_resource_from_id(
+                h_memory = self.compute_model.get_resource_by_uuid(
                     element.ResourceType.memory).get_capacity(
-                        self.compute_model.get_node_from_id(host))
+                        self.compute_model.get_node_by_uuid(host))
                 normalized_hosts[host]['memory.resident'] /= float(h_memory)
 
         return normalized_hosts
@@ -220,9 +220,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         hosts_load = {}
         for node_id in self.compute_model.get_all_compute_nodes():
             hosts_load[node_id] = {}
-            host_vcpus = self.compute_model.get_resource_from_id(
+            host_vcpus = self.compute_model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).get_capacity(
-                    self.compute_model.get_node_from_id(node_id))
+                    self.compute_model.get_node_by_uuid(node_id))
             hosts_load[node_id]['vcpus'] = host_vcpus
 
             for metric in self.metrics:
@@ -319,10 +319,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             c_nodes.remove(source_hp_id)
             node_list = yield_nodes(c_nodes)
             instances_id = self.compute_model.get_mapping(). \
-                get_node_instances_from_id(source_hp_id)
+                get_node_instances_by_uuid(source_hp_id)
             for instance_id in instances_id:
                 min_sd_case = {'value': len(self.metrics)}
-                instance = self.compute_model.get_instance_from_id(instance_id)
+                instance = self.compute_model.get_instance_by_uuid(instance_id)
                 if instance.state not in [element.InstanceState.ACTIVE.value,
                                           element.InstanceState.PAUSED.value]:
                     continue
@@ -371,10 +371,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                                mig_destination_node.uuid)
 
     def migrate(self, instance_uuid, src_host, dst_host):
-        mig_instance = self.compute_model.get_instance_from_id(instance_uuid)
-        mig_source_node = self.compute_model.get_node_from_id(
+        mig_instance = self.compute_model.get_instance_by_uuid(instance_uuid)
+        mig_source_node = self.compute_model.get_node_by_uuid(
             src_host)
-        mig_destination_node = self.compute_model.get_node_from_id(
+        mig_destination_node = self.compute_model.get_node_by_uuid(
             dst_host)
         self.create_migration_instance(mig_instance, mig_source_node,
                                        mig_destination_node)
@@ -403,13 +403,13 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             min_sd = 1
             balanced = False
             for instance_host in migration:
-                dst_hp_disk = self.compute_model.get_resource_from_id(
+                dst_hp_disk = self.compute_model.get_resource_by_uuid(
                     element.ResourceType.disk).get_capacity(
-                        self.compute_model.get_node_from_id(
+                        self.compute_model.get_node_by_uuid(
                             instance_host['host']))
-                instance_disk = self.compute_model.get_resource_from_id(
+                instance_disk = self.compute_model.get_resource_by_uuid(
                     element.ResourceType.disk).get_capacity(
-                        self.compute_model.get_instance_from_id(
+                        self.compute_model.get_instance_by_uuid(
                             instance_host['instance']))
                 if instance_disk > dst_hp_disk:
                     continue
