@@ -40,7 +40,11 @@ class TestShowListGoal(base.BaseInfraOptimTest):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
 
         self.assertEqual(self.DUMMY_GOAL, goal['name'])
-        self.assertIn("display_name", goal.keys())
+        expected_fields = {
+            'created_at', 'deleted_at', 'display_name',
+            'efficacy_specification', 'links', 'name',
+            'updated_at', 'uuid'}
+        self.assertEqual(expected_fields, set(goal.keys()))
 
     @test.attr(type='smoke')
     def test_show_goal_with_links(self):
