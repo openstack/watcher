@@ -24,10 +24,8 @@ from watcher.decision_engine.strategy import strategies
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_cluster_state
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_metrics_collector as fake
+from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import faker_metrics_collector as fake
 from watcher.tests.objects import utils as obj_utils
 
 

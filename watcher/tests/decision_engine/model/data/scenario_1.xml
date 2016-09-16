@@ -1,0 +1,47 @@
+<ModelRoot>
+  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_0" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance state="active" human_id="" uuid="INSTANCE_1" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_2" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_2" status="enabled" state="up" id="2" hostname="hostname_2" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_3" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance state="active" human_id="" uuid="INSTANCE_4" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance state="active" human_id="" uuid="INSTANCE_5" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_3" status="enabled" state="up" id="3" hostname="hostname_3" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_6" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_4" status="enabled" state="up" id="4" hostname="hostname_4" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_7" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <Instance state="active" human_id="" uuid="INSTANCE_10" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_11" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_12" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_13" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_14" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_15" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_16" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_17" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_18" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_19" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_20" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_21" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_22" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_23" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_24" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_25" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_26" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_27" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_28" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_29" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_30" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_31" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_32" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_33" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_34" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_8" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <Instance state="active" human_id="" uuid="INSTANCE_9" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+</ModelRoot>

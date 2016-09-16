@@ -25,8 +25,7 @@ from watcher.decision_engine.messaging import events
 from watcher.decision_engine.model.collector import manager
 from watcher.objects import audit as audit_objects
 from watcher.tests.db import base
-from watcher.tests.decision_engine.strategy.strategies import \
-    faker_cluster_state as faker
+from watcher.tests.decision_engine.model import faker_cluster_state as faker
 from watcher.tests.objects import utils as obj_utils
 
 

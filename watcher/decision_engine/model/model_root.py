@@ -223,3 +223,53 @@ class ModelRoot(object):
                 root.append(self._build_instance_element(instance))
 
         return etree.tostring(root, pretty_print=True).decode('utf-8')
+
+    @classmethod
+    def from_xml(cls, data):
+        model = cls()
+        root = etree.fromstring(data)
+
+        mem = element.Resource(element.ResourceType.memory)
+        num_cores = element.Resource(element.ResourceType.cpu_cores)
+        disk = element.Resource(element.ResourceType.disk)
+        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
+        model.create_resource(mem)
+        model.create_resource(num_cores)
+        model.create_resource(disk)
+        model.create_resource(disk_capacity)
+
+        for cn in root.findall('.//ComputeNode'):
+            node = element.ComputeNode(cn.get('id'))
+            node.uuid = cn.get('uuid')
+            node.hostname = cn.get('hostname')
+            # set capacity
+            mem.set_capacity(node, int(cn.get(str(mem.name))))
+            disk.set_capacity(node, int(cn.get(str(disk.name))))
+            disk_capacity.set_capacity(
+                node, int(cn.get(str(disk_capacity.name))))
+            num_cores.set_capacity(node, int(cn.get(str(num_cores.name))))
+            node.state = cn.get('state')
+            node.status = cn.get('status')
+
+            model.add_node(node)
+
+        for inst in root.findall('.//Instance'):
+            instance = element.Instance()
+            instance.uuid = inst.get('uuid')
+            instance.state = inst.get('state')
+
+            mem.set_capacity(instance, int(inst.get(str(mem.name))))
+            disk.set_capacity(instance, int(inst.get(str(disk.name))))
+            disk_capacity.set_capacity(
+                instance, int(inst.get(str(disk_capacity.name))))
+            num_cores.set_capacity(
+                instance, int(inst.get(str(num_cores.name))))
+
+            parent = inst.getparent()
+            if parent.tag == 'ComputeNode':
+                node = model.get_node_by_uuid(parent.get('uuid'))
+                model.map_instance(instance, node)
+            else:
+                model.add_instance(instance)
+
+        return model
