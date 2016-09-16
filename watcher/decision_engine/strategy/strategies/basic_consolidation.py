@@ -81,8 +81,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         self.number_of_released_nodes = 0
         # set default value for the number of migrations
         self.number_of_migrations = 0
-        # set default value for number of allowed migration attempts
-        self.migration_attempts = 0
 
         # set default value for the efficacy
         self.efficacy = 100
@@ -94,20 +92,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         self.threshold_disk = 1
         self.threshold_cores = 1
 
-        # TODO(jed): target efficacy
-        self.target_efficacy = 60
-
-        # TODO(jed): weight
-        self.weight_cpu = 1
-        self.weight_mem = 1
-        self.weight_disk = 1
-
-        # TODO(jed): bound migration attempts (80 %)
-        self.bound_migration = 0.80
-
     @classmethod
     def get_name(cls):
         return "basic"
+
+    @property
+    def migration_attempts(self):
+        return self.input_parameters.get('migration_attempts', 0)
 
     @classmethod
     def get_display_name(cls):
@@ -116,6 +107,22 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Basic offline consolidation"
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "migration_attempts": {
+                    "description": "Maximum number of combinations to be "
+                                   "tried by the strategy while searching "
+                                   "for potential candidates. To remove the "
+                                   "limit, set it to 0 (by default)",
+                    "type": "number",
+                    "default": 0
+                },
+            },
+        }
 
     @property
     def ceilometer(self):
@@ -126,13 +133,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @ceilometer.setter
     def ceilometer(self, ceilometer):
         self._ceilometer = ceilometer
-
-    def compute_attempts(self, size_cluster):
-        """Upper bound of the number of migration
-
-        :param size_cluster: The size of the cluster
-        """
-        self.migration_attempts = size_cluster * self.bound_migration
 
     def check_migration(self, source_node, destination_node,
                         instance_to_migrate):
@@ -198,16 +198,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         return (cpu_capacity >= total_cores * self.threshold_cores and
                 disk_capacity >= total_disk * self.threshold_disk and
                 memory_capacity >= total_mem * self.threshold_mem)
-
-    def get_allowed_migration_attempts(self):
-        """Allowed migration
-
-        Maximum allowed number of migrations this allows us to fix
-        the upper bound of the number of migrations.
-
-        :return:
-        """
-        return self.migration_attempts
 
     def calculate_weight(self, compute_resource, total_cores_used,
                          total_disk_used, total_memory_used):
@@ -331,8 +321,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                  resource_id=resource_id,
                                  input_parameters=parameters)
 
-    def score_of_nodes(self, score):
+    def compute_score_of_nodes(self):
         """Calculate score of nodes based on load by VMs"""
+        score = []
         for node in self.compute_model.get_all_compute_nodes().values():
             count = self.compute_model.mapping.get_node_instances(node)
             if len(count) > 0:
@@ -344,9 +335,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 score.append((node.uuid, result))
         return score
 
-    def node_and_instance_score(self, sorted_score, score):
+    def node_and_instance_score(self, sorted_scores):
         """Get List of VMs from node"""
-        node_to_release = sorted_score[len(score) - 1][0]
+        node_to_release = sorted_scores[len(sorted_scores) - 1][0]
         instances_to_migrate = self.compute_model.mapping.get_node_instances(
             self.compute_model.get_node_by_uuid(node_to_release))
 
@@ -409,19 +400,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
+        if len(self.compute_model.get_all_compute_nodes()) == 0:
+            raise exception.ClusterEmpty()
+
         LOG.debug(self.compute_model.to_string())
 
     def do_execute(self):
-        # todo(jed) clone model
-        self.efficacy = 100
         unsuccessful_migration = 0
-
-        first_migration = True
-        size_cluster = len(self.compute_model.get_all_compute_nodes())
-        if size_cluster == 0:
-            raise exception.ClusterEmpty()
-
-        self.compute_attempts(size_cluster)
 
         for node_uuid, node in self.compute_model.get_all_compute_nodes(
         ).items():
@@ -432,44 +417,44 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                     self.add_change_service_state(
                         node_uuid, element.ServiceState.DISABLED.value)
 
-        while self.get_allowed_migration_attempts() >= unsuccessful_migration:
-            if not first_migration:
-                self.efficacy = self.calculate_migration_efficacy()
-                if self.efficacy < float(self.target_efficacy):
-                    break
-            first_migration = False
-            score = []
+        scores = self.compute_score_of_nodes()
+        # Sort compute nodes by Score decreasing
+        sorted_scores = sorted(scores, reverse=True, key=lambda x: (x[1]))
+        LOG.debug("Compute node(s) BFD %s", sorted_scores)
+        # Get Node to be released
+        if len(scores) == 0:
+            LOG.warning(_LW(
+                "The workloads of the compute nodes"
+                " of the cluster is zero"))
+            return
 
-            score = self.score_of_nodes(score)
-
-            # Sort compute nodes by Score decreasing
-            sorted_score = sorted(score, reverse=True, key=lambda x: (x[1]))
-            LOG.debug("Compute node(s) BFD %s", sorted_score)
-
-            # Get Node to be released
-            if len(score) == 0:
-                LOG.warning(_LW(
-                    "The workloads of the compute nodes"
-                    " of the cluster is zero"))
-                break
-
+        while sorted_scores and (
+                not self.migration_attempts or
+                self.migration_attempts >= unsuccessful_migration):
             node_to_release, instance_score = self.node_and_instance_score(
-                sorted_score, score)
+                sorted_scores)
 
             # Sort instances by Score
             sorted_instances = sorted(
                 instance_score, reverse=True, key=lambda x: (x[1]))
             # BFD: Best Fit Decrease
-            LOG.debug("VM(s) BFD %s", sorted_instances)
+            LOG.debug("Instance(s) BFD %s", sorted_instances)
 
             migrations = self.calculate_num_migrations(
-                sorted_instances, node_to_release, sorted_score)
+                sorted_instances, node_to_release, sorted_scores)
 
             unsuccessful_migration = self.unsuccessful_migration_actualization(
                 migrations, unsuccessful_migration)
+
+            if not migrations:
+                # We don't have any possible migrations to perform on this node
+                # so we discard the node so we can try to migrate instances
+                # from the next one in the list
+                sorted_scores.pop()
+
         infos = {
-            "number_of_migrations": self.number_of_migrations,
-            "number_of_nodes_released": self.number_of_released_nodes,
+            "released_compute_nodes_count": self.number_of_released_nodes,
+            "instance_migrations_count": self.number_of_migrations,
             "efficacy": self.efficacy
         }
         LOG.debug(infos)

@@ -184,13 +184,36 @@ class TestBasicConsolidation(base.TestCase):
             [action.get('action_type') for action in solution.actions])
 
         expected_num_migrations = 1
-        expected_power_state = 0
+        expected_power_state = 1
 
         num_migrations = actions_counter.get("migrate", 0)
         num_node_state_change = actions_counter.get(
-            "change_node_state", 0)
+            "change_nova_service_state", 0)
         self.assertEqual(expected_num_migrations, num_migrations)
         self.assertEqual(expected_power_state, num_node_state_change)
+
+    def test_basic_consolidation_execute_scenario_8_with_4_nodes(self):
+        model = self.fake_cluster.generate_scenario_8_with_4_nodes()
+        self.m_model.return_value = model
+
+        solution = self.strategy.execute()
+
+        actions_counter = collections.Counter(
+            [action.get('action_type') for action in solution.actions])
+
+        expected_num_migrations = 5
+        expected_power_state = 3
+        expected_global_efficacy = 60
+
+        num_migrations = actions_counter.get("migrate", 0)
+        num_node_state_change = actions_counter.get(
+            "change_nova_service_state", 0)
+
+        global_efficacy_value = solution.global_efficacy.get("value", 0)
+
+        self.assertEqual(expected_num_migrations, num_migrations)
+        self.assertEqual(expected_power_state, num_node_state_change)
+        self.assertEqual(expected_global_efficacy, global_efficacy_value)
 
     def test_exception_stale_cdm(self):
         self.fake_cluster.set_cluster_data_model_as_stale()
