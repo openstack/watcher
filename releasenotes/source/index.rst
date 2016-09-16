@@ -6,5 +6,6 @@ Contents:
 .. toctree::
    :maxdepth: 1
 
-   unreleased.rst
+   unreleased
+   newton
 
