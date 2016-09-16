@@ -70,6 +70,13 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         """
         return self.load_model('scenario_3_with_metrics.xml')
 
+    def generate_scenario_4(self):
+        """Simulates a cluster
+
+        With 4 nodes and 6 instances spread on all nodes
+        """
+        return self.load_model('scenario_4_with_metrics.xml')
+
 
 class FakeCeilometerMetrics(object):
     def __init__(self, model):
