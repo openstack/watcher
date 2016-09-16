@@ -171,12 +171,12 @@ This component is responsible for computing a set of potential optimization
 :ref:`Actions <action_definition>` in order to fulfill
 the :ref:`Goal <goal_definition>` of an :ref:`Audit <audit_definition>`.
 
-It first reads the parameters of the :ref:`Audit <audit_definition>` from the
-associated :ref:`Audit Template <audit_template_definition>` and knows the
-:ref:`Goal <goal_definition>` to achieve.
+It first reads the parameters of the :ref:`Audit <audit_definition>` to know
+the :ref:`Goal <goal_definition>` to achieve.
 
-It then selects the most appropriate :ref:`Strategy <strategy_definition>`
-from the list of available strategies achieving this goal.
+Unless specified, it then selects the most appropriate :ref:`strategy
+<strategy_definition>` from the list of available strategies achieving this
+goal.
 
 The :ref:`Strategy <strategy_definition>` is then dynamically loaded (via
 `stevedore <http://docs.openstack.org/developer/stevedore/>`_). The
@@ -290,7 +290,7 @@ the Audit parameters from the
 :ref:`Watcher Database <watcher_database_definition>`. It instantiates the
 appropriate :ref:`strategy <strategy_definition>` (using entry points)
 given both the :ref:`goal <goal_definition>` and the strategy associated to the
-parent :ref:`audit template <audit_template_definition>` of the :ref:`Audit
+parent :ref:`audit template <audit_template_definition>` of the :ref:`audit
 <audit_definition>`. If no strategy is associated to the audit template, the
 strategy is dynamically selected by the Decision Engine.
 
