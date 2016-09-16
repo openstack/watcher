@@ -144,17 +144,17 @@ class CeilometerHelper(object):
         :return:
         """
 
+        end_time = datetime.datetime.utcnow()
         start_time = (datetime.datetime.utcnow() -
                       datetime.timedelta(seconds=int(period)))
         query = self.build_query(
-            resource_id=resource_id, start_time=start_time)
+            resource_id=resource_id, start_time=start_time, end_time=end_time)
         statistic = self.query_retry(f=self.ceilometer.statistics.list,
                                      meter_name=meter_name,
                                      q=query,
                                      period=period,
                                      aggregates=[
-                                         {'func': aggregate}],
-                                     groupby=['resource_id'])
+                                         {'func': aggregate}])
 
         item_value = None
         if statistic:
