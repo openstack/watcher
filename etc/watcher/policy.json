@@ -37,5 +37,9 @@
 
     "strategy:detail": "rule:default",
     "strategy:get": "rule:default",
-    "strategy:get_all": "rule:default"
+    "strategy:get_all": "rule:default",
+
+    "service:detail": "rule:default",
+    "service:get": "rule:default",
+    "service:get_all": "rule:default"
 }

@@ -53,7 +53,11 @@ policy_data = """
 
     "strategy:detail": "",
     "strategy:get": "",
-    "strategy:get_all": ""
+    "strategy:get_all": "",
+
+    "service:detail": "",
+    "service:get": "",
+    "service:get_all": ""
 }
 """
 

@@ -279,3 +279,24 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :return: Serialized strategy as a dictionary
         """
         return self._show_request('/strategies', strategy)
+
+    # ### SERVICES ### #
+
+    @base.handle_errors
+    def list_services(self, **kwargs):
+        """List all existing services"""
+        return self._list_request('/services', **kwargs)
+
+    @base.handle_errors
+    def list_services_detail(self, **kwargs):
+        """Lists details of all existing services"""
+        return self._list_request('/services/detail', **kwargs)
+
+    @base.handle_errors
+    def show_service(self, service):
+        """Gets a specific service
+
+        :param service: Name of the strategy
+        :return: Serialized strategy as a dictionary
+        """
+        return self._show_request('/services', service)

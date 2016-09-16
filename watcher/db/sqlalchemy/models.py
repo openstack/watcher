@@ -255,3 +255,18 @@ class ScoringEngine(Base):
     # The format might vary between different models (e.g. be JSON, XML or
     # even some custom format), the blob type should cover all scenarios.
     metainfo = Column(Text, nullable=True)
+
+
+class Service(Base):
+    """Represents a service entity"""
+
+    __tablename__ = 'services'
+    __table_args__ = (
+        UniqueConstraint('host', 'name', 'deleted',
+                         name="uniq_services0host0name0deleted"),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True)
+    name = Column(String(255), nullable=False)
+    host = Column(String(255), nullable=False)
+    last_seen_up = Column(DateTime, nullable=True)

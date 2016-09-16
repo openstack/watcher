@@ -25,25 +25,33 @@ import six
 from watcher._i18n import _
 
 
-def datetime_or_none(dt):
+def datetime_or_none(value, tzinfo_aware=False):
     """Validate a datetime or None value."""
-    if dt is None:
+    if value is None:
         return None
-    elif isinstance(dt, datetime.datetime):
-        if dt.utcoffset() is None:
-            # NOTE(danms): Legacy objects from sqlalchemy are stored in UTC,
-            # but are returned without a timezone attached.
-            # As a transitional aid, assume a tz-naive object is in UTC.
-            return dt.replace(tzinfo=iso8601.iso8601.Utc())
-        else:
-            return dt
-    raise ValueError(_("A datetime.datetime is required here"))
+    if isinstance(value, six.string_types):
+        # NOTE(danms): Being tolerant of isotime strings here will help us
+        # during our objects transition
+        value = timeutils.parse_isotime(value)
+    elif not isinstance(value, datetime.datetime):
+        raise ValueError(
+            _("A datetime.datetime is required here. Got %s"), value)
+
+    if value.utcoffset() is None and tzinfo_aware:
+        # NOTE(danms): Legacy objects from sqlalchemy are stored in UTC,
+        # but are returned without a timezone attached.
+        # As a transitional aid, assume a tz-naive object is in UTC.
+        value = value.replace(tzinfo=iso8601.iso8601.Utc())
+    elif not tzinfo_aware:
+        value = value.replace(tzinfo=None)
+
+    return value
 
 
-def datetime_or_str_or_none(val):
+def datetime_or_str_or_none(val, tzinfo_aware=False):
     if isinstance(val, six.string_types):
         return timeutils.parse_isotime(val)
-    return datetime_or_none(val)
+    return datetime_or_none(val, tzinfo_aware=tzinfo_aware)
 
 
 def numeric_or_none(val):

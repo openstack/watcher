@@ -45,15 +45,38 @@ class ApplierAPI(service.Service):
 
 class ApplierAPIManager(object):
 
-    API_VERSION = '1.0'
+    @property
+    def service_name(self):
+        return None
 
-    conductor_endpoints = []
-    status_endpoints = []
-    notification_endpoints = []
-    notification_topics = []
+    @property
+    def api_version(self):
+        return '1.0'
 
-    def __init__(self):
-        self.publisher_id = CONF.watcher_applier.publisher_id
-        self.conductor_topic = CONF.watcher_applier.conductor_topic
-        self.status_topic = CONF.watcher_applier.status_topic
-        self.api_version = self.API_VERSION
+    @property
+    def publisher_id(self):
+        return CONF.watcher_applier.publisher_id
+
+    @property
+    def conductor_topic(self):
+        return CONF.watcher_applier.conductor_topic
+
+    @property
+    def status_topic(self):
+        return CONF.watcher_applier.status_topic
+
+    @property
+    def notification_topics(self):
+        return []
+
+    @property
+    def conductor_endpoints(self):
+        return []
+
+    @property
+    def status_endpoints(self):
+        return []
+
+    @property
+    def notification_endpoints(self):
+        return []

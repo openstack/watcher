@@ -20,6 +20,7 @@
 from oslo_config import cfg
 
 from watcher.applier.messaging import trigger
+from watcher.common import service_manager
 
 CONF = cfg.CONF
 
@@ -60,17 +61,40 @@ CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
-class ApplierManager(object):
+class ApplierManager(service_manager.ServiceManagerBase):
 
-    API_VERSION = '1.0'
+    @property
+    def service_name(self):
+        return 'watcher-applier'
 
-    conductor_endpoints = [trigger.TriggerActionPlan]
-    status_endpoints = []
-    notification_endpoints = []
-    notification_topics = []
+    @property
+    def api_version(self):
+        return '1.0'
 
-    def __init__(self):
-        self.publisher_id = CONF.watcher_applier.publisher_id
-        self.conductor_topic = CONF.watcher_applier.conductor_topic
-        self.status_topic = CONF.watcher_applier.status_topic
-        self.api_version = self.API_VERSION
+    @property
+    def publisher_id(self):
+        return CONF.watcher_applier.publisher_id
+
+    @property
+    def conductor_topic(self):
+        return CONF.watcher_applier.conductor_topic
+
+    @property
+    def status_topic(self):
+        return CONF.watcher_applier.status_topic
+
+    @property
+    def notification_topics(self):
+        return []
+
+    @property
+    def conductor_endpoints(self):
+        return [trigger.TriggerActionPlan]
+
+    @property
+    def status_endpoints(self):
+        return []
+
+    @property
+    def notification_endpoints(self):
+        return []

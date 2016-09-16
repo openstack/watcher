@@ -17,10 +17,15 @@
 
 import mock
 
+from oslo_config import cfg
+
 from watcher.common.messaging import messaging_handler
 from watcher.common import rpc
 from watcher.common import service
+from watcher import objects
 from watcher.tests import base
+
+CONF = cfg.CONF
 
 
 class DummyManager(object):
@@ -37,6 +42,38 @@ class DummyManager(object):
         self.status_topic = "status_topic"
         self.notification_topics = []
         self.api_version = self.API_VERSION
+        self.service_name = None
+
+
+class TestServiceHeartbeat(base.TestCase):
+
+    def setUp(self):
+        super(TestServiceHeartbeat, self).setUp()
+
+    @mock.patch.object(objects.Service, 'list')
+    @mock.patch.object(objects.Service, 'create')
+    def test_send_beat_with_creating_service(self, mock_create,
+                                             mock_list):
+        CONF.set_default('host', 'fake-fqdn')
+        service_heartbeat = service.ServiceHeartbeat(
+            service_name='watcher-service')
+        mock_list.return_value = []
+        service_heartbeat.send_beat()
+        mock_list.assert_called_once_with(mock.ANY,
+                                          filters={'name': 'watcher-service',
+                                                   'host': 'fake-fqdn'})
+        self.assertEqual(1, mock_create.call_count)
+
+    @mock.patch.object(objects.Service, 'list')
+    @mock.patch.object(objects.Service, 'save')
+    def test_send_beat_without_creating_service(self, mock_save, mock_list):
+        service_heartbeat = service.ServiceHeartbeat(
+            service_name='watcher-service')
+        mock_list.return_value = [objects.Service(mock.Mock(),
+                                                  name='watcher-service',
+                                                  host='controller')]
+        service_heartbeat.send_beat()
+        self.assertEqual(1, mock_save.call_count)
 
 
 class TestService(base.TestCase):

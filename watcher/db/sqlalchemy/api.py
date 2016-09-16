@@ -1065,3 +1065,65 @@ class Connection(api.BaseConnection):
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(
                 scoring_engine=scoring_engine_id)
+
+    # ### SERVICES ### #
+
+    def _add_services_filters(self, query, filters):
+        if not filters:
+            filters = {}
+
+        plain_fields = ['id', 'name', 'host']
+
+        return self._add_filters(
+            query=query, model=models.Service, filters=filters,
+            plain_fields=plain_fields)
+
+    def get_service_list(self, context, filters=None, limit=None,
+                         marker=None, sort_key=None, sort_dir=None):
+        query = model_query(models.Service)
+        query = self._add_services_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+        return _paginate_query(models.Service, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_service(self, values):
+        service = models.Service()
+        service.update(values)
+        try:
+            service.save()
+        except db_exc.DBDuplicateEntry:
+            raise exception.ServiceAlreadyExists(name=values['name'],
+                                                 host=values['host'])
+        return service
+
+    def _get_service(self, context, fieldname, value):
+        try:
+            return self._get(context, model=models.Service,
+                             fieldname=fieldname, value=value)
+        except exception.ResourceNotFound:
+            raise exception.ServiceNotFound(service=value)
+
+    def get_service_by_id(self, context, service_id):
+        return self._get_service(context, fieldname="id", value=service_id)
+
+    def get_service_by_name(self, context, service_name):
+        return self._get_service(context, fieldname="name", value=service_name)
+
+    def destroy_service(self, service_id):
+        try:
+            return self._destroy(models.Service, service_id)
+        except exception.ResourceNotFound:
+            raise exception.ServiceNotFound(service=service_id)
+
+    def update_service(self, service_id, values):
+        try:
+            return self._update(models.Service, service_id, values)
+        except exception.ResourceNotFound:
+            raise exception.ServiceNotFound(service=service_id)
+
+    def soft_delete_service(self, service_id):
+        try:
+            self._soft_delete(models.Service, service_id)
+        except exception.ResourceNotFound:
+            raise exception.ServiceNotFound(service=service_id)

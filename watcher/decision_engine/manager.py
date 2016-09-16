@@ -38,6 +38,7 @@ See :doc:`../architecture` for more details on this component.
 
 from oslo_config import cfg
 
+from watcher.common import service_manager
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.model.collector import manager
 
@@ -78,23 +79,44 @@ CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class DecisionEngineManager(object):
+class DecisionEngineManager(service_manager.ServiceManagerBase):
 
-    API_VERSION = '1.0'
+    @property
+    def service_name(self):
+        return 'watcher-decision-engine'
 
-    def __init__(self):
-        self.api_version = self.API_VERSION
+    @property
+    def api_version(self):
+        return '1.0'
 
-        self.publisher_id = CONF.watcher_decision_engine.publisher_id
-        self.conductor_topic = CONF.watcher_decision_engine.conductor_topic
-        self.status_topic = CONF.watcher_decision_engine.status_topic
-        self.notification_topics = (
-            CONF.watcher_decision_engine.notification_topics)
+    @property
+    def publisher_id(self):
+        return CONF.watcher_decision_engine.publisher_id
 
-        self.conductor_endpoints = [audit_endpoint.AuditEndpoint]
+    @property
+    def conductor_topic(self):
+        return CONF.watcher_decision_engine.conductor_topic
 
-        self.status_endpoints = []
+    @property
+    def status_topic(self):
+        return CONF.watcher_decision_engine.status_topic
 
-        self.collector_manager = manager.CollectorManager()
-        self.notification_endpoints = (
-            self.collector_manager.get_notification_endpoints())
+    @property
+    def notification_topics(self):
+        return CONF.watcher_decision_engine.notification_topics
+
+    @property
+    def conductor_endpoints(self):
+        return [audit_endpoint.AuditEndpoint]
+
+    @property
+    def status_endpoints(self):
+        return []
+
+    @property
+    def notification_endpoints(self):
+        return self.collector_manager.get_notification_endpoints()
+
+    @property
+    def collector_manager(self):
+        return manager.CollectorManager()

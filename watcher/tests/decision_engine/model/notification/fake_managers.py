@@ -26,6 +26,7 @@ class FakeManager(object):
 
     def __init__(self):
         self.api_version = self.API_VERSION
+        self.service_name = None
 
         # fake cluster instead on Nova CDM
         self.fake_cdmc = faker_cluster_state.FakerModelCollector()

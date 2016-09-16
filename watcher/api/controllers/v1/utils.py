@@ -20,6 +20,7 @@ import pecan
 import wsme
 
 from watcher._i18n import _
+from watcher.common import utils
 from watcher import objects
 
 CONF = cfg.CONF
@@ -80,17 +81,20 @@ def as_filters_dict(**filters):
     return filters_dict
 
 
-def get_resource(resource, resource_ident):
-    """Get the resource from the uuid or logical name.
+def get_resource(resource, resource_id):
+    """Get the resource from the uuid, id or logical name.
 
     :param resource: the resource type.
-    :param resource_ident: the UUID or logical name of the resource.
+    :param resource_id: the UUID, ID or logical name of the resource.
 
     :returns: The resource.
     """
     resource = getattr(objects, resource)
 
-    if uuidutils.is_uuid_like(resource_ident):
-        return resource.get_by_uuid(pecan.request.context, resource_ident)
+    if utils.is_int_like(resource_id):
+        return resource.get(pecan.request.context, int(resource_id))
 
-    return resource.get_by_name(pecan.request.context, resource_ident)
+    if uuidutils.is_uuid_like(resource_id):
+        return resource.get_by_uuid(pecan.request.context, resource_id)
+
+    return resource.get_by_name(pecan.request.context, resource_id)

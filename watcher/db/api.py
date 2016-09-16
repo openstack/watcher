@@ -715,3 +715,89 @@ class BaseConnection(object):
         :raises: :py:class:`~.ScoringEngineNotFound`
         :raises: :py:class:`~.Invalid`
         """
+
+    @abc.abstractmethod
+    def get_service_list(self, context, filters=None, limit=None,
+                         marker=None, sort_key=None, sort_dir=None):
+        """Get specific columns for matching services.
+
+        Return a list of the specified columns for all services that
+        match the specified filters.
+
+        :param context: The security context
+        :param filters: Filters to apply. Defaults to None.
+
+        :param limit: Maximum number of services to return.
+        :param marker: The last item of the previous page; we return the next
+                       result set.
+        :param sort_key: Attribute by which results should be sorted.
+        :param sort_dir: Direction in which results should be sorted.
+                         (asc, desc)
+        :returns: A list of tuples of the specified columns.
+        """
+
+    @abc.abstractmethod
+    def create_service(self, values):
+        """Create a new service.
+
+        :param values: A dict containing items used to identify
+                       and track the service. For example:
+
+                       ::
+
+                        {
+                         'id': 1,
+                         'name': 'watcher-api',
+                         'status': 'ACTIVE',
+                         'host': 'controller'
+                        }
+        :returns: A service
+        :raises: :py:class:`~.ServiceAlreadyExists`
+        """
+
+    @abc.abstractmethod
+    def get_service_by_id(self, context, service_id):
+        """Return a service given its ID.
+
+        :param context: The security context
+        :param service_id: The ID of a service
+        :returns: A service
+        :raises: :py:class:`~.ServiceNotFound`
+        """
+
+    @abc.abstractmethod
+    def get_service_by_name(self, context, service_name):
+        """Return a service given its name.
+
+        :param context: The security context
+        :param service_name: The name of a service
+        :returns: A service
+        :raises: :py:class:`~.ServiceNotFound`
+        """
+
+    @abc.abstractmethod
+    def destroy_service(self, service_id):
+        """Destroy a service.
+
+        :param service_id: The ID of a service
+        :raises: :py:class:`~.ServiceNotFound`
+        """
+
+    @abc.abstractmethod
+    def update_service(self, service_id, values):
+        """Update properties of a service.
+
+        :param service_id: The ID of a service
+        :returns: A service
+        :raises: :py:class:`~.ServiceyNotFound`
+        :raises: :py:class:`~.Invalid`
+        """
+
+    @abc.abstractmethod
+    def soft_delete_service(self, service_id):
+        """Soft delete a service.
+
+        :param service_id: The id of a service.
+        :returns: A service.
+        :raises: :py:class:`~.ServiceNotFound`
+        """

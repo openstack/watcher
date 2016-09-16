@@ -311,7 +311,7 @@ class WatcherObject(object):
         """Returns a dict of changed fields and their new values."""
         changes = {}
         for key in self.obj_what_changed():
-            changes[key] = self[key]
+            changes[key] = self._attr_to_primitive(key)
         return changes
 
     def obj_what_changed(self):

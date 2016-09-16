@@ -12,7 +12,9 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
-"""Magnum test utilities."""
+"""Watcher test utilities."""
+
+from oslo_utils import timeutils
 
 from watcher.db import api as db_api
 
@@ -210,6 +212,33 @@ def get_test_strategy(**kwargs):
         'deleted_at': kwargs.get('deleted_at'),
         'parameters_spec': kwargs.get('parameters_spec', {})
     }
+
+
+def get_test_service(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'name': kwargs.get('name', 'watcher-service'),
+        'host': kwargs.get('host', 'controller'),
+        'last_seen_up': kwargs.get(
+            'last_seen_up',
+            timeutils.parse_isotime('2016-09-22T08:32:06').replace(tzinfo=None)
+        ),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_service(**kwargs):
+    """Create test service entry in DB and return Service DB object.
+
+    Function to be used to create test Service objects in the database.
+    :param kwargs: kwargs with overriding values for service's attributes.
+    :returns: Test Service DB object.
+    """
+    service = get_test_service(**kwargs)
+    dbapi = db_api.get_instance()
+    return dbapi.create_service(service)
 
 
 def create_test_strategy(**kwargs):

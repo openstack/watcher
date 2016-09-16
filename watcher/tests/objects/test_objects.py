@@ -118,19 +118,29 @@ class TestUtils(test_base.TestCase):
     def test_datetime_or_none(self):
         naive_dt = datetime.datetime.now()
         dt = timeutils.parse_isotime(timeutils.isotime(naive_dt))
-        self.assertEqual(dt, utils.datetime_or_none(dt))
+        self.assertEqual(dt, utils.datetime_or_none(dt, tzinfo_aware=True))
         self.assertEqual(naive_dt.replace(tzinfo=iso8601.iso8601.Utc(),
                                           microsecond=0),
-                         utils.datetime_or_none(dt))
+                         utils.datetime_or_none(dt, tzinfo_aware=True))
+        self.assertIsNone(utils.datetime_or_none(None))
+        self.assertRaises(ValueError, utils.datetime_or_none, 'foo')
+
+    def test_datetime_or_none_tzinfo_naive(self):
+        naive_dt = datetime.datetime.utcnow()
+        self.assertEqual(naive_dt, utils.datetime_or_none(naive_dt,
+                                                          tzinfo_aware=False))
         self.assertIsNone(utils.datetime_or_none(None))
         self.assertRaises(ValueError, utils.datetime_or_none, 'foo')
 
     def test_datetime_or_str_or_none(self):
         dts = timeutils.isotime()
         dt = timeutils.parse_isotime(dts)
-        self.assertEqual(dt, utils.datetime_or_str_or_none(dt))
-        self.assertIsNone(utils.datetime_or_str_or_none(None))
-        self.assertEqual(dt, utils.datetime_or_str_or_none(dts))
+        self.assertEqual(dt, utils.datetime_or_str_or_none(dt,
+                                                           tzinfo_aware=True))
+        self.assertIsNone(utils.datetime_or_str_or_none(None,
+                                                        tzinfo_aware=True))
+        self.assertEqual(dt, utils.datetime_or_str_or_none(dts,
+                                                           tzinfo_aware=True))
         self.assertRaises(ValueError, utils.datetime_or_str_or_none, 'foo')
 
     def test_int_or_none(self):

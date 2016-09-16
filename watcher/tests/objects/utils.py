@@ -178,6 +178,32 @@ def create_test_scoring_engine(context, **kw):
     return scoring_engine
 
 
+def get_test_service(context, **kw):
+    """Return a Service object with appropriate attributes.
+
+    NOTE: The object leaves the attributes marked as changed, such
+    that a create() could be used to commit it to the DB.
+    """
+    db_service = db_utils.get_test_service(**kw)
+    service = objects.Service(context)
+    for key in db_service:
+        if key == 'last_seen_up':
+            db_service[key] = None
+        setattr(service, key, db_service[key])
+    return service
+
+
+def create_test_service(context, **kw):
+    """Create and return a test service object.
+
+    Create a service in the DB and return a Service object with
+    appropriate attributes.
+    """
+    service = get_test_service(context, **kw)
+    service.create()
+    return service
+
+
 def get_test_strategy(context, **kw):
     """Return a Strategy object with appropriate attributes.
 

@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import datetime
 import logging
 import socket
 
@@ -30,10 +31,13 @@ from oslo_service import wsgi
 from watcher._i18n import _, _LI
 from watcher.api import app
 from watcher.common import config
+from watcher.common import context
 from watcher.common.messaging.events import event_dispatcher as dispatcher
 from watcher.common.messaging import messaging_handler
 from watcher.common import rpc
+from watcher.common import scheduling
 from watcher.objects import base
+from watcher.objects import service as service_object
 from watcher import opts
 from watcher import version
 
@@ -48,6 +52,9 @@ service_opts = [
                       'However, the node name must be valid within '
                       'an AMQP key, and if using ZeroMQ, a valid '
                       'hostname, FQDN, or IP address.')),
+    cfg.IntOpt('service_down_time',
+               default=90,
+               help=_('Maximum time since last check-in for up service.'))
 ]
 
 cfg.CONF.register_opts(service_opts)
@@ -101,6 +108,52 @@ class WSGIService(service.ServiceBase):
         self.server.reset()
 
 
+class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
+
+    def __init__(self, gconfig=None, service_name=None, **kwargs):
+        gconfig = None or {}
+        super(ServiceHeartbeat, self).__init__(gconfig, **kwargs)
+        self.service_name = service_name
+        self.context = context.make_context()
+
+    def send_beat(self):
+        host = CONF.host
+        watcher_list = service_object.Service.list(
+            self.context, filters={'name': self.service_name,
+                                   'host': host})
+        if watcher_list:
+            watcher_service = watcher_list[0]
+            watcher_service.last_seen_up = datetime.datetime.utcnow()
+            watcher_service.save()
+        else:
+            watcher_service = service_object.Service(self.context)
+            watcher_service.name = self.service_name
+            watcher_service.host = host
+            watcher_service.create()
+
+    def add_heartbeat_job(self):
+        self.add_job(self.send_beat, 'interval', seconds=60,
+                     next_run_time=datetime.datetime.now())
+
+    def start(self):
+        """Start service."""
+        self.add_heartbeat_job()
+        super(ServiceHeartbeat, self).start()
+
+    def stop(self):
+        """Stop service."""
+        self.shutdown()
+
+    def wait(self):
+        """Wait for service to complete."""
+
+    def reset(self):
+        """Reset service.
+
+        Called in case service running in daemon mode receives SIGHUP.
+        """
+
+
 class Service(service.ServiceBase, dispatcher.EventDispatcher):
 
     API_VERSION = '1.0'
@@ -110,7 +163,7 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
         self.manager = manager_class()
 
         self.publisher_id = self.manager.publisher_id
-        self.api_version = self.manager.API_VERSION
+        self.api_version = self.manager.api_version
 
         self.conductor_topic = self.manager.conductor_topic
         self.status_topic = self.manager.status_topic
@@ -136,6 +189,8 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
         self.status_topic_handler = None
         self.notification_handler = None
 
+        self.heartbeat = None
+
         if self.conductor_topic and self.conductor_endpoints:
             self.conductor_topic_handler = self.build_topic_handler(
                 self.conductor_topic, self.conductor_endpoints)
@@ -146,6 +201,10 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
             self.notification_handler = self.build_notification_handler(
                 self.notification_topics, self.notification_endpoints
             )
+        self.service_name = self.manager.service_name
+        if self.service_name:
+            self.heartbeat = ServiceHeartbeat(
+                service_name=self.manager.service_name)
 
     @property
     def transport(self):
@@ -211,6 +270,8 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
             self.status_topic_handler.start()
         if self.notification_handler:
             self.notification_handler.start()
+        if self.heartbeat:
+            self.heartbeat.start()
 
     def stop(self):
         LOG.debug("Disconnecting from '%s' (%s)",
@@ -221,6 +282,8 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
             self.status_topic_handler.stop()
         if self.notification_handler:
             self.notification_handler.stop()
+        if self.heartbeat:
+            self.heartbeat.stop()
 
     def reset(self):
         """Reset a service in case it received a SIGHUP."""

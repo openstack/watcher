@@ -362,6 +362,14 @@ class NoSuchMetricForHost(WatcherException):
     msg_fmt = _("No %(metric)s metric for %(host)s found.")
 
 
+class ServiceAlreadyExists(Conflict):
+    msg_fmt = _("A service with name %(name)s is already working on %(host)s.")
+
+
+class ServiceNotFound(ResourceNotFound):
+    msg_fmt = _("The service %(service)s cannot be found.")
+
+
 # Model
 
 class InstanceNotFound(WatcherException):
