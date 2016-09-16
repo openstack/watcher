@@ -250,9 +250,3 @@ class FakerMetricsCollector(object):
 
     def get_virtual_machine_capacity(self, instance_uuid):
         return random.randint(1, 4)
-
-    def get_average_network_incomming(self, node):
-        pass
-
-    def get_average_network_outcomming(self, node):
-        pass

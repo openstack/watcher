@@ -1,0 +1,3 @@
+<ModelRoot>
+  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" ResourceType.cpu_cores="1" ResourceType.disk="1" ResourceType.disk_capacity="1" ResourceType.memory="1"/>
+</ModelRoot>

@@ -1,0 +1,13 @@
+<ModelRoot>
+  <ComputeNode hostname="hostname_0" uuid="Node_0" id="0" state="up" human_id="" status="enabled" ResourceType.cpu_cores="16" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64">
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_0" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_1" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_2" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_3" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_4" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_5" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode hostname="hostname_1" uuid="Node_1" id="1" state="up" human_id="" status="enabled" ResourceType.cpu_cores="16" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64"/>
+  <ComputeNode hostname="hostname_2" uuid="Node_2" id="2" state="up" human_id="" status="enabled" ResourceType.cpu_cores="16" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64"/>
+  <ComputeNode hostname="hostname_3" uuid="Node_3" id="3" state="up" human_id="" status="enabled" ResourceType.cpu_cores="16" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64"/>
+</ModelRoot>

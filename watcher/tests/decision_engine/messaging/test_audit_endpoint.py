@@ -20,8 +20,7 @@ from watcher.decision_engine.audit import oneshot as oneshot_handler
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.model.collector import manager
 from watcher.tests.db import base
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_cluster_state
+from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.objects import utils as obj_utils
 
 

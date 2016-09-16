@@ -29,9 +29,8 @@ from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests import base as base_test
+from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.decision_engine.model.notification import fake_managers
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_cluster_state
 
 
 class NotificationTestCase(base_test.TestCase):

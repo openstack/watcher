@@ -1,0 +1,8 @@
+<ModelRoot>
+  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="73b09e16-35b7-4922-804e-e8f5d9b740fc" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" ResourceType.cpu_cores="40" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="132">
+    <Instance state="active" human_id="" uuid="a4cab39b-9828-413a-bf88-f76921bf1517" hostname="" ResourceType.cpu_cores="10" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  </ComputeNode>
+</ModelRoot>
