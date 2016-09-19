@@ -17,8 +17,8 @@ import mock
 from testtools import matchers
 
 from watcher.common import exception
-# from watcher.common import utils as w_utils
 from watcher import objects
+from watcher.objects import action_plan as apobjects
 from watcher.tests.db import base
 from watcher.tests.db import utils
 
@@ -147,13 +147,13 @@ class TestActionPlanObject(base.DbTestCase):
                                    autospec=True) as mock_update_action_plan:
                 action_plan = objects.ActionPlan.get_by_uuid(
                     self.context, uuid)
-                action_plan.state = 'SUCCEEDED'
+                action_plan.state = apobjects.State.SUCCEEDED
                 action_plan.save()
 
                 mock_get_action_plan.assert_called_once_with(
                     self.context, uuid)
                 mock_update_action_plan.assert_called_once_with(
-                    uuid, {'state': 'SUCCEEDED'})
+                    uuid, {'state': apobjects.State.SUCCEEDED})
                 self.assertEqual(self.context, action_plan._context)
 
     def test_refresh(self):

@@ -17,8 +17,8 @@ import mock
 from testtools import matchers
 
 from watcher.common import exception
-# from watcher.common import utils as w_utils
 from watcher import objects
+from watcher.objects import action as actionobject
 from watcher.tests.db import base
 from watcher.tests.db import utils
 
@@ -93,12 +93,12 @@ class TestActionObject(base.DbTestCase):
             with mock.patch.object(self.dbapi, 'update_action',
                                    autospec=True) as mock_update_action:
                 action = objects.Action.get_by_uuid(self.context, uuid)
-                action.state = 'SUCCEEDED'
+                action.state = actionobject.State.SUCCEEDED
                 action.save()
 
                 mock_get_action.assert_called_once_with(self.context, uuid)
                 mock_update_action.assert_called_once_with(
-                    uuid, {'state': 'SUCCEEDED'})
+                    uuid, {'state': actionobject.State.SUCCEEDED})
                 self.assertEqual(self.context, action._context)
 
     def test_refresh(self):
