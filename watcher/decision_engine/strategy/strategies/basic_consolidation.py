@@ -405,7 +405,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             return unsuccessful_migration + 1
 
     def pre_execute(self):
-        LOG.info(_LI("Initializing Sercon Consolidation"))
+        LOG.info(_LI("Initializing Server Consolidation"))
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
