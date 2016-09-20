@@ -61,7 +61,7 @@ class Root(base.APIBase):
         root = Root()
         root.name = "OpenStack Watcher API"
         root.description = ("Watcher is an OpenStack project which aims to "
-                            "to improve physical resources usage through "
+                            "improve physical resources usage through "
                             "better VM placement.")
         root.versions = [Version.convert('v1')]
         root.default_version = Version.convert('v1')
