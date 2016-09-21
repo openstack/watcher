@@ -75,7 +75,7 @@ class WatcherTerm(BaseWatcherDirective):
     # Inside your .rst file
     .. watcher-term:: import.path.to.your.DocumentedObject
 
-    This directive will then import the docstring and then interprete it.
+    This directive will then import the docstring and then interpret it.
     """
 
     # You need to put an import path as an argument for this directive to work
