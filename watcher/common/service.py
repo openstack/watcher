@@ -272,4 +272,4 @@ def prepare_service(argv=(), conf=cfg.CONF):
     conf.log_opt_values(LOG, logging.DEBUG)
 
     gmr.TextGuruMeditation.register_section(_('Plugins'), opts.show_plugins)
-    gmr.TextGuruMeditation.setup_autorun(version)
+    gmr.TextGuruMeditation.setup_autorun(version, conf=conf)
