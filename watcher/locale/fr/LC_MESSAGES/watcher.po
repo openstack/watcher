@@ -425,7 +425,7 @@ msgid "No values returned by %(resource_id)s for %(metric_name)s"
 msgstr ""
 
 #: watcher/decision_engine/strategy/strategies/basic_consolidation.py:426
-msgid "Initializing Sercon Consolidation"
+msgid "Initializing Server Consolidation"
 msgstr ""
 
 #: watcher/decision_engine/strategy/strategies/basic_consolidation.py:470
