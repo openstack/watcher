@@ -120,6 +120,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         p = mock.patch.object(root.Root, 'convert')
         self.root_convert_mock = p.start()
         self.addCleanup(p.stop)
+        cfg.CONF.set_override('debug', False, enforce_type=True)
 
     def test_hook_exception_success(self):
         self.root_convert_mock.side_effect = Exception(self.MSG_WITH_TRACE)
