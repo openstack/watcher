@@ -242,16 +242,40 @@ class DbActionPlanTestCase(base.DbTestCase):
 
     def test_get_action_plan_list(self):
         uuids = []
-        for i in range(1, 6):
-            audit = utils.create_test_action_plan(uuid=w_utils.generate_uuid())
-            uuids.append(six.text_type(audit['uuid']))
-        res = self.dbapi.get_action_plan_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        for _ in range(1, 4):
+            action_plan = utils.create_test_action_plan(
+                uuid=w_utils.generate_uuid())
+            uuids.append(six.text_type(action_plan['uuid']))
+        action_plans = self.dbapi.get_action_plan_list(self.context)
+        action_plan_uuids = [ap.uuid for ap in action_plans]
+        self.assertEqual(sorted(uuids), sorted(action_plan_uuids))
+        for action_plan in action_plans:
+            self.assertIsNone(action_plan.audit)
+            self.assertIsNone(action_plan.strategy)
+
+    def test_get_action_plan_list_eager(self):
+        _strategy = utils.get_test_strategy()
+        strategy = self.dbapi.create_strategy(_strategy)
+        _audit = utils.get_test_audit()
+        audit = self.dbapi.create_audit(_audit)
+
+        uuids = []
+        for _ in range(1, 4):
+            action_plan = utils.create_test_action_plan(
+                uuid=w_utils.generate_uuid())
+            uuids.append(six.text_type(action_plan['uuid']))
+        action_plans = self.dbapi.get_action_plan_list(
+            self.context, eager=True)
+        action_plan_map = {a.uuid: a for a in action_plans}
+        self.assertEqual(sorted(uuids), sorted(action_plan_map.keys()))
+        eager_action_plan = action_plan_map[action_plan.uuid]
+        self.assertEqual(
+            strategy.as_dict(), eager_action_plan.strategy.as_dict())
+        self.assertEqual(audit.as_dict(), eager_action_plan.audit.as_dict())
 
     def test_get_action_plan_list_with_filters(self):
         audit = self._create_test_audit(
-            id=1,
+            id=2,
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             deadline=None,

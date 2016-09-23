@@ -232,14 +232,40 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
     def test_get_audit_template_list(self):
         uuids = []
-        for i in range(1, 6):
+        for i in range(1, 4):
             audit_template = utils.create_test_audit_template(
+                id=i,
                 uuid=w_utils.generate_uuid(),
                 name='My Audit Template {0}'.format(i))
             uuids.append(six.text_type(audit_template['uuid']))
-        res = self.dbapi.get_audit_template_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        audit_templates = self.dbapi.get_audit_template_list(self.context)
+        audit_template_uuids = [at.uuid for at in audit_templates]
+        self.assertEqual(sorted(uuids), sorted(audit_template_uuids))
+        for audit_template in audit_templates:
+            self.assertIsNone(audit_template.goal)
+            self.assertIsNone(audit_template.strategy)
+
+    def test_get_audit_template_list_eager(self):
+        _goal = utils.get_test_goal()
+        goal = self.dbapi.create_goal(_goal)
+        _strategy = utils.get_test_strategy()
+        strategy = self.dbapi.create_strategy(_strategy)
+
+        uuids = []
+        for i in range(1, 4):
+            audit_template = utils.create_test_audit_template(
+                id=i, uuid=w_utils.generate_uuid(),
+                name='My Audit Template {0}'.format(i),
+                goal_id=goal.id, strategy_id=strategy.id)
+            uuids.append(six.text_type(audit_template['uuid']))
+        audit_templates = self.dbapi.get_audit_template_list(
+            self.context, eager=True)
+        audit_template_map = {a.uuid: a for a in audit_templates}
+        self.assertEqual(sorted(uuids), sorted(audit_template_map.keys()))
+        eager_audit_template = audit_template_map[audit_template.uuid]
+        self.assertEqual(goal.as_dict(), eager_audit_template.goal.as_dict())
+        self.assertEqual(
+            strategy.as_dict(), eager_audit_template.strategy.as_dict())
 
     def test_get_audit_template_list_with_filters(self):
         audit_template1 = self._create_test_audit_template(

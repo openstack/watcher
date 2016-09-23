@@ -245,17 +245,37 @@ class DbStrategyTestCase(base.DbTestCase):
         return strategy
 
     def test_get_strategy_list(self):
-        ids = []
-        for i in range(1, 6):
+        uuids = []
+        for i in range(1, 4):
             strategy = utils.create_test_strategy(
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name="STRATEGY_ID_%s" % i,
                 display_name='My Strategy {0}'.format(i))
-            ids.append(six.text_type(strategy['uuid']))
-        res = self.dbapi.get_strategy_list(self.context)
-        res_ids = [r.display_name for r in res]
-        self.assertEqual(ids.sort(), res_ids.sort())
+            uuids.append(six.text_type(strategy['uuid']))
+        strategies = self.dbapi.get_strategy_list(self.context)
+        strategy_uuids = [s.uuid for s in strategies]
+        self.assertEqual(sorted(uuids), sorted(strategy_uuids))
+        for strategy in strategies:
+            self.assertIsNone(strategy.goal)
+
+    def test_get_strategy_list_eager(self):
+        _goal = utils.get_test_goal()
+        goal = self.dbapi.create_goal(_goal)
+        uuids = []
+        for i in range(1, 4):
+            strategy = utils.create_test_strategy(
+                id=i,
+                uuid=w_utils.generate_uuid(),
+                name="STRATEGY_ID_%s" % i,
+                display_name='My Strategy {0}'.format(i),
+                goal_id=goal.id)
+            uuids.append(six.text_type(strategy['uuid']))
+        strategys = self.dbapi.get_strategy_list(self.context, eager=True)
+        strategy_map = {a.uuid: a for a in strategys}
+        self.assertEqual(sorted(uuids), sorted(strategy_map.keys()))
+        eager_strategy = strategy_map[strategy.uuid]
+        self.assertEqual(goal.as_dict(), eager_strategy.goal.as_dict())
 
     def test_get_strategy_list_with_filters(self):
         strategy1 = self._create_test_strategy(

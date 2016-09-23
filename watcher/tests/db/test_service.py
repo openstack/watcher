@@ -18,7 +18,6 @@
 """Tests for manipulating Service via the DB API"""
 
 import freezegun
-import six
 
 from oslo_utils import timeutils
 
@@ -237,15 +236,15 @@ class DbServiceTestCase(base.DbTestCase):
 
     def test_get_service_list(self):
         ids = []
-        for i in range(1, 6):
+        for i in range(1, 4):
             service = utils.create_test_service(
                 id=i,
                 name="SERVICE_ID_%s" % i,
                 host="controller_{0}".format(i))
-            ids.append(six.text_type(service['id']))
-        res = self.dbapi.get_service_list(self.context)
-        res_ids = [r.id for r in res]
-        self.assertEqual(ids.sort(), res_ids.sort())
+            ids.append(service['id'])
+        services = self.dbapi.get_service_list(self.context)
+        service_ids = [s.id for s in services]
+        self.assertEqual(sorted(ids), sorted(service_ids))
 
     def test_get_service_list_with_filters(self):
         service1 = self._create_test_service(

@@ -24,7 +24,10 @@ from oslo_config import cfg
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import session as db_session
 from oslo_db.sqlalchemy import utils as db_utils
+from oslo_utils import timeutils
+from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import exc
+from sqlalchemy.orm import joinedload
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -34,7 +37,6 @@ from watcher.db.sqlalchemy import models
 from watcher.objects import action as action_objects
 from watcher.objects import action_plan as ap_objects
 from watcher.objects import audit as audit_objects
-from watcher.objects import utils as objutils
 
 CONF = cfg.CONF
 
@@ -133,8 +135,9 @@ class Connection(api.BaseConnection):
     def __add_simple_filter(self, query, model, fieldname, value, operator_):
         field = getattr(model, fieldname)
 
-        if field.type.python_type is datetime.datetime:
-            value = objutils.datetime_or_str_or_none(value)
+        if field.type.python_type is datetime.datetime and value:
+            if not isinstance(value, datetime.datetime):
+                value = timeutils.parse_isotime(value)
 
         return query.filter(self.valid_operators[operator_](field, value))
 
@@ -233,8 +236,20 @@ class Connection(api.BaseConnection):
 
         return query
 
-    def _get(self, context, model, fieldname, value):
+    @staticmethod
+    def _set_eager_options(model, query):
+        relationships = inspect(model).relationships
+        for relationship in relationships:
+            if not relationship.uselist:
+                # We have a One-to-X relationship
+                query = query.options(joinedload(relationship.key))
+        return query
+
+    def _get(self, context, model, fieldname, value, eager):
         query = model_query(model)
+        if eager:
+            query = self._set_eager_options(model, query)
+
         query = query.filter(getattr(model, fieldname) == value)
         if not context.show_deleted:
             query = query.filter(model.deleted_at.is_(None))
@@ -246,7 +261,8 @@ class Connection(api.BaseConnection):
 
         return obj
 
-    def _update(self, model, id_, values):
+    @staticmethod
+    def _update(model, id_, values):
         session = get_session()
         with session.begin():
             query = model_query(model, session=session)
@@ -259,7 +275,8 @@ class Connection(api.BaseConnection):
             ref.update(values)
         return ref
 
-    def _soft_delete(self, model, id_):
+    @staticmethod
+    def _soft_delete(model, id_):
         session = get_session()
         with session.begin():
             query = model_query(model, session=session)
@@ -271,7 +288,8 @@ class Connection(api.BaseConnection):
 
             query.soft_delete()
 
-    def _destroy(self, model, id_):
+    @staticmethod
+    def _destroy(model, id_):
         session = get_session()
         with session.begin():
             query = model_query(model, session=session)
@@ -398,10 +416,11 @@ class Connection(api.BaseConnection):
 
     # ### GOALS ### #
 
-    def get_goal_list(self, context, filters=None, limit=None,
-                      marker=None, sort_key=None, sort_dir=None):
-
+    def get_goal_list(self, context, filters=None, limit=None, marker=None,
+                      sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.Goal)
+        if eager:
+            query = self._set_eager_options(models.Goal, query)
         query = self._add_goals_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -422,21 +441,24 @@ class Connection(api.BaseConnection):
             raise exception.GoalAlreadyExists(uuid=values['uuid'])
         return goal
 
-    def _get_goal(self, context, fieldname, value):
+    def _get_goal(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.Goal,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.GoalNotFound(goal=value)
 
-    def get_goal_by_id(self, context, goal_id):
-        return self._get_goal(context, fieldname="id", value=goal_id)
+    def get_goal_by_id(self, context, goal_id, eager=False):
+        return self._get_goal(
+            context, fieldname="id", value=goal_id, eager=eager)
 
-    def get_goal_by_uuid(self, context, goal_uuid):
-        return self._get_goal(context, fieldname="uuid", value=goal_uuid)
+    def get_goal_by_uuid(self, context, goal_uuid, eager=False):
+        return self._get_goal(
+            context, fieldname="uuid", value=goal_uuid, eager=eager)
 
-    def get_goal_by_name(self, context, goal_name):
-        return self._get_goal(context, fieldname="name", value=goal_name)
+    def get_goal_by_name(self, context, goal_name, eager=False):
+        return self._get_goal(
+            context, fieldname="name", value=goal_name, eager=eager)
 
     def destroy_goal(self, goal_id):
         try:
@@ -463,9 +485,11 @@ class Connection(api.BaseConnection):
     # ### STRATEGIES ### #
 
     def get_strategy_list(self, context, filters=None, limit=None,
-                          marker=None, sort_key=None, sort_dir=None):
-
+                          marker=None, sort_key=None, sort_dir=None,
+                          eager=True):
         query = model_query(models.Strategy)
+        if eager:
+            query = self._set_eager_options(models.Strategy, query)
         query = self._add_strategies_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -486,23 +510,24 @@ class Connection(api.BaseConnection):
             raise exception.StrategyAlreadyExists(uuid=values['uuid'])
         return strategy
 
-    def _get_strategy(self, context, fieldname, value):
+    def _get_strategy(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.Strategy,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.StrategyNotFound(strategy=value)
 
-    def get_strategy_by_id(self, context, strategy_id):
-        return self._get_strategy(context, fieldname="id", value=strategy_id)
-
-    def get_strategy_by_uuid(self, context, strategy_uuid):
+    def get_strategy_by_id(self, context, strategy_id, eager=False):
         return self._get_strategy(
-            context, fieldname="uuid", value=strategy_uuid)
+            context, fieldname="id", value=strategy_id, eager=eager)
 
-    def get_strategy_by_name(self, context, strategy_name):
+    def get_strategy_by_uuid(self, context, strategy_uuid, eager=False):
         return self._get_strategy(
-            context, fieldname="name", value=strategy_name)
+            context, fieldname="uuid", value=strategy_uuid, eager=eager)
+
+    def get_strategy_by_name(self, context, strategy_name, eager=False):
+        return self._get_strategy(
+            context, fieldname="name", value=strategy_name, eager=eager)
 
     def destroy_strategy(self, strategy_id):
         try:
@@ -529,9 +554,12 @@ class Connection(api.BaseConnection):
     # ### AUDIT TEMPLATES ### #
 
     def get_audit_template_list(self, context, filters=None, limit=None,
-                                marker=None, sort_key=None, sort_dir=None):
+                                marker=None, sort_key=None, sort_dir=None,
+                                eager=False):
 
         query = model_query(models.AuditTemplate)
+        if eager:
+            query = self._set_eager_options(models.AuditTemplate, query)
         query = self._add_audit_templates_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -561,24 +589,27 @@ class Connection(api.BaseConnection):
                 audit_template=values['name'])
         return audit_template
 
-    def _get_audit_template(self, context, fieldname, value):
+    def _get_audit_template(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.AuditTemplate,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(audit_template=value)
 
-    def get_audit_template_by_id(self, context, audit_template_id):
+    def get_audit_template_by_id(self, context, audit_template_id,
+                                 eager=False):
         return self._get_audit_template(
-            context, fieldname="id", value=audit_template_id)
+            context, fieldname="id", value=audit_template_id, eager=eager)
 
-    def get_audit_template_by_uuid(self, context, audit_template_uuid):
+    def get_audit_template_by_uuid(self, context, audit_template_uuid,
+                                   eager=False):
         return self._get_audit_template(
-            context, fieldname="uuid", value=audit_template_uuid)
+            context, fieldname="uuid", value=audit_template_uuid, eager=eager)
 
-    def get_audit_template_by_name(self, context, audit_template_name):
+    def get_audit_template_by_name(self, context, audit_template_name,
+                                   eager=False):
         return self._get_audit_template(
-            context, fieldname="name", value=audit_template_name)
+            context, fieldname="name", value=audit_template_name, eager=eager)
 
     def destroy_audit_template(self, audit_template_id):
         try:
@@ -609,8 +640,10 @@ class Connection(api.BaseConnection):
     # ### AUDITS ### #
 
     def get_audit_list(self, context, filters=None, limit=None, marker=None,
-                       sort_key=None, sort_dir=None):
+                       sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.Audit)
+        if eager:
+            query = self._set_eager_options(models.Audit, query)
         query = self._add_audits_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
@@ -636,30 +669,20 @@ class Connection(api.BaseConnection):
             raise exception.AuditAlreadyExists(uuid=values['uuid'])
         return audit
 
-    def get_audit_by_id(self, context, audit_id):
-        query = model_query(models.Audit)
-        query = query.filter_by(id=audit_id)
+    def _get_audit(self, context, fieldname, value, eager):
         try:
-            audit = query.one()
-            if not context.show_deleted:
-                if audit.state == audit_objects.State.DELETED:
-                    raise exception.AuditNotFound(audit=audit_id)
-            return audit
-        except exc.NoResultFound:
-            raise exception.AuditNotFound(audit=audit_id)
+            return self._get(context, model=models.Audit,
+                             fieldname=fieldname, value=value, eager=eager)
+        except exception.ResourceNotFound:
+            raise exception.AuditNotFound(audit=value)
 
-    def get_audit_by_uuid(self, context, audit_uuid):
-        query = model_query(models.Audit)
-        query = query.filter_by(uuid=audit_uuid)
+    def get_audit_by_id(self, context, audit_id, eager=False):
+        return self._get_audit(
+            context, fieldname="id", value=audit_id, eager=eager)
 
-        try:
-            audit = query.one()
-            if not context.show_deleted:
-                if audit.state == audit_objects.State.DELETED:
-                    raise exception.AuditNotFound(audit=audit_uuid)
-            return audit
-        except exc.NoResultFound:
-            raise exception.AuditNotFound(audit=audit_uuid)
+    def get_audit_by_uuid(self, context, audit_uuid, eager=False):
+        return self._get_audit(
+            context, fieldname="uuid", value=audit_uuid, eager=eager)
 
     def destroy_audit(self, audit_id):
         def is_audit_referenced(session, audit_id):
@@ -704,8 +727,10 @@ class Connection(api.BaseConnection):
     # ### ACTIONS ### #
 
     def get_action_list(self, context, filters=None, limit=None, marker=None,
-                        sort_key=None, sort_dir=None):
+                        sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.Action)
+        if eager:
+            query = self._set_eager_options(models.Action, query)
         query = self._add_actions_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
@@ -726,31 +751,20 @@ class Connection(api.BaseConnection):
             raise exception.ActionAlreadyExists(uuid=values['uuid'])
         return action
 
-    def get_action_by_id(self, context, action_id):
-        query = model_query(models.Action)
-        query = query.filter_by(id=action_id)
+    def _get_action(self, context, fieldname, value, eager):
         try:
-            action = query.one()
-            if not context.show_deleted:
-                if action.state == action_objects.State.DELETED:
-                    raise exception.ActionNotFound(
-                        action=action_id)
-            return action
-        except exc.NoResultFound:
-            raise exception.ActionNotFound(action=action_id)
+            return self._get(context, model=models.Action,
+                             fieldname=fieldname, value=value, eager=eager)
+        except exception.ResourceNotFound:
+            raise exception.ActionNotFound(action=value)
 
-    def get_action_by_uuid(self, context, action_uuid):
-        query = model_query(models.Action)
-        query = query.filter_by(uuid=action_uuid)
-        try:
-            action = query.one()
-            if not context.show_deleted:
-                if action.state == action_objects.State.DELETED:
-                    raise exception.ActionNotFound(
-                        action=action_uuid)
-            return action
-        except exc.NoResultFound:
-            raise exception.ActionNotFound(action=action_uuid)
+    def get_action_by_id(self, context, action_id, eager=False):
+        return self._get_action(
+            context, fieldname="id", value=action_id, eager=eager)
+
+    def get_action_by_uuid(self, context, action_uuid, eager=False):
+        return self._get_action(
+            context, fieldname="uuid", value=action_uuid, eager=eager)
 
     def destroy_action(self, action_id):
         session = get_session()
@@ -765,12 +779,12 @@ class Connection(api.BaseConnection):
         # NOTE(dtantsur): this can lead to very strange errors
         if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite UUID for an existing "
-                          "Action."))
+                message=_("Cannot overwrite UUID for an existing Action."))
 
         return self._do_update_action(action_id, values)
 
-    def _do_update_action(self, action_id, values):
+    @staticmethod
+    def _do_update_action(action_id, values):
         session = get_session()
         with session.begin():
             query = model_query(models.Action, session=session)
@@ -799,9 +813,11 @@ class Connection(api.BaseConnection):
     # ### ACTION PLANS ### #
 
     def get_action_plan_list(
-            self, context, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None):
+            self, context, filters=None, limit=None, marker=None,
+            sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.ActionPlan)
+        if eager:
+            query = self._set_eager_options(models.ActionPlan, query)
         query = self._add_action_plans_filters(query, filters)
         if not context.show_deleted:
             query = query.filter(
@@ -824,32 +840,20 @@ class Connection(api.BaseConnection):
             raise exception.ActionPlanAlreadyExists(uuid=values['uuid'])
         return action_plan
 
-    def get_action_plan_by_id(self, context, action_plan_id):
-        query = model_query(models.ActionPlan)
-        query = query.filter_by(id=action_plan_id)
+    def _get_action_plan(self, context, fieldname, value, eager):
         try:
-            action_plan = query.one()
-            if not context.show_deleted:
-                if action_plan.state == ap_objects.State.DELETED:
-                    raise exception.ActionPlanNotFound(
-                        action_plan=action_plan_id)
-            return action_plan
-        except exc.NoResultFound:
-            raise exception.ActionPlanNotFound(action_plan=action_plan_id)
+            return self._get(context, model=models.ActionPlan,
+                             fieldname=fieldname, value=value, eager=eager)
+        except exception.ResourceNotFound:
+            raise exception.ActionPlanNotFound(action_plan=value)
 
-    def get_action_plan_by_uuid(self, context, action_plan__uuid):
-        query = model_query(models.ActionPlan)
-        query = query.filter_by(uuid=action_plan__uuid)
+    def get_action_plan_by_id(self, context, action_plan_id, eager=False):
+        return self._get_action_plan(
+            context, fieldname="id", value=action_plan_id, eager=eager)
 
-        try:
-            action_plan = query.one()
-            if not context.show_deleted:
-                if action_plan.state == ap_objects.State.DELETED:
-                    raise exception.ActionPlanNotFound(
-                        action_plan=action_plan__uuid)
-            return action_plan
-        except exc.NoResultFound:
-            raise exception.ActionPlanNotFound(action_plan=action_plan__uuid)
+    def get_action_plan_by_uuid(self, context, action_plan_uuid, eager=False):
+        return self._get_action_plan(
+            context, fieldname="uuid", value=action_plan_uuid, eager=eager)
 
     def destroy_action_plan(self, action_plan_id):
         def is_action_plan_referenced(session, action_plan_id):
@@ -883,7 +887,8 @@ class Connection(api.BaseConnection):
 
         return self._do_update_action_plan(action_plan_id, values)
 
-    def _do_update_action_plan(self, action_plan_id, values):
+    @staticmethod
+    def _do_update_action_plan(action_plan_id, values):
         session = get_session()
         with session.begin():
             query = model_query(models.ActionPlan, session=session)
@@ -912,9 +917,12 @@ class Connection(api.BaseConnection):
     # ### EFFICACY INDICATORS ### #
 
     def get_efficacy_indicator_list(self, context, filters=None, limit=None,
-                                    marker=None, sort_key=None, sort_dir=None):
+                                    marker=None, sort_key=None, sort_dir=None,
+                                    eager=False):
 
         query = model_query(models.EfficacyIndicator)
+        if eager:
+            query = self._set_eager_options(models.EfficacyIndicator, query)
         query = self._add_efficacy_indicators_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -935,24 +943,30 @@ class Connection(api.BaseConnection):
             raise exception.EfficacyIndicatorAlreadyExists(uuid=values['uuid'])
         return efficacy_indicator
 
-    def _get_efficacy_indicator(self, context, fieldname, value):
+    def _get_efficacy_indicator(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.EfficacyIndicator,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(efficacy_indicator=value)
 
-    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id):
+    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id,
+                                     eager=False):
         return self._get_efficacy_indicator(
-            context, fieldname="id", value=efficacy_indicator_id)
+            context, fieldname="id",
+            value=efficacy_indicator_id, eager=eager)
 
-    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid):
+    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid,
+                                       eager=False):
         return self._get_efficacy_indicator(
-            context, fieldname="uuid", value=efficacy_indicator_uuid)
+            context, fieldname="uuid",
+            value=efficacy_indicator_uuid, eager=eager)
 
-    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name):
+    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name,
+                                       eager=False):
         return self._get_efficacy_indicator(
-            context, fieldname="name", value=efficacy_indicator_name)
+            context, fieldname="name",
+            value=efficacy_indicator_name, eager=eager)
 
     def update_efficacy_indicator(self, efficacy_indicator_id, values):
         if 'uuid' in values:
@@ -995,9 +1009,11 @@ class Connection(api.BaseConnection):
             plain_fields=plain_fields)
 
     def get_scoring_engine_list(
-        self, context, columns=None, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None):
+            self, context, columns=None, filters=None, limit=None,
+            marker=None, sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.ScoringEngine)
+        if eager:
+            query = self._set_eager_options(models.ScoringEngine, query)
         query = self._add_scoring_engine_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -1019,24 +1035,27 @@ class Connection(api.BaseConnection):
             raise exception.ScoringEngineAlreadyExists(uuid=values['uuid'])
         return scoring_engine
 
-    def _get_scoring_engine(self, context, fieldname, value):
+    def _get_scoring_engine(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.ScoringEngine,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(scoring_engine=value)
 
-    def get_scoring_engine_by_id(self, context, scoring_engine_id):
+    def get_scoring_engine_by_id(self, context, scoring_engine_id,
+                                 eager=False):
         return self._get_scoring_engine(
-            context, fieldname="id", value=scoring_engine_id)
+            context, fieldname="id", value=scoring_engine_id, eager=eager)
 
-    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid):
+    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid,
+                                   eager=False):
         return self._get_scoring_engine(
-            context, fieldname="uuid", value=scoring_engine_uuid)
+            context, fieldname="uuid", value=scoring_engine_uuid, eager=eager)
 
-    def get_scoring_engine_by_name(self, context, scoring_engine_name):
+    def get_scoring_engine_by_name(self, context, scoring_engine_name,
+                                   eager=False):
         return self._get_scoring_engine(
-            context, fieldname="name", value=scoring_engine_name)
+            context, fieldname="name", value=scoring_engine_name, eager=eager)
 
     def destroy_scoring_engine(self, scoring_engine_id):
         try:
@@ -1046,9 +1065,9 @@ class Connection(api.BaseConnection):
                 scoring_engine=scoring_engine_id)
 
     def update_scoring_engine(self, scoring_engine_id, values):
-        if 'id' in values:
+        if 'uuid' in values:
             raise exception.Invalid(
-                message=_("Cannot overwrite ID for an existing "
+                message=_("Cannot overwrite UUID for an existing "
                           "Scoring Engine."))
 
         try:
@@ -1077,9 +1096,11 @@ class Connection(api.BaseConnection):
             query=query, model=models.Service, filters=filters,
             plain_fields=plain_fields)
 
-    def get_service_list(self, context, filters=None, limit=None,
-                         marker=None, sort_key=None, sort_dir=None):
+    def get_service_list(self, context, filters=None, limit=None, marker=None,
+                         sort_key=None, sort_dir=None, eager=False):
         query = model_query(models.Service)
+        if eager:
+            query = self._set_eager_options(models.Service, query)
         query = self._add_services_filters(query, filters)
         if not context.show_deleted:
             query = query.filter_by(deleted_at=None)
@@ -1096,18 +1117,20 @@ class Connection(api.BaseConnection):
                                                  host=values['host'])
         return service
 
-    def _get_service(self, context, fieldname, value):
+    def _get_service(self, context, fieldname, value, eager):
         try:
             return self._get(context, model=models.Service,
-                             fieldname=fieldname, value=value)
+                             fieldname=fieldname, value=value, eager=eager)
         except exception.ResourceNotFound:
             raise exception.ServiceNotFound(service=value)
 
-    def get_service_by_id(self, context, service_id):
-        return self._get_service(context, fieldname="id", value=service_id)
+    def get_service_by_id(self, context, service_id, eager=False):
+        return self._get_service(
+            context, fieldname="id", value=service_id, eager=eager)
 
-    def get_service_by_name(self, context, service_name):
-        return self._get_service(context, fieldname="name", value=service_name)
+    def get_service_by_name(self, context, service_name, eager=False):
+        return self._get_service(
+            context, fieldname="name", value=service_name, eager=eager)
 
     def destroy_service(self, service_id):
         try:

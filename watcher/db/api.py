@@ -36,7 +36,7 @@ class BaseConnection(object):
 
     @abc.abstractmethod
     def get_goal_list(self, context, filters=None, limit=None,
-                      marker=None, sort_key=None, sort_dir=None):
+                      marker=None, sort_key=None, sort_dir=None, eager=False):
         """Get specific columns for matching goals.
 
         Return a list of the specified columns for all goals that
@@ -50,6 +50,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -72,31 +73,34 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_goal_by_id(self, context, goal_id):
+    def get_goal_by_id(self, context, goal_id, eager=False):
         """Return a goal given its ID.
 
         :param context: The security context
         :param goal_id: The ID of a goal
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A goal
         :raises: :py:class:`~.GoalNotFound`
         """
 
     @abc.abstractmethod
-    def get_goal_by_uuid(self, context, goal_uuid):
+    def get_goal_by_uuid(self, context, goal_uuid, eager=False):
         """Return a goal given its UUID.
 
         :param context: The security context
         :param goal_uuid: The UUID of a goal
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A goal
         :raises: :py:class:`~.GoalNotFound`
         """
 
     @abc.abstractmethod
-    def get_goal_by_name(self, context, goal_name):
+    def get_goal_by_name(self, context, goal_name, eager=False):
         """Return a goal given its name.
 
         :param context: The security context
         :param goal_name: The name of a goal
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A goal
         :raises: :py:class:`~.GoalNotFound`
         """
@@ -129,9 +133,17 @@ class BaseConnection(object):
         :raises: :py:class:`~.Invalid`
         """
 
+    def soft_delete_goal(self, goal_id):
+        """Soft delete a goal.
+
+        :param goal_id: The id or uuid of a goal.
+        :raises: :py:class:`~.GoalNotFound`
+        """
+
     @abc.abstractmethod
     def get_strategy_list(self, context, filters=None, limit=None,
-                          marker=None, sort_key=None, sort_dir=None):
+                          marker=None, sort_key=None, sort_dir=None,
+                          eager=True):
         """Get specific columns for matching strategies.
 
         Return a list of the specified columns for all strategies that
@@ -146,6 +158,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: Direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -170,31 +183,34 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_strategy_by_id(self, context, strategy_id):
+    def get_strategy_by_id(self, context, strategy_id, eager=False):
         """Return a strategy given its ID.
 
         :param context: The security context
         :param strategy_id: The ID of a strategy
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A strategy
         :raises: :py:class:`~.StrategyNotFound`
         """
 
     @abc.abstractmethod
-    def get_strategy_by_uuid(self, context, strategy_uuid):
+    def get_strategy_by_uuid(self, context, strategy_uuid, eager=False):
         """Return a strategy given its UUID.
 
         :param context: The security context
         :param strategy_uuid: The UUID of a strategy
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A strategy
         :raises: :py:class:`~.StrategyNotFound`
         """
 
     @abc.abstractmethod
-    def get_strategy_by_name(self, context, strategy_name):
+    def get_strategy_by_name(self, context, strategy_name, eager=False):
         """Return a strategy given its name.
 
         :param context: The security context
         :param strategy_name: The name of a strategy
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A strategy
         :raises: :py:class:`~.StrategyNotFound`
         """
@@ -217,10 +233,17 @@ class BaseConnection(object):
         :raises: :py:class:`~.Invalid`
         """
 
+    def soft_delete_strategy(self, strategy_id):
+        """Soft delete a strategy.
+
+        :param strategy_id: The id or uuid of a strategy.
+        :raises: :py:class:`~.StrategyNotFound`
+        """
+
     @abc.abstractmethod
     def get_audit_template_list(self, context, filters=None,
                                 limit=None, marker=None, sort_key=None,
-                                sort_dir=None):
+                                sort_dir=None, eager=False):
         """Get specific columns for matching audit templates.
 
         Return a list of the specified columns for all audit templates that
@@ -234,6 +257,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -258,37 +282,43 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_audit_template_by_id(self, context, audit_template_id):
+    def get_audit_template_by_id(self, context, audit_template_id,
+                                 eager=False):
         """Return an audit template.
 
         :param context: The security context
         :param audit_template_id: The id of an audit template.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An audit template.
         :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
-    def get_audit_template_by_uuid(self, context, audit_template_uuid):
+    def get_audit_template_by_uuid(self, context, audit_template_uuid,
+                                   eager=False):
         """Return an audit template.
 
         :param context: The security context
         :param audit_template_uuid: The uuid of an audit template.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An audit template.
         :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
-    def get_audit_template_by_name(self, context, audit_template_name):
+    def get_audit_template_by_name(self, context, audit_template_name,
+                                   eager=False):
         """Return an audit template.
 
         :param context: The security context
         :param audit_template_name: The name of an audit template.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An audit template.
         :raises: :py:class:`~.AuditTemplateNotFound`
         """
 
     @abc.abstractmethod
     def destroy_audit_template(self, audit_template_id):
-        """Destroy an audit_template.
+        """Destroy an audit template.
 
         :param audit_template_id: The id or uuid of an audit template.
         :raises: :py:class:`~.AuditTemplateNotFound`
@@ -306,7 +336,7 @@ class BaseConnection(object):
 
     @abc.abstractmethod
     def soft_delete_audit_template(self, audit_template_id):
-        """Soft delete an audit_template.
+        """Soft delete an audit template.
 
         :param audit_template_id: The id or uuid of an audit template.
         :raises: :py:class:`~.AuditTemplateNotFound`
@@ -314,7 +344,7 @@ class BaseConnection(object):
 
     @abc.abstractmethod
     def get_audit_list(self, context, filters=None, limit=None,
-                       marker=None, sort_key=None, sort_dir=None):
+                       marker=None, sort_key=None, sort_dir=None, eager=False):
         """Get specific columns for matching audits.
 
         Return a list of the specified columns for all audits that match the
@@ -328,6 +358,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -351,21 +382,23 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_audit_by_id(self, context, audit_id):
+    def get_audit_by_id(self, context, audit_id, eager=False):
         """Return an audit.
 
         :param context: The security context
         :param audit_id: The id of an audit.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An audit.
         :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
-    def get_audit_by_uuid(self, context, audit_uuid):
+    def get_audit_by_uuid(self, context, audit_uuid, eager=False):
         """Return an audit.
 
         :param context: The security context
         :param audit_uuid: The uuid of an audit.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An audit.
         :raises: :py:class:`~.AuditNotFound`
         """
@@ -392,13 +425,13 @@ class BaseConnection(object):
         """Soft delete an audit and all associated action plans.
 
         :param audit_id: The id or uuid of an audit.
-        :returns: An audit.
         :raises: :py:class:`~.AuditNotFound`
         """
 
     @abc.abstractmethod
     def get_action_list(self, context, filters=None, limit=None,
-                        marker=None, sort_key=None, sort_dir=None):
+                        marker=None, sort_key=None, sort_dir=None,
+                        eager=False):
         """Get specific columns for matching actions.
 
         Return a list of the specified columns for all actions that match the
@@ -412,6 +445,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -436,21 +470,23 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_action_by_id(self, context, action_id):
+    def get_action_by_id(self, context, action_id, eager=False):
         """Return a action.
 
         :param context: The security context
         :param action_id: The id of a action.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A action.
         :raises: :py:class:`~.ActionNotFound`
         """
 
     @abc.abstractmethod
-    def get_action_by_uuid(self, context, action_uuid):
+    def get_action_by_uuid(self, context, action_uuid, eager=False):
         """Return a action.
 
         :param context: The security context
         :param action_uuid: The uuid of a action.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A action.
         :raises: :py:class:`~.ActionNotFound`
         """
@@ -475,10 +511,17 @@ class BaseConnection(object):
         :raises: :py:class:`~.Invalid`
         """
 
+    def soft_delete_action(self, action_id):
+        """Soft delete an action.
+
+        :param action_id: The id or uuid of an action.
+        :raises: :py:class:`~.ActionNotFound`
+        """
+
     @abc.abstractmethod
     def get_action_plan_list(
             self, context, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None):
+            marker=None, sort_key=None, sort_dir=None, eager=False):
         """Get specific columns for matching action plans.
 
         Return a list of the specified columns for all action plans that
@@ -492,6 +535,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -506,21 +550,23 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_action_plan_by_id(self, context, action_plan_id):
+    def get_action_plan_by_id(self, context, action_plan_id, eager=False):
         """Return an action plan.
 
         :param context: The security context
         :param action_plan_id: The id of an action plan.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An action plan.
         :raises: :py:class:`~.ActionPlanNotFound`
         """
 
     @abc.abstractmethod
-    def get_action_plan_by_uuid(self, context, action_plan__uuid):
+    def get_action_plan_by_uuid(self, context, action_plan__uuid, eager=False):
         """Return a action plan.
 
         :param context: The security context
         :param action_plan__uuid: The uuid of an action plan.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An action plan.
         :raises: :py:class:`~.ActionPlanNotFound`
         """
@@ -545,9 +591,17 @@ class BaseConnection(object):
         :raises: :py:class:`~.Invalid`
         """
 
+    def soft_delete_action_plan(self, action_plan_id):
+        """Soft delete an action plan.
+
+        :param action_plan_id: The id or uuid of an action plan.
+        :raises: :py:class:`~.ActionPlanNotFound`
+        """
+
     @abc.abstractmethod
     def get_efficacy_indicator_list(self, context, filters=None, limit=None,
-                                    marker=None, sort_key=None, sort_dir=None):
+                                    marker=None, sort_key=None, sort_dir=None,
+                                    eager=False):
         """Get specific columns for matching efficacy indicators.
 
         Return a list of the specified columns for all efficacy indicators that
@@ -564,6 +618,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: Direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -588,31 +643,37 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id):
+    def get_efficacy_indicator_by_id(self, context, efficacy_indicator_id,
+                                     eager=False):
         """Return an efficacy indicator given its ID.
 
         :param context: The security context
         :param efficacy_indicator_id: The ID of an efficacy indicator
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An efficacy indicator
         :raises: :py:class:`~.EfficacyIndicatorNotFound`
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid):
+    def get_efficacy_indicator_by_uuid(self, context, efficacy_indicator_uuid,
+                                       eager=False):
         """Return an efficacy indicator given its UUID.
 
         :param context: The security context
         :param efficacy_indicator_uuid: The UUID of an efficacy indicator
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An efficacy indicator
         :raises: :py:class:`~.EfficacyIndicatorNotFound`
         """
 
     @abc.abstractmethod
-    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name):
+    def get_efficacy_indicator_by_name(self, context, efficacy_indicator_name,
+                                       eager=False):
         """Return an efficacy indicator given its name.
 
         :param context: The security context
         :param efficacy_indicator_name: The name of an efficacy indicator
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: An efficacy indicator
         :raises: :py:class:`~.EfficacyIndicatorNotFound`
         """
@@ -626,7 +687,7 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def update_efficacy_indicator(self, efficacy_indicator_uuid, values):
+    def update_efficacy_indicator(self, efficacy_indicator_id, values):
         """Update properties of an efficacy indicator.
 
         :param efficacy_indicator_uuid: The UUID of an efficacy indicator
@@ -638,7 +699,7 @@ class BaseConnection(object):
     @abc.abstractmethod
     def get_scoring_engine_list(
             self, context, columns=None, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None):
+            marker=None, sort_key=None, sort_dir=None, eager=False):
         """Get specific columns for matching scoring engines.
 
         Return a list of the specified columns for all scoring engines that
@@ -654,6 +715,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -668,31 +730,37 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_id(self, context, scoring_engine_id):
+    def get_scoring_engine_by_id(self, context, scoring_engine_id,
+                                 eager=False):
         """Return a scoring engine by its id.
 
         :param context: The security context
         :param scoring_engine_id: The id of a scoring engine.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A scoring engine.
         :raises: :py:class:`~.ScoringEngineNotFound`
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid):
+    def get_scoring_engine_by_uuid(self, context, scoring_engine_uuid,
+                                   eager=False):
         """Return a scoring engine by its uuid.
 
         :param context: The security context
         :param scoring_engine_uuid: The uuid of a scoring engine.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A scoring engine.
         :raises: :py:class:`~.ScoringEngineNotFound`
         """
 
     @abc.abstractmethod
-    def get_scoring_engine_by_name(self, context, scoring_engine_name):
+    def get_scoring_engine_by_name(self, context, scoring_engine_name,
+                                   eager=False):
         """Return a scoring engine by its name.
 
         :param context: The security context
         :param scoring_engine_name: The name of a scoring engine.
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A scoring engine.
         :raises: :py:class:`~.ScoringEngineNotFound`
         """
@@ -716,8 +784,8 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_service_list(self, context, filters=None, limit=None,
-                         marker=None, sort_key=None, sort_dir=None):
+    def get_service_list(self, context, filters=None, limit=None, marker=None,
+                         sort_key=None, sort_dir=None, eager=False):
         """Get specific columns for matching services.
 
         Return a list of the specified columns for all services that
@@ -732,6 +800,7 @@ class BaseConnection(object):
         :param sort_key: Attribute by which results should be sorted.
         :param sort_dir: Direction in which results should be sorted.
                          (asc, desc)
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A list of tuples of the specified columns.
         """
 
@@ -755,21 +824,23 @@ class BaseConnection(object):
         """
 
     @abc.abstractmethod
-    def get_service_by_id(self, context, service_id):
+    def get_service_by_id(self, context, service_id, eager=False):
         """Return a service given its ID.
 
         :param context: The security context
         :param service_id: The ID of a service
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A service
         :raises: :py:class:`~.ServiceNotFound`
         """
 
     @abc.abstractmethod
-    def get_service_by_name(self, context, service_name):
+    def get_service_by_name(self, context, service_name, eager=False):
         """Return a service given its name.
 
         :param context: The security context
         :param service_name: The name of a service
+        :param eager: If True, also loads One-to-X data (Default: False)
         :returns: A service
         :raises: :py:class:`~.ServiceNotFound`
         """
