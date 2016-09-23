@@ -16,17 +16,19 @@
 
 """Utilities and helper functions."""
 
+import re
+
 from jsonschema import validators
 from oslo_config import cfg
 from oslo_log import log as logging
-from watcher.common import exception
-
-import re
+from oslo_utils import strutils
+from oslo_utils import timeutils
+from oslo_utils import uuidutils
 import six
-import uuid
-
 
 from watcher._i18n import _LW
+from watcher.common import exception
+
 
 UTILS_OPTS = [
     cfg.StrOpt('rootwrap_config',
@@ -66,6 +68,12 @@ class Struct(dict):
             raise AttributeError(name)
 
 
+generate_uuid = uuidutils.generate_uuid
+is_uuid_like = uuidutils.is_uuid_like
+is_int_like = strutils.is_int_like
+strtime = timeutils.strtime
+
+
 def safe_rstrip(value, chars=None):
     """Removes trailing characters from a string if that does not make it empty
 
@@ -81,31 +89,6 @@ def safe_rstrip(value, chars=None):
         return value
 
     return value.rstrip(chars) or value
-
-
-def generate_uuid():
-    return str(uuid.uuid4())
-
-
-def is_int_like(val):
-    """Check if a value looks like an int."""
-    try:
-        return str(int(val)) == str(val)
-    except Exception:
-        return False
-
-
-def is_uuid_like(val):
-    """Returns validation of a value as a UUID.
-
-    For our purposes, a UUID is a canonical form string:
-    aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
-
-    """
-    try:
-        return str(uuid.UUID(val)) == val
-    except (TypeError, ValueError, AttributeError):
-        return False
 
 
 def is_hostname_safe(hostname):
@@ -131,10 +114,6 @@ def get_cls_import_path(cls):
     if module is None or module == str.__module__:
         return cls.__name__
     return module + '.' + cls.__name__
-
-
-def strtime(at):
-    return at.strftime("%Y-%m-%dT%H:%M:%S.%f")
 
 
 # Default value feedback extension as jsonschema doesn't support it
