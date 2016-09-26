@@ -23,10 +23,8 @@ from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_cluster_state
-from watcher.tests.decision_engine.strategy.strategies \
-    import faker_metrics_collector
+from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import faker_metrics_collector
 
 
 class TestWorkloadStabilization(base.TestCase):
