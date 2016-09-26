@@ -43,7 +43,7 @@ In order to create a new strategy, you have to:
   Note: Do not use a variable to return the translated string so it can be
   automatically collected by the translation tool.
 - Implement its :py:meth:`~.BaseStrategy.get_translatable_display_name`
-  class method to return the translation key (actually the english display
+  class method to return the translation key (actually the English display
   name) of your new strategy. The value return should be the same as the
   string translated in :py:meth:`~.BaseStrategy.get_display_name`.
 - Implement its :py:meth:`~.BaseStrategy.execute` method to return the
