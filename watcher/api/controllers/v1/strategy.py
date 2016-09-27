@@ -110,7 +110,7 @@ class Strategy(base.APIBase):
     """The name of the goal this audit refers to"""
 
     parameters_spec = {wtypes.text: types.jsontype}
-    """ Parameters spec dict"""
+    """Parameters spec dict"""
 
     def __init__(self, **kwargs):
         super(Strategy, self).__init__()

@@ -59,7 +59,7 @@ in any appropriate storage system (InfluxDB, OpenTSDB, MongoDB,...).
 import abc
 import six
 
-""" Work in progress Helper to query metrics """
+"""Work in progress Helper to query metrics"""
 
 
 @six.add_metaclass(abc.ABCMeta)
