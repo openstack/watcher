@@ -5,11 +5,12 @@
 hide methods
 hide stereotypes
 
-table(goal) {
+table(goals) {
     primary_key(id: Integer)
     uuid : String[36]
     name : String[63]
     display_name : String[63]
+    efficacy_specification : JSONEncodedList, nullable
 
     created_at : DateTime
     updated_at : DateTime
@@ -18,12 +19,13 @@ table(goal) {
 }
 
 
-table(strategy) {
+table(strategies) {
     primary_key(id: Integer)
     foreign_key(goal_id : Integer)
     uuid : String[36]
     name : String[63]
     display_name : String[63]
+    parameters_spec : JSONEncodedDict, nullable
 
     created_at : DateTime
     updated_at : DateTime
@@ -32,7 +34,7 @@ table(strategy) {
 }
 
 
-table(audit_template) {
+table(audit_templates) {
     primary_key(id: Integer)
     foreign_key("goal_id : Integer")
     foreign_key("strategy_id : Integer, nullable")
@@ -50,14 +52,17 @@ table(audit_template) {
 }
 
 
-table(audit) {
+table(audits) {
     primary_key(id: Integer)
-    foreign_key("audit_template_id : Integer")
+    foreign_key("goal_id : Integer")
+    foreign_key("strategy_id : Integer, nullable")
     uuid : String[36]
     audit_type : String[20]
     state : String[20], nullable
-    deadline  :DateTime, nullable
+    deadline : DateTime, nullable
     interval : Integer, nullable
+    parameters : JSONEncodedDict, nullable
+    host_aggregate : Integer, nullable
 
     created_at : DateTime
     updated_at : DateTime
@@ -66,9 +71,10 @@ table(audit) {
 }
 
 
-table(action_plan) {
+table(action_plans) {
     primary_key(id: Integer)
     foreign_key("audit_id : Integer, nullable")
+    foreign_key("strategy_id : Integer")
     uuid : String[36]
     first_action_id : Integer
     state : String[20], nullable
@@ -81,7 +87,7 @@ table(action_plan) {
 }
 
 
-table(action) {
+table(actions) {
     primary_key(id: Integer)
     foreign_key("action_plan_id : Integer")
     uuid : String[36]
@@ -97,7 +103,7 @@ table(action) {
 }
 
 
-table(efficacy_indicator) {
+table(efficacy_indicators) {
     primary_key(id: Integer)
     foreign_key("action_plan_id : Integer")
     uuid : String[36]
@@ -112,12 +118,27 @@ table(efficacy_indicator) {
     deleted : Integer
 }
 
- "goal" <.. "strategy" : Foreign Key
- "goal" <.. "audit_template" : Foreign Key
- "strategy" <.. "audit_template" : Foreign Key
- "audit_template" <.. "audit" : Foreign Key
- "action_plan" <.. "action" : Foreign Key
- "action_plan" <.. "efficacy_indicator" : Foreign Key
- "audit" <.. "action_plan" : Foreign Key
+table(scoring_engines) {
+    primary_key(id: Integer)
+    uuid : String[36]
+    name : String[63]
+    description : String[255], nullable
+    metainfo : Text, nullable
+
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
+ "goals" <.. "strategies" : Foreign Key
+ "goals" <.. "audit_templates" : Foreign Key
+ "strategies" <.. "audit_templates" : Foreign Key
+ "goals" <.. "audits" : Foreign Key
+ "strategies" <.. "audits" : Foreign Key
+ "action_plans" <.. "actions" : Foreign Key
+ "action_plans" <.. "efficacy_indicators" : Foreign Key
+ "strategies" <.. "action_plans" : Foreign Key
+ "audits" <.. "action_plans" : Foreign Key
 
 @enduml
