@@ -22,11 +22,13 @@ import six
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
+from watcher.decision_engine.model import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import mapping
 
 
-class ModelRoot(object):
+class ModelRoot(base.Model):
+
     def __init__(self, stale=False):
         self._nodes = utils.Struct()
         self._instances = utils.Struct()

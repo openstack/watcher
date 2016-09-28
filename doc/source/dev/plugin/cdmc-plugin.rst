@@ -22,7 +22,7 @@ cluster data model collectors within Watcher.
 Creating a new plugin
 =====================
 
-In order to create a new model, you have to:
+In order to create a new cluster data model collector, you have to:
 
 - Extend the :py:class:`~.base.BaseClusterDataModelCollector` class.
 - Implement its :py:meth:`~.BaseClusterDataModelCollector.execute` abstract
@@ -64,6 +64,49 @@ Here is an example showing how you can write a plugin called
 This implementation is the most basic one. So in order to get a better
 understanding on how to implement a more advanced cluster data model collector,
 have a look at the :py:class:`~.NovaClusterDataModelCollector` class.
+
+Define a custom model
+=====================
+
+As you may have noticed in the above example, we are reusing an existing model
+provided by Watcher. However, this model can be easily customized by
+implementing a new class that would implement the :py:class:`~.Model` abstract
+base class. Here below is simple example on how to proceed in implementing a
+custom Model:
+
+.. code-block:: python
+
+    # Filepath = <PROJECT_DIR>/thirdparty/dummy.py
+    # Import path = thirdparty.dummy
+
+    from watcher.decision_engine.model import base as modelbase
+    from watcher.decision_engine.model.collector import base
+
+
+    class MyModel(modelbase.Model):
+
+        def to_string(self):
+            return 'MyModel'
+
+
+    class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
+
+        def execute(self):
+            model = MyModel()
+            # Do something here...
+            return model
+
+        @property
+        def notification_endpoints(self):
+            return []
+
+Here below is the abstract ``Model`` class that every single cluster data model
+should implement:
+
+.. autoclass:: watcher.decision_engine.model.base.Model
+    :members:
+    :special-members: __init__
+    :noindex:
 
 Define configuration parameters
 ===============================
