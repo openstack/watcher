@@ -167,10 +167,6 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         cfg.CONF.set_override('debug', True, enforce_type=True)
         self._test_hook_without_traceback()
 
-    def test_hook_without_traceback_debug_tracebacks(self):
-        cfg.CONF.set_override('debug', True, enforce_type=True)
-        self._test_hook_without_traceback()
-
     def _test_hook_on_serverfault(self):
         self.root_convert_mock.side_effect = Exception(self.MSG_WITH_TRACE)
 
