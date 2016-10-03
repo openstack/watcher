@@ -14,8 +14,6 @@
 #    under the License.
 
 import mock
-from testtools import matchers
-
 from watcher.common import exception
 # from watcher.common import utils as w_utils
 from watcher import objects
@@ -58,7 +56,7 @@ class TestAuditObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_audit]
             audits = objects.Audit.list(self.context)
             self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertThat(audits, matchers.HasLength(1))
+            self.assertEqual(1, len(audits))
             self.assertIsInstance(audits[0], objects.Audit)
             self.assertEqual(self.context, audits[0]._context)
 

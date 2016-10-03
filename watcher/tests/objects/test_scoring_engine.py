@@ -14,8 +14,6 @@
 #    under the License.
 
 import mock
-from testtools import matchers
-
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -66,7 +64,7 @@ class TestScoringEngineObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_scoring_engine]
             scoring_engines = objects.ScoringEngine.list(self.context)
             self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertThat(scoring_engines, matchers.HasLength(1))
+            self.assertEqual(1, len(scoring_engines))
             self.assertIsInstance(scoring_engines[0], objects.ScoringEngine)
             self.assertEqual(self.context, scoring_engines[0]._context)
 

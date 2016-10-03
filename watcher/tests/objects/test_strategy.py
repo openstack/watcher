@@ -15,8 +15,6 @@
 
 
 import mock
-from testtools import matchers
-
 from watcher.common import exception
 from watcher import objects
 from watcher.tests.db import base
@@ -58,7 +56,7 @@ class TestStrategyObject(base.DbTestCase):
             mock_get_list.return_value = [self.fake_strategy]
             strategies = objects.Strategy.list(self.context)
             self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertThat(strategies, matchers.HasLength(1))
+            self.assertEqual(1, len(strategies))
             self.assertIsInstance(strategies[0], objects.Strategy)
             self.assertEqual(self.context, strategies[0]._context)
 
