@@ -30,6 +30,7 @@ class TestListActionPlan(api_base.FunctionalTest):
     def setUp(self):
         super(TestListActionPlan, self).setUp()
         obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
 
     def test_empty(self):
@@ -292,6 +293,9 @@ class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestDelete, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
         self.action_plan = obj_utils.create_test_action_plan(
             self.context)
         p = mock.patch.object(db_api.BaseConnection, 'destroy_action_plan')
@@ -348,6 +352,9 @@ class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPatch, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
         self.action_plan = obj_utils.create_test_action_plan(
             self.context, state=objects.action_plan.State.RECOMMENDED)
         p = mock.patch.object(db_api.BaseConnection, 'update_action_plan')
@@ -487,6 +494,12 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
              "new_state": new_state} not in ALLOWED_TRANSITIONS
     ]
 
+    def setUp(self):
+        super(TestPatchStateTransitionDenied, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
+
     @mock.patch.object(
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
@@ -520,6 +533,12 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         for transition in ALLOWED_TRANSITIONS
     ]
 
+    def setUp(self):
+        super(TestPatchStateTransitionOk, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
+
     @mock.patch.object(
         db_api.BaseConnection, 'update_action_plan',
         mock.Mock(side_effect=lambda ap: ap.save() or ap))
@@ -542,6 +561,12 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
 
 
 class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
+
+    def setUp(self):
+        super(TestActionPlanPolicyEnforcement, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({

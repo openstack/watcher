@@ -71,10 +71,9 @@ state may be one of the following:
 
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
-from watcher.objects import action as action_objects
+from watcher.db import api as db_api
+from watcher import objects
 from watcher.objects import base
-from watcher.objects import efficacy_indicator as indicator_objects
 from watcher.objects import fields as wfields
 
 
@@ -91,10 +90,12 @@ class State(object):
 @base.WatcherObjectRegistry.register
 class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
                  base.WatcherObjectDictCompat):
-    # Version 1.0: Initial version
-    VERSION = '1.0'
 
-    dbapi = dbapi.get_instance()
+    # Version 1.0: Initial version
+    # Version 1.1: Added 'audit' and 'strategy' object field
+    VERSION = '1.1'
+
+    dbapi = db_api.get_instance()
 
     fields = {
         'id': wfields.IntegerField(),
@@ -104,50 +105,63 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         'first_action_id': wfields.IntegerField(nullable=True),
         'state': wfields.StringField(nullable=True),
         'global_efficacy': wfields.FlexibleDictField(nullable=True),
+
+        'audit': wfields.ObjectField('Audit', nullable=True),
+        'strategy': wfields.ObjectField('Strategy', nullable=True),
+    }
+
+    object_fields = {
+        'audit': (objects.Audit, 'audit_id'),
+        'strategy': (objects.Strategy, 'strategy_id'),
     }
 
     @base.remotable_classmethod
-    def get(cls, context, action_plan_id):
+    def get(cls, context, action_plan_id, eager=False):
         """Find a action_plan based on its id or uuid and return a Action object.
 
         :param action_plan_id: the id *or* uuid of a action_plan.
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Action` object.
         """
         if utils.is_int_like(action_plan_id):
-            return cls.get_by_id(context, action_plan_id)
+            return cls.get_by_id(context, action_plan_id, eager=eager)
         elif utils.is_uuid_like(action_plan_id):
-            return cls.get_by_uuid(context, action_plan_id)
+            return cls.get_by_uuid(context, action_plan_id, eager=eager)
         else:
             raise exception.InvalidIdentity(identity=action_plan_id)
 
     @base.remotable_classmethod
-    def get_by_id(cls, context, action_plan_id):
+    def get_by_id(cls, context, action_plan_id, eager=False):
         """Find a action_plan based on its integer id and return a Action object.
 
         :param action_plan_id: the id of a action_plan.
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Action` object.
         """
         db_action_plan = cls.dbapi.get_action_plan_by_id(
-            context, action_plan_id)
-        action_plan = ActionPlan._from_db_object(
-            cls(context), db_action_plan)
+            context, action_plan_id, eager=eager)
+        action_plan = cls._from_db_object(
+            cls(context), db_action_plan, eager=eager)
         return action_plan
 
     @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
+    def get_by_uuid(cls, context, uuid, eager=False):
         """Find a action_plan based on uuid and return a :class:`Action` object.
 
         :param uuid: the uuid of a action_plan.
         :param context: Security context
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Action` object.
         """
-        db_action_plan = cls.dbapi.get_action_plan_by_uuid(context, uuid)
-        action_plan = ActionPlan._from_db_object(cls(context), db_action_plan)
+        db_action_plan = cls.dbapi.get_action_plan_by_uuid(
+            context, uuid, eager=eager)
+        action_plan = cls._from_db_object(
+            cls(context), db_action_plan, eager=eager)
         return action_plan
 
     @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, eager=False):
         """Return a list of Action objects.
 
         :param context: Security context.
@@ -156,30 +170,36 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :param filters: Filters to apply. Defaults to None.
         :param sort_key: column to sort results by.
         :param sort_dir: direction to sort. "asc" or "desc".
+        :param eager: Load object fields if True (Default: False)
         :returns: a list of :class:`ActionPlan` object.
-
         """
         db_action_plans = cls.dbapi.get_action_plan_list(context,
                                                          limit=limit,
                                                          marker=marker,
                                                          filters=filters,
                                                          sort_key=sort_key,
-                                                         sort_dir=sort_dir)
+                                                         sort_dir=sort_dir,
+                                                         eager=eager)
 
-        return [cls._from_db_object(cls(context), obj)
+        return [cls._from_db_object(cls(context), obj, eager=eager)
                 for obj in db_action_plans]
 
     @base.remotable
     def create(self):
-        """Create a Action record in the DB"""
+        """Create an :class:`ActionPlan` record in the DB.
+
+        :returns: An :class:`ActionPlan` object.
+        """
         values = self.obj_get_changes()
         db_action_plan = self.dbapi.create_action_plan(values)
-        self._from_db_object(self, db_action_plan)
+        # Note(v-francoise): Always load eagerly upon creation so we can send
+        # notifications containing information about the related relationships
+        self._from_db_object(self, db_action_plan, eager=True)
 
     @base.remotable
     def destroy(self):
         """Delete the action plan from the DB"""
-        related_efficacy_indicators = indicator_objects.EfficacyIndicator.list(
+        related_efficacy_indicators = objects.EfficacyIndicator.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid})
 
@@ -203,20 +223,21 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         self.obj_reset_changes()
 
     @base.remotable
-    def refresh(self):
+    def refresh(self, eager=False):
         """Loads updates for this Action plan.
 
         Loads a action_plan with the same uuid from the database and
         checks for updated attributes. Updates are applied from
         the loaded action_plan column by column, if there are any updates.
+        :param eager: Load object fields if True (Default: False)
         """
-        current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
+        current = self.get_by_uuid(self._context, uuid=self.uuid, eager=eager)
         self.obj_refresh(current)
 
     @base.remotable
     def soft_delete(self):
         """Soft Delete the Action plan from the DB"""
-        related_actions = action_objects.Action.list(
+        related_actions = objects.Action.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid})
 
@@ -224,7 +245,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         for related_action in related_actions:
             related_action.soft_delete()
 
-        related_efficacy_indicators = indicator_objects.EfficacyIndicator.list(
+        related_efficacy_indicators = objects.EfficacyIndicator.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid})
 
