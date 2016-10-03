@@ -52,7 +52,8 @@ import enum
 
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
+from watcher.db import api as db_api
+from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
@@ -75,10 +76,12 @@ class AuditType(enum.Enum):
 @base.WatcherObjectRegistry.register
 class Audit(base.WatcherPersistentObject, base.WatcherObject,
             base.WatcherObjectDictCompat):
-    # Version 1.0: Initial version
-    VERSION = '1.0'
 
-    dbapi = dbapi.get_instance()
+    # Version 1.0: Initial version
+    # Version 1.1: Added 'goal' and 'strategy' object field
+    VERSION = '1.1'
+
+    dbapi = db_api.get_instance()
 
     fields = {
         'id': wfields.IntegerField(),
@@ -90,10 +93,18 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(nullable=True),
+
+        'goal': wfields.ObjectField('Goal', nullable=True),
+        'strategy': wfields.ObjectField('Strategy', nullable=True),
+    }
+
+    object_fields = {
+        'goal': (objects.Goal, 'goal_id'),
+        'strategy': (objects.Strategy, 'strategy_id'),
     }
 
     @base.remotable_classmethod
-    def get(cls, context, audit_id):
+    def get(cls, context, audit_id, eager=False):
         """Find a audit based on its id or uuid and return a Audit object.
 
         :param context: Security context. NOTE: This should only
@@ -103,17 +114,18 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Audit(context)
         :param audit_id: the id *or* uuid of a audit.
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Audit` object.
         """
         if utils.is_int_like(audit_id):
-            return cls.get_by_id(context, audit_id)
+            return cls.get_by_id(context, audit_id, eager=eager)
         elif utils.is_uuid_like(audit_id):
-            return cls.get_by_uuid(context, audit_id)
+            return cls.get_by_uuid(context, audit_id, eager=eager)
         else:
             raise exception.InvalidIdentity(identity=audit_id)
 
     @base.remotable_classmethod
-    def get_by_id(cls, context, audit_id):
+    def get_by_id(cls, context, audit_id, eager=False):
         """Find a audit based on its integer id and return a Audit object.
 
         :param context: Security context. NOTE: This should only
@@ -123,14 +135,15 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Audit(context)
         :param audit_id: the id of a audit.
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Audit` object.
         """
-        db_audit = cls.dbapi.get_audit_by_id(context, audit_id)
-        audit = Audit._from_db_object(cls(context), db_audit)
+        db_audit = cls.dbapi.get_audit_by_id(context, audit_id, eager=eager)
+        audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 
     @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
+    def get_by_uuid(cls, context, uuid, eager=False):
         """Find a audit based on uuid and return a :class:`Audit` object.
 
         :param context: Security context. NOTE: This should only
@@ -140,16 +153,17 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Audit(context)
         :param uuid: the uuid of a audit.
+        :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Audit` object.
         """
 
-        db_audit = cls.dbapi.get_audit_by_uuid(context, uuid)
-        audit = Audit._from_db_object(cls(context), db_audit)
+        db_audit = cls.dbapi.get_audit_by_uuid(context, uuid, eager=eager)
+        audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 
     @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, eager=False):
         """Return a list of Audit objects.
 
         :param context: Security context. NOTE: This should only
@@ -163,6 +177,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         :param filters: Filters to apply. Defaults to None.
         :param sort_key: column to sort results by.
         :param sort_dir: direction to sort. "asc" or "desc".
+        :param eager: Load object fields if True (Default: False)
         :returns: a list of :class:`Audit` object.
 
         """
@@ -171,16 +186,24 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
                                              marker=marker,
                                              filters=filters,
                                              sort_key=sort_key,
-                                             sort_dir=sort_dir)
-        return [cls._from_db_object(cls(context), obj) for obj in db_audits]
+                                             sort_dir=sort_dir,
+                                             eager=eager)
+        return [cls._from_db_object(cls(context), obj, eager=eager)
+                for obj in db_audits]
 
     @base.remotable
     def create(self):
-        """Create a Audit record in the DB."""
+        """Create an :class:`Audit` record in the DB.
+
+        :returns: An :class:`Audit` object.
+        """
         values = self.obj_get_changes()
         db_audit = self.dbapi.create_audit(values)
-        self._from_db_object(self, db_audit)
+        # Note(v-francoise): Always load eagerly upon creation so we can send
+        # notifications containing information about the related relationships
+        self._from_db_object(self, db_audit, eager=True)
 
+    @base.remotable
     def destroy(self):
         """Delete the Audit from the DB."""
         self.dbapi.destroy_audit(self.uuid)
@@ -199,14 +222,15 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         self.obj_reset_changes()
 
     @base.remotable
-    def refresh(self):
+    def refresh(self, eager=False):
         """Loads updates for this Audit.
 
         Loads a audit with the same uuid from the database and
         checks for updated attributes. Updates are applied from
         the loaded audit column by column, if there are any updates.
+        :param eager: Load object fields if True (Default: False)
         """
-        current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
+        current = self.get_by_uuid(self._context, uuid=self.uuid, eager=eager)
         self.obj_refresh(current)
 
     @base.remotable

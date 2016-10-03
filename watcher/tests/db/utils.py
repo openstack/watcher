@@ -61,7 +61,7 @@ def create_test_audit_template(**kwargs):
 
 
 def get_test_audit(**kwargs):
-    return {
+    audit_data = {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'audit_type': kwargs.get('audit_type', 'ONESHOT'),
@@ -75,6 +75,15 @@ def get_test_audit(**kwargs):
         'strategy_id': kwargs.get('strategy_id', None),
         'scope': kwargs.get('scope', []),
     }
+
+    # ObjectField doesn't allow None nor dict, so if we want to simulate a
+    # non-eager object loading, the field should not be referenced at all.
+    if kwargs.get('goal'):
+        audit_data['goal'] = kwargs.get('goal')
+    if kwargs.get('strategy'):
+        audit_data['strategy'] = kwargs.get('strategy')
+
+    return audit_data
 
 
 def create_test_audit(**kwargs):
