@@ -13,7 +13,6 @@
 
 import os
 
-from tempest import config
 from tempest.test_discover import plugins
 
 from watcher_tempest_plugin import config as watcher_config
@@ -28,9 +27,8 @@ class WatcherTempestPlugin(plugins.TempestPlugin):
         return full_test_dir, base_path
 
     def register_opts(self, conf):
-        config.register_opt_group(
-            conf, watcher_config.service_available_group,
-            watcher_config.ServiceAvailableGroup)
+        conf.register_opt(watcher_config.service_option,
+                          group='service_available')
 
     def get_opt_lists(self):
-        return []
+        return [('service_available', [watcher_config.service_option])]

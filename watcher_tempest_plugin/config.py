@@ -17,11 +17,7 @@
 from oslo_config import cfg
 
 
-service_available_group = cfg.OptGroup(name="service_available",
-                                       title="Available OpenStack Services")
-
-ServiceAvailableGroup = [
-    cfg.BoolOpt("watcher",
-                default=True,
-                help="Whether or not watcher is expected to be available"),
-]
+service_option = cfg.BoolOpt("watcher",
+                             default=True,
+                             help="Whether or not watcher is expected to be "
+                                  "available")
