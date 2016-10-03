@@ -17,6 +17,7 @@ import mock
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
+from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -24,135 +25,172 @@ from watcher.tests.db import utils
 
 class TestAuditTemplateObject(base.DbTestCase):
 
+    goal_id = 1
+
+    goal_data = utils.get_test_goal(
+        id=goal_id, uuid=w_utils.generate_uuid(), name="DUMMY")
+
+    scenarios = [
+        ('non_eager', dict(
+            eager=False,
+            fake_audit_template=utils.get_test_audit_template(
+                goal_id=goal_id))),
+        ('eager_with_non_eager_load', dict(
+            eager=True,
+            fake_audit_template=utils.get_test_audit_template(
+                goal_id=goal_id))),
+        ('eager_with_eager_load', dict(
+            eager=True,
+            fake_audit_template=utils.get_test_audit_template(
+                goal_id=goal_id, goal=goal_data))),
+    ]
+
     def setUp(self):
         super(TestAuditTemplateObject, self).setUp()
-        self.fake_audit_template = utils.get_test_audit_template()
-        self.fake_goal1 = utils.create_test_goal(
-            id=1, uuid=w_utils.generate_uuid(), name="DUMMY")
-        self.fake_goal2 = utils.create_test_goal(
-            id=2, uuid=w_utils.generate_uuid(), name="BALANCE_LOAD")
+        self.fake_goal = utils.create_test_goal(**self.goal_data)
 
-    def test_get_by_id(self):
+    def eager_load_audit_template_assert(self, audit_template, goal):
+        if self.eager:
+            self.assertIsNotNone(audit_template.goal)
+            fields_to_check = set(
+                super(objects.Goal, objects.Goal).fields
+            ).symmetric_difference(objects.Goal.fields)
+            db_data = {
+                k: v for k, v in goal.as_dict().items()
+                if k in fields_to_check}
+            object_data = {
+                k: v for k, v in audit_template.goal.as_dict().items()
+                if k in fields_to_check}
+            self.assertEqual(db_data, object_data)
+
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_id')
+    def test_get_by_id(self, mock_get_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         audit_template_id = self.fake_audit_template['id']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_id',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            audit_template = objects.AuditTemplate.get(self.context,
-                                                       audit_template_id)
-            mock_get_audit_template.assert_called_once_with(
-                self.context, audit_template_id)
-            self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get(
+            self.context, audit_template_id, eager=self.eager)
+        mock_get_audit_template.assert_called_once_with(
+            self.context, audit_template_id, eager=self.eager)
+        self.assertEqual(self.context, audit_template._context)
+        self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
-    def test_get_by_uuid(self):
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_get_by_uuid(self, mock_get_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         uuid = self.fake_audit_template['uuid']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            audit_template = objects.AuditTemplate.get(self.context, uuid)
-            mock_get_audit_template.assert_called_once_with(self.context, uuid)
-            self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get(
+            self.context, uuid, eager=self.eager)
+        mock_get_audit_template.assert_called_once_with(
+            self.context, uuid, eager=self.eager)
+        self.assertEqual(self.context, audit_template._context)
+        self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
-    def test_get_by_name(self):
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_name')
+    def test_get_by_name(self, mock_get_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         name = self.fake_audit_template['name']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_name',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            audit_template = objects.AuditTemplate.get_by_name(
-                self.context,
-                name)
-            mock_get_audit_template.assert_called_once_with(self.context, name)
-            self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get_by_name(
+            self.context, name, eager=self.eager)
+        mock_get_audit_template.assert_called_once_with(
+            self.context, name, eager=self.eager)
+        self.assertEqual(self.context, audit_template._context)
+        self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
     def test_get_bad_id_and_uuid(self):
         self.assertRaises(exception.InvalidIdentity,
                           objects.AuditTemplate.get,
-                          self.context, 'not-a-uuid')
+                          self.context, 'not-a-uuid', eager=self.eager)
 
-    def test_list(self):
-        with mock.patch.object(self.dbapi, 'get_audit_template_list',
-                               autospec=True) as mock_get_list:
-            mock_get_list.return_value = [self.fake_audit_template]
-            audit_templates = objects.AuditTemplate.list(self.context)
-            self.assertEqual(1, mock_get_list.call_count)
-            self.assertEqual(1, len(audit_templates))
-            self.assertIsInstance(audit_templates[0], objects.AuditTemplate)
-            self.assertEqual(self.context, audit_templates[0]._context)
+    @mock.patch.object(db_api.Connection, 'get_audit_template_list')
+    def test_list(self, mock_get_list):
+        mock_get_list.return_value = [self.fake_audit_template]
+        audit_templates = objects.AuditTemplate.list(
+            self.context, eager=self.eager)
+        mock_get_list.assert_called_once_with(
+            self.context, eager=self.eager, filters=None, limit=None,
+            marker=None, sort_dir=None, sort_key=None)
+        self.assertEqual(1, len(audit_templates))
+        self.assertIsInstance(audit_templates[0], objects.AuditTemplate)
+        self.assertEqual(self.context, audit_templates[0]._context)
+        for audit_template in audit_templates:
+            self.eager_load_audit_template_assert(
+                audit_template, self.fake_goal)
 
-    def test_create(self):
-        with mock.patch.object(self.dbapi, 'create_audit_template',
-                               autospec=True) as mock_create_audit_template:
-            mock_create_audit_template.return_value = self.fake_audit_template
-            audit_template = objects.AuditTemplate(self.context,
-                                                   **self.fake_audit_template)
-            audit_template.create()
-            mock_create_audit_template.assert_called_once_with(
-                self.fake_audit_template)
-            self.assertEqual(self.context, audit_template._context)
-
-    def test_destroy(self):
+    @mock.patch.object(db_api.Connection, 'update_audit_template')
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_save(self, mock_get_audit_template, mock_update_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         uuid = self.fake_audit_template['uuid']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            with mock.patch.object(self.dbapi, 'destroy_audit_template',
-                                   autospec=True) \
-                    as mock_destroy_audit_template:
-                audit_template = objects.AuditTemplate.get_by_uuid(
-                    self.context, uuid)
-                audit_template.destroy()
-                mock_get_audit_template.assert_called_once_with(
-                    self.context, uuid)
-                mock_destroy_audit_template.assert_called_once_with(uuid)
-                self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get_by_uuid(
+            self.context, uuid, eager=self.eager)
+        audit_template.goal_id = self.fake_goal.id
+        audit_template.save()
 
-    def test_save(self):
+        mock_get_audit_template.assert_called_once_with(
+            self.context, uuid, eager=self.eager)
+        mock_update_audit_template.assert_called_once_with(
+            uuid, {'goal_id': self.fake_goal.id})
+        self.assertEqual(self.context, audit_template._context)
+        self.eager_load_audit_template_assert(audit_template, self.fake_goal)
+
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_refresh(self, mock_get_audit_template):
+        returns = [dict(self.fake_audit_template, name="first name"),
+                   dict(self.fake_audit_template, name="second name")]
+        mock_get_audit_template.side_effect = returns
         uuid = self.fake_audit_template['uuid']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            with mock.patch.object(self.dbapi, 'update_audit_template',
-                                   autospec=True) \
-                    as mock_update_audit_template:
-                audit_template = objects.AuditTemplate.get_by_uuid(
-                    self.context, uuid)
-                audit_template.goal_id = self.fake_goal1.id
-                audit_template.save()
+        expected = [mock.call(self.context, uuid, eager=self.eager),
+                    mock.call(self.context, uuid, eager=self.eager)]
+        audit_template = objects.AuditTemplate.get(
+            self.context, uuid, eager=self.eager)
+        self.assertEqual("first name", audit_template.name)
+        audit_template.refresh(eager=self.eager)
+        self.assertEqual("second name", audit_template.name)
+        self.assertEqual(expected, mock_get_audit_template.call_args_list)
+        self.assertEqual(self.context, audit_template._context)
+        self.eager_load_audit_template_assert(audit_template, self.fake_goal)
 
-                mock_get_audit_template.assert_called_once_with(
-                    self.context, uuid)
-                mock_update_audit_template.assert_called_once_with(
-                    uuid, {'goal_id': self.fake_goal1.id})
-                self.assertEqual(self.context, audit_template._context)
 
-    def test_refresh(self):
+class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
+
+    def setUp(self):
+        super(TestCreateDeleteAuditTemplateObject, self).setUp()
+        self.fake_audit_template = utils.get_test_audit_template()
+
+    @mock.patch.object(db_api.Connection, 'create_audit_template')
+    def test_create(self, mock_create_audit_template):
+        goal = utils.create_test_goal()
+        self.fake_audit_template['goal_id'] = goal.id
+        mock_create_audit_template.return_value = self.fake_audit_template
+        audit_template = objects.AuditTemplate(
+            self.context, **self.fake_audit_template)
+        audit_template.create()
+        mock_create_audit_template.assert_called_once_with(
+            self.fake_audit_template)
+        self.assertEqual(self.context, audit_template._context)
+
+    @mock.patch.object(db_api.Connection, 'soft_delete_audit_template')
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_soft_delete(self, mock_get_audit_template,
+                         mock_soft_delete_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         uuid = self.fake_audit_template['uuid']
-        returns = [dict(self.fake_audit_template,
-                        goal_id=self.fake_goal1.id),
-                   dict(self.fake_audit_template, goal_id=self.fake_goal2.id)]
-        expected = [mock.call(self.context, uuid),
-                    mock.call(self.context, uuid)]
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
-                               side_effect=returns,
-                               autospec=True) as mock_get_audit_template:
-            audit_template = objects.AuditTemplate.get(self.context, uuid)
-            self.assertEqual(1, audit_template.goal_id)
-            audit_template.refresh()
-            self.assertEqual(2, audit_template.goal_id)
-            self.assertEqual(expected, mock_get_audit_template.call_args_list)
-            self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get_by_uuid(self.context, uuid)
+        audit_template.soft_delete()
+        mock_get_audit_template.assert_called_once_with(
+            self.context, uuid, eager=False)
+        mock_soft_delete_audit_template.assert_called_once_with(uuid)
+        self.assertEqual(self.context, audit_template._context)
 
-    def test_soft_delete(self):
+    @mock.patch.object(db_api.Connection, 'destroy_audit_template')
+    @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
+    def test_destroy(self, mock_get_audit_template,
+                     mock_destroy_audit_template):
+        mock_get_audit_template.return_value = self.fake_audit_template
         uuid = self.fake_audit_template['uuid']
-        with mock.patch.object(self.dbapi, 'get_audit_template_by_uuid',
-                               autospec=True) as mock_get_audit_template:
-            mock_get_audit_template.return_value = self.fake_audit_template
-            with mock.patch.object(self.dbapi, 'soft_delete_audit_template',
-                                   autospec=True) \
-                    as mock_soft_delete_audit_template:
-                audit_template = objects.AuditTemplate.get_by_uuid(
-                    self.context, uuid)
-                audit_template.soft_delete()
-                mock_get_audit_template.assert_called_once_with(
-                    self.context, uuid)
-                mock_soft_delete_audit_template.assert_called_once_with(uuid)
-                self.assertEqual(self.context, audit_template._context)
+        audit_template = objects.AuditTemplate.get_by_uuid(self.context, uuid)
+        audit_template.destroy()
+        mock_get_audit_template.assert_called_once_with(
+            self.context, uuid, eager=False)
+        mock_destroy_audit_template.assert_called_once_with(uuid)
+        self.assertEqual(self.context, audit_template._context)

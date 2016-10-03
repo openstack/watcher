@@ -265,7 +265,7 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             # orphan audit template
             audit_template4 = obj_utils.create_test_audit_template(
-                self.context, goal_id=404,  # Does not exist
+                self.context, goal_id=self.goal2.id,  # Does not exist
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
                 strategy_id=None, id=self._generate_id(),
                 uuid=utils.generate_uuid())
@@ -362,7 +362,7 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             # orphan audit template
             audit_template4 = obj_utils.create_test_audit_template(
-                self.context, goal_id=404,  # Does not exist
+                self.context, goal_id=self.goal2.id,  # Does not exist
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
                 strategy_id=None, id=self._generate_id(),
                 uuid=utils.generate_uuid())

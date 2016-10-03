@@ -21,7 +21,7 @@ from watcher import objects
 
 
 def get_test_audit_template(**kwargs):
-    return {
+    audit_template_data = {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', 'e74c40e0-d825-11e2-a28f-0800200c9a66'),
         'goal_id': kwargs.get('goal_id', 1),
@@ -33,6 +33,15 @@ def get_test_audit_template(**kwargs):
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
     }
+
+    # ObjectField doesn't allow None nor dict, so if we want to simulate a
+    # non-eager object loading, the field should not be referenced at all.
+    if kwargs.get('goal'):
+        audit_template_data['goal'] = kwargs.get('goal')
+    if kwargs.get('strategy'):
+        audit_template_data['strategy'] = kwargs.get('strategy')
+
+    return audit_template_data
 
 
 def create_test_audit_template(**kwargs):
