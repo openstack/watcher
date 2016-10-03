@@ -278,7 +278,6 @@ class DbActionPlanTestCase(base.DbTestCase):
             id=2,
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
-            deadline=None,
             state=ap_objects.State.ONGOING)
         action_plan1 = self._create_test_action_plan(
             id=1,

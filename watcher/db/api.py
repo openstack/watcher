@@ -275,7 +275,6 @@ class BaseConnection(object):
                          'name': 'example',
                          'description': 'free text description'
                          'goal': 'DUMMY'
-                         'extra': {'automatic': True}
                         }
         :returns: An audit template.
         :raises: :py:class:`~.AuditTemplateAlreadyExists`
@@ -375,7 +374,6 @@ class BaseConnection(object):
                         {
                          'uuid': utils.generate_uuid(),
                          'type': 'ONESHOT',
-                         'deadline': None
                         }
         :returns: An audit.
         :raises: :py:class:`~.AuditAlreadyExists`

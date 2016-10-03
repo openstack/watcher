@@ -74,21 +74,19 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     # ### AUDIT TEMPLATES ### #
 
     def create_audit_template(self, goal, name=None, description=None,
-                              strategy=None, extra=None):
+                              strategy=None):
         """Wrapper utility for creating a test audit template
 
         :param goal: Goal UUID or name related to the audit template.
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
         :param strategy: Strategy UUID or name related to the audit template.
-        :param extra: Metadata associated to this audit template.
         :return: A tuple with The HTTP response and its body
         """
         description = description or data_utils.rand_name(
             'test-audit_template')
         resp, body = self.client.create_audit_template(
-            name=name, description=description, goal=goal,
-            strategy=strategy, extra=extra)
+            name=name, description=description, goal=goal, strategy=strategy)
 
         self.addCleanup(
             self.delete_audit_template,
@@ -109,7 +107,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     # ### AUDITS ### #
 
     def create_audit(self, audit_template_uuid, audit_type='ONESHOT',
-                     state=None, deadline=None):
+                     state=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
@@ -118,7 +116,7 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
         """
         resp, body = self.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state, deadline=deadline)
+            state=state)
 
         self.addCleanup(self.delete_audit, audit_uuid=body["uuid"])
         return resp, body

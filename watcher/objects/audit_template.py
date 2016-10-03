@@ -67,8 +67,6 @@ class AuditTemplate(base.WatcherObject):
         'description': obj_utils.str_or_none,
         'goal_id': obj_utils.int_or_none,
         'strategy_id': obj_utils.int_or_none,
-        'extra': obj_utils.dict_or_none,
-        'version': obj_utils.str_or_none,
         'scope': obj_utils.list_or_none,
     }
 

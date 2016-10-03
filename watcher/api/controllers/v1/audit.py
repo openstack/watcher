@@ -54,15 +54,11 @@ class AuditPostType(wtypes.Base):
 
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=False)
 
-    scope = wtypes.wsattr(types.jsontype, readonly=True)
-
     goal = wtypes.wsattr(wtypes.text, mandatory=False)
 
     strategy = wtypes.wsattr(wtypes.text, mandatory=False)
 
     audit_type = wtypes.wsattr(wtypes.text, mandatory=True)
-
-    deadline = wtypes.wsattr(datetime.datetime, mandatory=False)
 
     state = wsme.wsattr(wtypes.text, readonly=True,
                         default=objects.audit.State.PENDING)
@@ -70,6 +66,8 @@ class AuditPostType(wtypes.Base):
     parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
                                default={})
     interval = wsme.wsattr(int, mandatory=False)
+
+    scope = wtypes.wsattr(types.jsontype, readonly=True)
 
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
@@ -81,7 +79,7 @@ class AuditPostType(wtypes.Base):
             raise exception.AuditIntervalNotAllowed(audit_type=self.audit_type)
 
         if (self.audit_type == objects.audit.AuditType.CONTINUOUS.value and
-           self.interval in (wtypes.Unset, None)):
+                self.interval in (wtypes.Unset, None)):
             raise exception.AuditIntervalNotSpecified(
                 audit_type=self.audit_type)
 
@@ -113,7 +111,6 @@ class AuditPostType(wtypes.Base):
                         pass
         return Audit(
             audit_type=self.audit_type,
-            deadline=self.deadline,
             parameters=self.parameters,
             goal_id=self.goal,
             strategy_id=self.strategy,
@@ -229,9 +226,6 @@ class Audit(base.APIBase):
     audit_type = wtypes.text
     """Type of this audit"""
 
-    deadline = datetime.datetime
-    """deadline of the audit"""
-
     state = wtypes.text
     """This audit state"""
 
@@ -291,8 +285,8 @@ class Audit(base.APIBase):
     @staticmethod
     def _convert_with_links(audit, url, expand=True):
         if not expand:
-            audit.unset_fields_except(['uuid', 'audit_type', 'deadline',
-                                       'state', 'goal_uuid', 'interval',
+            audit.unset_fields_except(['uuid', 'audit_type', 'state',
+                                       'goal_uuid', 'interval', 'scope',
                                        'strategy_uuid', 'goal_name',
                                        'strategy_name'])
 
@@ -315,7 +309,6 @@ class Audit(base.APIBase):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
                      audit_type='ONESHOT',
                      state='PENDING',
-                     deadline=None,
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow(),
@@ -324,6 +317,7 @@ class Audit(base.APIBase):
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'
+
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -423,16 +417,14 @@ class AuditsController(rest.RestController):
 
     @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
                          wtypes.text, wtypes.text, wtypes.text, int)
-    def get_all(self, marker=None, limit=None,
-                sort_key='id', sort_dir='asc', goal=None,
-                strategy=None):
+    def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc',
+                goal=None, strategy=None):
         """Retrieve a list of audits.
 
         :param marker: pagination marker for large data sets.
         :param limit: maximum number of resources to return in a single result.
         :param sort_key: column to sort results by. Default: id.
         :param sort_dir: direction to sort. "asc" or "desc". Default: asc.
-         id.
         :param goal: goal UUID or name to filter by
         :param strategy: strategy UUID or name to filter by
         """

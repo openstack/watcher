@@ -4,7 +4,7 @@ actor Administrator
 
 == Create some Audit settings ==
 
-Administrator -> Watcher : create new Audit Template (i.e. Audit settings : goal, scope, deadline,...)
+Administrator -> Watcher : create new Audit Template (i.e. Audit settings : goal, scope, ...)
 Watcher -> Watcher : save Audit Template in database
 Administrator <-- Watcher : Audit Template UUID
 

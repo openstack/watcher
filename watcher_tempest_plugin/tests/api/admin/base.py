@@ -115,21 +115,21 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit_template(cls, goal, name=None, description=None,
-                              strategy=None, extra=None):
+                              strategy=None, scope=None):
         """Wrapper utility for creating a test audit template
 
         :param goal: Goal UUID or name related to the audit template.
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
         :param strategy: Strategy UUID or name related to the audit template.
-        :param extra: Metadata associated to this audit template.
+        :param scope: Scope that will be applied on all derived audits.
         :return: A tuple with The HTTP response and its body
         """
         description = description or data_utils.rand_name(
             'test-audit_template')
         resp, body = cls.client.create_audit_template(
-            name=name, description=description, goal=goal,
-            strategy=strategy, extra=extra)
+            name=name, description=description,
+            goal=goal, strategy=strategy, scope=scope)
 
         cls.created_audit_templates.add(body['uuid'])
 
@@ -153,19 +153,18 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit(cls, audit_template_uuid, audit_type='ONESHOT',
-                     state=None, deadline=None, interval=None):
+                     state=None, interval=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
         :param type: Audit type (either ONESHOT or CONTINUOUS)
         :param state: Audit state (str)
-        :param deadline: Audit deadline (datetime)
         :param interval: Audit interval in seconds (int)
         :return: A tuple with The HTTP response and its body
         """
         resp, body = cls.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state, deadline=deadline, interval=interval)
+            state=state, interval=interval)
 
         cls.created_audits.add(body['uuid'])
         cls.created_action_plans_audit_uuids.add(body['uuid'])
