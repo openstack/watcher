@@ -11,7 +11,18 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import sys
+import os
+
 from watcher import version as watcher_version
+
+# If extensions (or modules to document with autodoc) are in another directory,
+# add these directories to sys.path here. If the directory is relative to the
+# documentation root, use os.path.abspath to make it absolute, like shown here.
+sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../'))
+sys.path.insert(0, os.path.abspath('./'))
 
 # -- General configuration ----------------------------------------------------
 
@@ -26,7 +37,7 @@ extensions = [
     'sphinxcontrib.pecanwsme.rest',
     'stevedore.sphinxext',
     'wsmeext.sphinxext',
-    'watcher.doc',
+    'ext.term',
 ]
 
 wsme_protocols = ['restjson']
