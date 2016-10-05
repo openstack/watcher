@@ -78,6 +78,8 @@ exclude_patterns = [
     # them when scanning for input files.
     'man/footer.rst',
     'man/general-options.rst',
+    'strategies/strategy-template.rst',
+    'image_src/plantuml/README.rst',
 ]
 
 # If true, '()' will be appended to :func: etc. cross-reference text.

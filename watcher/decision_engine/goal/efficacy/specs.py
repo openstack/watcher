@@ -37,9 +37,9 @@ class ServerConsolidation(base.EfficacySpecification):
             indicators.InstanceMigrationsCount(),
         ]
 
-    def get_global_efficacy_indicator(self, indicators_map):
+    def get_global_efficacy_indicator(self, indicators_map=None):
         value = 0
-        if indicators_map.instance_migrations_count > 0:
+        if indicators_map and indicators_map.instance_migrations_count > 0:
             value = (float(indicators_map.released_compute_nodes_count) /
                      float(indicators_map.instance_migrations_count)) * 100
 

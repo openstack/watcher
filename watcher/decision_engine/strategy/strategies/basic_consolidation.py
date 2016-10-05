@@ -25,6 +25,14 @@ it becomes necessary to migrate VMs among servers to lower the costs. However,
 migration of VMs introduces runtime overheads and consumes extra energy, thus
 a good server consolidation strategy should carefully plan for migration in
 order to both minimize energy consumption and comply to the various SLAs.
+
+This algorithm not only minimizes the overall number of used servers, but also
+minimizes the number of migrations.
+
+It has been developed only for tests. You must have at least 2 physical compute
+nodes to run it, so you can easilly run it on DevStack. It assumes that live
+migration is possible on your OpenStack cluster.
+
 """
 
 from oslo_log import log
@@ -39,28 +47,7 @@ LOG = log.getLogger(__name__)
 
 
 class BasicConsolidation(base.ServerConsolidationBaseStrategy):
-    """Basic offline consolidation using live migration
-
-    *Description*
-
-    This is server consolidation algorithm which not only minimizes the overall
-    number of used servers, but also minimizes the number of migrations.
-
-    *Requirements*
-
-    * You must have at least 2 physical compute nodes to run this strategy.
-
-    *Limitations*
-
-    - It has been developed only for tests.
-    - It assumes that the virtual machine and the compute node are on the same
-      private network.
-    - It assumes that live migrations are possible.
-
-    *Spec URL*
-
-    <None>
-    """
+    """Basic offline consolidation using live migration"""
 
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'

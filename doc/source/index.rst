@@ -96,6 +96,7 @@ Introduction
   deploy/user-guide
   deploy/policy
   deploy/gmr
+  strategies/strategies
 
 Watcher Manual Pages
 ====================
