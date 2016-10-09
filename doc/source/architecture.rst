@@ -450,7 +450,7 @@ state may be one of the following:
    stored in the :ref:`Watcher database <watcher_database_definition>` but is
    not returned any more through the Watcher APIs.
 -  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
-   **PENDING** or **ONGOING** state and was cancelled by the
+   **RECOMMENDED**, **PENDING** or **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
 
 
