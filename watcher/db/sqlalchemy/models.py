@@ -27,10 +27,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Numeric
-from sqlalchemy import schema
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator, TEXT
+from sqlalchemy import UniqueConstraint
 
 from watcher.common import paths
 
@@ -116,7 +116,8 @@ class Strategy(Base):
 
     __tablename__ = 'strategies'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_strategies0uuid'),
+        UniqueConstraint('uuid', name='uniq_strategies0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_strategies0name'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -132,7 +133,8 @@ class Goal(Base):
 
     __tablename__ = 'goals'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_goals0uuid'),
+        UniqueConstraint('uuid', name='uniq_goals0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_goals0name'),
         table_args(),
     )
     id = Column(Integer, primary_key=True)
@@ -147,7 +149,8 @@ class AuditTemplate(Base):
 
     __tablename__ = 'audit_templates'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_audit_templates0uuid'),
+        UniqueConstraint('uuid', name='uniq_audit_templates0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_audit_templates0name'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -166,7 +169,7 @@ class Audit(Base):
 
     __tablename__ = 'audits'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_audits0uuid'),
+        UniqueConstraint('uuid', name='uniq_audits0uuid'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -186,7 +189,7 @@ class Action(Base):
 
     __tablename__ = 'actions'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_actions0uuid'),
+        UniqueConstraint('uuid', name='uniq_actions0uuid'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -205,7 +208,7 @@ class ActionPlan(Base):
 
     __tablename__ = 'action_plans'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_action_plans0uuid'),
+        UniqueConstraint('uuid', name='uniq_action_plans0uuid'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -222,7 +225,7 @@ class EfficacyIndicator(Base):
 
     __tablename__ = 'efficacy_indicators'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_efficacy_indicators0uuid'),
+        UniqueConstraint('uuid', name='uniq_efficacy_indicators0uuid'),
         table_args()
     )
     id = Column(Integer, primary_key=True)
@@ -240,7 +243,8 @@ class ScoringEngine(Base):
 
     __tablename__ = 'scoring_engines'
     __table_args__ = (
-        schema.UniqueConstraint('uuid', name='uniq_scoring_engines0uuid'),
+        UniqueConstraint('uuid', name='uniq_scoring_engines0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_scoring_engines0name'),
         table_args()
     )
     id = Column(Integer, primary_key=True)

@@ -145,11 +145,13 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
+                name='Goal %s' % id_,
                 goal_id=goal1['id'])
         for id_ in range(3, 5):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
+                name='Goal %s' % id_,
                 goal_id=goal2['id'])
 
         response = self.get_json('/strategies/?goal=%s' % goal1['uuid'])
@@ -175,11 +177,13 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
+                name='Goal %s' % id_,
                 goal_id=goal1['id'])
         for id_ in range(3, 5):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
+                name='Goal %s' % id_,
                 goal_id=goal2['id'])
 
         response = self.get_json('/strategies/?goal=%s' % goal1['name'])
