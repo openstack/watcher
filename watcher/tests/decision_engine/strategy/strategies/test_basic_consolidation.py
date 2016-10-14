@@ -17,12 +17,12 @@
 # limitations under the License.
 #
 import collections
+import copy
 import mock
 
 from watcher.applier.loading import default
 from watcher.common import clients
 from watcher.common import exception
-from watcher.decision_engine.model.collector import nova
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -45,7 +45,8 @@ class TestBasicConsolidation(base.TestCase):
         self.addCleanup(p_osc.stop)
 
         p_model = mock.patch.object(
-            nova.NovaClusterDataModelCollector, "execute")
+            strategies.BasicConsolidation, "compute_model",
+            new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
@@ -54,6 +55,15 @@ class TestBasicConsolidation(base.TestCase):
             new_callable=mock.PropertyMock)
         self.m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
+
+        p_audit_scope = mock.patch.object(
+            strategies.BasicConsolidation, "audit_scope",
+            new_callable=mock.PropertyMock
+        )
+        self.m_audit_scope = p_audit_scope.start()
+        self.addCleanup(p_audit_scope.stop)
+
+        self.m_audit_scope.return_value = mock.Mock()
 
         self.m_model.return_value = model_root.ModelRoot()
         self.m_ceilometer.return_value = mock.Mock(
@@ -168,7 +178,7 @@ class TestBasicConsolidation(base.TestCase):
 
     def test_basic_consolidation_works_on_model_copy(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
-        self.m_model.return_value = model
+        self.m_model.return_value = copy.deepcopy(model)
 
         self.assertEqual(
             model.to_string(), self.strategy.compute_model.to_string())

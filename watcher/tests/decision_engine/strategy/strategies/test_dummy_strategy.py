@@ -37,6 +37,15 @@ class TestDummyStrategy(base.TestCase):
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
+        p_audit_scope = mock.patch.object(
+            strategies.DummyStrategy, "audit_scope",
+            new_callable=mock.PropertyMock
+        )
+        self.m_audit_scope = p_audit_scope.start()
+        self.addCleanup(p_audit_scope.stop)
+
+        self.m_audit_scope.return_value = mock.Mock()
+
         self.m_model.return_value = model_root.ModelRoot()
         self.strategy = strategies.DummyStrategy(config=mock.Mock())
 

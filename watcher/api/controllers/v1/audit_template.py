@@ -66,6 +66,7 @@ from watcher.common import context as context_utils
 from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
+from watcher.decision_engine.scope import default
 from watcher import objects
 
 
@@ -81,10 +82,6 @@ class AuditTemplatePostType(wtypes.Base):
     deadline = wsme.wsattr(datetime.datetime, mandatory=False)
     """deadline of the audit template"""
 
-    host_aggregate = wsme.wsattr(wtypes.IntegerType(minimum=1),
-                                 mandatory=False)
-    """ID of the Nova host aggregate targeted by the audit template"""
-
     extra = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False)
     """The metadata of the audit template"""
 
@@ -97,18 +94,21 @@ class AuditTemplatePostType(wtypes.Base):
     version = wtypes.text
     """Internal version of the audit template"""
 
+    scope = wtypes.wsattr(types.jsontype, mandatory=False, default=[])
+    """Audit Scope"""
+
     def as_audit_template(self):
         return AuditTemplate(
             name=self.name,
             description=self.description,
             deadline=self.deadline,
-            host_aggregate=self.host_aggregate,
             extra=self.extra,
             goal_id=self.goal,  # Dirty trick ...
             goal=self.goal,
             strategy_id=self.strategy,  # Dirty trick ...
             strategy_uuid=self.strategy,
             version=self.version,
+            scope=self.scope,
         )
 
     @staticmethod
@@ -122,6 +122,9 @@ class AuditTemplatePostType(wtypes.Base):
             goal = available_goal_names_map[audit_template.goal]
         else:
             raise exception.InvalidGoal(goal=audit_template.goal)
+
+        common_utils.Draft4Validator(
+            default.DefaultScope.DEFAULT_SCHEMA).validate(audit_template.scope)
 
         if audit_template.strategy:
             available_strategies = objects.Strategy.list(
@@ -311,9 +314,6 @@ class AuditTemplate(base.APIBase):
     deadline = datetime.datetime
     """deadline of the audit template"""
 
-    host_aggregate = wtypes.IntegerType(minimum=1)
-    """ID of the Nova host aggregate targeted by the audit template"""
-
     extra = {wtypes.text: types.jsontype}
     """The metadata of the audit template"""
 
@@ -341,6 +341,9 @@ class AuditTemplate(base.APIBase):
 
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit template links"""
+
+    scope = wsme.wsattr(types.jsontype, mandatory=False)
+    """Audit Scope"""
 
     def __init__(self, **kwargs):
         super(AuditTemplate, self).__init__()
@@ -374,7 +377,7 @@ class AuditTemplate(base.APIBase):
     def _convert_with_links(audit_template, url, expand=True):
         if not expand:
             audit_template.unset_fields_except(
-                ['uuid', 'name', 'host_aggregate', 'goal_uuid', 'goal_name',
+                ['uuid', 'name', 'goal_uuid', 'goal_name',
                  'strategy_uuid', 'strategy_name'])
 
         # The numeric ID should not be exposed to
@@ -402,13 +405,13 @@ class AuditTemplate(base.APIBase):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
                      name='My Audit Template',
                      description='Description of my audit template',
-                     host_aggregate=5,
                      goal_uuid='83e44733-b640-40e2-8d8a-7dd3be7134e6',
                      strategy_uuid='367d826e-b6a4-4b70-bc44-c3f6fe1c9986',
                      extra={'automatic': True},
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow())
+                     updated_at=datetime.datetime.utcnow(),
+                     scope=[],)
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 

@@ -28,11 +28,11 @@ def get_test_audit_template(**kwargs):
         'name': kwargs.get('name', 'My Audit Template'),
         'description': kwargs.get('description', 'Desc. Of My Audit Template'),
         'extra': kwargs.get('extra', {'automatic': False}),
-        'host_aggregate': kwargs.get('host_aggregate', 1),
         'version': kwargs.get('version', 'v1'),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
+        'scope': kwargs.get('scope', []),
     }
 
 
@@ -66,7 +66,7 @@ def get_test_audit(**kwargs):
         'interval': kwargs.get('period', 3600),
         'goal_id': kwargs.get('goal_id', 1),
         'strategy_id': kwargs.get('strategy_id', None),
-        'host_aggregate': kwargs.get('host_aggregate', 1),
+        'scope': kwargs.get('scope', []),
     }
 
 

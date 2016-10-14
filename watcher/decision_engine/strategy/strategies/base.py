@@ -40,11 +40,13 @@ import abc
 import six
 
 from watcher.common import clients
+from watcher.common import context
 from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
+from watcher.decision_engine.scope import default as default_scope
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
 
@@ -66,6 +68,7 @@ class BaseStrategy(loadable.Loadable):
         :type osc: :py:class:`~.OpenStackClients` instance
         """
         super(BaseStrategy, self).__init__(config)
+        self.ctx = context.make_context()
         self._name = self.get_name()
         self._display_name = self.get_display_name()
         self._goal = self.get_goal()
@@ -78,6 +81,8 @@ class BaseStrategy(loadable.Loadable):
         self._collector_manager = None
         self._compute_model = None
         self._input_parameters = utils.Struct()
+        self._audit_scope = None
+        self._audit_scope_handler = None
 
     @classmethod
     @abc.abstractmethod
@@ -174,7 +179,8 @@ class BaseStrategy(loadable.Loadable):
         if self._compute_model is None:
             collector = self.collector_manager.get_cluster_model_collector(
                 'compute', osc=self.osc)
-            self._compute_model = collector.get_latest_cluster_data_model()
+            self._compute_model = self.audit_scope_handler.get_scoped_model(
+                collector.get_latest_cluster_data_model())
 
         if not self._compute_model:
             raise exception.ClusterStateNotDefined()
@@ -211,6 +217,21 @@ class BaseStrategy(loadable.Loadable):
     @solution.setter
     def solution(self, s):
         self._solution = s
+
+    @property
+    def audit_scope(self):
+        return self._audit_scope
+
+    @audit_scope.setter
+    def audit_scope(self, s):
+        self._audit_scope = s
+
+    @property
+    def audit_scope_handler(self):
+        if not self._audit_scope_handler:
+            self._audit_scope_handler = default_scope.DefaultScope(
+                self.audit_scope)
+        return self._audit_scope_handler
 
     @property
     def name(self):

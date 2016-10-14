@@ -81,8 +81,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
 
     def _assert_audit_template_fields(self, audit_template):
         audit_template_fields = ['name', 'goal_uuid', 'goal_name',
-                                 'strategy_uuid', 'strategy_name',
-                                 'host_aggregate']
+                                 'strategy_uuid', 'strategy_name']
         for field in audit_template_fields:
             self.assertIn(field, audit_template)
 

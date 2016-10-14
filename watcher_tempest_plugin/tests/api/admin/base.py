@@ -115,24 +115,21 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit_template(cls, goal, name=None, description=None,
-                              strategy=None, host_aggregate=None,
-                              extra=None):
+                              strategy=None, extra=None):
         """Wrapper utility for creating a test audit template
 
         :param goal: Goal UUID or name related to the audit template.
         :param name: The name of the audit template. Default: My Audit Template
         :param description: The description of the audit template.
         :param strategy: Strategy UUID or name related to the audit template.
-        :param host_aggregate: ID of the host aggregate targeted by
-                               this audit template.
         :param extra: Metadata associated to this audit template.
         :return: A tuple with The HTTP response and its body
         """
         description = description or data_utils.rand_name(
             'test-audit_template')
         resp, body = cls.client.create_audit_template(
-            name=name, description=description, goal=goal, strategy=strategy,
-            host_aggregate=host_aggregate, extra=extra)
+            name=name, description=description, goal=goal,
+            strategy=strategy, extra=extra)
 
         cls.created_audit_templates.add(body['uuid'])
 

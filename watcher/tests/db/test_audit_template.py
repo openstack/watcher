@@ -247,7 +247,6 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 1',
             description='Description of my audit template 1',
-            host_aggregate=5,
             goal='DUMMY',
             extra={'automatic': True})
         audit_template2 = self._create_test_audit_template(
@@ -255,17 +254,8 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 2',
             description='Description of my audit template 2',
-            host_aggregate=3,
             goal='DUMMY',
             extra={'automatic': True})
-
-        res = self.dbapi.get_audit_template_list(self.context,
-                                                 filters={'host_aggregate': 5})
-        self.assertEqual([audit_template1['id']], [r.id for r in res])
-
-        res = self.dbapi.get_audit_template_list(self.context,
-                                                 filters={'host_aggregate': 1})
-        self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
             self.context,

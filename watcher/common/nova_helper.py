@@ -63,6 +63,15 @@ class NovaHelper(object):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
+    def get_aggregate_list(self):
+        return self.nova.aggregates.list()
+
+    def get_aggregate_detail(self, aggregate_id):
+        return self.nova.aggregates.get(aggregate_id)
+
+    def get_availability_zone_list(self):
+        return self.nova.availability_zones.list(detailed=True)
+
     def find_instance(self, instance_id):
         search_opts = {'all_tenants': True}
         instances = self.nova.servers.list(detailed=True,
@@ -663,7 +672,7 @@ class NovaHelper(object):
             cache[fid] = flavor
         attr_defaults = [('name', 'unknown-id-%s' % fid),
                          ('vcpus', 0), ('ram', 0), ('disk', 0),
-                         ('ephemeral', 0)]
+                         ('ephemeral', 0), ('extra_specs', {})]
         for attr, default in attr_defaults:
             if not flavor:
                 instance.flavor[attr] = default

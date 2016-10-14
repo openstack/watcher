@@ -62,8 +62,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         :param description: The description of the audit template.
         :param goal_uuid: The related Goal UUID associated.
         :param strategy_uuid: The related Strategy UUID associated.
-        :param host_aggregate: ID of the host aggregate targeted by
-            this audit template.
         :param extra: Metadata associated to this audit template.
         :return: A tuple with the server response and the created audit
                  template.
@@ -78,7 +76,6 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
             'description': parameters.get('description'),
             'goal': parameters.get('goal'),
             'strategy': parameters.get('strategy'),
-            'host_aggregate': parameters.get('host_aggregate', 1),
             'extra': parameters.get('extra', {}),
         }
 

@@ -370,6 +370,11 @@ class ServiceNotFound(ResourceNotFound):
     msg_fmt = _("The service %(service)s cannot be found.")
 
 
+class WildcardCharacterIsUsed(WatcherException):
+    msg_fmt = _("You shouldn't use any other IDs of %(resource)s if you use "
+                "wildcard character.")
+
+
 # Model
 
 class InstanceNotFound(WatcherException):

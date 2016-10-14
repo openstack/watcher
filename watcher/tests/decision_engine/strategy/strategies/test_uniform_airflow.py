@@ -51,6 +51,15 @@ class TestUniformAirflow(base.TestCase):
         self.m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
 
+        p_audit_scope = mock.patch.object(
+            strategies.UniformAirflow, "audit_scope",
+            new_callable=mock.PropertyMock
+        )
+        self.m_audit_scope = p_audit_scope.start()
+        self.addCleanup(p_audit_scope.stop)
+
+        self.m_audit_scope.return_value = mock.Mock()
+
         self.m_model.return_value = model_root.ModelRoot()
         self.m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
