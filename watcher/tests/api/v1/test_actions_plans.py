@@ -360,7 +360,7 @@ class TestPatch(api_base.FunctionalTest):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        new_state = 'DELETED'
+        new_state = objects.action_plan.State.DELETED
         response = self.get_json(
             '/action_plans/%s' % self.action_plan.uuid)
         self.assertNotEqual(new_state, response['state'])
@@ -591,7 +591,9 @@ class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
         self._common_policy_check(
             "action_plan:update", self.patch_json,
             '/action_plans/%s' % action_plan.uuid,
-            [{'path': '/state', 'value': 'DELETED', 'op': 'replace'}],
+            [{'path': '/state',
+              'value': objects.action_plan.State.DELETED,
+              'op': 'replace'}],
             expect_errors=True)
 
     def test_policy_disallow_delete(self):

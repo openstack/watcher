@@ -636,35 +636,6 @@ class TestPost(api_base.FunctionalTest):
         return audit_template
 
 
-# class TestDelete(api_base.FunctionalTest):
-
-#     def setUp(self):
-#         super(TestDelete, self).setUp()
-#         self.audit = obj_utils.create_test_audit(self.context)
-#         p = mock.patch.object(db_api.Connection, 'destroy_audit')
-#         self.mock_audit_delete = p.start()
-#         self.mock_audit_delete.side_effect = self._simulate_rpc_audit_delete
-#         self.addCleanup(p.stop)
-
-#     def _simulate_rpc_audit_delete(self, audit_uuid):
-#         audit = objects.Audit.get_by_uuid(self.context, audit_uuid)
-#         audit.destroy()
-
-#     def test_delete_audit(self):
-#         self.delete('/audits/%s' % self.audit.uuid)
-#         response = self.get_json('/audits/%s' % self.audit.uuid,
-#                                  expect_errors=True)
-#         self.assertEqual(404, response.status_int)
-#         self.assertEqual('application/json', response.content_type)
-#         self.assertTrue(response.json['error_message'])
-
-#     def test_delete_audit_not_found(self):
-#         uuid = utils.generate_uuid()
-#         response = self.delete('/audits/%s' % uuid, expect_errors=True)
-#         self.assertEqual(404, response.status_int)
-#         self.assertEqual('application/json', response.content_type)
-#         self.assertTrue(response.json['error_message'])
-
 class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
