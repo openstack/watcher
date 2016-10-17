@@ -18,6 +18,8 @@
 
 import random
 
+import oslo_utils
+
 
 class FakerMetricsCollector(object):
     def __init__(self):
@@ -68,11 +70,12 @@ class FakerMetricsCollector(object):
 
     def get_usage_node_ram(self, uuid):
         mock = {}
-        mock['Node_0'] = 7
-        mock['Node_1'] = 5
-        mock['Node_2'] = 29
-        mock['Node_3'] = 8
-        mock['Node_4'] = 4
+        # Ceilometer returns hardware.memory.used samples in KB.
+        mock['Node_0'] = 7*oslo_utils.units.Ki
+        mock['Node_1'] = 5*oslo_utils.units.Ki
+        mock['Node_2'] = 29*oslo_utils.units.Ki
+        mock['Node_3'] = 8*oslo_utils.units.Ki
+        mock['Node_4'] = 4*oslo_utils.units.Ki
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
@@ -136,11 +139,11 @@ class FakerMetricsCollector(object):
         # node 4
         mock['INSTANCE_7_hostname_7'] = 4
 
-        mock['Node_0'] = 0.07
-        mock['Node_1'] = 0.05
-        mock['Node_2'] = 0.1
-        mock['Node_3'] = 0.04
-        mock['Node_4'] = 0.02
+        mock['Node_0'] = 7
+        mock['Node_1'] = 5
+        mock['Node_2'] = 10
+        mock['Node_3'] = 4
+        mock['Node_4'] = 2
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)

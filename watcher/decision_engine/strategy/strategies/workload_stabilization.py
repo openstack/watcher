@@ -25,6 +25,7 @@ import random
 import oslo_cache
 from oslo_config import cfg
 from oslo_log import log
+import oslo_utils
 
 from watcher._i18n import _LI, _
 from watcher.common import exception
@@ -201,6 +202,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             if avg_meter is None:
                 raise exception.NoMetricValuesForInstance(
                     resource_id=instance_uuid, metric_name=meter)
+            if meter == 'cpu_util':
+                avg_meter /= float(100)
             instance_load[meter] = avg_meter
         return instance_load
 
@@ -236,6 +239,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     raise exception.NoSuchMetricForHost(
                         metric=self.instance_metrics[metric],
                         host=node_id)
+                if self.instance_metrics[metric] == 'hardware.memory.used':
+                    avg_meter /= oslo_utils.units.Ki
+                if self.instance_metrics[metric] == 'hardware.cpu.util':
+                    avg_meter /= 100
                 hosts_load[node_id][metric] = avg_meter
         return hosts_load
 
