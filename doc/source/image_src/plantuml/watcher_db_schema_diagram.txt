@@ -131,6 +131,18 @@ table(scoring_engines) {
     deleted : Integer
 }
 
+table(service) {
+    primary_key(id: Integer)
+    name: String[255]
+    host: String[255]
+    last_seen_up: DateTime
+
+    created_at : DateTime
+    updated_at : DateTime
+    deleted_at : DateTime
+    deleted : Integer
+}
+
  "goals" <.. "strategies" : Foreign Key
  "goals" <.. "audit_templates" : Foreign Key
  "strategies" <.. "audit_templates" : Foreign Key
