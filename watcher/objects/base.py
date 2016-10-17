@@ -136,6 +136,7 @@ class WatcherPersistentObject(object):
         :param db_object: A DB model of the object
         :param eager: Enable the loading of object fields (Default: False)
         :return: The object of the class with the database entity added
+
         """
         obj_class = type(obj)
         object_fields = obj_class.object_fields

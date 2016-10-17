@@ -1,0 +1,16 @@
+{
+    "event_type": "infra-optim.exception",
+    "payload": {
+        "watcher_object.data": {
+            "exception": "NoAvailableStrategyForGoal",
+            "exception_message": "No strategy could be found to achieve the server_consolidation goal.",
+            "function_name": "_aggregate_create_in_db",
+            "module_name": "watcher.objects.aggregate"
+        },
+        "watcher_object.name": "ExceptionPayload",
+        "watcher_object.namespace": "watcher",
+        "watcher_object.version": "1.0"
+    },
+    "priority": "ERROR",
+    "publisher_id": "watcher-api:fake-mini"
+}

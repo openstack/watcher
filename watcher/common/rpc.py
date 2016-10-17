@@ -121,7 +121,7 @@ class RequestContextSerializer(messaging.Serializer):
         return self._base.deserialize_entity(context, entity)
 
     def serialize_context(self, context):
-        return context
+        return context.to_dict()
 
     def deserialize_context(self, context):
         return watcher_context.RequestContext.from_dict(context)
@@ -146,8 +146,6 @@ def get_server(target, endpoints, serializer=None):
                                     serializer=serializer)
 
 
-def get_notifier(service=None, host=None, publisher_id=None):
+def get_notifier(publisher_id):
     assert NOTIFIER is not None
-    if not publisher_id:
-        publisher_id = "%s.%s" % (service, host or CONF.host)
     return NOTIFIER.prepare(publisher_id=publisher_id)

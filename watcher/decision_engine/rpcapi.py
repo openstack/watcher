@@ -43,7 +43,7 @@ class DecisionEngineAPI(service.Service):
             raise exception.InvalidUuidOrName(name=audit_uuid)
 
         return self.conductor_client.call(
-            context.to_dict(), 'trigger_audit', audit_uuid=audit_uuid)
+            context, 'trigger_audit', audit_uuid=audit_uuid)
 
 
 class DecisionEngineAPIManager(object):

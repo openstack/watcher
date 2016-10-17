@@ -74,21 +74,21 @@ Singleton = service.Singleton
 class WSGIService(service.ServiceBase):
     """Provides ability to launch Watcher API from wsgi app."""
 
-    def __init__(self, name, use_ssl=False):
+    def __init__(self, service_name, use_ssl=False):
         """Initialize, but do not start the WSGI server.
 
-        :param name: The name of the WSGI server given to the loader.
+        :param service_name: The service name of the WSGI server.
         :param use_ssl: Wraps the socket in an SSL context if True.
         """
-        self.name = name
+        self.service_name = service_name
         self.app = app.VersionSelectorApplication()
         self.workers = (CONF.api.workers or
                         processutils.get_worker_count())
-        self.server = wsgi.Server(CONF, name, self.app,
+        self.server = wsgi.Server(CONF, self.service_name, self.app,
                                   host=CONF.api.host,
                                   port=CONF.api.port,
                                   use_ssl=use_ssl,
-                                  logger_name=name)
+                                  logger_name=self.service_name)
 
     def start(self):
         """Start serving this service using loaded configuration"""
@@ -307,7 +307,7 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
 
     def check_api_version(self, context):
         api_manager_version = self.conductor_client.call(
-            context.to_dict(), 'check_api_version',
+            context, 'check_api_version',
             api_version=self.api_version)
         return api_manager_version
 

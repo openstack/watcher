@@ -24,8 +24,10 @@ from oslo_versionedobjects import fields
 LOG = log.getLogger(__name__)
 
 
+BaseEnumField = fields.BaseEnumField
 BooleanField = fields.BooleanField
 DateTimeField = fields.DateTimeField
+Enum = fields.Enum
 IntegerField = fields.IntegerField
 ListOfStringsField = fields.ListOfStringsField
 ObjectField = fields.ObjectField
@@ -88,3 +90,53 @@ class FlexibleListOfDictField(fields.AutoTypedField):
         if self.nullable:
             return []
         super(FlexibleListOfDictField, self)._null(obj, attr)
+
+
+# ### Notification fields ### #
+
+class BaseWatcherEnum(Enum):
+
+    ALL = ()
+
+    def __init__(self, **kwargs):
+        super(BaseWatcherEnum, self).__init__(valid_values=self.__class__.ALL)
+
+
+class NotificationPriority(BaseWatcherEnum):
+    CRITICAL = 'critical'
+    DEBUG = 'debug'
+    INFO = 'info'
+    ERROR = 'error'
+    SAMPLE = 'sample'
+    WARNING = 'warn'
+
+    ALL = (CRITICAL, DEBUG, INFO, ERROR, SAMPLE, WARNING)
+
+
+class NotificationPhase(BaseWatcherEnum):
+    START = 'start'
+    END = 'end'
+    ERROR = 'error'
+
+    ALL = (START, END, ERROR)
+
+
+class NotificationAction(BaseWatcherEnum):
+    CREATE = 'create'
+    UPDATE = 'update'
+    EXCEPTION = 'exception'
+    DELETE = 'delete'
+
+    ALL = (CREATE, UPDATE, EXCEPTION, DELETE)
+
+
+class NotificationPriorityField(BaseEnumField):
+    AUTO_TYPE = NotificationPriority()
+
+
+class NotificationPhaseField(BaseEnumField):
+    AUTO_TYPE = NotificationPhase()
+
+
+class NotificationActionField(BaseEnumField):
+    AUTO_TYPE = NotificationAction()

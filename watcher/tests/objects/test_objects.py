@@ -422,6 +422,25 @@ expected_object_fingerprints = {
 }
 
 
+def get_watcher_objects():
+    """Get Watcher versioned objects
+
+    This returns a dict of versioned objects which are
+    in the Watcher project namespace only. ie excludes
+    objects from os-vif and other 3rd party modules
+    :return: a dict mapping class names to lists of versioned objects
+    """
+    all_classes = base.WatcherObjectRegistry.obj_classes()
+    watcher_classes = {}
+    for name in all_classes:
+        objclasses = all_classes[name]
+        if (objclasses[0].OBJ_PROJECT_NAMESPACE !=
+                base.WatcherObject.OBJ_PROJECT_NAMESPACE):
+            continue
+        watcher_classes[name] = objclasses
+    return watcher_classes
+
+
 class TestObjectVersions(test_base.TestCase):
 
     def test_object_version_check(self):

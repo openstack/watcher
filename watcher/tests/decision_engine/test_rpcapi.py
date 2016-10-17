@@ -38,8 +38,7 @@ class TestDecisionEngineAPI(base.TestCase):
             expected_context = self.context
             self.api.check_api_version(expected_context)
             mock_call.assert_called_once_with(
-                expected_context.to_dict(),
-                'check_api_version',
+                expected_context, 'check_api_version',
                 api_version=rpcapi.DecisionEngineAPI().api_version)
 
     def test_execute_audit_throw_exception(self):
@@ -52,6 +51,5 @@ class TestDecisionEngineAPI(base.TestCase):
         with mock.patch.object(om.RPCClient, 'call') as mock_call:
             audit_uuid = utils.generate_uuid()
             self.api.trigger_audit(self.context, audit_uuid)
-            mock_call.assert_called_once_with(self.context.to_dict(),
-                                              'trigger_audit',
-                                              audit_uuid=audit_uuid)
+            mock_call.assert_called_once_with(
+                self.context, 'trigger_audit', audit_uuid=audit_uuid)

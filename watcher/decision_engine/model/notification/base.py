@@ -19,8 +19,6 @@
 import abc
 import six
 
-from watcher.common import rpc
-
 
 @six.add_metaclass(abc.ABCMeta)
 class NotificationEndpoint(object):
@@ -38,10 +36,3 @@ class NotificationEndpoint(object):
     @property
     def cluster_data_model(self):
         return self.collector.cluster_data_model
-
-    @property
-    def notifier(self):
-        if self._notifier is None:
-            self._notifier = rpc.get_notifier('decision-engine')
-
-        return self._notifier
