@@ -28,16 +28,10 @@ LOG = log.getLogger(__name__)
 
 
 class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
-    """nova
+    """Nova cluster data model collector
 
-    *Description*
-
-    This Nova cluster data model collector creates an in-memory representation
-    of the resources exposed by the compute service.
-
-    *Spec URL*
-
-    <None>
+       The Nova cluster data model collector creates an in-memory
+       representation of the resources exposed by the compute service.
     """
 
     def __init__(self, config, osc=None):

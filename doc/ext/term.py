@@ -85,7 +85,12 @@ class WatcherTerm(BaseWatcherDirective):
         cls_path = self.arguments[0]
 
         try:
-            cls = importlib.import_module(cls_path)
+            try:
+                cls = importlib.import_module(cls_path)
+            except ImportError:
+                module_name, cls_name = cls_path.rsplit('.', 1)
+                mod = importlib.import_module(module_name)
+                cls = getattr(mod, cls_name)
         except Exception as exc:
             raise self.error(exc)
 
@@ -97,6 +102,72 @@ class WatcherTerm(BaseWatcherDirective):
         return node.children
 
 
+class WatcherFunc(BaseWatcherDirective):
+    """Directive to import a value returned by a func into the Watcher doc
+
+    **How to use it**
+
+    # inside your .py file
+    class Bar(object):
+
+        def foo(object):
+            return foo_string
+
+
+    # Inside your .rst file
+    .. watcher-func:: import.path.to.your.Bar.foo node_classname
+
+    node_classname is decumented here:
+    http://docutils.sourceforge.net/docs/ref/rst/restructuredtext.html
+
+    This directive will then import the value and then interpret it.
+    """
+
+    # You need to put an import path as an argument for this directive to work
+    # required_arguments = 1
+    # optional_arguments = 1
+
+    option_spec = {'format': rst.directives.unchanged}
+    has_content = True
+
+    def run(self):
+        if not self.content:
+            error = self.state_machine.reporter.error(
+                'The "%s" directive is empty; content required.' % self.name,
+                nodes.literal_block(self.block_text, self.block_text),
+                line=self.lineno)
+            return [error]
+
+        func_path = self.content[0]
+        try:
+            cls_path, func_name = func_path.rsplit('.', 1)
+            module_name, cls_name = cls_path.rsplit('.', 1)
+            mod = importlib.import_module(module_name)
+            cls = getattr(mod, cls_name)
+        except Exception as exc:
+            raise self.error(exc)
+
+        cls_obj = cls()
+        func = getattr(cls_obj, func_name)
+        textblock = func()
+        if not isinstance(textblock, str):
+            textblock = str(textblock)
+
+        self.add_textblock(textblock)
+
+        try:
+            node_class = getattr(nodes,
+                                 self.options.get('format', 'paragraph'))
+        except Exception as exc:
+            raise self.error(exc)
+
+        node = node_class()
+        node.document = self.state.document
+        self.state.nested_parse(self.result, 0, node)
+        return [node]
+
+
 def setup(app):
     app.add_directive('watcher-term', WatcherTerm)
+    app.add_directive('watcher-func', WatcherFunc)
     return {'version': version_info.version_string()}
