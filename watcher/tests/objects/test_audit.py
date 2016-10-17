@@ -16,8 +16,10 @@
 import mock
 
 from watcher.common import exception
+from watcher.common import rpc
 from watcher.common import utils as w_utils
 from watcher.db.sqlalchemy import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -46,6 +48,12 @@ class TestAuditObject(base.DbTestCase):
 
     def setUp(self):
         super(TestAuditObject, self).setUp()
+
+        p_audit_notifications = mock.patch.object(
+            notifications, 'audit', autospec=True)
+        self.m_audit_notifications = p_audit_notifications.start()
+        self.addCleanup(p_audit_notifications.stop)
+        self.m_send_update = self.m_audit_notifications.send_update
         self.fake_goal = utils.create_test_goal(**self.goal_data)
 
     def eager_load_audit_assert(self, audit, goal):
@@ -71,6 +79,7 @@ class TestAuditObject(base.DbTestCase):
             self.context, audit_id, eager=self.eager)
         self.assertEqual(self.context, audit._context)
         self.eager_load_audit_assert(audit, self.fake_goal)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
     def test_get_by_uuid(self, mock_get_audit):
@@ -81,6 +90,7 @@ class TestAuditObject(base.DbTestCase):
             self.context, uuid, eager=self.eager)
         self.assertEqual(self.context, audit._context)
         self.eager_load_audit_assert(audit, self.fake_goal)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     def test_get_bad_id_and_uuid(self):
         self.assertRaises(exception.InvalidIdentity,
@@ -99,6 +109,7 @@ class TestAuditObject(base.DbTestCase):
         self.assertEqual(self.context, audits[0]._context)
         for audit in audits:
             self.eager_load_audit_assert(audit, self.fake_goal)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'update_audit')
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
@@ -106,15 +117,17 @@ class TestAuditObject(base.DbTestCase):
         mock_get_audit.return_value = self.fake_audit
         uuid = self.fake_audit['uuid']
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=self.eager)
-        audit.state = 'SUCCEEDED'
+        audit.state = objects.audit.State.SUCCEEDED
         audit.save()
 
         mock_get_audit.assert_called_once_with(
             self.context, uuid, eager=self.eager)
         mock_update_audit.assert_called_once_with(
-            uuid, {'state': 'SUCCEEDED'})
+            uuid, {'state': objects.audit.State.SUCCEEDED})
         self.assertEqual(self.context, audit._context)
         self.eager_load_audit_assert(audit, self.fake_goal)
+        self.m_send_update.assert_called_once_with(
+            self.context, audit, old_state=self.fake_audit['state'])
 
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
     def test_refresh(self, mock_get_audit):
@@ -138,12 +151,18 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
 
     def setUp(self):
         super(TestCreateDeleteAuditObject, self).setUp()
+        p_audit_notifications = mock.patch.object(
+            notifications, 'audit', autospec=True)
+        self.m_audit_notifications = p_audit_notifications.start()
+        self.addCleanup(p_audit_notifications.stop)
+        self.m_send_update = self.m_audit_notifications.send_update
+
         self.goal_id = 1
+        self.goal = utils.create_test_goal(id=self.goal_id, name="DUMMY")
         self.fake_audit = utils.get_test_audit(goal_id=self.goal_id)
 
     @mock.patch.object(db_api.Connection, 'create_audit')
     def test_create(self, mock_create_audit):
-        utils.create_test_goal(id=self.goal_id)
         mock_create_audit.return_value = self.fake_audit
         audit = objects.Audit(self.context, **self.fake_audit)
         audit.create()
@@ -157,9 +176,9 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
                          mock_soft_delete_audit, mock_update_audit):
         mock_get_audit.return_value = self.fake_audit
         uuid = self.fake_audit['uuid']
-        audit = objects.Audit.get_by_uuid(self.context, uuid)
+        audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
         audit.soft_delete()
-        mock_get_audit.assert_called_once_with(self.context, uuid, eager=False)
+        mock_get_audit.assert_called_once_with(self.context, uuid, eager=True)
         mock_soft_delete_audit.assert_called_once_with(uuid)
         mock_update_audit.assert_called_once_with(uuid, {'state': 'DELETED'})
         self.assertEqual(self.context, audit._context)
@@ -176,3 +195,35 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
             self.context, uuid, eager=False)
         mock_destroy_audit.assert_called_once_with(uuid)
         self.assertEqual(self.context, audit._context)
+
+
+class TestAuditObjectSendNotifications(base.DbTestCase):
+
+    def setUp(self):
+        super(TestAuditObjectSendNotifications, self).setUp()
+        goal_id = 1
+        self.fake_goal = utils.create_test_goal(id=goal_id, name="DUMMY")
+        self.fake_strategy = utils.create_test_strategy(
+            id=goal_id, name="DUMMY")
+        self.fake_audit = utils.get_test_audit(
+            goal_id=goal_id, goal=utils.get_test_goal(id=goal_id),
+            strategy_id=self.fake_strategy.id, strategy=self.fake_strategy)
+
+        p_get_notifier = mock.patch.object(rpc, 'get_notifier')
+        self.m_get_notifier = p_get_notifier.start()
+        self.m_get_notifier.return_value = mock.Mock(name='m_notifier')
+        self.m_notifier = self.m_get_notifier.return_value
+        self.addCleanup(p_get_notifier.stop)
+
+    @mock.patch.object(db_api.Connection, 'update_audit', mock.Mock())
+    @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
+    def test_send_update_notification(self, mock_get_audit):
+        mock_get_audit.return_value = self.fake_audit
+        uuid = self.fake_audit['uuid']
+        audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
+        audit.state = objects.audit.State.ONGOING
+        audit.save()
+
+        self.assertEqual(1, self.m_notifier.info.call_count)
+        self.assertEqual('audit.update',
+                         self.m_notifier.info.call_args[1]['event_type'])

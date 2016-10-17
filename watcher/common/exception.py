@@ -119,6 +119,10 @@ class WatcherException(Exception):
             return six.text_type(self)
 
 
+class UnsupportedError(WatcherException):
+    msg_fmt = _("Not supported")
+
+
 class NotAuthorized(WatcherException):
     msg_fmt = _("Not authorized")
     code = 403
@@ -166,6 +170,14 @@ class InvalidGoal(Invalid):
 
 class InvalidStrategy(Invalid):
     msg_fmt = _("Strategy %(strategy)s is invalid")
+
+
+class InvalidAudit(Invalid):
+    msg_fmt = _("Audit %(audit)s is invalid")
+
+
+class EagerlyLoadedAuditRequired(InvalidAudit):
+    msg_fmt = _("Audit %(audit)s was not eagerly loaded")
 
 
 class InvalidUUID(Invalid):

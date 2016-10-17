@@ -75,7 +75,6 @@ def get_test_audit(**kwargs):
         'strategy_id': kwargs.get('strategy_id', None),
         'scope': kwargs.get('scope', []),
     }
-
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
     if kwargs.get('goal'):

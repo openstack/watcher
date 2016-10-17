@@ -53,6 +53,7 @@ import enum
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -101,6 +102,39 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'goal': (objects.Goal, 'goal_id'),
         'strategy': (objects.Strategy, 'strategy_id'),
     }
+
+    # Proxified field so we can keep the previous value after an update
+    _state = None
+    _old_state = None
+
+    # NOTE(v-francoise): The way oslo.versionedobjects works is by using a
+    # __new__ that will automagically create the attributes referenced in
+    # fields. These attributes are properties that raise an exception if no
+    # value has been assigned, which means that they store the actual field
+    # value in an "_obj_%(field)s" attribute. So because we want to proxify a
+    # value that is already proxified, we have to do what you see below.
+    @property
+    def _obj_state(self):
+        return self._state
+
+    @property
+    def _obj_old_state(self):
+        return self._old_state
+
+    @property
+    def old_state(self):
+        return self._old_state
+
+    @_obj_old_state.setter
+    def _obj_old_state(self, value):
+        self._old_state = value
+
+    @_obj_state.setter
+    def _obj_state(self, value):
+        if self._old_state is None and self._state is None:
+            self._state = value
+        else:
+            self._old_state, self._state = self._state, value
 
     @base.remotable_classmethod
     def get(cls, context, audit_id, eager=False):
@@ -217,6 +251,12 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         """
         updates = self.obj_get_changes()
         self.dbapi.update_audit(self.uuid, updates)
+
+        def _notify():
+            notifications.audit.send_update(
+                self._context, self, old_state=self.old_state)
+
+        _notify()
 
         self.obj_reset_changes()
 

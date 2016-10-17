@@ -101,7 +101,8 @@ class ContinuousAuditHandler(base.AuditHandler):
                           objects.audit.State.ONGOING,
                           objects.audit.State.SUCCEEDED)
         }
-        audits = objects.Audit.list(audit_context, filters=audit_filters)
+        audits = objects.Audit.list(
+            audit_context, filters=audit_filters, eager=True)
         scheduler_job_args = [job.args for job in self.scheduler.get_jobs()
                               if job.name == 'execute_audit']
         for audit in audits:

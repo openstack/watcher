@@ -252,7 +252,7 @@ class TestPatch(api_base.FunctionalTest):
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
-        self.audit = obj_utils.create_test_audit(self.context, )
+        self.audit = obj_utils.create_test_audit(self.context)
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update

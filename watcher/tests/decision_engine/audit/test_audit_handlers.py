@@ -14,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import uuid
-
 from apscheduler.schedulers import background
 import mock
+from oslo_utils import uuidutils
 
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
@@ -32,15 +31,19 @@ class TestOneShotAuditHandler(base.DbTestCase):
 
     def setUp(self):
         super(TestOneShotAuditHandler, self).setUp()
-        obj_utils.create_test_goal(self.context, id=1, name="dummy")
+        self.goal = obj_utils.create_test_goal(
+            self.context, id=1, name="dummy")
         self.strategy = obj_utils.create_test_strategy(
-            self.context, name='dummy')
+            self.context, name='dummy', goal_id=self.goal.id)
         audit_template = obj_utils.create_test_audit_template(
             self.context, strategy_id=self.strategy.id)
         self.audit = obj_utils.create_test_audit(
             self.context,
+            uuid=uuidutils.generate_uuid(),
+            goal_id=self.goal.id,
             strategy_id=self.strategy.id,
-            audit_template_id=audit_template.id)
+            audit_template_id=audit_template.id,
+            goal=self.goal)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_without_errors(self, mock_collector):
@@ -58,18 +61,23 @@ class TestOneShotAuditHandler(base.DbTestCase):
 
 
 class TestContinuousAuditHandler(base.DbTestCase):
+
     def setUp(self):
         super(TestContinuousAuditHandler, self).setUp()
-        obj_utils.create_test_goal(self.context, id=1, name="dummy")
+        self.goal = obj_utils.create_test_goal(
+            self.context, id=1, name="dummy")
         audit_template = obj_utils.create_test_audit_template(
             self.context)
         self.audits = [
             obj_utils.create_test_audit(
                 self.context,
-                uuid=uuid.uuid4(),
+                id=id_,
+                uuid=uuidutils.generate_uuid(),
                 audit_template_id=audit_template.id,
-                audit_type=audit_objects.AuditType.CONTINUOUS.value)
-            for i in range(2)]
+                goal_id=self.goal.id,
+                audit_type=audit_objects.AuditType.CONTINUOUS.value,
+                goal=self.goal)
+            for id_ in range(2, 4)]
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     @mock.patch.object(background.BackgroundScheduler, 'add_job')
@@ -78,9 +86,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
     def test_launch_audits_periodically(self, mock_list, mock_jobs,
                                         mock_add_job, mock_collector):
         audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
-        audits = [audit_objects.Audit.get_by_uuid(self.context,
-                                                  self.audits[0].uuid)]
-        mock_list.return_value = audits
+        mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
         mock_add_job.return_value = audit_handler.execute_audit(
             self.audits[0], self.context)
@@ -95,10 +101,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
     def test_launch_multiply_audits_periodically(self, mock_list,
                                                  mock_jobs, mock_add_job):
         audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
-        audits = [audit_objects.Audit.get_by_uuid(
-            self.context,
-            audit.uuid) for audit in self.audits]
-        mock_list.return_value = audits
+        mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
         calls = [mock.call(audit_handler.execute_audit, 'interval',
                            args=[mock.ANY, mock.ANY],
@@ -114,12 +117,9 @@ class TestContinuousAuditHandler(base.DbTestCase):
     def test_period_audit_not_called_when_deleted(self, mock_list,
                                                   mock_jobs, mock_add_job):
         audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
-        audits = [audit_objects.Audit.get_by_uuid(
-            self.context,
-            audit.uuid) for audit in self.audits]
-        mock_list.return_value = audits
+        mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
-        audits[1].state = audit_objects.State.CANCELLED
+        self.audits[1].state = audit_objects.State.CANCELLED
         calls = [mock.call(audit_handler.execute_audit, 'interval',
                            args=[mock.ANY, mock.ANY],
                            seconds=3600,
@@ -128,7 +128,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.launch_audits_periodically()
         mock_add_job.assert_has_calls(calls)
 
-        audit_handler.update_audit_state(audits[1],
+        audit_handler.update_audit_state(self.audits[1],
                                          audit_objects.State.CANCELLED)
-        is_inactive = audit_handler._is_audit_inactive(audits[1])
+        is_inactive = audit_handler._is_audit_inactive(self.audits[1])
         self.assertTrue(is_inactive)

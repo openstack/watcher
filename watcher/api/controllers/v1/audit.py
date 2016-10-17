@@ -544,13 +544,10 @@ class AuditsController(rest.RestController):
             raise exception.OperationNotPermitted
 
         context = pecan.request.context
-        audit_to_update = api_utils.get_resource('Audit',
-                                                 audit_uuid)
+        audit_to_update = api_utils.get_resource(
+            'Audit', audit_uuid, eager=True)
         policy.enforce(context, 'audit:update', audit_to_update,
                        action='audit:update')
-
-        audit_to_update = objects.Audit.get_by_uuid(pecan.request.context,
-                                                    audit_uuid)
 
         try:
             audit_dict = audit_to_update.as_dict()
@@ -580,7 +577,8 @@ class AuditsController(rest.RestController):
         :param audit_uuid: UUID of a audit.
         """
         context = pecan.request.context
-        audit_to_delete = api_utils.get_resource('Audit', audit_uuid)
+        audit_to_delete = api_utils.get_resource(
+            'Audit', audit_uuid, eager=True)
         policy.enforce(context, 'audit:update', audit_to_delete,
                        action='audit:update')
 

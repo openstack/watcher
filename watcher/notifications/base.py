@@ -46,6 +46,12 @@ class NotificationObject(base.WatcherObject):
         # reset the object after creation.
         self.obj_reset_changes(recursive=False)
 
+    def save(self, context):
+        raise exception.UnsupportedError()
+
+    def obj_load_attr(self, attrname):
+        raise exception.UnsupportedError()
+
 
 @base.WatcherObjectRegistry.register_notification
 class EventType(NotificationObject):
