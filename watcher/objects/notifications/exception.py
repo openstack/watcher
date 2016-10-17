@@ -43,6 +43,7 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
             exception_message=six.text_type(fault))
 
 
+@notificationbase.notification_sample('infra-optim-exception.json')
 @base.WatcherObjectRegistry.register_notification
 class ExceptionNotification(notificationbase.NotificationBase):
     # Version 1.0: Initial version

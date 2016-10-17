@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys
 import os
+import sys
 
 from watcher import version as watcher_version
 from watcher import objects
@@ -41,6 +41,7 @@ extensions = [
     'stevedore.sphinxext',
     'wsmeext.sphinxext',
     'ext.term',
+    'ext.versioned_notifications',
 ]
 
 wsme_protocols = ['restjson']
