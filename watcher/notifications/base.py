@@ -145,6 +145,12 @@ class NotificationBase(NotificationObject):
         'publisher': wfields.ObjectField('NotificationPublisher'),
     }
 
+    def save(self, context):
+        raise exception.UnsupportedError()
+
+    def obj_load_attr(self, attrname):
+        raise exception.UnsupportedError()
+
     def _should_notify(self):
         """Determine whether the notification should be sent.
 

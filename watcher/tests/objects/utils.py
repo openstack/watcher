@@ -18,6 +18,18 @@ from watcher import objects
 from watcher.tests.db import utils as db_utils
 
 
+def _load_related_objects(context, cls, db_data):
+    """Replace the DB data with its object counterpart"""
+    obj_data = db_data.copy()
+    for name, (obj_cls, _) in cls.object_fields.items():
+        if obj_data.get(name):
+            obj_data[name] = obj_cls(context, **obj_data.get(name).as_dict())
+        else:
+            del obj_data[name]
+
+    return obj_data
+
+
 def get_test_audit_template(context, **kw):
     """Return a AuditTemplate object with appropriate attributes.
 
@@ -53,12 +65,14 @@ def get_test_audit(context, **kw):
     that a create() could be used to commit it to the DB.
     """
     db_audit = db_utils.get_test_audit(**kw)
+    obj_data = _load_related_objects(context, objects.Audit, db_audit)
+
     # Let DB generate ID if it isn't specified explicitly
     if 'id' not in kw:
         del db_audit['id']
     audit = objects.Audit(context)
-    for key in db_audit:
-        setattr(audit, key, db_audit[key])
+    for key in obj_data:
+        setattr(audit, key, obj_data[key])
     return audit
 
 

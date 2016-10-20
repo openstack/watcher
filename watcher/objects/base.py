@@ -155,7 +155,7 @@ class WatcherPersistentObject(object):
                 if obj[rel_id]
             )
             for obj_field, related_obj_cls, rel_id in loadable_fields:
-                if db_object.get(obj_field) and obj[rel_id]:
+                if getattr(db_object, obj_field, None) and obj[rel_id]:
                     # The object field data was eagerly loaded alongside
                     # the main object data
                     obj[obj_field] = related_obj_cls._from_db_object(

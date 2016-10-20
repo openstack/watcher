@@ -23,6 +23,7 @@ from watcher.db.sqlalchemy import api as sqla_api
 from watcher.db.sqlalchemy import migration
 from watcher.db.sqlalchemy import models
 from watcher.tests import base
+from watcher.tests.db import utils
 
 
 CONF = cfg.CONF
@@ -65,6 +66,9 @@ class Database(fixtures.Fixture):
 
 class DbTestCase(base.TestCase):
 
+    def get_next_id(self):
+        return next(self._id_gen)
+
     def setUp(self):
         cfg.CONF.set_override("enable_authentication", False,
                               enforce_type=True)
@@ -81,3 +85,4 @@ class DbTestCase(base.TestCase):
             _DB_CACHE = Database(sqla_api, migration,
                                  sql_connection=CONF.database.connection)
         self.useFixture(_DB_CACHE)
+        self._id_gen = utils.id_generator()

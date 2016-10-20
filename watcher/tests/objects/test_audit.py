@@ -217,9 +217,14 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
 
     @mock.patch.object(db_api.Connection, 'update_audit', mock.Mock())
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
-    def test_send_update_notification(self, mock_get_audit):
-        mock_get_audit.return_value = self.fake_audit
-        uuid = self.fake_audit['uuid']
+    def test_send_update_notification(self, m_get_audit):
+        fake_audit = utils.get_test_audit(
+            goal=self.fake_goal.as_dict(),
+            strategy_id=self.fake_strategy.id,
+            strategy=self.fake_strategy.as_dict())
+        m_get_audit.return_value = fake_audit
+        uuid = fake_audit['uuid']
+
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
         audit.state = objects.audit.State.ONGOING
         audit.save()

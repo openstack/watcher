@@ -32,14 +32,11 @@ from watcher.tests.objects import utils as obj_utils
 
 
 def post_get_test_audit_template(**kw):
-    audit_template = api_utils.audit_template_post_data(**kw)
     goal = db_utils.get_test_goal()
     strategy = db_utils.get_test_strategy(goal_id=goal['id'])
-    del audit_template['uuid']
-    del audit_template['goal_id']
-    del audit_template['strategy_id']
-    audit_template['goal'] = kw.get('goal', goal['uuid'])
-    audit_template['strategy'] = kw.get('strategy', strategy['uuid'])
+    kw['goal'] = kw.get('goal', goal['uuid'])
+    kw['strategy'] = kw.get('strategy', strategy['uuid'])
+    audit_template = api_utils.audit_template_post_data(**kw)
     return audit_template
 
 
@@ -57,20 +54,16 @@ class FunctionalTestWithSetup(api_base.FunctionalTest):
 
     def setUp(self):
         super(FunctionalTestWithSetup, self).setUp()
-        self.fake_goal1 = obj_utils.get_test_goal(
+        self.fake_goal1 = obj_utils.create_test_goal(
             self.context, id=1, uuid=utils.generate_uuid(), name="dummy_1")
-        self.fake_goal2 = obj_utils.get_test_goal(
+        self.fake_goal2 = obj_utils.create_test_goal(
             self.context, id=2, uuid=utils.generate_uuid(), name="dummy_2")
-        self.fake_goal1.create()
-        self.fake_goal2.create()
-        self.fake_strategy1 = obj_utils.get_test_strategy(
+        self.fake_strategy1 = obj_utils.create_test_strategy(
             self.context, id=1, uuid=utils.generate_uuid(), name="strategy_1",
             goal_id=self.fake_goal1.id)
-        self.fake_strategy2 = obj_utils.get_test_strategy(
+        self.fake_strategy2 = obj_utils.create_test_strategy(
             self.context, id=2, uuid=utils.generate_uuid(), name="strategy_2",
             goal_id=self.fake_goal2.id)
-        self.fake_strategy1.create()
-        self.fake_strategy2.create()
 
 
 class TestListAuditTemplate(FunctionalTestWithSetup):

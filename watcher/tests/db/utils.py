@@ -17,7 +17,28 @@
 from oslo_utils import timeutils
 
 from watcher.db import api as db_api
+from watcher.db.sqlalchemy import models
 from watcher import objects
+
+
+def id_generator():
+    id_ = 1
+    while True:
+        yield id_
+        id_ += 1
+
+
+def _load_relationships(model, db_data):
+    rel_data = {}
+    relationships = db_api.get_instance()._get_relationships(model)
+    for name, relationship in relationships.items():
+        related_model = relationship.argument
+        if not db_data.get(name):
+            rel_data[name] = None
+        else:
+            rel_data[name] = related_model(**db_data.get(name))
+
+    return rel_data
 
 
 def get_test_audit_template(**kwargs):
@@ -36,10 +57,8 @@ def get_test_audit_template(**kwargs):
 
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
-    if kwargs.get('goal'):
-        audit_template_data['goal'] = kwargs.get('goal')
-    if kwargs.get('strategy'):
-        audit_template_data['strategy'] = kwargs.get('strategy')
+    audit_template_data.update(
+        _load_relationships(models.AuditTemplate, kwargs))
 
     return audit_template_data
 
@@ -77,10 +96,7 @@ def get_test_audit(**kwargs):
     }
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
-    if kwargs.get('goal'):
-        audit_data['goal'] = kwargs.get('goal')
-    if kwargs.get('strategy'):
-        audit_data['strategy'] = kwargs.get('strategy')
+    audit_data.update(_load_relationships(models.Audit, kwargs))
 
     return audit_data
 
@@ -121,8 +137,7 @@ def get_test_action(**kwargs):
 
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
-    if kwargs.get('action_plan'):
-        action_data['action_plan'] = kwargs.get('action_plan')
+    action_data.update(_load_relationships(models.Action, kwargs))
 
     return action_data
 
@@ -158,10 +173,7 @@ def get_test_action_plan(**kwargs):
 
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
-    if kwargs.get('audit'):
-        action_plan_data['audit'] = kwargs.get('audit')
-    if kwargs.get('strategy'):
-        action_plan_data['strategy'] = kwargs.get('strategy')
+    action_plan_data.update(_load_relationships(models.ActionPlan, kwargs))
 
     return action_plan_data
 
@@ -244,10 +256,9 @@ def get_test_strategy(**kwargs):
         'parameters_spec': kwargs.get('parameters_spec', {}),
     }
 
-    # goal ObjectField doesn't allow None nor dict, so if we want to simulate a
+    # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
-    if kwargs.get('goal'):
-        strategy_data['goal'] = kwargs.get('goal')
+    strategy_data.update(_load_relationships(models.Strategy, kwargs))
 
     return strategy_data
 

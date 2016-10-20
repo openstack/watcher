@@ -50,17 +50,17 @@ class TestStrategyContext(base.DbTestCase):
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector",
                        mock.Mock())
     def test_execute_force_dummy(self):
-        obj_utils.create_test_goal(self.context, id=50,
-                                   uuid=utils.generate_uuid(),
-                                   name="my_goal")
+        goal = obj_utils.create_test_goal(
+            self.context, id=50, uuid=utils.generate_uuid(), name="my_goal")
 
-        strategy = obj_utils.create_test_strategy(self.context,
-                                                  id=42,
-                                                  uuid=utils.generate_uuid(),
-                                                  name="dummy")
+        strategy = obj_utils.create_test_strategy(
+            self.context, id=42, uuid=utils.generate_uuid(), name="dummy",
+            goal_id=goal.id)
 
         audit = obj_utils.create_test_audit(
             self.context,
+            id=2,
+            goal_id=goal.id,
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )
@@ -87,6 +87,7 @@ class TestStrategyContext(base.DbTestCase):
 
         audit = obj_utils.create_test_audit(
             self.context,
+            id=2,
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )

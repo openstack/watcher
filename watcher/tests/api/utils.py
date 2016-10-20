@@ -88,9 +88,12 @@ def audit_post_data(**kw):
 
 
 def audit_template_post_data(**kw):
-    audit_template = db_utils.get_test_audit_template(**kw)
-    internal = audit_template_ctrl.AuditTemplatePatchType.internal_attrs()
-    return remove_internal(audit_template, internal)
+    attrs = audit_template_ctrl.AuditTemplatePostType._wsme_attributes
+    audit_template = db_utils.get_test_audit_template()
+    fields = [field.key for field in attrs]
+    post_data = {k: v for k, v in audit_template.items() if k in fields}
+    post_data.update({k: v for k, v in kw.items() if k in fields})
+    return post_data
 
 
 def action_post_data(**kw):
