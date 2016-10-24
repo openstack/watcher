@@ -270,13 +270,13 @@ class DbAuditTestCase(base.DbTestCase):
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             deadline=None,
-            state='ONGOING')
+            state=audit_objects.State.ONGOING)
         audit2 = self._create_test_audit(
             id=2,
             audit_type='CONTINUOUS',
             uuid=w_utils.generate_uuid(),
             deadline=None,
-            state='PENDING')
+            state=audit_objects.State.PENDING)
 
         res = self.dbapi.get_audit_list(self.context,
                                         filters={'audit_type': 'ONESHOT'})
@@ -288,12 +288,12 @@ class DbAuditTestCase(base.DbTestCase):
 
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state': 'ONGOING'})
+            filters={'state': audit_objects.State.ONGOING})
         self.assertEqual([audit1['id']], [r.id for r in res])
 
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state': 'PENDING'})
+            filters={'state': audit_objects.State.PENDING})
         self.assertEqual([audit2['id']], [r.id for r in res])
 
     def test_get_audit_list_with_filter_by_uuid(self):

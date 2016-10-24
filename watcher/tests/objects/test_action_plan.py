@@ -133,7 +133,7 @@ class TestActionPlanObject(base.DbTestCase):
             m_soft_delete_efficacy_indicator.assert_called_once_with(
                 efficacy_indicator['uuid'])
             m_update_action_plan.assert_called_once_with(
-                uuid, {'state': 'DELETED'})
+                uuid, {'state': apobjects.State.DELETED})
             self.assertEqual(self.context, action_plan._context)
 
     def test_save(self):

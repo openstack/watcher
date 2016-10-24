@@ -693,8 +693,8 @@ class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
         self._common_policy_check(
             "audit_template:update", self.patch_json,
             '/audit_templates/%s' % audit_template.uuid,
-            [{'path': '/state', 'value': 'SUBMITTED', 'op': 'replace'}],
-            expect_errors=True)
+            [{'path': '/state', 'value': objects.audit.State.SUBMITTED,
+              'op': 'replace'}], expect_errors=True)
 
     def test_policy_disallow_create(self):
         fake_goal1 = obj_utils.get_test_goal(

@@ -17,6 +17,7 @@
 from oslo_utils import timeutils
 
 from watcher.db import api as db_api
+from watcher import objects
 
 
 def get_test_audit_template(**kwargs):
@@ -97,7 +98,7 @@ def get_test_action(**kwargs):
                         'key2': 'val2',
                         'resource_id':
                         '10a47dd1-4874-4298-91cf-eff046dbdb8d'}),
-        'state': kwargs.get('state', 'PENDING'),
+        'state': kwargs.get('state', objects.action_plan.State.PENDING),
         'next': kwargs.get('next', 2),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
@@ -124,7 +125,7 @@ def get_test_action_plan(**kwargs):
     return {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '76be87bd-3422-43f9-93a0-e85a577e3061'),
-        'state': kwargs.get('state', 'ONGOING'),
+        'state': kwargs.get('state', objects.action_plan.State.ONGOING),
         'audit_id': kwargs.get('audit_id', 1),
         'strategy_id': kwargs.get('strategy_id', 1),
         'global_efficacy': kwargs.get('global_efficacy', {}),

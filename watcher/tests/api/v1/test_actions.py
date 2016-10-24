@@ -20,6 +20,7 @@ from wsme import types as wtypes
 from watcher.api.controllers.v1 import action as api_action
 from watcher.common import utils
 from watcher.db import api as db_api
+from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils
 from watcher.tests import base
@@ -444,8 +445,7 @@ class TestPatch(api_base.FunctionalTest):
     def test_patch_not_allowed(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
-
-        new_state = 'SUBMITTED'
+        new_state = objects.audit.State.SUBMITTED
         response = self.get_json('/actions/%s' % self.action.uuid)
         self.assertNotEqual(new_state, response['state'])
 

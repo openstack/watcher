@@ -20,6 +20,7 @@ import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
+from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
 
@@ -271,7 +272,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             audit_id=audit.id,
             first_efficacy_indicator_id=None,
-            state='RECOMMENDED')
+            state=objects.action_plan.State.RECOMMENDED)
         efficacy_indicator1 = self._create_test_efficacy_indicator(
             id=1,
             name='indicator_1',
@@ -341,7 +342,8 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
     def test_update_efficacy_indicator(self):
         efficacy_indicator = self._create_test_efficacy_indicator()
         res = self.dbapi.update_efficacy_indicator(
-            efficacy_indicator.id, {'state': 'CANCELLED'})
+            efficacy_indicator.id,
+            {'state': objects.action_plan.State.CANCELLED})
         self.assertEqual('CANCELLED', res.state)
 
     def test_update_efficacy_indicator_that_does_not_exist(self):

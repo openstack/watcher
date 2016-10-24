@@ -255,28 +255,28 @@ class DbActionPlanTestCase(base.DbTestCase):
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             deadline=None,
-            state='ONGOING')
+            state=ap_objects.State.ONGOING)
         action_plan1 = self._create_test_action_plan(
             id=1,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
             first_action_id=None,
-            state='RECOMMENDED')
+            state=ap_objects.State.RECOMMENDED)
         action_plan2 = self._create_test_action_plan(
             id=2,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
             first_action_id=action_plan1['id'],
-            state='ONGOING')
+            state=ap_objects.State.ONGOING)
 
         res = self.dbapi.get_action_plan_list(
             self.context,
-            filters={'state': 'RECOMMENDED'})
+            filters={'state': ap_objects.State.RECOMMENDED})
         self.assertEqual([action_plan1['id']], [r.id for r in res])
 
         res = self.dbapi.get_action_plan_list(
             self.context,
-            filters={'state': 'ONGOING'})
+            filters={'state': ap_objects.State.ONGOING})
         self.assertEqual([action_plan2['id']], [r.id for r in res])
 
         res = self.dbapi.get_action_plan_list(

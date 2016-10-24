@@ -20,7 +20,7 @@ import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
-from watcher.objects import action as act_objects
+from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
 
@@ -68,15 +68,15 @@ class TestDbActionFilters(base.DbTestCase):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_action(
                 self.action1.uuid,
-                values={"state": act_objects.State.SUCCEEDED})
+                values={"state": objects.action_plan.State.SUCCEEDED})
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_action(
                 self.action2.uuid,
-                values={"state": act_objects.State.SUCCEEDED})
+                values={"state": objects.action_plan.State.SUCCEEDED})
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_action(
                 self.action3.uuid,
-                values={"state": act_objects.State.SUCCEEDED})
+                values={"state": objects.action_plan.State.SUCCEEDED})
 
     def test_get_action_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -259,30 +259,31 @@ class DbActionTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             audit_id=audit.id,
             first_action_id=None,
-            state='RECOMMENDED')
+            state=objects.action_plan.State.RECOMMENDED)
         action1 = self._create_test_action(
             id=1,
             action_plan_id=1,
             description='description action 1',
             uuid=w_utils.generate_uuid(),
             next=None,
-            state='PENDING')
+            state=objects.action_plan.State.PENDING)
         action2 = self._create_test_action(
             id=2,
             action_plan_id=2,
             description='description action 2',
             uuid=w_utils.generate_uuid(),
             next=action1['uuid'],
-            state='PENDING')
+            state=objects.action_plan.State.PENDING)
         action3 = self._create_test_action(
             id=3,
             action_plan_id=1,
             description='description action 3',
             uuid=w_utils.generate_uuid(),
             next=action2['uuid'],
-            state='ONGOING')
-        res = self.dbapi.get_action_list(self.context,
-                                         filters={'state': 'ONGOING'})
+            state=objects.action_plan.State.ONGOING)
+        res = self.dbapi.get_action_list(
+            self.context,
+            filters={'state': objects.action_plan.State.ONGOING})
         self.assertEqual([action3['id']], [r.id for r in res])
 
         res = self.dbapi.get_action_list(self.context,
@@ -331,8 +332,9 @@ class DbActionTestCase(base.DbTestCase):
 
     def test_update_action(self):
         action = self._create_test_action()
-        res = self.dbapi.update_action(action['id'], {'state': 'CANCELLED'})
-        self.assertEqual('CANCELLED', res.state)
+        res = self.dbapi.update_action(
+            action['id'], {'state': objects.action_plan.State.CANCELLED})
+        self.assertEqual(objects.action_plan.State.CANCELLED, res.state)
 
     def test_update_action_that_does_not_exist(self):
         self.assertRaises(exception.ActionNotFound,
