@@ -298,7 +298,7 @@ The :ref:`Watcher Decision Engine <watcher_decision_engine_definition>` also
 builds the :ref:`Cluster Data Model <cluster_data_model_definition>`. This
 data model is needed by the :ref:`Strategy <strategy_definition>` to know the
 current state and topology of the audited
-:ref:`Openstack cluster <cluster_definition>`.
+:ref:`OpenStack cluster <cluster_definition>`.
 
 The :ref:`Watcher Decision Engine <watcher_decision_engine_definition>` calls
 the **execute()** method of the instantiated
