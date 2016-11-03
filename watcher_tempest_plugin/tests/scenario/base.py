@@ -21,7 +21,6 @@ from __future__ import unicode_literals
 import time
 
 from oslo_log import log
-
 from tempest import config
 from tempest import exceptions
 from tempest.lib.common.utils import data_utils
@@ -112,16 +111,18 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     # ### AUDITS ### #
 
     def create_audit(self, audit_template_uuid, audit_type='ONESHOT',
-                     state=None):
+                     state=None, parameters=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
-        :param type: Audit type (either ONESHOT or CONTINUOUS)
+        :param audit_type: Audit type (either ONESHOT or CONTINUOUS)
+        :param state: Audit state
+        :param parameters: Input parameters of the audit
         :return: A tuple with The HTTP response and its body
         """
         resp, body = self.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state)
+            state=state, parameters=parameters)
 
         self.addCleanup(self.delete_audit, audit_uuid=body["uuid"])
         return resp, body
