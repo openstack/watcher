@@ -283,3 +283,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         self.dbapi.soft_delete_audit(self.uuid)
         self.state = State.DELETED
         self.save()
+
+        def _notify():
+            notifications.audit.send_delete(self._context, self)
+
+        _notify()

@@ -111,6 +111,19 @@ class AuditUpdatePayload(AuditPayload):
             strategy=strategy)
 
 
+@base.WatcherObjectRegistry.register_notification
+class AuditDeletePayload(AuditPayload):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+    fields = {}
+
+    def __init__(self, audit, goal, strategy):
+        super(AuditDeletePayload, self).__init__(
+            audit=audit,
+            goal=goal,
+            strategy=strategy)
+
+
 # @notificationbase.notification_sample('audit-create.json')
 # @notificationbase.notification_sample('audit-delete.json')
 # @base.WatcherObjectRegistry.register_notification
@@ -142,6 +155,17 @@ class AuditUpdateNotification(notificationbase.NotificationBase):
 
     fields = {
         'payload': wfields.ObjectField('AuditUpdatePayload')
+    }
+
+
+@notificationbase.notification_sample('audit-delete.json')
+@base.WatcherObjectRegistry.register_notification
+class AuditDeleteNotification(notificationbase.NotificationBase):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'payload': wfields.ObjectField('AuditDeletePayload')
     }
 
 
@@ -209,6 +233,28 @@ def send_update(context, audit, service='infra-optim',
         event_type=notificationbase.EventType(
             object='audit',
             action=wfields.NotificationAction.UPDATE),
+        publisher=notificationbase.NotificationPublisher(
+            host=host or CONF.host,
+            binary=service),
+        payload=versioned_payload)
+
+    notification.emit(context)
+
+
+def send_delete(context, audit, service='infra-optim', host=None):
+    goal_payload, strategy_payload = _get_common_payload(audit)
+
+    versioned_payload = AuditDeletePayload(
+        audit=audit,
+        goal=goal_payload,
+        strategy=strategy_payload,
+    )
+
+    notification = AuditDeleteNotification(
+        priority=wfields.NotificationPriority.INFO,
+        event_type=notificationbase.EventType(
+            object='audit',
+            action=wfields.NotificationAction.DELETE),
         publisher=notificationbase.NotificationPublisher(
             host=host or CONF.host,
             binary=service),
