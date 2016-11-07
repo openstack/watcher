@@ -93,11 +93,11 @@ following command:
 
 .. code:: bash
 
-  $ watcher strategy list --goal-uuid <your_goal_uuid>
+  $ watcher strategy list --goal <your_goal_uuid_or_name>
 
 or::
 
-  $ openstack optimize strategy list --goal-uuid <your_goal_uuid>
+  $ openstack optimize strategy list --goal <your_goal_uuid_or_name>
 
 You can use the following command to check strategy details including which
 parameters of which format it supports:
