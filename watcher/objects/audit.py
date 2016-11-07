@@ -60,7 +60,6 @@ from watcher.objects import utils as obj_utils
 class State(object):
     ONGOING = 'ONGOING'
     SUCCEEDED = 'SUCCEEDED'
-    SUBMITTED = 'SUBMITTED'
     FAILED = 'FAILED'
     CANCELLED = 'CANCELLED'
     DELETED = 'DELETED'

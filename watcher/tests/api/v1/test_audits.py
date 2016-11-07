@@ -265,7 +265,7 @@ class TestPatch(api_base.FunctionalTest):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
 
-        new_state = objects.audit.State.SUBMITTED
+        new_state = objects.audit.State.SUCCEEDED
         response = self.get_json('/audits/%s' % self.audit.uuid)
         self.assertNotEqual(new_state, response['state'])
 
@@ -285,7 +285,7 @@ class TestPatch(api_base.FunctionalTest):
     def test_replace_non_existent_audit(self):
         response = self.patch_json(
             '/audits/%s' % utils.generate_uuid(),
-            [{'path': '/state', 'value': objects.audit.State.SUBMITTED,
+            [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
               'op': 'replace'}], expect_errors=True)
         self.assertEqual(404, response.status_int)
         self.assertEqual('application/json', response.content_type)
@@ -714,7 +714,7 @@ class TestAuaditPolicyEnforcement(api_base.FunctionalTest):
         self._common_policy_check(
             "audit:update", self.patch_json,
             '/audits/%s' % audit.uuid,
-            [{'path': '/state', 'value': objects.audit.State.SUBMITTED,
+            [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
              'op': 'replace'}], expect_errors=True)
 
     def test_policy_disallow_create(self):
