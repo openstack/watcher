@@ -94,7 +94,7 @@ class TestWorkloadStabilization(base.TestCase):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         instance_0_dict = {
             'uuid': 'INSTANCE_0', 'vcpus': 10,
-            'cpu_util': 7, 'memory.resident': 2}
+            'cpu_util': 0.07, 'memory.resident': 2}
         self.assertEqual(
             instance_0_dict, self.strategy.get_instance_load("INSTANCE_0"))
 
@@ -114,9 +114,8 @@ class TestWorkloadStabilization(base.TestCase):
 
     def test_get_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
-        self.assertEqual(
-            self.strategy.get_hosts_load(),
-            self.hosts_load_assert)
+        self.assertEqual(self.strategy.get_hosts_load(),
+                         self.hosts_load_assert)
 
     def test_get_sd(self):
         test_cpu_sd = 0.027
@@ -136,11 +135,12 @@ class TestWorkloadStabilization(base.TestCase):
 
     def test_calculate_migration_case(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
-        self.assertEqual(
-            self.strategy.calculate_migration_case(
-                self.hosts_load_assert, "INSTANCE_5",
-                "Node_2", "Node_1")[-1]["Node_1"],
-            {'cpu_util': 2.55, 'memory.resident': 21, 'vcpus': 40})
+        result = self.strategy.calculate_migration_case(
+            self.hosts_load_assert, "INSTANCE_5", "Node_2", "Node_1")[-1][
+            "Node_1"]
+        result['cpu_util'] = round(result['cpu_util'], 3)
+        self.assertEqual(result, {'cpu_util': 0.075, 'memory.resident': 21,
+                                  'vcpus': 40})
 
     def test_simulate_migrations(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -182,7 +182,7 @@ class TestWorkloadStabilization(base.TestCase):
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
             self.strategy.do_execute()
-            self.assertEqual(mock_migrate.call_count, 1)
+            self.assertEqual(mock_migrate.call_count, 2)
 
     def test_execute_nothing_to_migrate(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
