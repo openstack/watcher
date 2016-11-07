@@ -20,6 +20,7 @@ from oslo_config import cfg
 
 from watcher.common import exception
 from watcher.notifications import base as notificationbase
+from watcher.notifications import exception as exception_notifications
 from watcher.notifications import goal as goal_notifications
 from watcher.notifications import strategy as strategy_notifications
 from watcher.objects import base
@@ -38,8 +39,6 @@ class AuditPayload(notificationbase.NotificationPayloadBase):
         'parameters': ('audit', 'parameters'),
         'interval': ('audit', 'interval'),
         'scope': ('audit', 'scope'),
-        # 'goal_uuid': ('audit', 'goal_uuid'),
-        # 'strategy_uuid': ('audit', 'strategy_uuid'),
 
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
@@ -112,6 +111,22 @@ class AuditUpdatePayload(AuditPayload):
 
 
 @base.WatcherObjectRegistry.register_notification
+class AuditActionPayload(AuditPayload):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+    fields = {
+        'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
+    }
+
+    def __init__(self, audit, goal, strategy, **kwargs):
+        super(AuditActionPayload, self).__init__(
+            audit=audit,
+            goal=goal,
+            strategy=strategy,
+            **kwargs)
+
+
+@base.WatcherObjectRegistry.register_notification
 class AuditDeletePayload(AuditPayload):
     # Version 1.0: Initial version
     VERSION = '1.0'
@@ -124,16 +139,17 @@ class AuditDeletePayload(AuditPayload):
             strategy=strategy)
 
 
-# @notificationbase.notification_sample('audit-create.json')
-# @notificationbase.notification_sample('audit-delete.json')
-# @base.WatcherObjectRegistry.register_notification
-# class AuditActionNotification(notificationbase.NotificationBase):
-#     # Version 1.0: Initial version
-#     VERSION = '1.0'
+@notificationbase.notification_sample('audit-strategy-error.json')
+@notificationbase.notification_sample('audit-strategy-end.json')
+@notificationbase.notification_sample('audit-strategy-start.json')
+@base.WatcherObjectRegistry.register_notification
+class AuditActionNotification(notificationbase.NotificationBase):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
 
-#     fields = {
-#         'payload': wfields.ObjectField('AuditActionPayload')
-#     }
+    fields = {
+        'payload': wfields.ObjectField('AuditActionPayload')
+    }
 
 
 @notificationbase.notification_sample('audit-create.json')
@@ -255,6 +271,37 @@ def send_delete(context, audit, service='infra-optim', host=None):
         event_type=notificationbase.EventType(
             object='audit',
             action=wfields.NotificationAction.DELETE),
+        publisher=notificationbase.NotificationPublisher(
+            host=host or CONF.host,
+            binary=service),
+        payload=versioned_payload)
+
+    notification.emit(context)
+
+
+def send_action_notification(context, audit, action, phase=None,
+                             priority=wfields.NotificationPriority.INFO,
+                             service='infra-optim', host=None):
+    """Emit an audit action notification."""
+    goal_payload, strategy_payload = _get_common_payload(audit)
+
+    fault = None
+    if phase == wfields.NotificationPhase.ERROR:
+        fault = exception_notifications.ExceptionPayload.from_exception()
+
+    versioned_payload = AuditActionPayload(
+        audit=audit,
+        goal=goal_payload,
+        strategy=strategy_payload,
+        fault=fault,
+    )
+
+    notification = AuditActionNotification(
+        priority=priority,
+        event_type=notificationbase.EventType(
+            object='audit',
+            action=action,
+            phase=phase),
         publisher=notificationbase.NotificationPublisher(
             host=host or CONF.host,
             binary=service),

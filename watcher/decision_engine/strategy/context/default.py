@@ -25,12 +25,12 @@ from watcher import objects
 LOG = log.getLogger(__name__)
 
 
-class DefaultStrategyContext(base.BaseStrategyContext):
+class DefaultStrategyContext(base.StrategyContext):
     def __init__(self):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
 
-    def execute_strategy(self, audit, request_context):
+    def do_execute_strategy(self, audit, request_context):
         osc = clients.OpenStackClients()
         # todo(jed) retrieve in audit parameters (threshold,...)
         # todo(jed) create ActionPlan
@@ -42,8 +42,8 @@ class DefaultStrategyContext(base.BaseStrategyContext):
         # it could specify the Strategy uuid in the Audit.
         strategy_name = None
         if audit.strategy_id:
-            strategy = objects.Strategy.get_by_id(request_context,
-                                                  audit.strategy_id)
+            strategy = objects.Strategy.get_by_id(
+                request_context, audit.strategy_id)
             strategy_name = strategy.name
 
         strategy_selector = default.DefaultStrategySelector(

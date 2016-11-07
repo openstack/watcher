@@ -126,7 +126,9 @@ class NotificationAction(BaseWatcherEnum):
     EXCEPTION = 'exception'
     DELETE = 'delete'
 
-    ALL = (CREATE, UPDATE, EXCEPTION, DELETE)
+    STRATEGY = 'strategy'
+
+    ALL = (CREATE, UPDATE, EXCEPTION, DELETE, STRATEGY)
 
 
 class NotificationPriorityField(BaseEnumField):

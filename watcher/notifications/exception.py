@@ -11,6 +11,7 @@
 #    under the License.
 
 import inspect
+import sys
 
 import six
 
@@ -31,7 +32,8 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
     }
 
     @classmethod
-    def from_exception(cls, fault):
+    def from_exception(cls, fault=None):
+        fault = fault or sys.exc_info()[1]
         trace = inspect.trace()[-1]
         # TODO(gibi): apply strutils.mask_password on exception_message and
         # consider emitting the exception_message only if the safe flag is
