@@ -20,8 +20,6 @@ from oslo_log import log
 
 from watcher.applier.action_plan import base
 from watcher.applier import default
-from watcher.applier.messaging import event_types
-from watcher.common.messaging.events import event
 from watcher import objects
 
 LOG = log.getLogger(__name__)
@@ -34,32 +32,20 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         self.service = service
         self.action_plan_uuid = action_plan_uuid
 
-    def notify(self, uuid, event_type, state):
+    def update_action_plan(self, uuid, state):
         action_plan = objects.ActionPlan.get_by_uuid(self.ctx, uuid)
         action_plan.state = state
         action_plan.save()
-        ev = event.Event()
-        ev.type = event_type
-        ev.data = {}
-        payload = {'action_plan__uuid': uuid,
-                   'action_plan_state': state}
-        self.service.publish_status_event(ev.type.name, payload)
 
     def execute(self):
         try:
-            # update state
-            self.notify(self.action_plan_uuid,
-                        event_types.EventTypes.LAUNCH_ACTION_PLAN,
-                        objects.action_plan.State.ONGOING)
+            self.update_action_plan(self.action_plan_uuid,
+                                    objects.action_plan.State.ONGOING)
             applier = default.DefaultApplier(self.ctx, self.service)
             applier.execute(self.action_plan_uuid)
             state = objects.action_plan.State.SUCCEEDED
         except Exception as e:
             LOG.exception(e)
             state = objects.action_plan.State.FAILED
-
         finally:
-            # update state
-            self.notify(self.action_plan_uuid,
-                        event_types.EventTypes.LAUNCH_ACTION_PLAN,
-                        state)
+            self.update_action_plan(self.action_plan_uuid, state)

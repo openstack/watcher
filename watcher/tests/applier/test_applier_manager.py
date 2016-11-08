@@ -19,8 +19,8 @@
 
 import mock
 
+import oslo_messaging as om
 from watcher.applier import manager as applier_manager
-from watcher.common.messaging import messaging_handler
 from watcher.common import service
 from watcher.tests import base
 
@@ -30,8 +30,8 @@ class TestApplierManager(base.TestCase):
         super(TestApplierManager, self).setUp()
         self.applier = service.Service(applier_manager.ApplierManager)
 
-    @mock.patch.object(messaging_handler.MessagingHandler, "stop")
-    @mock.patch.object(messaging_handler.MessagingHandler, "start")
+    @mock.patch.object(om.rpc.server.RPCServer, "stop")
+    @mock.patch.object(om.rpc.server.RPCServer, "start")
     def test_start(self, m_messaging_start, m_messaging_stop):
         self.applier.start()
         self.applier.stop()

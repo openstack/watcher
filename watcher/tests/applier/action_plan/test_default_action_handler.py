@@ -19,7 +19,6 @@
 import mock
 
 from watcher.applier.action_plan import default
-from watcher.applier.messaging import event_types as ev
 from watcher.objects import action_plan as ap_objects
 from watcher.tests.db import base
 from watcher.tests.objects import utils as obj_utils
@@ -41,20 +40,3 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
         action_plan = ap_objects.ActionPlan.get_by_uuid(
             self.context, self.action_plan.uuid)
         self.assertEqual(ap_objects.State.SUCCEEDED, action_plan.state)
-
-    def test_trigger_audit_send_notification(self):
-        messaging = mock.MagicMock()
-        command = default.DefaultActionPlanHandler(
-            self.context, messaging, self.action_plan.uuid)
-        command.execute()
-
-        call_on_going = mock.call(ev.EventTypes.LAUNCH_ACTION_PLAN.name, {
-            'action_plan_state': ap_objects.State.ONGOING,
-            'action_plan__uuid': self.action_plan.uuid})
-        call_succeeded = mock.call(ev.EventTypes.LAUNCH_ACTION_PLAN.name, {
-            'action_plan_state': ap_objects.State.SUCCEEDED,
-            'action_plan__uuid': self.action_plan.uuid})
-
-        calls = [call_on_going, call_succeeded]
-        messaging.publish_status_event.assert_has_calls(calls)
-        self.assertEqual(2, messaging.publish_status_event.call_count)

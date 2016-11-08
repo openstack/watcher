@@ -29,10 +29,6 @@ class TestDecisionEngineAPI(base.TestCase):
 
     api = rpcapi.DecisionEngineAPI()
 
-    def test_get_version(self):
-        expected_version = self.api.API_VERSION
-        self.assertEqual(expected_version, self.api.get_version())
-
     def test_get_api_version(self):
         with mock.patch.object(om.RPCClient, 'call') as mock_call:
             expected_context = self.context

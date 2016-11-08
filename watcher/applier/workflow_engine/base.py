@@ -21,10 +21,8 @@ import abc
 import six
 
 from watcher.applier.actions import factory
-from watcher.applier.messaging import event_types
 from watcher.common import clients
 from watcher.common.loader import loadable
-from watcher.common.messaging.events import event
 from watcher import objects
 
 
@@ -77,12 +75,7 @@ class BaseWorkFlowEngine(loadable.Loadable):
         db_action = objects.Action.get_by_uuid(self.context, action.uuid)
         db_action.state = state
         db_action.save()
-        ev = event.Event()
-        ev.type = event_types.EventTypes.LAUNCH_ACTION
-        ev.data = {}
-        payload = {'action_uuid': action.uuid,
-                   'action_state': state}
-        self.applier_manager.publish_status_event(ev.type.name, payload)
+        # NOTE(v-francoise): Implement notifications for action
 
     @abc.abstractmethod
     def execute(self, actions):
