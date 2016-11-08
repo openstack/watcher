@@ -91,7 +91,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             self.execute(audit, request_context)
 
     def post_execute(self, audit, solution, request_context):
-        self.planner.schedule(request_context, audit.id, solution)
+        self.do_schedule(request_context, audit, solution)
 
     def launch_audits_periodically(self):
         audit_context = context.RequestContext(is_admin=True)
