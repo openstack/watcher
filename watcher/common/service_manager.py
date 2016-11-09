@@ -15,9 +15,11 @@
 # under the License.
 
 import abc
+import six
 
 
-class ServiceManagerBase(object):
+@six.add_metaclass(abc.ABCMeta)
+class ServiceManager(object):
 
     @abc.abstractproperty
     def service_name(self):
@@ -36,19 +38,11 @@ class ServiceManagerBase(object):
         raise NotImplementedError()
 
     @abc.abstractproperty
-    def status_topic(self):
-        raise NotImplementedError()
-
-    @abc.abstractproperty
     def notification_topics(self):
         raise NotImplementedError()
 
     @abc.abstractproperty
     def conductor_endpoints(self):
-        raise NotImplementedError()
-
-    @abc.abstractproperty
-    def status_endpoints(self):
         raise NotImplementedError()
 
     @abc.abstractproperty

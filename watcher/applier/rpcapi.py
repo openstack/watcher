@@ -15,12 +15,13 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
+
 from oslo_config import cfg
 
 from watcher.applier import manager
 from watcher.common import exception
 from watcher.common import service
+from watcher.common import service_manager
 from watcher.common import utils
 
 
@@ -42,7 +43,7 @@ class ApplierAPI(service.Service):
             context, 'launch_action_plan', action_plan_uuid=action_plan_uuid)
 
 
-class ApplierAPIManager(object):
+class ApplierAPIManager(service_manager.ServiceManager):
 
     @property
     def service_name(self):
@@ -61,19 +62,11 @@ class ApplierAPIManager(object):
         return CONF.watcher_applier.conductor_topic
 
     @property
-    def status_topic(self):
-        return CONF.watcher_applier.status_topic
-
-    @property
     def notification_topics(self):
         return []
 
     @property
     def conductor_endpoints(self):
-        return []
-
-    @property
-    def status_endpoints(self):
         return []
 
     @property
