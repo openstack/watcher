@@ -218,10 +218,16 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
         return normalized_hosts
 
+    def get_available_nodes(self):
+        return {node_uuid: node for node_uuid, node in
+                self.compute_model.get_all_compute_nodes().items()
+                if node.state == element.ServiceState.ONLINE.value and
+                node.status == element.ServiceState.ENABLED.value}
+
     def get_hosts_load(self):
-        """Get load of every host by gathering instances load"""
+        """Get load of every available host by gathering instances load"""
         hosts_load = {}
-        for node_id in self.compute_model.get_all_compute_nodes():
+        for node_id in self.get_available_nodes():
             hosts_load[node_id] = {}
             host_vcpus = self.compute_model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).get_capacity(
@@ -320,7 +326,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     yield nodes
 
         instance_host_map = []
-        nodes = list(self.compute_model.get_all_compute_nodes())
+        nodes = list(self.get_available_nodes())
         for source_hp_id in nodes:
             c_nodes = copy.copy(nodes)
             c_nodes.remove(source_hp_id)

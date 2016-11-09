@@ -112,6 +112,11 @@ class TestWorkloadStabilization(base.TestCase):
             normalized_hosts,
             self.strategy.normalize_hosts_load(fake_hosts))
 
+    def test_get_available_nodes(self):
+        self.m_model.return_value = self.fake_cluster. \
+            generate_scenario_9_with_3_active_plus_1_disabled_nodes()
+        self.assertEqual(3, len(self.strategy.get_available_nodes()))
+
     def test_get_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.assertEqual(self.strategy.get_hosts_load(),
