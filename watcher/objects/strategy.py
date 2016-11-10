@@ -17,6 +17,7 @@
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
+from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
@@ -24,6 +25,10 @@ from watcher.objects import fields as wfields
 @base.WatcherObjectRegistry.register
 class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                base.WatcherObjectDictCompat):
+
+    # Version 1.0: Initial version
+    # Version 1.1: Added Goal object field
+    VERSION = '1.1'
 
     dbapi = db_api.get_instance()
 
@@ -34,10 +39,13 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         'display_name': wfields.StringField(),
         'goal_id': wfields.IntegerField(),
         'parameters_spec': wfields.FlexibleDictField(nullable=True),
+        'goal': wfields.ObjectField('Goal', nullable=True),
     }
 
+    object_fields = {'goal': (objects.Goal, 'goal_id')}
+
     @base.remotable_classmethod
-    def get(cls, context, strategy_id):
+    def get(cls, context, strategy_id, eager=False):
         """Find a strategy based on its id or uuid
 
         :param context: Security context. NOTE: This should only
@@ -47,17 +55,18 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
         :param strategy_id: the id *or* uuid of a strategy.
-        :returns: a :class:`Strategy` object.
+        :param eager: Load object fields if True (Default: False)
+        :returns: A :class:`Strategy` object.
         """
         if utils.is_int_like(strategy_id):
-            return cls.get_by_id(context, strategy_id)
+            return cls.get_by_id(context, strategy_id, eager=eager)
         elif utils.is_uuid_like(strategy_id):
-            return cls.get_by_uuid(context, strategy_id)
+            return cls.get_by_uuid(context, strategy_id, eager=eager)
         else:
             raise exception.InvalidIdentity(identity=strategy_id)
 
     @base.remotable_classmethod
-    def get_by_id(cls, context, strategy_id):
+    def get_by_id(cls, context, strategy_id, eager=False):
         """Find a strategy based on its integer id
 
         :param context: Security context. NOTE: This should only
@@ -67,14 +76,16 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
         :param strategy_id: the id of a strategy.
-        :returns: a :class:`Strategy` object.
+        :param eager: Load object fields if True (Default: False)
+        :returns: A :class:`Strategy` object.
         """
-        db_strategy = cls.dbapi.get_strategy_by_id(context, strategy_id)
-        strategy = Strategy._from_db_object(cls(context), db_strategy)
+        db_strategy = cls.dbapi.get_strategy_by_id(
+            context, strategy_id, eager=eager)
+        strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
     @base.remotable_classmethod
-    def get_by_uuid(cls, context, uuid):
+    def get_by_uuid(cls, context, uuid, eager=False):
         """Find a strategy based on uuid
 
         :param context: Security context. NOTE: This should only
@@ -84,29 +95,33 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
         :param uuid: the uuid of a strategy.
-        :returns: a :class:`Strategy` object.
+        :param eager: Load object fields if True (Default: False)
+        :returns: A :class:`Strategy` object.
         """
 
-        db_strategy = cls.dbapi.get_strategy_by_uuid(context, uuid)
-        strategy = cls._from_db_object(cls(context), db_strategy)
+        db_strategy = cls.dbapi.get_strategy_by_uuid(
+            context, uuid, eager=eager)
+        strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
     @base.remotable_classmethod
-    def get_by_name(cls, context, name):
+    def get_by_name(cls, context, name, eager=False):
         """Find a strategy based on name
 
-        :param name: the name of a strategy.
         :param context: Security context
-        :returns: a :class:`Strategy` object.
+        :param name: the name of a strategy.
+        :param eager: Load object fields if True (Default: False)
+        :returns: A :class:`Strategy` object.
         """
 
-        db_strategy = cls.dbapi.get_strategy_by_name(context, name)
-        strategy = cls._from_db_object(cls(context), db_strategy)
+        db_strategy = cls.dbapi.get_strategy_by_name(
+            context, name, eager=eager)
+        strategy = cls._from_db_object(cls(context), db_strategy, eager=eager)
         return strategy
 
     @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
-             sort_key=None, sort_dir=None):
+             sort_key=None, sort_dir=None, eager=False):
         """Return a list of :class:`Strategy` objects.
 
         :param context: Security context. NOTE: This should only
@@ -115,11 +130,12 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         argument, even though we don't use it.
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
-        :param filters: dict mapping the filter key to a value.
         :param limit: maximum number of resources to return in a single result.
         :param marker: pagination marker for large data sets.
+        :param filters: dict mapping the filter key to a value.
         :param sort_key: column to sort results by.
-        :param sort_dir: direction to sort. "asc" or "desc".
+        :param sort_dir: direction to sort. "asc" or "desc`".
+        :param eager: Load object fields if True (Default: False)
         :returns: a list of :class:`Strategy` object.
         """
         db_strategies = cls.dbapi.get_strategy_list(
@@ -130,7 +146,7 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
             sort_key=sort_key,
             sort_dir=sort_dir)
 
-        return [cls._from_db_object(cls(context), obj)
+        return [cls._from_db_object(cls(context), obj, eager=eager)
                 for obj in db_strategies]
 
     @base.remotable
@@ -143,11 +159,14 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         argument, even though we don't use it.
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
+        :returns: A :class:`Strategy` object.
         """
 
         values = self.obj_get_changes()
         db_strategy = self.dbapi.create_strategy(values)
-        self._from_db_object(self, db_strategy)
+        # Note(v-francoise): Always load eagerly upon creation so we can send
+        # notifications containing information about the related relationships
+        self._from_db_object(self, db_strategy, eager=True)
 
     def destroy(self, context=None):
         """Delete the :class:`Strategy` from the DB.
@@ -182,7 +201,7 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
         self.obj_reset_changes()
 
     @base.remotable
-    def refresh(self, context=None):
+    def refresh(self, context=None, eager=False):
         """Loads updates for this :class:`Strategy`.
 
         Loads a strategy with the same uuid from the database and
@@ -195,8 +214,10 @@ class Strategy(base.WatcherPersistentObject, base.WatcherObject,
                         argument, even though we don't use it.
                         A context should be set when instantiating the
                         object, e.g.: Strategy(context)
+        :param eager: Load object fields if True (Default: False)
         """
-        current = self.__class__.get_by_id(self._context, strategy_id=self.id)
+        current = self.__class__.get_by_id(
+            self._context, strategy_id=self.id, eager=eager)
         for field in self.fields:
             if (hasattr(self, base.get_attrname(field)) and
                     self[field] != current[field]):

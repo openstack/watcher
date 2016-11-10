@@ -24,12 +24,13 @@ from oslo_versionedobjects import fields
 LOG = log.getLogger(__name__)
 
 
-IntegerField = fields.IntegerField
-UUIDField = fields.UUIDField
-StringField = fields.StringField
-DateTimeField = fields.DateTimeField
 BooleanField = fields.BooleanField
+DateTimeField = fields.DateTimeField
+IntegerField = fields.IntegerField
 ListOfStringsField = fields.ListOfStringsField
+ObjectField = fields.ObjectField
+StringField = fields.StringField
+UUIDField = fields.UUIDField
 
 
 class Numeric(fields.FieldType):

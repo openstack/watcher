@@ -159,8 +159,11 @@ class TestDefaultPlanner(base.DbTestCase):
             'migrate': 3
         }
 
-        obj_utils.create_test_audit_template(self.context)
-        self.strategy = obj_utils.create_test_strategy(self.context)
+        self.goal = obj_utils.create_test_goal(self.context)
+        self.strategy = obj_utils.create_test_strategy(
+            self.context, goal_id=self.goal.id)
+        obj_utils.create_test_audit_template(
+            self.context, goal_id=self.goal.id, strategy_id=self.strategy.id)
 
         p = mock.patch.object(db_api.BaseConnection, 'create_action_plan')
         self.mock_create_action_plan = p.start()
@@ -185,7 +188,8 @@ class TestDefaultPlanner(base.DbTestCase):
     @mock.patch.object(objects.Strategy, 'get_by_name')
     def test_schedule_scheduled_empty(self, m_get_by_name):
         m_get_by_name.return_value = self.strategy
-        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        audit = db_utils.create_test_audit(
+            goal_id=self.goal.id, strategy_id=self.strategy.id)
         fake_solution = SolutionFakerSingleHyp.build()
         action_plan = self.default_planner.schedule(self.context,
                                                     audit.id, fake_solution)
@@ -194,8 +198,9 @@ class TestDefaultPlanner(base.DbTestCase):
     @mock.patch.object(objects.Strategy, 'get_by_name')
     def test_scheduler_warning_empty_action_plan(self, m_get_by_name):
         m_get_by_name.return_value = self.strategy
-        audit = db_utils.create_test_audit(uuid=utils.generate_uuid())
+        audit = db_utils.create_test_audit(
+            goal_id=self.goal.id, strategy_id=self.strategy.id)
         fake_solution = SolutionFaker.build()
-        action_plan = self.default_planner.schedule(self.context,
-                                                    audit.id, fake_solution)
+        action_plan = self.default_planner.schedule(
+            self.context, audit.id, fake_solution)
         self.assertIsNotNone(action_plan.uuid)

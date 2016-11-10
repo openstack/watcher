@@ -21,6 +21,11 @@ from watcher.tests.objects import utils as obj_utils
 
 class TestListStrategy(api_base.FunctionalTest):
 
+    def setUp(self):
+        super(TestListStrategy, self).setUp()
+        self.fake_goal = obj_utils.create_test_goal(
+            self.context, uuid=utils.generate_uuid())
+
     def _assert_strategy_fields(self, strategy):
         strategy_fields = ['uuid', 'name', 'display_name', 'goal_uuid']
         for field in strategy_fields:
@@ -61,7 +66,6 @@ class TestListStrategy(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
 
     def test_detail(self):
-        obj_utils.create_test_goal(self.context)
         strategy = obj_utils.create_test_strategy(self.context)
         response = self.get_json('/strategies/detail')
         self.assertEqual(strategy.uuid, response['strategies'][0]["uuid"])
@@ -78,7 +82,6 @@ class TestListStrategy(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
 
     def test_many(self):
-        obj_utils.create_test_goal(self.context)
         strategy_list = []
         for idx in range(1, 6):
             strategy = obj_utils.create_test_strategy(
@@ -132,12 +135,12 @@ class TestListStrategy(api_base.FunctionalTest):
     def test_filter_by_goal_uuid(self):
         goal1 = obj_utils.create_test_goal(
             self.context,
-            id=1,
+            id=2,
             uuid=utils.generate_uuid(),
             name='My_Goal 1')
         goal2 = obj_utils.create_test_goal(
             self.context,
-            id=2,
+            id=3,
             uuid=utils.generate_uuid(),
             name='My Goal 2')
 
@@ -164,12 +167,12 @@ class TestListStrategy(api_base.FunctionalTest):
     def test_filter_by_goal_name(self):
         goal1 = obj_utils.create_test_goal(
             self.context,
-            id=1,
+            id=2,
             uuid=utils.generate_uuid(),
             name='My_Goal 1')
         goal2 = obj_utils.create_test_goal(
             self.context,
-            id=2,
+            id=3,
             uuid=utils.generate_uuid(),
             name='My Goal 2')
 
@@ -195,6 +198,11 @@ class TestListStrategy(api_base.FunctionalTest):
 
 
 class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
+
+    def setUp(self):
+        super(TestStrategyPolicyEnforcement, self).setUp()
+        self.fake_goal = obj_utils.create_test_goal(
+            self.context, uuid=utils.generate_uuid())
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({
@@ -227,8 +235,8 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
             expect_errors=True)
 
 
-class TestStrategyEnforcementWithAdminContext(TestListStrategy,
-                                              api_base.AdminRoleTest):
+class TestStrategyEnforcementWithAdminContext(
+        TestListStrategy, api_base.AdminRoleTest):
 
     def setUp(self):
         super(TestStrategyEnforcementWithAdminContext, self).setUp()

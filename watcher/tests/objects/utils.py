@@ -217,6 +217,14 @@ def get_test_strategy(context, **kw):
     strategy = objects.Strategy(context)
     for key in db_strategy:
         setattr(strategy, key, db_strategy[key])
+
+    # ObjectField checks for the object type, so if we want to simulate a
+    # non-eager object loading, the field should not be referenced at all.
+    # Contrarily, eager loading need the data to be casted to the object type
+    # that was specified by the ObjectField.
+    if kw.get('goal'):
+        strategy.goal = objects.Goal(context, **kw.get('goal'))
+
     return strategy
 
 

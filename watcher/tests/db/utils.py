@@ -199,7 +199,7 @@ def create_test_scoring_engine(**kwargs):
 
 
 def get_test_strategy(**kwargs):
-    return {
+    strategy_data = {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', 'cb3d0b58-4415-4d90-b75b-1e96878730e3'),
         'name': kwargs.get('name', 'TEST'),
@@ -208,8 +208,15 @@ def get_test_strategy(**kwargs):
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
-        'parameters_spec': kwargs.get('parameters_spec', {})
+        'parameters_spec': kwargs.get('parameters_spec', {}),
     }
+
+    # goal ObjectField doesn't allow None nor dict, so if we want to simulate a
+    # non-eager object loading, the field should not be referenced at all.
+    if kwargs.get('goal'):
+        strategy_data['goal'] = kwargs.get('goal')
+
+    return strategy_data
 
 
 def get_test_service(**kwargs):
