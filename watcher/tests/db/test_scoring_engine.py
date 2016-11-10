@@ -235,7 +235,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
 
     def test_get_scoring_engine_list(self):
         names = []
-        for i in range(1, 6):
+        for i in range(1, 4):
             scoring_engine = utils.create_test_scoring_engine(
                 id=i,
                 uuid=w_utils.generate_uuid(),
@@ -243,9 +243,9 @@ class DbScoringEngineTestCase(base.DbTestCase):
                 description='My ScoringEngine {0}'.format(i),
                 metainfo='a{0}=b{0}'.format(i))
             names.append(six.text_type(scoring_engine['name']))
-        res = self.dbapi.get_scoring_engine_list(self.context)
-        res_names = [r.name for r in res]
-        self.assertEqual(names.sort(), res_names.sort())
+        scoring_engines = self.dbapi.get_scoring_engine_list(self.context)
+        scoring_engines_names = [se.name for se in scoring_engines]
+        self.assertEqual(sorted(names), sorted(scoring_engines_names))
 
     def test_get_scoring_engine_list_with_filters(self):
         scoring_engine1 = self._create_test_scoring_engine(
@@ -310,7 +310,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_scoring_engine,
                           scoring_engine['id'],
-                          {'id': 5})
+                          {'uuid': w_utils.generate_uuid()})
 
     def test_update_scoring_engine_that_does_not_exist(self):
         self.assertRaises(exception.ScoringEngineNotFound,

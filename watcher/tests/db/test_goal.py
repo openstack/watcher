@@ -230,16 +230,16 @@ class DbGoalTestCase(base.DbTestCase):
 
     def test_get_goal_list(self):
         uuids = []
-        for i in range(1, 6):
+        for i in range(1, 4):
             goal = utils.create_test_goal(
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name="GOAL_%s" % i,
                 display_name='My Goal %s' % i)
             uuids.append(six.text_type(goal['uuid']))
-        res = self.dbapi.get_goal_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        goals = self.dbapi.get_goal_list(self.context)
+        goal_uuids = [g.uuid for g in goals]
+        self.assertEqual(sorted(uuids), sorted(goal_uuids))
 
     def test_get_goal_list_with_filters(self):
         goal1 = self._create_test_goal(

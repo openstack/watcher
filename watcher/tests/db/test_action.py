@@ -245,12 +245,32 @@ class DbActionTestCase(base.DbTestCase):
 
     def test_get_action_list(self):
         uuids = []
-        for _ in range(1, 6):
+        for _ in range(1, 4):
             action = utils.create_test_action(uuid=w_utils.generate_uuid())
             uuids.append(six.text_type(action['uuid']))
-        res = self.dbapi.get_action_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        actions = self.dbapi.get_action_list(self.context)
+        action_uuids = [a.uuid for a in actions]
+        self.assertEqual(3, len(action_uuids))
+        self.assertEqual(sorted(uuids), sorted(action_uuids))
+        for action in actions:
+            self.assertIsNone(action.action_plan)
+
+    def test_get_action_list_eager(self):
+        _action_plan = utils.get_test_action_plan()
+        action_plan = self.dbapi.create_action_plan(_action_plan)
+
+        uuids = []
+        for i in range(1, 4):
+            action = utils.create_test_action(
+                id=i, uuid=w_utils.generate_uuid(),
+                action_plan_id=action_plan.id)
+            uuids.append(six.text_type(action['uuid']))
+        actions = self.dbapi.get_action_list(self.context, eager=True)
+        action_map = {a.uuid: a for a in actions}
+        self.assertEqual(sorted(uuids), sorted(action_map.keys()))
+        eager_action = action_map[action.uuid]
+        self.assertEqual(
+            action_plan.as_dict(), eager_action.action_plan.as_dict())
 
     def test_get_action_list_with_filters(self):
         audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
@@ -299,8 +319,8 @@ class DbActionTestCase(base.DbTestCase):
             self.context,
             filters={'action_plan_uuid': action_plan['uuid']})
         self.assertEqual(
-            [action1['id'], action3['id']].sort(),
-            [r.id for r in res].sort())
+            sorted([action1['id'], action3['id']]),
+            sorted([r.id for r in res]))
 
         res = self.dbapi.get_action_list(
             self.context,

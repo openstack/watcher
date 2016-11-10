@@ -256,14 +256,37 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
     def test_get_efficacy_indicator_list(self):
         uuids = []
         action_plan = self._create_test_action_plan()
-        for id_ in range(1, 6):
+        for id_ in range(1, 4):
             efficacy_indicator = utils.create_test_efficacy_indicator(
                 action_plan_id=action_plan.id, id=id_, uuid=None,
                 name="efficacy_indicator", description="Test Indicator ")
             uuids.append(six.text_type(efficacy_indicator['uuid']))
-        res = self.dbapi.get_efficacy_indicator_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
+            self.context)
+        efficacy_indicator_uuids = [ei.uuid for ei in efficacy_indicators]
+        self.assertEqual(sorted(uuids), sorted(efficacy_indicator_uuids))
+        for efficacy_indicator in efficacy_indicators:
+            self.assertIsNone(efficacy_indicator.action_plan)
+
+    def test_get_efficacy_indicator_list_eager(self):
+        _action_plan = utils.get_test_action_plan()
+        action_plan = self.dbapi.create_action_plan(_action_plan)
+
+        uuids = []
+        for i in range(1, 4):
+            efficacy_indicator = utils.create_test_efficacy_indicator(
+                id=i, uuid=w_utils.generate_uuid(),
+                action_plan_id=action_plan.id)
+            uuids.append(six.text_type(efficacy_indicator['uuid']))
+        efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
+            self.context, eager=True)
+        efficacy_indicator_map = {a.uuid: a for a in efficacy_indicators}
+        self.assertEqual(sorted(uuids), sorted(efficacy_indicator_map.keys()))
+        eager_efficacy_indicator = efficacy_indicator_map[
+            efficacy_indicator.uuid]
+        self.assertEqual(
+            action_plan.as_dict(),
+            eager_efficacy_indicator.action_plan.as_dict())
 
     def test_get_efficacy_indicator_list_with_filters(self):
         audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
@@ -311,8 +334,8 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             self.context,
             filters={'action_plan_uuid': action_plan['uuid']})
         self.assertEqual(
-            [efficacy_indicator1['id'], efficacy_indicator3['id']].sort(),
-            [r.id for r in res].sort())
+            sorted([efficacy_indicator1['id'], efficacy_indicator3['id']]),
+            sorted([r.id for r in res]))
 
     def test_get_efficacy_indicator_list_with_filter_by_uuid(self):
         efficacy_indicator = self._create_test_efficacy_indicator()

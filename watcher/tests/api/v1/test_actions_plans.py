@@ -504,24 +504,6 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
 
-class TestPatchStateDeletedNotFound(api_base.FunctionalTest):
-
-    @mock.patch.object(
-        db_api.BaseConnection, 'update_action_plan',
-        mock.Mock(side_effect=lambda ap: ap.save() or ap))
-    def test_replace_state_pending_not_found(self):
-        action_plan = obj_utils.create_test_action_plan(
-            self.context, state=objects.action_plan.State.DELETED)
-
-        response = self.get_json(
-            '/action_plans/%s' % action_plan.uuid,
-            expect_errors=True
-        )
-        self.assertEqual(404, response.status_code)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
-
-
 class TestPatchStateTransitionOk(api_base.FunctionalTest):
 
     scenarios = [

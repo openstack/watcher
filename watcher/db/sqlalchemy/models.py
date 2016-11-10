@@ -27,6 +27,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
 from sqlalchemy import Numeric
+from sqlalchemy import orm
 from sqlalchemy import String
 from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator, TEXT
@@ -57,6 +58,7 @@ def table_args():
 
 class JsonEncodedType(TypeDecorator):
     """Abstract base type serialized as json-encoded string in db."""
+
     type = None
     impl = TEXT
 
@@ -81,11 +83,13 @@ class JsonEncodedType(TypeDecorator):
 
 class JSONEncodedDict(JsonEncodedType):
     """Represents dict serialized as json-encoded string in db."""
+
     type = dict
 
 
 class JSONEncodedList(JsonEncodedType):
     """Represents list serialized as json-encoded string in db."""
+
     type = list
 
 
@@ -111,23 +115,6 @@ class WatcherBase(models.SoftDeleteMixin,
 Base = declarative_base(cls=WatcherBase)
 
 
-class Strategy(Base):
-    """Represents a strategy."""
-
-    __tablename__ = 'strategies'
-    __table_args__ = (
-        UniqueConstraint('uuid', name='uniq_strategies0uuid'),
-        UniqueConstraint('name', 'deleted', name='uniq_strategies0name'),
-        table_args()
-    )
-    id = Column(Integer, primary_key=True)
-    uuid = Column(String(36))
-    name = Column(String(63), nullable=False)
-    display_name = Column(String(63), nullable=False)
-    goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
-    parameters_spec = Column(JSONEncodedDict, nullable=True)
-
-
 class Goal(Base):
     """Represents a goal."""
 
@@ -137,11 +124,30 @@ class Goal(Base):
         UniqueConstraint('name', 'deleted', name='uniq_goals0name'),
         table_args(),
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
     name = Column(String(63), nullable=False)
     display_name = Column(String(63), nullable=False)
     efficacy_specification = Column(JSONEncodedList, nullable=False)
+
+
+class Strategy(Base):
+    """Represents a strategy."""
+
+    __tablename__ = 'strategies'
+    __table_args__ = (
+        UniqueConstraint('uuid', name='uniq_strategies0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_strategies0name'),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String(36))
+    name = Column(String(63), nullable=False)
+    display_name = Column(String(63), nullable=False)
+    goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
+    parameters_spec = Column(JSONEncodedDict, nullable=True)
+
+    goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
 
 
 class AuditTemplate(Base):
@@ -163,6 +169,9 @@ class AuditTemplate(Base):
     version = Column(String(15), nullable=True)
     scope = Column(JSONEncodedList)
 
+    goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
+    strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
+
 
 class Audit(Base):
     """Represents an audit."""
@@ -172,7 +181,7 @@ class Audit(Base):
         UniqueConstraint('uuid', name='uniq_audits0uuid'),
         table_args()
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
     audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
@@ -183,24 +192,8 @@ class Audit(Base):
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     scope = Column(JSONEncodedList, nullable=True)
 
-
-class Action(Base):
-    """Represents an action."""
-
-    __tablename__ = 'actions'
-    __table_args__ = (
-        UniqueConstraint('uuid', name='uniq_actions0uuid'),
-        table_args()
-    )
-    id = Column(Integer, primary_key=True)
-    uuid = Column(String(36), nullable=False)
-    action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
-                            nullable=False)
-    # only for the first version
-    action_type = Column(String(255), nullable=False)
-    input_parameters = Column(JSONEncodedDict, nullable=True)
-    state = Column(String(20), nullable=True)
-    next = Column(String(36), nullable=True)
+    goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
+    strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
 
 
 class ActionPlan(Base):
@@ -211,13 +204,38 @@ class ActionPlan(Base):
         UniqueConstraint('uuid', name='uniq_action_plans0uuid'),
         table_args()
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
     first_action_id = Column(Integer)
     audit_id = Column(Integer, ForeignKey('audits.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
     state = Column(String(20), nullable=True)
     global_efficacy = Column(JSONEncodedDict, nullable=True)
+
+    audit = orm.relationship(Audit, foreign_keys=audit_id, lazy=None)
+    strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
+
+
+class Action(Base):
+    """Represents an action."""
+
+    __tablename__ = 'actions'
+    __table_args__ = (
+        UniqueConstraint('uuid', name='uniq_actions0uuid'),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    uuid = Column(String(36), nullable=False)
+    action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
+                            nullable=False)
+    # only for the first version
+    action_type = Column(String(255), nullable=False)
+    input_parameters = Column(JSONEncodedDict, nullable=True)
+    state = Column(String(20), nullable=True)
+    next = Column(String(36), nullable=True)
+
+    action_plan = orm.relationship(
+        ActionPlan, foreign_keys=action_plan_id, lazy=None)
 
 
 class EfficacyIndicator(Base):
@@ -228,7 +246,7 @@ class EfficacyIndicator(Base):
         UniqueConstraint('uuid', name='uniq_efficacy_indicators0uuid'),
         table_args()
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
     name = Column(String(63))
     description = Column(String(255), nullable=True)
@@ -236,6 +254,9 @@ class EfficacyIndicator(Base):
     value = Column(Numeric())
     action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
                             nullable=False)
+
+    action_plan = orm.relationship(
+        ActionPlan, foreign_keys=action_plan_id, lazy=None)
 
 
 class ScoringEngine(Base):
@@ -247,7 +268,7 @@ class ScoringEngine(Base):
         UniqueConstraint('name', 'deleted', name='uniq_scoring_engines0name'),
         table_args()
     )
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36), nullable=False)
     name = Column(String(63), nullable=False)
     description = Column(String(255), nullable=True)

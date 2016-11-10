@@ -20,7 +20,7 @@ import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
-from watcher.objects import audit as audit_objects
+from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
 
@@ -48,11 +48,11 @@ class TestDbAuditFilters(base.DbTestCase):
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.audit2 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=2, uuid=None,
-                state=audit_objects.State.FAILED)
+                state=objects.audit.State.FAILED)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.audit3 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=3, uuid=None,
-                state=audit_objects.State.CANCELLED)
+                state=objects.audit.State.CANCELLED)
 
     def _soft_delete_audits(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -66,15 +66,15 @@ class TestDbAuditFilters(base.DbTestCase):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_audit(
                 self.audit1.uuid,
-                values={"state": audit_objects.State.SUCCEEDED})
+                values={"state": objects.audit.State.SUCCEEDED})
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_audit(
                 self.audit2.uuid,
-                values={"state": audit_objects.State.SUCCEEDED})
+                values={"state": objects.audit.State.SUCCEEDED})
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_audit(
                 self.audit3.uuid,
-                values={"state": audit_objects.State.SUCCEEDED})
+                values={"state": objects.audit.State.SUCCEEDED})
 
     def test_get_audit_list_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -230,8 +230,8 @@ class TestDbAuditFilters(base.DbTestCase):
     def test_get_audit_list_filter_state_in(self):
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state__in': (audit_objects.State.FAILED,
-                                   audit_objects.State.CANCELLED)})
+            filters={'state__in': (objects.audit.State.FAILED,
+                                   objects.audit.State.CANCELLED)})
 
         self.assertEqual(
             [self.audit2['id'], self.audit3['id']],
@@ -240,8 +240,8 @@ class TestDbAuditFilters(base.DbTestCase):
     def test_get_audit_list_filter_state_notin(self):
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state__notin': (audit_objects.State.FAILED,
-                                      audit_objects.State.CANCELLED)})
+            filters={'state__notin': (objects.audit.State.FAILED,
+                                      objects.audit.State.CANCELLED)})
 
         self.assertEqual(
             [self.audit1['id']],
@@ -257,29 +257,52 @@ class DbAuditTestCase(base.DbTestCase):
 
     def test_get_audit_list(self):
         uuids = []
-        for _ in range(1, 6):
+        for _ in range(1, 4):
             audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
             uuids.append(six.text_type(audit['uuid']))
-        res = self.dbapi.get_audit_list(self.context)
-        res_uuids = [r.uuid for r in res]
-        self.assertEqual(uuids.sort(), res_uuids.sort())
+        audits = self.dbapi.get_audit_list(self.context)
+        audit_uuids = [a.uuid for a in audits]
+        self.assertEqual(sorted(uuids), sorted(audit_uuids))
+        for audit in audits:
+            self.assertIsNone(audit.goal)
+            self.assertIsNone(audit.strategy)
+
+    def test_get_audit_list_eager(self):
+        _goal = utils.get_test_goal()
+        goal = self.dbapi.create_goal(_goal)
+        _strategy = utils.get_test_strategy()
+        strategy = self.dbapi.create_strategy(_strategy)
+
+        uuids = []
+        for i in range(1, 4):
+            audit = utils.create_test_audit(
+                id=i, uuid=w_utils.generate_uuid(),
+                goal_id=goal.id, strategy_id=strategy.id)
+            uuids.append(six.text_type(audit['uuid']))
+        audits = self.dbapi.get_audit_list(self.context, eager=True)
+        audit_map = {a.uuid: a for a in audits}
+        self.assertEqual(sorted(uuids), sorted(audit_map.keys()))
+        eager_audit = audit_map[audit.uuid]
+        self.assertEqual(goal.as_dict(), eager_audit.goal.as_dict())
+        self.assertEqual(strategy.as_dict(), eager_audit.strategy.as_dict())
 
     def test_get_audit_list_with_filters(self):
         audit1 = self._create_test_audit(
             id=1,
-            audit_type='ONESHOT',
+            audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
             deadline=None,
-            state=audit_objects.State.ONGOING)
+            state=objects.audit.State.ONGOING)
         audit2 = self._create_test_audit(
             id=2,
             audit_type='CONTINUOUS',
             uuid=w_utils.generate_uuid(),
             deadline=None,
-            state=audit_objects.State.PENDING)
+            state=objects.audit.State.PENDING)
 
-        res = self.dbapi.get_audit_list(self.context,
-                                        filters={'audit_type': 'ONESHOT'})
+        res = self.dbapi.get_audit_list(
+            self.context,
+            filters={'audit_type': objects.audit.AuditType.ONESHOT.value})
         self.assertEqual([audit1['id']], [r.id for r in res])
 
         res = self.dbapi.get_audit_list(self.context,
@@ -288,12 +311,12 @@ class DbAuditTestCase(base.DbTestCase):
 
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state': audit_objects.State.ONGOING})
+            filters={'state': objects.audit.State.ONGOING})
         self.assertEqual([audit1['id']], [r.id for r in res])
 
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state': audit_objects.State.PENDING})
+            filters={'state': objects.audit.State.PENDING})
         self.assertEqual([audit2['id']], [r.id for r in res])
 
     def test_get_audit_list_with_filter_by_uuid(self):
