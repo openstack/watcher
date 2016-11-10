@@ -56,7 +56,7 @@ def get_test_audit(**kwargs):
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'audit_type': kwargs.get('audit_type', 'ONESHOT'),
-        'state': kwargs.get('state'),
+        'state': kwargs.get('state', objects.audit.State.PENDING),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),

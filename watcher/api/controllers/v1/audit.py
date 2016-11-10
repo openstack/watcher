@@ -519,7 +519,7 @@ class AuditsController(rest.RestController):
         audit_dict = audit.as_dict()
 
         new_audit = objects.Audit(context, **audit_dict)
-        new_audit.create(context)
+        new_audit.create()
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('audits', new_audit.uuid)

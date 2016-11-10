@@ -14,12 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as dbapi
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
 class State(object):
@@ -31,38 +30,26 @@ class State(object):
     CANCELLED = 'CANCELLED'
 
 
-class Action(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class Action(base.WatcherPersistentObject, base.WatcherObject,
+             base.WatcherObjectDictCompat):
+
     # Version 1.0: Initial version
     VERSION = '1.0'
 
     dbapi = dbapi.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'action_plan_id': obj_utils.int_or_none,
-        'action_type': obj_utils.str_or_none,
-        'input_parameters': obj_utils.dict_or_none,
-        'state': obj_utils.str_or_none,
-        'next': obj_utils.int_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'action_plan_id': wfields.IntegerField(nullable=True),
+        'action_type': wfields.StringField(nullable=True),
+        'input_parameters': wfields.DictField(nullable=True),
+        'state': wfields.StringField(nullable=True),
+        'next': wfields.IntegerField(nullable=True),
     }
 
-    @staticmethod
-    def _from_db_object(action, db_action):
-        """Converts a database entity to a formal object."""
-        for field in action.fields:
-            action[field] = db_action[field]
-
-        action.obj_reset_changes()
-        return action
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return \
-            [Action._from_db_object(cls(context), obj) for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, action_id):
         """Find a action based on its id or uuid and return a Action object.
 
@@ -76,7 +63,7 @@ class Action(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=action_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, action_id):
         """Find a action based on its integer id and return a Action object.
 
@@ -87,7 +74,7 @@ class Action(base.WatcherObject):
         action = Action._from_db_object(cls(context), db_action)
         return action
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a action based on uuid and return a :class:`Action` object.
 
@@ -99,7 +86,7 @@ class Action(base.WatcherObject):
         action = Action._from_db_object(cls(context), db_action)
         return action
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of Action objects.
@@ -111,7 +98,6 @@ class Action(base.WatcherObject):
         :param sort_key: column to sort results by.
         :param sort_dir: direction to sort. "asc" or "desc".
         :returns: a list of :class:`Action` object.
-
         """
         db_actions = cls.dbapi.get_action_list(context,
                                                limit=limit,
@@ -119,84 +105,48 @@ class Action(base.WatcherObject):
                                                filters=filters,
                                                sort_key=sort_key,
                                                sort_dir=sort_dir)
-        return Action._from_db_object_list(db_actions, cls, context)
 
-    def create(self, context=None):
-        """Create a Action record in the DB.
+        return [cls._from_db_object(cls(context), obj)
+                for obj in db_actions]
 
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
-
-        """
+    @base.remotable
+    def create(self):
+        """Create a Action record in the DB"""
         values = self.obj_get_changes()
         db_action = self.dbapi.create_action(values)
         self._from_db_object(self, db_action)
 
-    def destroy(self, context=None):
-        """Delete the Action from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
-        """
+    def destroy(self):
+        """Delete the Action from the DB"""
         self.dbapi.destroy_action(self.uuid)
         self.obj_reset_changes()
 
-    def save(self, context=None):
+    @base.remotable
+    def save(self):
         """Save updates to this Action.
 
         Updates will be made column by column based on the result
         of self.what_changed().
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
         """
         updates = self.obj_get_changes()
         self.dbapi.update_action(self.uuid, updates)
 
         self.obj_reset_changes()
 
-    def refresh(self, context=None):
+    @base.remotable
+    def refresh(self):
         """Loads updates for this Action.
 
         Loads a action with the same uuid from the database and
         checks for updated attributes. Updates are applied from
         the loaded action column by column, if there are any updates.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
         """
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
-        for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
-                self[field] = current[field]
+        self.obj_refresh(current)
 
-    def soft_delete(self, context=None):
-        """soft Delete the Audit from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Audit(context)
-        """
+    @base.remotable
+    def soft_delete(self):
+        """Soft Delete the Audit from the DB"""
         self.dbapi.soft_delete_action(self.uuid)
-        self.state = "DELETED"
+        self.state = State.DELETED
         self.save()

@@ -16,40 +16,28 @@
 
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
+from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
-class Goal(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class Goal(base.WatcherPersistentObject, base.WatcherObject,
+           base.WatcherObjectDictCompat):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
-    dbapi = dbapi.get_instance()
+    dbapi = db_api.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'name': obj_utils.str_or_none,
-        'display_name': obj_utils.str_or_none,
-        'efficacy_specification': obj_utils.list_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'name': wfields.StringField(),
+        'display_name': wfields.StringField(),
+        'efficacy_specification': wfields.FlexibleListOfDictField(),
     }
 
-    @staticmethod
-    def _from_db_object(goal, db_goal):
-        """Converts a database entity to a formal object."""
-        for field in goal.fields:
-            goal[field] = db_goal[field]
-
-        goal.obj_reset_changes()
-        return goal
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [cls._from_db_object(cls(context), obj) for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, goal_id):
         """Find a goal based on its id or uuid
 
@@ -69,7 +57,7 @@ class Goal(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=goal_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, goal_id):
         """Find a goal based on its integer id
 
@@ -86,7 +74,7 @@ class Goal(base.WatcherObject):
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a goal based on uuid
 
@@ -99,12 +87,11 @@ class Goal(base.WatcherObject):
         :param uuid: the uuid of a goal.
         :returns: a :class:`Goal` object.
         """
-
         db_goal = cls.dbapi.get_goal_by_uuid(context, uuid)
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_name(cls, context, name):
         """Find a goal based on name
 
@@ -112,12 +99,11 @@ class Goal(base.WatcherObject):
         :param context: Security context
         :returns: a :class:`Goal` object.
         """
-
         db_goal = cls.dbapi.get_goal_by_name(context, name)
         goal = cls._from_db_object(cls(context), db_goal)
         return goal
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of :class:`Goal` objects.
@@ -142,20 +128,22 @@ class Goal(base.WatcherObject):
             marker=marker,
             sort_key=sort_key,
             sort_dir=sort_dir)
-        return cls._from_db_object_list(db_goals, cls, context)
 
+        return [cls._from_db_object(cls(context), obj) for obj in db_goals]
+
+    @base.remotable
     def create(self):
-        """Create a :class:`Goal` record in the DB."""
-
+        """Create a :class:`Goal` record in the DB"""
         values = self.obj_get_changes()
         db_goal = self.dbapi.create_goal(values)
         self._from_db_object(self, db_goal)
 
     def destroy(self):
-        """Delete the :class:`Goal` from the DB."""
+        """Delete the :class:`Goal` from the DB"""
         self.dbapi.destroy_goal(self.id)
         self.obj_reset_changes()
 
+    @base.remotable
     def save(self):
         """Save updates to this :class:`Goal`.
 
@@ -167,6 +155,7 @@ class Goal(base.WatcherObject):
 
         self.obj_reset_changes()
 
+    @base.remotable
     def refresh(self):
         """Loads updates for this :class:`Goal`.
 
@@ -175,11 +164,9 @@ class Goal(base.WatcherObject):
         the loaded goal column by column, if there are any updates.
         """
         current = self.get_by_uuid(self._context, uuid=self.uuid)
-        for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
-                self[field] = current[field]
+        self.obj_refresh(current)
 
+    @base.remotable
     def soft_delete(self):
-        """Soft Delete the :class:`Goal` from the DB."""
+        """Soft Delete the :class:`Goal` from the DB"""
         self.dbapi.soft_delete_goal(self.uuid)

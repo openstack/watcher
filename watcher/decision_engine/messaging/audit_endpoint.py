@@ -23,7 +23,7 @@ from oslo_log import log
 
 from watcher.decision_engine.audit import continuous as continuous_handler
 from watcher.decision_engine.audit import oneshot as oneshot_handler
-from watcher.objects import audit as audit_objects
+from watcher import objects
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -49,7 +49,7 @@ class AuditEndpoint(object):
         return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        audit = audit_objects.Audit.get_by_uuid(context, audit_uuid)
+        audit = objects.Audit.get_by_uuid(context, audit_uuid)
         self._oneshot_handler.execute(audit, context)
 
     def trigger_audit(self, context, audit_uuid):

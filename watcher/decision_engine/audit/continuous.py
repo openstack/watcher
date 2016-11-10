@@ -25,8 +25,7 @@ from oslo_config import cfg
 
 from watcher.common import context
 from watcher.decision_engine.audit import base
-from watcher.objects import action_plan as action_objects
-from watcher.objects import audit as audit_objects
+from watcher import objects
 
 CONF = cfg.CONF
 
@@ -56,11 +55,11 @@ class ContinuousAuditHandler(base.AuditHandler):
         return self._scheduler
 
     def _is_audit_inactive(self, audit):
-        audit = audit_objects.Audit.get_by_uuid(self.context_show_deleted,
-                                                audit.uuid)
-        if audit.state in (audit_objects.State.CANCELLED,
-                           audit_objects.State.DELETED,
-                           audit_objects.State.FAILED):
+        audit = objects.Audit.get_by_uuid(
+            self.context_show_deleted, audit.uuid)
+        if audit.state in (objects.audit.State.CANCELLED,
+                           objects.audit.State.DELETED,
+                           objects.audit.State.FAILED):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
             job_to_delete = [job for job in self.jobs
@@ -77,14 +76,13 @@ class ContinuousAuditHandler(base.AuditHandler):
         solution = self.strategy_context.execute_strategy(
             audit, request_context)
 
-        if audit.audit_type == audit_objects.AuditType.CONTINUOUS.value:
+        if audit.audit_type == objects.audit.AuditType.CONTINUOUS.value:
             a_plan_filters = {'audit_uuid': audit.uuid,
-                              'state': action_objects.State.RECOMMENDED}
-            action_plans = action_objects.ActionPlan.list(
-                request_context,
-                filters=a_plan_filters)
+                              'state': objects.action_plan.State.RECOMMENDED}
+            action_plans = objects.ActionPlan.list(
+                request_context, filters=a_plan_filters)
             for plan in action_plans:
-                plan.state = action_objects.State.CANCELLED
+                plan.state = objects.action_plan.State.CANCELLED
                 plan.save()
         return solution
 
@@ -98,13 +96,12 @@ class ContinuousAuditHandler(base.AuditHandler):
     def launch_audits_periodically(self):
         audit_context = context.RequestContext(is_admin=True)
         audit_filters = {
-            'audit_type': audit_objects.AuditType.CONTINUOUS.value,
-            'state__in': (audit_objects.State.PENDING,
-                          audit_objects.State.ONGOING,
-                          audit_objects.State.SUCCEEDED)
+            'audit_type': objects.audit.AuditType.CONTINUOUS.value,
+            'state__in': (objects.audit.State.PENDING,
+                          objects.audit.State.ONGOING,
+                          objects.audit.State.SUCCEEDED)
         }
-        audits = audit_objects.Audit.list(audit_context,
-                                          filters=audit_filters)
+        audits = objects.Audit.list(audit_context, filters=audit_filters)
         scheduler_job_args = [job.args for job in self.scheduler.get_jobs()
                               if job.name == 'execute_audit']
         for audit in audits:

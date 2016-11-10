@@ -26,7 +26,7 @@ from watcher.common.messaging.events import event as watcher_event
 from watcher.decision_engine.messaging import events as de_events
 from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.context import default as default_context
-from watcher.objects import audit as audit_objects
+from watcher import objects
 
 LOG = log.getLogger(__name__)
 
@@ -89,13 +89,13 @@ class AuditHandler(BaseAuditHandler):
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
         # change state of the audit to ONGOING
-        self.update_audit_state(audit, audit_objects.State.ONGOING)
+        self.update_audit_state(audit, objects.audit.State.ONGOING)
 
     def post_execute(self, audit, solution, request_context):
         self.planner.schedule(request_context, audit.id, solution)
 
         # change state of the audit to SUCCEEDED
-        self.update_audit_state(audit, audit_objects.State.SUCCEEDED)
+        self.update_audit_state(audit, objects.audit.State.SUCCEEDED)
 
     def execute(self, audit, request_context):
         try:
@@ -104,4 +104,4 @@ class AuditHandler(BaseAuditHandler):
             self.post_execute(audit, solution, request_context)
         except Exception as e:
             LOG.exception(e)
-            self.update_audit_state(audit, audit_objects.State.FAILED)
+            self.update_audit_state(audit, objects.audit.State.FAILED)

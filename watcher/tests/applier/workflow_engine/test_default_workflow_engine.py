@@ -80,7 +80,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             'next': next,
         }
         new_action = objects.Action(self.context, **action)
-        new_action.create(self.context)
+        new_action.create()
         new_action.save()
 
         return new_action

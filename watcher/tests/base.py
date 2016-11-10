@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2010-2011 OpenStack Foundation
 # Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
 #
@@ -35,8 +33,11 @@ from watcher.tests import policy_fixture
 
 
 CONF = cfg.CONF
-log.register_options(CONF)
-CONF.set_override('use_stderr', False, enforce_type=True)
+try:
+    log.register_options(CONF)
+except cfg.ArgsAlreadyParsedError:
+    pass
+CONF.set_override('use_stderr', False)
 
 
 class BaseTestCase(testscenarios.WithScenarios, base.BaseTestCase):
@@ -76,6 +77,9 @@ class TestCase(BaseTestCase):
                 }
             }
         }
+
+        objects_base.WatcherObject.indirection_api = None
+
         self.context = watcher_context.RequestContext(
             auth_token_info=self.token_info,
             project_id='fake_project',
@@ -104,19 +108,21 @@ class TestCase(BaseTestCase):
         self._reset_singletons()
 
         self._base_test_obj_backup = copy.copy(
-            objects_base.WatcherObject._obj_classes)
+            objects_base.WatcherObjectRegistry._registry._obj_classes)
         self.addCleanup(self._restore_obj_registry)
         self.addCleanup(self._reset_singletons)
 
     def _reset_singletons(self):
         service.Singleton._instances.clear()
 
-    def _restore_obj_registry(self):
-        objects_base.WatcherObject._obj_classes = self._base_test_obj_backup
+        def reset_pecan():
+            pecan.set_config({}, overwrite=True)
 
-    def tearDown(self):
-        super(TestCase, self).tearDown()
-        pecan.set_config({}, overwrite=True)
+        self.addCleanup(reset_pecan)
+
+    def _restore_obj_registry(self):
+        objects_base.WatcherObjectRegistry._registry._obj_classes = (
+            self._base_test_obj_backup)
 
     def config(self, **kw):
         """Override config options for a test."""
@@ -124,7 +130,7 @@ class TestCase(BaseTestCase):
         for k, v in kw.items():
             CONF.set_override(k, v, group, enforce_type=True)
 
-    def path_get(self, project_file=None):
+    def get_path(self, project_file=None):
         """Get the absolute path to a file. Used for testing the API.
 
         :param project_file: File whose path to return. Default: None.

@@ -21,7 +21,6 @@ from watcher.common import utils
 from watcher.decision_engine.loading import default
 from watcher.decision_engine import sync
 from watcher import objects
-from watcher.objects import action_plan as ap_objects
 from watcher.tests.db import base
 from watcher.tests.decision_engine import fake_goals
 from watcher.tests.decision_engine import fake_strategies
@@ -329,22 +328,30 @@ class TestSyncer(base.DbTestCase):
         # Should stay unmodified after sync()
         audit1 = objects.Audit(
             self.ctx, id=1, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal1.id, strategy_id=strategy1.id)
         # Should be modified by the sync() because its associated goal
         # has been modified (compared to the defined fake goals)
         audit2 = objects.Audit(
             self.ctx, id=2, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal2.id, strategy_id=strategy2.id)
         # Should be modified by the sync() because its associated strategy
         # has been modified (compared to the defined fake strategies)
         audit3 = objects.Audit(
             self.ctx, id=3, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal1.id, strategy_id=strategy3.id)
         # Modified because of both because its associated goal and associated
         # strategy should be modified (compared to the defined fake
         # goals/strategies)
         audit4 = objects.Audit(
             self.ctx, id=4, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal2.id, strategy_id=strategy4.id)
 
         audit1.create()
@@ -483,7 +490,7 @@ class TestSyncer(base.DbTestCase):
             set([action_plan2.id, action_plan3.id, action_plan4.id]),
             set(modified_action_plans))
         self.assertTrue(
-            all(ap.state == ap_objects.State.CANCELLED
+            all(ap.state == objects.action_plan.State.CANCELLED
                 for ap in modified_action_plans.values()))
         self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))
 
@@ -551,10 +558,14 @@ class TestSyncer(base.DbTestCase):
         # Should stay unmodified after sync()
         audit1 = objects.Audit(
             self.ctx, id=1, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal1.id, strategy_id=strategy1.id)
         # Stale after syncing because the goal has been soft deleted
         audit2 = objects.Audit(
             self.ctx, id=2, uuid=utils.generate_uuid(),
+            audit_type=objects.audit.AuditType.ONESHOT.value,
+            state=objects.audit.State.PENDING,
             goal_id=goal2.id, strategy_id=strategy2.id)
         audit1.create()
         audit2.create()
@@ -651,6 +662,6 @@ class TestSyncer(base.DbTestCase):
 
         self.assertEqual(set([action_plan2.id]), set(modified_action_plans))
         self.assertTrue(
-            all(ap.state == ap_objects.State.CANCELLED
+            all(ap.state == objects.action_plan.State.CANCELLED
                 for ap in modified_action_plans.values()))
         self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))

@@ -16,40 +16,27 @@
 
 from watcher.common import exception
 from watcher.common import utils
-from watcher.db import api as dbapi
+from watcher.db import api as db_api
 from watcher.objects import base
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
-class Strategy(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class Strategy(base.WatcherPersistentObject, base.WatcherObject,
+               base.WatcherObjectDictCompat):
 
-    dbapi = dbapi.get_instance()
+    dbapi = db_api.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'name': obj_utils.str_or_none,
-        'display_name': obj_utils.str_or_none,
-        'goal_id': obj_utils.int_or_none,
-        'parameters_spec': obj_utils.dict_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'name': wfields.StringField(),
+        'display_name': wfields.StringField(),
+        'goal_id': wfields.IntegerField(),
+        'parameters_spec': wfields.FlexibleDictField(nullable=True),
     }
 
-    @staticmethod
-    def _from_db_object(strategy, db_strategy):
-        """Converts a database entity to a formal object."""
-        for field in strategy.fields:
-            strategy[field] = db_strategy[field]
-
-        strategy.obj_reset_changes()
-        return strategy
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [Strategy._from_db_object(cls(context), obj)
-                for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, strategy_id):
         """Find a strategy based on its id or uuid
 
@@ -69,7 +56,7 @@ class Strategy(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=strategy_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, strategy_id):
         """Find a strategy based on its integer id
 
@@ -86,7 +73,7 @@ class Strategy(base.WatcherObject):
         strategy = Strategy._from_db_object(cls(context), db_strategy)
         return strategy
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a strategy based on uuid
 
@@ -104,7 +91,7 @@ class Strategy(base.WatcherObject):
         strategy = cls._from_db_object(cls(context), db_strategy)
         return strategy
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_name(cls, context, name):
         """Find a strategy based on name
 
@@ -117,7 +104,7 @@ class Strategy(base.WatcherObject):
         strategy = cls._from_db_object(cls(context), db_strategy)
         return strategy
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of :class:`Strategy` objects.
@@ -142,8 +129,11 @@ class Strategy(base.WatcherObject):
             marker=marker,
             sort_key=sort_key,
             sort_dir=sort_dir)
-        return Strategy._from_db_object_list(db_strategies, cls, context)
 
+        return [cls._from_db_object(cls(context), obj)
+                for obj in db_strategies]
+
+    @base.remotable
     def create(self, context=None):
         """Create a :class:`Strategy` record in the DB.
 
@@ -172,6 +162,7 @@ class Strategy(base.WatcherObject):
         self.dbapi.destroy_strategy(self.id)
         self.obj_reset_changes()
 
+    @base.remotable
     def save(self, context=None):
         """Save updates to this :class:`Strategy`.
 
@@ -190,6 +181,7 @@ class Strategy(base.WatcherObject):
 
         self.obj_reset_changes()
 
+    @base.remotable
     def refresh(self, context=None):
         """Loads updates for this :class:`Strategy`.
 
@@ -210,6 +202,7 @@ class Strategy(base.WatcherObject):
                     self[field] != current[field]):
                 self[field] = current[field]
 
+    @base.remotable
     def soft_delete(self, context=None):
         """Soft Delete the :class:`Strategy` from the DB.
 

@@ -45,8 +45,9 @@ composed of two types of Action Item(s):
 
 An :ref:`Action Plan <action_plan_definition>` may be described using
 standard workflow model description formats such as
-`Business Process Model and Notation 2.0 (BPMN 2.0) <http://www.omg.org/spec/BPMN/2.0/>`_
-or `Unified Modeling Language (UML) <http://www.uml.org/>`_.
+`Business Process Model and Notation 2.0 (BPMN 2.0)
+<http://www.omg.org/spec/BPMN/2.0/>`_ or `Unified Modeling Language (UML)
+<http://www.uml.org/>`_.
 
 An :ref:`Action Plan <action_plan_definition>` has a life-cycle and its current
 state may be one of the following:
@@ -66,7 +67,7 @@ state may be one of the following:
 -  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
    **PENDING** or **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
-"""  # noqa
+"""
 
 from watcher.common import exception
 from watcher.common import utils
@@ -74,7 +75,7 @@ from watcher.db import api as dbapi
 from watcher.objects import action as action_objects
 from watcher.objects import base
 from watcher.objects import efficacy_indicator as indicator_objects
-from watcher.objects import utils as obj_utils
+from watcher.objects import fields as wfields
 
 
 class State(object):
@@ -87,38 +88,25 @@ class State(object):
     CANCELLED = 'CANCELLED'
 
 
-class ActionPlan(base.WatcherObject):
+@base.WatcherObjectRegistry.register
+class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
+                 base.WatcherObjectDictCompat):
     # Version 1.0: Initial version
     VERSION = '1.0'
 
     dbapi = dbapi.get_instance()
 
     fields = {
-        'id': int,
-        'uuid': obj_utils.str_or_none,
-        'audit_id': obj_utils.int_or_none,
-        'strategy_id': obj_utils.int_or_none,
-        'first_action_id': obj_utils.int_or_none,
-        'state': obj_utils.str_or_none,
-        'global_efficacy': obj_utils.dict_or_none,
+        'id': wfields.IntegerField(),
+        'uuid': wfields.UUIDField(),
+        'audit_id': wfields.IntegerField(nullable=True),
+        'strategy_id': wfields.IntegerField(),
+        'first_action_id': wfields.IntegerField(nullable=True),
+        'state': wfields.StringField(nullable=True),
+        'global_efficacy': wfields.FlexibleDictField(nullable=True),
     }
 
-    @staticmethod
-    def _from_db_object(action_plan, db_action_plan):
-        """Converts a database entity to a formal object."""
-        for field in action_plan.fields:
-            action_plan[field] = db_action_plan[field]
-
-        action_plan.obj_reset_changes()
-        return action_plan
-
-    @staticmethod
-    def _from_db_object_list(db_objects, cls, context):
-        """Converts a list of database entities to a list of formal objects."""
-        return [ActionPlan._from_db_object(
-            cls(context), obj) for obj in db_objects]
-
-    @classmethod
+    @base.remotable_classmethod
     def get(cls, context, action_plan_id):
         """Find a action_plan based on its id or uuid and return a Action object.
 
@@ -132,7 +120,7 @@ class ActionPlan(base.WatcherObject):
         else:
             raise exception.InvalidIdentity(identity=action_plan_id)
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_id(cls, context, action_plan_id):
         """Find a action_plan based on its integer id and return a Action object.
 
@@ -145,7 +133,7 @@ class ActionPlan(base.WatcherObject):
             cls(context), db_action_plan)
         return action_plan
 
-    @classmethod
+    @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid):
         """Find a action_plan based on uuid and return a :class:`Action` object.
 
@@ -157,7 +145,7 @@ class ActionPlan(base.WatcherObject):
         action_plan = ActionPlan._from_db_object(cls(context), db_action_plan)
         return action_plan
 
-    @classmethod
+    @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None):
         """Return a list of Action objects.
@@ -177,33 +165,20 @@ class ActionPlan(base.WatcherObject):
                                                          filters=filters,
                                                          sort_key=sort_key,
                                                          sort_dir=sort_dir)
-        return ActionPlan._from_db_object_list(db_action_plans, cls, context)
 
-    def create(self, context=None):
-        """Create a Action record in the DB.
+        return [cls._from_db_object(cls(context), obj)
+                for obj in db_action_plans]
 
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
-
-        """
+    @base.remotable
+    def create(self):
+        """Create a Action record in the DB"""
         values = self.obj_get_changes()
         db_action_plan = self.dbapi.create_action_plan(values)
         self._from_db_object(self, db_action_plan)
 
-    def destroy(self, context=None):
-        """Delete the action plan from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
-        """
+    @base.remotable
+    def destroy(self):
+        """Delete the action plan from the DB"""
         related_efficacy_indicators = indicator_objects.EfficacyIndicator.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid})
@@ -215,54 +190,32 @@ class ActionPlan(base.WatcherObject):
         self.dbapi.destroy_action_plan(self.uuid)
         self.obj_reset_changes()
 
-    def save(self, context=None):
+    @base.remotable
+    def save(self):
         """Save updates to this Action plan.
 
         Updates will be made column by column based on the result
         of self.what_changed().
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
         """
         updates = self.obj_get_changes()
         self.dbapi.update_action_plan(self.uuid, updates)
 
         self.obj_reset_changes()
 
-    def refresh(self, context=None):
+    @base.remotable
+    def refresh(self):
         """Loads updates for this Action plan.
 
         Loads a action_plan with the same uuid from the database and
         checks for updated attributes. Updates are applied from
         the loaded action_plan column by column, if there are any updates.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Action(context)
         """
         current = self.__class__.get_by_uuid(self._context, uuid=self.uuid)
-        for field in self.fields:
-            if (hasattr(self, base.get_attrname(field)) and
-                    self[field] != current[field]):
-                self[field] = current[field]
+        self.obj_refresh(current)
 
-    def soft_delete(self, context=None):
-        """Soft Delete the Action plan from the DB.
-
-        :param context: Security context. NOTE: This should only
-                        be used internally by the indirection_api.
-                        Unfortunately, RPC requires context as the first
-                        argument, even though we don't use it.
-                        A context should be set when instantiating the
-                        object, e.g.: Audit(context)
-        """
+    @base.remotable
+    def soft_delete(self):
+        """Soft Delete the Action plan from the DB"""
         related_actions = action_objects.Action.list(
             context=self._context,
             filters={"action_plan_uuid": self.uuid})

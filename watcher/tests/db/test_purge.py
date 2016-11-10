@@ -20,6 +20,7 @@ import freezegun
 import mock
 
 from watcher.common import context as watcher_context
+from watcher.common import utils
 from watcher.db import purge
 from watcher.db.sqlalchemy import api as dbapi
 from watcher.tests.db import base
@@ -101,27 +102,33 @@ class TestPurgeCommand(base.DbTestCase):
 
         with freezegun.freeze_time(self.expired_date):
             self.goal1 = obj_utils.create_test_goal(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=goal1_name, display_name=goal1_name.lower())
             self.goal2 = obj_utils.create_test_goal(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=goal2_name, display_name=goal2_name.lower())
             self.goal3 = obj_utils.create_test_goal(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=goal3_name, display_name=goal3_name.lower())
             self.goal1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
             self.strategy1 = obj_utils.create_test_strategy(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=strategy1_name, display_name=strategy1_name.lower(),
                 goal_id=self.goal1.id)
             self.strategy2 = obj_utils.create_test_strategy(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=strategy2_name, display_name=strategy2_name.lower(),
                 goal_id=self.goal2.id)
             self.strategy3 = obj_utils.create_test_strategy(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 name=strategy3_name, display_name=strategy3_name.lower(),
                 goal_id=self.goal3.id)
             self.strategy1.soft_delete()
@@ -129,50 +136,61 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.expired_date):
             self.audit_template1 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template1_name,
-                id=self._generate_id(), uuid=None, goal_id=self.goal1.id,
+                id=self._generate_id(),
+                uuid=utils.generate_uuid(), goal_id=self.goal1.id,
                 strategy_id=self.strategy1.id)
             self.audit_template2 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template2_name,
-                id=self._generate_id(), uuid=None, goal_id=self.goal2.id,
+                id=self._generate_id(),
+                uuid=utils.generate_uuid(), goal_id=self.goal2.id,
                 strategy_id=self.strategy2.id)
             self.audit_template3 = obj_utils.create_test_audit_template(
                 self.context, name=self.audit_template3_name,
-                id=self._generate_id(), uuid=None, goal_id=self.goal3.id,
+                id=self._generate_id(),
+                uuid=utils.generate_uuid(), goal_id=self.goal3.id,
                 strategy_id=self.strategy3.id)
             self.audit_template1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
             self.audit1 = obj_utils.create_test_audit(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 goal_id=self.goal1.id, strategy_id=self.strategy1.id)
             self.audit2 = obj_utils.create_test_audit(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 goal_id=self.goal2.id, strategy_id=self.strategy2.id)
             self.audit3 = obj_utils.create_test_audit(
-                self.context, id=self._generate_id(), uuid=None,
+                self.context, id=self._generate_id(),
+                uuid=utils.generate_uuid(),
                 goal_id=self.goal3.id, strategy_id=self.strategy3.id)
             self.audit1.soft_delete()
 
         with freezegun.freeze_time(self.expired_date):
             self.action_plan1 = obj_utils.create_test_action_plan(
-                self.context, id=self._generate_id(), uuid=None,
-                audit_id=self.audit1.id, strategy_id=self.strategy1.id)
+                self.context, audit_id=self.audit1.id,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                strategy_id=self.strategy1.id)
             self.action_plan2 = obj_utils.create_test_action_plan(
-                self.context, id=self._generate_id(), uuid=None,
-                audit_id=self.audit2.id, strategy_id=self.strategy2.id)
+                self.context, audit_id=self.audit2.id,
+                id=self._generate_id(),
+                strategy_id=self.strategy2.id,
+                uuid=utils.generate_uuid())
             self.action_plan3 = obj_utils.create_test_action_plan(
-                self.context, id=self._generate_id(), uuid=None,
-                audit_id=self.audit3.id, strategy_id=self.strategy3.id)
+                self.context, audit_id=self.audit3.id,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                strategy_id=self.strategy3.id)
 
             self.action1 = obj_utils.create_test_action(
                 self.context, action_plan_id=self.action_plan1.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             self.action2 = obj_utils.create_test_action(
                 self.context, action_plan_id=self.action_plan2.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(), uuid=utils.generate_uuid())
             self.action3 = obj_utils.create_test_action(
                 self.context, action_plan_id=self.action_plan3.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(), uuid=utils.generate_uuid())
             self.action_plan1.soft_delete()
 
     @mock.patch.object(dbapi.Connection, "destroy_action")
@@ -249,30 +267,38 @@ class TestPurgeCommand(base.DbTestCase):
             audit_template4 = obj_utils.create_test_audit_template(
                 self.context, goal_id=404,  # Does not exist
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
-                strategy_id=None, id=self._generate_id(), uuid=None)
+                strategy_id=None, id=self._generate_id(),
+                uuid=utils.generate_uuid())
             audit4 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action_plan4 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action4 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
 
             audit_template5 = obj_utils.create_test_audit_template(
                 self.context, goal_id=self.goal1.id,
                 name=self.generate_unique_name(prefix="Audit Template 5 "),
-                strategy_id=None, id=self._generate_id(), uuid=None)
+                strategy_id=None, id=self._generate_id(),
+                uuid=utils.generate_uuid())
             audit5 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action5 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
 
             self.goal2.soft_delete()
             self.strategy2.soft_delete()
@@ -338,30 +364,38 @@ class TestPurgeCommand(base.DbTestCase):
             audit_template4 = obj_utils.create_test_audit_template(
                 self.context, goal_id=404,  # Does not exist
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
-                strategy_id=None, id=self._generate_id(), uuid=None)
+                strategy_id=None, id=self._generate_id(),
+                uuid=utils.generate_uuid())
             audit4 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action_plan4 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action4 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan4.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
 
             audit_template5 = obj_utils.create_test_audit_template(
                 self.context, goal_id=self.goal1.id,
                 name=self.generate_unique_name(prefix="Audit Template 5 "),
-                strategy_id=None, id=self._generate_id(), uuid=None)
+                strategy_id=None, id=self._generate_id(),
+                uuid=utils.generate_uuid())
             audit5 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context, audit_id=audit5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
             action5 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan5.id,
-                id=self._generate_id(), uuid=None)
+                id=self._generate_id(),
+                uuid=utils.generate_uuid())
 
             self.goal2.soft_delete()
             self.strategy2.soft_delete()

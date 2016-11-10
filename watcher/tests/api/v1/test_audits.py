@@ -250,7 +250,7 @@ class TestPatch(api_base.FunctionalTest):
     def setUp(self):
         super(TestPatch, self).setUp()
         obj_utils.create_test_audit_template(self.context)
-        self.audit = obj_utils.create_test_audit(self.context)
+        self.audit = obj_utils.create_test_audit(self.context, )
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
         self.mock_audit_update = p.start()
         self.mock_audit_update.side_effect = self._simulate_rpc_audit_update
@@ -313,15 +313,15 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_remove_ok(self):
         response = self.get_json('/audits/%s' % self.audit.uuid)
-        self.assertIsNotNone(response['state'])
+        self.assertIsNotNone(response['interval'])
 
         response = self.patch_json('/audits/%s' % self.audit.uuid,
-                                   [{'path': '/state', 'op': 'remove'}])
+                                   [{'path': '/interval', 'op': 'remove'}])
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(200, response.status_code)
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
-        self.assertIsNone(response['state'])
+        self.assertIsNone(response['interval'])
 
     def test_remove_uuid(self):
         response = self.patch_json('/audits/%s' % self.audit.uuid,

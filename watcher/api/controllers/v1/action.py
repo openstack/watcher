@@ -379,7 +379,7 @@ class ActionsController(rest.RestController):
         action_dict = action.as_dict()
         context = pecan.request.context
         new_action = objects.Action(context, **action_dict)
-        new_action.create(context)
+        new_action.create()
 
         # Set the HTTP Location Header
         pecan.response.location = link.build_url('actions', new_action.uuid)

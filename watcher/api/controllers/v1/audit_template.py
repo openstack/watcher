@@ -568,11 +568,11 @@ class AuditTemplatesController(rest.RestController):
         audit_template_dict = audit_template.as_dict()
         new_audit_template = objects.AuditTemplate(context,
                                                    **audit_template_dict)
-        new_audit_template.create(context)
+        new_audit_template.create()
 
         # Set the HTTP Location Header
-        pecan.response.location = link.build_url('audit_templates',
-                                                 new_audit_template.uuid)
+        pecan.response.location = link.build_url(
+            'audit_templates', new_audit_template.uuid)
         return AuditTemplate.convert_with_links(new_audit_template)
 
     @wsme.validate(types.uuid, [AuditTemplatePatchType])

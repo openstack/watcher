@@ -23,7 +23,7 @@ from taskflow import task
 from watcher._i18n import _LE, _LW, _LC
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
-from watcher.objects import action as obj_action
+from watcher import objects
 
 LOG = log.getLogger(__name__)
 
@@ -107,14 +107,12 @@ class TaskFlowActionContainer(task.Task):
 
     def pre_execute(self):
         try:
-            self.engine.notify(self._db_action,
-                               obj_action.State.ONGOING)
+            self.engine.notify(self._db_action, objects.action.State.ONGOING)
             LOG.debug("Pre-condition action: %s", self.name)
             self.action.pre_condition()
         except Exception as e:
             LOG.exception(e)
-            self.engine.notify(self._db_action,
-                               obj_action.State.FAILED)
+            self.engine.notify(self._db_action, objects.action.State.FAILED)
             raise
 
     def execute(self, *args, **kwargs):
@@ -122,15 +120,13 @@ class TaskFlowActionContainer(task.Task):
             LOG.debug("Running action: %s", self.name)
 
             self.action.execute()
-            self.engine.notify(self._db_action,
-                               obj_action.State.SUCCEEDED)
+            self.engine.notify(self._db_action, objects.action.State.SUCCEEDED)
         except Exception as e:
             LOG.exception(e)
             LOG.error(_LE('The workflow engine has failed '
                           'to execute the action: %s'), self.name)
 
-            self.engine.notify(self._db_action,
-                               obj_action.State.FAILED)
+            self.engine.notify(self._db_action, objects.action.State.FAILED)
             raise
 
     def post_execute(self):
@@ -139,8 +135,7 @@ class TaskFlowActionContainer(task.Task):
             self.action.post_condition()
         except Exception as e:
             LOG.exception(e)
-            self.engine.notify(self._db_action,
-                               obj_action.State.FAILED)
+            self.engine.notify(self._db_action, objects.action.State.FAILED)
             raise
 
     def revert(self, *args, **kwargs):
