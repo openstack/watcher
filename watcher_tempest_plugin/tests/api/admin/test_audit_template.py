@@ -35,18 +35,14 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         params = {
             'name': 'my at name %s' % uuid.uuid4(),
             'description': 'my at description',
-            'goal': goal['uuid'],
-            'extra': {'str': 'value', 'int': 123, 'float': 0.123,
-                      'bool': True, 'list': [1, 2, 3],
-                      'dict': {'foo': 'bar'}}}
+            'goal': goal['uuid']}
         expected_data = {
             'name': params['name'],
             'description': params['description'],
             'goal_uuid': params['goal'],
             'goal_name': goal_name,
             'strategy_uuid': None,
-            'strategy_name': None,
-            'extra': params['extra']}
+            'strategy_name': None}
 
         _, body = self.create_audit_template(**params)
         self.assert_expected(expected_data, body)
@@ -62,8 +58,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         params = {
             'name': 'my at name %s' % uuid.uuid4(),
             'description': 'my àt déscrïptïôn',
-            'goal': goal['uuid'],
-            'extra': {'foo': 'bar'}}
+            'goal': goal['uuid']}
 
         expected_data = {
             'name': params['name'],
@@ -71,8 +66,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
             'goal_uuid': params['goal'],
             'goal_name': goal_name,
             'strategy_uuid': None,
-            'strategy_name': None,
-            'extra': params['extra']}
+            'strategy_name': None}
 
         _, body = self.create_audit_template(**params)
         self.assert_expected(expected_data, body)
@@ -166,14 +160,12 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
         params = {'name': 'my at name %s' % uuid.uuid4(),
                   'description': 'my at description',
-                  'goal': self.goal['uuid'],
-                  'extra': {'key1': 'value1', 'key2': 'value2'}}
+                  'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)
 
         new_name = 'my at new name %s' % uuid.uuid4()
         new_description = 'my new at description'
-        new_extra = {'key1': 'new-value1', 'key2': 'new-value2'}
 
         patch = [{'path': '/name',
                   'op': 'replace',
@@ -186,13 +178,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
                   'value': new_goal['uuid']},
                  {'path': '/strategy',
                   'op': 'replace',
-                  'value': new_strategy['uuid']},
-                 {'path': '/extra/key1',
-                  'op': 'replace',
-                  'value': new_extra['key1']},
-                 {'path': '/extra/key2',
-                  'op': 'replace',
-                  'value': new_extra['key2']}]
+                  'value': new_strategy['uuid']}]
 
         self.client.update_audit_template(body['uuid'], patch)
 
@@ -201,59 +187,40 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         self.assertEqual(new_description, body['description'])
         self.assertEqual(new_goal['uuid'], body['goal_uuid'])
         self.assertEqual(new_strategy['uuid'], body['strategy_uuid'])
-        self.assertEqual(new_extra, body['extra'])
 
     @test.attr(type='smoke')
     def test_update_audit_template_remove(self):
-        extra = {'key1': 'value1', 'key2': 'value2', 'key3': 'value3'}
         description = 'my at description'
         name = 'my at name %s' % uuid.uuid4()
         params = {'name': name,
                   'description': description,
-                  'goal': self.goal['uuid'],
-                  'extra': extra}
+                  'goal': self.goal['uuid']}
 
         _, audit_template = self.create_audit_template(**params)
 
-        # Removing one item from the collection
+        # Removing the description
         self.client.update_audit_template(
             audit_template['uuid'],
-            [{'path': '/extra/key2', 'op': 'remove'}])
+            [{'path': '/description', 'op': 'remove'}])
 
-        extra.pop('key2')
         _, body = self.client.show_audit_template(audit_template['uuid'])
-        self.assertEqual(extra, body['extra'])
-
-        # Removing the collection
-        self.client.update_audit_template(
-            audit_template['uuid'],
-            [{'path': '/extra', 'op': 'remove'}])
-        _, body = self.client.show_audit_template(audit_template['uuid'])
-        self.assertEqual({}, body['extra'])
+        self.assertIsNone(body.get('description'))
 
         # Assert nothing else was changed
         self.assertEqual(name, body['name'])
-        self.assertEqual(description, body['description'])
+        self.assertIsNone(body['description'])
         self.assertEqual(self.goal['uuid'], body['goal_uuid'])
 
     @test.attr(type='smoke')
     def test_update_audit_template_add(self):
         params = {'name': 'my at name %s' % uuid.uuid4(),
-                  'description': 'my at description',
                   'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)
 
-        extra = {'key1': 'value1', 'key2': 'value2'}
-
-        patch = [{'path': '/extra/key1',
-                  'op': 'add',
-                  'value': extra['key1']},
-                 {'path': '/extra/key2',
-                  'op': 'add',
-                  'value': extra['key2']}]
+        patch = [{'path': '/description', 'op': 'add', 'value': 'description'}]
 
         self.client.update_audit_template(body['uuid'], patch)
 
         _, body = self.client.show_audit_template(body['uuid'])
-        self.assertEqual(extra, body['extra'])
+        self.assertEqual('description', body['description'])

@@ -165,8 +165,6 @@ class AuditTemplate(Base):
     description = Column(String(255), nullable=True)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
-    extra = Column(JSONEncodedDict)
-    version = Column(String(15), nullable=True)
     scope = Column(JSONEncodedList)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
@@ -185,7 +183,6 @@ class Audit(Base):
     uuid = Column(String(36))
     audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
-    deadline = Column(DateTime, nullable=True)
     parameters = Column(JSONEncodedDict, nullable=True)
     interval = Column(Integer, nullable=True)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)

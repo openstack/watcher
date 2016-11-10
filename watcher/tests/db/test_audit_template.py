@@ -273,15 +273,21 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 1',
             description='Description of my audit template 1',
-            goal='DUMMY',
-            extra={'automatic': True})
+            goal='DUMMY')
         audit_template2 = self._create_test_audit_template(
             id=2,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 2',
             description='Description of my audit template 2',
-            goal='DUMMY',
-            extra={'automatic': True})
+            goal='DUMMY')
+
+        res = self.dbapi.get_audit_template_list(
+            self.context, filters={'name': 'My Audit Template 1'})
+        self.assertEqual([audit_template1['id']], [r.id for r in res])
+
+        res = self.dbapi.get_audit_template_list(
+            self.context, filters={'name': 'Does not exist'})
+        self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
             self.context,

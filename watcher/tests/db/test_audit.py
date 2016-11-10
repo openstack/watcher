@@ -291,13 +291,11 @@ class DbAuditTestCase(base.DbTestCase):
             id=1,
             audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
-            deadline=None,
             state=objects.audit.State.ONGOING)
         audit2 = self._create_test_audit(
             id=2,
             audit_type='CONTINUOUS',
             uuid=w_utils.generate_uuid(),
-            deadline=None,
             state=objects.audit.State.PENDING)
 
         res = self.dbapi.get_audit_list(

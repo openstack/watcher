@@ -28,12 +28,10 @@ def get_test_audit_template(**kwargs):
         'strategy_id': kwargs.get('strategy_id', None),
         'name': kwargs.get('name', 'My Audit Template'),
         'description': kwargs.get('description', 'Desc. Of My Audit Template'),
-        'extra': kwargs.get('extra', {'automatic': False}),
-        'version': kwargs.get('version', 'v1'),
+        'scope': kwargs.get('scope', []),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
-        'scope': kwargs.get('scope', []),
     }
 
 
@@ -59,7 +57,6 @@ def get_test_audit(**kwargs):
         'uuid': kwargs.get('uuid', '10a47dd1-4874-4298-91cf-eff046dbdb8d'),
         'audit_type': kwargs.get('audit_type', 'ONESHOT'),
         'state': kwargs.get('state'),
-        'deadline': kwargs.get('deadline'),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),

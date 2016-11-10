@@ -41,11 +41,6 @@ settings related to the level of automation for the
 A flag will indicate whether the :ref:`Action Plan <action_plan_definition>`
 will be launched automatically or will need a manual confirmation from the
 :ref:`Administrator <administrator_definition>`.
-
-Last but not least, an :ref:`Audit Template <audit_template_definition>` may
-contain a list of extra parameters related to the
-:ref:`Strategy <strategy_definition>` configuration. These parameters can be
-provided as a list of key-value pairs.
 """
 
 import datetime
@@ -79,20 +74,11 @@ class AuditTemplatePostType(wtypes.Base):
     description = wtypes.wsattr(wtypes.text, mandatory=False)
     """Short description of this audit template"""
 
-    deadline = wsme.wsattr(datetime.datetime, mandatory=False)
-    """deadline of the audit template"""
-
-    extra = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False)
-    """The metadata of the audit template"""
-
     goal = wtypes.wsattr(wtypes.text, mandatory=True)
     """Goal UUID or name of the audit template"""
 
     strategy = wtypes.wsattr(wtypes.text, mandatory=False)
     """Strategy UUID or name of the audit template"""
-
-    version = wtypes.text
-    """Internal version of the audit template"""
 
     scope = wtypes.wsattr(types.jsontype, mandatory=False, default=[])
     """Audit Scope"""
@@ -101,13 +87,10 @@ class AuditTemplatePostType(wtypes.Base):
         return AuditTemplate(
             name=self.name,
             description=self.description,
-            deadline=self.deadline,
-            extra=self.extra,
             goal_id=self.goal,  # Dirty trick ...
             goal=self.goal,
             strategy_id=self.strategy,  # Dirty trick ...
             strategy_uuid=self.strategy,
-            version=self.version,
             scope=self.scope,
         )
 
@@ -308,14 +291,8 @@ class AuditTemplate(base.APIBase):
     name = wtypes.text
     """Name of this audit template"""
 
-    description = wtypes.text
+    description = wtypes.wsattr(wtypes.text, mandatory=False)
     """Short description of this audit template"""
-
-    deadline = datetime.datetime
-    """deadline of the audit template"""
-
-    extra = {wtypes.text: types.jsontype}
-    """The metadata of the audit template"""
 
     goal_uuid = wsme.wsproperty(
         wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
@@ -332,9 +309,6 @@ class AuditTemplate(base.APIBase):
     strategy_name = wsme.wsproperty(
         wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
     """The name of the strategy this audit template refers to"""
-
-    version = wtypes.text
-    """Internal version of the audit template"""
 
     audits = wsme.wsattr([link.Link], readonly=True)
     """Links to the collection of audits contained in this audit template"""
@@ -378,7 +352,7 @@ class AuditTemplate(base.APIBase):
         if not expand:
             audit_template.unset_fields_except(
                 ['uuid', 'name', 'goal_uuid', 'goal_name',
-                 'strategy_uuid', 'strategy_name'])
+                 'scope', 'strategy_uuid', 'strategy_name'])
 
         # The numeric ID should not be exposed to
         # the user, it's internal only.
@@ -407,7 +381,6 @@ class AuditTemplate(base.APIBase):
                      description='Description of my audit template',
                      goal_uuid='83e44733-b640-40e2-8d8a-7dd3be7134e6',
                      strategy_uuid='367d826e-b6a4-4b70-bc44-c3f6fe1c9986',
-                     extra={'automatic': True},
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow(),

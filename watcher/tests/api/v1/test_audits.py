@@ -87,7 +87,7 @@ class TestListAudit(api_base.FunctionalTest):
         self.assertEqual([], response['audits'])
 
     def _assert_audit_fields(self, audit):
-        audit_fields = ['audit_type', 'deadline', 'state', 'goal_uuid',
+        audit_fields = ['audit_type', 'scope', 'state', 'goal_uuid',
                         'strategy_uuid']
         for field in audit_fields:
             self.assertIn(field, audit)

@@ -41,9 +41,7 @@ table(audit_templates) {
     uuid : String[36]
     name : String[63], nullable
     description : String[255], nullable
-    host_aggregate : Integer, nullable
-    extra : JSONEncodedDict
-    version : String[15], nullable
+    scope : JSONEncodedList
 
     created_at : DateTime
     updated_at : DateTime
@@ -59,10 +57,9 @@ table(audits) {
     uuid : String[36]
     audit_type : String[20]
     state : String[20], nullable
-    deadline : DateTime, nullable
     interval : Integer, nullable
     parameters : JSONEncodedDict, nullable
-    host_aggregate : Integer, nullable
+    scope : JSONEncodedList, nullable
 
     created_at : DateTime
     updated_at : DateTime
