@@ -54,7 +54,7 @@ class TestDBManageRunApp(base.TestCase):
         dbmanage.main()
         self.assertEqual(1, m_func.call_count)
         m_prepare_service.assert_called_once_with(
-            ["watcher-db-manage", self.expected])
+            ["watcher-db-manage", self.expected], cfg.CONF)
 
 
 class TestDBManageRunCommand(base.TestCase):

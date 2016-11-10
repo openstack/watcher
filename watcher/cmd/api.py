@@ -24,13 +24,14 @@ from oslo_log import log as logging
 
 from watcher._i18n import _LI
 from watcher.common import service
+from watcher import conf
 
 LOG = logging.getLogger(__name__)
-CONF = cfg.CONF
+CONF = conf.CONF
 
 
 def main():
-    service.prepare_service(sys.argv)
+    service.prepare_service(sys.argv, CONF)
 
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
     protocol = "http" if not CONF.api.enable_ssl_api else "https"

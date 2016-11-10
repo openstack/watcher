@@ -35,7 +35,7 @@ from sqlalchemy import UniqueConstraint
 
 from watcher.common import paths
 
-sql_opts = [
+SQL_OPTS = [
     cfg.StrOpt('mysql_engine',
                default='InnoDB',
                help='MySQL engine to use.')
@@ -44,7 +44,7 @@ sql_opts = [
 _DEFAULT_SQL_CONNECTION = 'sqlite:///{0}'.format(
     paths.state_path_def('watcher.sqlite'))
 
-cfg.CONF.register_opts(sql_opts, 'database')
+cfg.CONF.register_opts(SQL_OPTS, 'database')
 db_options.set_defaults(cfg.CONF, _DEFAULT_SQL_CONNECTION, 'watcher.sqlite')
 
 

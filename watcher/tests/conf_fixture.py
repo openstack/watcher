@@ -20,7 +20,7 @@ from oslo_config import cfg
 from watcher.common import config
 
 CONF = cfg.CONF
-CONF.import_opt('host', 'watcher.common.service')
+CONF.import_opt('host', 'watcher.conf.service')
 CONF.import_opt('connection', 'oslo_db.options', group='database')
 CONF.import_opt('sqlite_synchronous', 'oslo_db.options', group='database')
 
