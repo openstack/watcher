@@ -49,7 +49,7 @@ class TestNovaHelper(base.TestCase):
 
     @staticmethod
     def fake_nova_find_list(nova_util, find=None, list=None):
-        nova_util.nova.servers.find.return_value = find
+        nova_util.nova.servers.get.return_value = find
         if list is None:
             nova_util.nova.servers.list.return_value = []
         else:
@@ -102,6 +102,8 @@ class TestNovaHelper(base.TestCase):
         )
         self.assertTrue(is_success)
 
+        setattr(server, 'OS-EXT-SRV-ATTR:host',
+                        self.source_node)
         self.fake_nova_find_list(nova_util, find=server, list=None)
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node

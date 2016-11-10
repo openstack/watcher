@@ -73,15 +73,7 @@ class NovaHelper(object):
         return self.nova.availability_zones.list(detailed=True)
 
     def find_instance(self, instance_id):
-        search_opts = {'all_tenants': True}
-        instances = self.nova.servers.list(detailed=True,
-                                           search_opts=search_opts)
-        instance = None
-        for _instance in instances:
-            if _instance.id == instance_id:
-                instance = _instance
-                break
-        return instance
+        return self.nova.servers.get(instance_id)
 
     def wait_for_volume_status(self, volume, status, timeout=60,
                                poll_interval=1):
