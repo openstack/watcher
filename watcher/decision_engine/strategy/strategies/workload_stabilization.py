@@ -27,7 +27,7 @@ from oslo_config import cfg
 from oslo_log import log
 import oslo_utils
 
-from watcher._i18n import _LI, _
+from watcher._i18n import _LI, _LW, _
 from watcher.common import exception
 from watcher.decision_engine.cluster.history import ceilometer as \
     ceilometer_cluster_history
@@ -200,8 +200,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 aggregate='min'
             )
             if avg_meter is None:
-                raise exception.NoMetricValuesForInstance(
-                    resource_id=instance_uuid, metric_name=meter)
+                LOG.warning(
+                    _LW("No values returned by %(resource_id)s "
+                        "for %(metric_name)s") % dict(
+                        resource_id=instance_uuid,
+                        metric_name=meter))
+                avg_meter = 0
             if meter == 'cpu_util':
                 avg_meter /= float(100)
             instance_load[meter] = avg_meter
