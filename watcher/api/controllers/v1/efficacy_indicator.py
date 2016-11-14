@@ -19,7 +19,7 @@ An efficacy indicator is a single value that gives an indication on how the
 :ref:`solution <solution_definition>` produced by a given :ref:`strategy
 <strategy_definition>` performed. These efficacy indicators are specific to a
 given :ref:`goal <goal_definition>` and are usually used to compute the
-:ref:`gobal efficacy <efficacy_definition>` of the resulting :ref:`action plan
+:ref:`global efficacy <efficacy_definition>` of the resulting :ref:`action plan
 <action_plan_definition>`.
 
 In Watcher, these efficacy indicators are specified alongside the goal they
