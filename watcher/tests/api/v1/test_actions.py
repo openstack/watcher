@@ -52,9 +52,10 @@ class TestListAction(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestListAction, self).setUp()
-        obj_utils.create_test_goal(self.context)
-        obj_utils.create_test_strategy(self.context)
-        obj_utils.create_test_action_plan(self.context)
+        self.goal = obj_utils.create_test_goal(self.context)
+        self.strategy = obj_utils.create_test_strategy(self.context)
+        self.audit = obj_utils.create_test_audit(self.context)
+        self.action_plan = obj_utils.create_test_action_plan(self.context)
 
     def test_empty(self):
         response = self.get_json('/actions')
@@ -155,12 +156,9 @@ class TestListAction(api_base.FunctionalTest):
             self.assertEqual(action_plan.uuid, action['action_plan_uuid'])
 
     def test_filter_by_audit_uuid(self):
-        audit = obj_utils.create_test_audit(self.context,
-                                            uuid=utils.generate_uuid())
         action_plan_1 = obj_utils.create_test_action_plan(
             self.context,
-            uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            uuid=utils.generate_uuid())
         action_list = []
 
         for id_ in range(3):
@@ -170,8 +168,8 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
             action_list.append(action.uuid)
 
-        audit2 = obj_utils.create_test_audit(self.context,
-                                             uuid=utils.generate_uuid())
+        audit2 = obj_utils.create_test_audit(
+            self.context, id=2, uuid=utils.generate_uuid())
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
@@ -183,18 +181,15 @@ class TestListAction(api_base.FunctionalTest):
                 action_plan_id=action_plan_2.id,
                 uuid=utils.generate_uuid())
 
-        response = self.get_json('/actions?audit_uuid=%s' % audit.uuid)
+        response = self.get_json('/actions?audit_uuid=%s' % self.audit.uuid)
         self.assertEqual(len(action_list), len(response['actions']))
         for action in response['actions']:
             self.assertEqual(action_plan_1.uuid, action['action_plan_uuid'])
 
     def test_filter_by_action_plan_uuid(self):
-        audit = obj_utils.create_test_audit(self.context,
-                                            uuid=utils.generate_uuid())
         action_plan_1 = obj_utils.create_test_action_plan(
             self.context,
-            uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            uuid=utils.generate_uuid())
         action_list = []
 
         for id_ in range(3):
@@ -206,8 +201,7 @@ class TestListAction(api_base.FunctionalTest):
 
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
-            uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            uuid=utils.generate_uuid())
 
         for id_ in range(4, 5, 6):
             obj_utils.create_test_action(
@@ -432,6 +426,9 @@ class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPatch, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
         obj_utils.create_test_action_plan(self.context)
         self.action = obj_utils.create_test_action(self.context, next=None)
         p = mock.patch.object(db_api.BaseConnection, 'update_action')
@@ -465,7 +462,9 @@ class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestDelete, self).setUp()
-        obj_utils.create_test_action_plan(self.context)
+        self.goal = obj_utils.create_test_goal(self.context)
+        self.strategy = obj_utils.create_test_strategy(self.context)
+        self.audit = obj_utils.create_test_audit(self.context)
         self.action = obj_utils.create_test_action(self.context, next=None)
         p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()

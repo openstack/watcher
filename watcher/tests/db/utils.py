@@ -137,7 +137,7 @@ def create_test_action(**kwargs):
 
 
 def get_test_action_plan(**kwargs):
-    return {
+    action_plan_data = {
         'id': kwargs.get('id', 1),
         'uuid': kwargs.get('uuid', '76be87bd-3422-43f9-93a0-e85a577e3061'),
         'state': kwargs.get('state', objects.action_plan.State.ONGOING),
@@ -149,6 +149,15 @@ def get_test_action_plan(**kwargs):
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
     }
+
+    # ObjectField doesn't allow None nor dict, so if we want to simulate a
+    # non-eager object loading, the field should not be referenced at all.
+    if kwargs.get('audit'):
+        action_plan_data['audit'] = kwargs.get('audit')
+    if kwargs.get('strategy'):
+        action_plan_data['strategy'] = kwargs.get('strategy')
+
+    return action_plan_data
 
 
 def create_test_action_plan(**kwargs):

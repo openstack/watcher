@@ -274,9 +274,9 @@ class TestPurgeCommand(base.DbTestCase):
                 id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan4 = obj_utils.create_test_action_plan(
-                self.context, audit_id=audit4.id,
-                id=self._generate_id(),
-                uuid=utils.generate_uuid())
+                self.context,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                audit_id=audit4.id, strategy_id=self.strategy1.id)
             action4 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan4.id,
                 id=self._generate_id(),
@@ -292,9 +292,9 @@ class TestPurgeCommand(base.DbTestCase):
                 id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
-                self.context, audit_id=audit5.id,
-                id=self._generate_id(),
-                uuid=utils.generate_uuid())
+                self.context,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                audit_id=audit5.id, strategy_id=self.strategy1.id)
             action5 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan5.id,
                 id=self._generate_id(),
@@ -367,13 +367,13 @@ class TestPurgeCommand(base.DbTestCase):
                 strategy_id=None, id=self._generate_id(),
                 uuid=utils.generate_uuid())
             audit4 = obj_utils.create_test_audit(
-                self.context, audit_template_id=audit_template4.id,
-                id=self._generate_id(),
-                uuid=utils.generate_uuid())
+                self.context,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                audit_template_id=audit_template4.id)
             action_plan4 = obj_utils.create_test_action_plan(
-                self.context, audit_id=audit4.id,
-                id=self._generate_id(),
-                uuid=utils.generate_uuid())
+                self.context,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                audit_id=audit4.id, strategy_id=self.strategy1.id)
             action4 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan4.id,
                 id=self._generate_id(),
@@ -389,9 +389,9 @@ class TestPurgeCommand(base.DbTestCase):
                 id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
-                self.context, audit_id=audit5.id,
-                id=self._generate_id(),
-                uuid=utils.generate_uuid())
+                self.context,
+                id=self._generate_id(), uuid=utils.generate_uuid(),
+                audit_id=audit5.id, strategy_id=self.strategy1.id)
             action5 = obj_utils.create_test_action(
                 self.context, action_plan_id=action_plan5.id,
                 id=self._generate_id(),
