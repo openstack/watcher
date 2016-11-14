@@ -78,9 +78,9 @@ class TestListAudit(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestListAudit, self).setUp()
-        obj_utils.create_test_audit_template(self.context)
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit_template(self.context)
 
     def test_empty(self):
         response = self.get_json('/audits')
@@ -249,6 +249,8 @@ class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPatch, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
         self.audit = obj_utils.create_test_audit(self.context, )
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
@@ -345,9 +347,9 @@ class TestPost(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestPost, self).setUp()
-        obj_utils.create_test_audit_template(self.context)
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit_template(self.context)
         p = mock.patch.object(db_api.BaseConnection, 'create_audit')
         self.mock_create_audit = p.start()
         self.mock_create_audit.side_effect = (
@@ -640,6 +642,8 @@ class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestDelete, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
         p = mock.patch.object(db_api.BaseConnection, 'update_audit')
@@ -677,7 +681,7 @@ class TestDelete(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
 
-class TestAuaditPolicyEnforcement(api_base.FunctionalTest):
+class TestAuditPolicyEnforcement(api_base.FunctionalTest):
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({

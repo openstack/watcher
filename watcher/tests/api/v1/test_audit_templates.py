@@ -305,6 +305,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def setUp(self):
         super(TestPatch, self).setUp()
+        obj_utils.create_test_goal(self.context)
         self.audit_template = obj_utils.create_test_audit_template(
             self.context, strategy_id=None)
 
@@ -598,6 +599,7 @@ class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestDelete, self).setUp()
+        obj_utils.create_test_goal(self.context)
         self.audit_template = obj_utils.create_test_audit_template(
             self.context)
 
@@ -656,7 +658,7 @@ class TestDelete(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
 
-class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
+class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({
@@ -676,6 +678,7 @@ class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
             expect_errors=True)
 
     def test_policy_disallow_get_one(self):
+        obj_utils.create_test_goal(self.context)
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:get", self.get_json,
@@ -689,6 +692,7 @@ class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
             expect_errors=True)
 
     def test_policy_disallow_update(self):
+        obj_utils.create_test_goal(self.context)
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:update", self.patch_json,
@@ -713,6 +717,7 @@ class TestAuaditTemplatePolicyEnforcement(api_base.FunctionalTest):
             audit_template_dict, expect_errors=True)
 
     def test_policy_disallow_delete(self):
+        obj_utils.create_test_goal(self.context)
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:delete", self.delete,

@@ -225,6 +225,11 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
 
 class DbAuditTemplateTestCase(base.DbTestCase):
 
+    def _create_test_goal(self, **kwargs):
+        goal = utils.get_test_goal(**kwargs)
+        self.dbapi.create_goal(goal)
+        return goal
+
     def _create_test_audit_template(self, **kwargs):
         audit_template = utils.get_test_audit_template(**kwargs)
         self.dbapi.create_audit_template(audit_template)
@@ -268,18 +273,19 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             strategy.as_dict(), eager_audit_template.strategy.as_dict())
 
     def test_get_audit_template_list_with_filters(self):
+        goal = self._create_test_goal(name='DUMMY')
         audit_template1 = self._create_test_audit_template(
             id=1,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 1',
             description='Description of my audit template 1',
-            goal='DUMMY')
+            goal_id=goal['id'])
         audit_template2 = self._create_test_audit_template(
             id=2,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 2',
             description='Description of my audit template 2',
-            goal='DUMMY')
+            goal_id=goal['id'])
 
         res = self.dbapi.get_audit_template_list(
             self.context, filters={'name': 'My Audit Template 1'})
