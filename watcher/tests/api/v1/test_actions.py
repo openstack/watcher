@@ -444,7 +444,7 @@ class TestPatch(api_base.FunctionalTest):
     def test_patch_not_allowed(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
-        new_state = objects.audit.State.SUBMITTED
+        new_state = objects.audit.State.SUCCEEDED
         response = self.get_json('/actions/%s' % self.action.uuid)
         self.assertNotEqual(new_state, response['state'])
 

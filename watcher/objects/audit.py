@@ -61,7 +61,6 @@ from watcher.objects import fields as wfields
 class State(object):
     ONGOING = 'ONGOING'
     SUCCEEDED = 'SUCCEEDED'
-    SUBMITTED = 'SUBMITTED'
     FAILED = 'FAILED'
     CANCELLED = 'CANCELLED'
     DELETED = 'DELETED'
