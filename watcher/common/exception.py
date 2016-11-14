@@ -399,3 +399,8 @@ class NotSoftDeletedStateError(WatcherException):
 
 class NegativeLimitError(WatcherException):
     msg_fmt = _("Limit should be positive")
+
+
+class NotificationPayloadError(WatcherException):
+    _msg_fmt = _("Payload not populated when trying to send notification "
+                 "\"%(class_name)s\"")

@@ -36,6 +36,7 @@ from watcher.common import rpc
 from watcher.common import scheduling
 from watcher import objects
 from watcher.objects import base
+from watcher.objects import fields as wfields
 from watcher import opts
 from watcher import version
 
@@ -63,6 +64,18 @@ service_opts = [
 ]
 
 cfg.CONF.register_opts(service_opts)
+
+NOTIFICATION_OPTS = [
+    cfg.StrOpt('notification_level',
+               choices=[''] + list(wfields.NotificationPriority.ALL),
+               default=wfields.NotificationPriority.INFO,
+               help=_('Specifies the minimum level for which to send '
+                      'notifications. If not set, no notifications will '
+                      'be sent. The default is for this option to be at the '
+                      '`INFO` level.'))
+]
+cfg.CONF.register_opts(NOTIFICATION_OPTS)
+
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
