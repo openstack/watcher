@@ -26,6 +26,7 @@ from watcher.tests.objects import utils as obj_utils
 
 
 class TestDefaultActionPlanHandler(base.DbTestCase):
+
     def setUp(self):
         super(TestDefaultActionPlanHandler, self).setUp()
         obj_utils.create_test_goal(self.context)

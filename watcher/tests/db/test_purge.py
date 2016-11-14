@@ -265,13 +265,13 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             # orphan audit template
             audit_template4 = obj_utils.create_test_audit_template(
-                self.context, goal_id=self.goal2.id,  # Does not exist
+                self.context, goal_id=self.goal2.id,
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
-                strategy_id=None, id=self._generate_id(),
+                strategy_id=self.strategy1.id, id=self._generate_id(),
                 uuid=utils.generate_uuid())
             audit4 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template4.id,
-                id=self._generate_id(),
+                strategy_id=self.strategy1.id, id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan4 = obj_utils.create_test_action_plan(
                 self.context,
@@ -289,7 +289,7 @@ class TestPurgeCommand(base.DbTestCase):
                 uuid=utils.generate_uuid())
             audit5 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template5.id,
-                id=self._generate_id(),
+                strategy_id=self.strategy1.id, id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context,
@@ -362,7 +362,7 @@ class TestPurgeCommand(base.DbTestCase):
         with freezegun.freeze_time(self.fake_today):
             # orphan audit template
             audit_template4 = obj_utils.create_test_audit_template(
-                self.context, goal_id=self.goal2.id,  # Does not exist
+                self.context, goal_id=self.goal2.id,
                 name=self.generate_unique_name(prefix="Audit Template 4 "),
                 strategy_id=None, id=self._generate_id(),
                 uuid=utils.generate_uuid())
@@ -386,7 +386,7 @@ class TestPurgeCommand(base.DbTestCase):
                 uuid=utils.generate_uuid())
             audit5 = obj_utils.create_test_audit(
                 self.context, audit_template_id=audit_template5.id,
-                id=self._generate_id(),
+                strategy_id=self.strategy1.id, id=self._generate_id(),
                 uuid=utils.generate_uuid())
             action_plan5 = obj_utils.create_test_action_plan(
                 self.context,

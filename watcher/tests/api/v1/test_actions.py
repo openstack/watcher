@@ -325,9 +325,9 @@ class TestListAction(api_base.FunctionalTest):
             action_list.append(action.uuid)
         response = self.get_json('/actions')
         response_actions = response['actions']
-        for id in [0, 1, 2, 3]:
-            self.assertEqual(response_actions[id]['next_uuid'],
-                             response_actions[id + 1]['uuid'])
+        for id_ in range(4):
+            self.assertEqual(response_actions[id_]['next_uuid'],
+                             response_actions[id_ + 1]['uuid'])
 
     def test_many_without_soft_deleted(self):
         action_list = []
@@ -450,8 +450,7 @@ class TestPatch(api_base.FunctionalTest):
 
         response = self.patch_json(
             '/actions/%s' % self.action.uuid,
-            [{'path': '/state', 'value': new_state,
-             'op': 'replace'}],
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(403, response.status_int)
@@ -465,6 +464,7 @@ class TestDelete(api_base.FunctionalTest):
         self.goal = obj_utils.create_test_goal(self.context)
         self.strategy = obj_utils.create_test_strategy(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
+        self.action_plan = obj_utils.create_test_action_plan(self.context)
         self.action = obj_utils.create_test_action(self.context, next=None)
         p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()
@@ -487,6 +487,13 @@ class TestDelete(api_base.FunctionalTest):
 
 
 class TestActionPolicyEnforcement(api_base.FunctionalTest):
+
+    def setUp(self):
+        super(TestActionPolicyEnforcement, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
+        obj_utils.create_test_action_plan(self.context)
 
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({
