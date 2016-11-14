@@ -683,6 +683,10 @@ class TestDelete(api_base.FunctionalTest):
 
 class TestAuditPolicyEnforcement(api_base.FunctionalTest):
 
+    def setUp(self):
+        super(TestAuditPolicyEnforcement, self).setUp()
+        obj_utils.create_test_goal(self.context)
+
     def _common_policy_check(self, rule, func, *arg, **kwarg):
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",

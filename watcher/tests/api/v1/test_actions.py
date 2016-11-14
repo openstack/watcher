@@ -52,6 +52,8 @@ class TestListAction(api_base.FunctionalTest):
 
     def setUp(self):
         super(TestListAction, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_action_plan(self.context)
 
     def test_empty(self):

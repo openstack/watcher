@@ -27,6 +27,11 @@ from watcher.tests.objects import utils as obj_utils
 
 class TestListActionPlan(api_base.FunctionalTest):
 
+    def setUp(self):
+        super(TestListActionPlan, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_audit(self.context)
+
     def test_empty(self):
         response = self.get_json('/action_plans')
         self.assertEqual([], response['action_plans'])
@@ -131,10 +136,10 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_with_soft_deleted_audit_uuid(self):
         action_plan_list = []
         audit1 = obj_utils.create_test_audit(self.context,
-                                             id=1,
+                                             id=2,
                                              uuid=utils.generate_uuid())
         audit2 = obj_utils.create_test_audit(self.context,
-                                             id=2,
+                                             id=3,
                                              uuid=utils.generate_uuid())
 
         for id_ in range(0, 2):
