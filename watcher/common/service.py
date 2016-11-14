@@ -15,7 +15,6 @@
 # under the License.
 
 import datetime
-import logging
 import socket
 
 from oslo_concurrency import processutils
@@ -332,7 +331,7 @@ def prepare_service(argv=(), conf=cfg.CONF):
     cfg.set_defaults(_options.log_opts,
                      default_log_levels=_DEFAULT_LOG_LEVELS)
     log.setup(conf, 'python-watcher')
-    conf.log_opt_values(LOG, logging.DEBUG)
+    conf.log_opt_values(LOG, log.DEBUG)
     objects.register_all()
 
     gmr.TextGuruMeditation.register_section(_('Plugins'), opts.show_plugins)
