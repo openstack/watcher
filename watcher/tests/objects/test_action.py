@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
+
+import iso8601
 import mock
 
 from watcher.common import exception
@@ -100,17 +103,24 @@ class TestActionObject(base.DbTestCase):
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
     def test_save(self, mock_get_action, mock_update_action):
         mock_get_action.return_value = self.fake_action
+        fake_saved_action = self.fake_action.copy()
+        fake_saved_action['updated_at'] = datetime.datetime.utcnow()
+        mock_update_action.return_value = fake_saved_action
         uuid = self.fake_action['uuid']
         action = objects.Action.get_by_uuid(
             self.context, uuid, eager=self.eager)
         action.state = objects.action.State.SUCCEEDED
         action.save()
 
+        expected_update_at = fake_saved_action['updated_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+
         mock_get_action.assert_called_once_with(
             self.context, uuid, eager=self.eager)
         mock_update_action.assert_called_once_with(
             uuid, {'state': objects.action.State.SUCCEEDED})
         self.assertEqual(self.context, action._context)
+        self.assertEqual(expected_update_at, action.updated_at)
 
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
     def test_refresh(self, mock_get_action):
@@ -136,15 +146,18 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         self.fake_strategy = utils.create_test_strategy(name="DUMMY")
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.create_test_action_plan()
-        self.fake_action = utils.get_test_action()
+        self.fake_action = utils.get_test_action(
+            created_at=datetime.datetime.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_action')
     def test_create(self, mock_create_action):
         mock_create_action.return_value = self.fake_action
         action = objects.Action(self.context, **self.fake_action)
         action.create()
-
-        mock_create_action.assert_called_once_with(self.fake_action)
+        expected_action = self.fake_action.copy()
+        expected_action['created_at'] = expected_action['created_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        mock_create_action.assert_called_once_with(expected_action)
         self.assertEqual(self.context, action._context)
 
     @mock.patch.object(db_api.Connection, 'update_action')
@@ -153,6 +166,18 @@ class TestCreateDeleteActionObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_action,
                          mock_soft_delete_action, mock_update_action):
         mock_get_action.return_value = self.fake_action
+        fake_deleted_action = self.fake_action.copy()
+        fake_deleted_action['deleted_at'] = datetime.datetime.utcnow()
+        mock_soft_delete_action.return_value = fake_deleted_action
+        mock_update_action.return_value = fake_deleted_action
+
+        expected_action = fake_deleted_action.copy()
+        expected_action['created_at'] = expected_action['created_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        expected_action['deleted_at'] = expected_action['deleted_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        del expected_action['action_plan']
+
         uuid = self.fake_action['uuid']
         action = objects.Action.get_by_uuid(self.context, uuid)
         action.soft_delete()
@@ -162,6 +187,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         mock_update_action.assert_called_once_with(
             uuid, {'state': objects.action.State.DELETED})
         self.assertEqual(self.context, action._context)
+        self.assertEqual(expected_action, action.as_dict())
 
     @mock.patch.object(db_api.Connection, 'destroy_action')
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')

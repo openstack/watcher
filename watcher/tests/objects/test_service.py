@@ -13,8 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
+
+import iso8601
 import mock
 
+from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -24,81 +28,89 @@ class TestServiceObject(base.DbTestCase):
 
     def setUp(self):
         super(TestServiceObject, self).setUp()
-        self.fake_service = utils.get_test_service()
+        self.fake_service = utils.get_test_service(
+            created_at=datetime.datetime.utcnow())
 
-    def test_get_by_id(self):
+    @mock.patch.object(db_api.Connection, 'get_service_by_id')
+    def test_get_by_id(self, mock_get_service):
         service_id = self.fake_service['id']
-        with mock.patch.object(self.dbapi, 'get_service_by_id',
-                               autospec=True) as mock_get_service:
-            mock_get_service.return_value = self.fake_service
-            service = objects.Service.get(self.context, service_id)
-            mock_get_service.assert_called_once_with(self.context,
-                                                     service_id)
-            self.assertEqual(self.context, service._context)
+        mock_get_service.return_value = self.fake_service
+        service = objects.Service.get(self.context, service_id)
+        mock_get_service.assert_called_once_with(self.context, service_id)
+        self.assertEqual(self.context, service._context)
 
-    def test_list(self):
-        with mock.patch.object(self.dbapi, 'get_service_list',
-                               autospec=True) as mock_get_list:
-            mock_get_list.return_value = [self.fake_service]
-            services = objects.Service.list(self.context)
-            self.assertEqual(1, mock_get_list.call_count, 1)
-            self.assertEqual(1, len(services))
-            self.assertIsInstance(services[0], objects.Service)
-            self.assertEqual(self.context, services[0]._context)
+    @mock.patch.object(db_api.Connection, 'get_service_list')
+    def test_list(self, mock_get_list):
+        mock_get_list.return_value = [self.fake_service]
+        services = objects.Service.list(self.context)
+        self.assertEqual(1, mock_get_list.call_count, 1)
+        self.assertEqual(1, len(services))
+        self.assertIsInstance(services[0], objects.Service)
+        self.assertEqual(self.context, services[0]._context)
 
-    def test_create(self):
-        with mock.patch.object(self.dbapi, 'create_service',
-                               autospec=True) as mock_create_service:
-            mock_create_service.return_value = self.fake_service
-            service = objects.Service(self.context, **self.fake_service)
+    @mock.patch.object(db_api.Connection, 'create_service')
+    def test_create(self, mock_create_service):
+        mock_create_service.return_value = self.fake_service
+        service = objects.Service(self.context, **self.fake_service)
 
-            fake_service = utils.get_test_service()
+        service.create()
+        expected_service = self.fake_service.copy()
+        expected_service['created_at'] = expected_service[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
 
-            service.create()
-            mock_create_service.assert_called_once_with(fake_service)
-            self.assertEqual(self.context, service._context)
+        mock_create_service.assert_called_once_with(expected_service)
+        self.assertEqual(self.context, service._context)
 
-    def test_save(self):
+    @mock.patch.object(db_api.Connection, 'update_service')
+    @mock.patch.object(db_api.Connection, 'get_service_by_id')
+    def test_save(self, mock_get_service, mock_update_service):
+        mock_get_service.return_value = self.fake_service
+        fake_saved_service = self.fake_service.copy()
+        fake_saved_service['updated_at'] = datetime.datetime.utcnow()
+        mock_update_service.return_value = fake_saved_service
         _id = self.fake_service['id']
-        with mock.patch.object(self.dbapi, 'get_service_by_id',
-                               autospec=True) as mock_get_service:
-            mock_get_service.return_value = self.fake_service
-            with mock.patch.object(self.dbapi, 'update_service',
-                                   autospec=True) as mock_update_service:
-                service = objects.Service.get(self.context, _id)
-                service.name = 'UPDATED NAME'
-                service.save()
+        service = objects.Service.get(self.context, _id)
+        service.name = 'UPDATED NAME'
+        service.save()
 
-                mock_get_service.assert_called_once_with(self.context, _id)
-                mock_update_service.assert_called_once_with(
-                    _id, {'name': 'UPDATED NAME'})
-                self.assertEqual(self.context, service._context)
+        mock_get_service.assert_called_once_with(self.context, _id)
+        mock_update_service.assert_called_once_with(
+            _id, {'name': 'UPDATED NAME'})
+        self.assertEqual(self.context, service._context)
 
-    def test_refresh(self):
-        _id = self.fake_service['id']
+    @mock.patch.object(db_api.Connection, 'get_service_by_id')
+    def test_refresh(self, mock_get_service):
         returns = [dict(self.fake_service, name="first name"),
                    dict(self.fake_service, name="second name")]
+        mock_get_service.side_effect = returns
+        _id = self.fake_service['id']
         expected = [mock.call(self.context, _id),
                     mock.call(self.context, _id)]
-        with mock.patch.object(self.dbapi, 'get_service_by_id',
-                               side_effect=returns,
-                               autospec=True) as mock_get_service:
-            service = objects.Service.get(self.context, _id)
-            self.assertEqual("first name", service.name)
-            service.refresh()
-            self.assertEqual("second name", service.name)
-            self.assertEqual(expected, mock_get_service.call_args_list)
-            self.assertEqual(self.context, service._context)
+        service = objects.Service.get(self.context, _id)
+        self.assertEqual("first name", service.name)
+        service.refresh()
+        self.assertEqual("second name", service.name)
+        self.assertEqual(expected, mock_get_service.call_args_list)
+        self.assertEqual(self.context, service._context)
 
-    def test_soft_delete(self):
+    @mock.patch.object(db_api.Connection, 'soft_delete_service')
+    @mock.patch.object(db_api.Connection, 'get_service_by_id')
+    def test_soft_delete(self, mock_get_service, mock_soft_delete):
+        mock_get_service.return_value = self.fake_service
+        fake_deleted_service = self.fake_service.copy()
+        fake_deleted_service['deleted_at'] = datetime.datetime.utcnow()
+        mock_soft_delete.return_value = fake_deleted_service
+
+        expected_service = fake_deleted_service.copy()
+        expected_service['created_at'] = expected_service[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        expected_service['deleted_at'] = expected_service[
+            'deleted_at'].replace(tzinfo=iso8601.iso8601.Utc())
+
         _id = self.fake_service['id']
-        with mock.patch.object(self.dbapi, 'get_service_by_id',
-                               autospec=True) as mock_get_service:
-            mock_get_service.return_value = self.fake_service
-            with mock.patch.object(self.dbapi, 'soft_delete_service',
-                                   autospec=True) as mock_soft_delete:
-                service = objects.Service.get(self.context, _id)
-                service.soft_delete()
-                mock_get_service.assert_called_once_with(self.context, _id)
-                mock_soft_delete.assert_called_once_with(_id)
-                self.assertEqual(self.context, service._context)
+        service = objects.Service.get(self.context, _id)
+        service.soft_delete()
+        mock_get_service.assert_called_once_with(self.context, _id)
+        mock_soft_delete.assert_called_once_with(_id)
+        self.assertEqual(self.context, service._context)
+        self.assertEqual(expected_service, service.as_dict())

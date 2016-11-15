@@ -175,8 +175,9 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
         of self.what_changed().
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_scoring_engine(self.id, updates)
-
+        db_obj = self.dbapi.update_scoring_engine(self.uuid, updates)
+        obj = self._from_db_object(self, db_obj, eager=False)
+        self.obj_refresh(obj)
         self.obj_reset_changes()
 
     def refresh(self):
@@ -191,4 +192,7 @@ class ScoringEngine(base.WatcherPersistentObject, base.WatcherObject,
 
     def soft_delete(self):
         """Soft Delete the :class:`ScoringEngine` from the DB"""
-        self.dbapi.soft_delete_scoring_engine(self.id)
+        db_obj = self.dbapi.soft_delete_scoring_engine(self.id)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
+        self.obj_refresh(obj)

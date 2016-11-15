@@ -255,7 +255,10 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         of self.what_changed().
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_audit(self.uuid, updates)
+        db_obj = self.dbapi.update_audit(self.uuid, updates)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
+        self.obj_refresh(obj)
 
         def _notify():
             notifications.audit.send_update(
@@ -280,9 +283,12 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     @base.remotable
     def soft_delete(self):
         """Soft Delete the Audit from the DB."""
-        self.dbapi.soft_delete_audit(self.uuid)
         self.state = State.DELETED
         self.save()
+        db_obj = self.dbapi.soft_delete_audit(self.uuid)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
+        self.obj_refresh(obj)
 
         def _notify():
             notifications.audit.send_delete(self._context, self)

@@ -123,7 +123,9 @@ class WatcherPersistentObject(object):
         the loaded object column by column in comparison with the current
         object.
         """
-        for field in self.fields:
+        fields = (field for field in self.fields
+                  if field not in self.object_fields)
+        for field in fields:
             if (self.obj_attr_is_set(field) and
                     self[field] != loaded_object[field]):
                 self[field] = loaded_object[field]

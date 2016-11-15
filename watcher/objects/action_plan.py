@@ -218,8 +218,9 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         of self.what_changed().
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_action_plan(self.uuid, updates)
-
+        db_obj = self.dbapi.update_action_plan(self.uuid, updates)
+        obj = self._from_db_object(self, db_obj, eager=False)
+        self.obj_refresh(obj)
         self.obj_reset_changes()
 
     @base.remotable
@@ -253,6 +254,9 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         for related_efficacy_indicator in related_efficacy_indicators:
             related_efficacy_indicator.soft_delete()
 
-        self.dbapi.soft_delete_action_plan(self.uuid)
         self.state = State.DELETED
         self.save()
+        db_obj = self.dbapi.soft_delete_action_plan(self.uuid)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
+        self.obj_refresh(obj)

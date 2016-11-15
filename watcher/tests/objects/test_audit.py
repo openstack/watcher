@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
+
+import iso8601
 import mock
 
 from watcher.common import exception
@@ -37,14 +40,18 @@ class TestAuditObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_audit=utils.get_test_audit(
+                created_at=datetime.datetime.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_audit=utils.get_test_audit(
+                created_at=datetime.datetime.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_eager_load', dict(
             eager=True,
-            fake_audit=utils.get_test_audit(goal_id=goal_id, goal=goal_data))),
+            fake_audit=utils.get_test_audit(
+                created_at=datetime.datetime.utcnow(),
+                goal_id=goal_id, goal=goal_data))),
     ]
 
     def setUp(self):
@@ -116,6 +123,17 @@ class TestAuditObject(base.DbTestCase):
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
     def test_save(self, mock_get_audit, mock_update_audit):
         mock_get_audit.return_value = self.fake_audit
+        fake_saved_audit = self.fake_audit.copy()
+        fake_saved_audit['state'] = objects.audit.State.SUCCEEDED
+        fake_saved_audit['updated_at'] = datetime.datetime.utcnow()
+        mock_update_audit.return_value = fake_saved_audit
+
+        expected_audit = fake_saved_audit.copy()
+        expected_audit['created_at'] = expected_audit['created_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        expected_audit['updated_at'] = expected_audit['updated_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+
         uuid = self.fake_audit['uuid']
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=self.eager)
         audit.state = objects.audit.State.SUCCEEDED
@@ -129,6 +147,11 @@ class TestAuditObject(base.DbTestCase):
         self.eager_load_audit_assert(audit, self.fake_goal)
         self.m_send_update.assert_called_once_with(
             self.context, audit, old_state=self.fake_audit['state'])
+        self.assertEqual(
+            {k: v for k, v in expected_audit.items()
+             if k not in audit.object_fields},
+            {k: v for k, v in audit.as_dict().items()
+             if k not in audit.object_fields})
 
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
     def test_refresh(self, mock_get_audit):
@@ -160,14 +183,18 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
 
         self.goal_id = 1
         self.goal = utils.create_test_goal(id=self.goal_id, name="DUMMY")
-        self.fake_audit = utils.get_test_audit(goal_id=self.goal_id)
+        self.fake_audit = utils.get_test_audit(
+            goal_id=self.goal_id, created_at=datetime.datetime.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_audit')
     def test_create(self, mock_create_audit):
         mock_create_audit.return_value = self.fake_audit
         audit = objects.Audit(self.context, **self.fake_audit)
         audit.create()
-        mock_create_audit.assert_called_once_with(self.fake_audit)
+        expected_audit = self.fake_audit.copy()
+        expected_audit['created_at'] = expected_audit['created_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        mock_create_audit.assert_called_once_with(expected_audit)
         self.assertEqual(self.context, audit._context)
 
     @mock.patch.object(db_api.Connection, 'update_audit')
@@ -176,13 +203,27 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_audit,
                          mock_soft_delete_audit, mock_update_audit):
         mock_get_audit.return_value = self.fake_audit
+        fake_deleted_audit = self.fake_audit.copy()
+        fake_deleted_audit['deleted_at'] = datetime.datetime.utcnow()
+        mock_soft_delete_audit.return_value = fake_deleted_audit
+        mock_update_audit.return_value = fake_deleted_audit
+
+        expected_audit = fake_deleted_audit.copy()
+        expected_audit['created_at'] = expected_audit['created_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        expected_audit['deleted_at'] = expected_audit['deleted_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
+        del expected_audit['goal']
+        del expected_audit['strategy']
+
         uuid = self.fake_audit['uuid']
-        audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
+        audit = objects.Audit.get_by_uuid(self.context, uuid, eager=False)
         audit.soft_delete()
-        mock_get_audit.assert_called_once_with(self.context, uuid, eager=True)
+        mock_get_audit.assert_called_once_with(self.context, uuid, eager=False)
         mock_soft_delete_audit.assert_called_once_with(uuid)
         mock_update_audit.assert_called_once_with(uuid, {'state': 'DELETED'})
         self.assertEqual(self.context, audit._context)
+        self.assertEqual(expected_audit, audit.as_dict())
 
     @mock.patch.object(db_api.Connection, 'destroy_audit')
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
@@ -216,14 +257,17 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
         self.m_notifier = self.m_get_notifier.return_value
         self.addCleanup(p_get_notifier.stop)
 
-    @mock.patch.object(db_api.Connection, 'update_audit', mock.Mock())
+    @mock.patch.object(db_api.Connection, 'update_audit')
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
-    def test_send_update_notification(self, m_get_audit):
+    def test_send_update_notification(self, m_get_audit, m_update_audit):
         fake_audit = utils.get_test_audit(
             goal=self.fake_goal.as_dict(),
             strategy_id=self.fake_strategy.id,
             strategy=self.fake_strategy.as_dict())
         m_get_audit.return_value = fake_audit
+        fake_saved_audit = self.fake_audit.copy()
+        fake_saved_audit['state'] = objects.audit.State.SUCCEEDED
+        m_update_audit.return_value = fake_saved_audit
         uuid = fake_audit['uuid']
 
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
@@ -249,17 +293,25 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
         self.assertEqual('audit.create',
                          self.m_notifier.info.call_args[1]['event_type'])
 
-    @mock.patch.object(db_api.Connection, 'soft_delete_audit', mock.Mock())
-    @mock.patch.object(db_api.Connection, 'update_audit', mock.Mock())
+    @mock.patch.object(db_api.Connection, 'update_audit')
+    @mock.patch.object(db_api.Connection, 'soft_delete_audit')
     @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
-    def test_send_delete_notification(self, m_get_audit):
+    def test_send_delete_notification(
+            self, m_get_audit, m_soft_delete_audit, m_update_audit):
         fake_audit = utils.get_test_audit(
             goal=self.fake_goal.as_dict(),
             strategy_id=self.fake_strategy.id,
             strategy=self.fake_strategy.as_dict())
         m_get_audit.return_value = fake_audit
-        uuid = fake_audit['uuid']
+        fake_deleted_audit = self.fake_audit.copy()
+        fake_deleted_audit['deleted_at'] = datetime.datetime.utcnow()
+        expected_audit = fake_deleted_audit.copy()
+        expected_audit['deleted_at'] = expected_audit['deleted_at'].replace(
+            tzinfo=iso8601.iso8601.Utc())
 
+        m_soft_delete_audit.return_value = fake_deleted_audit
+        m_update_audit.return_value = fake_deleted_audit
+        uuid = fake_audit['uuid']
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
         audit.soft_delete()
 

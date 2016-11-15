@@ -146,8 +146,9 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         of self.what_changed().
         """
         updates = self.obj_get_changes()
-        self.dbapi.update_action(self.uuid, updates)
-
+        db_obj = self.dbapi.update_action(self.uuid, updates)
+        obj = self._from_db_object(self, db_obj, eager=False)
+        self.obj_refresh(obj)
         self.obj_reset_changes()
 
     @base.remotable
@@ -165,6 +166,9 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
     @base.remotable
     def soft_delete(self):
         """Soft Delete the Audit from the DB"""
-        self.dbapi.soft_delete_action(self.uuid)
         self.state = State.DELETED
         self.save()
+        db_obj = self.dbapi.soft_delete_action(self.uuid)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
+        self.obj_refresh(obj)

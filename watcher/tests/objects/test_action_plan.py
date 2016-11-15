@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
+
+import iso8601
 import mock
 
 from watcher.common import exception
@@ -109,6 +112,9 @@ class TestActionPlanObject(base.DbTestCase):
     @mock.patch.object(db_api.Connection, 'get_action_plan_by_uuid')
     def test_save(self, mock_get_action_plan, mock_update_action_plan):
         mock_get_action_plan.return_value = self.fake_action_plan
+        fake_saved_action_plan = self.fake_action_plan.copy()
+        fake_saved_action_plan['deleted_at'] = datetime.datetime.utcnow()
+        mock_update_action_plan.return_value = fake_saved_action_plan
         uuid = self.fake_action_plan['uuid']
         action_plan = objects.ActionPlan.get_by_uuid(
             self.context, uuid, eager=self.eager)
@@ -146,7 +152,8 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         super(TestCreateDeleteActionPlanObject, self).setUp()
         self.fake_strategy = utils.create_test_strategy(name="DUMMY")
         self.fake_audit = utils.create_test_audit()
-        self.fake_action_plan = utils.get_test_action_plan()
+        self.fake_action_plan = utils.get_test_action_plan(
+            created_at=datetime.datetime.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_action_plan')
     def test_create(self, mock_create_action_plan):
@@ -154,8 +161,10 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         action_plan = objects.ActionPlan(
             self.context, **self.fake_action_plan)
         action_plan.create()
-        mock_create_action_plan.assert_called_once_with(
-            self.fake_action_plan)
+        expected_action_plan = self.fake_action_plan.copy()
+        expected_action_plan['created_at'] = expected_action_plan[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        mock_create_action_plan.assert_called_once_with(expected_action_plan)
         self.assertEqual(self.context, action_plan._context)
 
     @mock.patch.multiple(
@@ -178,7 +187,20 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         m_get_efficacy_indicator_list = get_efficacy_indicator_list
         m_soft_delete_efficacy_indicator = soft_delete_efficacy_indicator
         m_update_action_plan = update_action_plan
+
         m_get_action_plan.return_value = self.fake_action_plan
+        fake_deleted_action_plan = self.fake_action_plan.copy()
+        fake_deleted_action_plan['deleted_at'] = datetime.datetime.utcnow()
+        m_update_action_plan.return_value = fake_deleted_action_plan
+        m_soft_delete_action_plan.return_value = fake_deleted_action_plan
+        expected_action_plan = fake_deleted_action_plan.copy()
+        expected_action_plan['created_at'] = expected_action_plan[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        expected_action_plan['deleted_at'] = expected_action_plan[
+            'deleted_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        del expected_action_plan['audit']
+        del expected_action_plan['strategy']
+
         m_get_efficacy_indicator_list.return_value = [efficacy_indicator]
         action_plan = objects.ActionPlan.get_by_uuid(self.context, uuid)
         action_plan.soft_delete()
@@ -193,7 +215,9 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
             efficacy_indicator['uuid'])
         m_update_action_plan.assert_called_once_with(
             uuid, {'state': objects.action_plan.State.DELETED})
+
         self.assertEqual(self.context, action_plan._context)
+        self.assertEqual(expected_action_plan, action_plan.as_dict())
 
     @mock.patch.multiple(
         db_api.Connection,

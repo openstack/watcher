@@ -13,6 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
+
+import iso8601
 import mock
 
 from watcher.common import exception
@@ -34,14 +37,17 @@ class TestAuditTemplateObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_audit_template=utils.get_test_audit_template(
+                created_at=datetime.datetime.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_audit_template=utils.get_test_audit_template(
+                created_at=datetime.datetime.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_eager_load', dict(
             eager=True,
             fake_audit_template=utils.get_test_audit_template(
+                created_at=datetime.datetime.utcnow(),
                 goal_id=goal_id, goal=goal_data))),
     ]
 
@@ -120,6 +126,9 @@ class TestAuditTemplateObject(base.DbTestCase):
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
     def test_save(self, mock_get_audit_template, mock_update_audit_template):
         mock_get_audit_template.return_value = self.fake_audit_template
+        fake_saved_audit_template = self.fake_audit_template.copy()
+        fake_saved_audit_template['updated_at'] = datetime.datetime.utcnow()
+        mock_update_audit_template.return_value = fake_saved_audit_template
         uuid = self.fake_audit_template['uuid']
         audit_template = objects.AuditTemplate.get_by_uuid(
             self.context, uuid, eager=self.eager)
@@ -155,7 +164,8 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
 
     def setUp(self):
         super(TestCreateDeleteAuditTemplateObject, self).setUp()
-        self.fake_audit_template = utils.get_test_audit_template()
+        self.fake_audit_template = utils.get_test_audit_template(
+            created_at=datetime.datetime.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_audit_template')
     def test_create(self, mock_create_audit_template):
@@ -165,22 +175,38 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
         audit_template = objects.AuditTemplate(
             self.context, **self.fake_audit_template)
         audit_template.create()
+        expected_audit_template = self.fake_audit_template.copy()
+        expected_audit_template['created_at'] = expected_audit_template[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
         mock_create_audit_template.assert_called_once_with(
-            self.fake_audit_template)
+            expected_audit_template)
         self.assertEqual(self.context, audit_template._context)
 
     @mock.patch.object(db_api.Connection, 'soft_delete_audit_template')
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')
-    def test_soft_delete(self, mock_get_audit_template,
-                         mock_soft_delete_audit_template):
-        mock_get_audit_template.return_value = self.fake_audit_template
+    def test_soft_delete(self, m_get_audit_template,
+                         m_soft_delete_audit_template):
+        m_get_audit_template.return_value = self.fake_audit_template
+        fake_deleted_audit_template = self.fake_audit_template.copy()
+        fake_deleted_audit_template['deleted_at'] = datetime.datetime.utcnow()
+        m_soft_delete_audit_template.return_value = fake_deleted_audit_template
+
+        expected_audit_template = fake_deleted_audit_template.copy()
+        expected_audit_template['created_at'] = expected_audit_template[
+            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        expected_audit_template['deleted_at'] = expected_audit_template[
+            'deleted_at'].replace(tzinfo=iso8601.iso8601.Utc())
+        del expected_audit_template['goal']
+        del expected_audit_template['strategy']
+
         uuid = self.fake_audit_template['uuid']
         audit_template = objects.AuditTemplate.get_by_uuid(self.context, uuid)
         audit_template.soft_delete()
-        mock_get_audit_template.assert_called_once_with(
+        m_get_audit_template.assert_called_once_with(
             self.context, uuid, eager=False)
-        mock_soft_delete_audit_template.assert_called_once_with(uuid)
+        m_soft_delete_audit_template.assert_called_once_with(uuid)
         self.assertEqual(self.context, audit_template._context)
+        self.assertEqual(expected_audit_template, audit_template.as_dict())
 
     @mock.patch.object(db_api.Connection, 'destroy_audit_template')
     @mock.patch.object(db_api.Connection, 'get_audit_template_by_uuid')

@@ -291,11 +291,13 @@ class Connection(api.BaseConnection):
             query = model_query(model, session=session)
             query = add_identity_filter(query, id_)
             try:
-                query.one()
+                row = query.one()
             except exc.NoResultFound:
                 raise exception.ResourceNotFound(name=model.__name__, id=id_)
 
-            query.soft_delete()
+            row.soft_delete(session)
+
+            return row
 
     @staticmethod
     def _destroy(model, id_):
@@ -484,7 +486,7 @@ class Connection(api.BaseConnection):
 
     def soft_delete_goal(self, goal_id):
         try:
-            self._soft_delete(models.Goal, goal_id)
+            return self._soft_delete(models.Goal, goal_id)
         except exception.ResourceNotFound:
             raise exception.GoalNotFound(goal=goal_id)
 
@@ -550,7 +552,7 @@ class Connection(api.BaseConnection):
 
     def soft_delete_strategy(self, strategy_id):
         try:
-            self._soft_delete(models.Strategy, strategy_id)
+            return self._soft_delete(models.Strategy, strategy_id)
         except exception.ResourceNotFound:
             raise exception.StrategyNotFound(strategy=strategy_id)
 
@@ -632,7 +634,7 @@ class Connection(api.BaseConnection):
 
     def soft_delete_audit_template(self, audit_template_id):
         try:
-            self._soft_delete(models.AuditTemplate, audit_template_id)
+            return self._soft_delete(models.AuditTemplate, audit_template_id)
         except exception.ResourceNotFound:
             raise exception.AuditTemplateNotFound(
                 audit_template=audit_template_id)
@@ -717,7 +719,7 @@ class Connection(api.BaseConnection):
 
     def soft_delete_audit(self, audit_id):
         try:
-            self._soft_delete(models.Audit, audit_id)
+            return self._soft_delete(models.Audit, audit_id)
         except exception.ResourceNotFound:
             raise exception.AuditNotFound(audit=audit_id)
 
@@ -793,17 +795,10 @@ class Connection(api.BaseConnection):
         return ref
 
     def soft_delete_action(self, action_id):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.Action, session=session)
-            query = add_identity_filter(query, action_id)
-
-            try:
-                query.one()
-            except exc.NoResultFound:
-                raise exception.ActionNotFound(action=action_id)
-
-            query.soft_delete()
+        try:
+            return self._soft_delete(models.Action, action_id)
+        except exception.ResourceNotFound:
+            raise exception.ActionNotFound(action=action_id)
 
     # ### ACTION PLANS ### #
 
@@ -895,17 +890,10 @@ class Connection(api.BaseConnection):
         return ref
 
     def soft_delete_action_plan(self, action_plan_id):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.ActionPlan, session=session)
-            query = add_identity_filter(query, action_plan_id)
-
-            try:
-                query.one()
-            except exc.NoResultFound:
-                raise exception.ActionPlanNotFound(action_plan=action_plan_id)
-
-            query.soft_delete()
+        try:
+            return self._soft_delete(models.ActionPlan, action_plan_id)
+        except exception.ResourceNotFound:
+            raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
     # ### EFFICACY INDICATORS ### #
 
@@ -973,7 +961,8 @@ class Connection(api.BaseConnection):
 
     def soft_delete_efficacy_indicator(self, efficacy_indicator_id):
         try:
-            self._soft_delete(models.EfficacyIndicator, efficacy_indicator_id)
+            return self._soft_delete(
+                models.EfficacyIndicator, efficacy_indicator_id)
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(
                 efficacy_indicator=efficacy_indicator_id)
@@ -1066,7 +1055,8 @@ class Connection(api.BaseConnection):
 
     def soft_delete_scoring_engine(self, scoring_engine_id):
         try:
-            return self._soft_delete(models.ScoringEngine, scoring_engine_id)
+            return self._soft_delete(
+                models.ScoringEngine, scoring_engine_id)
         except exception.ResourceNotFound:
             raise exception.ScoringEngineNotFound(
                 scoring_engine=scoring_engine_id)
@@ -1131,6 +1121,6 @@ class Connection(api.BaseConnection):
 
     def soft_delete_service(self, service_id):
         try:
-            self._soft_delete(models.Service, service_id)
+            return self._soft_delete(models.Service, service_id)
         except exception.ResourceNotFound:
             raise exception.ServiceNotFound(service=service_id)
