@@ -91,6 +91,12 @@ Efficacy Indicator
 
 Add here the Efficacy indicator computed by your strategy.
 
+Algorithm
+---------
+
+Add here either the description of your algorithm or
+link to the existing description.
+
 How to use it ?
 ---------------
 

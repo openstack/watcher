@@ -16,6 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+*Workload Stabilization control using live migration*
+
+This is workload stabilization strategy based on standard deviation
+algorithm. The goal is to determine if there is an overload in a cluster
+and respond to it by migrating VMs to stabilize the cluster.
+
+It assumes that live migrations are possible in your cluster.
+
+"""
 
 import copy
 import itertools
@@ -48,35 +58,18 @@ def _set_memoize(conf):
 
 
 class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
-    """Workload Stabilization control using live migration
-
-    *Description*
-
-    This is workload stabilization strategy based on standard deviation
-    algorithm. The goal is to determine if there is an overload in a cluster
-    and respond to it by migrating VMs to stabilize the cluster.
-
-    *Requirements*
-
-    * Software: Ceilometer component ceilometer-compute running
-      in each compute host, and Ceilometer API can report such telemetries
-      ``memory.resident`` and ``cpu_util`` successfully.
-    * You must have at least 2 physical compute nodes to run this strategy.
-
-    *Limitations*
-
-    - It assume that live migrations are possible
-    - Load on the system is sufficiently stable.
-
-    *Spec URL*
-
-    https://review.openstack.org/#/c/286153/
-    """
+    """Workload Stabilization control using live migration"""
 
     MIGRATION = "migrate"
     MEMOIZE = _set_memoize(CONF)
 
     def __init__(self, config, osc=None):
+        """Workload Stabilization control using live migration
+
+        :param config: A mapping containing the configuration of this strategy
+        :type config: :py:class:`~.Struct` instance
+        :param osc: :py:class:`~.OpenStackClients` instance
+        """
         super(WorkloadStabilization, self).__init__(config, osc)
         self._ceilometer = None
         self._nova = None
