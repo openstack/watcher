@@ -65,6 +65,12 @@ class TestOneShotAuditHandler(base.DbTestCase):
                       phase=objects.fields.NotificationPhase.START),
             mock.call(self.context, self.audit,
                       action=objects.fields.NotificationAction.STRATEGY,
+                      phase=objects.fields.NotificationPhase.END),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
                       phase=objects.fields.NotificationPhase.END)]
 
         self.assertEqual(
@@ -106,6 +112,12 @@ class TestOneShotAuditHandler(base.DbTestCase):
                       phase=objects.fields.NotificationPhase.START),
             mock.call(self.context, self.audit,
                       action=objects.fields.NotificationAction.STRATEGY,
+                      phase=objects.fields.NotificationPhase.END),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
                       phase=objects.fields.NotificationPhase.END)]
 
         self.assertEqual(
@@ -125,6 +137,12 @@ class TestOneShotAuditHandler(base.DbTestCase):
                       phase=objects.fields.NotificationPhase.START),
             mock.call(self.context, self.audit,
                       action=objects.fields.NotificationAction.STRATEGY,
+                      phase=objects.fields.NotificationPhase.END),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.audit,
+                      action=objects.fields.NotificationAction.PLANNER,
                       phase=objects.fields.NotificationPhase.END)]
 
         self.assertEqual(

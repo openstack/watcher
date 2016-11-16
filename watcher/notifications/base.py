@@ -58,7 +58,8 @@ class EventType(NotificationObject):
 
     # Version 1.0: Initial version
     # Version 1.1: Added STRATEGY action in NotificationAction enum
-    VERSION = '1.1'
+    # Version 1.2: Added PLANNER action in NotificationAction enum
+    VERSION = '1.2'
 
     fields = {
         'object': wfields.StringField(),

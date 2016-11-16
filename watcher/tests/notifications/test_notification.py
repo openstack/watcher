@@ -250,7 +250,7 @@ class TestNotificationBase(testbase.TestCase):
 
 
 expected_notification_fingerprints = {
-    'EventType': '1.1-652f407fcf72d2045d65974d23c78173',
+    'EventType': '1.2-633c2d32fa849d2a6f8bda3b0db88332',
     'ExceptionNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ExceptionPayload': '1.0-4516ae282a55fe2fd5c754967ee6248b',
     'NotificationPublisher': '1.0-bbbc1402fb0e443a3eb227cc52b61545',

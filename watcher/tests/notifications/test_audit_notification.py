@@ -14,43 +14,58 @@
 
 import freezegun
 import mock
+import oslo_messaging as om
 
 from watcher.common import exception
+from watcher.common import rpc
 from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.objects import utils
 
 
+@freezegun.freeze_time('2016-10-18T09:52:05.219414')
 class TestAuditNotification(base.DbTestCase):
 
-    @mock.patch.object(notifications.audit.AuditUpdateNotification, '_emit')
-    def test_send_version_invalid_audit(self, mock_emit):
+    def setUp(self):
+        super(TestAuditNotification, self).setUp()
+        p_get_notifier = mock.patch.object(rpc, 'get_notifier')
+        m_get_notifier = p_get_notifier.start()
+        self.addCleanup(p_get_notifier.stop)
+        self.m_notifier = mock.Mock(spec=om.Notifier)
+
+        def fake_get_notifier(publisher_id):
+            self.m_notifier.publisher_id = publisher_id
+            return self.m_notifier
+
+        m_get_notifier.side_effect = fake_get_notifier
+        self.goal = utils.create_test_goal(mock.Mock())
+        self.strategy = utils.create_test_strategy(mock.Mock())
+
+    def test_send_invalid_audit(self):
         audit = utils.get_test_audit(mock.Mock(), state='DOESNOTMATTER',
                                      goal_id=1)
 
         self.assertRaises(
             exception.InvalidAudit,
             notifications.audit.send_update,
-            mock.MagicMock(), audit, 'host', 'node0')
+            mock.MagicMock(), audit, host='node0')
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditUpdateNotification, '_emit')
-    def test_send_version_audit_update_with_strategy(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock())
-        strategy = utils.create_test_strategy(mock.Mock())
+    def test_send_audit_update_with_strategy(self):
         audit = utils.create_test_audit(
             mock.Mock(), state=objects.audit.State.ONGOING,
-            goal_id=goal.id, strategy_id=strategy.id,
-            goal=goal, strategy=strategy)
+            goal_id=self.goal.id, strategy_id=self.strategy.id,
+            goal=self.goal, strategy=self.strategy)
         notifications.audit.send_update(
-            mock.MagicMock(), audit, 'host', 'node0',
+            mock.MagicMock(), audit, host='node0',
             old_state=objects.audit.State.PENDING)
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        # The 1st notification is because we created the object.
+        self.assertEqual(2, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
         payload = notification['payload']
 
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
@@ -108,21 +123,19 @@ class TestAuditNotification(base.DbTestCase):
             payload
         )
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditUpdateNotification, '_emit')
-    def test_send_version_audit_update_without_strategy(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock(), id=1)
+    def test_send_audit_update_without_strategy(self):
         audit = utils.get_test_audit(
             mock.Mock(), state=objects.audit.State.ONGOING,
-            goal_id=goal.id, goal=goal)
+            goal_id=self.goal.id, goal=self.goal)
         notifications.audit.send_update(
-            mock.MagicMock(), audit, 'host', 'node0',
+            mock.MagicMock(), audit, host='node0',
             old_state=objects.audit.State.PENDING)
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        self.assertEqual(1, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
         payload = notification['payload']
 
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
@@ -167,22 +180,19 @@ class TestAuditNotification(base.DbTestCase):
             payload
         )
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditCreateNotification, '_emit')
-    def test_send_version_audit_create(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock())
-        strategy = utils.create_test_strategy(mock.Mock())
+    def test_send_audit_create(self):
         audit = utils.get_test_audit(
             mock.Mock(), state=objects.audit.State.PENDING,
-            goal_id=goal.id, strategy_id=strategy.id,
-            goal=goal.as_dict(), strategy=strategy.as_dict())
+            goal_id=self.goal.id, strategy_id=self.strategy.id,
+            goal=self.goal.as_dict(), strategy=self.strategy.as_dict())
         notifications.audit.send_create(
-            mock.MagicMock(), audit, 'host', 'node0')
+            mock.MagicMock(), audit, host='node0')
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        self.assertEqual(1, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
         payload = notification['payload']
 
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
@@ -231,21 +241,19 @@ class TestAuditNotification(base.DbTestCase):
             payload
         )
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditDeleteNotification, '_emit')
-    def test_send_version_audit_delete(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock())
-        strategy = utils.create_test_strategy(mock.Mock())
+    def test_send_audit_delete(self):
         audit = utils.create_test_audit(
             mock.Mock(), state=objects.audit.State.DELETED,
-            goal_id=goal.id, strategy_id=strategy.id)
+            goal_id=self.goal.id, strategy_id=self.strategy.id)
         notifications.audit.send_delete(
-            mock.MagicMock(), audit, 'host', 'node0')
+            mock.MagicMock(), audit, host='node0')
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        # The 1st notification is because we created the object.
+        self.assertEqual(2, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
         payload = notification['payload']
 
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
@@ -294,22 +302,21 @@ class TestAuditNotification(base.DbTestCase):
             payload
         )
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditActionNotification, '_emit')
-    def test_send_audit_action(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock())
-        strategy = utils.create_test_strategy(mock.Mock())
+    def test_send_audit_action(self):
         audit = utils.create_test_audit(
             mock.Mock(), state=objects.audit.State.ONGOING,
-            goal_id=goal.id, strategy_id=strategy.id,
-            goal=goal, strategy=strategy)
+            goal_id=self.goal.id, strategy_id=self.strategy.id,
+            goal=self.goal, strategy=self.strategy)
         notifications.audit.send_action_notification(
             mock.MagicMock(), audit, host='node0',
             action='strategy', phase='start')
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        # The 1st notification is because we created the object.
+        self.assertEqual(2, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
+        notification = self.m_notifier.info.call_args[1]
 
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "event_type": "audit.strategy.start",
@@ -357,21 +364,16 @@ class TestAuditNotification(base.DbTestCase):
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
                     "watcher_object.version": "1.0"
-                },
-                "publisher_id": "infra-optim:node0"
+                }
             },
             notification
         )
 
-    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
-    @mock.patch.object(notifications.audit.AuditActionNotification, '_emit')
-    def test_send_audit_action_with_error(self, mock_emit):
-        goal = utils.create_test_goal(mock.Mock())
-        strategy = utils.create_test_strategy(mock.Mock())
+    def test_send_audit_action_with_error(self):
         audit = utils.create_test_audit(
             mock.Mock(), state=objects.audit.State.ONGOING,
-            goal_id=goal.id, strategy_id=strategy.id,
-            goal=goal, strategy=strategy)
+            goal_id=self.goal.id, strategy_id=self.strategy.id,
+            goal=self.goal, strategy=self.strategy)
 
         try:
             # This is to load the exception in sys.exc_info()
@@ -381,8 +383,9 @@ class TestAuditNotification(base.DbTestCase):
                 mock.MagicMock(), audit, host='node0',
                 action='strategy', priority='error', phase='error')
 
-        self.assertEqual(1, mock_emit.call_count)
-        notification = mock_emit.call_args_list[0][1]
+        self.assertEqual(1, self.m_notifier.error.call_count)
+        notification = self.m_notifier.error.call_args[1]
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
         self.assertDictEqual(
             {
                 "event_type": "audit.strategy.error",
@@ -442,8 +445,7 @@ class TestAuditNotification(base.DbTestCase):
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
                     "watcher_object.version": "1.0"
-                },
-                "publisher_id": "infra-optim:node0"
+                }
             },
             notification
         )

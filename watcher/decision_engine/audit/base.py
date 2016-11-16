@@ -24,13 +24,16 @@ from oslo_log import log
 
 from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.context import default as default_context
+from watcher import notifications
 from watcher import objects
+from watcher.objects import fields
 
 LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
 class BaseAuditHandler(object):
+
     @abc.abstractmethod
     def execute(self, audit_uuid, request_context):
         raise NotImplementedError()
@@ -70,6 +73,25 @@ class AuditHandler(BaseAuditHandler):
     def strategy_context(self):
         return self._strategy_context
 
+    def do_schedule(self, request_context, audit, solution):
+        try:
+            notifications.audit.send_action_notification(
+                request_context, audit,
+                action=fields.NotificationAction.PLANNER,
+                phase=fields.NotificationPhase.START)
+            self.planner.schedule(request_context, audit.id, solution)
+            notifications.audit.send_action_notification(
+                request_context, audit,
+                action=fields.NotificationAction.PLANNER,
+                phase=fields.NotificationPhase.END)
+        except Exception:
+            notifications.audit.send_action_notification(
+                request_context, audit,
+                action=fields.NotificationAction.PLANNER,
+                priority=fields.NotificationPriority.ERROR,
+                phase=fields.NotificationPhase.ERROR)
+            raise
+
     @staticmethod
     def update_audit_state(audit, state):
         LOG.debug("Update audit state: %s", state)
@@ -82,8 +104,7 @@ class AuditHandler(BaseAuditHandler):
         self.update_audit_state(audit, objects.audit.State.ONGOING)
 
     def post_execute(self, audit, solution, request_context):
-        self.planner.schedule(request_context, audit.id, solution)
-
+        self.do_schedule(request_context, audit, solution)
         # change state of the audit to SUCCEEDED
         self.update_audit_state(audit, objects.audit.State.SUCCEEDED)
 

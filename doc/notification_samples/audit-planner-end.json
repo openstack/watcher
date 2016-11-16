@@ -1,0 +1,70 @@
+{
+  "priority": "INFO",
+  "payload": {
+    "watcher_object.data": {
+      "audit_type": "ONESHOT",
+      "parameters": {
+        "para2": "hello",
+        "para1": 3.2
+      },
+      "state": "ONGOING",
+      "updated_at": null,
+      "deleted_at": null,
+      "fault": null,
+      "goal": {
+        "watcher_object.data": {
+          "uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
+          "name": "dummy",
+          "updated_at": null,
+          "deleted_at": null,
+          "efficacy_specification": [],
+          "created_at": "2016-11-04T16:25:35Z",
+          "display_name": "Dummy goal"
+        },
+        "watcher_object.name": "GoalPayload",
+        "watcher_object.version": "1.0",
+        "watcher_object.namespace": "watcher"
+      },
+      "interval": null,
+      "scope": [],
+      "strategy": {
+        "watcher_object.data": {
+          "parameters_spec": {
+            "properties": {
+              "para2": {
+                "type": "string",
+                "default": "hello",
+                "description": "string parameter example"
+              },
+              "para1": {
+                "description": "number parameter example",
+                "maximum": 10.2,
+                "type": "number",
+                "default": 3.2,
+                "minimum": 1.0
+              }
+            }
+          },
+          "name": "dummy",
+          "uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
+          "updated_at": null,
+          "deleted_at": null,
+          "created_at": "2016-11-04T16:25:35Z",
+          "display_name": "Dummy strategy"
+        },
+        "watcher_object.name": "StrategyPayload",
+        "watcher_object.version": "1.0",
+        "watcher_object.namespace": "watcher"
+      },
+      "created_at": "2016-11-04T16:29:20Z",
+      "uuid": "4a97b9dd-2023-43dc-b713-815bdd94d4d6"
+    },
+    "watcher_object.name": "AuditActionPayload",
+    "watcher_object.version": "1.0",
+    "watcher_object.namespace": "watcher"
+  },
+  "publisher_id": "infra-optim:localhost",
+  "timestamp": "2016-11-04 16:31:36.264673   ",
+  "event_type": "audit.planner.end",
+  "message_id": "cbcf9f2c-7c53-4b4d-91ec-db49cca024b6"
+}
