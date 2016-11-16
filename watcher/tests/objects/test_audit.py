@@ -23,6 +23,7 @@ from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
+from watcher.tests.objects import utils as objutils
 
 
 class TestAuditObject(base.DbTestCase):
@@ -232,3 +233,40 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
         self.assertEqual(1, self.m_notifier.info.call_count)
         self.assertEqual('audit.update',
                          self.m_notifier.info.call_args[1]['event_type'])
+
+    @mock.patch.object(db_api.Connection, 'create_audit')
+    def test_send_create_notification(self, m_create_audit):
+        audit = objutils.get_test_audit(
+            self.context,
+            goal_id=self.fake_goal.id,
+            strategy_id=self.fake_strategy.id,
+            goal=self.fake_goal.as_dict(),
+            strategy=self.fake_strategy.as_dict())
+        m_create_audit.return_value = audit
+        audit.create()
+
+        self.assertEqual(1, self.m_notifier.info.call_count)
+        self.assertEqual('audit.create',
+                         self.m_notifier.info.call_args[1]['event_type'])
+
+    @mock.patch.object(db_api.Connection, 'soft_delete_audit', mock.Mock())
+    @mock.patch.object(db_api.Connection, 'update_audit', mock.Mock())
+    @mock.patch.object(db_api.Connection, 'get_audit_by_uuid')
+    def test_send_delete_notification(self, m_get_audit):
+        fake_audit = utils.get_test_audit(
+            goal=self.fake_goal.as_dict(),
+            strategy_id=self.fake_strategy.id,
+            strategy=self.fake_strategy.as_dict())
+        m_get_audit.return_value = fake_audit
+        uuid = fake_audit['uuid']
+
+        audit = objects.Audit.get_by_uuid(self.context, uuid, eager=True)
+        audit.soft_delete()
+
+        self.assertEqual(2, self.m_notifier.info.call_count)
+        self.assertEqual(
+            'audit.update',
+            self.m_notifier.info.call_args_list[0][1]['event_type'])
+        self.assertEqual(
+            'audit.delete',
+            self.m_notifier.info.call_args_list[1][1]['event_type'])
