@@ -277,6 +277,27 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
         """
         return self._show_request('/strategies', strategy)
 
+    # ### SCORING ENGINE ### #
+
+    @base.handle_errors
+    def list_scoring_engines(self, **kwargs):
+        """List all existing scoring_engines"""
+        return self._list_request('/scoring_engines', **kwargs)
+
+    @base.handle_errors
+    def list_scoring_engines_detail(self, **kwargs):
+        """Lists details of all existing scoring_engines"""
+        return self._list_request('/scoring_engines/detail', **kwargs)
+
+    @base.handle_errors
+    def show_scoring_engine(self, scoring_engine):
+        """Gets a specific scoring_engine
+
+        :param scoring_engine: UUID or Name of the scoring_engine
+        :return: Serialized scoring_engine as a dictionary
+        """
+        return self._show_request('/scoring_engines', scoring_engine)
+
     # ### SERVICES ### #
 
     @base.handle_errors
