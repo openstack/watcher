@@ -189,7 +189,8 @@ class TestListAction(api_base.FunctionalTest):
     def test_filter_by_action_plan_uuid(self):
         action_plan_1 = obj_utils.create_test_action_plan(
             self.context,
-            uuid=utils.generate_uuid())
+            uuid=utils.generate_uuid(),
+            audit_id=self.audit.id)
         action_list = []
 
         for id_ in range(3):
@@ -201,7 +202,8 @@ class TestListAction(api_base.FunctionalTest):
 
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
-            uuid=utils.generate_uuid())
+            uuid=utils.generate_uuid(),
+            audit_id=self.audit.id)
 
         for id_ in range(4, 5, 6):
             obj_utils.create_test_action(
@@ -221,14 +223,12 @@ class TestListAction(api_base.FunctionalTest):
             self.assertEqual(action_plan_2.uuid, action['action_plan_uuid'])
 
     def test_details_and_filter_by_action_plan_uuid(self):
-        audit = obj_utils.create_test_audit(self.context,
-                                            uuid=utils.generate_uuid())
         action_plan = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            audit_id=self.audit.id)
 
-        for id_ in range(3):
+        for id_ in range(1, 3):
             action = obj_utils.create_test_action(
                 self.context, id=id_,
                 action_plan_id=action_plan.id,
@@ -240,33 +240,29 @@ class TestListAction(api_base.FunctionalTest):
             self.assertEqual(action_plan.uuid, action['action_plan_uuid'])
 
     def test_details_and_filter_by_audit_uuid(self):
-        audit = obj_utils.create_test_audit(self.context,
-                                            uuid=utils.generate_uuid())
         action_plan = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            audit_id=self.audit.id)
 
-        for id_ in range(3):
+        for id_ in range(1, 3):
             action = obj_utils.create_test_action(
                 self.context, id=id_,
                 action_plan_id=action_plan.id,
                 uuid=utils.generate_uuid())
 
         response = self.get_json(
-            '/actions/detail?audit_uuid=%s' % audit.uuid)
+            '/actions/detail?audit_uuid=%s' % self.audit.uuid)
         for action in response['actions']:
             self.assertEqual(action_plan.uuid, action['action_plan_uuid'])
 
     def test_filter_by_action_plan_and_audit_uuids(self):
-        audit = obj_utils.create_test_audit(
-            self.context, uuid=utils.generate_uuid())
         action_plan = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
-            audit_id=audit.id)
+            audit_id=self.audit.id)
         url = '/actions?action_plan_uuid=%s&audit_uuid=%s' % (
-            action_plan.uuid, audit.uuid)
+            action_plan.uuid, self.audit.uuid)
         response = self.get_json(url, expect_errors=True)
         self.assertEqual(400, response.status_int)
 

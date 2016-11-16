@@ -83,6 +83,19 @@ class AuditStateUpdatePayload(notificationbase.NotificationPayloadBase):
 
 
 @base.WatcherObjectRegistry.register_notification
+class AuditCreatePayload(AuditPayload):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+    fields = {}
+
+    def __init__(self, audit, goal, strategy):
+        super(AuditCreatePayload, self).__init__(
+            audit=audit,
+            goal=goal,
+            strategy=strategy)
+
+
+@base.WatcherObjectRegistry.register_notification
 class AuditUpdatePayload(AuditPayload):
     # Version 1.0: Initial version
     VERSION = '1.0'
@@ -98,6 +111,29 @@ class AuditUpdatePayload(AuditPayload):
             strategy=strategy)
 
 
+# @notificationbase.notification_sample('audit-create.json')
+# @notificationbase.notification_sample('audit-delete.json')
+# @base.WatcherObjectRegistry.register_notification
+# class AuditActionNotification(notificationbase.NotificationBase):
+#     # Version 1.0: Initial version
+#     VERSION = '1.0'
+
+#     fields = {
+#         'payload': wfields.ObjectField('AuditActionPayload')
+#     }
+
+
+@notificationbase.notification_sample('audit-create.json')
+@base.WatcherObjectRegistry.register_notification
+class AuditCreateNotification(notificationbase.NotificationBase):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'payload': wfields.ObjectField('AuditCreatePayload')
+    }
+
+
 @notificationbase.notification_sample('audit-update.json')
 @base.WatcherObjectRegistry.register_notification
 class AuditUpdateNotification(notificationbase.NotificationBase):
@@ -109,9 +145,7 @@ class AuditUpdateNotification(notificationbase.NotificationBase):
     }
 
 
-def send_update(context, audit, service='infra-optim',
-                host=None, old_state=None):
-    """Emit an audit.update notification."""
+def _get_common_payload(audit):
     goal = None
     strategy = None
     try:
@@ -127,6 +161,37 @@ def send_update(context, audit, service='infra-optim',
     if strategy:
         strategy_payload = strategy_notifications.StrategyPayload(
             strategy=strategy)
+
+    return goal_payload, strategy_payload
+
+
+def send_create(context, audit, service='infra-optim', host=None):
+    """Emit an audit.create notification."""
+    goal_payload, strategy_payload = _get_common_payload(audit)
+
+    versioned_payload = AuditCreatePayload(
+        audit=audit,
+        goal=goal_payload,
+        strategy=strategy_payload,
+    )
+
+    notification = AuditCreateNotification(
+        priority=wfields.NotificationPriority.INFO,
+        event_type=notificationbase.EventType(
+            object='audit',
+            action=wfields.NotificationAction.CREATE),
+        publisher=notificationbase.NotificationPublisher(
+            host=host or CONF.host,
+            binary=service),
+        payload=versioned_payload)
+
+    notification.emit(context)
+
+
+def send_update(context, audit, service='infra-optim',
+                host=None, old_state=None):
+    """Emit an audit.update notification."""
+    goal_payload, strategy_payload = _get_common_payload(audit)
 
     state_update = AuditStateUpdatePayload(
         old_state=old_state,

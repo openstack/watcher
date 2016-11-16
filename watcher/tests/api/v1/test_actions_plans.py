@@ -172,8 +172,9 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_with_audit_uuid(self):
         action_plan_list = []
         audit = obj_utils.create_test_audit(self.context,
+                                            id=2,
                                             uuid=utils.generate_uuid())
-        for id_ in range(5):
+        for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit.id)
@@ -186,14 +187,16 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_with_audit_uuid_filter(self):
         action_plan_list1 = []
         audit1 = obj_utils.create_test_audit(self.context,
+                                             id=2,
                                              uuid=utils.generate_uuid())
-        for id_ in range(5):
+        for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit1.id)
             action_plan_list1.append(action_plan.uuid)
 
         audit2 = obj_utils.create_test_audit(self.context,
+                                             id=3,
                                              uuid=utils.generate_uuid())
         action_plan_list2 = []
         for id_ in [5, 6, 7]:
@@ -241,8 +244,9 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_many_with_sort_key_audit_uuid(self):
         audit_list = []
-        for id_ in range(5):
+        for id_ in range(2, 5):
             audit = obj_utils.create_test_audit(self.context,
+                                                id=id_,
                                                 uuid=utils.generate_uuid())
             obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -251,7 +255,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
         response = self.get_json('/action_plans/?sort_key=audit_uuid')
 
-        self.assertEqual(5, len(response['action_plans']))
+        self.assertEqual(3, len(response['action_plans']))
         uuids = [s['audit_uuid'] for s in response['action_plans']]
         self.assertEqual(sorted(audit_list), uuids)
 

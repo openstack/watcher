@@ -236,6 +236,11 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         # notifications containing information about the related relationships
         self._from_db_object(self, db_audit, eager=True)
 
+        def _notify():
+            notifications.audit.send_create(self._context, self)
+
+        _notify()
+
     @base.remotable
     def destroy(self):
         """Delete the Audit from the DB."""

@@ -258,6 +258,8 @@ expected_notification_fingerprints = {
     'AuditStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
     'AuditUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'AuditUpdatePayload': '1.0-d3aace28d9eb978c1ecf833e108f61f7',
+    'AuditCreateNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'AuditCreatePayload': '1.0-30c85c834648c8ca11f54fc5e084d86b',
     'GoalPayload': '1.0-fa1fecb8b01dd047eef808ded4d50d1a',
     'StrategyPayload': '1.0-94f01c137b083ac236ae82573c1fcfc1',
 }
