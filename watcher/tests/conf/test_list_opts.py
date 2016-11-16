@@ -17,7 +17,8 @@
 import mock
 from stevedore import extension
 
-from watcher import opts
+from watcher.conf import opts
+from watcher.conf import plugins
 from watcher.tests import base
 from watcher.tests.decision_engine import fake_strategies
 
@@ -26,10 +27,10 @@ class TestListOpts(base.TestCase):
     def setUp(self):
         super(TestListOpts, self).setUp()
         self.base_sections = [
-            'api', 'watcher_decision_engine', 'watcher_applier',
-            'watcher_planner', 'nova_client', 'glance_client',
-            'cinder_client', 'ceilometer_client', 'neutron_client',
-            'watcher_clients_auth']
+            'DEFAULT', 'api', 'database', 'watcher_decision_engine',
+            'watcher_applier', 'watcher_planner', 'nova_client',
+            'glance_client', 'cinder_client', 'ceilometer_client',
+            'neutron_client', 'watcher_clients_auth']
         self.opt_sections = list(dict(opts.list_opts()).keys())
 
     def test_run_list_opts(self):
@@ -135,10 +136,10 @@ class TestPlugins(base.TestCase):
 
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             with mock.patch.object(
-                opts, "_show_plugins_ascii_table"
+                plugins, "_show_plugins_ascii_table"
             ) as m_show:
                 m_ext_manager.side_effect = m_list_available
-                opts.show_plugins()
+                plugins.show_plugins()
                 m_show.assert_called_once_with(
                     [('watcher_strategies.strategy_1', 'strategy_1',
                       'watcher.tests.decision_engine.'

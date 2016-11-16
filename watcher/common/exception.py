@@ -34,14 +34,14 @@ from watcher._i18n import _, _LE
 
 LOG = logging.getLogger(__name__)
 
-exc_log_opts = [
+EXC_LOG_OPTS = [
     cfg.BoolOpt('fatal_exception_format_errors',
                 default=False,
                 help='Make exception message format errors fatal.'),
 ]
 
 CONF = cfg.CONF
-CONF.register_opts(exc_log_opts)
+CONF.register_opts(EXC_LOG_OPTS)
 
 
 def wrap_keystone_exception(func):

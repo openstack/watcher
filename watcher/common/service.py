@@ -34,10 +34,10 @@ from watcher.common import config
 from watcher.common import context
 from watcher.common import rpc
 from watcher.common import scheduling
+from watcher.conf import plugins as plugins_conf
 from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
-from watcher import opts
 from watcher import version
 
 # NOTE:
@@ -46,24 +46,6 @@ from watcher import version
 # bug.  Calling eventlet.monkey_patch() tells kombu
 # to use libamqp instead.
 eventlet.monkey_patch()
-
-service_opts = [
-    cfg.IntOpt('periodic_interval',
-               default=60,
-               help=_('Seconds between running periodic tasks.')),
-    cfg.StrOpt('host',
-               default=socket.getfqdn(),
-               help=_('Name of this node. This can be an opaque identifier.  '
-                      'It is not necessarily a hostname, FQDN, or IP address. '
-                      'However, the node name must be valid within '
-                      'an AMQP key, and if using ZeroMQ, a valid '
-                      'hostname, FQDN, or IP address.')),
-    cfg.IntOpt('service_down_time',
-               default=90,
-               help=_('Maximum time since last check-in for up service.'))
-]
-
-cfg.CONF.register_opts(service_opts)
 
 NOTIFICATION_OPTS = [
     cfg.StrOpt('notification_level',
@@ -247,7 +229,7 @@ class Service(service.ServiceBase):
         target = om.Target(
             topic=topic_name,
             # For compatibility, we can override it with 'host' opt
-            server=CONF.host or socket.getfqdn(),
+            server=CONF.host or socket.gethostname(),
             version=self.api_version,
         )
         return om.get_rpc_server(
@@ -309,5 +291,6 @@ def prepare_service(argv=(), conf=cfg.CONF):
     conf.log_opt_values(LOG, log.DEBUG)
     objects.register_all()
 
-    gmr.TextGuruMeditation.register_section(_('Plugins'), opts.show_plugins)
+    gmr.TextGuruMeditation.register_section(
+        _('Plugins'), plugins_conf.show_plugins)
     gmr.TextGuruMeditation.setup_autorun(version, conf=conf)

@@ -24,10 +24,11 @@ import sys
 from oslo_config import cfg
 
 from watcher.common import service
+from watcher import conf
 from watcher.db import migration
 from watcher.db import purge
 
-CONF = cfg.CONF
+CONF = conf.CONF
 
 
 class DBCommand(object):
@@ -152,5 +153,5 @@ def main():
     if not set(sys.argv).intersection(valid_commands):
         sys.argv.append('upgrade')
 
-    service.prepare_service(sys.argv)
+    service.prepare_service(sys.argv, CONF)
     CONF.command.func()
