@@ -234,6 +234,10 @@ class Connection(api.BaseConnection):
         return query
 
     @staticmethod
+    def _get_relationships(model):
+        return inspect(model).relationships
+
+    @staticmethod
     def _set_eager_options(model, query):
         relationships = inspect(model).relationships
         for relationship in relationships:
@@ -241,6 +245,14 @@ class Connection(api.BaseConnection):
                 # We have a One-to-X relationship
                 query = query.options(joinedload(relationship.key))
         return query
+
+    def _create(self, model, values):
+        obj = model()
+        cleaned_values = {k: v for k, v in values.items()
+                          if k not in self._get_relationships(model)}
+        obj.update(cleaned_values)
+        obj.save()
+        return obj
 
     def _get(self, context, model, fieldname, value, eager):
         query = model_query(model)
@@ -429,11 +441,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        goal = models.Goal()
-        goal.update(values)
-
         try:
-            goal.save()
+            goal = self._create(models.Goal, values)
         except db_exc.DBDuplicateEntry:
             raise exception.GoalAlreadyExists(uuid=values['uuid'])
         return goal
@@ -498,11 +507,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        strategy = models.Strategy()
-        strategy.update(values)
-
         try:
-            strategy.save()
+            strategy = self._create(models.Strategy, values)
         except db_exc.DBDuplicateEntry:
             raise exception.StrategyAlreadyExists(uuid=values['uuid'])
         return strategy
@@ -576,11 +582,8 @@ class Connection(api.BaseConnection):
             raise exception.AuditTemplateAlreadyExists(
                 audit_template=values['name'])
 
-        audit_template = models.AuditTemplate()
-        audit_template.update(values)
-
         try:
-            audit_template.save()
+            audit_template = self._create(models.AuditTemplate, values)
         except db_exc.DBDuplicateEntry:
             raise exception.AuditTemplateAlreadyExists(
                 audit_template=values['name'])
@@ -657,11 +660,8 @@ class Connection(api.BaseConnection):
         if values.get('state') is None:
             values['state'] = objects.audit.State.PENDING
 
-        audit = models.Audit()
-        audit.update(values)
-
         try:
-            audit.save()
+            audit = self._create(models.Audit, values)
         except db_exc.DBDuplicateEntry:
             raise exception.AuditAlreadyExists(uuid=values['uuid'])
         return audit
@@ -740,10 +740,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        action = models.Action()
-        action.update(values)
         try:
-            action.save()
+            action = self._create(models.Action, values)
         except db_exc.DBDuplicateEntry:
             raise exception.ActionAlreadyExists(uuid=values['uuid'])
         return action
@@ -829,11 +827,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        action_plan = models.ActionPlan()
-        action_plan.update(values)
-
         try:
-            action_plan.save()
+            action_plan = self._create(models.ActionPlan, values)
         except db_exc.DBDuplicateEntry:
             raise exception.ActionPlanAlreadyExists(uuid=values['uuid'])
         return action_plan
@@ -932,11 +927,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        efficacy_indicator = models.EfficacyIndicator()
-        efficacy_indicator.update(values)
-
         try:
-            efficacy_indicator.save()
+            efficacy_indicator = self._create(models.EfficacyIndicator, values)
         except db_exc.DBDuplicateEntry:
             raise exception.EfficacyIndicatorAlreadyExists(uuid=values['uuid'])
         return efficacy_indicator
@@ -1024,11 +1016,8 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        scoring_engine = models.ScoringEngine()
-        scoring_engine.update(values)
-
         try:
-            scoring_engine.save()
+            scoring_engine = self._create(models.ScoringEngine, values)
         except db_exc.DBDuplicateEntry:
             raise exception.ScoringEngineAlreadyExists(uuid=values['uuid'])
         return scoring_engine
@@ -1106,10 +1095,8 @@ class Connection(api.BaseConnection):
                                sort_key, sort_dir, query)
 
     def create_service(self, values):
-        service = models.Service()
-        service.update(values)
         try:
-            service.save()
+            service = self._create(models.Service, values)
         except db_exc.DBDuplicateEntry:
             raise exception.ServiceAlreadyExists(name=values['name'],
                                                  host=values['host'])

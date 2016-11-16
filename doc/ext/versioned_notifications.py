@@ -23,7 +23,7 @@ It is used via a single directive in the .rst file
 from sphinx.util.compat import Directive
 from docutils import nodes
 
-from watcher.objects.notifications import base as notification
+from watcher.notifications import base as notification
 from watcher.objects import base
 
 

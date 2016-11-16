@@ -318,7 +318,7 @@ class Syncer(object):
         for goal_id, synced_goal in self.goal_mapping.items():
             filters = {"goal_id": goal_id}
             stale_audits = objects.Audit.list(
-                self.ctx, filters=filters)
+                self.ctx, filters=filters, eager=True)
 
             # Update the goal ID for the stale audits (w/o saving)
             for audit in stale_audits:
@@ -331,7 +331,8 @@ class Syncer(object):
     def _find_stale_audits_due_to_strategy(self):
         for strategy_id, synced_strategy in self.strategy_mapping.items():
             filters = {"strategy_id": strategy_id}
-            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            stale_audits = objects.Audit.list(
+                self.ctx, filters=filters, eager=True)
             # Update strategy IDs for all stale audits (w/o saving)
             for audit in stale_audits:
                 if audit.id not in self.stale_audits_map:
@@ -396,7 +397,8 @@ class Syncer(object):
                     _LW("Audit Template '%(audit_template)s' references a "
                         "goal that does not exist"), audit_template=at.uuid)
 
-            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            stale_audits = objects.Audit.list(
+                self.ctx, filters=filters, eager=True)
             for audit in stale_audits:
                 LOG.warning(
                     _LW("Audit '%(audit)s' references a "
@@ -431,7 +433,8 @@ class Syncer(object):
                 else:
                     self.stale_audit_templates_map[at.id].strategy_id = None
 
-            stale_audits = objects.Audit.list(self.ctx, filters=filters)
+            stale_audits = objects.Audit.list(
+                self.ctx, filters=filters, eager=True)
             for audit in stale_audits:
                 LOG.warning(
                     _LW("Audit '%(audit)s' references a "

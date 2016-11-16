@@ -19,9 +19,9 @@ from oslo_versionedobjects import fixture
 
 from watcher.common import exception
 from watcher.common import rpc
+from watcher.notifications import base as notificationbase
 from watcher.objects import base
 from watcher.objects import fields as wfields
-from watcher.objects.notifications import base as notificationbase
 from watcher.tests import base as testbase
 from watcher.tests.objects import test_objects
 
@@ -251,7 +251,15 @@ class TestNotificationBase(testbase.TestCase):
 
 expected_notification_fingerprints = {
     'EventType': '1.0-92100a9f0908da98dfcfff9c42e0018c',
+    'ExceptionNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ExceptionPayload': '1.0-4516ae282a55fe2fd5c754967ee6248b',
     'NotificationPublisher': '1.0-bbbc1402fb0e443a3eb227cc52b61545',
+    'AuditPayload': '1.0-30c85c834648c8ca11f54fc5e084d86b',
+    'AuditStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
+    'AuditUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'AuditUpdatePayload': '1.0-d3aace28d9eb978c1ecf833e108f61f7',
+    'GoalPayload': '1.0-fa1fecb8b01dd047eef808ded4d50d1a',
+    'StrategyPayload': '1.0-94f01c137b083ac236ae82573c1fcfc1',
 }
 
 

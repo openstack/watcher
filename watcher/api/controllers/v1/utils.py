@@ -15,6 +15,7 @@
 
 import jsonpatch
 from oslo_config import cfg
+from oslo_utils import reflection
 from oslo_utils import uuidutils
 import pecan
 import wsme
@@ -81,7 +82,7 @@ def as_filters_dict(**filters):
     return filters_dict
 
 
-def get_resource(resource, resource_id):
+def get_resource(resource, resource_id, eager=False):
     """Get the resource from the uuid, id or logical name.
 
     :param resource: the resource type.
@@ -91,10 +92,17 @@ def get_resource(resource, resource_id):
     """
     resource = getattr(objects, resource)
 
+    _get = None
     if utils.is_int_like(resource_id):
-        return resource.get(pecan.request.context, int(resource_id))
+        resource_id = int(resource_id)
+        _get = resource.get
+    elif uuidutils.is_uuid_like(resource_id):
+        _get = resource.get_by_uuid
+    else:
+        _get = resource.get_by_name
 
-    if uuidutils.is_uuid_like(resource_id):
-        return resource.get_by_uuid(pecan.request.context, resource_id)
+    method_signature = reflection.get_signature(_get)
+    if 'eager' in method_signature.parameters:
+        return _get(pecan.request.context, resource_id, eager=eager)
 
-    return resource.get_by_name(pecan.request.context, resource_id)
+    return _get(pecan.request.context, resource_id)

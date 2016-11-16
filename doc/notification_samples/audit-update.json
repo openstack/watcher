@@ -1,0 +1,78 @@
+{
+  "publisher_id": "infra-optim:localhost",
+  "timestamp": "2016-11-04 16:51:38.722986   ",
+  "payload": {
+    "watcher_object.name": "AuditUpdatePayload",
+    "watcher_object.data": {
+      "strategy": {
+        "watcher_object.name": "StrategyPayload",
+        "watcher_object.data": {
+          "name": "dummy",
+          "parameters_spec": {
+            "properties": {
+              "para2": {
+                "default": "hello",
+                "type": "string",
+                "description": "string parameter example"
+              },
+              "para1": {
+                "maximum": 10.2,
+                "default": 3.2,
+                "minimum": 1.0,
+                "description": "number parameter example",
+                "type": "number"
+              }
+            }
+          },
+          "updated_at": null,
+          "display_name": "Dummy strategy",
+          "deleted_at": null,
+          "uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
+          "created_at": "2016-11-04T16:25:35Z"
+        },
+        "watcher_object.namespace": "watcher",
+        "watcher_object.version": "1.0"
+      },
+      "scope": [],
+      "created_at": "2016-11-04T16:51:21Z",
+      "uuid": "f1e0d912-afd9-4bf2-91ef-c99cd08cc1ef",
+      "goal": {
+        "watcher_object.name": "GoalPayload",
+        "watcher_object.data": {
+          "efficacy_specification": [],
+          "updated_at": null,
+          "name": "dummy",
+          "display_name": "Dummy goal",
+          "deleted_at": null,
+          "uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
+          "created_at": "2016-11-04T16:25:35Z"
+        },
+        "watcher_object.namespace": "watcher",
+        "watcher_object.version": "1.0"
+      },
+      "parameters": {
+        "para2": "hello",
+        "para1": 3.2
+      },
+      "deleted_at": null,
+      "state_update": {
+        "watcher_object.name": "AuditStateUpdatePayload",
+        "watcher_object.data": {
+          "state": "ONGOING",
+          "old_state": "PENDING"
+        },
+        "watcher_object.namespace": "watcher",
+        "watcher_object.version": "1.0"
+      },
+      "interval": null,
+      "updated_at": null,
+      "state": "ONGOING",
+      "audit_type": "ONESHOT"
+    },
+    "watcher_object.namespace": "watcher",
+    "watcher_object.version": "1.0"
+  },
+  "priority": "INFO",
+  "event_type": "audit.update",
+  "message_id": "697fdf55-7252-4b6c-a2c2-5b9e85f6342c"
+}

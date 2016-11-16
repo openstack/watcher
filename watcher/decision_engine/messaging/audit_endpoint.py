@@ -49,7 +49,7 @@ class AuditEndpoint(object):
         return self._messaging
 
     def do_trigger_audit(self, context, audit_uuid):
-        audit = objects.Audit.get_by_uuid(context, audit_uuid)
+        audit = objects.Audit.get_by_uuid(context, audit_uuid, eager=True)
         self._oneshot_handler.execute(audit, context)
 
     def trigger_audit(self, context, audit_uuid):

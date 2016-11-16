@@ -14,9 +14,9 @@ import inspect
 
 import six
 
+from watcher.notifications import base as notificationbase
 from watcher.objects import base as base
 from watcher.objects import fields as wfields
-from watcher.objects.notifications import base as notificationbase
 
 
 @base.WatcherObjectRegistry.register_notification
