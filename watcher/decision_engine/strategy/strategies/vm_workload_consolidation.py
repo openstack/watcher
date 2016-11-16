@@ -16,6 +16,42 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+"""
+*VM Workload Consolidation Strategy*
+
+A load consolidation strategy based on heuristic first-fit
+algorithm which focuses on measured CPU utilization and tries to
+minimize hosts which have too much or too little load respecting
+resource capacity constraints.
+
+This strategy produces a solution resulting in more efficient
+utilization of cluster resources using following four phases:
+
+* Offload phase - handling over-utilized resources
+* Consolidation phase - handling under-utilized resources
+* Solution optimization - reducing number of migrations
+* Disability of unused compute nodes
+
+A capacity coefficients (cc) might be used to adjust optimization
+thresholds. Different resources may require different coefficient
+values as well as setting up different coefficient values in both
+phases may lead to to more efficient consolidation in the end.
+If the cc equals 1 the full resource capacity may be used, cc
+values lower than 1 will lead to resource under utilization and
+values higher than 1 will lead to resource overbooking.
+e.g. If targeted utilization is 80 percent of a compute node capacity,
+the coefficient in the consolidation phase will be 0.8, but
+may any lower value in the offloading phase. The lower it gets
+the cluster will appear more released (distributed) for the
+following consolidation phase.
+
+As this strategy leverages VM live migration to move the load
+from one compute node to another, this feature needs to be set up
+correctly on all compute nodes within the cluster.
+This strategy assumes it is possible to live migrate any VM from
+an active compute node to any other active compute node.
+"""
 
 from oslo_log import log
 import six
@@ -31,54 +67,7 @@ LOG = log.getLogger(__name__)
 
 
 class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
-    """VM Workload Consolidation Strategy.
-
-    *Description*
-
-    A load consolidation strategy based on heuristic first-fit
-    algorithm which focuses on measured CPU utilization and tries to
-    minimize hosts which have too much or too little load respecting
-    resource capacity constraints.
-
-    This strategy produces a solution resulting in more efficient
-    utilization of cluster resources using following four phases:
-
-    * Offload phase - handling over-utilized resources
-    * Consolidation phase - handling under-utilized resources
-    * Solution optimization - reducing number of migrations
-    * Disability of unused compute nodes
-
-    A capacity coefficients (cc) might be used to adjust optimization
-    thresholds. Different resources may require different coefficient
-    values as well as setting up different coefficient values in both
-    phases may lead to to more efficient consolidation in the end.
-    If the cc equals 1 the full resource capacity may be used, cc
-    values lower than 1 will lead to resource under utilization and
-    values higher than 1 will lead to resource overbooking.
-    e.g. If targeted utilization is 80 percent of a compute node capacity,
-    the coefficient in the consolidation phase will be 0.8, but
-    may any lower value in the offloading phase. The lower it gets
-    the cluster will appear more released (distributed) for the
-    following consolidation phase.
-
-    As this strategy laverages VM live migration to move the load
-    from one compute node to another, this feature needs to be set up
-    correctly on all compute nodes within the cluster.
-    This strategy assumes it is possible to live migrate any VM from
-    an active compute node to any other active compute node.
-
-    *Requirements*
-
-    * You must have at least 2 physical compute nodes to run this strategy.
-
-    *Limitations*
-
-    <None>
-
-    *Spec URL*
-
-    https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/implemented/zhaw-load-consolidation.rst
-    """  # noqa
+    """VM Workload Consolidation Strategy"""
 
     def __init__(self, config, osc=None):
         super(VMWorkloadConsolidation, self).__init__(config, osc)
