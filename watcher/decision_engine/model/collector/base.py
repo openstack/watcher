@@ -19,8 +19,8 @@
 #
 
 """
-A :ref:`Cluster Data Model <cluster_data_model_definition>` is a logical
-representation of the current state and topology of the :ref:`Cluster
+A :ref:`Cluster Data Model <cluster_data_model_definition>` (or CDM) is a
+logical representation of the current state and topology of the :ref:`Cluster
 <cluster_definition>` :ref:`Managed resources <managed_resource_definition>`.
 
 It is represented as a set of :ref:`Managed resources
@@ -58,8 +58,11 @@ to know:
 In the Watcher project, we aim at providing a some generic and basic
 :ref:`Cluster Data Model <cluster_data_model_definition>` for each :ref:`Goal
 <goal_definition>`, usable in the associated :ref:`Strategies
-<strategy_definition>` through a plugin-based mechanism that are directly
-accessible from the strategies classes in order to:
+<strategy_definition>` through a plugin-based mechanism which are called
+cluster data model collectors (or CDMCs). These CDMCs are responsible for
+loading and keeping up-to-date their associated CDM by listening to events and
+also periodically rebuilding themselves from the ground up. They are also
+directly accessible from the strategies classes. These CDMs are used to:
 
 - simplify the development of a new :ref:`Strategy <strategy_definition>` for a
   given :ref:`Goal <goal_definition>` when there already are some existing

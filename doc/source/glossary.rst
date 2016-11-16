@@ -96,8 +96,8 @@ The :ref:`Cluster <cluster_definition>` may be divided in one or several
 
 .. _cluster_data_model_definition:
 
-Cluster Data Model
-==================
+Cluster Data Model (CDM)
+========================
 
 .. watcher-term:: watcher.decision_engine.model.collector.base
 
@@ -164,7 +164,8 @@ Goal
 Host Aggregate
 ==============
 
-Please, read `the official OpenStack definition of a Host Aggregate <http://docs.openstack.org/developer/nova/aggregates.html>`_.
+Please, read `the official OpenStack definition of a Host Aggregate
+<http://docs.openstack.org/developer/nova/aggregates.html>`_.
 
 .. _instance_definition:
 
