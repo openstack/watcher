@@ -21,7 +21,6 @@ import mock
 
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
-from watcher.decision_engine.messaging import events
 from watcher.decision_engine.model.collector import manager
 from watcher.objects import audit as audit_objects
 from watcher.tests.db import base
@@ -56,25 +55,6 @@ class TestOneShotAuditHandler(base.DbTestCase):
         audit_handler.execute(self.audit, self.context)
         audit = audit_objects.Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(audit_objects.State.SUCCEEDED, audit.state)
-
-    @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
-    def test_trigger_audit_send_notification(self, mock_collector):
-        messaging = mock.MagicMock()
-        mock_collector.return_value = faker.FakerModelCollector()
-        audit_handler = oneshot.OneShotAuditHandler(messaging)
-        audit_handler.execute(self.audit, self.context)
-
-        call_on_going = mock.call(events.Events.TRIGGER_AUDIT.name, {
-            'audit_status': audit_objects.State.ONGOING,
-            'audit_uuid': self.audit.uuid})
-        call_succeeded = mock.call(events.Events.TRIGGER_AUDIT.name, {
-            'audit_status': audit_objects.State.SUCCEEDED,
-            'audit_uuid': self.audit.uuid})
-
-        calls = [call_on_going, call_succeeded]
-        messaging.publish_status_event.assert_has_calls(calls)
-        self.assertEqual(
-            2, messaging.publish_status_event.call_count)
 
 
 class TestContinuousAuditHandler(base.DbTestCase):

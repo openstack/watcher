@@ -22,8 +22,6 @@ import six
 
 from oslo_log import log
 
-from watcher.common.messaging.events import event as watcher_event
-from watcher.decision_engine.messaging import events as de_events
 from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.context import default as default_context
 from watcher import objects
@@ -72,19 +70,11 @@ class AuditHandler(BaseAuditHandler):
     def strategy_context(self):
         return self._strategy_context
 
-    def notify(self, audit_uuid, event_type, status):
-        event = watcher_event.Event()
-        event.type = event_type
-        event.data = {}
-        payload = {'audit_uuid': audit_uuid,
-                   'audit_status': status}
-        self.messaging.publish_status_event(event.type.name, payload)
-
-    def update_audit_state(self, audit, state):
+    @staticmethod
+    def update_audit_state(audit, state):
         LOG.debug("Update audit state: %s", state)
         audit.state = state
         audit.save()
-        self.notify(audit.uuid, de_events.Events.TRIGGER_AUDIT, state)
 
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)

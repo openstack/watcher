@@ -17,6 +17,7 @@
 import datetime
 import socket
 
+import eventlet
 from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import _options
@@ -27,18 +28,23 @@ from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
 
-from watcher._i18n import _, _LI
+from watcher._i18n import _
 from watcher.api import app
 from watcher.common import config
 from watcher.common import context
-from watcher.common.messaging.events import event_dispatcher as dispatcher
-from watcher.common.messaging import messaging_handler
 from watcher.common import rpc
 from watcher.common import scheduling
 from watcher import objects
 from watcher.objects import base
 from watcher import opts
 from watcher import version
+
+# NOTE:
+# Ubuntu 14.04 forces librabbitmq when kombu is used
+# Unfortunately it forces a version that has a crash
+# bug.  Calling eventlet.monkey_patch() tells kombu
+# to use libamqp instead.
+eventlet.monkey_patch()
 
 service_opts = [
     cfg.IntOpt('periodic_interval',
@@ -153,7 +159,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
         """
 
 
-class Service(service.ServiceBase, dispatcher.EventDispatcher):
+class Service(service.ServiceBase):
 
     API_VERSION = '1.0'
 
@@ -248,9 +254,16 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
         self.status_client = c
 
     def build_topic_handler(self, topic_name, endpoints=()):
-        return messaging_handler.MessagingHandler(
-            self.publisher_id, topic_name, [self.manager] + list(endpoints),
-            self.api_version, self.serializer)
+        serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
+        target = om.Target(
+            topic=topic_name,
+            # For compatibility, we can override it with 'host' opt
+            server=CONF.host or socket.getfqdn(),
+            version=self.api_version,
+        )
+        return om.get_rpc_server(
+            self.transport, target, endpoints,
+            executor='eventlet', serializer=serializer)
 
     def build_notification_handler(self, topic_names, endpoints=()):
         serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
@@ -290,33 +303,10 @@ class Service(service.ServiceBase, dispatcher.EventDispatcher):
     def wait(self):
         """Wait for service to complete."""
 
-    def publish_control(self, event, payload):
-        return self.conductor_topic_handler.publish_event(event, payload)
-
-    def publish_status_event(self, event, payload, request_id=None):
-        if self.status_topic_handler:
-            return self.status_topic_handler.publish_event(
-                event, payload, request_id)
-        else:
-            LOG.info(
-                _LI("No status notifier declared: notification '%s' not sent"),
-                event)
-
-    def get_version(self):
-        return self.api_version
-
-    def check_api_version(self, context):
+    def check_api_version(self, ctx):
         api_manager_version = self.conductor_client.call(
-            context, 'check_api_version',
-            api_version=self.api_version)
+            ctx, 'check_api_version', api_version=self.api_version)
         return api_manager_version
-
-    def response(self, evt, ctx, message):
-        payload = {
-            'request_id': ctx['request_id'],
-            'msg': message
-        }
-        self.publish_status_event(evt, payload)
 
 
 def launch(conf, service_, workers=1, restart_method='reload'):

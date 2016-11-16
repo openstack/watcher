@@ -19,7 +19,7 @@ import mock
 
 from oslo_config import cfg
 
-from watcher.common.messaging import messaging_handler
+import oslo_messaging as om
 from watcher.common import rpc
 from watcher.common import service
 from watcher import objects
@@ -81,13 +81,13 @@ class TestService(base.TestCase):
     def setUp(self):
         super(TestService, self).setUp()
 
-    @mock.patch.object(messaging_handler, "MessagingHandler")
+    @mock.patch.object(om.rpc.server, "RPCServer")
     def test_start(self, m_handler):
         dummy_service = service.Service(DummyManager)
         dummy_service.start()
         self.assertEqual(2, m_handler.call_count)
 
-    @mock.patch.object(messaging_handler, "MessagingHandler")
+    @mock.patch.object(om.rpc.server, "RPCServer")
     def test_stop(self, m_handler):
         dummy_service = service.Service(DummyManager)
         dummy_service.stop()
@@ -98,6 +98,8 @@ class TestService(base.TestCase):
         dummy_service = service.Service(DummyManager)
         handler = dummy_service.build_topic_handler(topic_name)
         self.assertIsNotNone(handler)
+        self.assertIsInstance(handler, om.rpc.server.RPCServer)
+        self.assertEqual("mytopic", handler._target.topic)
 
     def test_init_service(self):
         dummy_service = service.Service(DummyManager)
@@ -105,58 +107,7 @@ class TestService(base.TestCase):
                               rpc.RequestContextSerializer)
         self.assertIsInstance(
             dummy_service.conductor_topic_handler,
-            messaging_handler.MessagingHandler)
+            om.rpc.server.RPCServer)
         self.assertIsInstance(
             dummy_service.status_topic_handler,
-            messaging_handler.MessagingHandler)
-
-    @mock.patch.object(messaging_handler, "MessagingHandler")
-    def test_publish_control(self, m_handler_cls):
-        m_handler = mock.Mock()
-        m_handler_cls.return_value = m_handler
-        payload = {
-            "name": "value",
-        }
-        event = "myevent"
-        dummy_service = service.Service(DummyManager)
-        dummy_service.publish_control(event, payload)
-        m_handler.publish_event.assert_called_once_with(event, payload)
-
-    @mock.patch.object(messaging_handler, "MessagingHandler")
-    def test_publish_status_event(self, m_handler_cls):
-        m_handler = mock.Mock()
-        m_handler_cls.return_value = m_handler
-        payload = {
-            "name": "value",
-        }
-        event = "myevent"
-        dummy_service = service.Service(DummyManager)
-        dummy_service.publish_status_event(event, payload)
-        m_handler.publish_event.assert_called_once_with(event, payload, None)
-
-    @mock.patch.object(service.Service, 'publish_status_event')
-    def test_response(self, mock_call):
-        event = "My event"
-        context = {'request_id': 12}
-        message = "My Message"
-
-        dummy_service = service.Service(DummyManager)
-        dummy_service.response(event, context, message)
-
-        expected_payload = {
-            'request_id': context['request_id'],
-            'msg': message
-        }
-        mock_call.assert_called_once_with(event, expected_payload)
-
-    def test_messaging_build_topic_handler(self):
-        dummy_service = service.Service(DummyManager)
-        topic = dummy_service.build_topic_handler("conductor_topic")
-
-        self.assertIsInstance(topic, messaging_handler.MessagingHandler)
-        self.assertEqual("pub_id", dummy_service.publisher_id)
-        self.assertEqual("pub_id", topic.publisher_id)
-
-        self.assertEqual("conductor_topic",
-                         dummy_service.conductor_topic_handler.topic_name)
-        self.assertEqual("conductor_topic", topic.topic_name)
+            om.rpc.server.RPCServer)

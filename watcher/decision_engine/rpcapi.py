@@ -20,7 +20,6 @@
 from oslo_config import cfg
 
 from watcher.common import exception
-from watcher.common.messaging import notification_handler
 from watcher.common import service
 from watcher.common import utils
 from watcher.decision_engine import manager
@@ -78,7 +77,7 @@ class DecisionEngineAPIManager(object):
 
     @property
     def status_endpoints(self):
-        return [notification_handler.NotificationHandler]
+        return []
 
     @property
     def notification_endpoints(self):

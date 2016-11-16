@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import threading
-
+from oslo_concurrency import lockutils
 from oslo_log import log
 
 from watcher._i18n import _LW
@@ -28,7 +27,6 @@ class Mapping(object):
         self.model = model
         self.compute_node_mapping = {}
         self.instance_mapping = {}
-        self.lock = threading.Lock()
 
     def map(self, node, instance):
         """Select the node where the instance is launched
@@ -36,9 +34,7 @@ class Mapping(object):
         :param node: the node
         :param instance: the virtual machine or instance
         """
-        try:
-            self.lock.acquire()
-
+        with lockutils.lock(__name__):
             # init first
             if node.uuid not in self.compute_node_mapping.keys():
                 self.compute_node_mapping[node.uuid] = set()
@@ -48,9 +44,6 @@ class Mapping(object):
 
             # map instance => node
             self.instance_mapping[instance.uuid] = node.uuid
-
-        finally:
-            self.lock.release()
 
     def unmap(self, node, instance):
         """Remove the instance from the node
@@ -65,8 +58,7 @@ class Mapping(object):
 
         :rtype : object
         """
-        try:
-            self.lock.acquire()
+        with lockutils.lock(__name__):
             if str(node_uuid) in self.compute_node_mapping:
                 self.compute_node_mapping[str(node_uuid)].remove(
                     str(instance_uuid))
@@ -77,8 +69,6 @@ class Mapping(object):
                     _LW("Trying to delete the instance %(instance)s but it "
                         "was not found on node %(node)s") %
                     {'instance': instance_uuid, 'node': node_uuid})
-        finally:
-            self.lock.release()
 
     def get_mapping(self):
         return self.compute_node_mapping
