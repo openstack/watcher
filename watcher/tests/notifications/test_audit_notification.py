@@ -293,3 +293,157 @@ class TestAuditNotification(base.DbTestCase):
             },
             payload
         )
+
+    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
+    @mock.patch.object(notifications.audit.AuditActionNotification, '_emit')
+    def test_send_audit_action(self, mock_emit):
+        goal = utils.create_test_goal(mock.Mock())
+        strategy = utils.create_test_strategy(mock.Mock())
+        audit = utils.create_test_audit(
+            mock.Mock(), state=objects.audit.State.ONGOING,
+            goal_id=goal.id, strategy_id=strategy.id,
+            goal=goal, strategy=strategy)
+        notifications.audit.send_action_notification(
+            mock.MagicMock(), audit, host='node0',
+            action='strategy', phase='start')
+
+        self.assertEqual(1, mock_emit.call_count)
+        notification = mock_emit.call_args_list[0][1]
+
+        self.assertDictEqual(
+            {
+                "event_type": "audit.strategy.start",
+                "payload": {
+                    "watcher_object.data": {
+                        "audit_type": "ONESHOT",
+                        "created_at": "2016-10-18T09:52:05Z",
+                        "deleted_at": None,
+                        "fault": None,
+                        "goal": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test goal",
+                                "efficacy_specification": [],
+                                "name": "TEST",
+                                "updated_at": None,
+                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652"
+                            },
+                            "watcher_object.name": "GoalPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "interval": 3600,
+                        "parameters": {},
+                        "scope": [],
+                        "state": "ONGOING",
+                        "strategy": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test strategy",
+                                "name": "TEST",
+                                "parameters_spec": {},
+                                "updated_at": None,
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                            },
+                            "watcher_object.name": "StrategyPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "updated_at": None,
+                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d"
+                    },
+                    "watcher_object.name": "AuditActionPayload",
+                    "watcher_object.namespace": "watcher",
+                    "watcher_object.version": "1.0"
+                },
+                "publisher_id": "infra-optim:node0"
+            },
+            notification
+        )
+
+    @freezegun.freeze_time('2016-10-18T09:52:05.219414')
+    @mock.patch.object(notifications.audit.AuditActionNotification, '_emit')
+    def test_send_audit_action_with_error(self, mock_emit):
+        goal = utils.create_test_goal(mock.Mock())
+        strategy = utils.create_test_strategy(mock.Mock())
+        audit = utils.create_test_audit(
+            mock.Mock(), state=objects.audit.State.ONGOING,
+            goal_id=goal.id, strategy_id=strategy.id,
+            goal=goal, strategy=strategy)
+
+        try:
+            # This is to load the exception in sys.exc_info()
+            raise exception.WatcherException("TEST")
+        except exception.WatcherException:
+            notifications.audit.send_action_notification(
+                mock.MagicMock(), audit, host='node0',
+                action='strategy', priority='error', phase='error')
+
+        self.assertEqual(1, mock_emit.call_count)
+        notification = mock_emit.call_args_list[0][1]
+        self.assertDictEqual(
+            {
+                "event_type": "audit.strategy.error",
+                "payload": {
+                    "watcher_object.data": {
+                        "audit_type": "ONESHOT",
+                        "created_at": "2016-10-18T09:52:05Z",
+                        "deleted_at": None,
+                        "fault": {
+                            "watcher_object.data": {
+                                "exception": "WatcherException",
+                                "exception_message": "TEST",
+                                "function_name": (
+                                    "test_send_audit_action_with_error"),
+                                "module_name": "watcher.tests.notifications."
+                                               "test_audit_notification"
+                            },
+                            "watcher_object.name": "ExceptionPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "goal": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test goal",
+                                "efficacy_specification": [],
+                                "name": "TEST",
+                                "updated_at": None,
+                                "uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652"
+                            },
+                            "watcher_object.name": "GoalPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "interval": 3600,
+                        "parameters": {},
+                        "scope": [],
+                        "state": "ONGOING",
+                        "strategy": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test strategy",
+                                "name": "TEST",
+                                "parameters_spec": {},
+                                "updated_at": None,
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                            },
+                            "watcher_object.name": "StrategyPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "updated_at": None,
+                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d"
+                    },
+                    "watcher_object.name": "AuditActionPayload",
+                    "watcher_object.namespace": "watcher",
+                    "watcher_object.version": "1.0"
+                },
+                "publisher_id": "infra-optim:node0"
+            },
+            notification
+        )

@@ -13,6 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 import mock
 
 from watcher.common import utils
@@ -26,6 +27,7 @@ from watcher.tests.objects import utils as obj_utils
 
 
 class TestStrategyContext(base.DbTestCase):
+
     def setUp(self):
         super(TestStrategyContext, self).setUp()
         obj_utils.create_test_goal(self.context, id=1, name="DUMMY")

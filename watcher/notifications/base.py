@@ -55,8 +55,10 @@ class NotificationObject(base.WatcherObject):
 
 @base.WatcherObjectRegistry.register_notification
 class EventType(NotificationObject):
+
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added STRATEGY action in NotificationAction enum
+    VERSION = '1.1'
 
     fields = {
         'object': wfields.StringField(),

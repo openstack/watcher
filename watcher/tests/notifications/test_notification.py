@@ -250,7 +250,7 @@ class TestNotificationBase(testbase.TestCase):
 
 
 expected_notification_fingerprints = {
-    'EventType': '1.0-92100a9f0908da98dfcfff9c42e0018c',
+    'EventType': '1.1-652f407fcf72d2045d65974d23c78173',
     'ExceptionNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ExceptionPayload': '1.0-4516ae282a55fe2fd5c754967ee6248b',
     'NotificationPublisher': '1.0-bbbc1402fb0e443a3eb227cc52b61545',
@@ -262,6 +262,8 @@ expected_notification_fingerprints = {
     'AuditCreatePayload': '1.0-30c85c834648c8ca11f54fc5e084d86b',
     'AuditDeleteNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'AuditDeletePayload': '1.0-30c85c834648c8ca11f54fc5e084d86b',
+    'AuditActionNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'AuditActionPayload': '1.0-09f5d005f94ba9e5f6b9200170332c52',
     'GoalPayload': '1.0-fa1fecb8b01dd047eef808ded4d50d1a',
     'StrategyPayload': '1.0-94f01c137b083ac236ae82573c1fcfc1',
 }
