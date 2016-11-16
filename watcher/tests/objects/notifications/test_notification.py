@@ -17,6 +17,7 @@ import collections
 import mock
 from oslo_versionedobjects import fixture
 
+from watcher.common import exception
 from watcher.common import rpc
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -137,6 +138,46 @@ class TestNotificationBase(testbase.TestCase):
             expected_payload=self.expected_payload)
 
     @mock.patch.object(rpc, 'NOTIFIER')
+    def test_no_emit_notifs_disabled(self, mock_notifier):
+        # Make sure notifications aren't emitted when notification_level
+        # isn't defined, indicating notifications should be disabled
+        self.config(notification_level=None)
+        notif = self.TestNotification(
+            event_type=notificationbase.EventType(
+                object='test_object',
+                action=wfields.NotificationAction.UPDATE,
+                phase=wfields.NotificationPhase.START),
+            publisher=notificationbase.NotificationPublisher(
+                host='fake-host', binary='watcher-fake'),
+            priority=wfields.NotificationPriority.INFO,
+            payload=self.payload)
+
+        mock_context = mock.Mock()
+        notif.emit(mock_context)
+
+        self.assertFalse(mock_notifier.called)
+
+    @mock.patch.object(rpc, 'NOTIFIER')
+    def test_no_emit_level_too_low(self, mock_notifier):
+        # Make sure notification doesn't emit when set notification
+        # level < config level
+        self.config(notification_level='warning')
+        notif = self.TestNotification(
+            event_type=notificationbase.EventType(
+                object='test_object',
+                action=wfields.NotificationAction.UPDATE,
+                phase=wfields.NotificationPhase.START),
+            publisher=notificationbase.NotificationPublisher(
+                host='fake-host', binary='watcher-fake'),
+            priority=wfields.NotificationPriority.INFO,
+            payload=self.payload)
+
+        mock_context = mock.Mock()
+        notif.emit(mock_context)
+
+        self.assertFalse(mock_notifier.called)
+
+    @mock.patch.object(rpc, 'NOTIFIER')
     def test_emit_event_type_without_phase(self, mock_notifier):
         noti = self.TestNotification(
             event_type=notificationbase.EventType(
@@ -171,7 +212,8 @@ class TestNotificationBase(testbase.TestCase):
             payload=non_populated_payload)
 
         mock_context = mock.Mock()
-        self.assertRaises(AssertionError, noti.emit, mock_context)
+        self.assertRaises(exception.NotificationPayloadError,
+                          noti.emit, mock_context)
         self.assertFalse(mock_notifier.called)
 
     @mock.patch.object(rpc, 'NOTIFIER')

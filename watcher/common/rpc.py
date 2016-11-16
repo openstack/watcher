@@ -72,8 +72,12 @@ def init(conf):
         aliases=TRANSPORT_ALIASES)
 
     serializer = RequestContextSerializer(JsonPayloadSerializer())
-    NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT,
-                                  serializer=serializer)
+    if not conf.notification_level:
+        NOTIFIER = messaging.Notifier(
+            NOTIFICATION_TRANSPORT, serializer=serializer, driver='noop')
+    else:
+        NOTIFIER = messaging.Notifier(NOTIFICATION_TRANSPORT,
+                                      serializer=serializer)
 
 
 def initialized():

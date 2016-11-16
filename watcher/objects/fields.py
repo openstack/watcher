@@ -103,14 +103,13 @@ class BaseWatcherEnum(Enum):
 
 
 class NotificationPriority(BaseWatcherEnum):
-    CRITICAL = 'critical'
     DEBUG = 'debug'
     INFO = 'info'
+    WARNING = 'warning'
     ERROR = 'error'
-    SAMPLE = 'sample'
-    WARNING = 'warn'
+    CRITICAL = 'critical'
 
-    ALL = (CRITICAL, DEBUG, INFO, ERROR, SAMPLE, WARNING)
+    ALL = (DEBUG, INFO, WARNING, ERROR, CRITICAL)
 
 
 class NotificationPhase(BaseWatcherEnum):

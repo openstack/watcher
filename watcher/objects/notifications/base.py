@@ -12,9 +12,23 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from oslo_config import cfg
+
+from watcher.common import exception
 from watcher.common import rpc
 from watcher.objects import base
 from watcher.objects import fields as wfields
+
+CONF = cfg.CONF
+
+# Definition of notification levels in increasing order of severity
+NOTIFY_LEVELS = {
+    wfields.NotificationPriority.DEBUG: 0,
+    wfields.NotificationPriority.INFO: 1,
+    wfields.NotificationPriority.WARNING: 2,
+    wfields.NotificationPriority.ERROR: 3,
+    wfields.NotificationPriority.CRITICAL: 4
+}
 
 
 @base.WatcherObjectRegistry.register_if(False)
@@ -125,6 +139,20 @@ class NotificationBase(NotificationObject):
         'publisher': wfields.ObjectField('NotificationPublisher'),
     }
 
+    def _should_notify(self):
+        """Determine whether the notification should be sent.
+
+        A notification is sent when the level of the notification is
+        greater than or equal to the level specified in the
+        configuration, in the increasing order of DEBUG, INFO, WARNING,
+        ERROR, CRITICAL.
+        :return: True if notification should be sent, False otherwise.
+        """
+        if not CONF.notification_level:
+            return False
+        return (NOTIFY_LEVELS[self.priority] >=
+                NOTIFY_LEVELS[CONF.notification_level])
+
     def _emit(self, context, event_type, publisher_id, payload):
         notifier = rpc.get_notifier(publisher_id)
         notify = getattr(notifier, self.priority)
@@ -132,8 +160,11 @@ class NotificationBase(NotificationObject):
 
     def emit(self, context):
         """Send the notification."""
-        assert self.payload.populated
-
+        if not self._should_notify():
+            return
+        if not self.payload.populated:
+            raise exception.NotificationPayloadError(
+                class_name=self.__class__.__name__)
         # Note(gibi): notification payload will be a newly populated object
         # therefore every field of it will look changed so this does not carry
         # any extra information so we drop this from the payload.
