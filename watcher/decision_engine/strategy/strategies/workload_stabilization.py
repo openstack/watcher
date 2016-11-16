@@ -31,6 +31,7 @@ import copy
 import itertools
 import math
 import random
+import re
 
 import oslo_cache
 from oslo_config import cfg
@@ -119,7 +120,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "description": "Mapping to get hardware statistics using"
                                    " instance metrics",
                     "type": "object",
-                    "default": {"cpu_util": "hardware.cpu.util",
+                    "default": {"cpu_util": "compute.node.cpu.percent",
                                 "memory.resident": "hardware.memory.used"}
                 },
                 "host_choice": {
@@ -224,7 +225,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def get_hosts_load(self):
         """Get load of every available host by gathering instances load"""
         hosts_load = {}
-        for node_id in self.get_available_nodes():
+        for node_id, node in self.get_available_nodes().items():
             hosts_load[node_id] = {}
             host_vcpus = self.compute_model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).get_capacity(
@@ -232,19 +233,27 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             hosts_load[node_id]['vcpus'] = host_vcpus
 
             for metric in self.metrics:
+
+                resource_id = ''
+                meter_name = self.instance_metrics[metric]
+                if re.match('^compute.node', meter_name) is not None:
+                    resource_id = "%s_%s" % (node.uuid, node.hostname)
+                else:
+                    resource_id = node_id
+
                 avg_meter = self.ceilometer.statistic_aggregation(
-                    resource_id=node_id,
+                    resource_id=resource_id,
                     meter_name=self.instance_metrics[metric],
                     period="60",
                     aggregate='avg'
                 )
                 if avg_meter is None:
                     raise exception.NoSuchMetricForHost(
-                        metric=self.instance_metrics[metric],
+                        metric=meter_name,
                         host=node_id)
-                if self.instance_metrics[metric] == 'hardware.memory.used':
+                if meter_name == 'hardware.memory.used':
                     avg_meter /= oslo_utils.units.Ki
-                if self.instance_metrics[metric] == 'hardware.cpu.util':
+                if meter_name == 'compute.node.cpu.percent':
                     avg_meter /= 100
                 hosts_load[node_id][metric] = avg_meter
         return hosts_load
