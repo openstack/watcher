@@ -41,7 +41,7 @@ class TestApplierAPI(base.TestCase):
             expected_context = self.context
             self.api.check_api_version(expected_context)
             mock_call.assert_called_once_with(
-                expected_context.to_dict(),
+                expected_context,
                 'check_api_version',
                 api_version=rpcapi.ApplierAPI().API_VERSION)
 
@@ -50,7 +50,7 @@ class TestApplierAPI(base.TestCase):
             action_plan_uuid = utils.generate_uuid()
             self.api.launch_action_plan(self.context, action_plan_uuid)
             mock_call.assert_called_once_with(
-                self.context.to_dict(),
+                self.context,
                 'launch_action_plan',
                 action_plan_uuid=action_plan_uuid)
 

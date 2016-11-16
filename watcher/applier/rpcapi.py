@@ -39,8 +39,7 @@ class ApplierAPI(service.Service):
             raise exception.InvalidUuidOrName(name=action_plan_uuid)
 
         return self.conductor_client.call(
-            context.to_dict(), 'launch_action_plan',
-            action_plan_uuid=action_plan_uuid)
+            context, 'launch_action_plan', action_plan_uuid=action_plan_uuid)
 
 
 class ApplierAPIManager(object):

@@ -35,8 +35,7 @@ def main():
     host, port = cfg.CONF.api.host, cfg.CONF.api.port
     protocol = "http" if not CONF.api.enable_ssl_api else "https"
     # Build and start the WSGI app
-    server = service.WSGIService(
-        'watcher-api', CONF.api.enable_ssl_api)
+    server = service.WSGIService('watcher-api', CONF.api.enable_ssl_api)
 
     if host == '127.0.0.1':
         LOG.info(_LI('serving on 127.0.0.1:%(port)s, '
