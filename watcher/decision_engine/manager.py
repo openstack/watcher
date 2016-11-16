@@ -51,13 +51,6 @@ WATCHER_DECISION_ENGINE_OPTS = [
                help='The topic name used for '
                     'control events, this topic '
                     'used for RPC calls'),
-    cfg.StrOpt('status_topic',
-               default='watcher.decision.status',
-               help='The topic name used for '
-                    'status events; this topic '
-                    'is used so as to notify'
-                    'the others components '
-                    'of the system'),
     cfg.ListOpt('notification_topics',
                 default=['versioned_notifications', 'watcher_notifications'],
                 help='The topic names from which notification events '
@@ -79,7 +72,7 @@ CONF.register_group(decision_engine_opt_group)
 CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
 
 
-class DecisionEngineManager(service_manager.ServiceManagerBase):
+class DecisionEngineManager(service_manager.ServiceManager):
 
     @property
     def service_name(self):
@@ -98,20 +91,12 @@ class DecisionEngineManager(service_manager.ServiceManagerBase):
         return CONF.watcher_decision_engine.conductor_topic
 
     @property
-    def status_topic(self):
-        return CONF.watcher_decision_engine.status_topic
-
-    @property
     def notification_topics(self):
         return CONF.watcher_decision_engine.notification_topics
 
     @property
     def conductor_endpoints(self):
         return [audit_endpoint.AuditEndpoint]
-
-    @property
-    def status_endpoints(self):
-        return []
 
     @property
     def notification_endpoints(self):

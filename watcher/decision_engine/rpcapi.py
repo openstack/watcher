@@ -21,6 +21,7 @@ from oslo_config import cfg
 
 from watcher.common import exception
 from watcher.common import service
+from watcher.common import service_manager
 from watcher.common import utils
 from watcher.decision_engine import manager
 
@@ -45,7 +46,7 @@ class DecisionEngineAPI(service.Service):
             context, 'trigger_audit', audit_uuid=audit_uuid)
 
 
-class DecisionEngineAPIManager(object):
+class DecisionEngineAPIManager(service_manager.ServiceManager):
 
     @property
     def service_name(self):
@@ -64,19 +65,11 @@ class DecisionEngineAPIManager(object):
         return CONF.watcher_decision_engine.conductor_topic
 
     @property
-    def status_topic(self):
-        return CONF.watcher_decision_engine.status_topic
-
-    @property
     def notification_topics(self):
         return []
 
     @property
     def conductor_endpoints(self):
-        return []
-
-    @property
-    def status_endpoints(self):
         return []
 
     @property

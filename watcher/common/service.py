@@ -171,14 +171,10 @@ class Service(service.ServiceBase):
         self.api_version = self.manager.api_version
 
         self.conductor_topic = self.manager.conductor_topic
-        self.status_topic = self.manager.status_topic
         self.notification_topics = self.manager.notification_topics
 
         self.conductor_endpoints = [
             ep(self) for ep in self.manager.conductor_endpoints
-        ]
-        self.status_endpoints = [
-            ep(self.publisher_id) for ep in self.manager.status_endpoints
         ]
         self.notification_endpoints = self.manager.notification_endpoints
 
@@ -188,10 +184,8 @@ class Service(service.ServiceBase):
         self._transport = None
         self._notification_transport = None
         self._conductor_client = None
-        self._status_client = None
 
         self.conductor_topic_handler = None
-        self.status_topic_handler = None
         self.notification_handler = None
 
         self.heartbeat = None
@@ -199,9 +193,6 @@ class Service(service.ServiceBase):
         if self.conductor_topic and self.conductor_endpoints:
             self.conductor_topic_handler = self.build_topic_handler(
                 self.conductor_topic, self.conductor_endpoints)
-        if self.status_topic and self.status_endpoints:
-            self.status_topic_handler = self.build_topic_handler(
-                self.status_topic, self.status_endpoints)
         if self.notification_topics and self.notification_endpoints:
             self.notification_handler = self.build_notification_handler(
                 self.notification_topics, self.notification_endpoints
@@ -238,21 +229,6 @@ class Service(service.ServiceBase):
     def conductor_client(self, c):
         self.conductor_client = c
 
-    @property
-    def status_client(self):
-        if self._status_client is None:
-            target = om.Target(
-                topic=self.status_topic,
-                version=self.API_VERSION,
-            )
-            self._status_client = om.RPCClient(
-                self.transport, target, serializer=self.serializer)
-        return self._status_client
-
-    @status_client.setter
-    def status_client(self, c):
-        self.status_client = c
-
     def build_topic_handler(self, topic_name, endpoints=()):
         serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
         target = om.Target(
@@ -278,8 +254,6 @@ class Service(service.ServiceBase):
                   CONF.transport_url, CONF.rpc_backend)
         if self.conductor_topic_handler:
             self.conductor_topic_handler.start()
-        if self.status_topic_handler:
-            self.status_topic_handler.start()
         if self.notification_handler:
             self.notification_handler.start()
         if self.heartbeat:
@@ -290,8 +264,6 @@ class Service(service.ServiceBase):
                   CONF.transport_url, CONF.rpc_backend)
         if self.conductor_topic_handler:
             self.conductor_topic_handler.stop()
-        if self.status_topic_handler:
-            self.status_topic_handler.stop()
         if self.notification_handler:
             self.notification_handler.stop()
         if self.heartbeat:

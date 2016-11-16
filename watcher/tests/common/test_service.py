@@ -33,13 +33,11 @@ class DummyManager(object):
     API_VERSION = '1.0'
 
     conductor_endpoints = [mock.Mock()]
-    status_endpoints = [mock.Mock()]
     notification_endpoints = [mock.Mock()]
 
     def __init__(self):
         self.publisher_id = "pub_id"
         self.conductor_topic = "conductor_topic"
-        self.status_topic = "status_topic"
         self.notification_topics = []
         self.api_version = self.API_VERSION
         self.service_name = None
@@ -85,13 +83,13 @@ class TestService(base.TestCase):
     def test_start(self, m_handler):
         dummy_service = service.Service(DummyManager)
         dummy_service.start()
-        self.assertEqual(2, m_handler.call_count)
+        self.assertEqual(1, m_handler.call_count)
 
     @mock.patch.object(om.rpc.server, "RPCServer")
     def test_stop(self, m_handler):
         dummy_service = service.Service(DummyManager)
         dummy_service.stop()
-        self.assertEqual(2, m_handler.call_count)
+        self.assertEqual(1, m_handler.call_count)
 
     def test_build_topic_handler(self):
         topic_name = "mytopic"
@@ -107,7 +105,4 @@ class TestService(base.TestCase):
                               rpc.RequestContextSerializer)
         self.assertIsInstance(
             dummy_service.conductor_topic_handler,
-            om.rpc.server.RPCServer)
-        self.assertIsInstance(
-            dummy_service.status_topic_handler,
             om.rpc.server.RPCServer)

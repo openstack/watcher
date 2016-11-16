@@ -37,13 +37,6 @@ APPLIER_MANAGER_OPTS = [
                help='The topic name used for'
                     'control events, this topic '
                     'used for rpc call '),
-    cfg.StrOpt('status_topic',
-               default='watcher.applier.status',
-               help='The topic name used for '
-                    'status events, this topic '
-                    'is used so as to notify'
-                    'the others components '
-                    'of the system'),
     cfg.StrOpt('publisher_id',
                default='watcher.applier.api',
                help='The identifier used by watcher '
@@ -61,7 +54,7 @@ CONF.register_group(opt_group)
 CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
 
 
-class ApplierManager(service_manager.ServiceManagerBase):
+class ApplierManager(service_manager.ServiceManager):
 
     @property
     def service_name(self):
@@ -80,20 +73,12 @@ class ApplierManager(service_manager.ServiceManagerBase):
         return CONF.watcher_applier.conductor_topic
 
     @property
-    def status_topic(self):
-        return CONF.watcher_applier.status_topic
-
-    @property
     def notification_topics(self):
         return []
 
     @property
     def conductor_endpoints(self):
         return [trigger.TriggerActionPlan]
-
-    @property
-    def status_endpoints(self):
-        return []
 
     @property
     def notification_endpoints(self):

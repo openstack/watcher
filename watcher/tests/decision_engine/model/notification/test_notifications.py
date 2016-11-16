@@ -31,9 +31,9 @@ from watcher.tests.decision_engine.model.notification import fake_managers
 
 class DummyManager(fake_managers.FakeManager):
 
-    def __init__(self):
-        super(DummyManager, self).__init__()
-        self.notification_endpoints = [DummyNotification(self.fake_cdmc)]
+    @property
+    def notification_endpoints(self):
+        return [DummyNotification(self.fake_cdmc)]
 
 
 class DummyNotification(base.NotificationEndpoint):

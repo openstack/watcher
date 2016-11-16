@@ -16,30 +16,44 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from watcher.common import service_manager
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests.decision_engine.model import faker_cluster_state
 
 
-class FakeManager(object):
+class FakeManager(service_manager.ServiceManager):
 
     API_VERSION = '1.0'
 
-    def __init__(self):
-        self.api_version = self.API_VERSION
-        self.service_name = None
+    fake_cdmc = faker_cluster_state.FakerModelCollector()
 
-        # fake cluster instead on Nova CDM
-        self.fake_cdmc = faker_cluster_state.FakerModelCollector()
+    @property
+    def service_name(self):
+        return 'watcher-fake'
 
-        self.publisher_id = 'test_publisher_id'
-        self.conductor_topic = 'test_conductor_topic'
-        self.status_topic = 'test_status_topic'
-        self.notification_topics = ['nova']
+    @property
+    def api_version(self):
+        return self.API_VERSION
 
-        self.conductor_endpoints = []  # Disable audit endpoint
-        self.status_endpoints = []
+    @property
+    def publisher_id(self):
+        return 'test_publisher_id'
 
-        self.notification_endpoints = [
+    @property
+    def conductor_topic(self):
+        return 'test_conductor_topic'
+
+    @property
+    def notification_topics(self):
+        return ['nova']
+
+    @property
+    def conductor_endpoints(self):
+        return []  # Disable audit endpoint
+
+    @property
+    def notification_endpoints(self):
+        return [
             novanotification.ServiceUpdated(self.fake_cdmc),
 
             novanotification.InstanceCreated(self.fake_cdmc),
