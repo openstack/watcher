@@ -132,7 +132,7 @@ Compute node
 ============
 
 Please, read `the official OpenStack definition of a Compute Node
-<http://docs.openstack.org/openstack-ops/content/compute_nodes.html>`_.
+<http://docs.openstack.org/ops-guide/arch-compute-nodes.html>`_.
 
 .. _customer_definition:
 
