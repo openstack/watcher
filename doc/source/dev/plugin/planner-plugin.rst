@@ -39,7 +39,7 @@ Here is an example showing how you can write a planner plugin called
 
     # Filepath = third-party/third_party/dummy.py
     # Import path = third_party.dummy
-    import uuid
+    from oslo_utils import uuidutils
     from watcher.decision_engine.planner import base
 
 
@@ -47,7 +47,7 @@ Here is an example showing how you can write a planner plugin called
 
         def _create_action_plan(self, context, audit_id):
             action_plan_dict = {
-                'uuid': uuid.uuid4(),
+                'uuid': uuidutils.generate_uuid(),
                 'audit_id': audit_id,
                 'first_action_id': None,
                 'state': objects.action_plan.State.RECOMMENDED
