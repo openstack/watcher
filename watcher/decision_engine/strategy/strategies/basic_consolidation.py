@@ -384,11 +384,15 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def pre_execute(self):
         LOG.info(_LI("Initializing Server Consolidation"))
+
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
         if len(self.compute_model.get_all_compute_nodes()) == 0:
             raise exception.ClusterEmpty()
+
+        if self.compute_model.stale:
+            raise exception.ClusterStateStale()
 
         LOG.debug(self.compute_model.to_string())
 

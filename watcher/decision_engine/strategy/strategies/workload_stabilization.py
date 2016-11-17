@@ -420,6 +420,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
+        if self.compute_model.stale:
+            raise exception.ClusterStateStale()
+
         self.weights = self.input_parameters.weights
         self.metrics = self.input_parameters.metrics
         self.thresholds = self.input_parameters.thresholds
