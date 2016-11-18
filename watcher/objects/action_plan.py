@@ -93,14 +93,15 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
 
     # Version 1.0: Initial version
     # Version 1.1: Added 'audit' and 'strategy' object field
-    VERSION = '1.1'
+    # Version 1.2: audit_id is not nullable anymore
+    VERSION = '1.2'
 
     dbapi = db_api.get_instance()
 
     fields = {
         'id': wfields.IntegerField(),
         'uuid': wfields.UUIDField(),
-        'audit_id': wfields.IntegerField(nullable=True),
+        'audit_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(),
         'first_action_id': wfields.IntegerField(nullable=True),
         'state': wfields.StringField(nullable=True),
