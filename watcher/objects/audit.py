@@ -108,7 +108,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     _old_state = None
 
     # NOTE(v-francoise): The way oslo.versionedobjects works is by using a
-    # __new__ that will automagically create the attributes referenced in
+    # __new__ that will automatically create the attributes referenced in
     # fields. These attributes are properties that raise an exception if no
     # value has been assigned, which means that they store the actual field
     # value in an "_obj_%(field)s" attribute. So because we want to proxify a

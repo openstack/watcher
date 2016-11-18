@@ -129,7 +129,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         self.number_of_released_nodes -= 1
 
     def add_action_disable_node(self, node):
-        """Add an action for node disablity into the solution.
+        """Add an action for node disability into the solution.
 
         :param node: node object
         :return: None

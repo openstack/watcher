@@ -30,7 +30,7 @@ This algorithm not only minimizes the overall number of used servers, but also
 minimizes the number of migrations.
 
 It has been developed only for tests. You must have at least 2 physical compute
-nodes to run it, so you can easilly run it on DevStack. It assumes that live
+nodes to run it, so you can easily run it on DevStack. It assumes that live
 migration is possible on your OpenStack cluster.
 
 """

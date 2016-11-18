@@ -2,4 +2,4 @@
 features:
   - Added a way to return the of available goals depending
     on which strategies have been deployed on the node
-    where the decison engine is running.
+    where the decision engine is running.
