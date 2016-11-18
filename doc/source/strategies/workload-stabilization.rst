@@ -92,12 +92,22 @@ parameter            type   default Value         description
                                                   host from list.
 ``retry_count``      number 1                     Count of random returned
                                                   hosts.
+``periods``          object |periods|             These periods are used to get
+                                                  statistic aggregation for
+                                                  instance and host metrics.
+                                                  The period is simply a
+                                                  repeating interval of time
+                                                  into which the samples are
+                                                  grouped for aggregation.
+                                                  Watcher uses only the last
+                                                  period of all recieved ones.
 ==================== ====== ===================== =============================
 
 .. |metrics| replace:: ["cpu_util", "memory.resident"]
 .. |thresholds| replace:: {"cpu_util": 0.2, "memory.resident": 0.2}
 .. |weights| replace:: {"cpu_util_weight": 1.0, "memory.resident_weight": 1.0}
 .. |instance_metrics| replace:: {"cpu_util": "compute.node.cpu.percent", "memory.resident": "hardware.memory.used"}
+.. |periods| replace:: {"instance": 720, "node": 600}
 
 Efficacy Indicator
 ------------------
