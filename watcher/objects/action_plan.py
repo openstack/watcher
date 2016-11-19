@@ -133,11 +133,11 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
 
     @base.remotable_classmethod
     def get_by_id(cls, context, action_plan_id, eager=False):
-        """Find a action_plan based on its integer id and return a Action object.
+        """Find a action_plan based on its integer id and return a ActionPlan object.
 
         :param action_plan_id: the id of a action_plan.
         :param eager: Load object fields if True (Default: False)
-        :returns: a :class:`Action` object.
+        :returns: a :class:`ActionPlan` object.
         """
         db_action_plan = cls.dbapi.get_action_plan_by_id(
             context, action_plan_id, eager=eager)
@@ -147,12 +147,12 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
 
     @base.remotable_classmethod
     def get_by_uuid(cls, context, uuid, eager=False):
-        """Find a action_plan based on uuid and return a :class:`Action` object.
+        """Find a action_plan based on uuid and return a :class:`ActionPlan` object.
 
         :param uuid: the uuid of a action_plan.
         :param context: Security context
         :param eager: Load object fields if True (Default: False)
-        :returns: a :class:`Action` object.
+        :returns: a :class:`ActionPlan` object.
         """
         db_action_plan = cls.dbapi.get_action_plan_by_uuid(
             context, uuid, eager=eager)
@@ -163,7 +163,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
     @base.remotable_classmethod
     def list(cls, context, limit=None, marker=None, filters=None,
              sort_key=None, sort_dir=None, eager=False):
-        """Return a list of Action objects.
+        """Return a list of ActionPlan objects.
 
         :param context: Security context.
         :param limit: maximum number of resources to return in a single result.
