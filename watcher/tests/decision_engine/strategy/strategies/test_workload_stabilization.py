@@ -40,10 +40,10 @@ class TestWorkloadStabilization(base.TestCase):
 
         self.hosts_load_assert = {
             'Node_0': {'cpu_util': 0.07, 'memory.resident': 7.0, 'vcpus': 40},
-            'Node_1': {'cpu_util': 0.05, 'memory.resident': 5, 'vcpus': 40},
-            'Node_2': {'cpu_util': 0.1, 'memory.resident': 29, 'vcpus': 40},
-            'Node_3': {'cpu_util': 0.04, 'memory.resident': 8, 'vcpus': 40},
-            'Node_4': {'cpu_util': 0.02, 'memory.resident': 4, 'vcpus': 40}}
+            'Node_1': {'cpu_util': 0.07, 'memory.resident': 5, 'vcpus': 40},
+            'Node_2': {'cpu_util': 0.8, 'memory.resident': 29, 'vcpus': 40},
+            'Node_3': {'cpu_util': 0.05, 'memory.resident': 8, 'vcpus': 40},
+            'Node_4': {'cpu_util': 0.05, 'memory.resident': 4, 'vcpus': 40}}
 
         p_model = mock.patch.object(
             strategies.WorkloadStabilization, "compute_model",
@@ -76,7 +76,7 @@ class TestWorkloadStabilization(base.TestCase):
              'weights': {"cpu_util_weight": 1.0,
                          "memory.resident_weight": 1.0},
              'instance_metrics':
-                 {"cpu_util": "hardware.cpu.util",
+                 {"cpu_util": "compute.node.cpu.percent",
                   "memory.resident": "hardware.memory.used"},
              'host_choice': 'retry',
              'retry_count': 1})
@@ -84,9 +84,9 @@ class TestWorkloadStabilization(base.TestCase):
         self.strategy.thresholds = {"cpu_util": 0.2, "memory.resident": 0.2}
         self.strategy.weights = {"cpu_util_weight": 1.0,
                                  "memory.resident_weight": 1.0}
-        self.strategy.instance_metrics = {"cpu_util": "hardware.cpu.util",
-                                          "memory.resident":
-                                              "hardware.memory.used"}
+        self.strategy.instance_metrics = {
+            "cpu_util": "compute.node.cpu.percent",
+            "memory.resident": "hardware.memory.used"}
         self.strategy.host_choice = 'retry'
         self.strategy.retry_count = 1
 
@@ -123,7 +123,7 @@ class TestWorkloadStabilization(base.TestCase):
                          self.hosts_load_assert)
 
     def test_get_sd(self):
-        test_cpu_sd = 0.027
+        test_cpu_sd = 0.296
         test_ram_sd = 9.3
         self.assertEqual(
             round(self.strategy.get_sd(
@@ -144,7 +144,7 @@ class TestWorkloadStabilization(base.TestCase):
             self.hosts_load_assert, "INSTANCE_5", "Node_2", "Node_1")[-1][
             "Node_1"]
         result['cpu_util'] = round(result['cpu_util'], 3)
-        self.assertEqual(result, {'cpu_util': 0.075, 'memory.resident': 21,
+        self.assertEqual(result, {'cpu_util': 0.095, 'memory.resident': 21.0,
                                   'vcpus': 40})
 
     def test_simulate_migrations(self):
