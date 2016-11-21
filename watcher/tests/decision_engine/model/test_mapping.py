@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import uuid
+from oslo_utils import uuidutils
 
 from watcher.decision_engine.model import element
 from watcher.tests import base
@@ -95,7 +95,7 @@ class TestMapping(base.TestCase):
         instances = model.get_all_instances()
         keys = list(instances.keys())
         instance0 = instances[keys[0]]
-        uuid_ = "{0}".format(uuid.uuid4())
+        uuid_ = uuidutils.generate_uuid()
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
 

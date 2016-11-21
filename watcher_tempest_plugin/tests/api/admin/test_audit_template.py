@@ -16,7 +16,7 @@
 
 from __future__ import unicode_literals
 
-import uuid
+from oslo_utils import uuidutils
 
 from tempest.lib import exceptions
 from tempest import test
@@ -33,7 +33,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         _, goal = self.client.show_goal(goal_name)
 
         params = {
-            'name': 'my at name %s' % uuid.uuid4(),
+            'name': 'my at name %s' % uuidutils.generate_uuid(),
             'description': 'my at description',
             'goal': goal['uuid']}
         expected_data = {
@@ -56,7 +56,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         _, goal = self.client.show_goal(goal_name)
         # Use a unicode string for testing:
         params = {
-            'name': 'my at name %s' % uuid.uuid4(),
+            'name': 'my at name %s' % uuidutils.generate_uuid(),
             'description': 'my àt déscrïptïôn',
             'goal': goal['uuid']}
 
@@ -158,13 +158,13 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, new_goal = self.client.show_goal("server_consolidation")
         _, new_strategy = self.client.show_strategy("basic")
 
-        params = {'name': 'my at name %s' % uuid.uuid4(),
+        params = {'name': 'my at name %s' % uuidutils.generate_uuid(),
                   'description': 'my at description',
                   'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)
 
-        new_name = 'my at new name %s' % uuid.uuid4()
+        new_name = 'my at new name %s' % uuidutils.generate_uuid()
         new_description = 'my new at description'
 
         patch = [{'path': '/name',
@@ -191,7 +191,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
     @test.attr(type='smoke')
     def test_update_audit_template_remove(self):
         description = 'my at description'
-        name = 'my at name %s' % uuid.uuid4()
+        name = 'my at name %s' % uuidutils.generate_uuid()
         params = {'name': name,
                   'description': description,
                   'goal': self.goal['uuid']}
@@ -213,7 +213,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_update_audit_template_add(self):
-        params = {'name': 'my at name %s' % uuid.uuid4(),
+        params = {'name': 'my at name %s' % uuidutils.generate_uuid(),
                   'goal': self.goal['uuid']}
 
         _, body = self.create_audit_template(**params)
