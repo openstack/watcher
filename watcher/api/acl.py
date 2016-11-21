@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 #
 # Copyright © 2012 New Dream Network, LLC (DreamHost)
+# Copyright (c) 2016 Intel Corp
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,19 +18,10 @@
 
 """Access Control Lists (ACL's) control access the API server."""
 
-from oslo_config import cfg
 from watcher.api.middleware import auth_token
+from watcher import conf
 
-
-AUTH_OPTS = [
-    cfg.BoolOpt('enable_authentication',
-                default=True,
-                help='This option enables or disables user authentication '
-                'via keystone. Default value is True.'),
-]
-
-CONF = cfg.CONF
-CONF.register_opts(AUTH_OPTS)
+CONF = conf.CONF
 
 
 def install(app, conf, public_routes):
@@ -42,7 +34,7 @@ def install(app, conf, public_routes):
     :return: The same WSGI application with ACL installed.
 
     """
-    if not cfg.CONF.get('enable_authentication'):
+    if not CONF.get('enable_authentication'):
         return app
     return auth_token.AuthTokenMiddleware(app,
                                           conf=dict(conf),

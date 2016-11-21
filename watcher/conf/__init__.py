@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
 #
@@ -18,8 +19,10 @@
 
 from oslo_config import cfg
 
+from watcher.conf import api
 from watcher.conf import service
 
 CONF = cfg.CONF
 
 service.register_opts(CONF)
+api.register_opts(CONF)
