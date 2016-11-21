@@ -97,7 +97,7 @@ parameter            type   default Value         description
 .. |metrics| replace:: ["cpu_util", "memory.resident"]
 .. |thresholds| replace:: {"cpu_util": 0.2, "memory.resident": 0.2}
 .. |weights| replace:: {"cpu_util_weight": 1.0, "memory.resident_weight": 1.0}
-.. |instance_metrics| replace:: {"cpu_util": "hardware.cpu.util", "memory.resident": "hardware.memory.used"}
+.. |instance_metrics| replace:: {"cpu_util": "compute.node.cpu.percent", "memory.resident": "hardware.memory.used"}
 
 Efficacy Indicator
 ------------------
