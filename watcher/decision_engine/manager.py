@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
 #
@@ -36,40 +37,13 @@ of :ref:`Actions <action_definition>` which are scheduled in time by the
 See :doc:`../architecture` for more details on this component.
 """
 
-from oslo_config import cfg
-
 from watcher.common import service_manager
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.model.collector import manager
 
+from watcher import conf
 
-CONF = cfg.CONF
-
-WATCHER_DECISION_ENGINE_OPTS = [
-    cfg.StrOpt('conductor_topic',
-               default='watcher.decision.control',
-               help='The topic name used for '
-                    'control events, this topic '
-                    'used for RPC calls'),
-    cfg.ListOpt('notification_topics',
-                default=['versioned_notifications', 'watcher_notifications'],
-                help='The topic names from which notification events '
-                     'will be listened to'),
-    cfg.StrOpt('publisher_id',
-               default='watcher.decision.api',
-               help='The identifier used by the Watcher '
-                    'module on the message broker'),
-    cfg.IntOpt('max_workers',
-               default=2,
-               required=True,
-               help='The maximum number of threads that can be used to '
-                    'execute strategies'),
-]
-decision_engine_opt_group = cfg.OptGroup(name='watcher_decision_engine',
-                                         title='Defines the parameters of '
-                                               'the module decision engine')
-CONF.register_group(decision_engine_opt_group)
-CONF.register_opts(WATCHER_DECISION_ENGINE_OPTS, decision_engine_opt_group)
+CONF = conf.CONF
 
 
 class DecisionEngineManager(service_manager.ServiceManager):

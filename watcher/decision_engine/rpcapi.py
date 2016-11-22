@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
 #
@@ -17,20 +18,14 @@
 # limitations under the License.
 #
 
-from oslo_config import cfg
-
 from watcher.common import exception
 from watcher.common import service
 from watcher.common import service_manager
 from watcher.common import utils
-from watcher.decision_engine import manager
 
+from watcher import conf
 
-CONF = cfg.CONF
-
-CONF.register_group(manager.decision_engine_opt_group)
-CONF.register_opts(manager.WATCHER_DECISION_ENGINE_OPTS,
-                   manager.decision_engine_opt_group)
+CONF = conf.CONF
 
 
 class DecisionEngineAPI(service.Service):
