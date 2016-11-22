@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
 #
@@ -16,18 +17,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_config import cfg
-
-from watcher.applier import manager
 from watcher.common import exception
 from watcher.common import service
 from watcher.common import service_manager
 from watcher.common import utils
 
+from watcher import conf
 
-CONF = cfg.CONF
-CONF.register_group(manager.opt_group)
-CONF.register_opts(manager.APPLIER_MANAGER_OPTS, manager.opt_group)
+CONF = conf.CONF
 
 
 class ApplierAPI(service.Service):

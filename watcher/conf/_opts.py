@@ -18,9 +18,9 @@
 
 from keystoneauth1 import loading as ka_loading
 
-from watcher.applier import manager as applier_manager
 from watcher.common import clients
 from watcher.conf import api as conf_api
+from watcher.conf import applier as conf_applier
 from watcher.conf import db
 from watcher.conf import exception
 from watcher.conf import paths
@@ -43,8 +43,8 @@ def list_opts():
         ('watcher_decision_engine',
          (decision_engine_manager.WATCHER_DECISION_ENGINE_OPTS +
           continuous.WATCHER_CONTINUOUS_OPTS)),
-        ('watcher_applier', applier_manager.APPLIER_MANAGER_OPTS),
         ('watcher_planner', conf_planner.WATCHER_PLANNER_OPTS),
+        ('watcher_applier', conf_applier.APPLIER_MANAGER_OPTS),
         ('nova_client', clients.NOVA_CLIENT_OPTS),
         ('glance_client', clients.GLANCE_CLIENT_OPTS),
         ('cinder_client', clients.CINDER_CLIENT_OPTS),

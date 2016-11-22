@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
 #
@@ -17,41 +18,12 @@
 # limitations under the License.
 #
 
-from oslo_config import cfg
-
 from watcher.applier.messaging import trigger
 from watcher.common import service_manager
 
-CONF = cfg.CONF
+from watcher import conf
 
-
-# Register options
-APPLIER_MANAGER_OPTS = [
-    cfg.IntOpt('workers',
-               default='1',
-               min=1,
-               required=True,
-               help='Number of workers for applier, default value is 1.'),
-    cfg.StrOpt('conductor_topic',
-               default='watcher.applier.control',
-               help='The topic name used for'
-                    'control events, this topic '
-                    'used for rpc call '),
-    cfg.StrOpt('publisher_id',
-               default='watcher.applier.api',
-               help='The identifier used by watcher '
-                    'module on the message broker'),
-    cfg.StrOpt('workflow_engine',
-               default='taskflow',
-               required=True,
-               help='Select the engine to use to execute the workflow')
-]
-
-opt_group = cfg.OptGroup(name='watcher_applier',
-                         title='Options for the Applier messaging'
-                               'core')
-CONF.register_group(opt_group)
-CONF.register_opts(APPLIER_MANAGER_OPTS, opt_group)
+CONF = conf.CONF
 
 
 class ApplierManager(service_manager.ServiceManager):
