@@ -41,7 +41,7 @@ be one of the following:
    processed by the :ref:`Watcher Applier <watcher_applier_definition>`
 -  **SUCCEEDED** : the :ref:`Action <action_definition>` has been executed
    successfully
--  **FAILED** : an error occured while trying to execute the
+-  **FAILED** : an error occurred while trying to execute the
    :ref:`Action <action_definition>`
 -  **DELETED** : the :ref:`Action <action_definition>` is still stored in the
    :ref:`Watcher database <watcher_database_definition>` but is not returned

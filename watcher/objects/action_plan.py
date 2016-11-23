@@ -59,7 +59,7 @@ state may be one of the following:
 -  **SUCCEEDED** : the :ref:`Action Plan <action_plan_definition>` has been
    executed successfully (i.e. all :ref:`Actions <action_definition>` that it
    contains have been executed successfully)
--  **FAILED** : an error occured while executing the
+-  **FAILED** : an error occurred while executing the
    :ref:`Action Plan <action_plan_definition>`
 -  **DELETED** : the :ref:`Action Plan <action_plan_definition>` is still
    stored in the :ref:`Watcher database <watcher_database_definition>` but is

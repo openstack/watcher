@@ -38,7 +38,7 @@ be one of the following:
 -  **SUCCEEDED** : the :ref:`Audit <audit_definition>` has been executed
    successfully (note that it may not necessarily produce a
    :ref:`Solution <solution_definition>`).
--  **FAILED** : an error occured while executing the
+-  **FAILED** : an error occurred while executing the
    :ref:`Audit <audit_definition>`
 -  **DELETED** : the :ref:`Audit <audit_definition>` is still stored in the
    :ref:`Watcher database <watcher_database_definition>` but is not returned
