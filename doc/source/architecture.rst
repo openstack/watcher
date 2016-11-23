@@ -316,7 +316,7 @@ This method finds an appropriate scheduling of
 :ref:`Actions <action_definition>` taking into account some scheduling rules
 (such as priorities between actions).
 It generates a new :ref:`Action Plan <action_plan_definition>` with status
-**RECOMMENDED** and saves it into the:ref:`Watcher Database
+**RECOMMENDED** and saves it into the :ref:`Watcher Database
 <watcher_database_definition>`. The saved action plan is now a scheduled flow
 of actions to which a global efficacy is associated alongside a number of
 :ref:`Efficacy Indicators <efficacy_indicator_definition>` as specified by the
