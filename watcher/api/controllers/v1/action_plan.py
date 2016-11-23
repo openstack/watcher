@@ -496,7 +496,6 @@ class ActionPlansController(rest.RestController):
         :param action_plan_uuid: UUID of a action plan.
         :param patch: a json PATCH document to apply to this action plan.
         """
-        launch_action_plan = True
         if self.from_actionsPlans:
             raise exception.OperationNotPermitted
 

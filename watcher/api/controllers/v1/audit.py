@@ -525,7 +525,6 @@ class AuditsController(rest.RestController):
         pecan.response.location = link.build_url('audits', new_audit.uuid)
 
         # trigger decision-engine to run the audit
-
         if new_audit.audit_type == objects.audit.AuditType.ONESHOT.value:
             dc_client = rpcapi.DecisionEngineAPI()
             dc_client.trigger_audit(context, new_audit.uuid)
