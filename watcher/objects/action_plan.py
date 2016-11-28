@@ -85,6 +85,7 @@ class State(object):
     SUCCEEDED = 'SUCCEEDED'
     DELETED = 'DELETED'
     CANCELLED = 'CANCELLED'
+    SUPERSEDED = 'SUPERSEDED'
 
 
 @base.WatcherObjectRegistry.register

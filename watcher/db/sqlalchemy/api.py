@@ -663,6 +663,9 @@ class Connection(api.BaseConnection):
         if values.get('state') is None:
             values['state'] = objects.audit.State.PENDING
 
+        if not values.get('auto_trigger'):
+            values['auto_trigger'] = False
+
         try:
             audit = self._create(models.Audit, values)
         except db_exc.DBDuplicateEntry:

@@ -82,9 +82,6 @@ class ContinuousAuditHandler(base.AuditHandler):
         if not self._is_audit_inactive(audit):
             self.execute(audit, request_context)
 
-    def post_execute(self, audit, solution, request_context):
-        self.do_schedule(request_context, audit, solution)
-
     def launch_audits_periodically(self):
         audit_context = context.RequestContext(is_admin=True)
         audit_filters = {

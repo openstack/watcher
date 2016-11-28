@@ -22,6 +22,8 @@ import six
 
 from oslo_log import log
 
+from watcher.applier import rpcapi
+from watcher.common import exception
 from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.context import default as default_context
 from watcher import notifications
@@ -79,11 +81,13 @@ class AuditHandler(BaseAuditHandler):
                 request_context, audit,
                 action=fields.NotificationAction.PLANNER,
                 phase=fields.NotificationPhase.START)
-            self.planner.schedule(request_context, audit.id, solution)
+            action_plan = self.planner.schedule(request_context, audit.id,
+                                                solution)
             notifications.audit.send_action_notification(
                 request_context, audit,
                 action=fields.NotificationAction.PLANNER,
                 phase=fields.NotificationPhase.END)
+            return action_plan
         except Exception:
             notifications.audit.send_action_notification(
                 request_context, audit,
@@ -104,15 +108,30 @@ class AuditHandler(BaseAuditHandler):
         self.update_audit_state(audit, objects.audit.State.ONGOING)
 
     def post_execute(self, audit, solution, request_context):
-        self.do_schedule(request_context, audit, solution)
-        # change state of the audit to SUCCEEDED
-        self.update_audit_state(audit, objects.audit.State.SUCCEEDED)
+        action_plan = self.do_schedule(request_context, audit, solution)
+        a_plan_filters = {'state': objects.action_plan.State.ONGOING}
+        ongoing_action_plans = objects.ActionPlan.list(
+            request_context, filters=a_plan_filters)
+        if ongoing_action_plans:
+            action_plan.state = objects.action_plan.State.SUPERSEDED
+            action_plan.save()
+            raise exception.ActionPlanIsOngoing(
+                action_plan=ongoing_action_plans[0].uuid,
+                new_action_plan=action_plan.uuid)
+        elif audit.auto_trigger:
+            applier_client = rpcapi.ApplierAPI()
+            applier_client.launch_action_plan(request_context,
+                                              action_plan.uuid)
 
     def execute(self, audit, request_context):
         try:
             self.pre_execute(audit, request_context)
             solution = self.do_execute(audit, request_context)
             self.post_execute(audit, solution, request_context)
+        except exception.ActionPlanIsOngoing as e:
+            LOG.exception(e)
+            if audit.audit_type == objects.audit.AuditType.ONESHOT.value:
+                self.update_audit_state(audit, objects.audit.State.CANCELLED)
         except Exception as e:
             LOG.exception(e)
             self.update_audit_state(audit, objects.audit.State.FAILED)

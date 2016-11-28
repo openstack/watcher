@@ -18,6 +18,8 @@ from apscheduler.schedulers import background
 import mock
 from oslo_utils import uuidutils
 
+from watcher.applier import rpcapi
+from watcher.common import exception
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.model.collector import manager
@@ -148,6 +150,65 @@ class TestOneShotAuditHandler(base.DbTestCase):
         self.assertEqual(
             expected_calls,
             self.m_audit_notifications.send_action_notification.call_args_list)
+
+
+class TestAutoTriggerActionPlan(base.DbTestCase):
+
+    def setUp(self):
+        super(TestAutoTriggerActionPlan, self).setUp()
+        self.goal = obj_utils.create_test_goal(
+            self.context, id=1, name=dummy_strategy.DummyStrategy.get_name())
+        self.strategy = obj_utils.create_test_strategy(
+            self.context, name=dummy_strategy.DummyStrategy.get_name(),
+            goal_id=self.goal.id)
+        audit_template = obj_utils.create_test_audit_template(
+            self.context)
+        self.audit = obj_utils.create_test_audit(
+            self.context,
+            id=0,
+            uuid=uuidutils.generate_uuid(),
+            audit_template_id=audit_template.id,
+            goal_id=self.goal.id,
+            audit_type=objects.audit.AuditType.CONTINUOUS.value,
+            goal=self.goal,
+            auto_trigger=True)
+        self.ongoing_action_plan = obj_utils.create_test_action_plan(
+            self.context,
+            uuid=uuidutils.generate_uuid(),
+            audit_id=self.audit.id)
+        self.recommended_action_plan = obj_utils.create_test_action_plan(
+            self.context,
+            uuid=uuidutils.generate_uuid(),
+            state=objects.action_plan.State.ONGOING,
+            audit_id=self.audit.id
+        )
+
+    @mock.patch.object(objects.action_plan.ActionPlan, 'list')
+    @mock.patch.object(objects.audit.Audit, 'get_by_id')
+    def test_trigger_action_plan_with_ongoing(self, mock_get_by_id, mock_list):
+        mock_get_by_id.return_value = self.audit
+        mock_list.return_value = [self.ongoing_action_plan]
+        auto_trigger_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        with mock.patch.object(auto_trigger_handler, 'do_schedule'):
+            self.assertRaises(exception.ActionPlanIsOngoing,
+                              auto_trigger_handler.post_execute,
+                              self.audit, mock.MagicMock(), self.context)
+
+    @mock.patch.object(rpcapi.ApplierAPI, 'launch_action_plan')
+    @mock.patch.object(objects.action_plan.ActionPlan, 'list')
+    @mock.patch.object(objects.audit.Audit, 'get_by_id')
+    def test_trigger_action_plan_without_ongoing(self, mock_get_by_id,
+                                                 mock_list, mock_applier):
+        mock_get_by_id.return_value = self.audit
+        mock_list.return_value = []
+        auto_trigger_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        with mock.patch.object(auto_trigger_handler, 'do_schedule',
+                               new_callable=mock.PropertyMock) as m_schedule:
+            m_schedule().uuid = self.recommended_action_plan.uuid
+            auto_trigger_handler.post_execute(self.audit, mock.MagicMock(),
+                                              self.context)
+        mock_applier.assert_called_once_with(self.context,
+                                             self.recommended_action_plan.uuid)
 
 
 class TestContinuousAuditHandler(base.DbTestCase):

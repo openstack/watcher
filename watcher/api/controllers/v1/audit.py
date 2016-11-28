@@ -69,6 +69,8 @@ class AuditPostType(wtypes.Base):
 
     scope = wtypes.wsattr(types.jsontype, readonly=True)
 
+    auto_trigger = wtypes.wsattr(bool, mandatory=False)
+
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
@@ -115,7 +117,8 @@ class AuditPostType(wtypes.Base):
             goal_id=self.goal,
             strategy_id=self.strategy,
             interval=self.interval,
-            scope=self.scope,)
+            scope=self.scope,
+            auto_trigger=self.auto_trigger)
 
 
 class AuditPatchType(types.JsonPatchType):
@@ -257,6 +260,9 @@ class Audit(base.APIBase):
     scope = wsme.wsattr(types.jsontype, mandatory=False)
     """Audit Scope"""
 
+    auto_trigger = wsme.wsattr(bool, mandatory=False, default=False)
+    """Autoexecute action plan once audit is succeeded"""
+
     def __init__(self, **kwargs):
         self.fields = []
         fields = list(objects.Audit.fields)
@@ -313,7 +319,8 @@ class Audit(base.APIBase):
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow(),
                      interval=7200,
-                     scope=[])
+                     scope=[],
+                     auto_trigger=False)
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'
