@@ -19,46 +19,13 @@ from neutronclient.neutron import client as netclient
 from novaclient import client as nvclient
 from oslo_config import cfg
 
-from watcher._i18n import _
 from watcher.common import exception
 
+from watcher import conf
 
-NOVA_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='2',
-               help=_('Version of Nova API to use in novaclient.'))]
-
-GLANCE_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='2',
-               help=_('Version of Glance API to use in glanceclient.'))]
-
-CINDER_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='2',
-               help=_('Version of Cinder API to use in cinderclient.'))]
-
-CEILOMETER_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='2',
-               help=_('Version of Ceilometer API to use in '
-                      'ceilometerclient.'))]
-
-NEUTRON_CLIENT_OPTS = [
-    cfg.StrOpt('api_version',
-               default='2.0',
-               help=_('Version of Neutron API to use in neutronclient.'))]
-
-cfg.CONF.register_opts(NOVA_CLIENT_OPTS, group='nova_client')
-cfg.CONF.register_opts(GLANCE_CLIENT_OPTS, group='glance_client')
-cfg.CONF.register_opts(CINDER_CLIENT_OPTS, group='cinder_client')
-cfg.CONF.register_opts(CEILOMETER_CLIENT_OPTS, group='ceilometer_client')
-cfg.CONF.register_opts(NEUTRON_CLIENT_OPTS, group='neutron_client')
+CONF = conf.CONF
 
 _CLIENTS_AUTH_GROUP = 'watcher_clients_auth'
-
-ka_loading.register_auth_conf_options(cfg.CONF, _CLIENTS_AUTH_GROUP)
-ka_loading.register_session_conf_options(cfg.CONF, _CLIENTS_AUTH_GROUP)
 
 
 class OpenStackClients(object):

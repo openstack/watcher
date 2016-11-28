@@ -18,12 +18,16 @@
 
 from keystoneauth1 import loading as ka_loading
 
-from watcher.common import clients
 from watcher.conf import api as conf_api
 from watcher.conf import applier as conf_applier
+from watcher.conf import ceilometer_client as conf_ceilometer_client
+from watcher.conf import cinder_client as conf_cinder_client
 from watcher.conf import db
 from watcher.conf import decision_engine as conf_de
 from watcher.conf import exception
+from watcher.conf import glance_client as conf_glance_client
+from watcher.conf import neutron_client as conf_neutron_client
+from watcher.conf import nova_client as conf_nova_client
 from watcher.conf import paths
 from watcher.conf import planner as conf_planner
 from watcher.conf import utils
@@ -44,11 +48,11 @@ def list_opts():
         ('watcher_decision_engine',
          (conf_de.WATCHER_DECISION_ENGINE_OPTS +
           conf_de.WATCHER_CONTINUOUS_OPTS)),
-        ('nova_client', clients.NOVA_CLIENT_OPTS),
-        ('glance_client', clients.GLANCE_CLIENT_OPTS),
-        ('cinder_client', clients.CINDER_CLIENT_OPTS),
-        ('ceilometer_client', clients.CEILOMETER_CLIENT_OPTS),
-        ('neutron_client', clients.NEUTRON_CLIENT_OPTS),
+        ('nova_client', conf_nova_client.NOVA_CLIENT_OPTS),
+        ('glance_client', conf_glance_client.GLANCE_CLIENT_OPTS),
+        ('cinder_client', conf_cinder_client.CINDER_CLIENT_OPTS),
+        ('ceilometer_client', conf_ceilometer_client.CEILOMETER_CLIENT_OPTS),
+        ('neutron_client', conf_neutron_client.NEUTRON_CLIENT_OPTS),
         ('watcher_clients_auth',
          (ka_loading.get_auth_common_conf_options() +
           ka_loading.get_auth_plugin_conf_options('password') +
