@@ -21,8 +21,8 @@ from keystoneauth1 import loading as ka_loading
 from watcher.applier import manager as applier_manager
 from watcher.common import clients
 from watcher.common import exception
-from watcher.common import paths
 from watcher.conf import api as conf_api
+from watcher.conf import paths
 from watcher.conf import utils
 from watcher.db.sqlalchemy import models
 from watcher.decision_engine.audit import continuous

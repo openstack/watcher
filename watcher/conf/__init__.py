@@ -20,6 +20,7 @@
 from oslo_config import cfg
 
 from watcher.conf import api
+from watcher.conf import paths
 from watcher.conf import service
 from watcher.conf import utils
 
@@ -28,3 +29,4 @@ CONF = cfg.CONF
 service.register_opts(CONF)
 api.register_opts(CONF)
 utils.register_opts(CONF)
+paths.register_opts(CONF)

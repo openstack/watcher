@@ -17,23 +17,9 @@
 
 import os
 
-from oslo_config import cfg
+from watcher import conf
 
-PATH_OPTS = [
-    cfg.StrOpt('pybasedir',
-               default=os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                    '../')),
-               help='Directory where the watcher python module is installed.'),
-    cfg.StrOpt('bindir',
-               default='$pybasedir/bin',
-               help='Directory where watcher binaries are installed.'),
-    cfg.StrOpt('state_path',
-               default='$pybasedir',
-               help="Top-level directory for maintaining watcher's state."),
-]
-
-CONF = cfg.CONF
-CONF.register_opts(PATH_OPTS)
+CONF = conf.CONF
 
 
 def basedir_def(*args):
