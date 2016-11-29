@@ -23,6 +23,7 @@ from watcher.conf import api
 from watcher.conf import db
 from watcher.conf import exception
 from watcher.conf import paths
+from watcher.conf import planner
 from watcher.conf import service
 from watcher.conf import utils
 
@@ -34,3 +35,4 @@ utils.register_opts(CONF)
 paths.register_opts(CONF)
 exception.register_opts(CONF)
 db.register_opts(CONF)
+planner.register_opts(CONF)

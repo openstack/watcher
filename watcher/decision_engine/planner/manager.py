@@ -15,28 +15,14 @@
 # limitations under the License.
 #
 
-from oslo_config import cfg
 from oslo_log import log
 
 from watcher.decision_engine.loading import default as loader
 
+from watcher import conf
 
 LOG = log.getLogger(__name__)
-CONF = cfg.CONF
-
-default_planner = 'default'
-
-WATCHER_PLANNER_OPTS = {
-    cfg.StrOpt('planner',
-               default=default_planner,
-               required=True,
-               help='The selected planner used to schedule the actions')
-}
-planner_opt_group = cfg.OptGroup(name='watcher_planner',
-                                 title='Defines the parameters of '
-                                       'the planner')
-CONF.register_group(planner_opt_group)
-CONF.register_opts(WATCHER_PLANNER_OPTS, planner_opt_group)
+CONF = conf.CONF
 
 
 class PlannerManager(object):
