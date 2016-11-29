@@ -21,10 +21,10 @@ from keystoneauth1 import loading as ka_loading
 from watcher.applier import manager as applier_manager
 from watcher.common import clients
 from watcher.conf import api as conf_api
+from watcher.conf import db
 from watcher.conf import exception
 from watcher.conf import paths
 from watcher.conf import utils
-from watcher.db.sqlalchemy import models
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import manager as decision_engine_manager
 from watcher.decision_engine.planner import manager as planner_manager
@@ -39,7 +39,7 @@ def list_opts():
           paths.PATH_OPTS +
           utils.UTILS_OPTS)),
         ('api', conf_api.API_SERVICE_OPTS),
-        ('database', models.SQL_OPTS),
+        ('database', db.SQL_OPTS),
         ('watcher_decision_engine',
          (decision_engine_manager.WATCHER_DECISION_ENGINE_OPTS +
           continuous.WATCHER_CONTINUOUS_OPTS)),

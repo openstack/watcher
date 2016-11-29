@@ -16,8 +16,6 @@
 SQLAlchemy models for watcher service
 """
 
-from oslo_config import cfg
-from oslo_db import options as db_options
 from oslo_db.sqlalchemy import models
 from oslo_serialization import jsonutils
 import six.moves.urllib.parse as urlparse
@@ -33,25 +31,15 @@ from sqlalchemy import Text
 from sqlalchemy.types import TypeDecorator, TEXT
 from sqlalchemy import UniqueConstraint
 
-from watcher.common import paths
+from watcher import conf
 
-SQL_OPTS = [
-    cfg.StrOpt('mysql_engine',
-               default='InnoDB',
-               help='MySQL engine to use.')
-]
-
-_DEFAULT_SQL_CONNECTION = 'sqlite:///{0}'.format(
-    paths.state_path_def('watcher.sqlite'))
-
-cfg.CONF.register_opts(SQL_OPTS, 'database')
-db_options.set_defaults(cfg.CONF, _DEFAULT_SQL_CONNECTION, 'watcher.sqlite')
+CONF = conf.CONF
 
 
 def table_args():
-    engine_name = urlparse.urlparse(cfg.CONF.database.connection).scheme
+    engine_name = urlparse.urlparse(CONF.database.connection).scheme
     if engine_name == 'mysql':
-        return {'mysql_engine': cfg.CONF.database.mysql_engine,
+        return {'mysql_engine': CONF.database.mysql_engine,
                 'mysql_charset': "utf8"}
     return None
 
