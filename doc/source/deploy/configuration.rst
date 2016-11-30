@@ -15,7 +15,7 @@ Service overview
 ================
 
 The Watcher system is a collection of services that provides support to
-optimize your IAAS plateform. The Watcher service may, depending upon
+optimize your IAAS platform. The Watcher service may, depending upon
 configuration, interact with several other OpenStack services. This includes:
 
 - the OpenStack Identity service (`keystone`_) for request authentication and
@@ -37,7 +37,7 @@ The Watcher service includes the following components:
 - `watcher-dashboard`_: An Horizon plugin for interacting with the Watcher
   service.
 
-Additionally, the Bare Metal service has certain external dependencies, which
+Additionally, the Watcher service has certain external dependencies, which
 are very similar to other OpenStack services:
 
 - A database to store audit and action plan information and state. You can set
@@ -368,7 +368,7 @@ Configure Nova compute
 Please check your hypervisor configuration to correctly handle
 `instance migration`_.
 
-.. _`instance migration`: http://docs.openstack.org/admin-guide-cloud/compute-configuring-migrations.html
+.. _`instance migration`: http://docs.openstack.org/admin-guide/compute-live-migration-usage.html
 
 Configure Measurements
 ======================
