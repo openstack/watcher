@@ -15,8 +15,7 @@
 # limitations under the License.
 
 from oslo_serialization import jsonutils
-import uuid
-
+from watcher.common import utils
 from watcher_tempest_plugin.services.infra_optim import base
 
 
@@ -69,7 +68,7 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
         parameters = {k: v for k, v in kwargs.items() if v is not None}
         # This name is unique to avoid the DB unique constraint on names
-        unique_name = 'Tempest Audit Template %s' % uuid.uuid4()
+        unique_name = 'Tempest Audit Template %s' % utils.generate_uuid()
 
         audit_template = {
             'name': parameters.get('name', unique_name),
