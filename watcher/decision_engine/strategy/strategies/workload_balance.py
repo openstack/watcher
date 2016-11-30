@@ -16,6 +16,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+"""
+*[PoC]Workload balance using live migration*
+
+*Description*
+
+This strategy migrates a VM based on the VM workload of the hosts.
+It makes decision to migrate a workload whenever a host's CPU
+utilization % is higher than the specified threshold. The VM to
+be moved should make the host close to average workload of all
+hosts nodes.
+
+*Requirements*
+
+* Hardware: compute node should use the same physical CPUs
+* Software: Ceilometer component ceilometer-agent-compute
+  running in each compute node, and Ceilometer API can
+  report such telemetry "cpu_util" successfully.
+* You must have at least 2 physical compute nodes to run
+  this strategy.
+
+*Limitations*
+
+- This is a proof of concept that is not meant to be used in
+  production.
+- We cannot forecast how many servers should be migrated.
+  This is the reason why we only plan a single virtual
+  machine migration at a time. So it's better to use this
+  algorithm with `CONTINUOUS` audits.
+"""
+
+
 from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
