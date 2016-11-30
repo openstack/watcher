@@ -7,7 +7,7 @@ To launch this task with configured Rally you just need to run:
 
 ::
 
-  rally task start watcher/rally-jobs/watcher.yaml
+  rally task start watcher/rally-jobs/watcher-watcher.yaml
 
 Structure
 ---------
