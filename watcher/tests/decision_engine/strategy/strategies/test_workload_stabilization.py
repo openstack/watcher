@@ -79,7 +79,8 @@ class TestWorkloadStabilization(base.TestCase):
                  {"cpu_util": "compute.node.cpu.percent",
                   "memory.resident": "hardware.memory.used"},
              'host_choice': 'retry',
-             'retry_count': 1})
+             'retry_count': 1,
+             'periods': {"instance": 720, "node": 600}})
         self.strategy.metrics = ["cpu_util", "memory.resident"]
         self.strategy.thresholds = {"cpu_util": 0.2, "memory.resident": 0.2}
         self.strategy.weights = {"cpu_util_weight": 1.0,
@@ -89,6 +90,7 @@ class TestWorkloadStabilization(base.TestCase):
             "memory.resident": "hardware.memory.used"}
         self.strategy.host_choice = 'retry'
         self.strategy.retry_count = 1
+        self.strategy.periods = {"instance": 720, "node": 600}
 
     def test_get_instance_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
@@ -97,6 +99,23 @@ class TestWorkloadStabilization(base.TestCase):
             'cpu_util': 0.07, 'memory.resident': 2}
         self.assertEqual(
             instance_0_dict, self.strategy.get_instance_load("INSTANCE_0"))
+
+    def test_periods(self):
+        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        p_ceilometer = mock.patch.object(
+            strategies.WorkloadStabilization, "ceilometer")
+        m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+        m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        self.strategy.get_instance_load("INSTANCE_0")
+        m_ceilometer.statistic_aggregation.assert_called_with(
+            aggregate='min', meter_name='memory.resident',
+            period=720, resource_id='INSTANCE_0')
+        self.strategy.get_hosts_load()
+        m_ceilometer.statistic_aggregation.assert_called_with(
+            aggregate='avg', meter_name='hardware.memory.used',
+            period=600, resource_id=mock.ANY)
 
     def test_normalize_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()

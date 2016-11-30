@@ -80,6 +80,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.host_choice = None
         self.instance_metrics = None
         self.retry_count = None
+        self.periods = None
 
     @classmethod
     def get_name(cls):
@@ -138,6 +139,17 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "description": "Count of random returned hosts",
                     "type": "number",
                     "default": 1
+                },
+                "periods": {
+                    "description": "These periods are used to get statistic "
+                                   "aggregation for instance and host "
+                                   "metrics. The period is simply a repeating"
+                                   " interval of time into which the samples"
+                                   " are grouped for aggregation. Watcher "
+                                   "uses only the last period of all recieved"
+                                   " ones.",
+                    "type": "object",
+                    "default": {"instance": 720, "node": 600}
                 }
             }
         }
@@ -190,7 +202,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             avg_meter = self.ceilometer.statistic_aggregation(
                 resource_id=instance_uuid,
                 meter_name=meter,
-                period="120",
+                period=self.periods['instance'],
                 aggregate='min'
             )
             if avg_meter is None:
@@ -244,7 +256,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 avg_meter = self.ceilometer.statistic_aggregation(
                     resource_id=resource_id,
                     meter_name=self.instance_metrics[metric],
-                    period="60",
+                    period=self.periods['node'],
                     aggregate='avg'
                 )
                 if avg_meter is None:
@@ -414,6 +426,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.host_choice = self.input_parameters.host_choice
         self.instance_metrics = self.input_parameters.instance_metrics
         self.retry_count = self.input_parameters.retry_count
+        self.periods = self.input_parameters.periods
 
     def do_execute(self):
         migration = self.check_threshold()
