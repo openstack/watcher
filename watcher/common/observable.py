@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.common.messaging.utils import synchronization
+from watcher.common import synchronization
 
 
 class Observable(synchronization.Synchronization):
