@@ -77,14 +77,6 @@ class TestListActionPlan(api_base.FunctionalTest):
               'unit': '%'}],
             response['efficacy_indicators'])
 
-    def test_get_one_with_first_action(self):
-        action_plan = obj_utils.create_test_action_plan(self.context)
-        action = obj_utils.create_test_action(self.context, id=1)
-        response = self.get_json('/action_plans/%s' % action_plan['uuid'])
-        self.assertEqual(action_plan.uuid, response['uuid'])
-        self.assertEqual(action.uuid, response['first_action_uuid'])
-        self._assert_action_plans_fields(response)
-
     def test_get_one_soft_deleted(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
@@ -322,7 +314,7 @@ class TestDelete(api_base.FunctionalTest):
 
     def test_delete_action_plan_with_action(self):
         action = obj_utils.create_test_action(
-            self.context, id=self.action_plan.first_action_id)
+            self.context, id=1)
 
         self.delete('/action_plans/%s' % self.action_plan.uuid)
         ap_response = self.get_json('/action_plans/%s' % self.action_plan.uuid,

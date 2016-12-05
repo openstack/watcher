@@ -37,7 +37,8 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
 
     # Version 1.0: Initial version
     # Version 1.1: Added 'action_plan' object field
-    VERSION = '1.1'
+    # Version 2.0: Removed 'next' object field, Added 'parents' object field
+    VERSION = '2.0'
 
     dbapi = db_api.get_instance()
 
@@ -48,7 +49,7 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         'action_type': wfields.StringField(nullable=True),
         'input_parameters': wfields.DictField(nullable=True),
         'state': wfields.StringField(nullable=True),
-        'next': wfields.IntegerField(nullable=True),
+        'parents': wfields.ListOfStringsField(nullable=True),
 
         'action_plan': wfields.ObjectField('ActionPlan', nullable=True),
     }

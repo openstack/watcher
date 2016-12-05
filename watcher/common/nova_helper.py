@@ -304,6 +304,70 @@ class NovaHelper(object):
 
             return True
 
+    def resize_instance(self, instance_id, flavor, retry=120):
+        """This method resizes given instance with specified flavor.
+
+        This method uses the Nova built-in resize()
+        action to do a resize of a given instance.
+
+        It returns True if the resize was successful,
+        False otherwise.
+
+        :param instance_id: the unique id of the instance to resize.
+        :param flavor: the name or ID of the flavor to resize to.
+        """
+        LOG.debug("Trying a resize of instance %s to flavor '%s'" % (
+            instance_id, flavor))
+
+        # Looking for the instance to resize
+        instance = self.find_instance(instance_id)
+
+        flavor_id = None
+
+        try:
+            flavor_id = self.nova.flavors.get(flavor)
+        except nvexceptions.NotFound:
+            flavor_id = [f.id for f in self.nova.flavors.list() if
+                         f.name == flavor][0]
+        except nvexceptions.ClientException as e:
+            LOG.debug("Nova client exception occurred while resizing "
+                      "instance %s. Exception: %s", instance_id, e)
+
+        if not flavor_id:
+            LOG.debug("Flavor not found: %s" % flavor)
+            return False
+
+        if not instance:
+            LOG.debug("Instance not found: %s" % instance_id)
+            return False
+
+        instance_status = getattr(instance, 'OS-EXT-STS:vm_state')
+        LOG.debug(
+            "Instance %s is in '%s' status." % (instance_id,
+                                                instance_status))
+
+        instance.resize(flavor=flavor_id)
+        while getattr(instance,
+                      'OS-EXT-STS:vm_state') != 'resized' \
+                and retry:
+            instance = self.nova.servers.get(instance.id)
+            LOG.debug(
+                'Waiting the resize of {0}  to {1}'.format(
+                    instance, flavor_id))
+            time.sleep(1)
+            retry -= 1
+
+        instance_status = getattr(instance, 'status')
+        if instance_status != 'VERIFY_RESIZE':
+            return False
+
+        instance.confirm_resize()
+
+        LOG.debug("Resizing succeeded : instance %s is now on flavor "
+                  "'%s'.", instance_id, flavor_id)
+
+        return True
+
     def live_migrate_instance(self, instance_id, dest_hostname,
                               block_migration=False, retry=120):
         """This method does a live migration of a given instance
@@ -643,6 +707,16 @@ class NovaHelper(object):
         network_id = networks['networks'][0]['id']
 
         return network_id
+
+    def get_instance_by_uuid(self, instance_uuid):
+        return [instance for instance in
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "uuid": instance_uuid})]
+
+    def get_instance_by_name(self, instance_name):
+        return [instance for instance in
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "name": instance_name})]
 
     def get_instances_by_node(self, host):
         return [instance for instance in

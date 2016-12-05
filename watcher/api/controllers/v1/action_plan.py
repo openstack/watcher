@@ -106,7 +106,7 @@ class ActionPlanPatchType(types.JsonPatchType):
 
     @staticmethod
     def mandatory_attrs():
-        return ["audit_id", "state", "first_action_id"]
+        return ["audit_id", "state"]
 
 
 class ActionPlan(base.APIBase):
@@ -120,7 +120,6 @@ class ActionPlan(base.APIBase):
     _audit_uuid = None
     _strategy_uuid = None
     _strategy_name = None
-    _first_action_uuid = None
     _efficacy_indicators = None
 
     def _get_audit_uuid(self):
@@ -136,21 +135,6 @@ class ActionPlan(base.APIBase):
                 self.audit_id = audit.id
             except exception.AuditNotFound:
                 self._audit_uuid = None
-
-    def _get_first_action_uuid(self):
-        return self._first_action_uuid
-
-    def _set_first_action_uuid(self, value):
-        if value == wtypes.Unset:
-            self._first_action_uuid = wtypes.Unset
-        elif value and self._first_action_uuid != value:
-            try:
-                first_action = objects.Action.get(pecan.request.context,
-                                                  value)
-                self._first_action_uuid = first_action.uuid
-                self.first_action_id = first_action.id
-            except exception.ActionNotFound:
-                self._first_action_uuid = None
 
     def _get_efficacy_indicators(self):
         if self._efficacy_indicators is None:
@@ -220,11 +204,6 @@ class ActionPlan(base.APIBase):
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
-    first_action_uuid = wsme.wsproperty(
-        types.uuid, _get_first_action_uuid, _set_first_action_uuid,
-        mandatory=True)
-    """The UUID of the first action this action plans links to"""
-
     audit_uuid = wsme.wsproperty(types.uuid, _get_audit_uuid, _set_audit_uuid,
                                  mandatory=True)
     """The UUID of the audit this port belongs to"""
@@ -263,7 +242,6 @@ class ActionPlan(base.APIBase):
             setattr(self, field, kwargs.get(field, wtypes.Unset))
 
         self.fields.append('audit_uuid')
-        self.fields.append('first_action_uuid')
         self.fields.append('efficacy_indicators')
 
         setattr(self, 'audit_uuid', kwargs.get('audit_id', wtypes.Unset))
@@ -271,16 +249,13 @@ class ActionPlan(base.APIBase):
         setattr(self, 'strategy_uuid', kwargs.get('strategy_id', wtypes.Unset))
         fields.append('strategy_name')
         setattr(self, 'strategy_name', kwargs.get('strategy_id', wtypes.Unset))
-        setattr(self, 'first_action_uuid',
-                kwargs.get('first_action_id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(action_plan, url, expand=True):
         if not expand:
             action_plan.unset_fields_except(
                 ['uuid', 'state', 'efficacy_indicators', 'global_efficacy',
-                 'updated_at', 'audit_uuid', 'strategy_uuid', 'strategy_name',
-                 'first_action_uuid'])
+                 'updated_at', 'audit_uuid', 'strategy_uuid', 'strategy_name'])
 
         action_plan.links = [
             link.Link.make_link(
@@ -305,7 +280,6 @@ class ActionPlan(base.APIBase):
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow())
-        sample._first_action_uuid = '57eaf9ab-5aaa-4f7e-bdf7-9a140ac7a720'
         sample._audit_uuid = 'abcee106-14d3-4515-b744-5a26885cf6f6'
         sample._efficacy_indicators = [{'description': 'Test indicator',
                                         'name': 'test_indicator',

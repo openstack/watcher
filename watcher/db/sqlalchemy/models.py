@@ -193,7 +193,6 @@ class ActionPlan(Base):
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
-    first_action_id = Column(Integer)
     audit_id = Column(Integer, ForeignKey('audits.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
     state = Column(String(20), nullable=True)
@@ -219,7 +218,7 @@ class Action(Base):
     action_type = Column(String(255), nullable=False)
     input_parameters = Column(JSONEncodedDict, nullable=True)
     state = Column(String(20), nullable=True)
-    next = Column(String(36), nullable=True)
+    parents = Column(JSONEncodedList, nullable=True)
 
     action_plan = orm.relationship(
         ActionPlan, foreign_keys=action_plan_id, lazy=None)

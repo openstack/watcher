@@ -282,6 +282,10 @@ class ActionFilterCombinationProhibited(Invalid):
                 "prohibited")
 
 
+class UnsupportedActionType(UnsupportedError):
+    msg_fmt = _("Provided %(action_type) is not supported yet")
+
+
 class EfficacyIndicatorNotFound(ResourceNotFound):
     msg_fmt = _("Efficacy indicator %(efficacy_indicator)s could not be found")
 

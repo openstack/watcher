@@ -22,7 +22,7 @@ watcher_planner = cfg.OptGroup(name='watcher_planner',
                                title='Defines the parameters of '
                                      'the planner')
 
-default_planner = 'default'
+default_planner = 'weight'
 
 WATCHER_PLANNER_OPTS = {
     cfg.StrOpt('planner',

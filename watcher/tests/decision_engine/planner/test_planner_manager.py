@@ -16,13 +16,13 @@
 
 from oslo_config import cfg
 
-from watcher.decision_engine.planner import default
 from watcher.decision_engine.planner import manager as planner
+from watcher.decision_engine.planner import weight
 from watcher.tests import base
 
 
 class TestPlannerManager(base.TestCase):
     def test_load(self):
-        cfg.CONF.set_override('planner', "default", group='watcher_planner')
+        cfg.CONF.set_override('planner', "weight", group='watcher_planner')
         manager = planner.PlannerManager()
-        self.assertIsInstance(manager.load(), default.DefaultPlanner)
+        self.assertIsInstance(manager.load(), weight.WeightPlanner)

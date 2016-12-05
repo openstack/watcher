@@ -130,7 +130,7 @@ def get_test_action(**kwargs):
                         'resource_id':
                         '10a47dd1-4874-4298-91cf-eff046dbdb8d'}),
         'state': kwargs.get('state', objects.action_plan.State.PENDING),
-        'next': kwargs.get('next', 2),
+        'parents': kwargs.get('parents', []),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
@@ -166,7 +166,6 @@ def get_test_action_plan(**kwargs):
         'audit_id': kwargs.get('audit_id', 1),
         'strategy_id': kwargs.get('strategy_id', 1),
         'global_efficacy': kwargs.get('global_efficacy', {}),
-        'first_action_id': kwargs.get('first_action_id', 1),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),

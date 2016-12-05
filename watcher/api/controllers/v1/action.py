@@ -88,7 +88,6 @@ class Action(base.APIBase):
     between the internal object model and the API representation of a action.
     """
     _action_plan_uuid = None
-    _next_uuid = None
 
     def _get_action_plan_uuid(self):
         return self._action_plan_uuid
@@ -104,22 +103,6 @@ class Action(base.APIBase):
                 self.action_plan_id = action_plan.id
             except exception.ActionPlanNotFound:
                 self._action_plan_uuid = None
-
-    def _get_next_uuid(self):
-        return self._next_uuid
-
-    def _set_next_uuid(self, value):
-        if value == wtypes.Unset:
-            self._next_uuid = wtypes.Unset
-        elif value and self._next_uuid != value:
-            try:
-                action_next = objects.Action.get(
-                    pecan.request.context, value)
-                self._next_uuid = action_next.uuid
-                self.next = action_next.id
-            except exception.ActionNotFound:
-                self.action_next_uuid = None
-                # raise e
 
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action"""
@@ -138,10 +121,8 @@ class Action(base.APIBase):
     input_parameters = types.jsontype
     """One or more key/value pairs """
 
-    next_uuid = wsme.wsproperty(types.uuid, _get_next_uuid,
-                                _set_next_uuid,
-                                mandatory=True)
-    """This next action UUID"""
+    parents = wtypes.wsattr(types.jsontype, readonly=True)
+    """UUIDs of parent actions"""
 
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
@@ -152,7 +133,6 @@ class Action(base.APIBase):
         self.fields = []
         fields = list(objects.Action.fields)
         fields.append('action_plan_uuid')
-        fields.append('next_uuid')
         for field in fields:
             # Skip fields we do not expose.
             if not hasattr(self, field):
@@ -163,15 +143,13 @@ class Action(base.APIBase):
         self.fields.append('action_plan_id')
         setattr(self, 'action_plan_uuid', kwargs.get('action_plan_id',
                 wtypes.Unset))
-        setattr(self, 'next_uuid', kwargs.get('next',
-                wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(action, url, expand=True):
         if not expand:
-            action.unset_fields_except(['uuid', 'state', 'next', 'next_uuid',
-                                        'action_plan_uuid', 'action_plan_id',
-                                        'action_type'])
+            action.unset_fields_except(['uuid', 'state', 'action_plan_uuid',
+                                        'action_plan_id', 'action_type',
+                                        'parents'])
 
         action.links = [link.Link.make_link('self', url,
                                             'actions', action.uuid),
@@ -193,9 +171,9 @@ class Action(base.APIBase):
                      state='PENDING',
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow())
+                     updated_at=datetime.datetime.utcnow(),
+                     parents=[])
         sample._action_plan_uuid = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
-        sample._next_uuid = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 
 
@@ -216,17 +194,6 @@ class ActionCollection(collection.Collection):
         collection.actions = [Action.convert_with_links(p, expand)
                               for p in actions]
 
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'next_uuid':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                collection.actions = sorted(
-                    collection.actions,
-                    key=lambda action: action.next_uuid or '',
-                    reverse=reverse)
-
-        collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
     @classmethod
@@ -268,10 +235,7 @@ class ActionsController(rest.RestController):
         if audit_uuid:
             filters['audit_uuid'] = audit_uuid
 
-        if sort_key == 'next_uuid':
-            sort_db_key = None
-        else:
-            sort_db_key = sort_key
+        sort_db_key = sort_key
 
         actions = objects.Action.list(pecan.request.context,
                                       limit,

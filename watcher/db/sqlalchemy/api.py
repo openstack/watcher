@@ -746,6 +746,9 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
+        if values.get('state') is None:
+            values['state'] = objects.action.State.PENDING
+
         try:
             action = self._create(models.Action, values)
         except db_exc.DBDuplicateEntry:

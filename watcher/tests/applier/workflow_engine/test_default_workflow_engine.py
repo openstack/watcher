@@ -70,14 +70,15 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def create_action(self, action_type, parameters, next):
+    def create_action(self, action_type, parameters, parents):
         action = {
             'uuid': utils.generate_uuid(),
             'action_plan_id': 0,
             'action_type': action_type,
             'input_parameters': parameters,
             'state': objects.action.State.PENDING,
-            'next': next,
+            'parents': parents,
+
         }
         new_action = objects.Action(self.context, **action)
         new_action.create()
@@ -116,7 +117,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
     def test_execute_with_two_actions(self):
         actions = []
         second = self.create_action("sleep", {'duration': 0.0}, None)
-        first = self.create_action("nop", {'message': 'test'}, second.id)
+        first = self.create_action("nop", {'message': 'test'}, None)
 
         actions.append(first)
         actions.append(second)
@@ -132,8 +133,8 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions = []
 
         third = self.create_action("nop", {'message': 'next'}, None)
-        second = self.create_action("sleep", {'duration': 0.0}, third.id)
-        first = self.create_action("nop", {'message': 'hello'}, second.id)
+        second = self.create_action("sleep", {'duration': 0.0}, None)
+        first = self.create_action("nop", {'message': 'hello'}, None)
 
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(second, objects.action.State.PENDING)
@@ -154,8 +155,8 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions = []
 
         third = self.create_action("no_exist", {'message': 'next'}, None)
-        second = self.create_action("sleep", {'duration': 0.0}, third.id)
-        first = self.create_action("nop", {'message': 'hello'}, second.id)
+        second = self.create_action("sleep", {'duration': 0.0}, None)
+        first = self.create_action("nop", {'message': 'hello'}, None)
 
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(second, objects.action.State.PENDING)

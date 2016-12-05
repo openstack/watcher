@@ -34,7 +34,7 @@ def post_get_test_action(**kw):
     del action['action_plan_id']
     action['action_plan_uuid'] = kw.get('action_plan_uuid',
                                         action_plan['uuid'])
-    action['next'] = None
+    action['parents'] = None
     return action
 
 
@@ -42,7 +42,7 @@ class TestActionObject(base.TestCase):
 
     def test_action_init(self):
         action_dict = api_utils.action_post_data(action_plan_id=None,
-                                                 next=None)
+                                                 parents=None)
         del action_dict['state']
         action = api_action.Action(**action_dict)
         self.assertEqual(wtypes.Unset, action.state)
@@ -67,13 +67,13 @@ class TestListAction(api_base.FunctionalTest):
             self.assertIn(field, action)
 
     def test_one(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json('/actions')
         self.assertEqual(action.uuid, response['actions'][0]["uuid"])
         self._assert_action_fields(response['actions'][0])
 
     def test_one_soft_deleted(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         action.soft_delete()
         response = self.get_json('/actions',
                                  headers={'X-Show-Deleted': 'True'})
@@ -84,7 +84,7 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual([], response['actions'])
 
     def test_get_one(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json('/actions/%s' % action['uuid'])
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
@@ -92,7 +92,7 @@ class TestListAction(api_base.FunctionalTest):
         self._assert_action_fields(response)
 
     def test_get_one_soft_deleted(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         action.soft_delete()
         response = self.get_json('/actions/%s' % action['uuid'],
                                  headers={'X-Show-Deleted': 'True'})
@@ -104,13 +104,13 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual(404, response.status_int)
 
     def test_detail(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json('/actions/detail')
         self.assertEqual(action.uuid, response['actions'][0]["uuid"])
         self._assert_action_fields(response['actions'][0])
 
     def test_detail_soft_deleted(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         action.soft_delete()
         response = self.get_json('/actions/detail',
                                  headers={'X-Show-Deleted': 'True'})
@@ -121,7 +121,7 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual([], response['actions'])
 
     def test_detail_against_single(self):
-        action = obj_utils.create_test_action(self.context, next=None)
+        action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json('/actions/%s/detail' % action['uuid'],
                                  expect_errors=True)
         self.assertEqual(404, response.status_int)
@@ -312,18 +312,23 @@ class TestListAction(api_base.FunctionalTest):
             set([act['uuid'] for act in response['actions']
                  if act['action_plan_uuid'] == action_plan2.uuid]))
 
-    def test_many_with_next_uuid(self):
+    def test_many_with_parents(self):
         action_list = []
         for id_ in range(5):
-            action = obj_utils.create_test_action(self.context, id=id_,
-                                                  uuid=utils.generate_uuid(),
-                                                  next=id_ + 1)
+            if id_ > 0:
+                action = obj_utils.create_test_action(
+                    self.context, id=id_, uuid=utils.generate_uuid(),
+                    parents=[action_list[id_ - 1]])
+            else:
+                action = obj_utils.create_test_action(
+                    self.context, id=id_, uuid=utils.generate_uuid(),
+                    parents=[])
             action_list.append(action.uuid)
         response = self.get_json('/actions')
         response_actions = response['actions']
         for id_ in range(4):
-            self.assertEqual(response_actions[id_]['next_uuid'],
-                             response_actions[id_ + 1]['uuid'])
+            self.assertEqual(response_actions[id_]['uuid'],
+                             response_actions[id_ + 1]['parents'][0])
 
     def test_many_without_soft_deleted(self):
         action_list = []
@@ -357,30 +362,6 @@ class TestListAction(api_base.FunctionalTest):
         uuids = [s['uuid'] for s in response['actions']]
         self.assertEqual(sorted(action_list), sorted(uuids))
 
-    def test_many_with_sort_key_next_uuid(self):
-        for id_ in range(5):
-            obj_utils.create_test_action(self.context, id=id_,
-                                         uuid=utils.generate_uuid(),
-                                         next=id_ + 1)
-        response = self.get_json('/actions/')
-        reference_uuids = [
-            s.get('next_uuid', '') for s in response['actions']
-        ]
-
-        response = self.get_json('/actions/?sort_key=next_uuid')
-
-        self.assertEqual(5, len(response['actions']))
-        uuids = [(s['next_uuid'] if 'next_uuid' in s else '')
-                 for s in response['actions']]
-        self.assertEqual(sorted(reference_uuids), uuids)
-
-        response = self.get_json('/actions/?sort_key=next_uuid&sort_dir=desc')
-
-        self.assertEqual(5, len(response['actions']))
-        uuids = [(s['next_uuid'] if 'next_uuid' in s else '')
-                 for s in response['actions']]
-        self.assertEqual(sorted(reference_uuids, reverse=True), uuids)
-
     def test_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_action(self.context, id=1, uuid=uuid)
@@ -393,17 +374,14 @@ class TestListAction(api_base.FunctionalTest):
             self.assertTrue(self.validate_link(l['href'], bookmark=bookmark))
 
     def test_collection_links(self):
-        next = -1
+        parents = None
         for id_ in range(5):
             action = obj_utils.create_test_action(self.context, id=id_,
                                                   uuid=utils.generate_uuid(),
-                                                  next=next)
-            next = action.id
+                                                  parents=parents)
+            parents = [action.id]
         response = self.get_json('/actions/?limit=3')
         self.assertEqual(3, len(response['actions']))
-
-        next_marker = response['actions'][-1]['uuid']
-        self.assertIn(next_marker, response['next'])
 
     def test_collection_links_default_limit(self):
         cfg.CONF.set_override('max_limit', 3, 'api',
@@ -414,9 +392,6 @@ class TestListAction(api_base.FunctionalTest):
         response = self.get_json('/actions')
         self.assertEqual(3, len(response['actions']))
 
-        next_marker = response['actions'][-1]['uuid']
-        self.assertIn(next_marker, response['next'])
-
 
 class TestPatch(api_base.FunctionalTest):
 
@@ -426,7 +401,7 @@ class TestPatch(api_base.FunctionalTest):
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
         obj_utils.create_test_action_plan(self.context)
-        self.action = obj_utils.create_test_action(self.context, next=None)
+        self.action = obj_utils.create_test_action(self.context, parents=None)
         p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()
         self.mock_action_update.side_effect = self._simulate_rpc_action_update
@@ -461,7 +436,7 @@ class TestDelete(api_base.FunctionalTest):
         self.strategy = obj_utils.create_test_strategy(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
         self.action_plan = obj_utils.create_test_action_plan(self.context)
-        self.action = obj_utils.create_test_action(self.context, next=None)
+        self.action = obj_utils.create_test_action(self.context, parents=None)
         p = mock.patch.object(db_api.BaseConnection, 'update_action')
         self.mock_action_update = p.start()
         self.mock_action_update.side_effect = self._simulate_rpc_action_update
