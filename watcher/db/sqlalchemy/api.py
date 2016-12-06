@@ -132,7 +132,8 @@ class Connection(api.BaseConnection):
     def __add_simple_filter(self, query, model, fieldname, value, operator_):
         field = getattr(model, fieldname)
 
-        if field.type.python_type is datetime.datetime and value:
+        if (fieldname != 'deleted' and value and
+                field.type.python_type is datetime.datetime):
             if not isinstance(value, datetime.datetime):
                 value = timeutils.parse_isotime(value)
 
