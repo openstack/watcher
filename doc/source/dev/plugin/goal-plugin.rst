@@ -60,8 +60,8 @@ Here is an example showing how you can define a new ``NewGoal`` goal plugin:
     # import path: thirdparty.new
 
     from watcher._i18n import _
+    from watcher.decision_engine.goal import base
     from watcher.decision_engine.goal.efficacy import specs
-    from watcher.decision_engine.strategy.strategies import base
 
     class NewGoal(base.Goal):
 
@@ -79,11 +79,11 @@ Here is an example showing how you can define a new ``NewGoal`` goal plugin:
 
         @classmethod
         def get_efficacy_specification(cls):
-            return specs.UnclassifiedStrategySpecification()
+            return specs.Unclassified()
 
 
 As you may have noticed, the :py:meth:`~.Goal.get_efficacy_specification`
-method returns an :py:meth:`~.UnclassifiedStrategySpecification` instance which
+method returns an :py:meth:`~.Unclassified` instance which
 is provided by Watcher. This efficacy specification is useful during the
 development process of your goal as it corresponds to an empty specification.
 If you want to learn more about what efficacy specifications are used for or to
