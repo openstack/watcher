@@ -89,7 +89,7 @@ How to use it ?
 .. code-block:: shell
 
     $ openstack optimize audittemplate create \
-      at1 vm_consolidation --strategy vm_workload_consolidation
+      at1 server_consolidation --strategy vm_workload_consolidation
 
     $ openstack optimize audit create -a at1
 
