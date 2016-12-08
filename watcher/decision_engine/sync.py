@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ast
 import collections
 
 from oslo_log import log
@@ -536,11 +537,14 @@ class Syncer(object):
     def _soft_delete_stale_strategies(self, strategy_map, matching_strategies):
         strategy_name = strategy_map.name
         strategy_display_name = strategy_map.display_name
+        parameters_spec = strategy_map.parameters_spec
 
         stale_strategies = []
         for matching_strategy in matching_strategies:
             if (matching_strategy.display_name == strategy_display_name and
-                    matching_strategy.goal_id not in self.goal_mapping):
+                    matching_strategy.goal_id not in self.goal_mapping and
+                    matching_strategy.parameters_spec ==
+                    ast.literal_eval(parameters_spec)):
                 LOG.info(_LI("Strategy %s unchanged"), strategy_name)
             else:
                 LOG.info(_LI("Strategy %s modified"), strategy_name)
