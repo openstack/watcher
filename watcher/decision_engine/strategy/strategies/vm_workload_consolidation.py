@@ -534,10 +534,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         LOG.debug(info)
 
     def post_execute(self):
-        # self.solution.efficacy = rcu_after['cpu']
         self.solution.set_efficacy_indicators(
-            released_compute_nodes_count=self.number_of_migrations,
-            instance_migrations_count=self.number_of_released_nodes,
+            released_compute_nodes_count=self.number_of_released_nodes,
+            instance_migrations_count=self.number_of_migrations,
         )
 
         LOG.debug(self.compute_model.to_string())
