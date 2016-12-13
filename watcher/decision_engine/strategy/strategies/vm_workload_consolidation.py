@@ -164,7 +164,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     'state=%(instance_state)s.'),
                 instance_uuid=instance_uuid,
                 instance_state=instance_state_str)
-            raise exception.WatcherException
+            return
 
         migration_type = 'live'
 
