@@ -134,19 +134,16 @@ class CeilometerHelper(object):
                               aggregate='avg'):
         """Representing a statistic aggregate by operators
 
-        :param resource_id: id
-        :param meter_name: meter names of which we want the statistics
-        :param period: `period`: In seconds. If no period is given, only one
-                       aggregate statistic is returned. If given, a faceted
-                       result will be returned, divided into given periods.
-                       Periods with no data are ignored.
-        :param aggregate:
-        :return:
+        :param resource_id: id of resource to list statistics for.
+        :param meter_name: Name of meter to list statistics for.
+        :param period: Period in seconds over which to group samples.
+        :param aggregate: Available aggregates are: count, cardinality,
+                           min, max, sum, stddev, avg. Defaults to avg.
+        :return: Return the latest statistical data, None if no data.
         """
 
         end_time = datetime.datetime.utcnow()
-        start_time = (datetime.datetime.utcnow() -
-                      datetime.timedelta(seconds=int(period)))
+        start_time = end_time - datetime.timedelta(seconds=int(period))
         query = self.build_query(
             resource_id=resource_id, start_time=start_time, end_time=end_time)
         statistic = self.query_retry(f=self.ceilometer.statistics.list,
