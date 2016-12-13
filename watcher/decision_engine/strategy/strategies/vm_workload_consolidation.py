@@ -401,13 +401,16 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     'input_parameters'][
                         'resource_id'] == instance_uuid)
             if len(actions) > 1:
-                src = actions[0]['input_parameters']['source_node']
-                dst = actions[-1]['input_parameters']['destination_node']
+                src_uuid = actions[0]['input_parameters']['source_node']
+                dst_uuid = actions[-1]['input_parameters']['destination_node']
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
-                if src != dst:
-                    self.add_migration(instance_uuid, src, dst, model)
+                if src_uuid != dst_uuid:
+                    src_node = model.get_node_by_uuid(src_uuid)
+                    dst_node = model.get_node_by_uuid(dst_uuid)
+                    self.add_migration(
+                        instance_uuid, src_node, dst_node, model)
 
     def offload_phase(self, model, cc):
         """Perform offloading phase.
