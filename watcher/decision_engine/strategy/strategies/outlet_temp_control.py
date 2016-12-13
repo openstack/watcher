@@ -230,6 +230,9 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
 
+        if self.compute_model.stale:
+            raise wexc.ClusterStateStale()
+
         LOG.debug(self.compute_model.to_string())
 
     def do_execute(self):

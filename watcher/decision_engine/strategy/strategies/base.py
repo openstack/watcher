@@ -185,6 +185,9 @@ class BaseStrategy(loadable.Loadable):
         if not self._compute_model:
             raise exception.ClusterStateNotDefined()
 
+        if self._compute_model.stale:
+            raise exception.ClusterStateStale()
+
         return self._compute_model
 
     @classmethod
