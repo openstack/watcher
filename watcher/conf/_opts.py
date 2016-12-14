@@ -23,6 +23,7 @@ from watcher.common import clients
 from watcher.common import exception
 from watcher.common import paths
 from watcher.conf import api as conf_api
+from watcher.conf import utils
 from watcher.db.sqlalchemy import models
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import manager as decision_engine_manager
@@ -35,7 +36,8 @@ def list_opts():
         ('DEFAULT',
          (conf_api.AUTH_OPTS +
           exception.EXC_LOG_OPTS +
-          paths.PATH_OPTS)),
+          paths.PATH_OPTS +
+          utils.UTILS_OPTS)),
         ('api', conf_api.API_SERVICE_OPTS),
         ('database', models.SQL_OPTS),
         ('watcher_decision_engine',

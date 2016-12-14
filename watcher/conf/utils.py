@@ -1,8 +1,7 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2016 b<>com
 # Copyright (c) 2016 Intel Corp
 #
-# Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
+# Authors: Prudhvi Rao Shedimbi <prudhvi.rao.shedimbi@intel.com>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,12 +18,19 @@
 
 from oslo_config import cfg
 
-from watcher.conf import api
-from watcher.conf import service
-from watcher.conf import utils
+UTILS_OPTS = [
+    cfg.StrOpt('rootwrap_config',
+               default="/etc/watcher/rootwrap.conf",
+               help='Path to the rootwrap configuration file to use for '
+                    'running commands as root.'),
+    cfg.StrOpt('tempdir',
+               help='Explicitly specify the temporary working directory.'),
+]
 
-CONF = cfg.CONF
 
-service.register_opts(CONF)
-api.register_opts(CONF)
-utils.register_opts(CONF)
+def register_opts(conf):
+    conf.register_opts(UTILS_OPTS)
+
+
+def list_opts():
+    return [('DEFAULT', UTILS_OPTS)]

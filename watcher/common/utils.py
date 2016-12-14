@@ -19,7 +19,6 @@
 import re
 
 from jsonschema import validators
-from oslo_config import cfg
 from oslo_log import log as logging
 from oslo_utils import strutils
 from oslo_utils import timeutils
@@ -29,18 +28,9 @@ import six
 from watcher._i18n import _LW
 from watcher.common import exception
 
+from watcher import conf
 
-UTILS_OPTS = [
-    cfg.StrOpt('rootwrap_config',
-               default="/etc/watcher/rootwrap.conf",
-               help='Path to the rootwrap configuration file to use for '
-                    'running commands as root.'),
-    cfg.StrOpt('tempdir',
-               help='Explicitly specify the temporary working directory.'),
-]
-
-CONF = cfg.CONF
-CONF.register_opts(UTILS_OPTS)
+CONF = conf.CONF
 
 LOG = logging.getLogger(__name__)
 
