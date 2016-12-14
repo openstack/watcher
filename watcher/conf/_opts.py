@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 # Copyright 2014
 # The Cloudscaling Group, Inc.
+# Copyright (c) 2016 Intel Corp
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +18,11 @@
 
 from keystoneauth1 import loading as ka_loading
 
-from watcher.api import acl as api_acl
-from watcher.api import app as api_app
 from watcher.applier import manager as applier_manager
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common import paths
+from watcher.conf import api as conf_api
 from watcher.db.sqlalchemy import models
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import manager as decision_engine_manager
@@ -33,11 +33,10 @@ def list_opts():
     """Legacy aggregation of all the watcher config options"""
     return [
         ('DEFAULT',
-         (api_app.API_SERVICE_OPTS +
-          api_acl.AUTH_OPTS +
+         (conf_api.AUTH_OPTS +
           exception.EXC_LOG_OPTS +
           paths.PATH_OPTS)),
-        ('api', api_app.API_SERVICE_OPTS),
+        ('api', conf_api.API_SERVICE_OPTS),
         ('database', models.SQL_OPTS),
         ('watcher_decision_engine',
          (decision_engine_manager.WATCHER_DECISION_ENGINE_OPTS +

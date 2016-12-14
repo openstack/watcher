@@ -2,6 +2,7 @@
 
 # Copyright © 2012 New Dream Network, LLC (DreamHost)
 # All Rights Reserved.
+# Copyright (c) 2016 Intel Corp
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -16,49 +17,14 @@
 #    under the License.
 
 
-from oslo_config import cfg
 import pecan
 
-from watcher._i18n import _
 from watcher.api import acl
 from watcher.api import config as api_config
 from watcher.api import middleware
+from watcher import conf
 
-# Register options for the service
-API_SERVICE_OPTS = [
-    cfg.PortOpt('port',
-                default=9322,
-                help=_('The port for the watcher API server')),
-    cfg.StrOpt('host',
-               default='127.0.0.1',
-               help=_('The listen IP for the watcher API server')),
-    cfg.IntOpt('max_limit',
-               default=1000,
-               help=_('The maximum number of items returned in a single '
-                      'response from a collection resource')),
-    cfg.IntOpt('workers',
-               min=1,
-               help=_('Number of workers for Watcher API service. '
-                      'The default is equal to the number of CPUs available '
-                      'if that can be determined, else a default worker '
-                      'count of 1 is returned.')),
-
-    cfg.BoolOpt('enable_ssl_api',
-                default=False,
-                help=_("Enable the integrated stand-alone API to service "
-                       "requests via HTTPS instead of HTTP. If there is a "
-                       "front-end service performing HTTPS offloading from "
-                       "the service, this option should be False; note, you "
-                       "will want to change public API endpoint to represent "
-                       "SSL termination URL with 'public_endpoint' option.")),
-]
-
-CONF = cfg.CONF
-opt_group = cfg.OptGroup(name='api',
-                         title='Options for the watcher-api service')
-
-CONF.register_group(opt_group)
-CONF.register_opts(API_SERVICE_OPTS, opt_group)
+CONF = conf.CONF
 
 
 def get_pecan_config():
