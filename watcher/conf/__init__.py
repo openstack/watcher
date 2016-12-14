@@ -22,6 +22,7 @@ from oslo_config import cfg
 from watcher.conf import api
 from watcher.conf import applier
 from watcher.conf import db
+from watcher.conf import decision_engine
 from watcher.conf import exception
 from watcher.conf import paths
 from watcher.conf import planner
@@ -38,3 +39,4 @@ exception.register_opts(CONF)
 db.register_opts(CONF)
 planner.register_opts(CONF)
 applier.register_opts(CONF)
+decision_engine.register_opts(CONF)

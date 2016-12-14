@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica LTD
+# Copyright (c) 2016 Intel Corp
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
 #
@@ -21,22 +22,13 @@ import datetime
 
 from apscheduler.schedulers import background
 
-from oslo_config import cfg
-
 from watcher.common import context
 from watcher.decision_engine.audit import base
 from watcher import objects
 
-CONF = cfg.CONF
+from watcher import conf
 
-WATCHER_CONTINUOUS_OPTS = [
-    cfg.IntOpt('continuous_audit_interval',
-               default=10,
-               help='Interval (in seconds) for checking newly created '
-                    'continuous audits.')
-]
-
-CONF.register_opts(WATCHER_CONTINUOUS_OPTS, 'watcher_decision_engine')
+CONF = conf.CONF
 
 
 class ContinuousAuditHandler(base.AuditHandler):

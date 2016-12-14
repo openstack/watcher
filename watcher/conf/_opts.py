@@ -22,12 +22,11 @@ from watcher.common import clients
 from watcher.conf import api as conf_api
 from watcher.conf import applier as conf_applier
 from watcher.conf import db
+from watcher.conf import decision_engine as conf_de
 from watcher.conf import exception
 from watcher.conf import paths
 from watcher.conf import planner as conf_planner
 from watcher.conf import utils
-from watcher.decision_engine.audit import continuous
-from watcher.decision_engine import manager as decision_engine_manager
 
 
 def list_opts():
@@ -40,11 +39,11 @@ def list_opts():
           utils.UTILS_OPTS)),
         ('api', conf_api.API_SERVICE_OPTS),
         ('database', db.SQL_OPTS),
-        ('watcher_decision_engine',
-         (decision_engine_manager.WATCHER_DECISION_ENGINE_OPTS +
-          continuous.WATCHER_CONTINUOUS_OPTS)),
         ('watcher_planner', conf_planner.WATCHER_PLANNER_OPTS),
         ('watcher_applier', conf_applier.APPLIER_MANAGER_OPTS),
+        ('watcher_decision_engine',
+         (conf_de.WATCHER_DECISION_ENGINE_OPTS +
+          conf_de.WATCHER_CONTINUOUS_OPTS)),
         ('nova_client', clients.NOVA_CLIENT_OPTS),
         ('glance_client', clients.GLANCE_CLIENT_OPTS),
         ('cinder_client', clients.CINDER_CLIENT_OPTS),
