@@ -121,7 +121,7 @@ class NovaNotification(base.NotificationEndpoint):
             if node_data['forced_down'] else element.ServiceState.ONLINE.value)
         node.status = (
             element.ServiceState.DISABLED.value
-            if node_data['host'] else element.ServiceState.ENABLED.value)
+            if node_data['disabled'] else element.ServiceState.ENABLED.value)
 
     def create_compute_node(self, node_hostname):
         """Update the compute node by querying the Nova API."""
