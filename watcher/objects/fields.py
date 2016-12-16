@@ -17,11 +17,7 @@
 import ast
 import six
 
-from oslo_log import log
 from oslo_versionedobjects import fields
-
-
-LOG = log.getLogger(__name__)
 
 
 BaseEnumField = fields.BaseEnumField
