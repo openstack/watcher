@@ -30,12 +30,12 @@ implement:
    implement. This is the first function to be called by the
    :ref:`applier <watcher_applier_definition>` before any further processing
    and its role is to validate the input parameters that were provided to it.
- - The :py:meth:`~.BaseAction.precondition` is called before the execution of
+ - The :py:meth:`~.BaseAction.pre_condition` is called before the execution of
    an action. This method is a hook that can be used to perform some
    initializations or to make some more advanced validation on its input
    parameters. If you wish to block the execution based on this factor, you
    simply have to ``raise`` an exception.
- - The :py:meth:`~.BaseAction.postcondition` is called after the execution of
+ - The :py:meth:`~.BaseAction.post_condition` is called after the execution of
    an action. As this function is called regardless of whether an action
    succeeded or not, this can prove itself useful to perform cleanup
    operations.
@@ -71,11 +71,11 @@ Here is an example showing how you can write a plugin called ``DummyAction``:
             # Does nothing
             pass
 
-        def precondition(self):
+        def pre_condition(self):
             # No pre-checks are done here
             pass
 
-        def postcondition(self):
+        def post_condition(self):
             # Nothing done here
             pass
 
