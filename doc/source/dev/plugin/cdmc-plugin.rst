@@ -268,5 +268,5 @@ At this point, you can use your new cluster data model plugin in your
     # [...]
     dummy_collector = self.collector_manager.get_cluster_model_collector(
         "dummy")  # "dummy" is the name of the entry point we declared earlier
-    dummy_model = collector.get_latest_cluster_data_model()
+    dummy_model = dummy_collector.get_latest_cluster_data_model()
     # Do some stuff with this model
