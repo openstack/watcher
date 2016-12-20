@@ -258,7 +258,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         overload_hosts = []
         nonoverload_hosts = []
         # total workload of cluster
-        # it's the total core numbers being utilized in a cluster.
         cluster_workload = 0.0
         # use workload_cache to store the workload of VMs for reuse purpose
         workload_cache = {}
