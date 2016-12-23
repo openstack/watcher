@@ -16,12 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import random
-
 import oslo_utils
 
 
-class FakerMetricsCollector(object):
+class FakeCeilometerMetrics(object):
     def __init__(self):
         self.emptytype = ""
 
@@ -46,19 +44,20 @@ class FakerMetricsCollector(object):
         elif meter_name == "hardware.ipmi.node.airflow":
             result = self.get_average_airflow(resource_id)
         elif meter_name == "hardware.ipmi.node.temperature":
-            result = self.get_average_inletT(resource_id)
+            result = self.get_average_inlet_t(resource_id)
         elif meter_name == "hardware.ipmi.node.power":
             result = self.get_average_power(resource_id)
         return result
 
     def mock_get_statistics_wb(self, resource_id, meter_name, period,
                                aggregate='avg'):
-        result = 0
+        result = 0.0
         if meter_name == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)
         return result
 
-    def get_average_outlet_temperature(self, uuid):
+    @staticmethod
+    def get_average_outlet_temperature(uuid):
         """The average outlet temperature for host"""
         mock = {}
         mock['Node_0'] = 30
@@ -68,14 +67,15 @@ class FakerMetricsCollector(object):
             mock[uuid] = 100
         return mock[str(uuid)]
 
-    def get_usage_node_ram(self, uuid):
+    @staticmethod
+    def get_usage_node_ram(uuid):
         mock = {}
         # Ceilometer returns hardware.memory.used samples in KB.
-        mock['Node_0'] = 7*oslo_utils.units.Ki
-        mock['Node_1'] = 5*oslo_utils.units.Ki
-        mock['Node_2'] = 29*oslo_utils.units.Ki
-        mock['Node_3'] = 8*oslo_utils.units.Ki
-        mock['Node_4'] = 4*oslo_utils.units.Ki
+        mock['Node_0'] = 7 * oslo_utils.units.Ki
+        mock['Node_1'] = 5 * oslo_utils.units.Ki
+        mock['Node_2'] = 29 * oslo_utils.units.Ki
+        mock['Node_3'] = 8 * oslo_utils.units.Ki
+        mock['Node_4'] = 4 * oslo_utils.units.Ki
 
         if uuid not in mock.keys():
             # mock[uuid] = random.randint(1, 4)
@@ -83,7 +83,8 @@ class FakerMetricsCollector(object):
 
         return float(mock[str(uuid)])
 
-    def get_average_airflow(self, uuid):
+    @staticmethod
+    def get_average_airflow(uuid):
         """The average outlet temperature for host"""
         mock = {}
         mock['Node_0'] = 400
@@ -93,7 +94,8 @@ class FakerMetricsCollector(object):
             mock[uuid] = 200
         return mock[str(uuid)]
 
-    def get_average_inletT(self, uuid):
+    @staticmethod
+    def get_average_inlet_t(uuid):
         """The average outlet temperature for host"""
         mock = {}
         mock['Node_0'] = 24
@@ -102,7 +104,8 @@ class FakerMetricsCollector(object):
             mock[uuid] = 28
         return mock[str(uuid)]
 
-    def get_average_power(self, uuid):
+    @staticmethod
+    def get_average_power(uuid):
         """The average outlet temperature for host"""
         mock = {}
         mock['Node_0'] = 260
@@ -111,12 +114,13 @@ class FakerMetricsCollector(object):
             mock[uuid] = 200
         return mock[str(uuid)]
 
-    def get_usage_node_cpu(self, uuid):
+    @staticmethod
+    def get_usage_node_cpu(uuid):
         """The last VM CPU usage values to average
 
-            :param uuid:00
-            :return:
-            """
+        :param uuid:00
+        :return:
+        """
         # query influxdb stream
 
         # compute in stream
@@ -151,12 +155,13 @@ class FakerMetricsCollector(object):
 
         return float(mock[str(uuid)])
 
-    def get_average_usage_instance_cpu_wb(self, uuid):
+    @staticmethod
+    def get_average_usage_instance_cpu_wb(uuid):
         """The last VM CPU usage values to average
 
-            :param uuid:00
-            :return:
-            """
+        :param uuid:00
+        :return:
+        """
         # query influxdb stream
 
         # compute in stream
@@ -171,7 +176,8 @@ class FakerMetricsCollector(object):
         mock['INSTANCE_4'] = 10
         return float(mock[str(uuid)])
 
-    def get_average_usage_instance_cpu(self, uuid):
+    @staticmethod
+    def get_average_usage_instance_cpu(uuid):
         """The last VM CPU usage values to average
 
         :param uuid:00
@@ -204,7 +210,8 @@ class FakerMetricsCollector(object):
 
         return mock[str(uuid)]
 
-    def get_average_usage_instance_memory(self, uuid):
+    @staticmethod
+    def get_average_usage_instance_memory(uuid):
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 2
@@ -227,7 +234,8 @@ class FakerMetricsCollector(object):
 
         return mock[str(uuid)]
 
-    def get_average_usage_instance_disk(self, uuid):
+    @staticmethod
+    def get_average_usage_instance_disk(uuid):
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 2
@@ -250,6 +258,3 @@ class FakerMetricsCollector(object):
             mock[uuid] = 4
 
         return mock[str(uuid)]
-
-    def get_virtual_machine_capacity(self, instance_uuid):
-        return random.randint(1, 4)

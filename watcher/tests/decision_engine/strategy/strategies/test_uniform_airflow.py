@@ -26,8 +26,8 @@ from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
+from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
-from watcher.tests.decision_engine.model import faker_metrics_collector
 
 
 class TestUniformAirflow(base.TestCase):
@@ -35,7 +35,7 @@ class TestUniformAirflow(base.TestCase):
     def setUp(self):
         super(TestUniformAirflow, self).setUp()
         # fake metrics
-        self.fake_metrics = faker_metrics_collector.FakerMetricsCollector()
+        self.fake_metrics = ceilometer_metrics.FakeCeilometerMetrics()
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 

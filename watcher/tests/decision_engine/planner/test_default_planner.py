@@ -24,35 +24,37 @@ from watcher.decision_engine.strategy import strategies
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
+from watcher.tests.decision_engine.model import ceilometer_metrics as fake
 from watcher.tests.decision_engine.model import faker_cluster_state
-from watcher.tests.decision_engine.model import faker_metrics_collector as fake
 from watcher.tests.objects import utils as obj_utils
 
 
 class SolutionFaker(object):
     @staticmethod
     def build():
-        metrics = fake.FakerMetricsCollector()
+        metrics = fake.FakeCeilometerMetrics()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
-        sercon = strategies.BasicConsolidation(config=mock.Mock())
-        sercon._compute_model = current_state_cluster.generate_scenario_1()
-        sercon.ceilometer = mock.MagicMock(
+        strategy = strategies.BasicConsolidation(
+            config=mock.Mock(datasource="ceilometer"))
+        strategy._compute_model = current_state_cluster.generate_scenario_1()
+        strategy.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
-        return sercon.execute()
+        return strategy.execute()
 
 
 class SolutionFakerSingleHyp(object):
     @staticmethod
     def build():
-        metrics = fake.FakerMetricsCollector()
+        metrics = fake.FakeCeilometerMetrics()
         current_state_cluster = faker_cluster_state.FakerModelCollector()
-        sercon = strategies.BasicConsolidation(config=mock.Mock())
-        sercon._compute_model = (
+        strategy = strategies.BasicConsolidation(
+            config=mock.Mock(datasource="ceilometer"))
+        strategy._compute_model = (
             current_state_cluster.generate_scenario_3_with_2_nodes())
-        sercon.ceilometer = mock.MagicMock(
+        strategy.ceilometer = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
 
-        return sercon.execute()
+        return strategy.execute()
 
 
 class TestActionScheduling(base.DbTestCase):

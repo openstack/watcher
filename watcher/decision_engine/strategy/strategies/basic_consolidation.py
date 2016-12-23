@@ -35,11 +35,13 @@ migration is possible on your OpenStack cluster.
 
 """
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import monasca as mon
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -51,6 +53,15 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
+
+    METRIC_NAMES = dict(
+        ceilometer=dict(
+            host_cpu_usage='compute.node.cpu.percent',
+            instance_cpu_usage='cpu_util'),
+        monasca=dict(
+            host_cpu_usage='cpu.percent',
+            instance_cpu_usage='vm.cpu.utilization_perc'),
+    )
 
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
@@ -73,6 +84,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         self.efficacy = 100
 
         self._ceilometer = None
+        self._monasca = None
 
         # TODO(jed): improve threshold overbooking?
         self.threshold_mem = 1
@@ -111,6 +123,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             },
         }
 
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                default="ceilometer",
+                choices=["ceilometer", "monasca"]),
+        ]
+
     @property
     def ceilometer(self):
         if self._ceilometer is None:
@@ -120,6 +142,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @ceilometer.setter
     def ceilometer(self, ceilometer):
         self._ceilometer = ceilometer
+
+    @property
+    def monasca(self):
+        if self._monasca is None:
+            self._monasca = mon.MonascaHelper(osc=self.osc)
+        return self._monasca
+
+    @monasca.setter
+    def monasca(self, monasca):
+        self._monasca = monasca
 
     def check_migration(self, source_node, destination_node,
                         instance_to_migrate):
@@ -221,6 +253,64 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         # TODO(jed): take in account weight
         return (score_cores + score_disk + score_memory) / 3
 
+    def get_node_cpu_usage(self, node):
+        metric_name = self.METRIC_NAMES[
+            self.config.datasource]['host_cpu_usage']
+        if self.config.datasource == "ceilometer":
+            resource_id = "%s_%s" % (node.uuid, node.hostname)
+            return self.ceilometer.statistic_aggregation(
+                resource_id=resource_id,
+                meter_name=metric_name,
+                period="7200",
+                aggregate='avg',
+            )
+        elif self.config.datasource == "monasca":
+            statistics = self.monasca.statistic_aggregation(
+                meter_name=metric_name,
+                dimensions=dict(hostname=node.uuid),
+                period=7200,
+                aggregate='avg'
+            )
+            cpu_usage = None
+            for stat in statistics:
+                avg_col_idx = stat['columns'].index('avg')
+                values = [r[avg_col_idx] for r in stat['statistics']]
+                value = float(sum(values)) / len(values)
+                cpu_usage = value
+
+            return cpu_usage
+
+        raise exception.UnsupportedDataSource(
+            strategy=self.name, datasource=self.config.datasource)
+
+    def get_instance_cpu_usage(self, instance):
+        metric_name = self.METRIC_NAMES[
+            self.config.datasource]['instance_cpu_usage']
+        if self.config.datasource == "ceilometer":
+            return self.ceilometer.statistic_aggregation(
+                resource_id=instance.uuid,
+                meter_name=metric_name,
+                period="7200",
+                aggregate='avg'
+            )
+        elif self.config.datasource == "monasca":
+            statistics = self.monasca.statistic_aggregation(
+                meter_name=metric_name,
+                dimensions=dict(resource_id=instance.uuid),
+                period=7200,
+                aggregate='avg'
+            )
+            cpu_usage = None
+            for stat in statistics:
+                avg_col_idx = stat['columns'].index('avg')
+                values = [r[avg_col_idx] for r in stat['statistics']]
+                value = float(sum(values)) / len(values)
+                cpu_usage = value
+            return cpu_usage
+
+        raise exception.UnsupportedDataSource(
+            strategy=self.name, datasource=self.config.datasource)
+
     def calculate_score_node(self, node):
         """Calculate the score that represent the utilization level
 
@@ -228,19 +318,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :return: Score for the given compute node
         :rtype: float
         """
-        resource_id = "%s_%s" % (node.uuid, node.hostname)
-        host_avg_cpu_util = self.ceilometer.statistic_aggregation(
-            resource_id=resource_id,
-            meter_name=self.HOST_CPU_USAGE_METRIC_NAME,
-            period="7200",
-            aggregate='avg')
+        host_avg_cpu_util = self.get_node_cpu_usage(node)
 
         if host_avg_cpu_util is None:
+            resource_id = "%s_%s" % (node.uuid, node.hostname)
             LOG.error(
                 _LE("No values returned by %(resource_id)s "
                     "for %(metric_name)s") % dict(
                         resource_id=resource_id,
-                        metric_name=self.HOST_CPU_USAGE_METRIC_NAME))
+                        metric_name=self.METRIC_NAMES[
+                            self.config.datasource]['host_cpu_usage']))
             host_avg_cpu_util = 100
 
         cpu_capacity = self.compute_model.get_resource_by_uuid(
@@ -253,7 +340,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def calculate_migration_efficacy(self):
         """Calculate migration efficacy
 
-        :return: The efficacy tells us that every VM migration resulted
+        :return: The efficacy tells us that every instance migration resulted
          in releasing on node
         """
         if self.number_of_migrations > 0:
@@ -268,19 +355,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param instance: the virtual machine
         :return: score
         """
-        instance_cpu_utilization = self.ceilometer. \
-            statistic_aggregation(
-                resource_id=instance.uuid,
-                meter_name=self.INSTANCE_CPU_USAGE_METRIC_NAME,
-                period="7200",
-                aggregate='avg'
-            )
+        instance_cpu_utilization = self.get_instance_cpu_usage(instance)
         if instance_cpu_utilization is None:
             LOG.error(
                 _LE("No values returned by %(resource_id)s "
                     "for %(metric_name)s") % dict(
                         resource_id=instance.uuid,
-                        metric_name=self.INSTANCE_CPU_USAGE_METRIC_NAME))
+                        metric_name=self.METRIC_NAMES[
+                            self.config.datasource]['instance_cpu_usage']))
             instance_cpu_utilization = 100
 
         cpu_capacity = self.compute_model.get_resource_by_uuid(
