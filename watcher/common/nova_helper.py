@@ -23,6 +23,7 @@ import time
 from oslo_log import log
 
 import cinderclient.exceptions as ciexceptions
+import glanceclient.exc as glexceptions
 import novaclient.exceptions as nvexceptions
 
 from watcher.common import clients
@@ -142,7 +143,7 @@ class NovaHelper(object):
                 # We'll use the same name for the new instance.
                 imagedict = getattr(instance, "image")
                 image_id = imagedict["id"]
-                image = self.nova.images.get(image_id)
+                image = self.glance.images.get(image_id)
                 new_image_name = getattr(image, "name")
 
             instance_name = getattr(instance, "name")
@@ -575,8 +576,8 @@ class NovaHelper(object):
             return
 
         try:
-            image = self.nova.images.get(image_id)
-        except nvexceptions.NotFound:
+            image = self.glance.images.get(image_id)
+        except glexceptions.NotFound:
             LOG.debug("Image '%s' not found " % image_id)
             return
 
