@@ -34,10 +34,10 @@ API is proposed with some helper classes in order to :
 
 -  share a common measurement (events or metrics) naming based on what is
    defined in Ceilometer.
-   See `the full list of available measurements <http://docs.openstack.org/admin-guide-cloud/telemetry-measurements.html>`_
+   See `the full list of available measurements <http://docs.openstack.org/admin-guide/telemetry-measurements.html>`_
 -  share common meter types (Cumulative, Delta, Gauge) based on what is
    defined in Ceilometer.
-   See `the full list of meter types <http://docs.openstack.org/admin-guide-cloud/telemetry-measurements.html>`_
+   See `the full list of meter types <http://docs.openstack.org/admin-guide/telemetry-measurements.html>`_
 -  simplify the development of a new :ref:`Strategy <strategy_definition>`
 -  avoid duplicating the same code in several
    :ref:`Strategies <strategy_definition>`
