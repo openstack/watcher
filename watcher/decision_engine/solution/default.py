@@ -41,6 +41,9 @@ class DefaultSolution(base.BaseSolution):
             if baction.BaseAction.RESOURCE_ID in input_parameters.keys():
                 raise exception.ReservedWord(name=baction.BaseAction.
                                              RESOURCE_ID)
+        else:
+            input_parameters = {}
+
         if resource_id is not None:
             input_parameters[baction.BaseAction.RESOURCE_ID] = resource_id
         action = {
