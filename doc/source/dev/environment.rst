@@ -85,6 +85,9 @@ your platform.
 
     $ sudo yum install openssl-devel libffi-devel mysql-devel
 
+* CentOS 7::
+
+    $ sudo yum install gcc python-devel libxml2-devel libxslt-devel mariadb-devel
 
 PyPi Packages and VirtualEnv
 ----------------------------
