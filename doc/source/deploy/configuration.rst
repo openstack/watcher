@@ -86,7 +86,6 @@ Configure the Identity service for the Watcher service
         --tenant=KEYSTONE_SERVICE_PROJECT_NAME
       $ keystone user-role-add --user=watcher \
         --tenant=KEYSTONE_SERVICE_PROJECT_NAME --role=admin
-      $ keystone user-role-add --user=watcher --tenant=admin --role=admin
 
    or (by using python-openstackclient 1.8.0+)
 
@@ -97,7 +96,6 @@ Configure the Identity service for the Watcher service
         --project=KEYSTONE_SERVICE_PROJECT_NAME
       $ openstack role add --project KEYSTONE_SERVICE_PROJECT_NAME \
         --user watcher admin
-      $ openstack role add --user watcher --project admin admin
 
 
 #. You must register the Watcher Service with the Identity Service so that
