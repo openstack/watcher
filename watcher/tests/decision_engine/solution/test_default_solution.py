@@ -43,3 +43,18 @@ class TestDefaultSolution(base.TestCase):
                          solution.actions[0].get('action_type'))
         self.assertEqual(expected_parameters,
                          solution.actions[0].get('input_parameters'))
+
+    def test_default_solution_with_no_input_parameters(self):
+        solution = default.DefaultSolution(
+            goal=mock.Mock(), strategy=mock.Mock())
+        solution.add_action(action_type="nop",
+                            resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36")
+        self.assertEqual(1, len(solution.actions))
+        expected_action_type = "nop"
+        expected_parameters = {
+            "resource_id": "b199db0c-1408-4d52-b5a5-5ca14de0ff36"
+        }
+        self.assertEqual(expected_action_type,
+                         solution.actions[0].get('action_type'))
+        self.assertEqual(expected_parameters,
+                         solution.actions[0].get('input_parameters'))
