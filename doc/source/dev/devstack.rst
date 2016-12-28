@@ -193,6 +193,37 @@ must exist in every other compute node's stack user's authorized_keys file and
 every compute node's public ECDSA key needs to be in every other compute
 node's root user's known_hosts file.
 
+Disable serial console
+----------------------
+
+Serial console needs to be disabled for live migration to work.
+
+On both the controller and compute node, in /etc/nova/nova.conf
+
+[serial_console]
+enabled = False
+
+Alternatively, in devstack's local.conf:
+
+[[post-config|$NOVA_CONF]]
+[serial_console]
+#enabled=false
+
+
+VNC server configuration
+------------------------
+
+The VNC server listening parameter needs to be set to any address so
+that the server can accept connections from all of the compute nodes.
+
+On both the controller and compute node, in /etc/nova/nova.conf
+
+vncserver_listen = 0.0.0.0
+
+Alternatively, in devstack's local.conf:
+
+VNCSERVER_LISTEN=0.0.0.0
+
 
 Environment final checkup
 -------------------------
