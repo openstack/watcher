@@ -71,6 +71,9 @@ parameter              type   default Value description
                                             be tried by the strategy while
                                             searching for potential candidates.
                                             To remove the limit, set it to 0
+``period``             Number 7200          The time interval in seconds
+                                            for getting statistic aggregation
+                                            from metric data source
 ====================== ====== ============= ===================================
 
 Efficacy Indicator

@@ -194,11 +194,11 @@ class TestClients(base.TestCase):
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
-    @mock.patch.object(ceclient_v2.Client, '_get_alarm_client')
-    def test_clients_ceilometer_diff_vers(self, mock_get_alarm_client,
+    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
+    def test_clients_ceilometer_diff_vers(self, mock_get_redirect_client,
                                           mock_session):
         '''ceilometerclient currently only has one version (v2)'''
-        mock_get_alarm_client.return_value = [mock.Mock(), mock.Mock()]
+        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
         CONF.set_override('api_version', '2',
                           group='ceilometer_client')
         osc = clients.OpenStackClients()
@@ -208,10 +208,10 @@ class TestClients(base.TestCase):
                          type(osc.ceilometer()))
 
     @mock.patch.object(clients.OpenStackClients, 'session')
-    @mock.patch.object(ceclient_v2.Client, '_get_alarm_client')
-    def test_clients_ceilometer_cached(self, mock_get_alarm_client,
+    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
+    def test_clients_ceilometer_cached(self, mock_get_redirect_client,
                                        mock_session):
-        mock_get_alarm_client.return_value = [mock.Mock(), mock.Mock()]
+        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
         osc = clients.OpenStackClients()
         osc._ceilometer = None
         ceilometer = osc.ceilometer()

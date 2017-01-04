@@ -264,3 +264,40 @@ class TestBasicConsolidation(base.TestCase):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_periods(self):
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        node_1 = model.get_node_by_uuid("Node_1")
+        p_ceilometer = mock.patch.object(
+            strategies.BasicConsolidation, "ceilometer")
+        m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+        p_monasca = mock.patch.object(strategies.BasicConsolidation, "monasca")
+        m_monasca = p_monasca.start()
+        self.addCleanup(p_monasca.stop)
+        m_monasca.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        self.strategy.calculate_score_node(node_1)
+        resource_id = "%s_%s" % (node_1.uuid, node_1.hostname)
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_called_with(
+                aggregate='avg', meter_name='compute.node.cpu.percent',
+                period=7200, resource_id=resource_id)
+        elif self.strategy.config.datasource == "monasca":
+            m_monasca.statistic_aggregation.assert_called_with(
+                aggregate='avg', meter_name='cpu.percent',
+                period=7200, dimensions={'hostname': 'Node_1'})
+
+        self.strategy.input_parameters.update({"period": 600})
+        self.strategy.calculate_score_node(node_1)
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_called_with(
+                aggregate='avg', meter_name='compute.node.cpu.percent',
+                period=600, resource_id=resource_id)
+        elif self.strategy.config.datasource == "monasca":
+            m_monasca.statistic_aggregation.assert_called_with(
+                aggregate='avg', meter_name='cpu.percent',
+                period=600, dimensions={'hostname': 'Node_1'})
