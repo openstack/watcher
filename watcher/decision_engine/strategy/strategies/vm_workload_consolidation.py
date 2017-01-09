@@ -526,6 +526,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         rcu_after = self.get_relative_cluster_utilization(model)
         info = {
+            "compute_nodes_count": len(
+                self.compute_model.get_all_compute_nodes()),
             'number_of_migrations': self.number_of_migrations,
             'number_of_released_nodes':
                 self.number_of_released_nodes,
@@ -537,6 +539,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
     def post_execute(self):
         self.solution.set_efficacy_indicators(
+            compute_nodes_count=len(
+                self.compute_model.get_all_compute_nodes()),
             released_compute_nodes_count=self.number_of_released_nodes,
             instance_migrations_count=self.number_of_migrations,
         )

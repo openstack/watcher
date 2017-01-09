@@ -33,20 +33,21 @@ class ServerConsolidation(base.EfficacySpecification):
 
     def get_indicators_specifications(self):
         return [
+            indicators.ComputeNodesCount(),
             indicators.ReleasedComputeNodesCount(),
             indicators.InstanceMigrationsCount(),
         ]
 
     def get_global_efficacy_indicator(self, indicators_map=None):
         value = 0
-        if indicators_map and indicators_map.instance_migrations_count > 0:
+        if indicators_map and indicators_map.compute_nodes_count > 0:
             value = (float(indicators_map.released_compute_nodes_count) /
-                     float(indicators_map.instance_migrations_count)) * 100
+                     float(indicators_map.compute_nodes_count)) * 100
 
         return efficacy.Indicator(
             name="released_nodes_ratio",
             description=_("Ratio of released compute nodes divided by the "
-                          "number of VM migrations."),
+                          "total number of enabled compute nodes."),
             unit='%',
             value=value,
         )

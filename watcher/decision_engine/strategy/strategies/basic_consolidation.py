@@ -75,6 +75,8 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """
         super(BasicConsolidation, self).__init__(config, osc)
 
+        # set default value for the number of enabled compute nodes
+        self.number_of_enabled_nodes = 0
         # set default value for the number of released nodes
         self.number_of_released_nodes = 0
         # set default value for the number of migrations
@@ -337,18 +339,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         return self.calculate_weight(node, total_cores_used, 0, 0)
 
-    def calculate_migration_efficacy(self):
-        """Calculate migration efficacy
-
-        :return: The efficacy tells us that every instance migration resulted
-         in releasing on node
-        """
-        if self.number_of_migrations > 0:
-            return (float(self.number_of_released_nodes) / float(
-                self.number_of_migrations)) * 100
-        else:
-            return 0
-
     def calculate_score_instance(self, instance):
         """Calculate Score of virtual machine
 
@@ -394,6 +384,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """Calculate score of nodes based on load by VMs"""
         score = []
         for node in self.compute_model.get_all_compute_nodes().values():
+            if node.status == element.ServiceState.ENABLED.value:
+                self.number_of_enabled_nodes += 1
+
             count = self.compute_model.mapping.get_node_instances(node)
             if len(count) > 0:
                 result = self.calculate_score_node(node)
@@ -481,15 +474,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def do_execute(self):
         unsuccessful_migration = 0
 
-        for node_uuid, node in self.compute_model.get_all_compute_nodes(
-        ).items():
-            node_instances = self.compute_model.mapping.get_node_instances(
-                node)
-            if node_instances:
-                if node.state == element.ServiceState.ENABLED:
-                    self.add_change_service_state(
-                        node_uuid, element.ServiceState.DISABLED.value)
-
         scores = self.compute_score_of_nodes()
         # Sort compute nodes by Score decreasing
         sorted_scores = sorted(scores, reverse=True, key=lambda x: (x[1]))
@@ -526,6 +510,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 sorted_scores.pop()
 
         infos = {
+            "compute_nodes_count": self.number_of_enabled_nodes,
             "released_compute_nodes_count": self.number_of_released_nodes,
             "instance_migrations_count": self.number_of_migrations,
             "efficacy": self.efficacy
@@ -534,6 +519,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def post_execute(self):
         self.solution.set_efficacy_indicators(
+            compute_nodes_count=self.number_of_enabled_nodes,
             released_compute_nodes_count=self.number_of_released_nodes,
             instance_migrations_count=self.number_of_migrations,
         )

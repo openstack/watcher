@@ -104,6 +104,20 @@ class MigrationEfficacy(IndicatorSpecification):
             voluptuous.Range(min=0, max=100), required=True)
 
 
+class ComputeNodesCount(IndicatorSpecification):
+    def __init__(self):
+        super(ComputeNodesCount, self).__init__(
+            name="compute_nodes_count",
+            description=_("The total number of enabled compute nodes."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
 class ReleasedComputeNodesCount(IndicatorSpecification):
     def __init__(self):
         super(ReleasedComputeNodesCount, self).__init__(

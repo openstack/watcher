@@ -153,9 +153,6 @@ class TestBasicConsolidation(base.TestCase):
             instance_0_weight_assert,
             self.strategy.calculate_weight(instance_0, cores, disk, mem))
 
-    def test_calculate_migration_efficacy(self):
-        self.strategy.calculate_migration_efficacy()
-
     def test_exception_model(self):
         self.m_model.return_value = None
         self.assertRaises(
@@ -224,7 +221,7 @@ class TestBasicConsolidation(base.TestCase):
 
         expected_num_migrations = 5
         expected_power_state = 3
-        expected_global_efficacy = 60
+        expected_global_efficacy = 75
 
         num_migrations = actions_counter.get("migrate", 0)
         num_node_state_change = actions_counter.get(
