@@ -343,29 +343,26 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
         instance_host_map = []
         nodes = list(self.get_available_nodes())
-        for source_hp_id in nodes:
+        for src_node_id in nodes:
+            src_node = self.compute_model.get_node_by_uuid(src_node_id)
             c_nodes = copy.copy(nodes)
-            c_nodes.remove(source_hp_id)
+            c_nodes.remove(src_node_id)
             node_list = yield_nodes(c_nodes)
-            instances_id = self.compute_model.get_mapping(). \
-                get_node_instances_by_uuid(source_hp_id)
-            for instance_id in instances_id:
+            for instance in self.compute_model.get_node_instances(src_node):
                 min_sd_case = {'value': len(self.metrics)}
-                instance = self.compute_model.get_instance_by_uuid(instance_id)
                 if instance.state not in [element.InstanceState.ACTIVE.value,
                                           element.InstanceState.PAUSED.value]:
                     continue
                 for dst_node_id in next(node_list):
-                    sd_case = self.calculate_migration_case(hosts, instance_id,
-                                                            source_hp_id,
-                                                            dst_node_id)
+                    sd_case = self.calculate_migration_case(
+                        hosts, instance.uuid, src_node_id, dst_node_id)
 
                     weighted_sd = self.calculate_weighted_sd(sd_case[:-1])
 
                     if weighted_sd < min_sd_case['value']:
                         min_sd_case = {
                             'host': dst_node_id, 'value': weighted_sd,
-                            's_host': source_hp_id, 'instance': instance_id}
+                            's_host': src_node_id, 'instance': instance.uuid}
                         instance_host_map.append(min_sd_case)
         return sorted(instance_host_map, key=lambda x: x['value'])
 

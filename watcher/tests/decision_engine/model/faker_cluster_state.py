@@ -54,7 +54,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
     def build_scenario_1(self):
         instances = []
 
-        current_state_cluster = modelroot.ModelRoot()
+        model = modelroot.ModelRoot()
         # number of nodes
         node_count = 5
         # number max of instance per node
@@ -62,74 +62,52 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         # total number of virtual machine
         instance_count = (node_count * node_instance_count)
 
-        # define ressouce ( CPU, MEM disk, ... )
-        mem = element.Resource(element.ResourceType.memory)
-        # 2199.954 Mhz
-        num_cores = element.Resource(element.ResourceType.cpu_cores)
-        disk = element.Resource(element.ResourceType.disk)
-        disk_capacity = element.Resource(element.ResourceType.disk_capacity)
-
-        current_state_cluster.create_resource(mem)
-        current_state_cluster.create_resource(num_cores)
-        current_state_cluster.create_resource(disk)
-        current_state_cluster.create_resource(disk_capacity)
-
         for id_ in range(0, node_count):
             node_uuid = "Node_{0}".format(id_)
-            node = element.ComputeNode(id_)
-            node.uuid = node_uuid
-            node.hostname = "hostname_{0}".format(id_)
-
-            mem.set_capacity(node, 132)
-            disk.set_capacity(node, 250)
-            disk_capacity.set_capacity(node, 250)
-            num_cores.set_capacity(node, 40)
-            current_state_cluster.add_node(node)
+            hostname = "hostname_{0}".format(id_)
+            node_attributes = {
+                "id": id_,
+                "uuid": node_uuid,
+                "hostname": hostname,
+                "memory": 132,
+                "disk": 250,
+                "disk_capacity": 250,
+                "vcpus": 40,
+            }
+            node = element.ComputeNode(**node_attributes)
+            model.add_node(node)
 
         for i in range(0, instance_count):
             instance_uuid = "INSTANCE_{0}".format(i)
-            instance = element.Instance()
-            instance.uuid = instance_uuid
-            mem.set_capacity(instance, 2)
-            disk.set_capacity(instance, 20)
-            disk_capacity.set_capacity(instance, 20)
-            num_cores.set_capacity(instance, 10)
+            instance_attributes = {
+                "uuid": instance_uuid,
+                "memory": 2,
+                "disk": 20,
+                "disk_capacity": 20,
+                "vcpus": 10,
+            }
+
+            instance = element.Instance(**instance_attributes)
             instances.append(instance)
-            current_state_cluster.add_instance(instance)
+            model.add_instance(instance)
 
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_0"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_0"))
+        mappings = [
+            ("INSTANCE_0", "Node_0"),
+            ("INSTANCE_1", "Node_0"),
+            ("INSTANCE_2", "Node_1"),
+            ("INSTANCE_3", "Node_2"),
+            ("INSTANCE_4", "Node_2"),
+            ("INSTANCE_5", "Node_2"),
+            ("INSTANCE_6", "Node_3"),
+            ("INSTANCE_7", "Node_4"),
+        ]
+        for instance_uuid, node_uuid in mappings:
+            model.map_instance(
+                model.get_instance_by_uuid(instance_uuid),
+                model.get_node_by_uuid(node_uuid),
+            )
 
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_0"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_1"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_1"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_2"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_2"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_3"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_2"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_4"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_2"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_5"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_3"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_6"))
-
-        current_state_cluster.mapping.map(
-            current_state_cluster.get_node_by_uuid("Node_4"),
-            current_state_cluster.get_instance_by_uuid("INSTANCE_7"))
-
-        return current_state_cluster
+        return model
 
     def generate_scenario_1(self):
         return self.load_model('scenario_1.xml')

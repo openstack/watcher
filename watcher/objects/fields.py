@@ -24,10 +24,14 @@ BaseEnumField = fields.BaseEnumField
 BooleanField = fields.BooleanField
 DateTimeField = fields.DateTimeField
 Enum = fields.Enum
+FloatField = fields.FloatField
 IntegerField = fields.IntegerField
 ListOfStringsField = fields.ListOfStringsField
+NonNegativeFloatField = fields.NonNegativeFloatField
+NonNegativeIntegerField = fields.NonNegativeIntegerField
 ObjectField = fields.ObjectField
 StringField = fields.StringField
+UnspecifiedDefault = fields.UnspecifiedDefault
 UUIDField = fields.UUIDField
 
 

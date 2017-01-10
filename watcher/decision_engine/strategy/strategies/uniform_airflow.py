@@ -45,7 +45,7 @@ airflow is higher than the specified threshold.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LE, _LI, _LW
+from watcher._i18n import _, _LI, _LW
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -166,13 +166,11 @@ class UniformAirflow(base.BaseStrategy):
 
     def calculate_used_resource(self, node, cap_cores, cap_mem, cap_disk):
         """Compute the used vcpus, memory and disk based on instance flavors"""
-        instances = self.compute_model.mapping.get_node_instances(node)
+        instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
-        for instance_id in instances:
-            instance = self.compute_model.get_instance_by_uuid(
-                instance_id)
+        for instance in instances:
             vcpus_used += cap_cores.get_capacity(instance)
             memory_mb_used += cap_mem.get_capacity(instance)
             disk_gb_used += cap_disk.get_capacity(instance)
@@ -187,7 +185,7 @@ class UniformAirflow(base.BaseStrategy):
         instances_tobe_migrate = []
         for nodemap in hosts:
             source_node = nodemap['node']
-            source_instances = self.compute_model.mapping.get_node_instances(
+            source_instances = self.compute_model.get_node_instances(
                 source_node)
             if source_instances:
                 inlet_t = self.ceilometer.statistic_aggregation(
@@ -203,32 +201,20 @@ class UniformAirflow(base.BaseStrategy):
                 if (power < self.threshold_power and
                         inlet_t < self.threshold_inlet_t):
                     # hardware issue, migrate all instances from this node
-                    for instance_id in source_instances:
-                        try:
-                            instance = (self.compute_model.
-                                        get_instance_by_uuid(instance_id))
-                            instances_tobe_migrate.append(instance)
-                        except wexc.InstanceNotFound:
-                            LOG.error(_LE("Instance not found; error: %s"),
-                                      instance_id)
+                    for instance in source_instances:
+                        instances_tobe_migrate.append(instance)
                     return source_node, instances_tobe_migrate
                 else:
                     # migrate the first active instance
-                    for instance_id in source_instances:
-                        try:
-                            instance = (self.compute_model.
-                                        get_instance_by_uuid(instance_id))
-                            if (instance.state !=
-                                    element.InstanceState.ACTIVE.value):
-                                LOG.info(
-                                    _LI("Instance not active, skipped: %s"),
-                                    instance.uuid)
-                                continue
-                            instances_tobe_migrate.append(instance)
-                            return source_node, instances_tobe_migrate
-                        except wexc.InstanceNotFound:
-                            LOG.error(_LE("Instance not found; error: %s"),
-                                      instance_id)
+                    for instance in source_instances:
+                        if (instance.state !=
+                                element.InstanceState.ACTIVE.value):
+                            LOG.info(
+                                _LI("Instance not active, skipped: %s"),
+                                instance.uuid)
+                            continue
+                        instances_tobe_migrate.append(instance)
+                        return source_node, instances_tobe_migrate
             else:
                 LOG.info(_LI("Instance not found on node: %s"),
                          source_node.uuid)

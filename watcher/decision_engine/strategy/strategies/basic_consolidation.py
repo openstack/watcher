@@ -174,15 +174,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         total_disk = 0
         total_mem = 0
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         memory_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.memory)
 
-        for instance_id in self.compute_model.mapping.get_node_instances(
+        for instance in self.compute_model.get_node_instances(
                 destination_node):
-            instance = self.compute_model.get_instance_by_uuid(instance_id)
             total_cores += cpu_capacity.get_capacity(instance)
             total_disk += disk_capacity.get_capacity(instance)
             total_mem += memory_capacity.get_capacity(instance)
@@ -210,7 +209,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :return: True if the threshold is not exceed
         """
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(destination_node)
+            element.ResourceType.vcpus).get_capacity(destination_node)
         disk_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk).get_capacity(destination_node)
         memory_capacity = self.compute_model.get_resource_by_uuid(
@@ -231,7 +230,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :return:
         """
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(compute_resource)
+            element.ResourceType.vcpus).get_capacity(compute_resource)
 
         disk_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk).get_capacity(compute_resource)
@@ -333,7 +332,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             host_avg_cpu_util = 100
 
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(node)
+            element.ResourceType.vcpus).get_capacity(node)
 
         total_cores_used = cpu_capacity * (host_avg_cpu_util / 100.0)
 
@@ -356,7 +355,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             instance_cpu_utilization = 100
 
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(instance)
+            element.ResourceType.vcpus).get_capacity(instance)
 
         total_cores_used = cpu_capacity * (instance_cpu_utilization / 100.0)
 
@@ -387,28 +386,24 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             if node.status == element.ServiceState.ENABLED.value:
                 self.number_of_enabled_nodes += 1
 
-            count = self.compute_model.mapping.get_node_instances(node)
-            if len(count) > 0:
+            instances = self.compute_model.get_node_instances(node)
+            if len(instances) > 0:
                 result = self.calculate_score_node(node)
-            else:
-                # The node has not VMs
-                result = 0
-            if len(count) > 0:
                 score.append((node.uuid, result))
+
         return score
 
     def node_and_instance_score(self, sorted_scores):
         """Get List of VMs from node"""
         node_to_release = sorted_scores[len(sorted_scores) - 1][0]
-        instances_to_migrate = self.compute_model.mapping.get_node_instances(
+        instances_to_migrate = self.compute_model.get_node_instances(
             self.compute_model.get_node_by_uuid(node_to_release))
 
         instance_score = []
-        for instance_id in instances_to_migrate:
-            instance = self.compute_model.get_instance_by_uuid(instance_id)
+        for instance in instances_to_migrate:
             if instance.state == element.InstanceState.ACTIVE.value:
                 instance_score.append(
-                    (instance_id, self.calculate_score_instance(instance)))
+                    (instance, self.calculate_score_instance(instance)))
 
         return node_to_release, instance_score
 
@@ -421,8 +416,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                mig_source_node.uuid,
                                mig_destination_node.uuid)
 
-        if len(self.compute_model.mapping.get_node_instances(
-                mig_source_node)) == 0:
+        if len(self.compute_model.get_node_instances(mig_source_node)) == 0:
             self.add_change_service_state(mig_source_node.
                                           uuid,
                                           element.ServiceState.DISABLED.value)
@@ -431,10 +425,8 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def calculate_num_migrations(self, sorted_instances, node_to_release,
                                  sorted_score):
         number_migrations = 0
-        for instance in sorted_instances:
+        for mig_instance, __ in sorted_instances:
             for j in range(0, len(sorted_score)):
-                mig_instance = self.compute_model.get_instance_by_uuid(
-                    instance[0])
                 mig_source_node = self.compute_model.get_node_by_uuid(
                     node_to_release)
                 mig_destination_node = self.compute_model.get_node_by_uuid(

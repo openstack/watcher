@@ -26,7 +26,6 @@ from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import service as watcher_service
 from watcher.decision_engine.model import element
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests import base as base_test
 from watcher.tests.decision_engine.model import faker_cluster_state
@@ -35,7 +34,8 @@ from watcher.tests.decision_engine.model.notification import fake_managers
 
 class NotificationTestCase(base_test.TestCase):
 
-    def load_message(self, filename):
+    @staticmethod
+    def load_message(filename):
         cwd = os.path.abspath(os.path.dirname(__file__))
         data_folder = os.path.join(cwd, "data")
 
@@ -188,6 +188,9 @@ class TestNovaNotifications(NotificationTestCase):
             side_effect=lambda uuid: mock.Mock(
                 name='m_get_compute_node_by_hostname',
                 id=3,
+                hypervisor_hostname="Node_2",
+                state='up',
+                status='enabled',
                 uuid=uuid,
                 memory_mb=7777,
                 vcpus=42,
@@ -215,7 +218,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         disk_capacity = compute_model.get_resource_by_uuid(
@@ -239,7 +242,7 @@ class TestNovaNotifications(NotificationTestCase):
     def test_instance_update_node_notfound_set_unmapped(
             self, m_nova_helper_cls):
         m_get_compute_node_by_hostname = mock.Mock(
-            side_effect=exception.ComputeNodeNotFound)
+            side_effect=exception.ComputeNodeNotFound(name="TEST"))
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
@@ -263,7 +266,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         disk_capacity = compute_model.get_resource_by_uuid(
@@ -304,7 +307,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         memory_capacity = compute_model.get_resource_by_uuid(
@@ -324,8 +327,6 @@ class TestNovaNotifications(NotificationTestCase):
 
         # Before
         self.assertTrue(compute_model.get_instance_by_uuid(instance0_uuid))
-        for resource in compute_model.resource.values():
-            self.assertIn(instance0_uuid, resource.mapping)
 
         message = self.load_message('scenario3_instance-delete-end.json')
         handler.info(
@@ -340,9 +341,6 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertRaises(
             exception.InstanceNotFound,
             compute_model.get_instance_by_uuid, instance0_uuid)
-
-        for resource in compute_model.resource.values():
-            self.assertNotIn(instance0_uuid, resource.mapping)
 
 
 class TestLegacyNovaNotifications(NotificationTestCase):
@@ -377,7 +375,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk_capacity = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         memory_capacity = compute_model.get_resource_by_uuid(
@@ -410,31 +408,6 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
-    def test_legacy_instance_update_instance_notfound_creates(self):
-        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
-        self.fake_cdmc.cluster_data_model = compute_model
-        handler = novanotification.LegacyInstanceUpdated(self.fake_cdmc)
-
-        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
-
-        message = self.load_message('scenario3_legacy_instance-update.json')
-
-        with mock.patch.object(
-            model_root.ModelRoot, 'get_instance_by_uuid'
-        ) as m_get_instance_by_uuid:
-            m_get_instance_by_uuid.side_effect = exception.InstanceNotFound(
-                name='TEST')
-            handler.info(
-                ctxt=self.context,
-                publisher_id=message['publisher_id'],
-                event_type=message['event_type'],
-                payload=message['payload'],
-                metadata=self.FAKE_METADATA,
-            )
-
-        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
-
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_legacy_instance_update_node_notfound_still_creates(
             self, m_nova_helper_cls):
@@ -443,6 +416,9 @@ class TestLegacyNovaNotifications(NotificationTestCase):
                 name='m_get_compute_node_by_hostname',
                 id=3,
                 uuid=uuid,
+                hypervisor_hostname="Node_2",
+                state='up',
+                status='enabled',
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
@@ -470,7 +446,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         disk_capacity = compute_model.get_resource_by_uuid(
@@ -519,7 +495,7 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk = compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         disk_capacity = compute_model.get_resource_by_uuid(
@@ -571,8 +547,6 @@ class TestLegacyNovaNotifications(NotificationTestCase):
 
         # Before
         self.assertTrue(compute_model.get_instance_by_uuid(instance0_uuid))
-        for resource in compute_model.resource.values():
-            self.assertIn(instance0_uuid, resource.mapping)
 
         message = self.load_message(
             'scenario3_legacy_instance-delete-end.json')
@@ -588,6 +562,3 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         self.assertRaises(
             exception.InstanceNotFound,
             compute_model.get_instance_by_uuid, instance0_uuid)
-
-        for resource in compute_model.resource.values():
-            self.assertNotIn(instance0_uuid, resource.mapping)

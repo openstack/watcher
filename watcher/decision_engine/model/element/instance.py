@@ -17,6 +17,8 @@
 import enum
 
 from watcher.decision_engine.model.element import compute_resource
+from watcher.objects import base
+from watcher.objects import fields as wfields
 
 
 class InstanceState(enum.Enum):
@@ -36,19 +38,17 @@ class InstanceState(enum.Enum):
     ERROR = 'error'
 
 
+@base.WatcherObjectRegistry.register_if(False)
 class Instance(compute_resource.ComputeResource):
 
-    def __init__(self):
-        super(Instance, self).__init__()
-        self._state = InstanceState.ACTIVE.value
+    fields = {
+        "state": wfields.StringField(default=InstanceState.ACTIVE.value),
+
+        "memory": wfields.NonNegativeIntegerField(),
+        "disk": wfields.IntegerField(),
+        "disk_capacity": wfields.NonNegativeIntegerField(),
+        "vcpus": wfields.NonNegativeIntegerField(),
+    }
 
     def accept(self, visitor):
         raise NotImplementedError()
-
-    @property
-    def state(self):
-        return self._state
-
-    @state.setter
-    def state(self, state):
-        self._state = state

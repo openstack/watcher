@@ -17,13 +17,51 @@
 # limitations under the License.
 
 import abc
+import collections
 
+from lxml import etree
+from oslo_log import log
 import six
+
+from watcher.objects import base
+from watcher.objects import fields as wfields
+
+LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Element(object):
+class Element(base.WatcherObject, base.WatcherObjectDictCompat):
+
+    # Initial version
+    VERSION = '1.0'
+
+    fields = {}
+
+    def __init__(self, context=None, **kwargs):
+        for name, field in self.fields.items():
+            # The idea here is to force the initialization of unspecified
+            # fields that have a default value
+            if (name not in kwargs and not field.nullable and
+                    field.default != wfields.UnspecifiedDefault):
+                kwargs[name] = field.default
+        super(Element, self).__init__(context, **kwargs)
 
     @abc.abstractmethod
     def accept(self, visitor):
         raise NotImplementedError()
+
+    def as_xml_element(self):
+        sorted_fieldmap = []
+        for field in self.fields:
+            try:
+                value = str(self[field])
+                sorted_fieldmap.append((field, value))
+            except Exception as exc:
+                LOG.exception(exc)
+
+        attrib = collections.OrderedDict(sorted_fieldmap)
+
+        element_name = self.__class__.__name__
+        instance_el = etree.Element(element_name, attrib=attrib)
+
+        return instance_el

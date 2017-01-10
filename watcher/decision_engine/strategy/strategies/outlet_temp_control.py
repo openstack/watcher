@@ -124,16 +124,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def calc_used_res(self, node, cpu_capacity,
                       memory_capacity, disk_capacity):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        instances = self.compute_model.mapping.get_node_instances(node)
+        instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
-        if len(instances) > 0:
-            for instance_id in instances:
-                instance = self.compute_model.get_instance_by_uuid(instance_id)
-                vcpus_used += cpu_capacity.get_capacity(instance)
-                memory_mb_used += memory_capacity.get_capacity(instance)
-                disk_gb_used += disk_capacity.get_capacity(instance)
+        for instance in instances:
+            vcpus_used += cpu_capacity.get_capacity(instance)
+            memory_mb_used += memory_capacity.get_capacity(instance)
+            disk_gb_used += disk_capacity.get_capacity(instance)
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
@@ -146,9 +144,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         hosts_need_release = []
         hosts_target = []
-        for node_id in nodes:
-            node = self.compute_model.get_node_by_uuid(
-                node_id)
+        for node in nodes.values():
             resource_id = node.uuid
 
             outlet_temp = self.ceilometer.statistic_aggregation(
@@ -174,30 +170,27 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         """Pick up an active instance to migrate from provided hosts"""
         for instance_data in hosts:
             mig_source_node = instance_data['node']
-            instances_of_src = self.compute_model.mapping.get_node_instances(
+            instances_of_src = self.compute_model.get_node_instances(
                 mig_source_node)
-            if len(instances_of_src) > 0:
-                for instance_id in instances_of_src:
-                    try:
-                        # select the first active instance to migrate
-                        instance = self.compute_model.get_instance_by_uuid(
-                            instance_id)
-                        if (instance.state !=
-                                element.InstanceState.ACTIVE.value):
-                            LOG.info(_LI("Instance not active, skipped: %s"),
-                                     instance.uuid)
-                            continue
-                        return mig_source_node, instance
-                    except wexc.InstanceNotFound as e:
-                        LOG.exception(e)
-                        LOG.info(_LI("Instance not found"))
+            for instance in instances_of_src:
+                try:
+                    # select the first active instance to migrate
+                    if (instance.state !=
+                            element.InstanceState.ACTIVE.value):
+                        LOG.info(_LI("Instance not active, skipped: %s"),
+                                 instance.uuid)
+                        continue
+                    return mig_source_node, instance
+                except wexc.InstanceNotFound as e:
+                    LOG.exception(e)
+                    LOG.info(_LI("Instance not found"))
 
         return None
 
     def filter_dest_servers(self, hosts, instance_to_migrate):
         """Only return hosts with sufficient available resources"""
         cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         disk_capacity = self.compute_model.get_resource_by_uuid(
             element.ResourceType.disk)
         memory_capacity = self.compute_model.get_resource_by_uuid(

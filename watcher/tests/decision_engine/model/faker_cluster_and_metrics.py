@@ -102,11 +102,12 @@ class FakeCeilometerMetrics(object):
         Returns relative node CPU utilization <0, 100>.
         :param r_id: resource id
         """
-        uuid = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
-        instances = self.model.get_mapping().get_node_instances_by_uuid(uuid)
+        node_uuid = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
+        node = self.model.get_node_by_uuid(node_uuid)
+        instances = self.model.get_node_instances(node)
         util_sum = 0.0
         node_cpu_cores = self.model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity_by_uuid(uuid)
+            element.ResourceType.cpu_cores).get_capacity_by_uuid(node.uuid)
         for instance_uuid in instances:
             instance_cpu_cores = self.model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).\

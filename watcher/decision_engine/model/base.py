@@ -34,3 +34,7 @@ class Model(object):
     @abc.abstractmethod
     def to_string(self):
         raise NotImplementedError()
+
+    @abc.abstractmethod
+    def to_xml(self):
+        raise NotImplementedError()
