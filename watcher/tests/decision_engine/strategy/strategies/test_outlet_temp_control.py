@@ -22,7 +22,6 @@ import mock
 from watcher.applier.loading import default
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -69,15 +68,12 @@ class TestOutletTempControl(base.TestCase):
         self.strategy.input_parameters.update({'threshold': 34.3})
         self.strategy.threshold = 34.3
 
-    def test_calc_used_res(self):
+    def test_calc_used_resource(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = model
         node = model.get_node_by_uuid('Node_0')
-        cap_cores = model.get_resource_by_uuid(element.ResourceType.cpu_cores)
-        cap_mem = model.get_resource_by_uuid(element.ResourceType.memory)
-        cap_disk = model.get_resource_by_uuid(element.ResourceType.disk)
-        cores_used, mem_used, disk_used = self.strategy.calc_used_res(
-            node, cap_cores, cap_mem, cap_disk)
+        cores_used, mem_used, disk_used = self.strategy.calc_used_resource(
+            node)
 
         self.assertEqual((10, 2, 20), (cores_used, mem_used, disk_used))
 

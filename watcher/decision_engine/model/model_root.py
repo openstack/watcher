@@ -173,22 +173,6 @@ class ModelRoot(nx.DiGraph, base.Model):
                 if isinstance(inst, element.Instance)}
 
     @lockutils.synchronized("model_root")
-    def get_resource_by_uuid(self, resource_id):
-        # TODO(v-francoise): deprecate this method
-        # This is a trick to keep the compatibility with the old model root
-        class Resource(object):
-            def __init__(self, resource_id):
-                if isinstance(resource_id, element.ResourceType):
-                    resource_id = resource_id.value
-                self.resource_id = resource_id
-
-            def get_capacity(self, element):
-                # We ignore element because value already contains the value
-                return getattr(element, self.resource_id)
-
-        return Resource(resource_id)
-
-    @lockutils.synchronized("model_root")
     def get_node_instances(self, node):
         self.assert_node(node)
         node_instances = []

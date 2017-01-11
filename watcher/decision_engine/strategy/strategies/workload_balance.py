@@ -145,17 +145,16 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             },
         }
 
-    def calculate_used_resource(self, node, cap_cores, cap_mem,
-                                cap_disk):
+    def calculate_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
         instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for instance in instances:
-            vcpus_used += cap_cores.get_capacity(instance)
-            memory_mb_used += cap_mem.get_capacity(instance)
-            disk_gb_used += cap_disk.get_capacity(instance)
+            vcpus_used += instance.vcpus
+            memory_mb_used += instance.memory
+            disk_gb_used += instance.disk
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
@@ -200,18 +199,10 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
     def filter_destination_hosts(self, hosts, instance_to_migrate,
                                  avg_workload, workload_cache):
-        '''Only return hosts with sufficient available resources'''
-
-        cap_cores = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
-        cap_disk = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        cap_mem = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
-
-        required_cores = cap_cores.get_capacity(instance_to_migrate)
-        required_disk = cap_disk.get_capacity(instance_to_migrate)
-        required_mem = cap_mem.get_capacity(instance_to_migrate)
+        """Only return hosts with sufficient available resources"""
+        required_cores = instance_to_migrate.vcpus
+        required_disk = instance_to_migrate.disk
+        required_mem = instance_to_migrate.memory
 
         # filter nodes without enough resource
         destination_hosts = []
@@ -221,16 +212,16 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             workload = instance_data['workload']
             # calculate the available resources
             cores_used, mem_used, disk_used = self.calculate_used_resource(
-                host, cap_cores, cap_mem, cap_disk)
-            cores_available = cap_cores.get_capacity(host) - cores_used
-            disk_available = cap_disk.get_capacity(host) - disk_used
-            mem_available = cap_mem.get_capacity(host) - mem_used
+                host)
+            cores_available = host.vcpus - cores_used
+            disk_available = host.disk - disk_used
+            mem_available = host.memory - mem_used
             if (
                     cores_available >= required_cores and
                     disk_available >= required_disk and
                     mem_available >= required_mem and
-                    (src_instance_workload + workload) < self.threshold / 100 *
-                    cap_cores.get_capacity(host)
+                    ((src_instance_workload + workload) <
+                     self.threshold / 100 * host.vcpus)
             ):
                 destination_hosts.append(instance_data)
 
@@ -249,9 +240,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         cluster_size = len(nodes)
         if not nodes:
             raise wexc.ClusterEmpty()
-        # get cpu cores capacity of nodes and instances
-        cap_cores = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
         overload_hosts = []
         nonoverload_hosts = []
         # total workload of cluster
@@ -259,8 +247,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # use workload_cache to store the workload of VMs for reuse purpose
         workload_cache = {}
         for node_id in nodes:
-            node = self.compute_model.get_node_by_uuid(
-                node_id)
+            node = self.compute_model.get_node_by_uuid(node_id)
             instances = self.compute_model.get_node_instances(node)
             node_workload = 0.0
             for instance in instances:
@@ -277,19 +264,17 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 if cpu_util is None:
                     LOG.debug("Instance (%s): cpu_util is None", instance.uuid)
                     continue
-                instance_cores = cap_cores.get_capacity(instance)
-                workload_cache[instance.uuid] = cpu_util * instance_cores / 100
+                workload_cache[instance.uuid] = cpu_util * instance.vcpus / 100
                 node_workload += workload_cache[instance.uuid]
                 LOG.debug("VM (%s): cpu_util %f", instance.uuid, cpu_util)
-            node_cores = cap_cores.get_capacity(node)
-            hy_cpu_util = node_workload / node_cores * 100
+            node_cpu_util = node_workload / node.vcpus * 100
 
             cluster_workload += node_workload
 
             instance_data = {
-                'node': node, "cpu_util": hy_cpu_util,
+                'node': node, "cpu_util": node_cpu_util,
                 'workload': node_workload}
-            if hy_cpu_util >= self.threshold:
+            if node_cpu_util >= self.threshold:
                 # mark the node to release resources
                 overload_hosts.append(instance_data)
             else:

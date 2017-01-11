@@ -30,7 +30,7 @@ CONF = config.CONF
 class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
     """Tests for action plans"""
 
-    BASIC_GOAL = "server_consolidation"
+    GOAL_NAME = "server_consolidation"
 
     @classmethod
     def skip_checks(cls):
@@ -117,12 +117,15 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         all_hosts = host_client.list_hosts()['hosts']
         compute_nodes = [x for x in all_hosts if x['service'] == 'compute']
 
-        for _ in compute_nodes[:CONF.compute.min_compute_nodes]:
+        for idx, _ in enumerate(
+                compute_nodes[:CONF.compute.min_compute_nodes], start=1):
             # by getting to active state here, this means this has
             # landed on the host in question.
-            self.create_server(image_id=CONF.compute.image_ref,
-                               wait_until='ACTIVE',
-                               clients=self.mgr)
+            self.create_server(
+                name="instance-%d" % idx,
+                image_id=CONF.compute.image_ref,
+                wait_until='ACTIVE',
+                clients=self.mgr)
 
     def test_execute_basic_action_plan(self):
         """Execute an action plan based on the BASIC strategy
@@ -136,7 +139,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         self.addCleanup(self.rollback_compute_nodes_status)
         self._create_one_instance_per_host()
 
-        _, goal = self.client.show_goal(self.BASIC_GOAL)
+        _, goal = self.client.show_goal(self.GOAL_NAME)
         _, strategy = self.client.show_strategy("basic")
         _, audit_template = self.create_audit_template(
             goal['uuid'], strategy=strategy['uuid'])

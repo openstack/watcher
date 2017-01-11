@@ -22,7 +22,6 @@ import os
 import mock
 
 from watcher.decision_engine.model.collector import base
-from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
 
 
@@ -106,16 +105,12 @@ class FakeCeilometerMetrics(object):
         node = self.model.get_node_by_uuid(node_uuid)
         instances = self.model.get_node_instances(node)
         util_sum = 0.0
-        node_cpu_cores = self.model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity_by_uuid(node.uuid)
         for instance_uuid in instances:
-            instance_cpu_cores = self.model.get_resource_by_uuid(
-                element.ResourceType.cpu_cores).\
-                get_capacity(self.model.get_instance_by_uuid(instance_uuid))
-            total_cpu_util = instance_cpu_cores * self.get_instance_cpu_util(
-                instance_uuid)
+            instance = self.model.get_instance_by_uuid(instance_uuid)
+            total_cpu_util = instance.vcpus * self.get_instance_cpu_util(
+                instance.uuid)
             util_sum += total_cpu_util / 100.0
-        util_sum /= node_cpu_cores
+        util_sum /= node.vcpus
         return util_sum * 100.0
 
     @staticmethod

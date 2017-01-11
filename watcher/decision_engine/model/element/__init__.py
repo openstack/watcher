@@ -16,10 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from watcher.decision_engine.model.element import disk_info
 from watcher.decision_engine.model.element import instance
 from watcher.decision_engine.model.element import node
-from watcher.decision_engine.model.element import resource
 
 ServiceState = node.ServiceState
 ComputeNode = node.ComputeNode
@@ -27,12 +25,4 @@ ComputeNode = node.ComputeNode
 InstanceState = instance.InstanceState
 Instance = instance.Instance
 
-DiskInfo = disk_info.DiskInfo
-
-ResourceType = resource.ResourceType
-Resource = resource.Resource
-
-
-__all__ = [
-    'ServiceState', 'ComputeNode', 'InstanceState', 'Instance',
-    'DiskInfo', 'ResourceType', 'Resource']
+__all__ = ['ServiceState', 'ComputeNode', 'InstanceState', 'Instance']

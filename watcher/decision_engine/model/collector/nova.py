@@ -132,7 +132,6 @@ class ModelBuilder(object):
         compute_service = self.nova_helper.get_service(node.service["id"])
         node_attributes = {
             "id": node.id,
-            "human_id": None,  # TODO(v-francoise): get rid of it
             "uuid": compute_service.host,
             "hostname": node.hypervisor_hostname,
             "memory": node.memory_mb,

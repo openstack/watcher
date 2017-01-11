@@ -64,23 +64,19 @@ class NovaNotification(base.NotificationEndpoint):
         instance_data = data['nova_object.data']
         instance_flavor_data = instance_data['flavor']['nova_object.data']
 
-        instance.update({
-            'state': instance_data['state'],
-            'hostname': instance_data['host_name'],
-            'human_id': instance_data['display_name'],
-        })
-
         memory_mb = instance_flavor_data['memory_mb']
         num_cores = instance_flavor_data['vcpus']
         disk_gb = instance_flavor_data['root_gb']
 
-        self.update_capacity(element.ResourceType.memory, instance, memory_mb)
-        self.update_capacity(
-            element.ResourceType.vcpus, instance, num_cores)
-        self.update_capacity(
-            element.ResourceType.disk, instance, disk_gb)
-        self.update_capacity(
-            element.ResourceType.disk_capacity, instance, disk_gb)
+        instance.update({
+            'state': instance_data['state'],
+            'hostname': instance_data['host_name'],
+            'human_id': instance_data['display_name'],
+            'memory': memory_mb,
+            'vcpus': num_cores,
+            'disk': disk_gb,
+            'disk_capacity': disk_gb,
+        })
 
         try:
             node = self.get_or_create_node(instance_data['host'])
@@ -91,27 +87,20 @@ class NovaNotification(base.NotificationEndpoint):
 
         self.update_instance_mapping(instance, node)
 
-    def update_capacity(self, resource_id, obj, value):
-        setattr(obj, resource_id.value, value)
-
     def legacy_update_instance(self, instance, data):
-        instance.update({
-            'state': data['state'],
-            'hostname': data['hostname'],
-            'human_id': data['display_name'],
-        })
-
         memory_mb = data['memory_mb']
         num_cores = data['vcpus']
         disk_gb = data['root_gb']
 
-        self.update_capacity(element.ResourceType.memory, instance, memory_mb)
-        self.update_capacity(
-            element.ResourceType.vcpus, instance, num_cores)
-        self.update_capacity(
-            element.ResourceType.disk, instance, disk_gb)
-        self.update_capacity(
-            element.ResourceType.disk_capacity, instance, disk_gb)
+        instance.update({
+            'state': data['state'],
+            'hostname': data['hostname'],
+            'human_id': data['display_name'],
+            'memory': memory_mb,
+            'vcpus': num_cores,
+            'disk': disk_gb,
+            'disk_capacity': disk_gb,
+        })
 
         try:
             node = self.get_or_create_node(data['host'])
@@ -147,16 +136,12 @@ class NovaNotification(base.NotificationEndpoint):
                 uuid=node_hostname,
                 hostname=_node.hypervisor_hostname,
                 state=_node.state,
-                status=_node.status)
-
-            self.update_capacity(
-                element.ResourceType.memory, node, _node.memory_mb)
-            self.update_capacity(
-                element.ResourceType.vcpus, node, _node.vcpus)
-            self.update_capacity(
-                element.ResourceType.disk, node, _node.free_disk_gb)
-            self.update_capacity(
-                element.ResourceType.disk_capacity, node, _node.local_gb)
+                status=_node.status,
+                memory=_node.memory_mb,
+                vcpus=_node.vcpus,
+                disk=_node.free_disk_gb,
+                disk_capacity=_node.local_gb,
+            )
             return node
         except Exception as exc:
             LOG.exception(exc)
@@ -176,6 +161,7 @@ class NovaNotification(base.NotificationEndpoint):
             node = self.create_compute_node(uuid)
             LOG.debug("New compute node created: %s", uuid)
             self.cluster_data_model.add_node(node)
+            LOG.debug("New compute node mapped: %s", uuid)
             return node
 
     def update_instance_mapping(self, instance, node):

@@ -139,14 +139,12 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             input_parameters=params)
         self.number_of_released_nodes += 1
 
-    def add_migration(self, instance, source_node,
-                      destination_node, model):
+    def add_migration(self, instance, source_node, destination_node):
         """Add an action for VM migration into the solution.
 
         :param instance: instance object
         :param source_node: node object
         :param destination_node: node object
-        :param model: model_root object
         :return: None
         """
         instance_state_str = self.get_state_str(instance.state)
@@ -168,7 +166,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         if destination_node_state_str == element.ServiceState.DISABLED.value:
             self.add_action_enable_compute_node(destination_node)
 
-        if model.migrate_instance(instance, source_node, destination_node):
+        if self.compute_model.migrate_instance(
+                instance, source_node, destination_node):
             params = {'migration_type': migration_type,
                       'source_node': source_node.uuid,
                       'destination_node': destination_node.uuid}
@@ -177,30 +176,28 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                                      input_parameters=params)
             self.number_of_migrations += 1
 
-    def disable_unused_nodes(self, model):
+    def disable_unused_nodes(self):
         """Generate actions for disablity of unused nodes.
 
-        :param model: model_root object
         :return: None
         """
-        for node in model.get_all_compute_nodes().values():
-            if (len(model.get_node_instances(node)) == 0 and
+        for node in self.compute_model.get_all_compute_nodes().values():
+            if (len(self.compute_model.get_node_instances(node)) == 0 and
                     node.status !=
                     element.ServiceState.DISABLED.value):
                 self.add_action_disable_node(node)
 
-    def get_instance_utilization(self, instance_uuid, model,
+    def get_instance_utilization(self, instance,
                                  period=3600, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a VM.
 
-        :param instance_uuid: instance object
-        :param model: model_root object
+        :param instance: instance object
         :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of vcpus used), ram(MB used), disk(B used))
         """
-        if instance_uuid in self.ceilometer_instance_data_cache.keys():
-            return self.ceilometer_instance_data_cache.get(instance_uuid)
+        if instance.uuid in self.ceilometer_instance_data_cache.keys():
+            return self.ceilometer_instance_data_cache.get(instance.uuid)
 
         cpu_util_metric = 'cpu_util'
         ram_util_metric = 'memory.usage'
@@ -208,58 +205,54 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         ram_alloc_metric = 'memory'
         disk_alloc_metric = 'disk.root.size'
         instance_cpu_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance_uuid, meter_name=cpu_util_metric,
+            resource_id=instance.uuid, meter_name=cpu_util_metric,
             period=period, aggregate=aggr)
-        instance_cpu_cores = model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(
-                model.get_instance_by_uuid(instance_uuid))
 
         if instance_cpu_util:
             total_cpu_utilization = (
-                instance_cpu_cores * (instance_cpu_util / 100.0))
+                instance.vcpus * (instance_cpu_util / 100.0))
         else:
-            total_cpu_utilization = instance_cpu_cores
+            total_cpu_utilization = instance.vcpus
 
         instance_ram_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance_uuid, meter_name=ram_util_metric,
+            resource_id=instance.uuid, meter_name=ram_util_metric,
             period=period, aggregate=aggr)
 
         if not instance_ram_util:
             instance_ram_util = self.ceilometer.statistic_aggregation(
-                resource_id=instance_uuid, meter_name=ram_alloc_metric,
+                resource_id=instance.uuid, meter_name=ram_alloc_metric,
                 period=period, aggregate=aggr)
 
         instance_disk_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance_uuid, meter_name=disk_alloc_metric,
+            resource_id=instance.uuid, meter_name=disk_alloc_metric,
             period=period, aggregate=aggr)
 
         if not instance_ram_util or not instance_disk_util:
             LOG.error(
                 _LE('No values returned by %s for memory.usage '
-                    'or disk.root.size'), instance_uuid)
+                    'or disk.root.size'), instance.uuid)
             raise exception.NoDataFound
 
-        self.ceilometer_instance_data_cache[instance_uuid] = dict(
+        self.ceilometer_instance_data_cache[instance.uuid] = dict(
             cpu=total_cpu_utilization, ram=instance_ram_util,
             disk=instance_disk_util)
-        return self.ceilometer_instance_data_cache.get(instance_uuid)
+        return self.ceilometer_instance_data_cache.get(instance.uuid)
 
-    def get_node_utilization(self, node, model, period=3600, aggr='avg'):
+    def get_node_utilization(self, node, period=3600, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a node.
 
         :param node: node object
-        :param model: model_root object
         :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
-        node_instances = model.get_node_instances(node)
+        node_instances = self.compute_model.get_node_instances(node)
         node_ram_util = 0
         node_disk_util = 0
         node_cpu_util = 0
         for instance in node_instances:
             instance_util = self.get_instance_utilization(
-                instance.uuid, model, period, aggr)
+                instance, period, aggr)
             node_cpu_util += instance_util['cpu']
             node_ram_util += instance_util['ram']
             node_disk_util += instance_util['disk']
@@ -267,53 +260,40 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         return dict(cpu=node_cpu_util, ram=node_ram_util,
                     disk=node_disk_util)
 
-    def get_node_capacity(self, node, model):
+    def get_node_capacity(self, node):
         """Collect cpu, ram and disk capacity of a node.
 
         :param node: node object
-        :param model: model_root object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        node_cpu_capacity = model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity(node)
+        return dict(cpu=node.vcpus, ram=node.memory, disk=node.disk_capacity)
 
-        node_disk_capacity = model.get_resource_by_uuid(
-            element.ResourceType.disk_capacity).get_capacity(node)
-
-        node_ram_capacity = model.get_resource_by_uuid(
-            element.ResourceType.memory).get_capacity(node)
-        return dict(cpu=node_cpu_capacity, ram=node_ram_capacity,
-                    disk=node_disk_capacity)
-
-    def get_relative_node_utilization(self, node, model):
-        """Return relative node utilization (rhu).
+    def get_relative_node_utilization(self, node):
+        """Return relative node utilization.
 
         :param node: node object
-        :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        rhu = {}
-        util = self.get_node_utilization(node, model)
-        cap = self.get_node_capacity(node, model)
+        relative_node_utilization = {}
+        util = self.get_node_utilization(node)
+        cap = self.get_node_capacity(node)
         for k in util.keys():
-            rhu[k] = float(util[k]) / float(cap[k])
-        return rhu
+            relative_node_utilization[k] = float(util[k]) / float(cap[k])
+        return relative_node_utilization
 
-    def get_relative_cluster_utilization(self, model):
+    def get_relative_cluster_utilization(self):
         """Calculate relative cluster utilization (rcu).
 
         RCU is an average of relative utilizations (rhu) of active nodes.
-        :param model: model_root object
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        nodes = model.get_all_compute_nodes().values()
+        nodes = self.compute_model.get_all_compute_nodes().values()
         rcu = {}
         counters = {}
         for node in nodes:
             node_state_str = self.get_state_str(node.state)
             if node_state_str == element.ServiceState.ENABLED.value:
-                rhu = self.get_relative_node_utilization(
-                    node, model)
+                rhu = self.get_relative_node_utilization(node)
                 for k in rhu.keys():
                     if k not in rcu:
                         rcu[k] = 0
@@ -325,39 +305,35 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             rcu[k] /= counters[k]
         return rcu
 
-    def is_overloaded(self, node, model, cc):
+    def is_overloaded(self, node, cc):
         """Indicate whether a node is overloaded.
 
         This considers provided resource capacity coefficients (cc).
         :param node: node object
-        :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         :return: [True, False]
         """
-        node_capacity = self.get_node_capacity(node, model)
+        node_capacity = self.get_node_capacity(node)
         node_utilization = self.get_node_utilization(
-            node, model)
+            node)
         metrics = ['cpu']
         for m in metrics:
             if node_utilization[m] > node_capacity[m] * cc[m]:
                 return True
         return False
 
-    def instance_fits(self, instance_uuid, node, model, cc):
+    def instance_fits(self, instance, node, cc):
         """Indicate whether is a node able to accommodate a VM.
 
         This considers provided resource capacity coefficients (cc).
-        :param instance_uuid: string
+        :param instance: :py:class:`~.element.Instance`
         :param node: node object
-        :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         :return: [True, False]
         """
-        node_capacity = self.get_node_capacity(node, model)
-        node_utilization = self.get_node_utilization(
-            node, model)
-        instance_utilization = self.get_instance_utilization(
-            instance_uuid, model)
+        node_capacity = self.get_node_capacity(node)
+        node_utilization = self.get_node_utilization(node)
+        instance_utilization = self.get_instance_utilization(instance)
         metrics = ['cpu', 'ram', 'disk']
         for m in metrics:
             if (instance_utilization[m] + node_utilization[m] >
@@ -365,7 +341,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 return False
         return True
 
-    def optimize_solution(self, model):
+    def optimize_solution(self):
         """Optimize solution.
 
         This is done by eliminating unnecessary or circular set of migrations
@@ -378,8 +354,6 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
           one migration instead of two.
         * A->B, B->A => remove A->B and B->A as they do not result
           in a new VM placement.
-
-        :param model: model_root object
         """
         migrate_actions = (
             a for a in self.solution.actions if a[
@@ -398,13 +372,15 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
-                src_node = model.get_node_by_uuid(src_uuid)
-                dst_node = model.get_node_by_uuid(dst_uuid)
-                instance = model.get_instance_by_uuid(instance_uuid)
-                if model.migrate_instance(instance, dst_node, src_node):
-                    self.add_migration(instance, src_node, dst_node, model)
+                src_node = self.compute_model.get_node_by_uuid(src_uuid)
+                dst_node = self.compute_model.get_node_by_uuid(dst_uuid)
+                instance = self.compute_model.get_instance_by_uuid(
+                    instance_uuid)
+                if self.compute_model.migrate_instance(
+                        instance, dst_node, src_node):
+                    self.add_migration(instance, src_node, dst_node)
 
-    def offload_phase(self, model, cc):
+    def offload_phase(self, cc):
         """Perform offloading phase.
 
         This considers provided resource capacity coefficients.
@@ -420,29 +396,28 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         the node enabler in this phase doesn't necessarily results
         in more enabled nodes in the final solution.
 
-        :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         """
         sorted_nodes = sorted(
-            model.get_all_compute_nodes().values(),
-            key=lambda x: self.get_node_utilization(x, model)['cpu'])
+            self.compute_model.get_all_compute_nodes().values(),
+            key=lambda x: self.get_node_utilization(x)['cpu'])
         for node in reversed(sorted_nodes):
-            if self.is_overloaded(node, model, cc):
+            if self.is_overloaded(node, cc):
                 for instance in sorted(
-                        model.get_node_instances(node),
+                        self.compute_model.get_node_instances(node),
                         key=lambda x: self.get_instance_utilization(
-                            x.uuid, model)['cpu']
+                            x)['cpu']
                 ):
                     for destination_node in reversed(sorted_nodes):
                         if self.instance_fits(
-                                instance.uuid, destination_node, model, cc):
+                                instance, destination_node, cc):
                             self.add_migration(instance, node,
-                                               destination_node, model)
+                                               destination_node)
                             break
-                    if not self.is_overloaded(node, model, cc):
+                    if not self.is_overloaded(node, cc):
                         break
 
-    def consolidation_phase(self, model, cc):
+    def consolidation_phase(self, cc):
         """Perform consolidation phase.
 
         This considers provided resource capacity coefficients.
@@ -454,27 +429,25 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         in the system than less cpu utilizied VMs which can be later used
         to fill smaller CPU capacity gaps.
 
-        :param model: model_root object
         :param cc: dictionary containing resource capacity coefficients
         """
         sorted_nodes = sorted(
-            model.get_all_compute_nodes().values(),
-            key=lambda x: self.get_node_utilization(x, model)['cpu'])
+            self.compute_model.get_all_compute_nodes().values(),
+            key=lambda x: self.get_node_utilization(x)['cpu'])
         asc = 0
         for node in sorted_nodes:
             instances = sorted(
-                model.get_node_instances(node),
-                key=lambda x: self.get_instance_utilization(
-                    x.uuid, model)['cpu'])
+                self.compute_model.get_node_instances(node),
+                key=lambda x: self.get_instance_utilization(x)['cpu'])
             for instance in reversed(instances):
                 dsc = len(sorted_nodes) - 1
                 for destination_node in reversed(sorted_nodes):
                     if asc >= dsc:
                         break
                     if self.instance_fits(
-                            instance.uuid, destination_node, model, cc):
+                            instance, destination_node, cc):
                         self.add_migration(instance, node,
-                                           destination_node, model)
+                                           destination_node)
                         break
                     dsc -= 1
             asc += 1
@@ -503,25 +476,23 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param original_model: root_model object
         """
         LOG.info(_LI('Executing Smart Strategy'))
-        model = self.compute_model
-        rcu = self.get_relative_cluster_utilization(model)
-        self.ceilometer_vm_data_cache = dict()
+        rcu = self.get_relative_cluster_utilization()
 
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
 
         # Offloading phase
-        self.offload_phase(model, cc)
+        self.offload_phase(cc)
 
         # Consolidation phase
-        self.consolidation_phase(model, cc)
+        self.consolidation_phase(cc)
 
         # Optimize solution
-        self.optimize_solution(model)
+        self.optimize_solution()
 
         # disable unused nodes
-        self.disable_unused_nodes(model)
+        self.disable_unused_nodes()
 
-        rcu_after = self.get_relative_cluster_utilization(model)
+        rcu_after = self.get_relative_cluster_utilization()
         info = {
             "compute_nodes_count": len(
                 self.compute_model.get_all_compute_nodes()),

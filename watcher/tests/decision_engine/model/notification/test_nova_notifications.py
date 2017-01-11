@@ -217,26 +217,18 @@ class TestNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk_capacity)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_called_once_with('Node_2')
         node_2 = compute_model.get_node_by_uuid('Node_2')
-        self.assertEqual(7777, memory_capacity.get_capacity(node_2))
-        self.assertEqual(42, cpu_capacity.get_capacity(node_2))
-        self.assertEqual(974, disk.get_capacity(node_2))
-        self.assertEqual(1337, disk_capacity.get_capacity(node_2))
+        self.assertEqual(7777, node_2.memory)
+        self.assertEqual(42, node_2.vcpus)
+        self.assertEqual(974, node_2.disk)
+        self.assertEqual(1337, node_2.disk_capacity)
 
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_instance_update_node_notfound_set_unmapped(
@@ -265,20 +257,12 @@ class TestNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk_capacity)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_any_call('Node_2')
         self.assertRaises(
@@ -306,17 +290,11 @@ class TestNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
     def test_nova_instance_delete_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -374,17 +352,11 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
     def test_legacy_instance_updated(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -445,27 +417,19 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk_capacity)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_any_call('Node_2')
         node_2 = compute_model.get_node_by_uuid('Node_2')
-        self.assertEqual(7777, memory_capacity.get_capacity(node_2))
-        self.assertEqual(42, cpu_capacity.get_capacity(node_2))
-        self.assertEqual(974, disk.get_capacity(node_2))
-        self.assertEqual(1337, disk_capacity.get_capacity(node_2))
+        self.assertEqual(7777, node_2.memory)
+        self.assertEqual(42, node_2.vcpus)
+        self.assertEqual(974, node_2.disk)
+        self.assertEqual(1337, node_2.disk_capacity)
 
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_legacy_instance_update_node_notfound_set_unmapped(
@@ -494,20 +458,12 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         )
 
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
-        cpu_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        disk_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.disk_capacity)
-        memory_capacity = compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
-        self.assertEqual(1, cpu_capacity.get_capacity(instance0))
-        self.assertEqual(1, disk.get_capacity(instance0))
-        self.assertEqual(1, disk_capacity.get_capacity(instance0))
-        self.assertEqual(512, memory_capacity.get_capacity(instance0))
+        self.assertEqual(1, instance0.vcpus)
+        self.assertEqual(1, instance0.disk)
+        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_any_call('Node_2')
         self.assertRaises(
