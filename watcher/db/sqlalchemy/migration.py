@@ -54,7 +54,7 @@ def upgrade(revision, config=None):
     revision = revision or 'head'
     config = config or _alembic_config()
 
-    alembic.command.upgrade(config, revision or 'head')
+    alembic.command.upgrade(config, revision)
 
 
 def create_schema(config=None, engine=None):
