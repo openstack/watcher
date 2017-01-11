@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-#
 # watcher documentation build configuration file, created by
 # sphinx-quickstart on Fri Jun  3 11:37:52 2016.
 #
