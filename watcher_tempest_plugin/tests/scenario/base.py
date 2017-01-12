@@ -36,6 +36,11 @@ CONF = config.CONF
 class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     """Base class for Infrastructure Optimization API tests."""
 
+    # States where the object is waiting for some event to perform a transition
+    IDLE_STATES = ('RECOMMENDED', 'FAILED', 'SUCCEEDED', 'CANCELLED')
+    # States where the object can only be DELETED (end of its life-cycle)
+    FINISHED_STATES = ('FAILED', 'SUCCEEDED', 'CANCELLED', 'SUPERSEDED')
+
     @classmethod
     def setup_credentials(cls):
         cls._check_network_config()
@@ -141,6 +146,11 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
             raise ValueError()
 
         return audit.get('state') == 'SUCCEEDED'
+
+    @classmethod
+    def has_audit_finished(cls, audit_uuid):
+        _, audit = cls.client.show_audit(audit_uuid)
+        return audit.get('state') in cls.FINISHED_STATES
 
     # ### ACTION PLANS ### #
 

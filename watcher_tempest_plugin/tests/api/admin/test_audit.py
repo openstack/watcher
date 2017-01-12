@@ -38,7 +38,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_oneshot(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
@@ -56,7 +56,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_continuous(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
@@ -85,7 +85,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_with_invalid_state(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
@@ -98,7 +98,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_audit_with_no_state(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
 
         audit_params = dict(
@@ -120,7 +120,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_delete_audit(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, body = self.create_audit(audit_template['uuid'])
         audit_uuid = body['uuid']
@@ -158,7 +158,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestShowListAudit, cls).resource_setup()
-        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.goal = cls.client.show_goal("dummy")
         _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
