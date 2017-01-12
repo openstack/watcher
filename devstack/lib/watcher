@@ -129,6 +129,7 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messaging"
 
     iniset $NOVA_CONF oslo_messaging_notifications topics "notifications,watcher_notifications"
+    iniset $NOVA_CONF notifications notify_on_state_change "vm_and_task_state"
 
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"
