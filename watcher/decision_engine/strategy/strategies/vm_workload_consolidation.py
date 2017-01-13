@@ -171,16 +171,14 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         destination_node_state_str = self.get_state_str(destination_node.state)
         if destination_node_state_str == element.ServiceState.DISABLED.value:
             self.add_action_enable_compute_node(destination_node)
-        model.mapping.unmap(source_node, instance)
-        model.mapping.map(destination_node, instance)
-
-        params = {'migration_type': migration_type,
-                  'source_node': source_node.uuid,
-                  'destination_node': destination_node.uuid}
-        self.solution.add_action(action_type='migrate',
-                                 resource_id=instance.uuid,
-                                 input_parameters=params)
-        self.number_of_migrations += 1
+        if model.migrate_instance(instance, source_node, destination_node):
+            params = {'migration_type': migration_type,
+                      'source_node': source_node.uuid,
+                      'destination_node': destination_node.uuid}
+            self.solution.add_action(action_type='migrate',
+                                     resource_id=instance.uuid,
+                                     input_parameters=params)
+            self.number_of_migrations += 1
 
     def disable_unused_nodes(self, model):
         """Generate actions for disablity of unused nodes.
@@ -404,9 +402,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
-                if src_uuid != dst_uuid:
-                    src_node = model.get_node_by_uuid(src_uuid)
-                    dst_node = model.get_node_by_uuid(dst_uuid)
+                src_node = model.get_node_by_uuid(src_uuid)
+                dst_node = model.get_node_by_uuid(dst_uuid)
+                if model.migrate_instance(instance_uuid, dst_node, src_node):
                     self.add_migration(
                         instance_uuid, src_node, dst_node, model)
 
