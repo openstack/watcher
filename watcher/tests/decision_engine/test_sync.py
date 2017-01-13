@@ -330,21 +330,21 @@ class TestSyncer(base.DbTestCase):
             self.ctx, id=1, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy1.id)
+            goal_id=goal1.id, strategy_id=strategy1.id, auto_trigger=False)
         # Should be modified by the sync() because its associated goal
         # has been modified (compared to the defined fake goals)
         audit2 = objects.Audit(
             self.ctx, id=2, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy2.id)
+            goal_id=goal2.id, strategy_id=strategy2.id, auto_trigger=False)
         # Should be modified by the sync() because its associated strategy
         # has been modified (compared to the defined fake strategies)
         audit3 = objects.Audit(
             self.ctx, id=3, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy3.id)
+            goal_id=goal1.id, strategy_id=strategy3.id, auto_trigger=False)
         # Modified because of both because its associated goal and associated
         # strategy should be modified (compared to the defined fake
         # goals/strategies)
@@ -352,7 +352,7 @@ class TestSyncer(base.DbTestCase):
             self.ctx, id=4, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy4.id)
+            goal_id=goal2.id, strategy_id=strategy4.id, auto_trigger=False)
 
         audit1.create()
         audit2.create()
@@ -560,13 +560,13 @@ class TestSyncer(base.DbTestCase):
             self.ctx, id=1, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal1.id, strategy_id=strategy1.id)
+            goal_id=goal1.id, strategy_id=strategy1.id, auto_trigger=False)
         # Stale after syncing because the goal has been soft deleted
         audit2 = objects.Audit(
             self.ctx, id=2, uuid=utils.generate_uuid(),
             audit_type=objects.audit.AuditType.ONESHOT.value,
             state=objects.audit.State.PENDING,
-            goal_id=goal2.id, strategy_id=strategy2.id)
+            goal_id=goal2.id, strategy_id=strategy2.id, auto_trigger=False)
         audit1.create()
         audit2.create()
 

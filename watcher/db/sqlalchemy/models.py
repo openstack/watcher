@@ -19,6 +19,7 @@ SQLAlchemy models for watcher service
 from oslo_db.sqlalchemy import models
 from oslo_serialization import jsonutils
 import six.moves.urllib.parse as urlparse
+from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -176,6 +177,7 @@ class Audit(Base):
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     scope = Column(JSONEncodedList, nullable=True)
+    auto_trigger = Column(Boolean, nullable=False)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)

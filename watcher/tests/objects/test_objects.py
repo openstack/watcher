@@ -412,7 +412,7 @@ expected_object_fingerprints = {
     'Goal': '1.0-93881622db05e7b67a65ca885b4a022e',
     'Strategy': '1.1-73f164491bdd4c034f48083a51bdeb7b',
     'AuditTemplate': '1.1-b291973ffc5efa2c61b24fe34fdccc0b',
-    'Audit': '1.1-dc246337c8d511646cb537144fcb0f3a',
+    'Audit': '1.2-910522db78b7b1cb59df614754656db4',
     'ActionPlan': '1.2-42709eadf6b2bd228ea87817e8c3e31e',
     'Action': '1.1-52c77e4db4ce0aa9480c9760faec61a1',
     'EfficacyIndicator': '1.0-655b71234a82bc7478aff964639c4bb0',

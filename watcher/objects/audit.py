@@ -79,7 +79,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
 
     # Version 1.0: Initial version
     # Version 1.1: Added 'goal' and 'strategy' object field
-    VERSION = '1.1'
+    # Version 1.2  Added 'auto_trigger' boolean field
+    VERSION = '1.2'
 
     dbapi = db_api.get_instance()
 
@@ -93,6 +94,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(nullable=True),
+        'auto_trigger': wfields.BooleanField(),
 
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),

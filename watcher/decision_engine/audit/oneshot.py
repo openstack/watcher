@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from watcher.decision_engine.audit import base
+from watcher import objects
 
 
 class OneShotAuditHandler(base.AuditHandler):
@@ -24,3 +25,9 @@ class OneShotAuditHandler(base.AuditHandler):
             audit, request_context)
 
         return solution
+
+    def post_execute(self, audit, solution, request_context):
+        super(OneShotAuditHandler, self).post_execute(audit, solution,
+                                                      request_context)
+        # change state of the audit to SUCCEEDED
+        self.update_audit_state(audit, objects.audit.State.SUCCEEDED)
