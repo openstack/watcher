@@ -199,7 +199,6 @@ class TestNovaNotifications(NotificationTestCase):
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
-
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.InstanceUpdated(self.fake_cdmc)
