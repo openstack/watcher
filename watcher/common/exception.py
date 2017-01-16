@@ -374,6 +374,11 @@ class NoMetricValuesForInstance(WatcherException):
     msg_fmt = _("No values returned by %(resource_id)s for %(metric_name)s.")
 
 
+class UnsupportedDataSource(UnsupportedError):
+    msg_fmt = _("Datasource %(datasource)s is not supported "
+                "by strategy %(strategy)s")
+
+
 class NoSuchMetricForHost(WatcherException):
     msg_fmt = _("No %(metric)s metric for %(host)s found.")
 

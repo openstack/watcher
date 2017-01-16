@@ -102,12 +102,11 @@ class FakeCeilometerMetrics(object):
         Returns relative node CPU utilization <0, 100>.
         :param r_id: resource id
         """
-
-        id = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
-        instances = self.model.get_mapping().get_node_instances_by_uuid(id)
+        uuid = '%s_%s' % (r_id.split('_')[0], r_id.split('_')[1])
+        instances = self.model.get_mapping().get_node_instances_by_uuid(uuid)
         util_sum = 0.0
         node_cpu_cores = self.model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores).get_capacity_by_uuid(id)
+            element.ResourceType.cpu_cores).get_capacity_by_uuid(uuid)
         for instance_uuid in instances:
             instance_cpu_cores = self.model.get_resource_by_uuid(
                 element.ResourceType.cpu_cores).\
@@ -118,7 +117,8 @@ class FakeCeilometerMetrics(object):
         util_sum /= node_cpu_cores
         return util_sum * 100.0
 
-    def get_instance_cpu_util(self, r_id):
+    @staticmethod
+    def get_instance_cpu_util(r_id):
         instance_cpu_util = dict()
         instance_cpu_util['INSTANCE_0'] = 10
         instance_cpu_util['INSTANCE_1'] = 30
@@ -132,7 +132,8 @@ class FakeCeilometerMetrics(object):
         instance_cpu_util['INSTANCE_9'] = 100
         return instance_cpu_util[str(r_id)]
 
-    def get_instance_ram_util(self, r_id):
+    @staticmethod
+    def get_instance_ram_util(r_id):
         instance_ram_util = dict()
         instance_ram_util['INSTANCE_0'] = 1
         instance_ram_util['INSTANCE_1'] = 2
@@ -146,7 +147,8 @@ class FakeCeilometerMetrics(object):
         instance_ram_util['INSTANCE_9'] = 8
         return instance_ram_util[str(r_id)]
 
-    def get_instance_disk_root_size(self, r_id):
+    @staticmethod
+    def get_instance_disk_root_size(r_id):
         instance_disk_util = dict()
         instance_disk_util['INSTANCE_0'] = 10
         instance_disk_util['INSTANCE_1'] = 15

@@ -26,16 +26,26 @@ from watcher.common import exception
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
+from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
-from watcher.tests.decision_engine.model import faker_metrics_collector
+from watcher.tests.decision_engine.model import monasca_metrics
 
 
 class TestBasicConsolidation(base.TestCase):
 
+    scenarios = [
+        ("Ceilometer",
+         {"datasource": "ceilometer",
+          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
+        ("Monasca",
+         {"datasource": "monasca",
+          "fake_datasource_cls": monasca_metrics.FakeMonascaMetrics}),
+    ]
+
     def setUp(self):
         super(TestBasicConsolidation, self).setUp()
         # fake metrics
-        self.fake_metrics = faker_metrics_collector.FakerMetricsCollector()
+        self.fake_metrics = self.fake_datasource_cls()
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
@@ -50,11 +60,11 @@ class TestBasicConsolidation(base.TestCase):
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
-        p_ceilometer = mock.patch.object(
-            strategies.BasicConsolidation, "ceilometer",
+        p_datasource = mock.patch.object(
+            strategies.BasicConsolidation, self.datasource,
             new_callable=mock.PropertyMock)
-        self.m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
+        self.m_datasource = p_datasource.start()
+        self.addCleanup(p_datasource.stop)
 
         p_audit_scope = mock.patch.object(
             strategies.BasicConsolidation, "audit_scope",
@@ -66,9 +76,10 @@ class TestBasicConsolidation(base.TestCase):
         self.m_audit_scope.return_value = mock.Mock()
 
         self.m_model.return_value = model_root.ModelRoot()
-        self.m_ceilometer.return_value = mock.Mock(
+        self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        self.strategy = strategies.BasicConsolidation(config=mock.Mock())
+        self.strategy = strategies.BasicConsolidation(
+            config=mock.Mock(datasource=self.datasource))
 
     def test_cluster_size(self):
         size_cluster = len(
@@ -126,7 +137,7 @@ class TestBasicConsolidation(base.TestCase):
         instance_0_score = 0.023333333333333355
         self.assertEqual(
             instance_0_score,
-            self.strategy.calculate_score_instance(instance_0, ))
+            self.strategy.calculate_score_instance(instance_0))
 
     def test_basic_consolidation_weight(self):
         model = self.fake_cluster.generate_scenario_1()
