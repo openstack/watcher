@@ -165,9 +165,9 @@ class CeilometerHelper(object):
         values = []
         for index, sample in enumerate(samples):
             values.append(
-                {'sample_%s' % index: {'timestamp': sample._info['timestamp'],
-                                       'value': sample._info[
-                                           'counter_volume']}})
+                {'sample_%s' % index: {
+                    'timestamp': sample._info['timestamp'],
+                    'value': sample._info['counter_volume']}})
         return values
 
     def get_last_sample_value(self, resource_id, meter_name):

@@ -39,7 +39,7 @@ from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception
-from watcher.decision_engine.cluster.history import ceilometer as cch
+from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -114,7 +114,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = cch.CeilometerClusterHistory(osc=self.osc)
+            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter

@@ -19,8 +19,8 @@ from __future__ import unicode_literals
 
 import mock
 
-from watcher.common import ceilometer_helper
 from watcher.common import clients
+from watcher.datasource import ceilometer as ceilometer_helper
 from watcher.tests import base
 
 

@@ -51,7 +51,7 @@ from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception as wexc
-from watcher.decision_engine.cluster.history import ceilometer as ceil
+from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -108,7 +108,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = ceil.CeilometerClusterHistory(osc=self.osc)
+            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
