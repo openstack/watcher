@@ -104,7 +104,7 @@ class WatcherPersistentObject(object):
     }
 
     # Mapping between the object field name and a 2-tuple pair composed of
-    # its object type (e.g. objects.RelatedObject) and the the name of the
+    # its object type (e.g. objects.RelatedObject) and the name of the
     # model field related ID (or UUID) foreign key field.
     # e.g.:
     #
