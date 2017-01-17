@@ -175,7 +175,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
             action_plan_uuid=finished_ap["uuid"])
 
         self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
-        self.assertEqual('SUCCEEDED', finished_ap['state'])
+        self.assertIn(finished_ap['state'], ('SUCCEEDED', 'SUPERSEDED'))
 
         for action in action_list['actions']:
             self.assertEqual('SUCCEEDED', action.get('state'))

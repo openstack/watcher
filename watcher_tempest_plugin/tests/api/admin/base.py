@@ -28,7 +28,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
     # States where the object is waiting for some event to perform a transition
     IDLE_STATES = ('RECOMMENDED', 'FAILED', 'SUCCEEDED', 'CANCELLED')
     # States where the object can only be DELETED (end of its life-cycle)
-    FINISHED_STATES = ('FAILED', 'SUCCEEDED', 'CANCELLED')
+    FINISHED_STATES = ('FAILED', 'SUCCEEDED', 'CANCELLED', 'SUPERSEDED')
 
     @classmethod
     def setup_credentials(cls):
