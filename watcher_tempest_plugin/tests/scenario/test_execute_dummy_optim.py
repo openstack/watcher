@@ -72,7 +72,7 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
             act['action_type'] for act in action_list['actions'])
 
         self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
-        self.assertEqual('SUCCEEDED', finished_ap['state'])
+        self.assertIn(finished_ap['state'], ('SUCCEEDED', 'SUPERSEDED'))
 
         # A dummy strategy generates 2 "nop" actions and 1 "sleep" action
         self.assertEqual(3, len(action_list['actions']))

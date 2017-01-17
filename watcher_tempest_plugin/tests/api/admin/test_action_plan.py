@@ -101,7 +101,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
 
         self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
-        self.assertEqual('SUCCEEDED', finished_ap['state'])
+        self.assertIn(finished_ap['state'], ('SUCCEEDED', 'SUPERSEDED'))
 
 
 class TestShowListActionPlan(base.BaseInfraOptimTest):
