@@ -43,10 +43,10 @@ class TestApplierAPI(base.TestCase):
                 api_version=rpcapi.ApplierAPI().API_VERSION)
 
     def test_execute_audit_without_error(self):
-        with mock.patch.object(om.RPCClient, 'call') as mock_call:
+        with mock.patch.object(om.RPCClient, 'cast') as mock_cast:
             action_plan_uuid = utils.generate_uuid()
             self.api.launch_action_plan(self.context, action_plan_uuid)
-            mock_call.assert_called_once_with(
+            mock_cast.assert_called_once_with(
                 self.context,
                 'launch_action_plan',
                 action_plan_uuid=action_plan_uuid)

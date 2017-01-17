@@ -37,7 +37,7 @@ class DecisionEngineAPI(service.Service):
         if not utils.is_uuid_like(audit_uuid):
             raise exception.InvalidUuidOrName(name=audit_uuid)
 
-        return self.conductor_client.call(
+        self.conductor_client.cast(
             context, 'trigger_audit', audit_uuid=audit_uuid)
 
 

@@ -44,8 +44,8 @@ class TestDecisionEngineAPI(base.TestCase):
                           audit_uuid)
 
     def test_execute_audit_without_error(self):
-        with mock.patch.object(om.RPCClient, 'call') as mock_call:
+        with mock.patch.object(om.RPCClient, 'cast') as mock_cast:
             audit_uuid = utils.generate_uuid()
             self.api.trigger_audit(self.context, audit_uuid)
-            mock_call.assert_called_once_with(
+            mock_cast.assert_called_once_with(
                 self.context, 'trigger_audit', audit_uuid=audit_uuid)
