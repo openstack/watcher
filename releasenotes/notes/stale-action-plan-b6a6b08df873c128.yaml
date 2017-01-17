@@ -1,0 +1,4 @@
+---
+features:
+  - Add superseded state for an action plan if the cluster data model has
+    changed after it has been created.

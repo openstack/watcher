@@ -1,0 +1,5 @@
+---
+features:
+  - Provides a generic way to define the scope of an audit. The set of audited
+    resources will be called "Audit scope" and will be defined in each audit
+    template (which contains the audit settings).

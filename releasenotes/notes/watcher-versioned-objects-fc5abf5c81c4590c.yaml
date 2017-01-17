@@ -1,0 +1,5 @@
+---
+features:
+  - all Watcher objects have been refactored to support OVO
+    (oslo.versionedobjects) which was a prerequisite step in order to implement
+    versioned notifications.

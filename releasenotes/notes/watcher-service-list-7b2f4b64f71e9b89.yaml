@@ -1,0 +1,3 @@
+---
+features:
+  - Add a service supervisor to watch Watcher deamons.
