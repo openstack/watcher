@@ -169,7 +169,7 @@ these following commands::
 
     $ git clone git://git.openstack.org/openstack/watcher
     $ cd watcher/
-    $ tox -econfig
+    $ tox -e genconfig
     $ vi etc/watcher/watcher.conf.sample
 
 
