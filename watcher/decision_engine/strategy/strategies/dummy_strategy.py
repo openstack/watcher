@@ -60,12 +60,12 @@ class DummyStrategy(base.DummyBaseStrategy):
         self.solution.add_action(action_type=self.NOP,
                                  input_parameters=parameters)
 
-        parameters = {'message': 'Welcome'}
+        parameters = {'message': para2}
         self.solution.add_action(action_type=self.NOP,
                                  input_parameters=parameters)
 
         self.solution.add_action(action_type=self.SLEEP,
-                                 input_parameters={'duration': 5.0})
+                                 input_parameters={'duration': para1})
 
     def post_execute(self):
         pass
