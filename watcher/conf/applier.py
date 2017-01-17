@@ -40,7 +40,7 @@ APPLIER_MANAGER_OPTS = [
     cfg.StrOpt('workflow_engine',
                default='taskflow',
                required=True,
-               help='Select the engine to use to execute the workflow')
+               help='Select the engine to use to execute the workflow'),
 ]
 
 

@@ -15,10 +15,12 @@
 # limitations under the License.
 #
 
+from oslo_concurrency import processutils
+from oslo_config import cfg
 from oslo_log import log
 from taskflow import engines
 from taskflow.patterns import graph_flow as gf
-from taskflow import task
+from taskflow import task as flow_task
 
 from watcher._i18n import _LE, _LW, _LC
 from watcher.applier.workflow_engine import base
@@ -48,6 +50,18 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
         # (True to allow v execution or False to not).
         return True
 
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.IntOpt(
+                'max_workers',
+                default=processutils.get_worker_count(),
+                min=1,
+                required=True,
+                help='Number of workers for taskflow engine '
+                     'to execute actions.')
+            ]
+
     def execute(self, actions):
         try:
             # NOTE(jed) We want to have a strong separation of concern
@@ -56,34 +70,32 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
             # We want to provide the 'taskflow' engine by
             # default although we still want to leave the possibility for
             # the users to change it.
-            # todo(jed) we need to change the way the actions are stored.
-            # The current implementation only use a linked list of actions.
+            # The current implementation uses graph with linked actions.
             # todo(jed) add olso conf for retry and name
             flow = gf.Flow("watcher_flow")
-            previous = None
+            actions_uuid = {}
             for a in actions:
                 task = TaskFlowActionContainer(a, self)
                 flow.add(task)
-                if previous is None:
-                    previous = task
-                    # we have only one Action in the Action Plan
-                    if len(actions) == 1:
-                        nop = TaskFlowNop()
-                        flow.add(nop)
-                        flow.link(previous, nop)
-                else:
-                    # decider == guard (UML)
-                    flow.link(previous, task, decider=self.decider)
-                    previous = task
+                actions_uuid[a.uuid] = task
 
-            e = engines.load(flow)
+            for a in actions:
+                for parent_id in a.parents:
+                    flow.link(actions_uuid[parent_id], actions_uuid[a.uuid],
+                              decider=self.decider)
+
+            e = engines.load(
+                flow, engine='parallel',
+                max_workers=self.config.max_workers)
             e.run()
+
+            return flow
 
         except Exception as e:
             raise exception.WorkflowExecutionException(error=e)
 
 
-class TaskFlowActionContainer(task.Task):
+class TaskFlowActionContainer(flow_task.Task):
     def __init__(self, db_action, engine):
         name = "action_type:{0} uuid:{1}".format(db_action.action_type,
                                                  db_action.uuid)
@@ -148,7 +160,7 @@ class TaskFlowActionContainer(task.Task):
             LOG.critical(_LC("Oops! We need a disaster recover plan."))
 
 
-class TaskFlowNop(task.Task):
+class TaskFlowNop(flow_task.Task):
     """This class is used in case of the workflow have only one Action.
 
     We need at least two atoms to create a link.

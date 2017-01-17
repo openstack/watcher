@@ -67,20 +67,22 @@ class DummyWithResize(base.DummyBaseStrategy):
             action_type='migrate',
             resource_id='b199db0c-1408-4d52-b5a5-5ca14de0ff36',
             input_parameters={
-                'source_node': 'server1',
-                'destination_node': 'server2'})
+                'source_node': 'compute2',
+                'destination_node': 'compute3',
+                'migration_type': 'live'})
 
         self.solution.add_action(
             action_type='migrate',
             resource_id='8db1b3c1-7938-4c34-8c03-6de14b874f8f',
             input_parameters={
-                'source_node': 'server1',
-                'destination_node': 'server2'}
+                'source_node': 'compute2',
+                'destination_node': 'compute3',
+                'migration_type': 'live'}
         )
         self.solution.add_action(
             action_type='resize',
             resource_id='8db1b3c1-7938-4c34-8c03-6de14b874f8f',
-            input_parameters={'flavor': 'x1'}
+            input_parameters={'flavor': 'x2'}
         )
 
     def post_execute(self):

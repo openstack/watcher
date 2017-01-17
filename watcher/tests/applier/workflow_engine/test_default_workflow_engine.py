@@ -59,6 +59,7 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             config=mock.Mock(),
             context=self.context,
             applier_manager=mock.MagicMock())
+        self.engine.config.max_workers = 2
 
     @mock.patch('taskflow.engines.load')
     @mock.patch('taskflow.patterns.graph_flow.Flow.link')
@@ -70,9 +71,9 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def create_action(self, action_type, parameters, parents):
+    def create_action(self, action_type, parameters, parents, uuid=None):
         action = {
-            'uuid': utils.generate_uuid(),
+            'uuid': uuid or utils.generate_uuid(),
             'action_plan_id': 0,
             'action_type': action_type,
             'input_parameters': parameters,
@@ -109,6 +110,85 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions = [self.create_action("nop", {'message': 'test'}, None)]
         try:
             self.engine.execute(actions)
+            self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+
+        except Exception as exc:
+            self.fail(exc)
+
+    def test_execute_nop_sleep(self):
+        actions = []
+        first_nop = self.create_action("nop", {'message': 'test'}, [])
+        second_nop = self.create_action("nop", {'message': 'second test'}, [])
+        sleep = self.create_action("sleep", {'duration': 0.0},
+                                   [first_nop.uuid, second_nop.uuid])
+        actions.extend([first_nop, second_nop, sleep])
+
+        try:
+            self.engine.execute(actions)
+            self.check_actions_state(actions, objects.action.State.SUCCEEDED)
+
+        except Exception as exc:
+            self.fail(exc)
+
+    def test_execute_with_parents(self):
+        actions = []
+        first_nop = self.create_action(
+            "nop", {'message': 'test'}, [],
+            uuid='bc7eee5c-4fbe-4def-9744-b539be55aa19')
+        second_nop = self.create_action(
+            "nop", {'message': 'second test'}, [],
+            uuid='0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23')
+        first_sleep = self.create_action(
+            "sleep", {'duration': 0.0}, [first_nop.uuid, second_nop.uuid],
+            uuid='be436531-0da3-4dad-a9c0-ea1d2aff6496')
+        second_sleep = self.create_action(
+            "sleep", {'duration': 0.0}, [first_sleep.uuid],
+            uuid='9eb51e14-936d-4d12-a500-6ba0f5e0bb1c')
+        actions.extend([first_nop, second_nop, first_sleep, second_sleep])
+
+        expected_nodes = [
+            {'uuid': 'bc7eee5c-4fbe-4def-9744-b539be55aa19',
+             'input_parameters': {u'message': u'test'},
+             'action_plan_id': 0, 'state': u'PENDING', 'parents': [],
+             'action_type': u'nop', 'id': 1},
+            {'uuid': '0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23',
+             'input_parameters': {u'message': u'second test'},
+             'action_plan_id': 0, 'state': u'PENDING', 'parents': [],
+             'action_type': u'nop', 'id': 2},
+            {'uuid': 'be436531-0da3-4dad-a9c0-ea1d2aff6496',
+             'input_parameters': {u'duration': 0.0},
+             'action_plan_id': 0, 'state': u'PENDING',
+             'parents': [u'bc7eee5c-4fbe-4def-9744-b539be55aa19',
+                         u'0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23'],
+             'action_type': u'sleep', 'id': 3},
+            {'uuid': '9eb51e14-936d-4d12-a500-6ba0f5e0bb1c',
+             'input_parameters': {u'duration': 0.0},
+             'action_plan_id': 0, 'state': u'PENDING',
+             'parents': [u'be436531-0da3-4dad-a9c0-ea1d2aff6496'],
+             'action_type': u'sleep', 'id': 4}]
+
+        expected_edges = [
+            ('action_type:nop uuid:0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23',
+             'action_type:sleep uuid:be436531-0da3-4dad-a9c0-ea1d2aff6496'),
+            ('action_type:nop uuid:bc7eee5c-4fbe-4def-9744-b539be55aa19',
+             'action_type:sleep uuid:be436531-0da3-4dad-a9c0-ea1d2aff6496'),
+            ('action_type:sleep uuid:be436531-0da3-4dad-a9c0-ea1d2aff6496',
+             'action_type:sleep uuid:9eb51e14-936d-4d12-a500-6ba0f5e0bb1c')]
+
+        try:
+            flow = self.engine.execute(actions)
+            actual_nodes = sorted([x[0]._db_action.as_dict()
+                                   for x in flow.iter_nodes()],
+                                  key=lambda x: x['id'])
+            for expected, actual in zip(expected_nodes, actual_nodes):
+                for key in expected.keys():
+                    self.assertIn(expected[key], actual.values())
+            actual_edges = [(u.name, v.name)
+                            for (u, v, _) in flow.iter_links()]
+
+            for edge in expected_edges:
+                self.assertIn(edge, actual_edges)
+
             self.check_actions_state(actions, objects.action.State.SUCCEEDED)
 
         except Exception as exc:
