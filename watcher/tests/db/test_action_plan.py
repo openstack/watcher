@@ -283,13 +283,11 @@ class DbActionPlanTestCase(base.DbTestCase):
             id=1,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
-            first_action_id=None,
             state=ap_objects.State.RECOMMENDED)
         action_plan2 = self._create_test_action_plan(
             id=2,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
-            first_action_id=action_plan1['id'],
             state=ap_objects.State.ONGOING)
 
         res = self.dbapi.get_action_plan_list(

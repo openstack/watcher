@@ -38,6 +38,7 @@ class TestNovaHelper(base.TestCase):
         self.instance_uuid = "fb5311b7-37f3-457e-9cde-6494a3c59bfe"
         self.source_node = "ldev-indeedsrv005"
         self.destination_node = "ldev-indeedsrv006"
+        self.flavor_name = "x1"
 
     @staticmethod
     def fake_server(*args, **kwargs):
@@ -88,6 +89,22 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.hosts.get.return_value = None
         result = nova_util.set_host_offline("rennes")
         self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_resize_instance(self, mock_glance, mock_cinder,
+                             mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'status', 'VERIFY_RESIZE')
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+        is_success = nova_util.resize_instance(self.instance_uuid,
+                                               self.flavor_name)
+        self.assertTrue(is_success)
+
+        setattr(server, 'status', 'SOMETHING_ELSE')
+        is_success = nova_util.resize_instance(self.instance_uuid,
+                                               self.flavor_name)
+        self.assertFalse(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance(self, mock_glance, mock_cinder,

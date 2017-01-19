@@ -45,18 +45,19 @@ class TestShowListAction(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_show_one_action(self):
-        _, action = self.client.show_action(
-            self.action_plan["first_action_uuid"])
+        _, action_uuid = self.client.list_actions(
+            action_plan_uuid=self.action_plan['uuid'])['actions'][0]['uuid']
+        _, action = self.client.show_action(action_uuid)
 
-        self.assertEqual(self.action_plan["first_action_uuid"],
-                         action['uuid'])
+        self.assertEqual(action_uuid, action['uuid'])
         self.assertEqual("nop", action['action_type'])
         self.assertEqual("PENDING", action['state'])
 
     @test.attr(type='smoke')
     def test_show_action_with_links(self):
-        _, action = self.client.show_action(
-            self.action_plan["first_action_uuid"])
+        _, action_uuid = self.client.list_actions(
+            action_plan_uuid=self.action_plan['uuid'])['actions'][0]['uuid']
+        _, action = self.client.show_action(action_uuid)
         self.assertIn('links', action.keys())
         self.assertEqual(2, len(action['links']))
         self.assertIn(action['uuid'], action['links'][0]['href'])
