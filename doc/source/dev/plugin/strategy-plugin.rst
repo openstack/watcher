@@ -271,57 +271,44 @@ requires new metrics not covered by Ceilometer, you can add them through a
 .. _`Ceilometer plugin`: http://docs.openstack.org/developer/ceilometer/plugins.html
 .. _`Ceilosca`: https://github.com/openstack/monasca-ceilometer/blob/master/ceilosca/ceilometer/storage/impl_monasca.py
 
+Read usage metrics using the Watcher Datasource Helper
+------------------------------------------------------
 
-Read usage metrics using the Python binding
--------------------------------------------
-
-You can find the information about the Ceilometer Python binding on the
-OpenStack `ceilometer client python API documentation
-<http://docs.openstack.org/developer/python-ceilometerclient/api.html>`_
-
-To facilitate the process, Watcher provides the ``osc`` attribute to every
-strategy which includes clients to major OpenStack services, including
-Ceilometer. So to access it within your strategy, you can do the following:
+The following code snippet shows how to invoke a Datasource Helper class:
 
 .. code-block:: py
 
-    # Within your strategy "execute()"
-    cclient = self.osc.ceilometer
-    # TODO: Do something here
+    from watcher.datasource import ceilometer as ceil
+    from watcher.datasource import monasca as mon
+
+    @property
+    def ceilometer(self):
+        if self._ceilometer is None:
+            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
+        return self._ceilometer
+
+    @property
+    def monasca(self):
+        if self._monasca is None:
+            self._monasca = mon.MonascaHelper(osc=self.osc)
+        return self._monasca
 
 Using that you can now query the values for that specific metric:
 
 .. code-block:: py
 
-    query = None  # e.g. [{'field': 'foo', 'op': 'le', 'value': 34},]
-    value_cpu = cclient.samples.list(
-        meter_name='cpu_util',
-        limit=10, q=query)
-
-
-Read usage metrics using the Watcher Cluster History Helper
------------------------------------------------------------
-
-Here below is the abstract ``BaseClusterHistory`` class of the Helper.
-
-.. autoclass:: watcher.decision_engine.cluster.history.base.BaseClusterHistory
-    :members:
-    :noindex:
-
-The following code snippet shows how to create a Cluster History class:
-
-.. code-block:: py
-
-    from watcher.decision_engine.cluster.history import ceilometer as ceil
-
-    query_history  = ceil.CeilometerClusterHistory()
-
-Using that you can now query the values for that specific metric:
-
-.. code-block:: py
-
-    query_history.statistic_aggregation(resource_id=compute_node.uuid,
-                                  meter_name='compute.node.cpu.percent',
-                                  period="7200",
-                                  aggregate='avg'
-                                  )
+        if self.config.datasource == "ceilometer":
+            resource_id = "%s_%s" % (node.uuid, node.hostname)
+            return self.ceilometer.statistic_aggregation(
+                resource_id=resource_id,
+                meter_name='compute.node.cpu.percent',
+                period="7200",
+                aggregate='avg',
+            )
+        elif self.config.datasource == "monasca":
+            statistics = self.monasca.statistic_aggregation(
+                meter_name='compute.node.cpu.percent',
+                dimensions=dict(hostname=node.uuid),
+                period=7200,
+                aggregate='avg'
+            )

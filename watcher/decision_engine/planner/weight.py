@@ -41,7 +41,7 @@ class WeightPlanner(base.BasePlanner):
     *Limitations*
 
     - This planner requires to have action_weights and parallelization configs
-    tuned well.
+      tuned well.
     """
 
     def __init__(self, config):
