@@ -65,6 +65,10 @@ class TestClients(base.TestCase):
         expected = {'username': 'foousername',
                     'password': 'foopassword',
                     'auth_url': 'http://server.ip:35357',
+                    'cafile': None,
+                    'certfile': None,
+                    'keyfile': None,
+                    'insecure': False,
                     'user_domain_id': 'foouserdomainid',
                     'project_domain_id': 'fooprojdomainid'}
 
