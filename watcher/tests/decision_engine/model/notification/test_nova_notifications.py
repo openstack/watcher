@@ -127,7 +127,7 @@ class TestNovaNotifications(NotificationTestCase):
         node0_uuid = 'Node_0'
         node0 = compute_model.get_node_by_uuid(node0_uuid)
 
-        message = self.load_message('scenario3_service-update.json')
+        message = self.load_message('scenario3_service-update-disabled.json')
 
         self.assertEqual('hostname_0', node0.hostname)
         self.assertEqual(element.ServiceState.ONLINE.value, node0.state)
@@ -144,6 +144,20 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual('Node_0', node0.hostname)
         self.assertEqual(element.ServiceState.OFFLINE.value, node0.state)
         self.assertEqual(element.ServiceState.DISABLED.value, node0.status)
+
+        message = self.load_message('scenario3_service-update-enabled.json')
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        self.assertEqual('Node_0', node0.hostname)
+        self.assertEqual(element.ServiceState.ONLINE.value, node0.state)
+        self.assertEqual(element.ServiceState.ENABLED.value, node0.status)
 
     def test_nova_instance_update(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
