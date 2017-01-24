@@ -30,7 +30,7 @@ CONF = cfg.CONF
 
 
 @base.WatcherObjectRegistry.register_notification
-class AuditPayload(notificationbase.NotificationPayloadBase):
+class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     SCHEMA = {
         'uuid': ('audit', 'uuid'),
 
@@ -57,17 +57,52 @@ class AuditPayload(notificationbase.NotificationPayloadBase):
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
-        'goal': wfields.ObjectField('GoalPayload'),
-        'strategy': wfields.ObjectField('StrategyPayload', nullable=True),
 
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),
     }
 
-    def __init__(self, audit, **kwargs):
-        super(AuditPayload, self).__init__(**kwargs)
+    def __init__(self, audit, goal_uuid, strategy_uuid=None, **kwargs):
+        super(TerseAuditPayload, self).__init__(
+            goal_uuid=goal_uuid, strategy_uuid=strategy_uuid, **kwargs)
         self.populate_schema(audit=audit)
+
+
+@base.WatcherObjectRegistry.register_notification
+class AuditPayload(TerseAuditPayload):
+    SCHEMA = {
+        'uuid': ('audit', 'uuid'),
+
+        'audit_type': ('audit', 'audit_type'),
+        'state': ('audit', 'state'),
+        'parameters': ('audit', 'parameters'),
+        'interval': ('audit', 'interval'),
+        'scope': ('audit', 'scope'),
+
+        'created_at': ('audit', 'created_at'),
+        'updated_at': ('audit', 'updated_at'),
+        'deleted_at': ('audit', 'deleted_at'),
+    }
+
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'goal': wfields.ObjectField('GoalPayload'),
+        'strategy': wfields.ObjectField('StrategyPayload', nullable=True),
+    }
+
+    def __init__(self, audit, goal, strategy=None, **kwargs):
+        if not kwargs.get('goal_uuid'):
+            kwargs['goal_uuid'] = goal.uuid
+
+        if strategy and not kwargs.get('strategy_uuid'):
+            kwargs['strategy_uuid'] = strategy.uuid
+
+        super(AuditPayload, self).__init__(
+            audit=audit, goal=goal,
+            strategy=strategy, **kwargs)
 
 
 @base.WatcherObjectRegistry.register_notification
@@ -91,6 +126,7 @@ class AuditCreatePayload(AuditPayload):
         super(AuditCreatePayload, self).__init__(
             audit=audit,
             goal=goal,
+            goal_uuid=goal.uuid,
             strategy=strategy)
 
 
@@ -107,6 +143,7 @@ class AuditUpdatePayload(AuditPayload):
             audit=audit,
             state_update=state_update,
             goal=goal,
+            goal_uuid=goal.uuid,
             strategy=strategy)
 
 
@@ -122,6 +159,7 @@ class AuditActionPayload(AuditPayload):
         super(AuditActionPayload, self).__init__(
             audit=audit,
             goal=goal,
+            goal_uuid=goal.uuid,
             strategy=strategy,
             **kwargs)
 
@@ -136,6 +174,7 @@ class AuditDeletePayload(AuditPayload):
         super(AuditDeletePayload, self).__init__(
             audit=audit,
             goal=goal,
+            goal_uuid=goal.uuid,
             strategy=strategy)
 
 

@@ -13,6 +13,7 @@
 #    under the License.
 
 from oslo_config import cfg
+from oslo_log import log
 
 from watcher.common import exception
 from watcher.common import rpc
@@ -20,6 +21,7 @@ from watcher.objects import base
 from watcher.objects import fields as wfields
 
 CONF = cfg.CONF
+LOG = log.getLogger(__name__)
 
 # Definition of notification levels in increasing order of severity
 NOTIFY_LEVELS = {
@@ -59,7 +61,8 @@ class EventType(NotificationObject):
     # Version 1.0: Initial version
     # Version 1.1: Added STRATEGY action in NotificationAction enum
     # Version 1.2: Added PLANNER action in NotificationAction enum
-    VERSION = '1.2'
+    # Version 1.3: Added EXECUTION action in NotificationAction enum
+    VERSION = '1.3'
 
     fields = {
         'object': wfields.StringField(),
@@ -171,6 +174,7 @@ class NotificationBase(NotificationObject):
     def _emit(self, context, event_type, publisher_id, payload):
         notifier = rpc.get_notifier(publisher_id)
         notify = getattr(notifier, self.priority)
+        LOG.debug("Emitting notification `%s`", event_type)
         notify(context, event_type=event_type, payload=payload)
 
     def emit(self, context):

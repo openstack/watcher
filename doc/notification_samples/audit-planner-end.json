@@ -11,6 +11,7 @@
       "updated_at": null,
       "deleted_at": null,
       "fault": null,
+      "goal_uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
       "goal": {
         "watcher_object.data": {
           "uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
@@ -27,6 +28,7 @@
       },
       "interval": null,
       "scope": [],
+      "strategy_uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
       "strategy": {
         "watcher_object.data": {
           "parameters_spec": {

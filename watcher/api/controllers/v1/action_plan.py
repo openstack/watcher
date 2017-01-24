@@ -455,7 +455,8 @@ class ActionPlansController(rest.RestController):
         :param action_plan_uuid: UUID of a action.
         """
         context = pecan.request.context
-        action_plan = api_utils.get_resource('ActionPlan', action_plan_uuid)
+        action_plan = api_utils.get_resource(
+            'ActionPlan', action_plan_uuid, eager=True)
         policy.enforce(context, 'action_plan:delete', action_plan,
                        action='action_plan:delete')
 
@@ -474,8 +475,8 @@ class ActionPlansController(rest.RestController):
             raise exception.OperationNotPermitted
 
         context = pecan.request.context
-        action_plan_to_update = api_utils.get_resource('ActionPlan',
-                                                       action_plan_uuid)
+        action_plan_to_update = api_utils.get_resource(
+            'ActionPlan', action_plan_uuid, eager=True)
         policy.enforce(context, 'action_plan:update', action_plan_to_update,
                        action='action_plan:update')
 

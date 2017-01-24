@@ -282,6 +282,7 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
     def test_send_create_notification(self, m_create_audit):
         audit = objutils.get_test_audit(
             self.context,
+            id=1,
             goal_id=self.fake_goal.id,
             strategy_id=self.fake_strategy.id,
             goal=self.fake_goal.as_dict(),

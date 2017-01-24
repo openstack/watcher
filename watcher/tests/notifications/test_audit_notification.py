@@ -43,8 +43,8 @@ class TestAuditNotification(base.DbTestCase):
         self.strategy = utils.create_test_strategy(mock.Mock())
 
     def test_send_invalid_audit(self):
-        audit = utils.get_test_audit(mock.Mock(), state='DOESNOTMATTER',
-                                     goal_id=1)
+        audit = utils.get_test_audit(
+            mock.Mock(), interval=None, state='DOESNOTMATTER', goal_id=1)
 
         self.assertRaises(
             exception.InvalidAudit,
@@ -53,7 +53,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_update_with_strategy(self):
         audit = utils.create_test_audit(
-            mock.Mock(), state=objects.audit.State.ONGOING,
+            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
             goal_id=self.goal.id, strategy_id=self.strategy.id,
             goal=self.goal, strategy=self.strategy)
         notifications.audit.send_update(
@@ -71,7 +71,8 @@ class TestAuditNotification(base.DbTestCase):
                 "watcher_object.namespace": "watcher",
                 "watcher_object.version": "1.0",
                 "watcher_object.data": {
-                    "interval": 3600,
+                    "interval": None,
+                    "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -88,6 +89,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -125,7 +127,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_update_without_strategy(self):
         audit = utils.get_test_audit(
-            mock.Mock(), state=objects.audit.State.ONGOING,
+            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
             goal_id=self.goal.id, goal=self.goal)
         notifications.audit.send_update(
             mock.MagicMock(), audit, host='node0',
@@ -141,9 +143,10 @@ class TestAuditNotification(base.DbTestCase):
                 "watcher_object.namespace": "watcher",
                 "watcher_object.version": "1.0",
                 "watcher_object.data": {
-                    "interval": 3600,
+                    "interval": None,
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -158,6 +161,7 @@ class TestAuditNotification(base.DbTestCase):
                         },
                         "watcher_object.name": "GoalPayload"
                     },
+                    "strategy_uuid": None,
                     "strategy": None,
                     "deleted_at": None,
                     "scope": [],
@@ -182,7 +186,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_create(self):
         audit = utils.get_test_audit(
-            mock.Mock(), state=objects.audit.State.PENDING,
+            mock.Mock(), interval=None, state=objects.audit.State.PENDING,
             goal_id=self.goal.id, strategy_id=self.strategy.id,
             goal=self.goal.as_dict(), strategy=self.strategy.as_dict())
         notifications.audit.send_create(
@@ -198,7 +202,8 @@ class TestAuditNotification(base.DbTestCase):
                 "watcher_object.namespace": "watcher",
                 "watcher_object.version": "1.0",
                 "watcher_object.data": {
-                    "interval": 3600,
+                    "interval": None,
+                    "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -215,6 +220,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -243,7 +249,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_delete(self):
         audit = utils.create_test_audit(
-            mock.Mock(), state=objects.audit.State.DELETED,
+            mock.Mock(), interval=None, state=objects.audit.State.DELETED,
             goal_id=self.goal.id, strategy_id=self.strategy.id)
         notifications.audit.send_delete(
             mock.MagicMock(), audit, host='node0')
@@ -259,7 +265,8 @@ class TestAuditNotification(base.DbTestCase):
                 "watcher_object.namespace": "watcher",
                 "watcher_object.version": "1.0",
                 "watcher_object.data": {
-                    "interval": 3600,
+                    "interval": None,
+                    "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -276,6 +283,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
                         "watcher_object.version": "1.0",
@@ -304,7 +312,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_action(self):
         audit = utils.create_test_audit(
-            mock.Mock(), state=objects.audit.State.ONGOING,
+            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
             goal_id=self.goal.id, strategy_id=self.strategy.id,
             goal=self.goal, strategy=self.strategy)
         notifications.audit.send_action_notification(
@@ -326,6 +334,7 @@ class TestAuditNotification(base.DbTestCase):
                         "created_at": "2016-10-18T09:52:05Z",
                         "deleted_at": None,
                         "fault": None,
+                        "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                         "goal": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",
@@ -340,10 +349,12 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.namespace": "watcher",
                             "watcher_object.version": "1.0"
                         },
-                        "interval": 3600,
+                        "interval": None,
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
+                        "strategy_uuid": (
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",
@@ -371,7 +382,7 @@ class TestAuditNotification(base.DbTestCase):
 
     def test_send_audit_action_with_error(self):
         audit = utils.create_test_audit(
-            mock.Mock(), state=objects.audit.State.ONGOING,
+            mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
             goal_id=self.goal.id, strategy_id=self.strategy.id,
             goal=self.goal, strategy=self.strategy)
 
@@ -407,6 +418,7 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.namespace": "watcher",
                             "watcher_object.version": "1.0"
                         },
+                        "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                         "goal": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",
@@ -421,10 +433,12 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.namespace": "watcher",
                             "watcher_object.version": "1.0"
                         },
-                        "interval": 3600,
+                        "interval": None,
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
+                        "strategy_uuid": (
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
                             "watcher_object.data": {
                                 "created_at": "2016-10-18T09:52:05Z",

@@ -250,10 +250,11 @@ class TestNotificationBase(testbase.TestCase):
 
 
 expected_notification_fingerprints = {
-    'EventType': '1.2-633c2d32fa849d2a6f8bda3b0db88332',
+    'EventType': '1.3-4258a2c86eca79fd34a7dffe1278eab9',
     'ExceptionNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ExceptionPayload': '1.0-4516ae282a55fe2fd5c754967ee6248b',
     'NotificationPublisher': '1.0-bbbc1402fb0e443a3eb227cc52b61545',
+    'TerseAuditPayload': '1.0-aaf31166b8698f08d12cae98c380b8e0',
     'AuditPayload': '1.0-30c85c834648c8ca11f54fc5e084d86b',
     'AuditStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
     'AuditUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
@@ -266,6 +267,15 @@ expected_notification_fingerprints = {
     'AuditActionPayload': '1.0-09f5d005f94ba9e5f6b9200170332c52',
     'GoalPayload': '1.0-fa1fecb8b01dd047eef808ded4d50d1a',
     'StrategyPayload': '1.0-94f01c137b083ac236ae82573c1fcfc1',
+    'ActionPlanActionPayload': '1.0-34871caf18e9b43a28899953c1c9733a',
+    'ActionPlanCreateNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ActionPlanCreatePayload': '1.0-ffc3087acd73351b14f3dcc30e105027',
+    'ActionPlanDeleteNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ActionPlanDeletePayload': '1.0-ffc3087acd73351b14f3dcc30e105027',
+    'ActionPlanPayload': '1.0-ffc3087acd73351b14f3dcc30e105027',
+    'ActionPlanStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
+    'ActionPlanUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ActionPlanUpdatePayload': '1.0-7912a45fe53775c721f42aa87f06a023',
 }
 
 

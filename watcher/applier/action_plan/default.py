@@ -33,7 +33,8 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         self.action_plan_uuid = action_plan_uuid
 
     def update_action_plan(self, uuid, state):
-        action_plan = objects.ActionPlan.get_by_uuid(self.ctx, uuid)
+        action_plan = objects.ActionPlan.get_by_uuid(
+            self.ctx, uuid, eager=True)
         action_plan.state = state
         action_plan.save()
 
