@@ -22,6 +22,7 @@ from watcher.common import context as wcontext
 from watcher.common import exception
 from watcher.notifications import audit as audit_notifications
 from watcher.notifications import base as notificationbase
+from watcher.notifications import exception as exception_notifications
 from watcher.notifications import strategy as strategy_notifications
 from watcher import objects
 from watcher.objects import base
@@ -136,6 +137,19 @@ class ActionPlanDeletePayload(ActionPlanPayload):
             action_plan=action_plan,
             audit=audit,
             strategy=strategy)
+
+
+@notificationbase.notification_sample('action_plan-execution-error.json')
+@notificationbase.notification_sample('action_plan-execution-end.json')
+@notificationbase.notification_sample('action_plan-execution-start.json')
+@base.WatcherObjectRegistry.register_notification
+class ActionPlanActionNotification(notificationbase.NotificationBase):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'payload': wfields.ObjectField('ActionPlanActionPayload')
+    }
 
 
 @notificationbase.notification_sample('action_plan-create.json')
@@ -259,6 +273,37 @@ def send_delete(context, action_plan, service='infra-optim', host=None):
         event_type=notificationbase.EventType(
             object='action_plan',
             action=wfields.NotificationAction.DELETE),
+        publisher=notificationbase.NotificationPublisher(
+            host=host or CONF.host,
+            binary=service),
+        payload=versioned_payload)
+
+    notification.emit(context)
+
+
+def send_action_notification(context, action_plan, action, phase=None,
+                             priority=wfields.NotificationPriority.INFO,
+                             service='infra-optim', host=None):
+    """Emit an action_plan action notification."""
+    audit_payload, strategy_payload = _get_common_payload(action_plan)
+
+    fault = None
+    if phase == wfields.NotificationPhase.ERROR:
+        fault = exception_notifications.ExceptionPayload.from_exception()
+
+    versioned_payload = ActionPlanActionPayload(
+        action_plan=action_plan,
+        audit=audit_payload,
+        strategy=strategy_payload,
+        fault=fault,
+    )
+
+    notification = ActionPlanActionNotification(
+        priority=priority,
+        event_type=notificationbase.EventType(
+            object='action_plan',
+            action=action,
+            phase=phase),
         publisher=notificationbase.NotificationPublisher(
             host=host or CONF.host,
             binary=service),

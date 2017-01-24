@@ -56,7 +56,7 @@ class DefaultApplier(base.BaseApplier):
 
     def execute(self, action_plan_uuid):
         LOG.debug("Executing action plan %s ", action_plan_uuid)
+
         filters = {'action_plan_uuid': action_plan_uuid}
-        actions = objects.Action.list(self.context,
-                                      filters=filters)
+        actions = objects.Action.list(self.context, filters=filters)
         return self.engine.execute(actions)
