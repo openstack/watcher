@@ -191,6 +191,7 @@ class DefaultScope(base.BaseScope):
 
         allowed_nodes = []
         nodes_to_exclude = []
+        nodes_to_remove = set()
         instances_to_exclude = []
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
@@ -210,7 +211,8 @@ class DefaultScope(base.BaseScope):
                     nodes=nodes_to_exclude)
 
         instances_to_remove = set(instances_to_exclude)
-        nodes_to_remove = set(model_hosts) - set(allowed_nodes)
+        if allowed_nodes:
+            nodes_to_remove = set(model_hosts) - set(allowed_nodes)
         nodes_to_remove.update(nodes_to_exclude)
 
         self._remove_node_from_model(nodes_to_remove, cluster_model)
