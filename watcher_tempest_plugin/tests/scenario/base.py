@@ -24,6 +24,7 @@ from oslo_log import log
 from tempest import config
 from tempest import exceptions
 from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
 
 from watcher_tempest_plugin import infra_optim_clients as clients
 from watcher_tempest_plugin.tests.scenario import manager
@@ -75,6 +76,19 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
             LOG.error(msg)
             raise exceptions.InvalidConfiguration(msg)
 
+    @classmethod
+    def _are_all_action_plans_finished(cls):
+        _, action_plans = cls.client.list_action_plans()
+        return all([ap['state'] in cls.FINISHED_STATES
+                    for ap in action_plans['action_plans']])
+
+    def wait_for_all_action_plans_to_finish(self):
+        assert test_utils.call_until_true(
+            func=self._are_all_action_plans_finished,
+            duration=300,
+            sleep_for=5
+        )
+
     # ### AUDIT TEMPLATES ### #
 
     def create_audit_template(self, goal, name=None, description=None,
@@ -111,18 +125,19 @@ class BaseInfraOptimScenarioTest(manager.ScenarioTest):
     # ### AUDITS ### #
 
     def create_audit(self, audit_template_uuid, audit_type='ONESHOT',
-                     state=None, parameters=None):
+                     state=None, interval=None, parameters=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
-        :param audit_type: Audit type (either ONESHOT or CONTINUOUS)
-        :param state: Audit state
-        :param parameters: Input parameters of the audit
+        :param type: Audit type (either ONESHOT or CONTINUOUS)
+        :param state: Audit state (str)
+        :param interval: Audit interval in seconds (int)
+        :param parameters: list of execution parameters
         :return: A tuple with The HTTP response and its body
         """
         resp, body = self.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state, parameters=parameters)
+            state=state, interval=interval, parameters=parameters)
 
         self.addCleanup(self.delete_audit, audit_uuid=body["uuid"])
         return resp, body
