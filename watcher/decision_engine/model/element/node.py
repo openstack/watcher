@@ -17,6 +17,8 @@
 import enum
 
 from watcher.decision_engine.model.element import compute_resource
+from watcher.objects import base
+from watcher.objects import fields as wfields
 
 
 class ServiceState(enum.Enum):
@@ -26,29 +28,20 @@ class ServiceState(enum.Enum):
     DISABLED = 'disabled'
 
 
+@base.WatcherObjectRegistry.register_if(False)
 class ComputeNode(compute_resource.ComputeResource):
 
-    def __init__(self, id):
-        super(ComputeNode, self).__init__()
-        self.id = id
-        self._state = ServiceState.ONLINE.value
-        self._status = ServiceState.ENABLED.value
+    fields = {
+        "id": wfields.NonNegativeIntegerField(),
+        "hostname": wfields.StringField(),
+        "status": wfields.StringField(default=ServiceState.ENABLED.value),
+        "state": wfields.StringField(default=ServiceState.ONLINE.value),
+
+        "memory": wfields.NonNegativeIntegerField(),
+        "disk": wfields.IntegerField(),
+        "disk_capacity": wfields.NonNegativeIntegerField(),
+        "vcpus": wfields.NonNegativeIntegerField(),
+    }
 
     def accept(self, visitor):
         raise NotImplementedError()
-
-    @property
-    def state(self):
-        return self._state
-
-    @state.setter
-    def state(self, state):
-        self._state = state
-
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, s):
-        self._status = s

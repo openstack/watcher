@@ -127,7 +127,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
-        self.strategy.add_migration(instance_uuid, n1, n2, model)
+        instance = model.get_instance_by_uuid(instance_uuid)
+        self.strategy.add_migration(instance, n1, n2, model)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = {'action_type': 'migrate',
                     'input_parameters': {'destination_node': n2.uuid,
@@ -196,11 +197,12 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
+        instance = model.get_instance_by_uuid(instance_uuid)
         self.strategy.disable_unused_nodes(model)
         self.assertEqual(0, len(self.strategy.solution.actions))
 
         # Migrate VM to free the node
-        self.strategy.add_migration(instance_uuid, n1, n2, model)
+        self.strategy.add_migration(instance, n1, n2, model)
 
         self.strategy.disable_unused_nodes(model)
         expected = {'action_type': 'change_nova_service_state',

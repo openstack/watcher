@@ -13,9 +13,6 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
-import copy
 
 from oslo_log import log
 
@@ -101,9 +98,8 @@ class DefaultScope(base.BaseScope):
         self._osc = osc
         self.wrapper = nova_helper.NovaHelper(osc=self._osc)
 
-    def _remove_instance(self, cluster_model, instance_uuid, node_name):
+    def remove_instance(self, cluster_model, instance, node_name):
         node = cluster_model.get_node_by_uuid(node_name)
-        instance = cluster_model.get_instance_by_uuid(instance_uuid)
         cluster_model.delete_instance(instance, node)
 
     def _check_wildcard(self, aggregate_list):
@@ -147,7 +143,7 @@ class DefaultScope(base.BaseScope):
             if zone.zoneName in zone_names or include_all_nodes:
                 allowed_nodes.extend(zone.hosts.keys())
 
-    def _exclude_resources(self, resources, **kwargs):
+    def exclude_resources(self, resources, **kwargs):
         instances_to_exclude = kwargs.get('instances')
         nodes_to_exclude = kwargs.get('nodes')
         for resource in resources:
@@ -160,32 +156,32 @@ class DefaultScope(base.BaseScope):
                     [host['name'] for host
                      in resource['compute_nodes']])
 
-    def _remove_node_from_model(self, nodes_to_remove, cluster_model):
-        for node_name in nodes_to_remove:
-            instances = copy.copy(
-                cluster_model.get_mapping().get_node_instances_by_uuid(
-                    node_name))
-            for instance_uuid in instances:
-                self._remove_instance(cluster_model, instance_uuid, node_name)
-            node = cluster_model.get_node_by_uuid(node_name)
+    def remove_nodes_from_model(self, nodes_to_remove, cluster_model):
+        for node_uuid in nodes_to_remove:
+            node = cluster_model.get_node_by_uuid(node_uuid)
+            instances = cluster_model.get_node_instances(node)
+            for instance in instances:
+                self.remove_instance(cluster_model, instance, node_uuid)
             cluster_model.remove_node(node)
 
-    def _remove_instances_from_model(self, instances_to_remove, cluster_model):
+    def remove_instances_from_model(self, instances_to_remove, cluster_model):
         for instance_uuid in instances_to_remove:
             try:
-                node_name = (cluster_model.get_mapping()
-                             .get_node_by_instance_uuid(instance_uuid).uuid)
-            except KeyError:
+                node_name = cluster_model.get_node_by_instance_uuid(
+                    instance_uuid).uuid
+            except exception.InstanceNotFound:
                 LOG.warning(_LW("The following instance %s cannot be found. "
                                 "It might be deleted from CDM along with node"
                                 " instance was hosted on."),
                             instance_uuid)
                 continue
-            self._remove_instance(cluster_model, instance_uuid, node_name)
+            self.remove_instance(
+                cluster_model,
+                cluster_model.get_instance_by_uuid(instance_uuid),
+                node_name)
 
     def get_scoped_model(self, cluster_model):
         """Leave only nodes and instances proposed in the audit scope"""
-
         if not cluster_model:
             return None
 
@@ -206,7 +202,7 @@ class DefaultScope(base.BaseScope):
                 self._collect_zones(rule['availability_zones'],
                                     allowed_nodes)
             elif 'exclude' in rule:
-                self._exclude_resources(
+                self.exclude_resources(
                     rule['exclude'], instances=instances_to_exclude,
                     nodes=nodes_to_exclude)
 
@@ -215,7 +211,7 @@ class DefaultScope(base.BaseScope):
             nodes_to_remove = set(model_hosts) - set(allowed_nodes)
         nodes_to_remove.update(nodes_to_exclude)
 
-        self._remove_node_from_model(nodes_to_remove, cluster_model)
-        self._remove_instances_from_model(instances_to_remove, cluster_model)
+        self.remove_nodes_from_model(nodes_to_remove, cluster_model)
+        self.remove_instances_from_model(instances_to_remove, cluster_model)
 
         return cluster_model

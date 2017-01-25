@@ -47,9 +47,9 @@ class TestModel(base.TestCase):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.build_scenario_1()
 
-        self.assertEqual(5, len(model._nodes))
-        self.assertEqual(35, len(model._instances))
-        self.assertEqual(5, len(model.mapping.get_mapping()))
+        self.assertEqual(5, len(model.get_all_compute_nodes()))
+        self.assertEqual(35, len(model.get_all_instances()))
+        self.assertEqual(8, len(model.edges()))
 
         expected_struct_str = self.load_data('scenario_1.xml')
         parser = etree.XMLParser(remove_blank_text=True)

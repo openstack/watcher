@@ -1,9 +1,9 @@
 <ModelRoot>
-  <ComputeNode hostname="hostname_0" uuid="Node_0" id="0" state="up" human_id="" status="enabled" ResourceType.cpu_cores="10" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64">
-    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_6" ResourceType.cpu_cores="1" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
-    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_7" ResourceType.cpu_cores="2" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
-    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_8" ResourceType.cpu_cores="4" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
-    <Instance hostname="" human_id="" state="active" uuid="INSTANCE_9" ResourceType.cpu_cores="8" ResourceType.disk="20" ResourceType.disk_capacity="20" ResourceType.memory="2"/>
+  <ComputeNode hostname="hostname_0" uuid="Node_0" id="0" state="up" human_id="" status="enabled" vcpus="10" disk="250" disk_capacity="250" memory="64">
+    <Instance human_id="" state="active" uuid="INSTANCE_6" vcpus="1" disk="20" disk_capacity="20" memory="2"/>
+    <Instance human_id="" state="active" uuid="INSTANCE_7" vcpus="2" disk="20" disk_capacity="20" memory="2"/>
+    <Instance human_id="" state="active" uuid="INSTANCE_8" vcpus="4" disk="20" disk_capacity="20" memory="2"/>
+    <Instance human_id="" state="active" uuid="INSTANCE_9" vcpus="8" disk="20" disk_capacity="20" memory="2"/>
   </ComputeNode>
-  <ComputeNode hostname="hostname_1" uuid="Node_1" id="1" state="up" human_id="" status="enabled" ResourceType.cpu_cores="10" ResourceType.disk="250" ResourceType.disk_capacity="250" ResourceType.memory="64"/>
+  <ComputeNode hostname="hostname_1" uuid="Node_1" id="1" state="up" human_id="" status="enabled" vcpus="10" disk="250" disk_capacity="250" memory="64"/>
 </ModelRoot>

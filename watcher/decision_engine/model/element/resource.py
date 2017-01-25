@@ -20,7 +20,8 @@ from watcher.common import exception
 
 
 class ResourceType(enum.Enum):
-    cpu_cores = 'num_cores'
+    cpu_cores = 'vcpus'
+    vcpus = 'vcpus'
     memory = 'memory'
     disk = 'disk'
     disk_capacity = 'disk_capacity'

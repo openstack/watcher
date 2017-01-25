@@ -19,39 +19,15 @@ import abc
 import six
 
 from watcher.decision_engine.model.element import base
+from watcher.objects import fields as wfields
 
 
 @six.add_metaclass(abc.ABCMeta)
 class ComputeResource(base.Element):
 
-    def __init__(self):
-        self._uuid = ""
-        self._human_id = ""
-        self._hostname = ""
+    VERSION = '1.0'
 
-    @property
-    def uuid(self):
-        return self._uuid
-
-    @uuid.setter
-    def uuid(self, u):
-        self._uuid = u
-
-    @property
-    def hostname(self):
-        return self._hostname
-
-    @hostname.setter
-    def hostname(self, h):
-        self._hostname = h
-
-    @property
-    def human_id(self):
-        return self._human_id
-
-    @human_id.setter
-    def human_id(self, h):
-        self._human_id = h
-
-    def __str__(self):
-        return "[{0}]".format(self.uuid)
+    fields = {
+        "uuid": wfields.StringField(),
+        "human_id": wfields.StringField(default=""),
+    }

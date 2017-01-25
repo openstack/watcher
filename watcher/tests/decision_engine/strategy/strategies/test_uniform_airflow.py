@@ -130,7 +130,7 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.threshold_inlet_t = 22
         n1, n2 = self.strategy.group_hosts_by_airflow()
         instances = model.get_all_instances()
-        instances.clear()
+        [model.remove_instance(inst) for inst in instances.values()]
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
         self.assertIsNone(instance_to_mig)
 

@@ -148,12 +148,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     def calculate_used_resource(self, node, cap_cores, cap_mem,
                                 cap_disk):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
-        instances = self.compute_model.mapping.get_node_instances(node)
+        instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
-        for instance_id in instances:
-            instance = self.compute_model.get_instance_by_uuid(instance_id)
+        for instance in instances:
             vcpus_used += cap_cores.get_capacity(instance)
             memory_mb_used += cap_mem.get_capacity(instance)
             disk_gb_used += cap_disk.get_capacity(instance)
@@ -169,27 +168,25 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         """
         for instance_data in hosts:
             source_node = instance_data['node']
-            source_instances = self.compute_model.mapping.get_node_instances(
+            source_instances = self.compute_model.get_node_instances(
                 source_node)
             if source_instances:
                 delta_workload = instance_data['workload'] - avg_workload
                 min_delta = 1000000
                 instance_id = None
-                for inst_id in source_instances:
+                for instance in source_instances:
                     try:
                         # select the first active VM to migrate
-                        instance = self.compute_model.get_instance_by_uuid(
-                            inst_id)
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):
                             LOG.debug("Instance not active, skipped: %s",
                                       instance.uuid)
                             continue
                         current_delta = (
-                            delta_workload - workload_cache[inst_id])
+                            delta_workload - workload_cache[instance.uuid])
                         if 0 <= current_delta < min_delta:
                             min_delta = current_delta
-                            instance_id = inst_id
+                            instance_id = instance.uuid
                     except wexc.InstanceNotFound:
                         LOG.error(_LE("Instance not found; error: %s"),
                                   instance_id)
@@ -254,7 +251,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             raise wexc.ClusterEmpty()
         # get cpu cores capacity of nodes and instances
         cap_cores = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
+            element.ResourceType.vcpus)
         overload_hosts = []
         nonoverload_hosts = []
         # total workload of cluster
@@ -264,13 +261,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         for node_id in nodes:
             node = self.compute_model.get_node_by_uuid(
                 node_id)
-            instances = self.compute_model.mapping.get_node_instances(node)
+            instances = self.compute_model.get_node_instances(node)
             node_workload = 0.0
-            for instance_id in instances:
-                instance = self.compute_model.get_instance_by_uuid(instance_id)
+            for instance in instances:
                 try:
                     cpu_util = self.ceilometer.statistic_aggregation(
-                        resource_id=instance_id,
+                        resource_id=instance.uuid,
                         meter_name=self._meter,
                         period=self._period,
                         aggregate='avg')
@@ -279,12 +275,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     LOG.error(_LE("Can not get cpu_util from Ceilometer"))
                     continue
                 if cpu_util is None:
-                    LOG.debug("Instance (%s): cpu_util is None", instance_id)
+                    LOG.debug("Instance (%s): cpu_util is None", instance.uuid)
                     continue
                 instance_cores = cap_cores.get_capacity(instance)
-                workload_cache[instance_id] = cpu_util * instance_cores / 100
-                node_workload += workload_cache[instance_id]
-                LOG.debug("VM (%s): cpu_util %f", instance_id, cpu_util)
+                workload_cache[instance.uuid] = cpu_util * instance_cores / 100
+                node_workload += workload_cache[instance.uuid]
+                LOG.debug("VM (%s): cpu_util %f", instance.uuid, cpu_util)
             node_cores = cap_cores.get_capacity(node)
             hy_cpu_util = node_workload / node_cores * 100
 

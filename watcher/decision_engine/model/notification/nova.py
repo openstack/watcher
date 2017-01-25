@@ -18,7 +18,7 @@
 
 from oslo_log import log
 
-from watcher._i18n import _LI
+from watcher._i18n import _LI, _LW
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
@@ -40,14 +40,21 @@ class NovaNotification(base.NotificationEndpoint):
             self._nova = nova_helper.NovaHelper()
         return self._nova
 
-    def get_or_create_instance(self, uuid):
+    def get_or_create_instance(self, instance_uuid, node_uuid=None):
         try:
-            instance = self.cluster_data_model.get_instance_by_uuid(uuid)
+            if node_uuid:
+                self.get_or_create_node(node_uuid)
+        except exception.ComputeNodeNotFound:
+            LOG.warning(_LW("Could not find compute node %(node)s for "
+                            "instance %(instance)s"),
+                        dict(node=node_uuid, instance=instance_uuid))
+        try:
+            instance = self.cluster_data_model.get_instance_by_uuid(
+                instance_uuid)
         except exception.InstanceNotFound:
             # The instance didn't exist yet so we create a new instance object
-            LOG.debug("New instance created: %s", uuid)
-            instance = element.Instance()
-            instance.uuid = uuid
+            LOG.debug("New instance created: %s", instance_uuid)
+            instance = element.Instance(uuid=instance_uuid)
 
             self.cluster_data_model.add_instance(instance)
 
@@ -57,9 +64,11 @@ class NovaNotification(base.NotificationEndpoint):
         instance_data = data['nova_object.data']
         instance_flavor_data = instance_data['flavor']['nova_object.data']
 
-        instance.state = instance_data['state']
-        instance.hostname = instance_data['host_name']
-        instance.human_id = instance_data['display_name']
+        instance.update({
+            'state': instance_data['state'],
+            'hostname': instance_data['host_name'],
+            'human_id': instance_data['display_name'],
+        })
 
         memory_mb = instance_flavor_data['memory_mb']
         num_cores = instance_flavor_data['vcpus']
@@ -67,7 +76,7 @@ class NovaNotification(base.NotificationEndpoint):
 
         self.update_capacity(element.ResourceType.memory, instance, memory_mb)
         self.update_capacity(
-            element.ResourceType.cpu_cores, instance, num_cores)
+            element.ResourceType.vcpus, instance, num_cores)
         self.update_capacity(
             element.ResourceType.disk, instance, disk_gb)
         self.update_capacity(
@@ -83,13 +92,14 @@ class NovaNotification(base.NotificationEndpoint):
         self.update_instance_mapping(instance, node)
 
     def update_capacity(self, resource_id, obj, value):
-        resource = self.cluster_data_model.get_resource_by_uuid(resource_id)
-        resource.set_capacity(obj, value)
+        setattr(obj, resource_id.value, value)
 
     def legacy_update_instance(self, instance, data):
-        instance.state = data['state']
-        instance.hostname = data['hostname']
-        instance.human_id = data['display_name']
+        instance.update({
+            'state': data['state'],
+            'hostname': data['hostname'],
+            'human_id': data['display_name'],
+        })
 
         memory_mb = data['memory_mb']
         num_cores = data['vcpus']
@@ -97,7 +107,7 @@ class NovaNotification(base.NotificationEndpoint):
 
         self.update_capacity(element.ResourceType.memory, instance, memory_mb)
         self.update_capacity(
-            element.ResourceType.cpu_cores, instance, num_cores)
+            element.ResourceType.vcpus, instance, num_cores)
         self.update_capacity(
             element.ResourceType.disk, instance, disk_gb)
         self.update_capacity(
@@ -115,28 +125,34 @@ class NovaNotification(base.NotificationEndpoint):
     def update_compute_node(self, node, data):
         """Update the compute node using the notification data."""
         node_data = data['nova_object.data']
-        node.hostname = node_data['host']
-        node.state = (
+        node_state = (
             element.ServiceState.OFFLINE.value
             if node_data['forced_down'] else element.ServiceState.ONLINE.value)
-        node.status = (
+        node_status = (
             element.ServiceState.DISABLED.value
             if node_data['disabled'] else element.ServiceState.ENABLED.value)
+
+        node.update({
+            'hostname': node_data['host'],
+            'state': node_state,
+            'status': node_status,
+        })
 
     def create_compute_node(self, node_hostname):
         """Update the compute node by querying the Nova API."""
         try:
             _node = self.nova.get_compute_node_by_hostname(node_hostname)
-            node = element.ComputeNode(_node.id)
-            node.uuid = node_hostname
-            node.hostname = _node.hypervisor_hostname
-            node.state = _node.state
-            node.status = _node.status
+            node = element.ComputeNode(
+                id=_node.id,
+                uuid=node_hostname,
+                hostname=_node.hypervisor_hostname,
+                state=_node.state,
+                status=_node.status)
 
             self.update_capacity(
                 element.ResourceType.memory, node, _node.memory_mb)
             self.update_capacity(
-                element.ResourceType.cpu_cores, node, _node.vcpus)
+                element.ResourceType.vcpus, node, _node.vcpus)
             self.update_capacity(
                 element.ResourceType.disk, node, _node.free_disk_gb)
             self.update_capacity(
@@ -170,18 +186,20 @@ class NovaNotification(base.NotificationEndpoint):
             return
         try:
             try:
-                old_node = self.get_or_create_node(node.uuid)
+                current_node = (
+                    self.cluster_data_model.get_node_by_instance_uuid(
+                        instance.uuid) or self.get_or_create_node(node.uuid))
             except exception.ComputeNodeNotFound as exc:
                 LOG.exception(exc)
                 # If we can't create the node,
                 # we consider the instance as unmapped
-                old_node = None
+                current_node = None
 
             LOG.debug("Mapped node %s found", node.uuid)
-            if node and node != old_node:
+            if current_node and node != current_node:
                 LOG.debug("Unmapping instance %s from %s",
                           instance.uuid, node.uuid)
-                self.cluster_data_model.unmap_instance(instance, old_node)
+                self.cluster_data_model.unmap_instance(instance, current_node)
         except exception.InstanceNotFound:
             # The instance didn't exist yet so we map it for the first time
             LOG.debug("New instance: mapping it to %s", node.uuid)
@@ -221,6 +239,7 @@ class ServiceUpdated(VersionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
         node_data = payload['nova_object.data']
         node_uuid = node_data['host']
         try:
@@ -262,10 +281,12 @@ class InstanceCreated(VersionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
         instance_data = payload['nova_object.data']
 
         instance_uuid = instance_data['uuid']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = instance_data.get('host')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.update_instance(instance, payload)
 
@@ -294,9 +315,11 @@ class InstanceUpdated(VersionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = instance_data.get('host')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.update_instance(instance, payload)
 
@@ -317,10 +340,12 @@ class InstanceDeletedEnd(VersionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
 
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = instance_data.get('host')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         try:
             node = self.get_or_create_node(instance_data['host'])
@@ -348,9 +373,11 @@ class LegacyInstanceUpdated(UnversionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
 
         instance_uuid = payload['instance_id']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = payload.get('node')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.legacy_update_instance(instance, payload)
 
@@ -371,9 +398,11 @@ class LegacyInstanceCreatedEnd(UnversionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
 
         instance_uuid = payload['instance_id']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = payload.get('node')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.legacy_update_instance(instance, payload)
 
@@ -394,8 +423,10 @@ class LegacyInstanceDeletedEnd(UnversionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
         instance_uuid = payload['instance_id']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = payload.get('node')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         try:
             node = self.get_or_create_node(payload['host'])
@@ -423,8 +454,10 @@ class LegacyLiveMigratedEnd(UnversionnedNotificationEndpoint):
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
+        LOG.debug(payload)
 
         instance_uuid = payload['instance_id']
-        instance = self.get_or_create_instance(instance_uuid)
+        node_uuid = payload.get('node')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.legacy_update_instance(instance, payload)

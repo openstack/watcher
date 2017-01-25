@@ -19,6 +19,7 @@
 import mock
 
 from watcher.common import nova_helper
+from watcher.common import utils
 from watcher.decision_engine.model.collector import nova
 from watcher.tests import base
 from watcher.tests import conf_fixture
@@ -33,9 +34,13 @@ class TestNovaClusterDataModelCollector(base.TestCase):
     @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(nova_helper, 'NovaHelper')
     def test_nova_cdmc_execute(self, m_nova_helper_cls):
-        m_nova_helper = mock.Mock()
+        m_nova_helper = mock.Mock(name="nova_helper")
         m_nova_helper_cls.return_value = m_nova_helper
+        m_nova_helper.get_service.return_value = mock.Mock(
+            host="test_hostname")
+
         fake_compute_node = mock.Mock(
+            id=1337,
             service={'id': 123},
             hypervisor_hostname='test_hostname',
             memory_mb=333,
@@ -47,19 +52,16 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         )
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
-            state=mock.Mock(**{'OS-EXT-STS:vm_state': 'VM_STATE'}),
-            flavor={'ram': 333, 'disk': 222, 'vcpus': 4},
+            human_id='fake_instance',
+            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
         )
+        setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
-        m_nova_helper.get_instances_by_node.return_value = [fake_instance]
-        m_nova_helper.nova.services.find.return_value = mock.Mock(
-            host='test_hostname')
+        # m_nova_helper.get_instances_by_node.return_value = [fake_instance]
+        m_nova_helper.get_instance_list.return_value = [fake_instance]
 
-        def m_get_flavor_instance(instance, cache):
-            instance.flavor = {'ram': 333, 'disk': 222, 'vcpus': 4}
-            return instance
-
-        m_nova_helper.get_flavor_instance.side_effect = m_get_flavor_instance
+        m_nova_helper.get_flavor.return_value = utils.Struct(**{
+            'ram': 333, 'disk': 222, 'vcpus': 4})
 
         m_config = mock.Mock()
         m_osc = mock.Mock()

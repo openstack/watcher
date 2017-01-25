@@ -74,7 +74,7 @@ class TestWorkloadBalance(base.TestCase):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         node = model.get_node_by_uuid('Node_0')
-        cap_cores = model.get_resource_by_uuid(element.ResourceType.cpu_cores)
+        cap_cores = model.get_resource_by_uuid(element.ResourceType.vcpus)
         cap_mem = model.get_resource_by_uuid(element.ResourceType.memory)
         cap_disk = model.get_resource_by_uuid(element.ResourceType.disk)
         cores_used, mem_used, disk_used = (
@@ -107,7 +107,7 @@ class TestWorkloadBalance(base.TestCase):
         self.m_model.return_value = model
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
         instances = model.get_all_instances()
-        instances.clear()
+        [model.remove_instance(inst) for inst in instances.values()]
         instance_to_mig = self.strategy.choose_instance_to_migrate(
             n1, avg, w_map)
         self.assertIsNone(instance_to_mig)

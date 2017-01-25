@@ -139,18 +139,16 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             input_parameters=params)
         self.number_of_released_nodes += 1
 
-    def add_migration(self, instance_uuid, source_node,
+    def add_migration(self, instance, source_node,
                       destination_node, model):
         """Add an action for VM migration into the solution.
 
-        :param instance_uuid: instance uuid
+        :param instance: instance object
         :param source_node: node object
         :param destination_node: node object
         :param model: model_root object
         :return: None
         """
-        instance = model.get_instance_by_uuid(instance_uuid)
-
         instance_state_str = self.get_state_str(instance.state)
         if instance_state_str != element.InstanceState.ACTIVE.value:
             # Watcher curently only supports live VM migration and block live
@@ -160,7 +158,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             LOG.error(
                 _LE('Cannot live migrate: instance_uuid=%(instance_uuid)s, '
                     'state=%(instance_state)s.') % dict(
-                        instance_uuid=instance_uuid,
+                        instance_uuid=instance.uuid,
                         instance_state=instance_state_str))
             return
 
@@ -169,6 +167,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         destination_node_state_str = self.get_state_str(destination_node.state)
         if destination_node_state_str == element.ServiceState.DISABLED.value:
             self.add_action_enable_compute_node(destination_node)
+
         if model.migrate_instance(instance, source_node, destination_node):
             params = {'migration_type': migration_type,
                       'source_node': source_node.uuid,
@@ -185,7 +184,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         for node in model.get_all_compute_nodes().values():
-            if (len(model.mapping.get_node_instances(node)) == 0 and
+            if (len(model.get_node_instances(node)) == 0 and
                     node.status !=
                     element.ServiceState.DISABLED.value):
                 self.add_action_disable_node(node)
@@ -254,14 +253,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
-        node_instances = model.mapping.get_node_instances_by_uuid(
-            node.uuid)
+        node_instances = model.get_node_instances(node)
         node_ram_util = 0
         node_disk_util = 0
         node_cpu_util = 0
-        for instance_uuid in node_instances:
+        for instance in node_instances:
             instance_util = self.get_instance_utilization(
-                instance_uuid, model, period, aggr)
+                instance.uuid, model, period, aggr)
             node_cpu_util += instance_util['cpu']
             node_ram_util += instance_util['ram']
             node_disk_util += instance_util['disk']
@@ -402,9 +400,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     self.number_of_migrations -= 1
                 src_node = model.get_node_by_uuid(src_uuid)
                 dst_node = model.get_node_by_uuid(dst_uuid)
-                if model.migrate_instance(instance_uuid, dst_node, src_node):
-                    self.add_migration(
-                        instance_uuid, src_node, dst_node, model)
+                instance = model.get_instance_by_uuid(instance_uuid)
+                if model.migrate_instance(instance, dst_node, src_node):
+                    self.add_migration(instance, src_node, dst_node, model)
 
     def offload_phase(self, model, cc):
         """Perform offloading phase.
@@ -431,13 +429,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         for node in reversed(sorted_nodes):
             if self.is_overloaded(node, model, cc):
                 for instance in sorted(
-                        model.mapping.get_node_instances(node),
+                        model.get_node_instances(node),
                         key=lambda x: self.get_instance_utilization(
-                            x, model)['cpu']
+                            x.uuid, model)['cpu']
                 ):
                     for destination_node in reversed(sorted_nodes):
                         if self.instance_fits(
-                                instance, destination_node, model, cc):
+                                instance.uuid, destination_node, model, cc):
                             self.add_migration(instance, node,
                                                destination_node, model)
                             break
@@ -465,15 +463,16 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         asc = 0
         for node in sorted_nodes:
             instances = sorted(
-                model.mapping.get_node_instances(node),
-                key=lambda x: self.get_instance_utilization(x, model)['cpu'])
+                model.get_node_instances(node),
+                key=lambda x: self.get_instance_utilization(
+                    x.uuid, model)['cpu'])
             for instance in reversed(instances):
                 dsc = len(sorted_nodes) - 1
                 for destination_node in reversed(sorted_nodes):
                     if asc >= dsc:
                         break
                     if self.instance_fits(
-                            instance, destination_node, model, cc):
+                            instance.uuid, destination_node, model, cc):
                         self.add_migration(instance, node,
                                            destination_node, model)
                         break
