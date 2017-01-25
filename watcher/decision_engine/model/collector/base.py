@@ -108,11 +108,14 @@ import copy
 import threading
 
 from oslo_config import cfg
+from oslo_log import log
 import six
 
 from watcher.common import clients
 from watcher.common.loader import loadable
 from watcher.decision_engine.model import model_root
+
+LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -169,6 +172,8 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
         ]
 
     def get_latest_cluster_data_model(self):
+        LOG.debug("Creating copy")
+        LOG.debug(self.cluster_data_model.to_xml())
         return copy.deepcopy(self.cluster_data_model)
 
     def synchronize(self):

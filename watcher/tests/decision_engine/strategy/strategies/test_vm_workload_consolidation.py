@@ -81,7 +81,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         instance_util = dict(cpu=1.0, ram=1, disk=10)
         self.assertEqual(
             instance_util,
-            self.strategy.get_instance_utilization(instance_0.uuid, model))
+            self.strategy.get_instance_utilization(instance_0, model))
 
     def test_get_node_utilization(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -99,16 +99,14 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.fake_metrics.model = model
         node_0 = model.get_node_by_uuid("Node_0")
         node_util = dict(cpu=40, ram=64, disk=250)
-        self.assertEqual(node_util,
-                         self.strategy.get_node_capacity(node_0, model))
+        self.assertEqual(node_util, self.strategy.get_node_capacity(node_0))
 
     def test_get_relative_node_utilization(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
         node = model.get_node_by_uuid('Node_0')
-        rhu = self.strategy.get_relative_node_utilization(
-            node, model)
+        rhu = self.strategy.get_relative_node_utilization(node)
         expected_rhu = {'disk': 0.04, 'ram': 0.015625, 'cpu': 0.025}
         self.assertEqual(expected_rhu, rhu)
 
@@ -116,7 +114,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
-        cru = self.strategy.get_relative_cluster_utilization(model)
+        cru = self.strategy.get_relative_cluster_utilization()
         expected_cru = {'cpu': 0.05, 'disk': 0.05, 'ram': 0.0234375}
         self.assertEqual(expected_cru, cru)
 
@@ -128,7 +126,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
         instance = model.get_instance_by_uuid(instance_uuid)
-        self.strategy.add_migration(instance, n1, n2, model)
+        self.strategy.add_migration(instance, n1, n2)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = {'action_type': 'migrate',
                     'input_parameters': {'destination_node': n2.uuid,
@@ -143,15 +141,15 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        res = self.strategy.is_overloaded(n1, model, cc)
+        res = self.strategy.is_overloaded(n1, cc)
         self.assertFalse(res)
 
         cc = {'cpu': 0.025, 'ram': 1.0, 'disk': 1.0}
-        res = self.strategy.is_overloaded(n1, model, cc)
+        res = self.strategy.is_overloaded(n1, cc)
         self.assertFalse(res)
 
         cc = {'cpu': 0.024, 'ram': 1.0, 'disk': 1.0}
-        res = self.strategy.is_overloaded(n1, model, cc)
+        res = self.strategy.is_overloaded(n1, cc)
         self.assertTrue(res)
 
     def test_instance_fits(self):
@@ -159,13 +157,13 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_model.return_value = model
         self.fake_metrics.model = model
         n = model.get_node_by_uuid('Node_1')
-        instance_uuid = 'INSTANCE_0'
+        instance0 = model.get_instance_by_uuid('INSTANCE_0')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        res = self.strategy.instance_fits(instance_uuid, n, model, cc)
+        res = self.strategy.instance_fits(instance0, n, cc)
         self.assertTrue(res)
 
         cc = {'cpu': 0.025, 'ram': 1.0, 'disk': 1.0}
-        res = self.strategy.instance_fits(instance_uuid, n, model, cc)
+        res = self.strategy.instance_fits(instance0, n, cc)
         self.assertFalse(res)
 
     def test_add_action_enable_compute_node(self):
@@ -198,13 +196,13 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
         instance = model.get_instance_by_uuid(instance_uuid)
-        self.strategy.disable_unused_nodes(model)
+        self.strategy.disable_unused_nodes()
         self.assertEqual(0, len(self.strategy.solution.actions))
 
         # Migrate VM to free the node
-        self.strategy.add_migration(instance, n1, n2, model)
+        self.strategy.add_migration(instance, n1, n2)
 
-        self.strategy.disable_unused_nodes(model)
+        self.strategy.disable_unused_nodes()
         expected = {'action_type': 'change_nova_service_state',
                     'input_parameters': {'state': 'disabled',
                                          'resource_id': 'Node_0'}}
@@ -216,7 +214,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_model.return_value = model
         self.fake_metrics.model = model
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        self.strategy.offload_phase(model, cc)
+        self.strategy.offload_phase(cc)
         expected = []
         self.assertEqual(expected, self.strategy.solution.actions)
 
@@ -228,7 +226,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        self.strategy.consolidation_phase(model, cc)
+        self.strategy.consolidation_phase(cc)
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2.uuid,
                                           'source_node': n1.uuid,
@@ -242,9 +240,9 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        self.strategy.offload_phase(model, cc)
-        self.strategy.consolidation_phase(model, cc)
-        self.strategy.optimize_solution(model)
+        self.strategy.offload_phase(cc)
+        self.strategy.consolidation_phase(cc)
+        self.strategy.optimize_solution()
         n2 = self.strategy.solution.actions[0][
             'input_parameters']['destination_node']
         expected = [{'action_type': 'migrate',
@@ -267,7 +265,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        self.strategy.offload_phase(model, cc)
+        self.strategy.offload_phase(cc)
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2.uuid,
                                           'migration_type': 'live',
@@ -284,14 +282,14 @@ class TestVMWorkloadConsolidation(base.TestCase):
                                           'resource_id': 'INSTANCE_8',
                                           'source_node': n1.uuid}}]
         self.assertEqual(expected, self.strategy.solution.actions)
-        self.strategy.consolidation_phase(model, cc)
+        self.strategy.consolidation_phase(cc)
         expected.append({'action_type': 'migrate',
                          'input_parameters': {'destination_node': n1.uuid,
                                               'migration_type': 'live',
                                               'resource_id': 'INSTANCE_7',
                                               'source_node': n2.uuid}})
         self.assertEqual(expected, self.strategy.solution.actions)
-        self.strategy.optimize_solution(model)
+        self.strategy.optimize_solution()
         del expected[3]
         del expected[1]
         self.assertEqual(expected, self.strategy.solution.actions)

@@ -93,25 +93,29 @@ class TestWorkloadStabilization(base.TestCase):
         self.strategy.periods = {"instance": 720, "node": 600}
 
     def test_get_instance_load(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        instance0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_0_dict = {
             'uuid': 'INSTANCE_0', 'vcpus': 10,
             'cpu_util': 0.07, 'memory.resident': 2}
         self.assertEqual(
-            instance_0_dict, self.strategy.get_instance_load("INSTANCE_0"))
+            instance_0_dict, self.strategy.get_instance_load(instance0))
 
     def test_periods(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
         p_ceilometer = mock.patch.object(
             strategies.WorkloadStabilization, "ceilometer")
         m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
         m_ceilometer.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        self.strategy.get_instance_load("INSTANCE_0")
+        instance0 = model.get_instance_by_uuid("INSTANCE_0")
+        self.strategy.get_instance_load(instance0)
         m_ceilometer.statistic_aggregation.assert_called_with(
             aggregate='min', meter_name='memory.resident',
-            period=720, resource_id='INSTANCE_0')
+            period=720, resource_id=instance0.uuid)
         self.strategy.get_hosts_load()
         m_ceilometer.statistic_aggregation.assert_called_with(
             aggregate='avg', meter_name='hardware.memory.used',
@@ -158,10 +162,14 @@ class TestWorkloadStabilization(base.TestCase):
         self.assertEqual(self.strategy.calculate_weighted_sd(sd_case), 1.25)
 
     def test_calculate_migration_case(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        instance = model.get_instance_by_uuid("INSTANCE_5")
+        src_node = model.get_node_by_uuid("Node_2")
+        dst_node = model.get_node_by_uuid("Node_1")
         result = self.strategy.calculate_migration_case(
-            self.hosts_load_assert, "INSTANCE_5", "Node_2", "Node_1")[-1][
-            "Node_1"]
+            self.hosts_load_assert, instance,
+            src_node, dst_node)[-1][dst_node.uuid]
         result['cpu_util'] = round(result['cpu_util'], 3)
         self.assertEqual(result, {'cpu_util': 0.095, 'memory.resident': 21.0,
                                   'vcpus': 40})

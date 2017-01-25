@@ -22,7 +22,6 @@ import mock
 from watcher.applier.loading import default
 from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -70,16 +69,12 @@ class TestWorkloadBalance(base.TestCase):
         self.strategy.threshold = 25.0
         self.strategy._period = 300
 
-    def test_calc_used_res(self):
+    def test_calc_used_resource(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         node = model.get_node_by_uuid('Node_0')
-        cap_cores = model.get_resource_by_uuid(element.ResourceType.vcpus)
-        cap_mem = model.get_resource_by_uuid(element.ResourceType.memory)
-        cap_disk = model.get_resource_by_uuid(element.ResourceType.disk)
         cores_used, mem_used, disk_used = (
-            self.strategy.calculate_used_resource(
-                node, cap_cores, cap_mem, cap_disk))
+            self.strategy.calculate_used_resource(node))
 
         self.assertEqual((cores_used, mem_used, disk_used), (20, 4, 40))
 

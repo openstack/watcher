@@ -121,17 +121,16 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
-    def calc_used_res(self, node, cpu_capacity,
-                      memory_capacity, disk_capacity):
+    def calc_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
         instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for instance in instances:
-            vcpus_used += cpu_capacity.get_capacity(instance)
-            memory_mb_used += memory_capacity.get_capacity(instance)
-            disk_gb_used += disk_capacity.get_capacity(instance)
+            vcpus_used += instance.vcpus
+            memory_mb_used += instance.memory
+            disk_gb_used += instance.disk
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
@@ -189,27 +188,19 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     def filter_dest_servers(self, hosts, instance_to_migrate):
         """Only return hosts with sufficient available resources"""
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        memory_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
-
-        required_cores = cpu_capacity.get_capacity(instance_to_migrate)
-        required_disk = disk_capacity.get_capacity(instance_to_migrate)
-        required_memory = memory_capacity.get_capacity(instance_to_migrate)
+        required_cores = instance_to_migrate.vcpus
+        required_disk = instance_to_migrate.disk
+        required_memory = instance_to_migrate.memory
 
         # filter nodes without enough resource
         dest_servers = []
         for instance_data in hosts:
             host = instance_data['node']
             # available
-            cores_used, mem_used, disk_used = self.calc_used_res(
-                host, cpu_capacity, memory_capacity, disk_capacity)
-            cores_available = cpu_capacity.get_capacity(host) - cores_used
-            disk_available = disk_capacity.get_capacity(host) - disk_used
-            mem_available = memory_capacity.get_capacity(host) - mem_used
+            cores_used, mem_used, disk_used = self.calc_used_resource(host)
+            cores_available = host.vcpus - cores_used
+            disk_available = host.disk - disk_used
+            mem_available = host.memory - mem_used
             if cores_available >= required_cores \
                     and disk_available >= required_disk \
                     and mem_available >= required_memory:

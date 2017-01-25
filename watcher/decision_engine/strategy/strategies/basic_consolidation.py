@@ -173,23 +173,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         total_cores = 0
         total_disk = 0
         total_mem = 0
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus)
-        disk_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        memory_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
-
         for instance in self.compute_model.get_node_instances(
                 destination_node):
-            total_cores += cpu_capacity.get_capacity(instance)
-            total_disk += disk_capacity.get_capacity(instance)
-            total_mem += memory_capacity.get_capacity(instance)
+            total_cores += instance.vcpus
+            total_disk += instance.disk
+            total_mem += instance.memory
 
         # capacity requested by the compute node
-        total_cores += cpu_capacity.get_capacity(instance_to_migrate)
-        total_disk += disk_capacity.get_capacity(instance_to_migrate)
-        total_mem += memory_capacity.get_capacity(instance_to_migrate)
+        total_cores += instance_to_migrate.vcpus
+        total_disk += instance_to_migrate.disk
+        total_mem += instance_to_migrate.memory
 
         return self.check_threshold(destination_node, total_cores, total_disk,
                                     total_mem)
@@ -208,12 +201,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param total_mem: total memory used by the virtual machine
         :return: True if the threshold is not exceed
         """
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus).get_capacity(destination_node)
-        disk_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk).get_capacity(destination_node)
-        memory_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory).get_capacity(destination_node)
+        cpu_capacity = destination_node.vcpus
+        disk_capacity = destination_node.disk
+        memory_capacity = destination_node.memory
 
         return (cpu_capacity >= total_cores * self.threshold_cores and
                 disk_capacity >= total_disk * self.threshold_disk and
@@ -229,14 +219,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param total_memory_used:
         :return:
         """
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus).get_capacity(compute_resource)
-
-        disk_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk).get_capacity(compute_resource)
-
-        memory_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory).get_capacity(compute_resource)
+        cpu_capacity = compute_resource.vcpus
+        disk_capacity = compute_resource.disk
+        memory_capacity = compute_resource.memory
 
         score_cores = (1 - (float(cpu_capacity) - float(total_cores_used)) /
                        float(cpu_capacity))
@@ -331,10 +316,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                             self.config.datasource]['host_cpu_usage']))
             host_avg_cpu_util = 100
 
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus).get_capacity(node)
-
-        total_cores_used = cpu_capacity * (host_avg_cpu_util / 100.0)
+        total_cores_used = node.vcpus * (host_avg_cpu_util / 100.0)
 
         return self.calculate_weight(node, total_cores_used, 0, 0)
 
@@ -354,10 +336,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                             self.config.datasource]['instance_cpu_usage']))
             instance_cpu_utilization = 100
 
-        cpu_capacity = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.vcpus).get_capacity(instance)
-
-        total_cores_used = cpu_capacity * (instance_cpu_utilization / 100.0)
+        total_cores_used = instance.vcpus * (instance_cpu_utilization / 100.0)
 
         return self.calculate_weight(instance, total_cores_used, 0, 0)
 

@@ -164,16 +164,16 @@ class UniformAirflow(base.BaseStrategy):
             },
         }
 
-    def calculate_used_resource(self, node, cap_cores, cap_mem, cap_disk):
+    def calculate_used_resource(self, node):
         """Compute the used vcpus, memory and disk based on instance flavors"""
         instances = self.compute_model.get_node_instances(node)
         vcpus_used = 0
         memory_mb_used = 0
         disk_gb_used = 0
         for instance in instances:
-            vcpus_used += cap_cores.get_capacity(instance)
-            memory_mb_used += cap_mem.get_capacity(instance)
-            disk_gb_used += cap_disk.get_capacity(instance)
+            vcpus_used += instance.vcpus
+            memory_mb_used += instance.memory
+            disk_gb_used += instance.disk
 
         return vcpus_used, memory_mb_used, disk_gb_used
 
@@ -221,23 +221,16 @@ class UniformAirflow(base.BaseStrategy):
 
     def filter_destination_hosts(self, hosts, instances_to_migrate):
         """Find instance and host with sufficient available resources"""
-
-        cap_cores = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.cpu_cores)
-        cap_disk = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.disk)
-        cap_mem = self.compute_model.get_resource_by_uuid(
-            element.ResourceType.memory)
-        # large instance go first
+        # large instances go first
         instances_to_migrate = sorted(
             instances_to_migrate, reverse=True,
-            key=lambda x: (cap_cores.get_capacity(x)))
+            key=lambda x: (x.vcpus))
         # find hosts for instances
         destination_hosts = []
         for instance_to_migrate in instances_to_migrate:
-            required_cores = cap_cores.get_capacity(instance_to_migrate)
-            required_disk = cap_disk.get_capacity(instance_to_migrate)
-            required_mem = cap_mem.get_capacity(instance_to_migrate)
+            required_cores = instance_to_migrate.vcpus
+            required_disk = instance_to_migrate.disk
+            required_mem = instance_to_migrate.memory
             dest_migrate_info = {}
             for nodemap in hosts:
                 host = nodemap['node']
@@ -245,13 +238,13 @@ class UniformAirflow(base.BaseStrategy):
                     # calculate the available resources
                     nodemap['cores_used'], nodemap['mem_used'],\
                         nodemap['disk_used'] = self.calculate_used_resource(
-                            host, cap_cores, cap_mem, cap_disk)
-                cores_available = (cap_cores.get_capacity(host) -
+                            host)
+                cores_available = (host.vcpus -
                                    nodemap['cores_used'])
-                disk_available = (cap_disk.get_capacity(host) -
+                disk_available = (host.disk -
                                   nodemap['disk_used'])
                 mem_available = (
-                    cap_mem.get_capacity(host) - nodemap['mem_used'])
+                    host.memory - nodemap['mem_used'])
                 if (cores_available >= required_cores and
                         disk_available >= required_disk and
                         mem_available >= required_mem):
