@@ -101,6 +101,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def migration_attempts(self):
         return self.input_parameters.get('migration_attempts', 0)
 
+    @property
+    def period(self):
+        return self.input_parameters.get('period', 7200)
+
     @classmethod
     def get_display_name(cls):
         return _("Basic offline consolidation")
@@ -121,6 +125,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                    "limit, set it to 0 (by default)",
                     "type": "number",
                     "default": 0
+                },
+                "period": {
+                    "description": "The time interval in seconds for "
+                                   "getting statistic aggregation",
+                    "type": "number",
+                    "default": 7200
                 },
             },
         }
@@ -247,14 +257,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             return self.ceilometer.statistic_aggregation(
                 resource_id=resource_id,
                 meter_name=metric_name,
-                period="7200",
+                period=self.period,
                 aggregate='avg',
             )
         elif self.config.datasource == "monasca":
             statistics = self.monasca.statistic_aggregation(
                 meter_name=metric_name,
                 dimensions=dict(hostname=node.uuid),
-                period=7200,
+                period=self.period,
                 aggregate='avg'
             )
             cpu_usage = None
@@ -276,14 +286,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             return self.ceilometer.statistic_aggregation(
                 resource_id=instance.uuid,
                 meter_name=metric_name,
-                period="7200",
+                period=self.period,
                 aggregate='avg'
             )
         elif self.config.datasource == "monasca":
             statistics = self.monasca.statistic_aggregation(
                 meter_name=metric_name,
                 dimensions=dict(resource_id=instance.uuid),
-                period=7200,
+                period=self.period,
                 aggregate='avg'
             )
             cpu_usage = None
