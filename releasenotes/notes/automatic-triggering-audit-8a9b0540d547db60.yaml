@@ -1,0 +1,5 @@
+---
+features:
+  - Watcher can continuously optimize the OpenStack cloud for a specific
+    strategy or goal by triggering an audit periodically which generates
+    an action plan and run it automatically.

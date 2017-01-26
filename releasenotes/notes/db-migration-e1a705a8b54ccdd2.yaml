@@ -1,0 +1,3 @@
+---
+features:
+  - Watcher database can now be upgraded thanks to Alembic.

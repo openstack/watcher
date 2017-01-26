@@ -1,0 +1,6 @@
+---
+features:
+  - The graph model describes how VMs are associated to compute hosts.
+    This allows for seeing relationships upfront between the entities and hence
+    can be used to identify hot/cold spots in the data center and influence
+    a strategy decision.
