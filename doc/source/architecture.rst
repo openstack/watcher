@@ -21,7 +21,7 @@ Overview
 Below you will find a diagram, showing the main components of Watcher:
 
 .. image:: ./images/architecture.svg
-   :width: 100%
+   :width: 110%
 
 
 .. _components_definition:
@@ -37,27 +37,18 @@ AMQP Bus
 The AMQP message bus handles internal asynchronous communications between the
 different Watcher components.
 
-.. _cluster_history_db_definition:
+.. _cluster_datasource_definition:
 
-Cluster History Database
-------------------------
+Datasource
+----------
 
-This component stores the data related to the
-:ref:`Cluster History <cluster_history_definition>`.
+This component stores the metrics related to the cluster.
 
 It can potentially rely on any appropriate storage system (InfluxDB, OpenTSDB,
 MongoDB,...) but will probably be more performant when using
 `Time Series Databases <https://en.wikipedia.org/wiki/Time_series_database>`_
 which are optimized for handling time series data, which are arrays of numbers
 indexed by time (a datetime or a datetime range).
-
-.. _cluster_model_db_definition:
-
-Cluster Model Database
-------------------------
-
-This component stores the data related to the
-:ref:`Cluster Data Model <cluster_data_model_definition>`.
 
 .. _archi_watcher_api_definition:
 
@@ -193,8 +184,8 @@ data:
   :ref:`Managed resources <managed_resource_definition>` (e.g., the data stored
   in the Nova database). These models gives a strategy the ability to reason on
   the current state of a given :ref:`cluster <cluster_definition>`.
-- The data stored in the :ref:`Cluster History Database
-  <cluster_history_db_definition>` which provides information about the past of
+- The data stored in the :ref:`Cluster Datasource
+  <cluster_datasource_definition>` which provides information about the past of
   the :ref:`Cluster <cluster_definition>`.
 
 Here below is a sequence diagram showing how the Decision Engine builds and
@@ -452,6 +443,10 @@ state may be one of the following:
 -  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
    **RECOMMENDED**, **PENDING** or **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
+-  **SUPERSEDED** : the :ref:`Action Plan <action_plan_definition>` was in
+   RECOMMENDED state and was automatically superseded by Watcher, due to an
+   expiration delay or an update of the
+   :ref:`Cluster data model <cluster_data_model_definition>`
 
 
 The following diagram shows the different possible states of an

@@ -101,12 +101,6 @@ Cluster Data Model (CDM)
 
 .. watcher-term:: watcher.decision_engine.model.collector.base
 
-.. _cluster_history_definition:
-
-Cluster History
-===============
-
-.. watcher-term:: watcher.decision_engine.cluster.history.base
 
 .. _controller_node_definition:
 

@@ -9,8 +9,10 @@ FAILED --> DELETED : Administrator removes\nAction Plan
 SUCCEEDED --> DELETED : Administrator removes\nAction Plan
 ONGOING --> CANCELLED : Administrator cancels\nAction Plan
 RECOMMENDED --> CANCELLED : Administrator cancels\nAction Plan
+RECOMMENDED --> SUPERSEDED : The Watcher Decision Engine supersedes\nAction Plan
 PENDING --> CANCELLED : Administrator cancels\nAction Plan
 CANCELLED --> DELETED
+SUPERSEDED --> DELETED
 DELETED --> [*]
 
 @enduml

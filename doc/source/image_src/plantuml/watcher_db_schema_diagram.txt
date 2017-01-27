@@ -60,6 +60,7 @@ table(audits) {
     interval : Integer, nullable
     parameters : JSONEncodedDict, nullable
     scope : JSONEncodedList, nullable
+    auto_trigger: Boolean
 
     created_at : DateTime
     updated_at : DateTime
@@ -73,7 +74,6 @@ table(action_plans) {
     foreign_key("audit_id : Integer, nullable")
     foreign_key("strategy_id : Integer")
     uuid : String[36]
-    first_action_id : Integer
     state : String[20], nullable
     global_efficacy : JSONEncodedDict, nullable
 
@@ -91,7 +91,7 @@ table(actions) {
     action_type : String[255]
     input_parameters : JSONEncodedDict, nullable
     state : String[20], nullable
-    next : String[36], nullable
+    parents : JSONEncodedList, nullable
 
     created_at : DateTime
     updated_at : DateTime
