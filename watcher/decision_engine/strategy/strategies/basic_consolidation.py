@@ -415,11 +415,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                  sorted_score):
         number_migrations = 0
         for mig_instance, __ in sorted_instances:
-            for j in range(0, len(sorted_score)):
+            for node_uuid, __ in sorted_score:
                 mig_source_node = self.compute_model.get_node_by_uuid(
                     node_to_release)
                 mig_destination_node = self.compute_model.get_node_by_uuid(
-                    sorted_score[j][0])
+                    node_uuid)
 
                 result = self.check_migration(
                     mig_source_node, mig_destination_node, mig_instance)
