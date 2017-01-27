@@ -213,6 +213,18 @@ class InfraOptimClientJSON(base.BaseInfraOptimClient):
 
         return self._patch_request('/action_plans', action_plan_uuid, patch)
 
+    @base.handle_errors
+    def start_action_plan(self, action_plan_uuid):
+        """Start the specified action plan
+
+        :param action_plan_uuid: The unique identifier of the action_plan
+        :return: Tuple with the server response and the updated action_plan
+        """
+
+        return self._patch_request(
+            '/action_plans', action_plan_uuid,
+            [{'path': '/state', 'op': 'replace', 'value': 'PENDING'}])
+
     # ### GOALS ### #
 
     @base.handle_errors

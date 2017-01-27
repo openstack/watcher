@@ -214,7 +214,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
         audit_uuid = audit['uuid']
 
         assert test.call_until_true(
-            func=functools.partial(cls.has_audit_succeeded, audit_uuid),
+            func=functools.partial(cls.has_audit_finished, audit_uuid),
             duration=30,
             sleep_for=.5
         )

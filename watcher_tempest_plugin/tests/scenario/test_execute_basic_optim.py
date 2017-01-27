@@ -148,12 +148,17 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         try:
             self.assertTrue(test.call_until_true(
                 func=functools.partial(
-                    self.has_audit_succeeded, audit['uuid']),
+                    self.has_audit_finished, audit['uuid']),
                 duration=600,
                 sleep_for=2
             ))
         except ValueError:
             self.fail("The audit has failed!")
+
+        _, finished_audit = self.client.show_audit(audit['uuid'])
+        if finished_audit.get('state') in ('FAILED', 'CANCELLED'):
+            self.fail("The audit ended in unexpected state: %s!",
+                      finished_audit.get('state'))
 
         _, action_plans = self.client.list_action_plans(
             audit_uuid=audit['uuid'])
@@ -161,11 +166,13 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
+        if action_plan['state'] in ('SUPERSEDED', 'SUCCEEDED'):
+            # This means the action plan is superseded so we cannot trigger it,
+            # or it is empty.
+            return
+
         # Execute the action by changing its state to PENDING
-        _, updated_ap = self.client.update_action_plan(
-            action_plan['uuid'],
-            patch=[{'path': '/state', 'op': 'replace', 'value': 'PENDING'}]
-        )
+        _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(

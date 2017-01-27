@@ -35,7 +35,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
         assert test.call_until_true(
-            func=functools.partial(cls.has_audit_succeeded, cls.audit['uuid']),
+            func=functools.partial(cls.has_audit_finished, cls.audit['uuid']),
             duration=30,
             sleep_for=.5
         )
@@ -45,19 +45,23 @@ class TestShowListAction(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_show_one_action(self):
-        _, action_uuid = self.client.list_actions(
-            action_plan_uuid=self.action_plan['uuid'])['actions'][0]['uuid']
-        _, action = self.client.show_action(action_uuid)
+        _, body = self.client.list_actions(
+            action_plan_uuid=self.action_plan["uuid"])
+        actions = body['actions']
 
-        self.assertEqual(action_uuid, action['uuid'])
-        self.assertEqual("nop", action['action_type'])
+        _, action = self.client.show_action(actions[0]["uuid"])
+
+        self.assertEqual(self.action_plan["uuid"], action['action_plan_uuid'])
         self.assertEqual("PENDING", action['state'])
 
     @test.attr(type='smoke')
     def test_show_action_with_links(self):
-        _, action_uuid = self.client.list_actions(
-            action_plan_uuid=self.action_plan['uuid'])['actions'][0]['uuid']
-        _, action = self.client.show_action(action_uuid)
+        _, body = self.client.list_actions(
+            action_plan_uuid=self.action_plan["uuid"])
+        actions = body['actions']
+
+        _, action = self.client.show_action(actions[0]["uuid"])
+
         self.assertIn('links', action.keys())
         self.assertEqual(2, len(action['links']))
         self.assertIn(action['uuid'], action['links'][0]['href'])

@@ -29,12 +29,12 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_create_action_plan(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
-            func=functools.partial(self.has_audit_succeeded, audit['uuid']),
+            func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
         ))
@@ -49,12 +49,12 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_delete_action_plan(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
-            func=functools.partial(self.has_audit_succeeded, audit['uuid']),
+            func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
         ))
@@ -71,12 +71,12 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
     @test.attr(type='smoke')
     def test_execute_dummy_action_plan(self):
-        _, goal = self.client.show_goal("DUMMY")
+        _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
-            func=functools.partial(self.has_audit_succeeded, audit['uuid']),
+            func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
         ))
@@ -86,11 +86,13 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
+        if action_plan['state'] in ['SUPERSEDED', 'SUCCEEDED']:
+            # This means the action plan is superseded so we cannot trigger it,
+            # or it is empty.
+            return
+
         # Execute the action by changing its state to PENDING
-        _, updated_ap = self.client.update_action_plan(
-            action_plan['uuid'],
-            patch=[{'path': '/state', 'op': 'replace', 'value': 'PENDING'}]
-        )
+        _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(
@@ -110,12 +112,12 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
     @classmethod
     def resource_setup(cls):
         super(TestShowListActionPlan, cls).resource_setup()
-        _, cls.goal = cls.client.show_goal("DUMMY")
+        _, cls.goal = cls.client.show_goal("dummy")
         _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
         assert test.call_until_true(
-            func=functools.partial(cls.has_audit_succeeded, cls.audit['uuid']),
+            func=functools.partial(cls.has_audit_finished, cls.audit['uuid']),
             duration=30,
             sleep_for=.5
         )

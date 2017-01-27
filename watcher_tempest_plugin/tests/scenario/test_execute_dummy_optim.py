@@ -42,21 +42,26 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
         _, audit = self.create_audit(audit_template['uuid'])
 
         self.assertTrue(test.call_until_true(
-            func=functools.partial(self.has_audit_succeeded, audit['uuid']),
+            func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
         ))
+
+        self.assertTrue(self.has_audit_succeeded(audit['uuid']))
+
         _, action_plans = self.client.list_action_plans(
             audit_uuid=audit['uuid'])
         action_plan = action_plans['action_plans'][0]
 
         _, action_plan = self.client.show_action_plan(action_plan['uuid'])
 
+        if action_plan['state'] in ['SUPERSEDED', 'SUCCEEDED']:
+            # This means the action plan is superseded so we cannot trigger it,
+            # or it is empty.
+            return
+
         # Execute the action by changing its state to PENDING
-        _, updated_ap = self.client.update_action_plan(
-            action_plan['uuid'],
-            patch=[{'path': '/state', 'op': 'replace', 'value': 'PENDING'}]
-        )
+        _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
         self.assertTrue(test.call_until_true(
             func=functools.partial(
