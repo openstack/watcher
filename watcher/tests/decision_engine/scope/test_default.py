@@ -42,10 +42,8 @@ class TestDefaultScope(base.TestCase):
             for i in range(2)]
         model = default.DefaultScope(audit_scope,
                                      osc=mock.Mock()).get_scoped_model(cluster)
-
         expected_edges = [('INSTANCE_2', 'Node_1')]
-        edges = [(src.uuid, dst.uuid) for src, dst in model.edges()]
-        self.assertEqual(sorted(expected_edges), sorted(edges))
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
@@ -67,8 +65,7 @@ class TestDefaultScope(base.TestCase):
             ('INSTANCE_6', 'Node_3'),
             ('INSTANCE_7', 'Node_4'),
         ]
-        edges = [(src.uuid, dst.uuid) for src, dst in model.edges()]
-        self.assertEqual(sorted(expected_edges), sorted(edges))
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
@@ -199,8 +196,7 @@ class TestDefaultScope(base.TestCase):
             ('INSTANCE_1', 'Node_0'),
             ('INSTANCE_6', 'Node_3'),
             ('INSTANCE_7', 'Node_4')]
-        edges = [(src.uuid, dst.uuid) for src, dst in model.edges()]
-        self.assertEqual(sorted(expected_edges), sorted(edges))
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     def test_remove_instances_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -213,5 +209,4 @@ class TestDefaultScope(base.TestCase):
             ('INSTANCE_5', 'Node_2'),
             ('INSTANCE_6', 'Node_3'),
             ('INSTANCE_7', 'Node_4')]
-        edges = [(src.uuid, dst.uuid) for src, dst in model.edges()]
-        self.assertEqual(sorted(expected_edges), sorted(edges))
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))
