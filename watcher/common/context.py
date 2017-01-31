@@ -75,7 +75,7 @@ class RequestContext(context.RequestContext):
         self.domain_name = domain_name
         self.domain_id = domain_id
         self.auth_token_info = auth_token_info
-        self.user_id = user_id
+        self.user_id = user_id or user
         self.project_id = project_id
         if not timestamp:
             timestamp = timeutils.utcnow()
