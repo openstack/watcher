@@ -17,6 +17,7 @@
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -134,6 +135,8 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         # notifications containing information about the related relationships
         self._from_db_object(self, db_action, eager=True)
 
+        notifications.action.send_create(self.obj_context, self)
+
     def destroy(self):
         """Delete the Action from the DB"""
         self.dbapi.destroy_action(self.uuid)
@@ -150,6 +153,7 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         db_obj = self.dbapi.update_action(self.uuid, updates)
         obj = self._from_db_object(self, db_obj, eager=False)
         self.obj_refresh(obj)
+        notifications.action.send_update(self.obj_context, self)
         self.obj_reset_changes()
 
     @base.remotable
@@ -173,3 +177,5 @@ class Action(base.WatcherPersistentObject, base.WatcherObject,
         obj = self._from_db_object(
             self.__class__(self._context), db_obj, eager=False)
         self.obj_refresh(obj)
+
+        notifications.action.send_delete(self.obj_context, self)

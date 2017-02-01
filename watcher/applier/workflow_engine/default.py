@@ -22,7 +22,7 @@ from taskflow import engines
 from taskflow.patterns import graph_flow as gf
 from taskflow import task as flow_task
 
-from watcher._i18n import _LE, _LW, _LC
+from watcher._i18n import _LW, _LC
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
 from watcher import objects
@@ -95,60 +95,26 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
             raise exception.WorkflowExecutionException(error=e)
 
 
-class TaskFlowActionContainer(flow_task.Task):
+class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def __init__(self, db_action, engine):
         name = "action_type:{0} uuid:{1}".format(db_action.action_type,
                                                  db_action.uuid)
-        super(TaskFlowActionContainer, self).__init__(name=name)
-        self._db_action = db_action
-        self._engine = engine
-        self.loaded_action = None
+        super(TaskFlowActionContainer, self).__init__(name, db_action, engine)
 
-    @property
-    def action(self):
-        if self.loaded_action is None:
-            action = self.engine.action_factory.make_action(
-                self._db_action,
-                osc=self._engine.osc)
-            self.loaded_action = action
-        return self.loaded_action
+    def do_pre_execute(self):
+        self.engine.notify(self._db_action, objects.action.State.ONGOING)
+        LOG.debug("Pre-condition action: %s", self.name)
+        self.action.pre_condition()
 
-    @property
-    def engine(self):
-        return self._engine
+    def do_execute(self, *args, **kwargs):
+        LOG.debug("Running action: %s", self.name)
 
-    def pre_execute(self):
-        try:
-            self.engine.notify(self._db_action, objects.action.State.ONGOING)
-            LOG.debug("Pre-condition action: %s", self.name)
-            self.action.pre_condition()
-        except Exception as e:
-            LOG.exception(e)
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
-            raise
+        self.action.execute()
+        self.engine.notify(self._db_action, objects.action.State.SUCCEEDED)
 
-    def execute(self, *args, **kwargs):
-        try:
-            LOG.debug("Running action: %s", self.name)
-
-            self.action.execute()
-            self.engine.notify(self._db_action, objects.action.State.SUCCEEDED)
-        except Exception as e:
-            LOG.exception(e)
-            LOG.error(_LE('The workflow engine has failed '
-                          'to execute the action: %s'), self.name)
-
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
-            raise
-
-    def post_execute(self):
-        try:
-            LOG.debug("Post-condition action: %s", self.name)
-            self.action.post_condition()
-        except Exception as e:
-            LOG.exception(e)
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
-            raise
+    def do_post_execute(self):
+        LOG.debug("Post-condition action: %s", self.name)
+        self.action.post_condition()
 
     def revert(self, *args, **kwargs):
         LOG.warning(_LW("Revert action: %s"), self.name)

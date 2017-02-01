@@ -120,7 +120,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = []
 
@@ -175,7 +175,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'nop',
@@ -231,7 +231,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'new_action_type',
@@ -294,7 +294,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'migrate',
@@ -372,7 +372,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'migrate',
@@ -468,7 +468,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'migrate',
@@ -567,7 +567,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'resize',
@@ -672,7 +672,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'migrate',
@@ -803,7 +803,7 @@ class TestActionScheduling(base.DbTestCase):
                 self.context, self.audit.id, solution)
         self.assertIsNotNone(action_plan.uuid)
         self.assertEqual(1, m_create_scheduled_actions.call_count)
-        action_graph = m_create_scheduled_actions.call_args[0][1]
+        action_graph = m_create_scheduled_actions.call_args[0][0]
 
         expected_edges = \
             [({'action_type': 'migrate',

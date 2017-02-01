@@ -289,7 +289,8 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         """Soft Delete the Action plan from the DB"""
         related_actions = objects.Action.list(
             context=self._context,
-            filters={"action_plan_uuid": self.uuid})
+            filters={"action_plan_uuid": self.uuid},
+            eager=True)
 
         # Cascade soft_delete of related actions
         for related_action in related_actions:

@@ -85,18 +85,6 @@ class WeightPlanner(base.BasePlanner):
         ]
 
     @staticmethod
-    def format_action(action_plan_id, action_type,
-                      input_parameters=None, parents=()):
-        return {
-            'uuid': utils.generate_uuid(),
-            'action_plan_id': int(action_plan_id),
-            'action_type': action_type,
-            'input_parameters': input_parameters,
-            'state': objects.action.State.PENDING,
-            'parents': parents or None,
-        }
-
-    @staticmethod
     def chunkify(lst, n):
         """Yield successive n-sized chunks from lst."""
         if n < 1:
@@ -168,7 +156,7 @@ class WeightPlanner(base.BasePlanner):
             action_plan.state = objects.action_plan.State.SUCCEEDED
             action_plan.save()
 
-        self.create_scheduled_actions(action_plan, action_graph)
+        self.create_scheduled_actions(action_graph)
         return action_plan
 
     def get_sorted_actions_by_weight(self, context, action_plan, solution):
@@ -187,7 +175,7 @@ class WeightPlanner(base.BasePlanner):
 
         return reversed(sorted(weighted_actions.items(), key=lambda x: x[0]))
 
-    def create_scheduled_actions(self, action_plan, graph):
+    def create_scheduled_actions(self, graph):
         for action in graph.nodes():
             LOG.debug("Creating the %s in the Watcher database",
                       action.action_type)

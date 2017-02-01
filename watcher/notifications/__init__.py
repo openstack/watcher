@@ -20,6 +20,7 @@
 # need to be changed after we moved these function inside the package
 # Todo(gibi): remove these imports after legacy notifications using these are
 # transformed to versioned notifications
+from watcher.notifications import action  # noqa
 from watcher.notifications import action_plan  # noqa
 from watcher.notifications import audit  # noqa
 from watcher.notifications import exception  # noqa

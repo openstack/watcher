@@ -52,6 +52,10 @@ class DictField(fields.AutoTypedField):
     AUTO_TYPE = fields.Dict(fields.FieldType())
 
 
+class ListOfUUIDsField(fields.AutoTypedField):
+    AUTO_TYPE = fields.List(fields.UUID())
+
+
 class FlexibleDict(fields.FieldType):
     @staticmethod
     def coerce(obj, attr, value):

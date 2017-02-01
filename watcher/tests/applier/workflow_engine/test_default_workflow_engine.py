@@ -26,6 +26,7 @@ from watcher.applier.actions import factory
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
 from watcher.common import utils
+from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 
@@ -71,19 +72,19 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def create_action(self, action_type, parameters, parents, uuid=None):
+    def create_action(self, action_type, parameters, parents=None, uuid=None):
         action = {
             'uuid': uuid or utils.generate_uuid(),
             'action_plan_id': 0,
             'action_type': action_type,
             'input_parameters': parameters,
             'state': objects.action.State.PENDING,
-            'parents': parents,
+            'parents': parents or [],
 
         }
         new_action = objects.Action(self.context, **action)
-        new_action.create()
-        new_action.save()
+        with mock.patch.object(notifications.action, 'send_create'):
+            new_action.create()
 
         return new_action
 
@@ -106,8 +107,11 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_with_one_action(self):
-        actions = [self.create_action("nop", {'message': 'test'}, None)]
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_with_one_action(self, mock_send_update,
+                                     mock_execution_notification):
+        actions = [self.create_action("nop", {'message': 'test'})]
         try:
             self.engine.execute(actions)
             self.check_actions_state(actions, objects.action.State.SUCCEEDED)
@@ -115,12 +119,15 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_nop_sleep(self):
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_nop_sleep(self, mock_send_update,
+                               mock_execution_notification):
         actions = []
-        first_nop = self.create_action("nop", {'message': 'test'}, [])
-        second_nop = self.create_action("nop", {'message': 'second test'}, [])
+        first_nop = self.create_action("nop", {'message': 'test'})
+        second_nop = self.create_action("nop", {'message': 'second test'})
         sleep = self.create_action("sleep", {'duration': 0.0},
-                                   [first_nop.uuid, second_nop.uuid])
+                                   parents=[first_nop.uuid, second_nop.uuid])
         actions.extend([first_nop, second_nop, sleep])
 
         try:
@@ -130,19 +137,23 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_with_parents(self):
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_with_parents(self, mock_send_update,
+                                  mock_execution_notification):
         actions = []
         first_nop = self.create_action(
-            "nop", {'message': 'test'}, [],
+            "nop", {'message': 'test'},
             uuid='bc7eee5c-4fbe-4def-9744-b539be55aa19')
         second_nop = self.create_action(
-            "nop", {'message': 'second test'}, [],
+            "nop", {'message': 'second test'},
             uuid='0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23')
         first_sleep = self.create_action(
-            "sleep", {'duration': 0.0}, [first_nop.uuid, second_nop.uuid],
+            "sleep", {'duration': 0.0}, parents=[first_nop.uuid,
+                                                 second_nop.uuid],
             uuid='be436531-0da3-4dad-a9c0-ea1d2aff6496')
         second_sleep = self.create_action(
-            "sleep", {'duration': 0.0}, [first_sleep.uuid],
+            "sleep", {'duration': 0.0}, parents=[first_sleep.uuid],
             uuid='9eb51e14-936d-4d12-a500-6ba0f5e0bb1c')
         actions.extend([first_nop, second_nop, first_sleep, second_sleep])
 
@@ -194,10 +205,12 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_with_two_actions(self):
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_with_two_actions(self, m_send_update, m_execution):
         actions = []
-        second = self.create_action("sleep", {'duration': 0.0}, None)
-        first = self.create_action("nop", {'message': 'test'}, None)
+        second = self.create_action("sleep", {'duration': 0.0})
+        first = self.create_action("nop", {'message': 'test'})
 
         actions.append(first)
         actions.append(second)
@@ -209,12 +222,14 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_with_three_actions(self):
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_with_three_actions(self, m_send_update, m_execution):
         actions = []
 
-        third = self.create_action("nop", {'message': 'next'}, None)
-        second = self.create_action("sleep", {'duration': 0.0}, None)
-        first = self.create_action("nop", {'message': 'hello'}, None)
+        third = self.create_action("nop", {'message': 'next'})
+        second = self.create_action("sleep", {'duration': 0.0})
+        first = self.create_action("nop", {'message': 'hello'})
 
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(second, objects.action.State.PENDING)
@@ -231,12 +246,14 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
-    def test_execute_with_exception(self):
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    def test_execute_with_exception(self, m_send_update, m_execution):
         actions = []
 
-        third = self.create_action("no_exist", {'message': 'next'}, None)
-        second = self.create_action("sleep", {'duration': 0.0}, None)
-        first = self.create_action("nop", {'message': 'hello'}, None)
+        third = self.create_action("no_exist", {'message': 'next'})
+        second = self.create_action("sleep", {'duration': 0.0})
+        first = self.create_action("nop", {'message': 'hello'})
 
         self.check_action_state(first, objects.action.State.PENDING)
         self.check_action_state(second, objects.action.State.PENDING)
@@ -253,9 +270,12 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         self.check_action_state(second, objects.action.State.SUCCEEDED)
         self.check_action_state(third, objects.action.State.FAILED)
 
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
     @mock.patch.object(factory.ActionFactory, "make_action")
-    def test_execute_with_action_exception(self, m_make_action):
-        actions = [self.create_action("fake_action", {}, None)]
+    def test_execute_with_action_exception(self, m_make_action, m_send_update,
+                                           m_send_execution):
+        actions = [self.create_action("fake_action", {})]
         m_make_action.return_value = FakeAction(mock.Mock())
 
         exc = self.assertRaises(exception.WorkflowExecutionException,
