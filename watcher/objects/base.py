@@ -92,6 +92,10 @@ class WatcherObjectDictCompat(ovo_base.VersionedObjectDictCompat):
     pass
 
 
+class WatcherComparableObject(ovo_base.ComparableVersionedObject):
+    pass
+
+
 class WatcherPersistentObject(object):
     """Mixin class for Persistent objects.
 

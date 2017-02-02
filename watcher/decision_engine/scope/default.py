@@ -169,7 +169,7 @@ class DefaultScope(base.BaseScope):
             try:
                 node_name = cluster_model.get_node_by_instance_uuid(
                     instance_uuid).uuid
-            except exception.InstanceNotFound:
+            except exception.ComputeResourceNotFound:
                 LOG.warning(_LW("The following instance %s cannot be found. "
                                 "It might be deleted from CDM along with node"
                                 " instance was hosted on."),

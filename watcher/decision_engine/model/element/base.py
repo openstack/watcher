@@ -30,7 +30,8 @@ LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
-class Element(base.WatcherObject, base.WatcherObjectDictCompat):
+class Element(base.WatcherObject, base.WatcherObjectDictCompat,
+              base.WatcherComparableObject):
 
     # Initial version
     VERSION = '1.0'

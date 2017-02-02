@@ -57,13 +57,13 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def add_node(self, node):
         self.assert_node(node)
-        super(ModelRoot, self).add_node(node)
+        super(ModelRoot, self).add_node(node.uuid, node)
 
     @lockutils.synchronized("model_root")
     def remove_node(self, node):
         self.assert_node(node)
         try:
-            super(ModelRoot, self).remove_node(node)
+            super(ModelRoot, self).remove_node(node.uuid)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node.uuid)
@@ -72,7 +72,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     def add_instance(self, instance):
         self.assert_instance(instance)
         try:
-            super(ModelRoot, self).add_node(instance)
+            super(ModelRoot, self).add_node(instance.uuid, instance)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.InstanceNotFound(name=instance.uuid)
@@ -80,7 +80,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def remove_instance(self, instance):
         self.assert_instance(instance)
-        super(ModelRoot, self).remove_node(instance)
+        super(ModelRoot, self).remove_node(instance.uuid)
 
     @lockutils.synchronized("model_root")
     def map_instance(self, instance, node):
@@ -98,7 +98,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         self.assert_node(node)
         self.assert_instance(instance)
 
-        self.add_edge(instance, node)
+        self.add_edge(instance.uuid, node.uuid)
 
     @lockutils.synchronized("model_root")
     def unmap_instance(self, instance, node):
@@ -107,7 +107,7 @@ class ModelRoot(nx.DiGraph, base.Model):
         if isinstance(node, six.string_types):
             node = self.get_node_by_uuid(node)
 
-        self.remove_edge(instance, node)
+        self.remove_edge(instance.uuid, node.uuid)
 
     def delete_instance(self, instance, node=None):
         self.assert_instance(instance)
@@ -130,55 +130,59 @@ class ModelRoot(nx.DiGraph, base.Model):
             return False
 
         # unmap
-        self.remove_edge(instance, source_node)
+        self.remove_edge(instance.uuid, source_node.uuid)
         # map
-        self.add_edge(instance, destination_node)
+        self.add_edge(instance.uuid, destination_node.uuid)
         return True
 
     @lockutils.synchronized("model_root")
     def get_all_compute_nodes(self):
-        return {cn.uuid: cn for cn in self.nodes()
+        return {uuid: cn for uuid, cn in self.nodes(data=True)
                 if isinstance(cn, element.ComputeNode)}
 
     @lockutils.synchronized("model_root")
     def get_node_by_uuid(self, uuid):
-        for graph_node in self.nodes():
-            if (isinstance(graph_node, element.ComputeNode) and
-                    graph_node.uuid == uuid):
-                return graph_node
-        raise exception.ComputeNodeNotFound(name=uuid)
+        try:
+            return self._get_by_uuid(uuid)
+        except exception.ComputeResourceNotFound:
+            raise exception.ComputeNodeNotFound(name=uuid)
 
     @lockutils.synchronized("model_root")
     def get_instance_by_uuid(self, uuid):
-        return self._get_instance_by_uuid(uuid)
+        try:
+            return self._get_by_uuid(uuid)
+        except exception.ComputeResourceNotFound:
+            raise exception.InstanceNotFound(name=uuid)
 
-    def _get_instance_by_uuid(self, uuid):
-        for graph_node in self.nodes():
-            if (isinstance(graph_node, element.Instance) and
-                    graph_node.uuid == str(uuid)):
-                return graph_node
-        raise exception.InstanceNotFound(name=uuid)
+    def _get_by_uuid(self, uuid):
+        try:
+            return self.node[uuid]
+        except Exception as exc:
+            LOG.exception(exc)
+            raise exception.ComputeResourceNotFound(name=uuid)
 
     @lockutils.synchronized("model_root")
     def get_node_by_instance_uuid(self, instance_uuid):
-        instance = self._get_instance_by_uuid(instance_uuid)
-        for node in self.neighbors(instance):
+        instance = self._get_by_uuid(instance_uuid)
+        for node_uuid in self.neighbors(instance.uuid):
+            node = self._get_by_uuid(node_uuid)
             if isinstance(node, element.ComputeNode):
                 return node
         raise exception.ComputeNodeNotFound(name=instance_uuid)
 
     @lockutils.synchronized("model_root")
     def get_all_instances(self):
-        return {inst.uuid: inst for inst in self.nodes()
+        return {uuid: inst for uuid, inst in self.nodes(data=True)
                 if isinstance(inst, element.Instance)}
 
     @lockutils.synchronized("model_root")
     def get_node_instances(self, node):
         self.assert_node(node)
         node_instances = []
-        for neighbor in self.predecessors(node):
-            if isinstance(neighbor, element.Instance):
-                node_instances.append(neighbor)
+        for instance_uuid in self.predecessors(node.uuid):
+            instance = self._get_by_uuid(instance_uuid)
+            if isinstance(instance, element.Instance):
+                node_instances.append(instance)
 
         return node_instances
 

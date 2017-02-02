@@ -402,11 +402,15 @@ class WildcardCharacterIsUsed(WatcherException):
 
 # Model
 
-class InstanceNotFound(WatcherException):
+class ComputeResourceNotFound(WatcherException):
+    msg_fmt = _("The compute resource '%(name)s' could not be found")
+
+
+class InstanceNotFound(ComputeResourceNotFound):
     msg_fmt = _("The instance '%(name)s' could not be found")
 
 
-class ComputeNodeNotFound(WatcherException):
+class ComputeNodeNotFound(ComputeResourceNotFound):
     msg_fmt = _("The compute node %(name)s could not be found")
 
 
