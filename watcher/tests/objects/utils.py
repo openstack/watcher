@@ -30,21 +30,27 @@ def _load_related_objects(context, cls, db_data):
     return obj_data
 
 
+def _load_test_obj(context, cls, obj_data, **kw):
+    # Let DB generate ID if it isn't specified explicitly
+    if 'id' not in kw:
+        del obj_data['id']
+    obj = cls(context)
+    for key in obj_data:
+        setattr(obj, key, obj_data[key])
+    return obj
+
+
 def get_test_audit_template(context, **kw):
     """Return a AuditTemplate object with appropriate attributes.
 
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_audit_template = db_utils.get_test_audit_template(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_audit_template['id']
-    audit_template = objects.AuditTemplate(context)
-    for key in db_audit_template:
-        setattr(audit_template, key, db_audit_template[key])
+    obj_cls = objects.AuditTemplate
+    db_data = db_utils.get_test_audit_template(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
 
-    return audit_template
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_audit_template(context, **kw):
@@ -64,16 +70,11 @@ def get_test_audit(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_audit = db_utils.get_test_audit(**kw)
-    obj_data = _load_related_objects(context, objects.Audit, db_audit)
+    obj_cls = objects.Audit
+    db_data = db_utils.get_test_audit(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
 
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_audit['id']
-    audit = objects.Audit(context)
-    for key in obj_data:
-        setattr(audit, key, obj_data[key])
-    return audit
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_audit(context, **kw):
@@ -93,14 +94,11 @@ def get_test_action_plan(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_action_plan = db_utils.get_test_action_plan(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_action_plan['id']
-    action_plan = objects.ActionPlan(context)
-    for key in db_action_plan:
-        setattr(action_plan, key, db_action_plan[key])
-    return action_plan
+    obj_cls = objects.ActionPlan
+    db_data = db_utils.get_test_action_plan(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_action_plan(context, **kw):
@@ -120,14 +118,11 @@ def get_test_action(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_action = db_utils.get_test_action(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_action['id']
-    action = objects.Action(context)
-    for key in db_action:
-        setattr(action, key, db_action[key])
-    return action
+    obj_cls = objects.Action
+    db_data = db_utils.get_test_action(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_action(context, **kw):
@@ -147,14 +142,11 @@ def get_test_goal(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_goal = db_utils.get_test_goal(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_goal['id']
-    goal = objects.Goal(context)
-    for key in db_goal:
-        setattr(goal, key, db_goal[key])
-    return goal
+    obj_cls = objects.Goal
+    db_data = db_utils.get_test_goal(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_goal(context, **kw):
@@ -174,11 +166,11 @@ def get_test_scoring_engine(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_scoring_engine = db_utils.get_test_scoring_engine(**kw)
-    scoring_engine = objects.ScoringEngine(context)
-    for key in db_scoring_engine:
-        setattr(scoring_engine, key, db_scoring_engine[key])
-    return scoring_engine
+    obj_cls = objects.ScoringEngine
+    db_data = db_utils.get_test_scoring_engine(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_scoring_engine(context, **kw):
@@ -198,13 +190,11 @@ def get_test_service(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_service = db_utils.get_test_service(**kw)
-    service = objects.Service(context)
-    for key in db_service:
-        if key == 'last_seen_up':
-            db_service[key] = None
-        setattr(service, key, db_service[key])
-    return service
+    obj_cls = objects.Service
+    db_data = db_utils.get_test_service(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_service(context, **kw):
@@ -224,22 +214,11 @@ def get_test_strategy(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_strategy = db_utils.get_test_strategy(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_strategy['id']
-    strategy = objects.Strategy(context)
-    for key in db_strategy:
-        setattr(strategy, key, db_strategy[key])
+    obj_cls = objects.Strategy
+    db_data = db_utils.get_test_strategy(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
 
-    # ObjectField checks for the object type, so if we want to simulate a
-    # non-eager object loading, the field should not be referenced at all.
-    # Contrarily, eager loading need the data to be casted to the object type
-    # that was specified by the ObjectField.
-    if kw.get('goal'):
-        strategy.goal = objects.Goal(context, **kw.get('goal'))
-
-    return strategy
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_strategy(context, **kw):
@@ -259,14 +238,11 @@ def get_test_efficacy_indicator(context, **kw):
     NOTE: The object leaves the attributes marked as changed, such
     that a create() could be used to commit it to the DB.
     """
-    db_efficacy_indicator = db_utils.get_test_efficacy_indicator(**kw)
-    # Let DB generate ID if it isn't specified explicitly
-    if 'id' not in kw:
-        del db_efficacy_indicator['id']
-    efficacy_indicator = objects.EfficacyIndicator(context)
-    for key in db_efficacy_indicator:
-        setattr(efficacy_indicator, key, db_efficacy_indicator[key])
-    return efficacy_indicator
+    obj_cls = objects.EfficacyIndicator
+    db_data = db_utils.get_test_efficacy_indicator(**kw)
+    obj_data = _load_related_objects(context, obj_cls, db_data)
+
+    return _load_test_obj(context, obj_cls, obj_data, **kw)
 
 
 def create_test_efficacy_indicator(context, **kw):

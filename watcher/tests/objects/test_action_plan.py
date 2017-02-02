@@ -20,6 +20,7 @@ import mock
 
 from watcher.common import exception
 from watcher.db.sqlalchemy import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -34,16 +35,19 @@ class TestActionPlanObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_action_plan=utils.get_test_action_plan(
+                created_at=datetime.datetime.utcnow(),
                 audit_id=audit_id,
                 strategy_id=strategy_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_action_plan=utils.get_test_action_plan(
+                created_at=datetime.datetime.utcnow(),
                 audit_id=audit_id,
                 strategy_id=strategy_id))),
         ('eager_with_eager_load', dict(
             eager=True,
             fake_action_plan=utils.get_test_action_plan(
+                created_at=datetime.datetime.utcnow(),
                 strategy_id=strategy_id,
                 strategy=utils.get_test_strategy(id=strategy_id),
                 audit_id=audit_id,
@@ -52,6 +56,13 @@ class TestActionPlanObject(base.DbTestCase):
 
     def setUp(self):
         super(TestActionPlanObject, self).setUp()
+
+        p_action_plan_notifications = mock.patch.object(
+            notifications, 'action_plan', autospec=True)
+        self.m_action_plan_notifications = p_action_plan_notifications.start()
+        self.addCleanup(p_action_plan_notifications.stop)
+        self.m_send_update = self.m_action_plan_notifications.send_update
+
         self.fake_audit = utils.create_test_audit(id=self.audit_id)
         self.fake_strategy = utils.create_test_strategy(
             id=self.strategy_id, name="DUMMY")
@@ -80,6 +91,7 @@ class TestActionPlanObject(base.DbTestCase):
             self.context, action_plan_id, eager=self.eager)
         self.assertEqual(self.context, action_plan._context)
         self.eager_load_action_plan_assert(action_plan)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'get_action_plan_by_uuid')
     def test_get_by_uuid(self, mock_get_action_plan):
@@ -91,6 +103,7 @@ class TestActionPlanObject(base.DbTestCase):
             self.context, uuid, eager=self.eager)
         self.assertEqual(self.context, action_plan._context)
         self.eager_load_action_plan_assert(action_plan)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     def test_get_bad_id_and_uuid(self):
         self.assertRaises(exception.InvalidIdentity,
@@ -107,14 +120,26 @@ class TestActionPlanObject(base.DbTestCase):
         self.assertEqual(self.context, action_plans[0]._context)
         for action_plan in action_plans:
             self.eager_load_action_plan_assert(action_plan)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'update_action_plan')
     @mock.patch.object(db_api.Connection, 'get_action_plan_by_uuid')
     def test_save(self, mock_get_action_plan, mock_update_action_plan):
         mock_get_action_plan.return_value = self.fake_action_plan
         fake_saved_action_plan = self.fake_action_plan.copy()
-        fake_saved_action_plan['deleted_at'] = datetime.datetime.utcnow()
+        fake_saved_action_plan['state'] = objects.action_plan.State.SUCCEEDED
+        fake_saved_action_plan['updated_at'] = datetime.datetime.utcnow()
+
         mock_update_action_plan.return_value = fake_saved_action_plan
+
+        expected_action_plan = fake_saved_action_plan.copy()
+        expected_action_plan[
+            'created_at'] = expected_action_plan['created_at'].replace(
+                tzinfo=iso8601.iso8601.Utc())
+        expected_action_plan[
+            'updated_at'] = expected_action_plan['updated_at'].replace(
+                tzinfo=iso8601.iso8601.Utc())
+
         uuid = self.fake_action_plan['uuid']
         action_plan = objects.ActionPlan.get_by_uuid(
             self.context, uuid, eager=self.eager)
@@ -127,6 +152,14 @@ class TestActionPlanObject(base.DbTestCase):
             uuid, {'state': objects.action_plan.State.SUCCEEDED})
         self.assertEqual(self.context, action_plan._context)
         self.eager_load_action_plan_assert(action_plan)
+        self.m_send_update.assert_called_once_with(
+            self.context, action_plan,
+            old_state=self.fake_action_plan['state'])
+        self.assertEqual(
+            {k: v for k, v in expected_action_plan.items()
+             if k not in action_plan.object_fields},
+            {k: v for k, v in action_plan.as_dict().items()
+             if k not in action_plan.object_fields})
 
     @mock.patch.object(db_api.Connection, 'get_action_plan_by_uuid')
     def test_refresh(self, mock_get_action_plan):
@@ -150,6 +183,13 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
 
     def setUp(self):
         super(TestCreateDeleteActionPlanObject, self).setUp()
+
+        p_action_plan_notifications = mock.patch.object(
+            notifications, 'action_plan', autospec=True)
+        self.m_action_plan_notifications = p_action_plan_notifications.start()
+        self.addCleanup(p_action_plan_notifications.stop)
+        self.m_send_update = self.m_action_plan_notifications.send_update
+
         self.fake_strategy = utils.create_test_strategy(name="DUMMY")
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.get_test_action_plan(
@@ -202,7 +242,8 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         del expected_action_plan['strategy']
 
         m_get_efficacy_indicator_list.return_value = [efficacy_indicator]
-        action_plan = objects.ActionPlan.get_by_uuid(self.context, uuid)
+        action_plan = objects.ActionPlan.get_by_uuid(
+            self.context, uuid, eager=False)
         action_plan.soft_delete()
 
         m_get_action_plan.assert_called_once_with(

@@ -89,7 +89,7 @@ def get_test_audit(**kwargs):
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
         'parameters': kwargs.get('parameters', {}),
-        'interval': kwargs.get('period', 3600),
+        'interval': kwargs.get('interval', 3600),
         'goal_id': kwargs.get('goal_id', 1),
         'strategy_id': kwargs.get('strategy_id', None),
         'scope': kwargs.get('scope', []),

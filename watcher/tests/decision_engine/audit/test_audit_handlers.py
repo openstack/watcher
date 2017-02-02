@@ -175,12 +175,19 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
         self.ongoing_action_plan = obj_utils.create_test_action_plan(
             self.context,
             uuid=uuidutils.generate_uuid(),
-            audit_id=self.audit.id)
+            audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            audit=self.audit,
+            strategy=self.strategy,
+        )
         self.recommended_action_plan = obj_utils.create_test_action_plan(
             self.context,
             uuid=uuidutils.generate_uuid(),
             state=objects.action_plan.State.ONGOING,
-            audit_id=self.audit.id
+            audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            audit=self.audit,
+            strategy=self.strategy,
         )
 
     @mock.patch.object(objects.action_plan.ActionPlan, 'list')

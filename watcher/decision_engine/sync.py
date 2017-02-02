@@ -350,7 +350,7 @@ class Syncer(object):
         for strategy_id, synced_strategy in self.strategy_mapping.items():
             filters = {"strategy_id": strategy_id}
             stale_action_plans = objects.ActionPlan.list(
-                self.ctx, filters=filters)
+                self.ctx, filters=filters, eager=True)
 
             # Update strategy IDs for all stale action plans (w/o saving)
             for action_plan in stale_action_plans:
@@ -369,7 +369,7 @@ class Syncer(object):
         for audit_id, synced_audit in self.stale_audits_map.items():
             filters = {"audit_id": audit_id}
             stale_action_plans = objects.ActionPlan.list(
-                self.ctx, filters=filters)
+                self.ctx, filters=filters, eager=True)
 
             # Update audit IDs for all stale action plans (w/o saving)
             for action_plan in stale_action_plans:
@@ -448,7 +448,7 @@ class Syncer(object):
                         audit.id].state = objects.audit.State.CANCELLED
 
             stale_action_plans = objects.ActionPlan.list(
-                self.ctx, filters=filters)
+                self.ctx, filters=filters, eager=True)
             for action_plan in stale_action_plans:
                 LOG.warning(
                     _LW("Action Plan '%(action_plan)s' references a "

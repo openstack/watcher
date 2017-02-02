@@ -174,6 +174,14 @@ class EagerlyLoadedAuditRequired(InvalidAudit):
     msg_fmt = _("Audit %(audit)s was not eagerly loaded")
 
 
+class InvalidActionPlan(Invalid):
+    msg_fmt = _("Action plan %(action_plan)s is invalid")
+
+
+class EagerlyLoadedActionPlanRequired(InvalidActionPlan):
+    msg_fmt = _("Action plan %(action_plan)s was not eagerly loaded")
+
+
 class InvalidUUID(Invalid):
     msg_fmt = _("Expected a uuid but received %(uuid)s")
 

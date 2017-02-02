@@ -1,0 +1,54 @@
+{
+  "publisher_id": "infra-optim:node0",
+  "payload": {
+    "watcher_object.version": "1.0",
+    "watcher_object.data": {
+      "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
+      "strategy": {
+        "watcher_object.version": "1.0",
+        "watcher_object.data": {
+          "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
+          "display_name": "test strategy",
+          "name": "TEST",
+          "updated_at": null,
+          "parameters_spec": {},
+          "created_at": "2016-10-18T09:52:05Z",
+          "deleted_at": null
+        },
+        "watcher_object.namespace": "watcher",
+        "watcher_object.name": "StrategyPayload"
+      },
+      "created_at": null,
+      "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+      "audit": {
+        "watcher_object.version": "1.0",
+        "watcher_object.data": {
+          "audit_type": "ONESHOT",
+          "scope": [],
+          "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+          "goal_uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
+          "strategy_uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
+          "parameters": {},
+          "interval": null,
+          "deleted_at": null,
+          "state": "PENDING",
+          "created_at": "2016-10-18T09:52:05Z",
+          "updated_at": null
+        },
+        "watcher_object.namespace": "watcher",
+        "watcher_object.name": "TerseAuditPayload"
+      },
+      "uuid": "76be87bd-3422-43f9-93a0-e85a577e3061",
+      "global_efficacy": {},
+      "deleted_at": null,
+      "state": "RECOMMENDED",
+      "updated_at": null
+    },
+    "watcher_object.namespace": "watcher",
+    "watcher_object.name": "ActionPlanCreatePayload"
+  },
+  "priority": "INFO",
+  "message_id": "5148bff1-ea06-4ad6-8e4e-8c85ca5eb629",
+  "event_type": "action_plan.create",
+  "timestamp": "2016-10-18 09:52:05.219414"
+}

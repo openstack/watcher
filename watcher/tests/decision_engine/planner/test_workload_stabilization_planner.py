@@ -61,6 +61,7 @@ class TestActionScheduling(base.DbTestCase):
 
     def setUp(self):
         super(TestActionScheduling, self).setUp()
+        self.goal = db_utils.create_test_goal(name="dummy")
         self.strategy = db_utils.create_test_strategy(name="dummy")
         self.audit = db_utils.create_test_audit(
             uuid=utils.generate_uuid(), strategy_id=self.strategy.id)

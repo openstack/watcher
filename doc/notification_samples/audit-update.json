@@ -4,6 +4,7 @@
   "payload": {
     "watcher_object.name": "AuditUpdatePayload",
     "watcher_object.data": {
+      "strategy_uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
       "strategy": {
         "watcher_object.name": "StrategyPayload",
         "watcher_object.data": {
@@ -36,6 +37,7 @@
       "scope": [],
       "created_at": "2016-11-04T16:51:21Z",
       "uuid": "f1e0d912-afd9-4bf2-91ef-c99cd08cc1ef",
+      "goal_uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
       "goal": {
         "watcher_object.name": "GoalPayload",
         "watcher_object.data": {

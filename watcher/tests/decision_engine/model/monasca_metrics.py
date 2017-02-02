@@ -153,7 +153,6 @@ class FakeMonascaMetrics(object):
             # measurements[uuid] = random.randint(1, 4)
             measurements[uuid] = 8
 
-        # import ipdb; ipdb.set_trace()
         return [{'columns': ['avg'],
                  'statistics': [[float(measurements[str(uuid)])]]}]
         # return float(measurements[str(uuid)])

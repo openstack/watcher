@@ -72,6 +72,7 @@ state may be one of the following:
 from watcher.common import exception
 from watcher.common import utils
 from watcher.db import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -116,6 +117,39 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         'audit': (objects.Audit, 'audit_id'),
         'strategy': (objects.Strategy, 'strategy_id'),
     }
+
+    # Proxified field so we can keep the previous value after an update
+    _state = None
+    _old_state = None
+
+    # NOTE(v-francoise): The way oslo.versionedobjects works is by using a
+    # __new__ that will automatically create the attributes referenced in
+    # fields. These attributes are properties that raise an exception if no
+    # value has been assigned, which means that they store the actual field
+    # value in an "_obj_%(field)s" attribute. So because we want to proxify a
+    # value that is already proxified, we have to do what you see below.
+    @property
+    def _obj_state(self):
+        return self._state
+
+    @property
+    def _obj_old_state(self):
+        return self._old_state
+
+    @property
+    def old_state(self):
+        return self._old_state
+
+    @_obj_old_state.setter
+    def _obj_old_state(self, value):
+        self._old_state = value
+
+    @_obj_state.setter
+    def _obj_state(self, value):
+        if self._old_state is None and self._state is None:
+            self._state = value
+        else:
+            self._old_state, self._state = self._state, value
 
     @base.remotable_classmethod
     def get(cls, context, action_plan_id, eager=False):
@@ -198,6 +232,11 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         # notifications containing information about the related relationships
         self._from_db_object(self, db_action_plan, eager=True)
 
+        def _notify():
+            notifications.action_plan.send_create(self._context, self)
+
+        _notify()
+
     @base.remotable
     def destroy(self):
         """Delete the action plan from the DB"""
@@ -221,8 +260,16 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         """
         updates = self.obj_get_changes()
         db_obj = self.dbapi.update_action_plan(self.uuid, updates)
-        obj = self._from_db_object(self, db_obj, eager=False)
+        obj = self._from_db_object(
+            self.__class__(self._context), db_obj, eager=False)
         self.obj_refresh(obj)
+
+        def _notify():
+            notifications.action_plan.send_update(
+                self._context, self, old_state=self.old_state)
+
+        _notify()
+
         self.obj_reset_changes()
 
     @base.remotable
@@ -262,3 +309,8 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         obj = self._from_db_object(
             self.__class__(self._context), db_obj, eager=False)
         self.obj_refresh(obj)
+
+        def _notify():
+            notifications.action_plan.send_delete(self._context, self)
+
+        _notify()
