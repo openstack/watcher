@@ -20,33 +20,47 @@ from oslo_log import log
 
 from watcher.applier.action_plan import base
 from watcher.applier import default
+from watcher import notifications
 from watcher import objects
+from watcher.objects import fields
 
 LOG = log.getLogger(__name__)
 
 
 class DefaultActionPlanHandler(base.BaseActionPlanHandler):
+
     def __init__(self, context, service, action_plan_uuid):
         super(DefaultActionPlanHandler, self).__init__()
         self.ctx = context
         self.service = service
         self.action_plan_uuid = action_plan_uuid
 
-    def update_action_plan(self, uuid, state):
-        action_plan = objects.ActionPlan.get_by_uuid(
-            self.ctx, uuid, eager=True)
-        action_plan.state = state
-        action_plan.save()
-
     def execute(self):
         try:
-            self.update_action_plan(self.action_plan_uuid,
-                                    objects.action_plan.State.ONGOING)
+            action_plan = objects.ActionPlan.get_by_uuid(
+                self.ctx, self.action_plan_uuid, eager=True)
+            action_plan.state = objects.action_plan.State.ONGOING
+            action_plan.save()
+            notifications.action_plan.send_action_notification(
+                self.ctx, action_plan,
+                action=fields.NotificationAction.EXECUTION,
+                phase=fields.NotificationPhase.START)
+
             applier = default.DefaultApplier(self.ctx, self.service)
             applier.execute(self.action_plan_uuid)
-            state = objects.action_plan.State.SUCCEEDED
+
+            action_plan.state = objects.action_plan.State.SUCCEEDED
+            notifications.action_plan.send_action_notification(
+                self.ctx, action_plan,
+                action=fields.NotificationAction.EXECUTION,
+                phase=fields.NotificationPhase.END)
         except Exception as e:
             LOG.exception(e)
-            state = objects.action_plan.State.FAILED
+            action_plan.state = objects.action_plan.State.FAILED
+            notifications.action_plan.send_action_notification(
+                self.ctx, action_plan,
+                action=fields.NotificationAction.EXECUTION,
+                priority=fields.NotificationPriority.ERROR,
+                phase=fields.NotificationPhase.ERROR)
         finally:
-            self.update_action_plan(self.action_plan_uuid, state)
+            action_plan.save()

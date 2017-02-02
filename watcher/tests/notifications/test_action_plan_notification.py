@@ -259,3 +259,161 @@ class TestActionPlanNotification(base.DbTestCase):
             },
             payload
         )
+
+    def test_send_action_plan_action(self):
+        action_plan = utils.create_test_action_plan(
+            mock.Mock(), state=objects.action_plan.State.ONGOING,
+            audit_id=self.audit.id, strategy_id=self.strategy.id,
+            audit=self.audit, strategy=self.strategy)
+        notifications.action_plan.send_action_notification(
+            mock.MagicMock(), action_plan, host='node0',
+            action='execution', phase='start')
+
+        # The 1st notification is because we created the audit object.
+        # The 2nd notification is because we created the action plan object.
+        self.assertEqual(3, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
+
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
+        self.assertDictEqual(
+            {
+                "event_type": "action_plan.execution.start",
+                "payload": {
+                    "watcher_object.data": {
+                        "created_at": "2016-10-18T09:52:05Z",
+                        "deleted_at": None,
+                        "fault": None,
+                        "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                        "audit": {
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.name": "TerseAuditPayload",
+                            "watcher_object.version": "1.0",
+                            "watcher_object.data": {
+                                "interval": None,
+                                "parameters": {},
+                                "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                "strategy_uuid": None,
+                                "goal_uuid": (
+                                    "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
+                                "deleted_at": None,
+                                "scope": [],
+                                "state": "PENDING",
+                                "updated_at": None,
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "audit_type": "ONESHOT"
+                            }
+                        },
+                        "global_efficacy": {},
+                        "state": "ONGOING",
+                        "strategy_uuid": (
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
+                        "strategy": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test strategy",
+                                "name": "TEST",
+                                "parameters_spec": {},
+                                "updated_at": None,
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                            },
+                            "watcher_object.name": "StrategyPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "updated_at": None,
+                        "uuid": "76be87bd-3422-43f9-93a0-e85a577e3061"
+                    },
+                    "watcher_object.name": "ActionPlanActionPayload",
+                    "watcher_object.namespace": "watcher",
+                    "watcher_object.version": "1.0"
+                }
+            },
+            notification
+        )
+
+    def test_send_action_plan_action_with_error(self):
+        action_plan = utils.create_test_action_plan(
+            mock.Mock(), state=objects.action_plan.State.ONGOING,
+            audit_id=self.audit.id, strategy_id=self.strategy.id,
+            audit=self.audit, strategy=self.strategy)
+
+        try:
+            # This is to load the exception in sys.exc_info()
+            raise exception.WatcherException("TEST")
+        except exception.WatcherException:
+            notifications.action_plan.send_action_notification(
+                mock.MagicMock(), action_plan, host='node0',
+                action='execution', priority='error', phase='error')
+
+        self.assertEqual(1, self.m_notifier.error.call_count)
+        notification = self.m_notifier.error.call_args[1]
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
+        self.assertDictEqual(
+            {
+                "event_type": "action_plan.execution.error",
+                "payload": {
+                    "watcher_object.data": {
+                        "created_at": "2016-10-18T09:52:05Z",
+                        "deleted_at": None,
+                        "fault": {
+                            "watcher_object.data": {
+                                "exception": "WatcherException",
+                                "exception_message": "TEST",
+                                "function_name": (
+                                    "test_send_action_plan_action_with_error"),
+                                "module_name": "watcher.tests.notifications."
+                                               "test_action_plan_notification"
+                            },
+                            "watcher_object.name": "ExceptionPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                        "audit": {
+                            "watcher_object.data": {
+                                "interval": None,
+                                "parameters": {},
+                                "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                "strategy_uuid": None,
+                                "goal_uuid": (
+                                    "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
+                                "deleted_at": None,
+                                "scope": [],
+                                "state": "PENDING",
+                                "updated_at": None,
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "audit_type": "ONESHOT"
+                            },
+                            "watcher_object.name": "TerseAuditPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "global_efficacy": {},
+                        "state": "ONGOING",
+                        "strategy_uuid": (
+                            "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
+                        "strategy": {
+                            "watcher_object.data": {
+                                "created_at": "2016-10-18T09:52:05Z",
+                                "deleted_at": None,
+                                "display_name": "test strategy",
+                                "name": "TEST",
+                                "parameters_spec": {},
+                                "updated_at": None,
+                                "uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3"
+                            },
+                            "watcher_object.name": "StrategyPayload",
+                            "watcher_object.namespace": "watcher",
+                            "watcher_object.version": "1.0"
+                        },
+                        "updated_at": None,
+                        "uuid": "76be87bd-3422-43f9-93a0-e85a577e3061"
+                    },
+                    "watcher_object.name": "ActionPlanActionPayload",
+                    "watcher_object.namespace": "watcher",
+                    "watcher_object.version": "1.0"
+                }
+            },
+            notification
+        )

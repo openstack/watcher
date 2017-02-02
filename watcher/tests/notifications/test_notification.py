@@ -276,6 +276,7 @@ expected_notification_fingerprints = {
     'ActionPlanStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
     'ActionPlanUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionPlanUpdatePayload': '1.0-7912a45fe53775c721f42aa87f06a023',
+    'ActionPlanActionNotification': '1.0-9b69de0724fda8310d05e18418178866',
 }
 
 
