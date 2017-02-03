@@ -36,7 +36,7 @@ class ApplierAPI(service.Service):
         if not utils.is_uuid_like(action_plan_uuid):
             raise exception.InvalidUuidOrName(name=action_plan_uuid)
 
-        return self.conductor_client.call(
+        self.conductor_client.cast(
             context, 'launch_action_plan', action_plan_uuid=action_plan_uuid)
 
 
