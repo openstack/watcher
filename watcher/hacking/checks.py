@@ -16,7 +16,6 @@ import os
 import re
 
 import pep8
-import six
 
 
 def flake8ext(f):
@@ -61,7 +60,7 @@ def _regex_for_level(level, hint):
 
 log_translation_hint = re.compile(
     '|'.join('(?:%s)' % _regex_for_level(level, hint)
-             for level, hint in six.iteritems(_all_log_levels)))
+             for level, hint in _all_log_levels.items()))
 
 log_warn = re.compile(
     r"(.)*LOG\.(warn)\(\s*('|\"|_)")
