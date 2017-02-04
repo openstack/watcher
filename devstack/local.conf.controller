@@ -28,7 +28,7 @@ ENABLED_SERVICES+=,q-svc,q-dhcp,q-meta,q-agt,q-l3,neutron
 enable_service n-cauth
 
 # Enable the Watcher Dashboard plugin
-# enable_plugin watcher-dashboard git://git.openstack.org/openstack/watcher-dashboard
+enable_plugin watcher-dashboard git://git.openstack.org/openstack/watcher-dashboard
 
 # Enable the Watcher plugin
 enable_plugin watcher git://git.openstack.org/openstack/watcher
