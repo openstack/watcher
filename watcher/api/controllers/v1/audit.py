@@ -294,7 +294,7 @@ class Audit(base.APIBase):
             audit.unset_fields_except(['uuid', 'audit_type', 'state',
                                        'goal_uuid', 'interval', 'scope',
                                        'strategy_uuid', 'goal_name',
-                                       'strategy_name'])
+                                       'strategy_name', 'auto_trigger'])
 
         audit.links = [link.Link.make_link('self', url,
                                            'audits', audit.uuid),
