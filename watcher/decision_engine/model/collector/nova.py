@@ -215,8 +215,7 @@ class ModelBuilder(object):
                 compute_node = self.model.get_node_by_uuid(
                     cnode_uuid)
                 # Connect the instance to its compute node
-                self.model.add_edge(
-                    instance, compute_node, label='RUNS_ON')
+                self.model.map_instance(instance, compute_node)
             except exception.ComputeNodeNotFound:
                 continue
 
