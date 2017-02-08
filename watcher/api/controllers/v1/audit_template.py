@@ -333,6 +333,7 @@ class AuditTemplate(base.APIBase):
 
         self.fields.append('goal_id')
         self.fields.append('strategy_id')
+        setattr(self, 'strategy_id', kwargs.get('strategy_id', wtypes.Unset))
 
         # goal_uuid & strategy_uuid are not part of
         # objects.AuditTemplate.fields because they're API-only attributes.
