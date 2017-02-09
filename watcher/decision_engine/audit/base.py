@@ -102,23 +102,24 @@ class AuditHandler(BaseAuditHandler):
         audit.state = state
         audit.save()
 
+    @staticmethod
+    def check_ongoing_action_plans(request_context):
+        a_plan_filters = {'state': objects.action_plan.State.ONGOING}
+        ongoing_action_plans = objects.ActionPlan.list(
+            request_context, filters=a_plan_filters)
+        if ongoing_action_plans:
+            raise exception.ActionPlanIsOngoing(
+                action_plan=ongoing_action_plans[0].uuid)
+
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
+        self.check_ongoing_action_plans(request_context)
         # change state of the audit to ONGOING
         self.update_audit_state(audit, objects.audit.State.ONGOING)
 
     def post_execute(self, audit, solution, request_context):
         action_plan = self.do_schedule(request_context, audit, solution)
-        a_plan_filters = {'state': objects.action_plan.State.ONGOING}
-        ongoing_action_plans = objects.ActionPlan.list(
-            request_context, filters=a_plan_filters)
-        if ongoing_action_plans:
-            action_plan.state = objects.action_plan.State.SUPERSEDED
-            action_plan.save()
-            raise exception.ActionPlanIsOngoing(
-                action_plan=ongoing_action_plans[0].uuid,
-                new_action_plan=action_plan.uuid)
-        elif audit.auto_trigger:
+        if audit.auto_trigger:
             applier_client = rpcapi.ApplierAPI()
             applier_client.launch_action_plan(request_context,
                                               action_plan.uuid)
