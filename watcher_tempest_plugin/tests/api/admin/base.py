@@ -17,6 +17,7 @@
 import functools
 
 from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
 from tempest import test
 
 from watcher_tempest_plugin import infra_optim_clients as clients
@@ -59,7 +60,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
             action_plans_to_be_deleted = set()
             # Phase 1: Make sure all objects are in an idle state
             for audit_uuid in cls.created_audits:
-                test.call_until_true(
+                test_utils.call_until_true(
                     func=functools.partial(
                         cls.is_audit_idle, audit_uuid),
                     duration=30,
@@ -73,7 +74,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
                     ap['uuid'] for ap in action_plans['action_plans'])
 
                 for action_plan in action_plans['action_plans']:
-                    test.call_until_true(
+                    test_utils.call_until_true(
                         func=functools.partial(
                             cls.is_action_plan_idle, action_plan['uuid']),
                         duration=30,
@@ -213,7 +214,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
         _, audit = cls.create_audit(audit_template_uuid, **audit_kwargs)
         audit_uuid = audit['uuid']
 
-        assert test.call_until_true(
+        assert test_utils.call_until_true(
             func=functools.partial(cls.has_audit_finished, audit_uuid),
             duration=30,
             sleep_for=.5

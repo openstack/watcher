@@ -18,6 +18,7 @@ from __future__ import unicode_literals
 
 import functools
 
+from tempest.lib.common.utils import test_utils
 from tempest.lib import exceptions
 from tempest import test
 
@@ -33,7 +34,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
@@ -53,7 +54,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
@@ -75,7 +76,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
@@ -94,7 +95,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         # Execute the action by changing its state to PENDING
         _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(
                 self.has_action_plan_finished, action_plan['uuid']),
             duration=30,
@@ -116,7 +117,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
         _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
-        assert test.call_until_true(
+        assert test_utils.call_until_true(
             func=functools.partial(cls.has_audit_finished, cls.audit['uuid']),
             duration=30,
             sleep_for=.5
