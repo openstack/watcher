@@ -67,6 +67,9 @@ state may be one of the following:
 -  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
    **PENDING** or **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
+-  **SUPERSEDED** : the :ref:`Action Plan <action_plan_definition>` was in
+   **RECOMMENDED** state and was superseded by the
+   :ref:`Administrator <administrator_definition>`
 """
 
 from watcher.common import exception
