@@ -129,7 +129,7 @@ class AuditHandler(BaseAuditHandler):
             solution = self.do_execute(audit, request_context)
             self.post_execute(audit, solution, request_context)
         except exception.ActionPlanIsOngoing as e:
-            LOG.exception(e)
+            LOG.warning(e)
             if audit.audit_type == objects.audit.AuditType.ONESHOT.value:
                 self.update_audit_state(audit, objects.audit.State.CANCELLED)
         except Exception as e:
