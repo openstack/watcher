@@ -201,15 +201,15 @@ class NovaNotification(base.NotificationEndpoint):
             LOG.info(_LI("Instance %s already deleted"), instance.uuid)
 
 
-class VersionnedNotificationEndpoint(NovaNotification):
+class VersionedNotificationEndpoint(NovaNotification):
     publisher_id_regex = r'^nova-compute.*'
 
 
-class UnversionnedNotificationEndpoint(NovaNotification):
+class UnversionedNotificationEndpoint(NovaNotification):
     publisher_id_regex = r'^compute.*'
 
 
-class ServiceUpdated(VersionnedNotificationEndpoint):
+class ServiceUpdated(VersionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -235,7 +235,7 @@ class ServiceUpdated(VersionnedNotificationEndpoint):
             LOG.exception(exc)
 
 
-class InstanceCreated(VersionnedNotificationEndpoint):
+class InstanceCreated(VersionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -277,7 +277,7 @@ class InstanceCreated(VersionnedNotificationEndpoint):
         self.update_instance(instance, payload)
 
 
-class InstanceUpdated(VersionnedNotificationEndpoint):
+class InstanceUpdated(VersionedNotificationEndpoint):
 
     @staticmethod
     def _match_not_new_instance_state(data):
@@ -310,7 +310,7 @@ class InstanceUpdated(VersionnedNotificationEndpoint):
         self.update_instance(instance, payload)
 
 
-class InstanceDeletedEnd(VersionnedNotificationEndpoint):
+class InstanceDeletedEnd(VersionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -343,7 +343,7 @@ class InstanceDeletedEnd(VersionnedNotificationEndpoint):
         self.delete_instance(instance, node)
 
 
-class LegacyInstanceUpdated(UnversionnedNotificationEndpoint):
+class LegacyInstanceUpdated(UnversionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -368,7 +368,7 @@ class LegacyInstanceUpdated(UnversionnedNotificationEndpoint):
         self.legacy_update_instance(instance, payload)
 
 
-class LegacyInstanceCreatedEnd(UnversionnedNotificationEndpoint):
+class LegacyInstanceCreatedEnd(UnversionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -393,7 +393,7 @@ class LegacyInstanceCreatedEnd(UnversionnedNotificationEndpoint):
         self.legacy_update_instance(instance, payload)
 
 
-class LegacyInstanceDeletedEnd(UnversionnedNotificationEndpoint):
+class LegacyInstanceDeletedEnd(UnversionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
@@ -424,7 +424,7 @@ class LegacyInstanceDeletedEnd(UnversionnedNotificationEndpoint):
         self.delete_instance(instance, node)
 
 
-class LegacyLiveMigratedEnd(UnversionnedNotificationEndpoint):
+class LegacyLiveMigratedEnd(UnversionedNotificationEndpoint):
 
     @property
     def filter_rule(self):
