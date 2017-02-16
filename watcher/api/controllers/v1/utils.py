@@ -73,6 +73,12 @@ def apply_jsonpatch(doc, patch):
     return jsonpatch.apply_patch(doc, jsonpatch.JsonPatch(patch))
 
 
+def get_patch_value(patch, key):
+    for p in patch:
+        if p['op'] == 'replace' and p['path'] == '/%s' % key:
+            return p['value']
+
+
 def as_filters_dict(**filters):
     filters_dict = {}
     for filter_name, filter_value in filters.items():
