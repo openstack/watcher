@@ -32,6 +32,7 @@ from six.moves.urllib import parse as urlparse
 
 from watcher.api import hooks
 from watcher.common import context as watcher_context
+from watcher.notifications import service as n_service
 from watcher.tests.db import base
 
 PATH_PREFIX = '/v1'
@@ -55,6 +56,12 @@ class FunctionalTest(base.DbTestCase):
         cfg.CONF.set_override("admin_user", "admin",
                               group='keystone_authtoken',
                               enforce_type=True)
+
+        p_services = mock.patch.object(n_service, "send_service_update",
+                                       new_callable=mock.PropertyMock)
+        self.m_services = p_services.start()
+        self.addCleanup(p_services.stop)
+
         self.app = self._make_app()
 
         def reset_pecan():

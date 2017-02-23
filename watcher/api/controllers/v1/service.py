@@ -34,6 +34,7 @@ from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
 from watcher.api.controllers.v1 import utils as api_utils
+from watcher.common import context
 from watcher.common import exception
 from watcher.common import policy
 from watcher import objects
@@ -51,6 +52,7 @@ class Service(base.APIBase):
     """
 
     _status = None
+    _context = context.RequestContext(is_admin=True)
 
     def _get_status(self):
         return self._status

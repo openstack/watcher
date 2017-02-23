@@ -1,0 +1,26 @@
+{
+    "payload": {
+        "watcher_object.name": "ServiceUpdatePayload",
+        "watcher_object.namespace": "watcher",
+        "watcher_object.data": {
+            "status_update": {
+                "watcher_object.name": "ServiceStatusUpdatePayload",
+                "watcher_object.namespace": "watcher",
+                "watcher_object.data": {
+                    "old_state": "ACTIVE",
+                    "state": "FAILED"
+                },
+                "watcher_object.version": "1.0"
+            },
+            "last_seen_up": "2016-09-22T08:32:06Z",
+            "name": "watcher-service",
+            "sevice_host": "controller"
+        },
+        "watcher_object.version": "1.0"
+    },
+    "event_type": "service.update",
+    "priority": "INFO",
+    "message_id": "3984dc2b-8aef-462b-a220-8ae04237a56e",
+    "timestamp": "2016-10-18 09:52:05.219414",
+    "publisher_id": "infra-optim:node0"
+}

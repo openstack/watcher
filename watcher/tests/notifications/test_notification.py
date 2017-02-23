@@ -288,6 +288,11 @@ expected_notification_fingerprints = {
     'ActionUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionUpdatePayload': '1.0-03306c7e7f4d49ac328c261eff6b30b8',
     'TerseActionPlanPayload': '1.0-42bf7a5585cc111a9a4dbc008a04c67e',
+    'ServiceUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ServicePayload': '1.0-9c5a9bc51e6606e0ec3cf95baf698f4f',
+    'ServiceStatusUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
+    'ServiceUpdatePayload': '1.0-e0e9812a45958974693a723a2c820c3f'
+
 }
 
 
