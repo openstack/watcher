@@ -149,7 +149,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         instance_state_str = self.get_state_str(instance.state)
         if instance_state_str != element.InstanceState.ACTIVE.value:
-            # Watcher curently only supports live VM migration and block live
+            # Watcher currently only supports live VM migration and block live
             # VM migration which both requires migrated VM to be active.
             # When supported, the cold migration may be used as a fallback
             # migration mechanism to move non active VMs.
@@ -177,7 +177,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             self.number_of_migrations += 1
 
     def disable_unused_nodes(self):
-        """Generate actions for disablity of unused nodes.
+        """Generate actions for disabling unused nodes.
 
         :return: None
         """
@@ -387,11 +387,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         Offload phase performing first-fit based bin packing to offload
         overloaded nodes. This is done in a fashion of moving
         the least CPU utilized VM first as live migration these
-        generaly causes less troubles. This phase results in a cluster
+        generally causes less troubles. This phase results in a cluster
         with no overloaded nodes.
         * This phase is be able to enable disabled nodes (if needed
         and any available) in the case of the resource capacity provided by
-        active nodes is not able to accomodate all the load.
+        active nodes is not able to accommodate all the load.
         As the offload phase is later followed by the consolidation phase,
         the node enabler in this phase doesn't necessarily results
         in more enabled nodes in the final solution.
@@ -424,9 +424,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         Consolidation phase performing first-fit based bin packing.
         First, nodes with the lowest cpu utilization are consolidated
         by moving their load to nodes with the highest cpu utilization
-        which can accomodate the load. In this phase the most cpu utilizied
-        VMs are prioritizied as their load is more difficult to accomodate
-        in the system than less cpu utilizied VMs which can be later used
+        which can accommodate the load. In this phase the most cpu utilized
+        VMs are prioritized as their load is more difficult to accommodate
+        in the system than less cpu utilized VMs which can be later used
         to fill smaller CPU capacity gaps.
 
         :param cc: dictionary containing resource capacity coefficients
