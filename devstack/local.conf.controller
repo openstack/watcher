@@ -38,6 +38,8 @@ enable_plugin ceilometer git://git.openstack.org/openstack/ceilometer
 
 # This is the controller node, so disable the ceilometer compute agent
 disable_service ceilometer-acompute
+# Enable the ceilometer api explicitly(bug:1667678)
+enable_service ceilometer-api
 
 LOGFILE=$DEST/logs/stack.sh.log
 LOGDAYS=2
