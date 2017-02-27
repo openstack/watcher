@@ -15,6 +15,8 @@ import ceilometerclient.v2.client as ceclient_v2
 from cinderclient import client as ciclient
 from cinderclient.v1 import client as ciclient_v1
 from glanceclient import client as glclient
+from gnocchiclient import client as gnclient
+from gnocchiclient.v1 import client as gnclient_v1
 from keystoneauth1 import loading as ka_loading
 import mock
 from monascaclient import client as monclient
@@ -156,6 +158,32 @@ class TestClients(base.TestCase):
         glance = osc.glance()
         glance_cached = osc.glance()
         self.assertEqual(glance, glance_cached)
+
+    @mock.patch.object(gnclient, 'Client')
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_gnocchi(self, mock_session, mock_call):
+        osc = clients.OpenStackClients()
+        osc._gnocchi = None
+        osc.gnocchi()
+        mock_call.assert_called_once_with(CONF.gnocchi_client.api_version,
+                                          session=mock_session)
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_gnocchi_diff_vers(self, mock_session):
+        # gnocchiclient currently only has one version (v1)
+        CONF.set_override('api_version', '1', group='gnocchi_client')
+        osc = clients.OpenStackClients()
+        osc._gnocchi = None
+        osc.gnocchi()
+        self.assertEqual(gnclient_v1.Client, type(osc.gnocchi()))
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_gnocchi_cached(self, mock_session):
+        osc = clients.OpenStackClients()
+        osc._gnocchi = None
+        gnocchi = osc.gnocchi()
+        gnocchi_cached = osc.gnocchi()
+        self.assertEqual(gnocchi, gnocchi_cached)
 
     @mock.patch.object(ciclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')

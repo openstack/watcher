@@ -13,6 +13,7 @@
 from ceilometerclient import client as ceclient
 from cinderclient import client as ciclient
 from glanceclient import client as glclient
+from gnocchiclient import client as gnclient
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
 from monascaclient import client as monclient
@@ -39,6 +40,7 @@ class OpenStackClients(object):
         self._keystone = None
         self._nova = None
         self._glance = None
+        self._gnocchi = None
         self._cinder = None
         self._ceilometer = None
         self._monasca = None
@@ -91,6 +93,17 @@ class OpenStackClients(object):
         self._glance = glclient.Client(glanceclient_version,
                                        session=self.session)
         return self._glance
+
+    @exception.wrap_keystone_exception
+    def gnocchi(self):
+        if self._gnocchi:
+            return self._gnocchi
+
+        gnocchiclient_version = self._get_client_option('gnocchi',
+                                                        'api_version')
+        self._gnocchi = gnclient.Client(gnocchiclient_version,
+                                        session=self.session)
+        return self._gnocchi
 
     @exception.wrap_keystone_exception
     def cinder(self):

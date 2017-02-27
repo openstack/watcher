@@ -28,6 +28,7 @@ from watcher.conf import db
 from watcher.conf import decision_engine
 from watcher.conf import exception
 from watcher.conf import glance_client
+from watcher.conf import gnocchi_client
 from watcher.conf import monasca_client
 from watcher.conf import neutron_client
 from watcher.conf import nova_client
@@ -50,6 +51,7 @@ decision_engine.register_opts(CONF)
 monasca_client.register_opts(CONF)
 nova_client.register_opts(CONF)
 glance_client.register_opts(CONF)
+gnocchi_client.register_opts(CONF)
 cinder_client.register_opts(CONF)
 ceilometer_client.register_opts(CONF)
 neutron_client.register_opts(CONF)
