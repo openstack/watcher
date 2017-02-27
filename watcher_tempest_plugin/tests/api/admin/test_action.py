@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 import collections
 import functools
 
+from tempest.lib.common.utils import test_utils
 from tempest import test
 
 from watcher_tempest_plugin.tests.api.admin import base
@@ -34,7 +35,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
         _, cls.audit_template = cls.create_audit_template(cls.goal['uuid'])
         _, cls.audit = cls.create_audit(cls.audit_template['uuid'])
 
-        assert test.call_until_true(
+        assert test_utils.call_until_true(
             func=functools.partial(cls.has_audit_finished, cls.audit['uuid']),
             duration=30,
             sleep_for=.5

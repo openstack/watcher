@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 import collections
 import functools
 
-from tempest import test
+from tempest.lib.common.utils import test_utils
 
 from watcher_tempest_plugin.tests.scenario import base
 
@@ -41,7 +41,7 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
         _, audit_template = self.create_audit_template(goal['uuid'])
         _, audit = self.create_audit(audit_template['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(self.has_audit_finished, audit['uuid']),
             duration=30,
             sleep_for=.5
@@ -63,7 +63,7 @@ class TestExecuteDummyStrategy(base.BaseInfraOptimScenarioTest):
         # Execute the action by changing its state to PENDING
         _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(
                 self.has_action_plan_finished, action_plan['uuid']),
             duration=30,

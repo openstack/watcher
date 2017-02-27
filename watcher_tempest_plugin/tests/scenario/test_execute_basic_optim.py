@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 import functools
 
 from tempest import config
-from tempest import test
+from tempest.lib.common.utils import test_utils
 
 from watcher_tempest_plugin.tests.scenario import base
 
@@ -84,7 +84,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
             except Exception:
                 return False
 
-        assert test.call_until_true(
+        assert test_utils.call_until_true(
             func=_are_compute_nodes_setup,
             duration=600,
             sleep_for=2
@@ -146,7 +146,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         _, audit = self.create_audit(audit_template['uuid'])
 
         try:
-            self.assertTrue(test.call_until_true(
+            self.assertTrue(test_utils.call_until_true(
                 func=functools.partial(
                     self.has_audit_finished, audit['uuid']),
                 duration=600,
@@ -174,7 +174,7 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
         # Execute the action by changing its state to PENDING
         _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
 
-        self.assertTrue(test.call_until_true(
+        self.assertTrue(test_utils.call_until_true(
             func=functools.partial(
                 self.has_action_plan_finished, action_plan['uuid']),
             duration=600,
