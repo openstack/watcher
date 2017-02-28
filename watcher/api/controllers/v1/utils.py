@@ -79,6 +79,15 @@ def get_patch_value(patch, key):
             return p['value']
 
 
+def check_audit_state_transition(patch, initial):
+    is_transition_valid = True
+    state_value = get_patch_value(patch, "state")
+    if state_value is not None:
+        is_transition_valid = objects.audit.AuditStateTransitionManager(
+            ).check_transition(initial, state_value)
+    return is_transition_valid
+
+
 def as_filters_dict(**filters):
     filters_dict = {}
     for filter_name, filter_value in filters.items():

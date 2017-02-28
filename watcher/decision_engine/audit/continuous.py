@@ -49,9 +49,7 @@ class ContinuousAuditHandler(base.AuditHandler):
     def _is_audit_inactive(self, audit):
         audit = objects.Audit.get_by_uuid(
             self.context_show_deleted, audit.uuid)
-        if audit.state in (objects.audit.State.CANCELLED,
-                           objects.audit.State.DELETED,
-                           objects.audit.State.FAILED):
+        if objects.audit.AuditStateTransitionManager().is_inactive(audit):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
             job_to_delete = [job for job in self.jobs

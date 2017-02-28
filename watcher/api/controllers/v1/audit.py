@@ -50,21 +50,6 @@ from watcher.decision_engine import rpcapi
 from watcher import objects
 
 
-ALLOWED_AUDIT_TRANSITIONS = {
-    objects.audit.State.PENDING:
-        [objects.audit.State.ONGOING, objects.audit.State.CANCELLED],
-    objects.audit.State.ONGOING:
-        [objects.audit.State.FAILED, objects.audit.State.SUCCEEDED,
-            objects.audit.State.CANCELLED],
-    objects.audit.State.FAILED:
-        [objects.audit.State.DELETED],
-    objects.audit.State.SUCCEEDED:
-        [objects.audit.State.DELETED],
-    objects.audit.State.CANCELLED:
-        [objects.audit.State.DELETED]
-    }
-
-
 class AuditPostType(wtypes.Base):
 
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=False)
@@ -144,8 +129,15 @@ class AuditPatchType(types.JsonPatchType):
 
     @staticmethod
     def validate(patch):
-        serialized_patch = {'path': patch.path, 'op': patch.op}
-        if patch.path in AuditPatchType.mandatory_attrs():
+
+        def is_new_state_none(p):
+            return p.path == '/state' and p.op == 'replace' and p.value is None
+
+        serialized_patch = {'path': patch.path,
+                            'op': patch.op,
+                            'value': patch.value}
+        if (patch.path in AuditPatchType.mandatory_attrs() or
+                is_new_state_none(patch)):
             msg = _("%(field)s can't be updated.")
             raise exception.PatchError(
                 patch=serialized_patch,
@@ -572,20 +564,21 @@ class AuditsController(rest.RestController):
 
         try:
             audit_dict = audit_to_update.as_dict()
+
+            initial_state = audit_dict['state']
+            new_state = api_utils.get_patch_value(patch, 'state')
+            if not api_utils.check_audit_state_transition(
+                    patch, initial_state):
+                error_message = _("State transition not allowed: "
+                                  "(%(initial_state)s -> %(new_state)s)")
+                raise exception.PatchError(
+                    patch=patch,
+                    reason=error_message % dict(
+                        initial_state=initial_state, new_state=new_state))
+
             audit = Audit(**api_utils.apply_jsonpatch(audit_dict, patch))
         except api_utils.JSONPATCH_EXCEPTIONS as e:
             raise exception.PatchError(patch=patch, reason=e)
-
-        initial_state = audit_dict['state']
-        new_state = api_utils.get_patch_value(patch, 'state')
-        allowed_states = ALLOWED_AUDIT_TRANSITIONS.get(initial_state, [])
-        if new_state is not None and new_state not in allowed_states:
-            error_message = _("State transition not allowed: "
-                              "(%(initial_state)s -> %(new_state)s)")
-            raise exception.PatchError(
-                patch=patch,
-                reason=error_message % dict(
-                    initial_state=initial_state, new_state=new_state))
 
         # Update only the fields that have changed
         for field in objects.Audit.fields:

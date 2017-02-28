@@ -274,16 +274,18 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
         mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
-        self.audits[1].state = objects.audit.State.CANCELLED
-        calls = [mock.call(audit_handler.execute_audit, 'interval',
-                           args=[mock.ANY, mock.ANY],
-                           seconds=3600,
-                           name='execute_audit',
-                           next_run_time=mock.ANY)]
-        audit_handler.launch_audits_periodically()
-        m_add_job.assert_has_calls(calls)
 
-        audit_handler.update_audit_state(self.audits[1],
-                                         objects.audit.State.CANCELLED)
-        is_inactive = audit_handler._is_audit_inactive(self.audits[1])
+        for state in [objects.audit.State.CANCELLED,
+                      objects.audit.State.SUSPENDED]:
+            self.audits[1].state = state
+            calls = [mock.call(audit_handler.execute_audit, 'interval',
+                               args=[mock.ANY, mock.ANY],
+                               seconds=3600,
+                               name='execute_audit',
+                               next_run_time=mock.ANY)]
+            audit_handler.launch_audits_periodically()
+            m_add_job.assert_has_calls(calls)
+
+            audit_handler.update_audit_state(self.audits[1], state)
+            is_inactive = audit_handler._is_audit_inactive(self.audits[1])
         self.assertTrue(is_inactive)

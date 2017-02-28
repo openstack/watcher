@@ -46,6 +46,9 @@ be one of the following:
 -  **CANCELLED** : the :ref:`Audit <audit_definition>` was in **PENDING** or
    **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
+-  **SUSPENDED** : the :ref:`Audit <audit_definition>` was in **ONGOING**
+   state and was suspended by the
+   :ref:`Administrator <administrator_definition>`
 """
 
 import enum
@@ -66,6 +69,7 @@ class State(object):
     CANCELLED = 'CANCELLED'
     DELETED = 'DELETED'
     PENDING = 'PENDING'
+    SUSPENDED = 'SUSPENDED'
 
 
 class AuditType(enum.Enum):
@@ -296,3 +300,25 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
             notifications.audit.send_delete(self._context, self)
 
         _notify()
+
+
+class AuditStateTransitionManager(object):
+
+    TRANSITIONS = {
+        State.PENDING: [State.ONGOING, State.CANCELLED],
+        State.ONGOING: [State.FAILED, State.SUCCEEDED,
+                        State.CANCELLED, State.SUSPENDED],
+        State.FAILED: [State.DELETED],
+        State.SUCCEEDED: [State.DELETED],
+        State.CANCELLED: [State.DELETED],
+        State.SUSPENDED: [State.ONGOING, State.DELETED],
+    }
+
+    INACTIVE_STATES = (State.CANCELLED, State.DELETED,
+                       State.FAILED, State.SUSPENDED)
+
+    def check_transition(self, initial, new):
+        return new in self.TRANSITIONS.get(initial, [])
+
+    def is_inactive(self, audit):
+        return audit.state in self.INACTIVE_STATES

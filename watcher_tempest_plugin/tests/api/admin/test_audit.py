@@ -29,7 +29,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
     """Tests for audit."""
 
     audit_states = ['ONGOING', 'SUCCEEDED', 'FAILED',
-                    'CANCELLED', 'DELETED', 'PENDING']
+                    'CANCELLED', 'DELETED', 'PENDING', 'SUSPENDED']
 
     def assert_expected(self, expected, actual,
                         keys=('created_at', 'updated_at',
@@ -154,7 +154,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
     """Tests for audit."""
 
     audit_states = ['ONGOING', 'SUCCEEDED', 'FAILED',
-                    'CANCELLED', 'DELETED', 'PENDING']
+                    'CANCELLED', 'DELETED', 'PENDING', 'SUSPENDED']
 
     @classmethod
     def resource_setup(cls):
