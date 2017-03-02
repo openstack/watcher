@@ -235,7 +235,8 @@ class ModelBuilder(object):
             "disk": flavor.disk,
             "disk_capacity": flavor.disk,
             "vcpus": flavor.vcpus,
-            "state": getattr(instance, "OS-EXT-STS:vm_state")}
+            "state": getattr(instance, "OS-EXT-STS:vm_state"),
+            "metadata": instance.metadata}
 
         # node_attributes = dict()
         # node_attributes["layer"] = "virtual"

@@ -48,6 +48,7 @@ class Instance(compute_resource.ComputeResource):
         "disk": wfields.IntegerField(),
         "disk_capacity": wfields.NonNegativeIntegerField(),
         "vcpus": wfields.NonNegativeIntegerField(),
+        "metadata": wfields.DictField(),
     }
 
     def accept(self, visitor):

@@ -66,6 +66,7 @@ class NovaNotification(base.NotificationEndpoint):
         memory_mb = instance_flavor_data['memory_mb']
         num_cores = instance_flavor_data['vcpus']
         disk_gb = instance_flavor_data['root_gb']
+        instance_metadata = data['nova_object.data']['metadata']
 
         instance.update({
             'state': instance_data['state'],
@@ -75,6 +76,7 @@ class NovaNotification(base.NotificationEndpoint):
             'vcpus': num_cores,
             'disk': disk_gb,
             'disk_capacity': disk_gb,
+            'metadata': instance_metadata,
         })
 
         try:
@@ -90,6 +92,7 @@ class NovaNotification(base.NotificationEndpoint):
         memory_mb = data['memory_mb']
         num_cores = data['vcpus']
         disk_gb = data['root_gb']
+        instance_metadata = data['metadata']
 
         instance.update({
             'state': data['state'],
@@ -99,6 +102,7 @@ class NovaNotification(base.NotificationEndpoint):
             'vcpus': num_cores,
             'disk': disk_gb,
             'disk_capacity': disk_gb,
+            'metadata': instance_metadata,
         })
 
         try:
