@@ -267,9 +267,7 @@ class ActionPlanReferenced(Invalid):
 
 
 class ActionPlanIsOngoing(Conflict):
-    msg_fmt = _("Action Plan %(action_plan)s is currently running. "
-                "New Action Plan %(new_action_plan)s will be set as "
-                "SUPERSEDED")
+    msg_fmt = _("Action Plan %(action_plan)s is currently running.")
 
 
 class ActionNotFound(ResourceNotFound):

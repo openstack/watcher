@@ -19,7 +19,6 @@ import mock
 from oslo_utils import uuidutils
 
 from watcher.applier import rpcapi
-from watcher.common import exception
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.model.collector import manager
@@ -190,16 +189,14 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
             strategy=self.strategy,
         )
 
+    @mock.patch.object(oneshot.OneShotAuditHandler, 'do_execute')
     @mock.patch.object(objects.action_plan.ActionPlan, 'list')
-    @mock.patch.object(objects.audit.Audit, 'get_by_id')
-    def test_trigger_action_plan_with_ongoing(self, mock_get_by_id, mock_list):
-        mock_get_by_id.return_value = self.audit
+    def test_trigger_audit_with_actionplan_ongoing(self, mock_list,
+                                                   mock_do_execute):
         mock_list.return_value = [self.ongoing_action_plan]
-        auto_trigger_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
-        with mock.patch.object(auto_trigger_handler, 'do_schedule'):
-            self.assertRaises(exception.ActionPlanIsOngoing,
-                              auto_trigger_handler.post_execute,
-                              self.audit, mock.MagicMock(), self.context)
+        audit_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        audit_handler.execute(self.audit, self.context)
+        self.assertFalse(mock_do_execute.called)
 
     @mock.patch.object(rpcapi.ApplierAPI, 'launch_action_plan')
     @mock.patch.object(objects.action_plan.ActionPlan, 'list')
