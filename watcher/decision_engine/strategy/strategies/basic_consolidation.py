@@ -35,12 +35,15 @@ migration is possible on your OpenStack cluster.
 
 """
 
+import datetime
+
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _, _LE, _LI, _LW
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import gnocchi as gnoc
 from watcher.datasource import monasca as mon
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
@@ -61,6 +64,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         monasca=dict(
             host_cpu_usage='cpu.percent',
             instance_cpu_usage='vm.cpu.utilization_perc'),
+        gnocchi=dict(
+            host_cpu_usage='compute.node.cpu.percent',
+            instance_cpu_usage='cpu_util'),
     )
 
     MIGRATION = "migrate"
@@ -87,6 +93,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         self._ceilometer = None
         self._monasca = None
+        self._gnocchi = None
 
         # TODO(jed): improve threshold overbooking?
         self.threshold_mem = 1
@@ -104,6 +111,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def period(self):
         return self.input_parameters.get('period', 7200)
+
+    @property
+    def granularity(self):
+        return self.input_parameters.get('granularity', 300)
 
     @classmethod
     def get_display_name(cls):
@@ -132,6 +143,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                     "type": "number",
                     "default": 7200
                 },
+                "granularity": {
+                    "description": "The time between two measures in an "
+                                   "aggregated timeseries of a metric.",
+                    "type": "number",
+                    "default": 300
+                },
             },
         }
 
@@ -142,7 +159,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "datasource",
                 help="Data source to use in order to query the needed metrics",
                 default="ceilometer",
-                choices=["ceilometer", "monasca"]),
+                choices=["ceilometer", "monasca", "gnocchi"])
         ]
 
     @property
@@ -164,6 +181,16 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @monasca.setter
     def monasca(self, monasca):
         self._monasca = monasca
+
+    @property
+    def gnocchi(self):
+        if self._gnocchi is None:
+            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+        return self._gnocchi
+
+    @gnocchi.setter
+    def gnocchi(self, gnocchi):
+        self._gnocchi = gnocchi
 
     def check_migration(self, source_node, destination_node,
                         instance_to_migrate):
@@ -260,6 +287,19 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 period=self.period,
                 aggregate='avg',
             )
+        elif self.config.datasource == "gnocchi":
+            resource_id = "%s_%s" % (node.uuid, node.hostname)
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int(self.period))
+            return self.gnocchi.statistic_aggregation(
+                resource_id=resource_id,
+                metric=metric_name,
+                granularity=self.granularity,
+                start_time=start_time,
+                stop_time=stop_time,
+                aggregation='mean'
+            )
         elif self.config.datasource == "monasca":
             statistics = self.monasca.statistic_aggregation(
                 meter_name=metric_name,
@@ -288,6 +328,18 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 meter_name=metric_name,
                 period=self.period,
                 aggregate='avg'
+            )
+        elif self.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int(self.period))
+            return self.gnocchi.statistic_aggregation(
+                resource_id=instance.uuid,
+                metric=metric_name,
+                granularity=self.granularity,
+                start_time=start_time,
+                stop_time=stop_time,
+                aggregation='mean',
             )
         elif self.config.datasource == "monasca":
             statistics = self.monasca.statistic_aggregation(

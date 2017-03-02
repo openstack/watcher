@@ -18,6 +18,7 @@
 #
 import collections
 import copy
+import datetime
 import mock
 
 from watcher.applier.loading import default
@@ -28,6 +29,7 @@ from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import gnocchi_metrics
 from watcher.tests.decision_engine.model import monasca_metrics
 
 
@@ -40,6 +42,9 @@ class TestBasicConsolidation(base.TestCase):
         ("Monasca",
          {"datasource": "monasca",
           "fake_datasource_cls": monasca_metrics.FakeMonascaMetrics}),
+        ("Gnocchi",
+         {"datasource": "gnocchi",
+          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
     ]
 
     def setUp(self):
@@ -276,9 +281,22 @@ class TestBasicConsolidation(base.TestCase):
         p_monasca = mock.patch.object(strategies.BasicConsolidation, "monasca")
         m_monasca = p_monasca.start()
         self.addCleanup(p_monasca.stop)
+        p_gnocchi = mock.patch.object(strategies.BasicConsolidation, "gnocchi")
+        m_gnocchi = p_gnocchi.start()
+        self.addCleanup(p_gnocchi.stop)
+        datetime_patcher = mock.patch.object(
+            datetime, 'datetime',
+            mock.Mock(wraps=datetime.datetime)
+        )
+        mocked_datetime = datetime_patcher.start()
+        mocked_datetime.utcnow.return_value = datetime.datetime(
+            2017, 3, 19, 18, 53, 11, 657417)
+        self.addCleanup(datetime_patcher.stop)
         m_monasca.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        m_gnocchi.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.strategy.calculate_score_node(node_1)
         resource_id = "%s_%s" % (node_1.uuid, node_1.hostname)
@@ -290,6 +308,14 @@ class TestBasicConsolidation(base.TestCase):
             m_monasca.statistic_aggregation.assert_called_with(
                 aggregate='avg', meter_name='cpu.percent',
                 period=7200, dimensions={'hostname': 'Node_1'})
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('7200'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=resource_id, metric='compute.node.cpu.percent',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')
 
         self.strategy.input_parameters.update({"period": 600})
         self.strategy.calculate_score_node(node_1)
@@ -301,3 +327,11 @@ class TestBasicConsolidation(base.TestCase):
             m_monasca.statistic_aggregation.assert_called_with(
                 aggregate='avg', meter_name='cpu.percent',
                 period=600, dimensions={'hostname': 'Node_1'})
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('600'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=resource_id, metric='compute.node.cpu.percent',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')
