@@ -71,14 +71,18 @@ state may be one of the following:
    **RECOMMENDED** state and was superseded by the
    :ref:`Administrator <administrator_definition>`
 """
+import datetime
 
 from watcher.common import exception
 from watcher.common import utils
+from watcher import conf
 from watcher.db import api as db_api
 from watcher import notifications
 from watcher import objects
 from watcher.objects import base
 from watcher.objects import fields as wfields
+
+CONF = conf.CONF
 
 
 class State(object):
@@ -317,3 +321,18 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
             notifications.action_plan.send_delete(self._context, self)
 
         _notify()
+
+
+class StateManager(object):
+    def check_expired(self, context):
+        action_plan_expiry = (
+            CONF.watcher_decision_engine.action_plan_expiry)
+        date_created = datetime.datetime.utcnow() - datetime.timedelta(
+            hours=action_plan_expiry)
+        filters = {'state__eq': State.RECOMMENDED,
+                   'created_at__lt': date_created}
+        action_plans = objects.ActionPlan.list(
+            context, filters=filters, eager=True)
+        for action_plan in action_plans:
+            action_plan.state = State.SUPERSEDED
+            action_plan.save()

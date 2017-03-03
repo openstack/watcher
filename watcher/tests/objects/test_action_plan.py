@@ -19,11 +19,15 @@ import iso8601
 import mock
 
 from watcher.common import exception
+from watcher.common import utils as common_utils
+from watcher import conf
 from watcher.db.sqlalchemy import api as db_api
 from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
+
+CONF = conf.CONF
 
 
 class TestActionPlanObject(base.DbTestCase):
@@ -290,3 +294,31 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         m_destroy_efficacy_indicator.assert_called_once_with(
             efficacy_indicator['uuid'])
         self.assertEqual(self.context, action_plan._context)
+
+
+@mock.patch.object(notifications.action_plan, 'send_update', mock.Mock())
+class TestStateManager(base.DbTestCase):
+
+    def setUp(self):
+        super(TestStateManager, self).setUp()
+        self.state_manager = objects.action_plan.StateManager()
+
+    def test_check_expired(self):
+        CONF.set_default('action_plan_expiry', 0,
+                         group='watcher_decision_engine')
+        strategy_1 = utils.create_test_strategy(
+            uuid=common_utils.generate_uuid())
+        audit_1 = utils.create_test_audit(
+            uuid=common_utils.generate_uuid())
+        action_plan_1 = utils.create_test_action_plan(
+            state=objects.action_plan.State.RECOMMENDED,
+            uuid=common_utils.generate_uuid(),
+            audit_id=audit_1.id,
+            strategy_id=strategy_1.id)
+
+        self.state_manager.check_expired(self.context)
+
+        action_plan = objects.action_plan.ActionPlan.get_by_uuid(
+            self.context, action_plan_1.uuid)
+        self.assertEqual(objects.action_plan.State.SUPERSEDED,
+                         action_plan.state)

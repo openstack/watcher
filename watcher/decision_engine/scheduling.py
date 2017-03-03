@@ -19,12 +19,17 @@ import datetime
 import eventlet
 from oslo_log import log
 
+from watcher.common import context
 from watcher.common import exception
 from watcher.common import scheduling
 
 from watcher.decision_engine.model.collector import manager
+from watcher import objects
+
+from watcher import conf
 
 LOG = log.getLogger(__name__)
+CONF = conf.CONF
 
 
 class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
@@ -73,9 +78,20 @@ class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
 
         return _sync
 
+    def add_checkstate_job(self):
+        # 30 minutes interval
+        interval = CONF.watcher_decision_engine.check_periodic_interval
+        ap_manager = objects.action_plan.StateManager()
+        if CONF.watcher_decision_engine.action_plan_expiry != 0:
+            self.add_job(ap_manager.check_expired, 'interval',
+                         args=[context.make_context()],
+                         seconds=interval,
+                         next_run_time=datetime.datetime.now())
+
     def start(self):
         """Start service."""
         self.add_sync_jobs()
+        self.add_checkstate_job()
         super(DecisionEngineSchedulingService, self).start()
 
     def stop(self):
