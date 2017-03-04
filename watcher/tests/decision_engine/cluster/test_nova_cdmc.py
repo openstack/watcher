@@ -54,6 +54,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             id='ef500f7e-dac8-470f-960c-169486fce71b',
             human_id='fake_instance',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
+            metadata={'hi': 'hello'},
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
