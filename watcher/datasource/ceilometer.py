@@ -32,6 +32,43 @@ class CeilometerHelper(object):
         self.osc = osc if osc else clients.OpenStackClients()
         self.ceilometer = self.osc.ceilometer()
 
+    @staticmethod
+    def format_query(user_id, tenant_id, resource_id,
+                     user_ids, tenant_ids, resource_ids):
+        query = []
+
+        def query_append(query, _id, _ids, field):
+            if _id:
+                _ids = [_id]
+            for x_id in _ids:
+                query.append({"field": field, "op": "eq", "value": x_id})
+
+        query_append(query, user_id, (user_ids or []), "user_id")
+        query_append(query, tenant_id, (tenant_ids or []), "project_id")
+        query_append(query, resource_id, (resource_ids or []), "resource_id")
+
+        return query
+
+    def _timestamps(self, start_time, end_time):
+
+        def _format_timestamp(_time):
+            if _time:
+                if isinstance(_time, datetime.datetime):
+                    return _time.isoformat()
+                return _time
+            return None
+
+        start_timestamp = _format_timestamp(start_time)
+        end_timestamp = _format_timestamp(end_time)
+
+        if ((start_timestamp is not None) and (end_timestamp is not None) and
+                (timeutils.parse_isotime(start_timestamp) >
+                 timeutils.parse_isotime(end_timestamp))):
+            raise exception.Invalid(
+                _("Invalid query: %(start_time)s > %(end_time)s") % dict(
+                    start_time=start_timestamp, end_time=end_timestamp))
+        return start_timestamp, end_timestamp
+
     def build_query(self, user_id=None, tenant_id=None, resource_id=None,
                     user_ids=None, tenant_ids=None, resource_ids=None,
                     start_time=None, end_time=None):
@@ -49,45 +86,11 @@ class CeilometerHelper(object):
         :param end_time: datetime until which measurements should be collected
         """
 
-        user_ids = user_ids or []
-        tenant_ids = tenant_ids or []
-        resource_ids = resource_ids or []
+        query = self.format_query(user_id, tenant_id, resource_id,
+                                  user_ids, tenant_ids, resource_ids)
 
-        query = []
-        if user_id:
-            user_ids = [user_id]
-        for u_id in user_ids:
-            query.append({"field": "user_id", "op": "eq", "value": u_id})
-
-        if tenant_id:
-            tenant_ids = [tenant_id]
-        for t_id in tenant_ids:
-            query.append({"field": "project_id", "op": "eq", "value": t_id})
-
-        if resource_id:
-            resource_ids = [resource_id]
-        for r_id in resource_ids:
-            query.append({"field": "resource_id", "op": "eq", "value": r_id})
-
-        start_timestamp = None
-        end_timestamp = None
-
-        if start_time:
-            start_timestamp = start_time
-            if isinstance(start_time, datetime.datetime):
-                start_timestamp = start_time.isoformat()
-
-        if end_time:
-            end_timestamp = end_time
-            if isinstance(end_time, datetime.datetime):
-                end_timestamp = end_time.isoformat()
-
-        if (start_timestamp and end_timestamp and
-                timeutils.parse_isotime(start_timestamp) >
-                timeutils.parse_isotime(end_timestamp)):
-            raise exception.Invalid(
-                _("Invalid query: %(start_time)s > %(end_time)s") % dict(
-                    start_time=start_timestamp, end_time=end_timestamp))
+        start_timestamp, end_timestamp = self._timestamps(start_time,
+                                                          end_time)
 
         if start_timestamp:
             query.append({"field": "timestamp", "op": "ge",
