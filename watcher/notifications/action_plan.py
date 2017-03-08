@@ -32,14 +32,12 @@ CONF = cfg.CONF
 
 
 @base.WatcherObjectRegistry.register_notification
-class ActionPlanPayload(notificationbase.NotificationPayloadBase):
+class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
     SCHEMA = {
         'uuid': ('action_plan', 'uuid'),
 
         'state': ('action_plan', 'state'),
         'global_efficacy': ('action_plan', 'global_efficacy'),
-        'audit_uuid': ('audit', 'uuid'),
-        'strategy_uuid': ('strategy', 'uuid'),
 
         'created_at': ('action_plan', 'created_at'),
         'updated_at': ('action_plan', 'updated_at'),
@@ -54,20 +52,50 @@ class ActionPlanPayload(notificationbase.NotificationPayloadBase):
         'state': wfields.StringField(),
         'global_efficacy': wfields.FlexibleDictField(nullable=True),
         'audit_uuid': wfields.UUIDField(),
-        'strategy_uuid': wfields.UUIDField(),
-        'audit': wfields.ObjectField('TerseAuditPayload'),
-        'strategy': wfields.ObjectField('StrategyPayload'),
+        'strategy_uuid': wfields.UUIDField(nullable=True),
 
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),
     }
 
+    def __init__(self, action_plan, audit=None, strategy=None, **kwargs):
+        super(TerseActionPlanPayload, self).__init__(audit=audit,
+                                                     strategy=strategy,
+                                                     **kwargs)
+        self.populate_schema(action_plan=action_plan)
+
+
+@base.WatcherObjectRegistry.register_notification
+class ActionPlanPayload(TerseActionPlanPayload):
+    SCHEMA = {
+        'uuid': ('action_plan', 'uuid'),
+
+        'state': ('action_plan', 'state'),
+        'global_efficacy': ('action_plan', 'global_efficacy'),
+
+        'created_at': ('action_plan', 'created_at'),
+        'updated_at': ('action_plan', 'updated_at'),
+        'deleted_at': ('action_plan', 'deleted_at'),
+    }
+
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'audit': wfields.ObjectField('TerseAuditPayload'),
+        'strategy': wfields.ObjectField('StrategyPayload'),
+    }
+
     def __init__(self, action_plan, audit, strategy, **kwargs):
+        if not kwargs.get('audit_uuid'):
+            kwargs['audit_uuid'] = audit.uuid
+
+        if strategy and not kwargs.get('strategy_uuid'):
+            kwargs['strategy_uuid'] = strategy.uuid
+
         super(ActionPlanPayload, self).__init__(
-            audit=audit, strategy=strategy, **kwargs)
-        self.populate_schema(
-            action_plan=action_plan, audit=audit, strategy=strategy)
+            action_plan, audit=audit, strategy=strategy, **kwargs)
 
 
 @base.WatcherObjectRegistry.register_notification

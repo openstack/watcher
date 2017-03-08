@@ -1,0 +1,40 @@
+{
+  "priority": "INFO",
+  "payload": {
+    "watcher_object.namespace": "watcher",
+    "watcher_object.version": "1.0",
+    "watcher_object.name": "ActionCreatePayload",
+    "watcher_object.data": {
+      "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+      "input_parameters": {
+        "param2": 2,
+        "param1": 1
+      },
+      "created_at": "2016-10-18T09:52:05Z",
+      "updated_at": null,
+      "state": "PENDING",
+      "action_plan": {
+        "watcher_object.namespace": "watcher",
+        "watcher_object.version": "1.0",
+        "watcher_object.name": "TerseActionPlanPayload",
+        "watcher_object.data": {
+          "uuid": "76be87bd-3422-43f9-93a0-e85a577e3061",
+          "global_efficacy": {},
+          "created_at": "2016-10-18T09:52:05Z",
+          "updated_at": null,
+          "state": "ONGOING",
+          "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+          "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
+          "deleted_at": null
+        }
+      },
+      "parents": [],
+      "action_type": "nop",
+      "deleted_at": null
+    }
+  },
+  "publisher_id": "infra-optim:node0",
+  "timestamp": "2017-01-01 00:00:00.000000",
+  "event_type": "action.create",
+  "message_id": "530b409c-9b6b-459b-8f08-f93dbfeb4d41"
+}

@@ -19,7 +19,9 @@ import iso8601
 import mock
 
 from watcher.common import exception
+from watcher.common import utils as c_utils
 from watcher.db.sqlalchemy import api as db_api
+from watcher import notifications
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils
@@ -47,6 +49,13 @@ class TestActionObject(base.DbTestCase):
 
     def setUp(self):
         super(TestActionObject, self).setUp()
+
+        p_action_notifications = mock.patch.object(
+            notifications, 'action_plan', autospec=True)
+        self.m_action_notifications = p_action_notifications.start()
+        self.addCleanup(p_action_notifications.stop)
+        self.m_send_update = self.m_action_notifications.send_update
+
         self.fake_action_plan = utils.create_test_action_plan(
             id=self.action_plan_id)
 
@@ -73,6 +82,7 @@ class TestActionObject(base.DbTestCase):
             self.context, action_id, eager=self.eager)
         self.assertEqual(self.context, action._context)
         self.eager_action_assert(action)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
     def test_get_by_uuid(self, mock_get_action):
@@ -82,6 +92,7 @@ class TestActionObject(base.DbTestCase):
         mock_get_action.assert_called_once_with(
             self.context, uuid, eager=self.eager)
         self.assertEqual(self.context, action._context)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     def test_get_bad_id_and_uuid(self):
         self.assertRaises(exception.InvalidIdentity,
@@ -98,19 +109,31 @@ class TestActionObject(base.DbTestCase):
         self.assertEqual(self.context, actions[0]._context)
         for action in actions:
             self.eager_action_assert(action)
+        self.assertEqual(0, self.m_send_update.call_count)
 
+    @mock.patch.object(objects.Strategy, 'get')
+    @mock.patch.object(objects.Audit, 'get')
     @mock.patch.object(db_api.Connection, 'update_action')
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
-    def test_save(self, mock_get_action, mock_update_action):
+    def test_save(self, mock_get_action, mock_update_action, mock_get_audit,
+                  mock_get_strategy):
         mock_get_action.return_value = self.fake_action
         fake_saved_action = self.fake_action.copy()
+        mock_get_audit.return_value = mock.PropertyMock(
+            uuid=c_utils.generate_uuid())
+        mock_get_strategy.return_value = mock.PropertyMock(
+            uuid=c_utils.generate_uuid())
         fake_saved_action['updated_at'] = datetime.datetime.utcnow()
         mock_update_action.return_value = fake_saved_action
         uuid = self.fake_action['uuid']
         action = objects.Action.get_by_uuid(
             self.context, uuid, eager=self.eager)
         action.state = objects.action.State.SUCCEEDED
-        action.save()
+        if not self.eager:
+            self.assertRaises(exception.EagerlyLoadedActionRequired,
+                              action.save)
+        else:
+            action.save()
 
         expected_update_at = fake_saved_action['updated_at'].replace(
             tzinfo=iso8601.iso8601.Utc())
@@ -121,6 +144,7 @@ class TestActionObject(base.DbTestCase):
             uuid, {'state': objects.action.State.SUCCEEDED})
         self.assertEqual(self.context, action._context)
         self.assertEqual(expected_update_at, action.updated_at)
+        self.assertEqual(0, self.m_send_update.call_count)
 
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
     def test_refresh(self, mock_get_action):
@@ -137,6 +161,7 @@ class TestActionObject(base.DbTestCase):
         self.assertEqual(expected, mock_get_action.call_args_list)
         self.assertEqual(self.context, action._context)
         self.eager_action_assert(action)
+        self.assertEqual(0, self.m_send_update.call_count)
 
 
 class TestCreateDeleteActionObject(base.DbTestCase):
@@ -160,11 +185,14 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         mock_create_action.assert_called_once_with(expected_action)
         self.assertEqual(self.context, action._context)
 
+    @mock.patch.object(notifications.action, 'send_delete')
+    @mock.patch.object(notifications.action, 'send_update')
     @mock.patch.object(db_api.Connection, 'update_action')
     @mock.patch.object(db_api.Connection, 'soft_delete_action')
     @mock.patch.object(db_api.Connection, 'get_action_by_uuid')
     def test_soft_delete(self, mock_get_action,
-                         mock_soft_delete_action, mock_update_action):
+                         mock_soft_delete_action, mock_update_action,
+                         mock_send_update, mock_send_delete):
         mock_get_action.return_value = self.fake_action
         fake_deleted_action = self.fake_action.copy()
         fake_deleted_action['deleted_at'] = datetime.datetime.utcnow()

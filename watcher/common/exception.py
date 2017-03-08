@@ -182,6 +182,10 @@ class EagerlyLoadedActionPlanRequired(InvalidActionPlan):
     msg_fmt = _("Action plan %(action_plan)s was not eagerly loaded")
 
 
+class EagerlyLoadedActionRequired(InvalidActionPlan):
+    msg_fmt = _("Action %(action)s was not eagerly loaded")
+
+
 class InvalidUUID(Invalid):
     msg_fmt = _("Expected a uuid but received %(uuid)s")
 

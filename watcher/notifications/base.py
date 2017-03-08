@@ -198,7 +198,7 @@ class NotificationBase(NotificationObject):
 
 
 def notification_sample(sample):
-    """Provide a notification sample of the decatorated notification.
+    """Provide a notification sample of the decorated notification.
 
     Class decorator to attach the notification sample information
     to the notification object for documentation generation purposes.
