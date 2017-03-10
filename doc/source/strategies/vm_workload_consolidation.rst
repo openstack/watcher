@@ -70,6 +70,20 @@ Default Watcher's planner:
     .. watcher-term:: watcher.decision_engine.planner.default.DefaultPlanner
 
 
+Configuration
+-------------
+
+Strategy parameter is:
+
+====================== ====== ============= ===================================
+parameter              type   default Value description
+====================== ====== ============= ===================================
+``period``             Number 3600          The time interval in seconds
+                                            for getting statistic aggregation
+                                            from metric data source
+====================== ====== ============= ===================================
+
+
 Efficacy Indicator
 ------------------
 

@@ -72,6 +72,9 @@ Strategy parameter is:
 parameter      type   default Value description
 ============== ====== ============= ====================================
 ``threshold``  Number 35.0          Temperature threshold for migration
+``period``     Number 30            The time interval in seconds for
+                                    getting statistic aggregation from
+                                    metric data source
 ============== ====== ============= ====================================
 
 Efficacy Indicator

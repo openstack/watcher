@@ -151,3 +151,21 @@ class TestOutletTempControl(base.TestCase):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_periods(self):
+        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
+        self.m_model.return_value = model
+        p_ceilometer = mock.patch.object(
+            strategies.OutletTempControl, "ceilometer")
+        m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+        m_ceilometer.statistic_aggregation = mock.Mock(
+            side_effect=self.fake_metrics.mock_get_statistics)
+        node = model.get_node_by_uuid('Node_0')
+        self.strategy.input_parameters.update({'threshold': 35.0})
+        self.strategy.threshold = 35.0
+        self.strategy.group_hosts_by_outlet_temp()
+        m_ceilometer.statistic_aggregation.assert_any_call(
+            aggregate='avg',
+            meter_name='hardware.ipmi.node.outlet_temperature',
+            period=30, resource_id=node.uuid)

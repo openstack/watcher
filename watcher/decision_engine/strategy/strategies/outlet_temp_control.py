@@ -98,6 +98,10 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def get_translatable_display_name(cls):
         return "Outlet temperature based strategy"
 
+    @property
+    def period(self):
+        return self.input_parameters.get('period', 30)
+
     @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element
@@ -107,6 +111,12 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                     "description": "temperature threshold for migration",
                     "type": "number",
                     "default": 35.0
+                },
+                "period": {
+                    "description": "The time interval in seconds for "
+                                   "getting statistic aggregation",
+                    "type": "number",
+                    "default": 30
                 },
             },
         }
@@ -149,7 +159,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             outlet_temp = self.ceilometer.statistic_aggregation(
                 resource_id=resource_id,
                 meter_name=self._meter,
-                period="30",
+                period=self.period,
                 aggregate='avg')
             # some hosts may not have outlet temp meters, remove from target
             if outlet_temp is None:

@@ -65,7 +65,7 @@ class FakeCeilometerMetrics(object):
         mock['Node_1'] = 100
         if uuid not in mock.keys():
             mock[uuid] = 100
-        return mock[str(uuid)]
+        return float(mock[str(uuid)])
 
     @staticmethod
     def get_usage_node_ram(uuid):
