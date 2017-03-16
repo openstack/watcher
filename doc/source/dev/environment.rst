@@ -16,8 +16,8 @@ for development purposes.
 To install Watcher from packaging, refer instead to Watcher `User
 Documentation`_.
 
-.. _`Git Repository`: http://git.openstack.org/cgit/openstack/watcher
-.. _`User Documentation`: http://docs.openstack.org/developer/watcher/
+.. _`Git Repository`: https://git.openstack.org/cgit/openstack/watcher
+.. _`User Documentation`: https://docs.openstack.org/developer/watcher/
 
 Prerequisites
 =============
@@ -35,10 +35,10 @@ following tools available on your system:
 **Reminder**: If you're successfully using a different platform, or a
 different version of the above, please document your configuration here!
 
-.. _Python: http://www.python.org/
-.. _git: http://git-scm.com/
-.. _setuptools: http://pypi.python.org/pypi/setuptools
-.. _virtualenvwrapper: https://virtualenvwrapper.readthedocs.org/en/latest/install.html
+.. _Python: https://www.python.org/
+.. _git: https://git-scm.com/
+.. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
 
 Getting the latest code
 =======================
