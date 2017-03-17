@@ -72,7 +72,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             a_plan_filters = {'audit_uuid': audit.uuid,
                               'state': objects.action_plan.State.RECOMMENDED}
             action_plans = objects.ActionPlan.list(
-                request_context, filters=a_plan_filters)
+                request_context, filters=a_plan_filters, eager=True)
             for plan in action_plans:
                 plan.state = objects.action_plan.State.CANCELLED
                 plan.save()
