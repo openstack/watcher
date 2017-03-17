@@ -18,14 +18,14 @@ The source install instructions specifically avoid using platform specific
 packages, instead using the source for the code and the Python Package Index
 (PyPi_).
 
-.. _PyPi: http://pypi.python.org/pypi
+.. _PyPi: https://pypi.python.org/pypi
 
 It's expected that your system already has python2.7_, latest version of pip_,
 and git_ available.
 
-.. _python2.7: http://www.python.org
-.. _pip: http://www.pip-installer.org/en/latest/installing.html
-.. _git: http://git-scm.com/
+.. _python2.7: https://www.python.org
+.. _pip: https://pip.pypa.io/en/latest/installing/
+.. _git: https://git-scm.com/
 
 Your system shall also have some additional system libraries:
 
