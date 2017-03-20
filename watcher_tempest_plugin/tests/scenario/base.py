@@ -25,9 +25,9 @@ from oslo_log import log
 from tempest import config
 from tempest import exceptions
 from tempest.lib.common.utils import data_utils
-from tempest.scenario import manager
 
 from watcher_tempest_plugin import infra_optim_clients as clients
+from watcher_tempest_plugin.tests.scenario import manager
 
 LOG = log.getLogger(__name__)
 CONF = config.CONF
