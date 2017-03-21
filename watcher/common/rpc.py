@@ -32,7 +32,6 @@ __all__ = [
     'get_client',
     'get_server',
     'get_notifier',
-    'TRANSPORT_ALIASES',
 ]
 
 CONF = cfg.CONF
@@ -46,16 +45,6 @@ ALLOWED_EXMODS = [
 ]
 EXTRA_EXMODS = []
 
-# NOTE(lucasagomes): The watcher.openstack.common.rpc entries are for
-# backwards compat with IceHouse rpc_backend configuration values.
-TRANSPORT_ALIASES = {
-    'watcher.openstack.common.rpc.impl_kombu': 'rabbit',
-    'watcher.openstack.common.rpc.impl_qpid': 'qpid',
-    'watcher.openstack.common.rpc.impl_zmq': 'zmq',
-    'watcher.rpc.impl_kombu': 'rabbit',
-    'watcher.rpc.impl_qpid': 'qpid',
-    'watcher.rpc.impl_zmq': 'zmq',
-}
 
 JsonPayloadSerializer = messaging.JsonPayloadSerializer
 
@@ -64,12 +53,10 @@ def init(conf):
     global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     exmods = get_allowed_exmods()
     TRANSPORT = messaging.get_transport(conf,
-                                        allowed_remote_exmods=exmods,
-                                        aliases=TRANSPORT_ALIASES)
+                                        allowed_remote_exmods=exmods)
     NOTIFICATION_TRANSPORT = messaging.get_notification_transport(
         conf,
-        allowed_remote_exmods=exmods,
-        aliases=TRANSPORT_ALIASES)
+        allowed_remote_exmods=exmods)
 
     serializer = RequestContextSerializer(JsonPayloadSerializer())
     if not conf.notification_level:
