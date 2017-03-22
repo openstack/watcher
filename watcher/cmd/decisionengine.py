@@ -22,7 +22,6 @@ import sys
 
 from oslo_log import log as logging
 
-from watcher._i18n import _LI
 from watcher.common import service as watcher_service
 from watcher import conf
 from watcher.decision_engine import gmr
@@ -38,7 +37,7 @@ def main():
     watcher_service.prepare_service(sys.argv, CONF)
     gmr.register_gmr_plugins()
 
-    LOG.info(_LI('Starting Watcher Decision Engine service in PID %s'),
+    LOG.info('Starting Watcher Decision Engine service in PID %s',
              os.getpid())
 
     syncer = sync.Syncer()

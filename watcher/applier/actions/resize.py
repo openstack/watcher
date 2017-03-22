@@ -21,7 +21,7 @@ from oslo_log import log
 import six
 import voluptuous
 
-from watcher._i18n import _, _LC
+from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import nova_helper
 from watcher.common import utils
@@ -86,8 +86,8 @@ class Resize(base.BaseAction):
             except Exception as exc:
                 LOG.exception(exc)
                 LOG.critical(
-                    _LC("Unexpected error occurred. Resizing failed for "
-                        "instance %s."), self.instance_uuid)
+                    "Unexpected error occurred. Resizing failed for "
+                    "instance %s.", self.instance_uuid)
         return result
 
     def execute(self):

@@ -16,7 +16,6 @@
 
 from oslo_log import log
 
-from watcher._i18n import _LW
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.scope import base
@@ -170,9 +169,9 @@ class DefaultScope(base.BaseScope):
                 node_name = cluster_model.get_node_by_instance_uuid(
                     instance_uuid).uuid
             except exception.ComputeResourceNotFound:
-                LOG.warning(_LW("The following instance %s cannot be found. "
-                                "It might be deleted from CDM along with node"
-                                " instance was hosted on."),
+                LOG.warning("The following instance %s cannot be found. "
+                            "It might be deleted from CDM along with node"
+                            " instance was hosted on.",
                             instance_uuid)
                 continue
             self.remove_instance(

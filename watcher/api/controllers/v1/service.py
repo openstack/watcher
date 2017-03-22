@@ -30,7 +30,6 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-from watcher._i18n import _LW
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -72,9 +71,9 @@ class Service(base.APIBase):
         elapsed = timeutils.delta_seconds(last_heartbeat, timeutils.utcnow())
         is_up = abs(elapsed) <= CONF.service_down_time
         if not is_up:
-            LOG.warning(_LW('Seems service %(name)s on host %(host)s is down. '
-                            'Last heartbeat was %(lhb)s.'
-                            'Elapsed time is %(el)s'),
+            LOG.warning('Seems service %(name)s on host %(host)s is down. '
+                        'Last heartbeat was %(lhb)s.'
+                        'Elapsed time is %(el)s',
                         {'name': service.name,
                          'host': service.host,
                          'lhb': str(last_heartbeat), 'el': str(elapsed)})

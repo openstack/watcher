@@ -38,7 +38,7 @@ from oslo_config import cfg
 from oslo_log import log
 import oslo_utils
 
-from watcher._i18n import _LI, _LW, _
+from watcher._i18n import _
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -202,10 +202,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             )
             if avg_meter is None:
                 LOG.warning(
-                    _LW("No values returned by %(resource_id)s "
-                        "for %(metric_name)s") % dict(
-                            resource_id=instance.uuid,
-                            metric_name=meter))
+                    "No values returned by %(resource_id)s "
+                    "for %(metric_name)s" % dict(
+                        resource_id=instance.uuid, metric_name=meter))
                 avg_meter = 0
             if meter == 'cpu_util':
                 avg_meter /= float(100)
@@ -399,7 +398,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         return self.solution
 
     def pre_execute(self):
-        LOG.info(_LI("Initializing Workload Stabilization"))
+        LOG.info("Initializing Workload Stabilization")
 
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()

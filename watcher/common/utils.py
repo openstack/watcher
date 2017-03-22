@@ -25,7 +25,6 @@ from oslo_utils import timeutils
 from oslo_utils import uuidutils
 import six
 
-from watcher._i18n import _LW
 from watcher.common import exception
 
 from watcher import conf
@@ -73,9 +72,9 @@ def safe_rstrip(value, chars=None):
 
     """
     if not isinstance(value, six.string_types):
-        LOG.warning(_LW(
+        LOG.warning(
             "Failed to remove trailing character. Returning original object."
-            "Supplied object is not a string: %s,"), value)
+            "Supplied object is not a string: %s,", value)
         return value
 
     return value.rstrip(chars) or value

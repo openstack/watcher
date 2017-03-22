@@ -49,7 +49,7 @@ hosts nodes.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LE, _LI, _LW
+from watcher._i18n import _
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -187,14 +187,14 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                             min_delta = current_delta
                             instance_id = instance.uuid
                     except wexc.InstanceNotFound:
-                        LOG.error(_LE("Instance not found; error: %s"),
+                        LOG.error("Instance not found; error: %s",
                                   instance_id)
                 if instance_id:
                     return (source_node,
                             self.compute_model.get_instance_by_uuid(
                                 instance_id))
             else:
-                LOG.info(_LI("VM not found from node: %s"),
+                LOG.info("VM not found from node: %s",
                          source_node.uuid)
 
     def filter_destination_hosts(self, hosts, instance_to_migrate,
@@ -259,7 +259,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         aggregate='avg')
                 except Exception as exc:
                     LOG.exception(exc)
-                    LOG.error(_LE("Can not get cpu_util from Ceilometer"))
+                    LOG.error("Can not get cpu_util from Ceilometer")
                     continue
                 if cpu_util is None:
                     LOG.debug("Instance (%s): cpu_util is None", instance.uuid)
@@ -289,7 +289,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         This can be used to fetch some pre-requisites or data.
         """
-        LOG.info(_LI("Initializing Workload Balance Strategy"))
+        LOG.info("Initializing Workload Balance Strategy")
 
         if not self.compute_model:
             raise wexc.ClusterStateNotDefined()
@@ -314,9 +314,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             return self.solution
 
         if not target_nodes:
-            LOG.warning(_LW("No hosts current have CPU utilization under %s "
-                            "percent, therefore there are no possible target "
-                            "hosts for any migration"),
+            LOG.warning("No hosts current have CPU utilization under %s "
+                        "percent, therefore there are no possible target "
+                        "hosts for any migration",
                         self.threshold)
             return self.solution
 
@@ -337,8 +337,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # pick up the lowest one as dest server
         if not destination_hosts:
             # for instance.
-            LOG.warning(_LW("No proper target host could be found, it might "
-                            "be because of there's no enough CPU/Memory/DISK"))
+            LOG.warning("No proper target host could be found, it might "
+                        "be because of there's no enough CPU/Memory/DISK")
             return self.solution
         destination_hosts = sorted(destination_hosts,
                                    key=lambda x: (x["cpu_util"]))

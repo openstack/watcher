@@ -27,7 +27,7 @@ from oslo_utils import strutils
 import prettytable as ptable
 from six.moves import input
 
-from watcher._i18n import _, _LI
+from watcher._i18n import _
 from watcher._i18n import lazy_translation_enabled
 from watcher.common import context
 from watcher.common import exception
@@ -231,7 +231,7 @@ class PurgeCommand(object):
             if action.action_plan_id not in action_plan_ids]
 
         LOG.debug("Orphans found:\n%s", orphans)
-        LOG.info(_LI("Orphans found:\n%s"), orphans.get_count_table())
+        LOG.info("Orphans found:\n%s", orphans.get_count_table())
 
         return orphans
 
@@ -403,13 +403,13 @@ class PurgeCommand(object):
         return to_be_deleted
 
     def do_delete(self):
-        LOG.info(_LI("Deleting..."))
+        LOG.info("Deleting...")
         # Reversed to avoid errors with foreign keys
         for entry in reversed(list(self._objects_map)):
             entry.destroy()
 
     def execute(self):
-        LOG.info(_LI("Starting purge command"))
+        LOG.info("Starting purge command")
         self._objects_map = self.find_objects_to_delete()
 
         if (self.max_number is not None and
@@ -424,15 +424,15 @@ class PurgeCommand(object):
         if not self.dry_run and self.confirmation_prompt():
             self.do_delete()
             print(_("Purge results summary%s:") % _orphans_note)
-            LOG.info(_LI("Purge results summary%s:"), _orphans_note)
+            LOG.info("Purge results summary%s:", _orphans_note)
         else:
             LOG.debug(self._objects_map)
             print(_("Here below is a table containing the objects "
                     "that can be purged%s:") % _orphans_note)
 
-        LOG.info(_LI("\n%s"), self._objects_map.get_count_table())
+        LOG.info("\n%s", self._objects_map.get_count_table())
         print(self._objects_map.get_count_table())
-        LOG.info(_LI("Purge process completed"))
+        LOG.info("Purge process completed")
 
 
 def purge(age_in_days, max_number, goal, exclude_orphans, dry_run):
@@ -457,11 +457,11 @@ def purge(age_in_days, max_number, goal, exclude_orphans, dry_run):
         if max_number and max_number < 0:
             raise exception.NegativeLimitError
 
-        LOG.info(_LI("[options] age_in_days = %s"), age_in_days)
-        LOG.info(_LI("[options] max_number = %s"), max_number)
-        LOG.info(_LI("[options] goal = %s"), goal)
-        LOG.info(_LI("[options] exclude_orphans = %s"), exclude_orphans)
-        LOG.info(_LI("[options] dry_run = %s"), dry_run)
+        LOG.info("[options] age_in_days = %s", age_in_days)
+        LOG.info("[options] max_number = %s", max_number)
+        LOG.info("[options] goal = %s", goal)
+        LOG.info("[options] exclude_orphans = %s", exclude_orphans)
+        LOG.info("[options] dry_run = %s", dry_run)
 
         uuid = PurgeCommand.get_goal_uuid(goal)
 
