@@ -115,8 +115,10 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._nova = None
         osc.nova()
-        mock_call.assert_called_once_with(CONF.nova_client.api_version,
-                                          session=mock_session)
+        mock_call.assert_called_once_with(
+            CONF.nova_client.api_version,
+            endpoint_type=CONF.nova_client.endpoint_type,
+            session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_diff_vers(self, mock_session):
@@ -125,6 +127,14 @@ class TestClients(base.TestCase):
         osc._nova = None
         osc.nova()
         self.assertEqual('2.3', osc.nova().api_version.get_string())
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_nova_diff_endpoint(self, mock_session):
+        CONF.set_override('endpoint_type', 'publicURL', group='nova_client')
+        osc = clients.OpenStackClients()
+        osc._nova = None
+        osc.nova()
+        self.assertEqual('publicURL', osc.nova().client.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_cached(self, mock_session):
@@ -140,8 +150,10 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._glance = None
         osc.glance()
-        mock_call.assert_called_once_with(CONF.glance_client.api_version,
-                                          session=mock_session)
+        mock_call.assert_called_once_with(
+            CONF.glance_client.api_version,
+            interface=CONF.glance_client.endpoint_type,
+            session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_glance_diff_vers(self, mock_session):
@@ -150,6 +162,14 @@ class TestClients(base.TestCase):
         osc._glance = None
         osc.glance()
         self.assertEqual(1.0, osc.glance().version)
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_glance_diff_endpoint(self, mock_session):
+        CONF.set_override('endpoint_type', 'publicURL', group='glance_client')
+        osc = clients.OpenStackClients()
+        osc._glance = None
+        osc.glance()
+        self.assertEqual('publicURL', osc.glance().http_client.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_glance_cached(self, mock_session):
@@ -165,8 +185,10 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._gnocchi = None
         osc.gnocchi()
-        mock_call.assert_called_once_with(CONF.gnocchi_client.api_version,
-                                          session=mock_session)
+        mock_call.assert_called_once_with(
+            CONF.gnocchi_client.api_version,
+            interface=CONF.gnocchi_client.endpoint_type,
+            session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_gnocchi_diff_vers(self, mock_session):
@@ -176,6 +198,15 @@ class TestClients(base.TestCase):
         osc._gnocchi = None
         osc.gnocchi()
         self.assertEqual(gnclient_v1.Client, type(osc.gnocchi()))
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_gnocchi_diff_endpoint(self, mock_session):
+        # gnocchiclient currently only has one version (v1)
+        CONF.set_override('endpoint_type', 'publicURL', group='gnocchi_client')
+        osc = clients.OpenStackClients()
+        osc._gnocchi = None
+        osc.gnocchi()
+        self.assertEqual('publicURL', osc.gnocchi().api.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_gnocchi_cached(self, mock_session):
@@ -191,8 +222,10 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
-        mock_call.assert_called_once_with(CONF.cinder_client.api_version,
-                                          session=mock_session)
+        mock_call.assert_called_once_with(
+            CONF.cinder_client.api_version,
+            endpoint_type=CONF.cinder_client.endpoint_type,
+            session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_vers(self, mock_session):
@@ -201,6 +234,14 @@ class TestClients(base.TestCase):
         osc._cinder = None
         osc.cinder()
         self.assertEqual(ciclient_v1.Client, type(osc.cinder()))
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_cinder_diff_endpoint(self, mock_session):
+        CONF.set_override('endpoint_type', 'publicURL', group='cinder_client')
+        osc = clients.OpenStackClients()
+        osc._cinder = None
+        osc.cinder()
+        self.assertEqual('publicURL', osc.cinder().client.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_cached(self, mock_session):
@@ -219,6 +260,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.ceilometer_client.api_version,
             None,
+            endpoint_type=CONF.ceilometer_client.endpoint_type,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -237,6 +279,18 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
+    def test_clients_ceilometer_diff_endpoint(self, mock_get_redirect_client,
+                                              mock_session):
+        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
+        CONF.set_override('endpoint_type', 'publicURL',
+                          group='ceilometer_client')
+        osc = clients.OpenStackClients()
+        osc._ceilometer = None
+        osc.ceilometer()
+        self.assertEqual('publicURL', osc.ceilometer().http_client.interface)
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
     def test_clients_ceilometer_cached(self, mock_get_redirect_client,
                                        mock_session):
         mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
@@ -252,8 +306,10 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._neutron = None
         osc.neutron()
-        mock_call.assert_called_once_with(CONF.neutron_client.api_version,
-                                          session=mock_session)
+        mock_call.assert_called_once_with(
+            CONF.neutron_client.api_version,
+            endpoint_type=CONF.neutron_client.endpoint_type,
+            session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_diff_vers(self, mock_session):
@@ -265,6 +321,16 @@ class TestClients(base.TestCase):
         osc.neutron()
         self.assertEqual(netclient_v2.Client,
                          type(osc.neutron()))
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_neutron_diff_endpoint(self, mock_session):
+        '''neutronclient currently only has one version (v2)'''
+        CONF.set_override('endpoint_type', 'publicURL',
+                          group='neutron_client')
+        osc = clients.OpenStackClients()
+        osc._neutron = None
+        osc.neutron()
+        self.assertEqual('publicURL', osc.neutron().httpclient.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_cached(self, mock_session):

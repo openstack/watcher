@@ -80,7 +80,9 @@ class OpenStackClients(object):
             return self._nova
 
         novaclient_version = self._get_client_option('nova', 'api_version')
+        nova_endpoint_type = self._get_client_option('nova', 'endpoint_type')
         self._nova = nvclient.Client(novaclient_version,
+                                     endpoint_type=nova_endpoint_type,
                                      session=self.session)
         return self._nova
 
@@ -90,7 +92,10 @@ class OpenStackClients(object):
             return self._glance
 
         glanceclient_version = self._get_client_option('glance', 'api_version')
+        glance_endpoint_type = self._get_client_option('glance',
+                                                       'endpoint_type')
         self._glance = glclient.Client(glanceclient_version,
+                                       interface=glance_endpoint_type,
                                        session=self.session)
         return self._glance
 
@@ -101,7 +106,10 @@ class OpenStackClients(object):
 
         gnocchiclient_version = self._get_client_option('gnocchi',
                                                         'api_version')
+        gnocchiclient_interface = self._get_client_option('gnocchi',
+                                                          'endpoint_type')
         self._gnocchi = gnclient.Client(gnocchiclient_version,
+                                        interface=gnocchiclient_interface,
                                         session=self.session)
         return self._gnocchi
 
@@ -111,7 +119,10 @@ class OpenStackClients(object):
             return self._cinder
 
         cinderclient_version = self._get_client_option('cinder', 'api_version')
+        cinder_endpoint_type = self._get_client_option('cinder',
+                                                       'endpoint_type')
         self._cinder = ciclient.Client(cinderclient_version,
+                                       endpoint_type=cinder_endpoint_type,
                                        session=self.session)
         return self._cinder
 
@@ -122,8 +133,12 @@ class OpenStackClients(object):
 
         ceilometerclient_version = self._get_client_option('ceilometer',
                                                            'api_version')
-        self._ceilometer = ceclient.get_client(ceilometerclient_version,
-                                               session=self.session)
+        ceilometer_endpoint_type = self._get_client_option('ceilometer',
+                                                           'endpoint_type')
+        self._ceilometer = ceclient.get_client(
+            ceilometerclient_version,
+            endpoint_type=ceilometer_endpoint_type,
+            session=self.session)
         return self._ceilometer
 
     @exception.wrap_keystone_exception
@@ -133,6 +148,8 @@ class OpenStackClients(object):
 
         monascaclient_version = self._get_client_option(
             'monasca', 'api_version')
+        monascaclient_interface = self._get_client_option(
+            'monasca', 'interface')
         token = self.session.get_token()
         watcher_clients_auth_config = CONF.get(_CLIENTS_AUTH_GROUP)
         service_type = 'monitoring'
@@ -148,7 +165,8 @@ class OpenStackClients(object):
             'username': watcher_clients_auth_config.username,
             'password': watcher_clients_auth_config.password,
         }
-        endpoint = self.session.get_endpoint(service_type=service_type)
+        endpoint = self.session.get_endpoint(service_type=service_type,
+                                             interface=monascaclient_interface)
 
         self._monasca = monclient.Client(
             monascaclient_version, endpoint, **monasca_kwargs)
@@ -162,7 +180,11 @@ class OpenStackClients(object):
 
         neutronclient_version = self._get_client_option('neutron',
                                                         'api_version')
+        neutron_endpoint_type = self._get_client_option('neutron',
+                                                        'endpoint_type')
+
         self._neutron = netclient.Client(neutronclient_version,
+                                         endpoint_type=neutron_endpoint_type,
                                          session=self.session)
         self._neutron.format = 'json'
         return self._neutron

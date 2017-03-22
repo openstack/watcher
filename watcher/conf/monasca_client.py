@@ -24,7 +24,12 @@ monasca_client = cfg.OptGroup(name='monasca_client',
 MONASCA_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2_0',
-               help='Version of Monasca API to use in monascaclient.')]
+               help='Version of Monasca API to use in monascaclient.'),
+    cfg.StrOpt('interface',
+               default='internal',
+               help='Type of interface used for monasca endpoint.'
+                    'Supported values: internal, public, admin'
+                    'The default is internal.')]
 
 
 def register_opts(conf):
