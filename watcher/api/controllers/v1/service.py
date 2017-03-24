@@ -56,8 +56,8 @@ class Service(base.APIBase):
     def _get_status(self):
         return self._status
 
-    def _set_status(self, name):
-        service = objects.Service.get_by_name(pecan.request.context, name)
+    def _set_status(self, id):
+        service = objects.Service.get(pecan.request.context, id)
         last_heartbeat = (service.last_seen_up or service.updated_at
                           or service.created_at)
         if isinstance(last_heartbeat, six.string_types):
@@ -108,7 +108,7 @@ class Service(base.APIBase):
         for field in fields:
             self.fields.append(field)
             setattr(self, field, kwargs.get(
-                field if field != 'status' else 'name', wtypes.Unset))
+                field if field != 'status' else 'id', wtypes.Unset))
 
     @staticmethod
     def _convert_with_links(service, url, expand=True):

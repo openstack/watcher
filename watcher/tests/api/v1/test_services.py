@@ -78,13 +78,18 @@ class TestListService(api_base.FunctionalTest):
 
     def test_many(self):
         service_list = []
-        for idx in range(1, 6):
+        for idx in range(1, 4):
             service = obj_utils.create_test_service(
-                self.context, id=idx, host='CONTROLLER',
+                self.context, id=idx, host='CONTROLLER1',
+                name='SERVICE_{0}'.format(idx))
+            service_list.append(service.id)
+        for idx in range(1, 4):
+            service = obj_utils.create_test_service(
+                self.context, id=3+idx, host='CONTROLLER2',
                 name='SERVICE_{0}'.format(idx))
             service_list.append(service.id)
         response = self.get_json('/services')
-        self.assertEqual(5, len(response['services']))
+        self.assertEqual(6, len(response['services']))
         for service in response['services']:
             self.assertTrue(
                 all(val is not None for key, val in service.items()
