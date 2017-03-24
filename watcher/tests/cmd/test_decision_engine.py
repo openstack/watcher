@@ -24,6 +24,8 @@ from oslo_config import cfg
 from oslo_service import service
 
 from watcher.cmd import decisionengine
+from watcher.common import service as watcher_service
+from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import sync
 from watcher.tests import base
 
@@ -41,6 +43,15 @@ class TestDecisionEngine(base.BaseTestCase):
 
         _fake_parse_method = types.MethodType(_fake_parse, self.conf)
         self.conf._parse_cli_opts = _fake_parse_method
+
+        p_heartbeat = mock.patch.object(
+            watcher_service.ServiceHeartbeat, "send_beat")
+        self.m_heartbeat = p_heartbeat.start()
+        self.addCleanup(p_heartbeat.stop)
+        p_continuoushandler = mock.patch.object(
+            continuous.ContinuousAuditHandler, "start")
+        self.m_continuoushandler = p_continuoushandler.start()
+        self.addCleanup(p_continuoushandler.stop)
 
     def tearDown(self):
         super(TestDecisionEngine, self).tearDown()

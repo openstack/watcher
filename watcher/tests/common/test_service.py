@@ -53,10 +53,9 @@ class TestServiceHeartbeat(base.TestCase):
     def test_send_beat_with_creating_service(self, mock_create,
                                              mock_list):
         CONF.set_default('host', 'fake-fqdn')
-        service_heartbeat = service.ServiceHeartbeat(
-            service_name='watcher-service')
+
         mock_list.return_value = []
-        service_heartbeat.send_beat()
+        service.ServiceHeartbeat(service_name='watcher-service')
         mock_list.assert_called_once_with(mock.ANY,
                                           filters={'name': 'watcher-service',
                                                    'host': 'fake-fqdn'})
@@ -65,12 +64,11 @@ class TestServiceHeartbeat(base.TestCase):
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Service, 'save')
     def test_send_beat_without_creating_service(self, mock_save, mock_list):
-        service_heartbeat = service.ServiceHeartbeat(
-            service_name='watcher-service')
+
         mock_list.return_value = [objects.Service(mock.Mock(),
                                                   name='watcher-service',
                                                   host='controller')]
-        service_heartbeat.send_beat()
+        service.ServiceHeartbeat(service_name='watcher-service')
         self.assertEqual(1, mock_save.call_count)
 
 

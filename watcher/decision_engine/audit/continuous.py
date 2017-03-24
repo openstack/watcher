@@ -20,30 +20,37 @@
 
 import datetime
 
-from apscheduler.schedulers import background
+from apscheduler.jobstores import memory
 
 from watcher.common import context
+from watcher.common import scheduling
+from watcher import conf
+from watcher.db.sqlalchemy import api as sq_api
+from watcher.db.sqlalchemy import job_store
 from watcher.decision_engine.audit import base
 from watcher import objects
 
-from watcher import conf
 
 CONF = conf.CONF
 
 
 class ContinuousAuditHandler(base.AuditHandler):
-    def __init__(self, messaging):
-        super(ContinuousAuditHandler, self).__init__(messaging)
+    def __init__(self):
+        super(ContinuousAuditHandler, self).__init__()
         self._scheduler = None
-        self.jobs = []
-        self._start()
         self.context_show_deleted = context.RequestContext(is_admin=True,
                                                            show_deleted=True)
 
     @property
     def scheduler(self):
         if self._scheduler is None:
-            self._scheduler = background.BackgroundScheduler()
+            self._scheduler = scheduling.BackgroundSchedulerService(
+                jobstores={
+                    'default': job_store.WatcherJobStore(
+                        engine=sq_api.get_engine()),
+                    'memory': memory.MemoryJobStore()
+                }
+            )
         return self._scheduler
 
     def _is_audit_inactive(self, audit):
@@ -52,11 +59,9 @@ class ContinuousAuditHandler(base.AuditHandler):
         if objects.audit.AuditStateTransitionManager().is_inactive(audit):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
-            job_to_delete = [job for job in self.jobs
-                             if list(job.keys())[0] == audit.uuid][0]
-            self.jobs.remove(job_to_delete)
-            job_to_delete[audit.uuid].remove()
-
+            [job for job in self.scheduler.get_jobs()
+             if job.name == 'execute_audit' and
+             job.args[0].uuid == audit.uuid][0].remove()
             return True
 
         return False
@@ -76,7 +81,9 @@ class ContinuousAuditHandler(base.AuditHandler):
                 plan.save()
         return solution
 
-    def execute_audit(self, audit, request_context):
+    @classmethod
+    def execute_audit(cls, audit, request_context):
+        self = cls()
         if not self._is_audit_inactive(audit):
             self.execute(audit, request_context)
 
@@ -90,22 +97,23 @@ class ContinuousAuditHandler(base.AuditHandler):
         }
         audits = objects.Audit.list(
             audit_context, filters=audit_filters, eager=True)
-        scheduler_job_args = [job.args for job in self.scheduler.get_jobs()
-                              if job.name == 'execute_audit']
+        scheduler_job_args = [
+            job.args for job in self.scheduler.get_jobs()
+            if job.name == 'execute_audit']
         for audit in audits:
             if audit.uuid not in [arg[0].uuid for arg in scheduler_job_args]:
-                job = self.scheduler.add_job(
+                self.scheduler.add_job(
                     self.execute_audit, 'interval',
                     args=[audit, audit_context],
                     seconds=audit.interval,
                     name='execute_audit',
                     next_run_time=datetime.datetime.now())
-                self.jobs.append({audit.uuid: job})
 
-    def _start(self):
+    def start(self):
         self.scheduler.add_job(
             self.launch_audits_periodically,
             'interval',
             seconds=CONF.watcher_decision_engine.continuous_audit_interval,
-            next_run_time=datetime.datetime.now())
+            next_run_time=datetime.datetime.now(),
+            jobstore='memory')
         self.scheduler.start()
