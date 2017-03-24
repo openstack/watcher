@@ -130,7 +130,7 @@ class OperationNotPermitted(NotAuthorized):
     msg_fmt = _("Operation not permitted")
 
 
-class Invalid(WatcherException):
+class Invalid(WatcherException, ValueError):
     msg_fmt = _("Unacceptable parameters")
     code = 400
 
@@ -147,6 +147,10 @@ class Conflict(WatcherException):
 class ResourceNotFound(ObjectNotFound):
     msg_fmt = _("The %(name)s resource %(id)s could not be found")
     code = 404
+
+
+class InvalidParameter(Invalid):
+        msg_fmt = _("%(parameter)s has to be of type %(parameter_type)s")
 
 
 class InvalidIdentity(Invalid):
