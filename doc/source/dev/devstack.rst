@@ -92,6 +92,12 @@ Detailed DevStack Instructions
    Note: if you want to use a specific branch, specify WATCHER_BRANCH in the
    local.conf file. By default it will use the master branch.
 
+   Note: watcher-api will default run under apache/httpd, set the variable
+   WATCHER_USE_MOD_WSGI=FALSE if you do not wish to run under apache/httpd.
+   For development environment it is suggested to set WATHCER_USE_MOD_WSGI
+   to FALSE. For Production environment it is suggested to keep it at the
+   default TRUE value.
+
 #. Start stacking from the controller node::
 
        ./devstack/stack.sh
