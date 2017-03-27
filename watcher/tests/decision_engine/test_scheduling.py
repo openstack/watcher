@@ -48,7 +48,7 @@ class TestDecisionEngineSchedulingService(base.TestCase):
 
         m_start.assert_called_once_with(scheduler)
         jobs = scheduler.get_jobs()
-        self.assertEqual(1, len(jobs))
+        self.assertEqual(2, len(jobs))
 
         job = jobs[0]
         self.assertTrue(bool(fake_collector.cluster_data_model))
@@ -77,7 +77,7 @@ class TestDecisionEngineSchedulingService(base.TestCase):
 
         m_start.assert_called_once_with(scheduler)
         jobs = scheduler.get_jobs()
-        self.assertEqual(1, len(jobs))
+        self.assertEqual(2, len(jobs))
 
         job = jobs[0]
         job.func()

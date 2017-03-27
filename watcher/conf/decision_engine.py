@@ -42,6 +42,15 @@ WATCHER_DECISION_ENGINE_OPTS = [
                required=True,
                help='The maximum number of threads that can be used to '
                     'execute strategies'),
+    cfg.IntOpt('action_plan_expiry',
+               default=24,
+               help='An expiry timespan(hours). Watcher invalidates any '
+                    'action plan for which its creation time '
+                    '-whose number of hours has been offset by this value-'
+                    ' is older that the current time.'),
+    cfg.IntOpt('check_periodic_interval',
+               default=30*60,
+               help='Interval (in seconds) for checking action plan expiry.')
 ]
 
 WATCHER_CONTINUOUS_OPTS = [
