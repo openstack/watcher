@@ -17,7 +17,6 @@
 # limitations under the License.
 
 from oslo_log import log
-from watcher._i18n import _LI, _LW
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
@@ -44,8 +43,8 @@ class NovaNotification(base.NotificationEndpoint):
             if node_uuid:
                 self.get_or_create_node(node_uuid)
         except exception.ComputeNodeNotFound:
-            LOG.warning(_LW("Could not find compute node %(node)s for "
-                            "instance %(instance)s"),
+            LOG.warning("Could not find compute node %(node)s for "
+                        "instance %(instance)s",
                         dict(node=node_uuid, instance=instance_uuid))
         try:
             instance = self.cluster_data_model.get_instance_by_uuid(
@@ -201,7 +200,7 @@ class NovaNotification(base.NotificationEndpoint):
         try:
             self.cluster_data_model.delete_instance(instance, node)
         except Exception:
-            LOG.info(_LI("Instance %s already deleted"), instance.uuid)
+            LOG.info("Instance %s already deleted", instance.uuid)
 
 
 class VersionedNotificationEndpoint(NovaNotification):
@@ -225,8 +224,8 @@ class ServiceUpdated(VersionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -269,8 +268,8 @@ class InstanceCreated(VersionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -304,8 +303,8 @@ class InstanceUpdated(VersionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -331,8 +330,8 @@ class InstanceDeletedEnd(VersionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -366,8 +365,8 @@ class LegacyInstanceUpdated(UnversionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -393,8 +392,8 @@ class LegacyInstanceCreatedEnd(UnversionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -420,8 +419,8 @@ class LegacyInstanceDeletedEnd(UnversionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))
@@ -453,8 +452,8 @@ class LegacyLiveMigratedEnd(UnversionedNotificationEndpoint):
     def info(self, ctxt, publisher_id, event_type, payload, metadata):
         ctxt.request_id = metadata['message_id']
         ctxt.project_domain = event_type
-        LOG.info(_LI("Event '%(event)s' received from %(publisher)s "
-                     "with metadata %(metadata)s") %
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
                  dict(event=event_type,
                       publisher=publisher_id,
                       metadata=metadata))

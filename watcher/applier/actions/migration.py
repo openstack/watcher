@@ -21,7 +21,7 @@ from oslo_log import log
 import six
 import voluptuous
 
-from watcher._i18n import _, _LC
+from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
@@ -120,9 +120,9 @@ class Migrate(base.BaseAction):
                           "migrating instance %s.Exception: %s" %
                           (self.instance_uuid, e))
         except Exception:
-            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
-                             "instance %s. Leaving instance on previous "
-                             "host."), self.instance_uuid)
+            LOG.critical("Unexpected error occurred. Migration failed for "
+                         "instance %s. Leaving instance on previous "
+                         "host.", self.instance_uuid)
 
         return result
 
@@ -134,9 +134,9 @@ class Migrate(base.BaseAction):
                 dest_hostname=destination)
         except Exception as exc:
             LOG.exception(exc)
-            LOG.critical(_LC("Unexpected error occurred. Migration failed for "
-                             "instance %s. Leaving instance on previous "
-                             "host."), self.instance_uuid)
+            LOG.critical("Unexpected error occurred. Migration failed for "
+                         "instance %s. Leaving instance on previous "
+                         "host.", self.instance_uuid)
 
         return result
 

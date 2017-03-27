@@ -17,7 +17,6 @@ from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as messaging
 
-from watcher._i18n import _LE
 from watcher.common import context as watcher_context
 from watcher.common import exception
 
@@ -74,7 +73,7 @@ def initialized():
 def cleanup():
     global TRANSPORT, NOTIFICATION_TRANSPORT, NOTIFIER
     if NOTIFIER is None:
-        LOG.exception(_LE("RPC cleanup: NOTIFIER is None"))
+        LOG.exception("RPC cleanup: NOTIFIER is None")
     TRANSPORT.cleanup()
     NOTIFICATION_TRANSPORT.cleanup()
     TRANSPORT = NOTIFICATION_TRANSPORT = NOTIFIER = None

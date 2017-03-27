@@ -56,7 +56,7 @@ an active compute node to any other active compute node.
 from oslo_log import log
 import six
 
-from watcher._i18n import _, _LE, _LI
+from watcher._i18n import _
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -107,10 +107,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         elif isinstance(state, (element.InstanceState, element.ServiceState)):
             return state.value
         else:
-            LOG.error(_LE('Unexpexted resource state type, '
-                          'state=%(state)s, state_type=%(st)s.') % dict(
-                              state=state,
-                              st=type(state)))
+            LOG.error('Unexpected resource state type, '
+                      'state=%(state)s, state_type=%(st)s.' %
+                      dict(state=state,
+                           st=type(state)))
             raise exception.WatcherException
 
     def add_action_enable_compute_node(self, node):
@@ -154,10 +154,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             # When supported, the cold migration may be used as a fallback
             # migration mechanism to move non active VMs.
             LOG.error(
-                _LE('Cannot live migrate: instance_uuid=%(instance_uuid)s, '
-                    'state=%(instance_state)s.') % dict(
-                        instance_uuid=instance.uuid,
-                        instance_state=instance_state_str))
+                'Cannot live migrate: instance_uuid=%(instance_uuid)s, '
+                'state=%(instance_state)s.' % dict(
+                    instance_uuid=instance.uuid,
+                    instance_state=instance_state_str))
             return
 
         migration_type = 'live'
@@ -229,8 +229,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         if not instance_ram_util or not instance_disk_util:
             LOG.error(
-                _LE('No values returned by %s for memory.usage '
-                    'or disk.root.size'), instance.uuid)
+                'No values returned by %s for memory.usage '
+                'or disk.root.size', instance.uuid)
             raise exception.NoDataFound
 
         self.ceilometer_instance_data_cache[instance.uuid] = dict(
@@ -475,7 +475,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :param original_model: root_model object
         """
-        LOG.info(_LI('Executing Smart Strategy'))
+        LOG.info('Executing Smart Strategy')
         rcu = self.get_relative_cluster_utilization()
 
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}

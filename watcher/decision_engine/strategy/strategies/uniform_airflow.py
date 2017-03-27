@@ -45,7 +45,7 @@ airflow is higher than the specified threshold.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LI, _LW
+from watcher._i18n import _
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -210,13 +210,13 @@ class UniformAirflow(base.BaseStrategy):
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):
                             LOG.info(
-                                _LI("Instance not active, skipped: %s"),
+                                "Instance not active, skipped: %s",
                                 instance.uuid)
                             continue
                         instances_tobe_migrate.append(instance)
                         return source_node, instances_tobe_migrate
             else:
-                LOG.info(_LI("Instance not found on node: %s"),
+                LOG.info("Instance not found on node: %s",
                          source_node.uuid)
 
     def filter_destination_hosts(self, hosts, instances_to_migrate):
@@ -257,8 +257,8 @@ class UniformAirflow(base.BaseStrategy):
                     break
         # check if all instances have target hosts
         if len(destination_hosts) != len(instances_to_migrate):
-            LOG.warning(_LW("Not all target hosts could be found; it might "
-                            "be because there is not enough resource"))
+            LOG.warning("Not all target hosts could be found; it might "
+                        "be because there is not enough resource")
             return None
         return destination_hosts
 
@@ -281,7 +281,7 @@ class UniformAirflow(base.BaseStrategy):
                 aggregate='avg')
             # some hosts may not have airflow meter, remove from target
             if airflow is None:
-                LOG.warning(_LW("%s: no airflow data"), resource_id)
+                LOG.warning("%s: no airflow data", resource_id)
                 continue
 
             LOG.debug("%s: airflow %f" % (resource_id, airflow))
@@ -316,9 +316,9 @@ class UniformAirflow(base.BaseStrategy):
             return self.solution
 
         if not target_nodes:
-            LOG.warning(_LW("No hosts currently have airflow under %s, "
-                            "therefore there are no possible target "
-                            "hosts for any migration"),
+            LOG.warning("No hosts currently have airflow under %s, "
+                        "therefore there are no possible target "
+                        "hosts for any migration",
                         self.threshold_airflow)
             return self.solution
 
@@ -337,8 +337,8 @@ class UniformAirflow(base.BaseStrategy):
         destination_hosts = self.filter_destination_hosts(
             target_nodes, instances_src)
         if not destination_hosts:
-            LOG.warning(_LW("No target host could be found; it might "
-                            "be because there is not enough resources"))
+            LOG.warning("No target host could be found; it might "
+                        "be because there is not enough resources")
             return self.solution
         # generate solution to migrate the instance to the dest server,
         for info in destination_hosts:

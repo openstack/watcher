@@ -22,7 +22,6 @@ import sys
 
 from oslo_log import log as logging
 
-from watcher._i18n import _LI
 from watcher.common import service as service
 from watcher import conf
 from watcher.decision_engine import sync
@@ -32,10 +31,10 @@ CONF = conf.CONF
 
 
 def main():
-    LOG.info(_LI('Watcher sync started.'))
+    LOG.info('Watcher sync started.')
 
     service.prepare_service(sys.argv, CONF)
     syncer = sync.Syncer()
     syncer.sync()
 
-    LOG.info(_LI('Watcher sync finished.'))
+    LOG.info('Watcher sync finished.')

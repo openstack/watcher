@@ -40,7 +40,7 @@ import datetime
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher._i18n import _, _LE, _LI, _LW
+from watcher._i18n import _
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
 from watcher.datasource import gnocchi as gnoc
@@ -371,11 +371,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if host_avg_cpu_util is None:
             resource_id = "%s_%s" % (node.uuid, node.hostname)
             LOG.error(
-                _LE("No values returned by %(resource_id)s "
-                    "for %(metric_name)s") % dict(
-                        resource_id=resource_id,
-                        metric_name=self.METRIC_NAMES[
-                            self.config.datasource]['host_cpu_usage']))
+                "No values returned by %(resource_id)s "
+                "for %(metric_name)s" % dict(
+                    resource_id=resource_id,
+                    metric_name=self.METRIC_NAMES[
+                        self.config.datasource]['host_cpu_usage']))
             host_avg_cpu_util = 100
 
         total_cores_used = node.vcpus * (host_avg_cpu_util / 100.0)
@@ -391,11 +391,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         instance_cpu_utilization = self.get_instance_cpu_usage(instance)
         if instance_cpu_utilization is None:
             LOG.error(
-                _LE("No values returned by %(resource_id)s "
-                    "for %(metric_name)s") % dict(
-                        resource_id=instance.uuid,
-                        metric_name=self.METRIC_NAMES[
-                            self.config.datasource]['instance_cpu_usage']))
+                "No values returned by %(resource_id)s "
+                "for %(metric_name)s" % dict(
+                    resource_id=instance.uuid,
+                    metric_name=self.METRIC_NAMES[
+                        self.config.datasource]['instance_cpu_usage']))
             instance_cpu_utilization = 100
 
         total_cores_used = instance.vcpus * (instance_cpu_utilization / 100.0)
@@ -491,7 +491,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             return unsuccessful_migration + 1
 
     def pre_execute(self):
-        LOG.info(_LI("Initializing Server Consolidation"))
+        LOG.info("Initializing Server Consolidation")
 
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
@@ -513,9 +513,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         LOG.debug("Compute node(s) BFD %s", sorted_scores)
         # Get Node to be released
         if len(scores) == 0:
-            LOG.warning(_LW(
+            LOG.warning(
                 "The workloads of the compute nodes"
-                " of the cluster is zero"))
+                " of the cluster is zero")
             return
 
         while sorted_scores and (

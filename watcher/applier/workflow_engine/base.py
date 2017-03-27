@@ -22,7 +22,6 @@ from oslo_log import log
 import six
 from taskflow import task as flow_task
 
-from watcher._i18n import _LE
 from watcher.applier.actions import factory
 from watcher.common import clients
 from watcher.common.loader import loadable
@@ -151,8 +150,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 fields.NotificationPhase.END)
         except Exception as e:
             LOG.exception(e)
-            LOG.error(_LE('The workflow engine has failed '
-                          'to execute the action: %s'), self.name)
+            LOG.error('The workflow engine has failed '
+                      'to execute the action: %s', self.name)
             self.engine.notify(self._db_action, objects.action.State.FAILED)
             notifications.action.send_execution_notification(
                 self.engine.context, self._db_action,

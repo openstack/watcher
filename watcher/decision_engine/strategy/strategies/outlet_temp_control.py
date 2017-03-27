@@ -30,7 +30,7 @@ telemetries to measure thermal/workload status of server.
 
 from oslo_log import log
 
-from watcher._i18n import _, _LW, _LI
+from watcher._i18n import _
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.model import element
@@ -153,7 +153,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 aggregate='avg')
             # some hosts may not have outlet temp meters, remove from target
             if outlet_temp is None:
-                LOG.warning(_LW("%s: no outlet temp data"), resource_id)
+                LOG.warning("%s: no outlet temp data", resource_id)
                 continue
 
             LOG.debug("%s: outlet temperature %f" % (resource_id, outlet_temp))
@@ -176,13 +176,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                     # select the first active instance to migrate
                     if (instance.state !=
                             element.InstanceState.ACTIVE.value):
-                        LOG.info(_LI("Instance not active, skipped: %s"),
+                        LOG.info("Instance not active, skipped: %s",
                                  instance.uuid)
                         continue
                     return mig_source_node, instance
                 except wexc.InstanceNotFound as e:
                     LOG.exception(e)
-                    LOG.info(_LI("Instance not found"))
+                    LOG.info("Instance not found")
 
         return None
 
@@ -233,7 +233,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             return self.solution
 
         if len(hosts_target) == 0:
-            LOG.warning(_LW("No hosts under outlet temp threshold found"))
+            LOG.warning("No hosts under outlet temp threshold found")
             return self.solution
 
         # choose the server with highest outlet t
@@ -254,7 +254,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         if len(dest_servers) == 0:
             # TODO(zhenzanz): maybe to warn that there's no resource
             # for instance.
-            LOG.info(_LI("No proper target host could be found"))
+            LOG.info("No proper target host could be found")
             return self.solution
 
         dest_servers = sorted(dest_servers, key=lambda x: (x["outlet_temp"]))

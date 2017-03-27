@@ -22,7 +22,6 @@ import sys
 
 from oslo_log import log as logging
 
-from watcher._i18n import _LI
 from watcher.applier import manager
 from watcher.common import service as watcher_service
 from watcher import conf
@@ -34,7 +33,7 @@ CONF = conf.CONF
 def main():
     watcher_service.prepare_service(sys.argv, CONF)
 
-    LOG.info(_LI('Starting Watcher Applier service in PID %s'), os.getpid())
+    LOG.info('Starting Watcher Applier service in PID %s', os.getpid())
 
     applier_service = watcher_service.Service(manager.ApplierManager)
 

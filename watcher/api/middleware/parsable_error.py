@@ -27,7 +27,7 @@ from oslo_serialization import jsonutils
 import six
 import webob
 
-from watcher._i18n import _, _LE
+from watcher._i18n import _
 
 LOG = log.getLogger(__name__)
 
@@ -79,7 +79,7 @@ class ParsableErrorMiddleware(object):
                             et.ElementTree.Element(
                                 'error_message', text='\n'.join(app_iter)))]
                 except et.ElementTree.ParseError as err:
-                    LOG.error(_LE('Error parsing HTTP response: %s'), err)
+                    LOG.error('Error parsing HTTP response: %s', err)
                     body = ['<error_message>%s'
                             '</error_message>' % state['status_code']]
                 state['headers'].append(('Content-Type', 'application/xml'))

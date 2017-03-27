@@ -22,7 +22,6 @@ import sys
 from oslo_config import cfg
 from oslo_log import log as logging
 
-from watcher._i18n import _LI
 from watcher.common import service
 from watcher import conf
 
@@ -39,11 +38,11 @@ def main():
     server = service.WSGIService('watcher-api', CONF.api.enable_ssl_api)
 
     if host == '127.0.0.1':
-        LOG.info(_LI('serving on 127.0.0.1:%(port)s, '
-                     'view at %(protocol)s://127.0.0.1:%(port)s') %
+        LOG.info('serving on 127.0.0.1:%(port)s, '
+                 'view at %(protocol)s://127.0.0.1:%(port)s' %
                  dict(protocol=protocol, port=port))
     else:
-        LOG.info(_LI('serving on %(protocol)s://%(host)s:%(port)s') %
+        LOG.info('serving on %(protocol)s://%(host)s:%(port)s' %
                  dict(protocol=protocol, host=host, port=port))
 
     launcher = service.launch(CONF, server, workers=server.workers)

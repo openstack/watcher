@@ -22,7 +22,6 @@ from taskflow import engines
 from taskflow.patterns import graph_flow as gf
 from taskflow import task as flow_task
 
-from watcher._i18n import _LW, _LC
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
 from watcher import objects
@@ -117,13 +116,13 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         self.action.post_condition()
 
     def revert(self, *args, **kwargs):
-        LOG.warning(_LW("Revert action: %s"), self.name)
+        LOG.warning("Revert action: %s", self.name)
         try:
             # TODO(jed): do we need to update the states in case of failure?
             self.action.revert()
         except Exception as e:
             LOG.exception(e)
-            LOG.critical(_LC("Oops! We need a disaster recover plan."))
+            LOG.critical("Oops! We need a disaster recover plan.")
 
 
 class TaskFlowNop(flow_task.Task):

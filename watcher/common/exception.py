@@ -29,7 +29,7 @@ from keystoneclient import exceptions as keystone_exceptions
 from oslo_log import log as logging
 import six
 
-from watcher._i18n import _, _LE
+from watcher._i18n import _
 
 from watcher import conf
 
@@ -83,9 +83,9 @@ class WatcherException(Exception):
             except Exception:
                 # kwargs doesn't match a variable in msg_fmt
                 # log the issue and the kwargs
-                LOG.exception(_LE('Exception in string format operation'))
+                LOG.exception('Exception in string format operation')
                 for name, value in kwargs.items():
-                    LOG.error(_LE("%(name)s: %(value)s"),
+                    LOG.error("%(name)s: %(value)s",
                               {'name': name, 'value': value})
 
                 if CONF.fatal_exception_format_errors:

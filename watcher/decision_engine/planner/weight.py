@@ -22,7 +22,6 @@ from oslo_config import cfg
 from oslo_config import types
 from oslo_log import log
 
-from watcher._i18n import _LW
 from watcher.common import utils
 from watcher.decision_engine.planner import base
 from watcher import objects
@@ -152,7 +151,7 @@ class WeightPlanner(base.BasePlanner):
             context, action_plan.id, solution.efficacy_indicators)
 
         if len(action_graph.nodes()) == 0:
-            LOG.warning(_LW("The action plan is empty"))
+            LOG.warning("The action plan is empty")
             action_plan.state = objects.action_plan.State.SUCCEEDED
             action_plan.save()
 
