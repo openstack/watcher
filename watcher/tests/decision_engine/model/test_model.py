@@ -18,9 +18,7 @@
 
 import os
 
-from lxml import etree
 from oslo_utils import uuidutils
-import six
 
 from watcher.common import exception
 from watcher.decision_engine.model import element
@@ -45,26 +43,16 @@ class TestModel(base.TestCase):
 
     def test_model_structure(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()
-        model = fake_cluster.build_scenario_1()
+        model1 = fake_cluster.build_scenario_1()
 
-        self.assertEqual(5, len(model.get_all_compute_nodes()))
-        self.assertEqual(35, len(model.get_all_instances()))
-        self.assertEqual(8, len(model.edges()))
+        self.assertEqual(5, len(model1.get_all_compute_nodes()))
+        self.assertEqual(35, len(model1.get_all_instances()))
+        self.assertEqual(8, len(model1.edges()))
 
         expected_struct_str = self.load_data('scenario_1.xml')
-        parser = etree.XMLParser(remove_blank_text=True)
-        expected_struct = etree.fromstring(expected_struct_str, parser)
-        model_structure = etree.fromstring(model.to_string(), parser)
+        model2 = model_root.ModelRoot.from_xml(expected_struct_str)
 
-        normalized_expected_output = six.BytesIO()
-        normalized_model_output = six.BytesIO()
-        expected_struct.getroottree().write_c14n(normalized_expected_output)
-        model_structure.getroottree().write_c14n(normalized_model_output)
-
-        normalized_expected_struct = normalized_expected_output.getvalue()
-        normalized_model_struct = normalized_model_output.getvalue()
-
-        self.assertEqual(normalized_expected_struct, normalized_model_struct)
+        self.assertTrue(model_root.ModelRoot.is_isomorphic(model2, model1))
 
     def test_build_model_from_xml(self):
         fake_cluster = faker_cluster_state.FakerModelCollector()

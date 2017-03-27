@@ -235,3 +235,10 @@ class ModelRoot(nx.DiGraph, base.Model):
                 model.add_instance(instance)
 
         return model
+
+    @classmethod
+    def is_isomorphic(cls, G1, G2):
+        def node_match(node1, node2):
+            return node1.as_dict() == node2.as_dict()
+        return nx.algorithms.isomorphism.isomorph.is_isomorphic(
+            G1, G2, node_match=node_match)

@@ -17,6 +17,7 @@
 import ast
 import six
 
+from oslo_serialization import jsonutils
 from oslo_versionedobjects import fields
 
 
@@ -96,7 +97,25 @@ class FlexibleListOfDictField(fields.AutoTypedField):
         super(FlexibleListOfDictField, self)._null(obj, attr)
 
 
+class Json(fields.FieldType):
+    def coerce(self, obj, attr, value):
+        if isinstance(value, six.string_types):
+            loaded = jsonutils.loads(value)
+            return loaded
+        return value
+
+    def from_primitive(self, obj, attr, value):
+        return self.coerce(obj, attr, value)
+
+    def to_primitive(self, obj, attr, value):
+        return jsonutils.dumps(value)
+
+
+class JsonField(fields.AutoTypedField):
+    AUTO_TYPE = Json()
+
 # ### Notification fields ### #
+
 
 class BaseWatcherEnum(Enum):
 
