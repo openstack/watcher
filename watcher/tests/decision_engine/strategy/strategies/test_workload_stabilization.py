@@ -17,23 +17,35 @@
 # limitations under the License.
 #
 
+import datetime
 import mock
 
+from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import gnocchi_metrics
 
 
 class TestWorkloadStabilization(base.TestCase):
+
+    scenarios = [
+        ("Ceilometer",
+         {"datasource": "ceilometer",
+          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
+        ("Gnocchi",
+         {"datasource": "gnocchi",
+          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+    ]
 
     def setUp(self):
         super(TestWorkloadStabilization, self).setUp()
 
         # fake metrics
-        self.fake_metrics = ceilometer_metrics.FakeCeilometerMetrics()
+        self.fake_metrics = self.fake_datasource_cls()
 
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
@@ -45,17 +57,22 @@ class TestWorkloadStabilization(base.TestCase):
             'Node_3': {'cpu_util': 0.05, 'memory.resident': 8, 'vcpus': 40},
             'Node_4': {'cpu_util': 0.05, 'memory.resident': 4, 'vcpus': 40}}
 
+        p_osc = mock.patch.object(
+            clients, "OpenStackClients")
+        self.m_osc = p_osc.start()
+        self.addCleanup(p_osc.stop)
+
         p_model = mock.patch.object(
             strategies.WorkloadStabilization, "compute_model",
             new_callable=mock.PropertyMock)
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
-        p_ceilometer = mock.patch.object(
-            strategies.WorkloadStabilization, "ceilometer",
+        p_datasource = mock.patch.object(
+            strategies.WorkloadStabilization, self.datasource,
             new_callable=mock.PropertyMock)
-        self.m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
+        self.m_datasource = p_datasource.start()
+        self.addCleanup(p_datasource.stop)
 
         p_audit_scope = mock.patch.object(
             strategies.WorkloadStabilization, "audit_scope",
@@ -65,10 +82,12 @@ class TestWorkloadStabilization(base.TestCase):
         self.addCleanup(p_audit_scope.stop)
 
         self.m_model.return_value = model_root.ModelRoot()
-        self.m_ceilometer.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
         self.m_audit_scope.return_value = mock.Mock()
-        self.strategy = strategies.WorkloadStabilization(config=mock.Mock())
+        self.m_datasource.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+
+        self.strategy = strategies.WorkloadStabilization(
+            config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update(
             {'metrics': ["cpu_util", "memory.resident"],
@@ -109,17 +128,49 @@ class TestWorkloadStabilization(base.TestCase):
             strategies.WorkloadStabilization, "ceilometer")
         m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
+        p_gnocchi = mock.patch.object(strategies.WorkloadStabilization,
+                                      "gnocchi")
+        m_gnocchi = p_gnocchi.start()
+        self.addCleanup(p_gnocchi.stop)
+        datetime_patcher = mock.patch.object(
+            datetime, 'datetime',
+            mock.Mock(wraps=datetime.datetime)
+        )
+        mocked_datetime = datetime_patcher.start()
+        mocked_datetime.utcnow.return_value = datetime.datetime(
+            2017, 3, 19, 18, 53, 11, 657417)
+        self.addCleanup(datetime_patcher.stop)
         m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        m_gnocchi.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         instance0 = model.get_instance_by_uuid("INSTANCE_0")
         self.strategy.get_instance_load(instance0)
-        m_ceilometer.statistic_aggregation.assert_called_with(
-            aggregate='min', meter_name='memory.resident',
-            period=720, resource_id=instance0.uuid)
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_called_with(
+                aggregate='min', meter_name='memory.resident',
+                period=720, resource_id=instance0.uuid)
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('720'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=instance0.uuid, metric='memory.resident',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')
         self.strategy.get_hosts_load()
-        m_ceilometer.statistic_aggregation.assert_called_with(
-            aggregate='avg', meter_name='hardware.memory.used',
-            period=600, resource_id=mock.ANY)
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_called_with(
+                aggregate='avg', meter_name='hardware.memory.used',
+                period=600, resource_id=mock.ANY)
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('600'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=mock.ANY, metric='hardware.memory.used',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')
 
     def test_normalize_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
