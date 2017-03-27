@@ -293,3 +293,18 @@ class TestVMWorkloadConsolidation(base.TestCase):
         del expected[3]
         del expected[1]
         self.assertEqual(expected, self.strategy.solution.actions)
+
+    def test_periods(self):
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        p_ceilometer = mock.patch.object(
+            strategies.VMWorkloadConsolidation, "ceilometer")
+        m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+        m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        instance0 = model.get_instance_by_uuid("INSTANCE_0")
+        self.strategy.get_instance_utilization(instance0)
+        m_ceilometer.statistic_aggregation.assert_any_call(
+            aggregate='avg', meter_name='disk.root.size',
+            period=3600, resource_id=instance0.uuid)

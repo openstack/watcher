@@ -88,6 +88,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         return "VM Workload Consolidation Strategy"
 
     @property
+    def period(self):
+        return self.input_parameters.get('period', 3600)
+
+    @property
     def ceilometer(self):
         if self._ceilometer is None:
             self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
@@ -96,6 +100,20 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     @ceilometer.setter
     def ceilometer(self, ceilometer):
         self._ceilometer = ceilometer
+
+    @classmethod
+    def get_schema(cls):
+        # Mandatory default setting for each element
+        return {
+            "properties": {
+                "period": {
+                    "description": "The time interval in seconds for "
+                                   "getting statistic aggregation",
+                    "type": "number",
+                    "default": 3600
+                }
+            }
+        }
 
     def get_state_str(self, state):
         """Get resource state in string format.
@@ -187,12 +205,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     element.ServiceState.DISABLED.value):
                 self.add_action_disable_node(node)
 
-    def get_instance_utilization(self, instance,
-                                 period=3600, aggr='avg'):
+    def get_instance_utilization(self, instance, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a VM.
 
         :param instance: instance object
-        :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of vcpus used), ram(MB used), disk(B used))
         """
@@ -206,7 +222,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         disk_alloc_metric = 'disk.root.size'
         instance_cpu_util = self.ceilometer.statistic_aggregation(
             resource_id=instance.uuid, meter_name=cpu_util_metric,
-            period=period, aggregate=aggr)
+            period=self.period, aggregate=aggr)
 
         if instance_cpu_util:
             total_cpu_utilization = (
@@ -216,16 +232,16 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         instance_ram_util = self.ceilometer.statistic_aggregation(
             resource_id=instance.uuid, meter_name=ram_util_metric,
-            period=period, aggregate=aggr)
+            period=self.period, aggregate=aggr)
 
         if not instance_ram_util:
             instance_ram_util = self.ceilometer.statistic_aggregation(
                 resource_id=instance.uuid, meter_name=ram_alloc_metric,
-                period=period, aggregate=aggr)
+                period=self.period, aggregate=aggr)
 
         instance_disk_util = self.ceilometer.statistic_aggregation(
             resource_id=instance.uuid, meter_name=disk_alloc_metric,
-            period=period, aggregate=aggr)
+            period=self.period, aggregate=aggr)
 
         if not instance_ram_util or not instance_disk_util:
             LOG.error(
@@ -238,11 +254,10 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             disk=instance_disk_util)
         return self.ceilometer_instance_data_cache.get(instance.uuid)
 
-    def get_node_utilization(self, node, period=3600, aggr='avg'):
+    def get_node_utilization(self, node, aggr='avg'):
         """Collect cpu, ram and disk utilization statistics of a node.
 
         :param node: node object
-        :param period: seconds
         :param aggr: string
         :return: dict(cpu(number of cores used), ram(MB used), disk(B used))
         """
@@ -252,7 +267,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         node_cpu_util = 0
         for instance in node_instances:
             instance_util = self.get_instance_utilization(
-                instance, period, aggr)
+                instance, aggr)
             node_cpu_util += instance_util['cpu']
             node_ram_util += instance_util['ram']
             node_disk_util += instance_util['disk']
