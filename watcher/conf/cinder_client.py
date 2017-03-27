@@ -24,7 +24,12 @@ cinder_client = cfg.OptGroup(name='cinder_client',
 CINDER_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2',
-               help='Version of Cinder API to use in cinderclient.')]
+               help='Version of Cinder API to use in cinderclient.'),
+    cfg.StrOpt('endpoint_type',
+               default='internalURL',
+               help='Type of endpoint to use in cinderclient.'
+                    'Supported values: internalURL, publicURL, adminURL'
+                    'The default is internalURL.')]
 
 
 def register_opts(conf):

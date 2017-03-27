@@ -25,7 +25,12 @@ CEILOMETER_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2',
                help='Version of Ceilometer API to use in '
-                    'ceilometerclient.')]
+                    'ceilometerclient.'),
+    cfg.StrOpt('endpoint_type',
+               default='internalURL',
+               help='Type of endpoint to use in ceilometerclient.'
+                    'Supported values: internalURL, publicURL, adminURL'
+                    'The default is internalURL.')]
 
 
 def register_opts(conf):
