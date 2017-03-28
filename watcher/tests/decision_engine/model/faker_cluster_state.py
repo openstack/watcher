@@ -135,3 +135,123 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
     def generate_scenario_9_with_3_active_plus_1_disabled_nodes(self):
         return self.load_model(
             'scenario_9_with_3_active_plus_1_disabled_nodes.xml')
+
+
+class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
+
+    def __init__(self, config=None, osc=None):
+        if config is None:
+            config = mock.Mock(period=777)
+        super(FakerStorageModelCollector, self).__init__(config)
+
+    @property
+    def notification_endpoints(self):
+        return []
+
+    def load_data(self, filename):
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        data_folder = os.path.join(cwd, "data")
+
+        with open(os.path.join(data_folder, filename), 'rb') as xml_file:
+            xml_data = xml_file.read()
+
+        return xml_data
+
+    def load_model(self, filename):
+        return modelroot.StorageModelRoot.from_xml(self.load_data(filename))
+
+    def execute(self):
+        return self._cluster_data_model or self.build_scenario_1()
+
+    def build_scenario_1(self):
+
+        model = modelroot.StorageModelRoot()
+        # number of nodes
+        node_count = 2
+        # number of pools per node
+        pool_count = 2
+        # number of volumes
+        volume_count = 9
+
+        for i in range(0, node_count):
+            host = "host_{0}@backend_{0}".format(i)
+            zone = "zone_{0}".format(i)
+            volume_type = "type_{0}".format(i)
+            node_attributes = {
+                "host": host,
+                "zone": zone,
+                "status": 'enabled',
+                "state": 'up',
+                "volume_type": volume_type,
+            }
+            node = element.StorageNode(**node_attributes)
+            model.add_node(node)
+
+            for j in range(0, pool_count):
+                name = "host_{0}@backend_{0}#pool_{1}".format(i, j)
+                pool_attributes = {
+                    "name": name,
+                    "total_volumes": 2,
+                    "total_capacity_gb": 500,
+                    "free_capacity_gb": 420,
+                    "provisioned_capacity_gb": 80,
+                    "allocated_capacity_gb": 80,
+                    "virtual_free": 420,
+                }
+                pool = element.Pool(**pool_attributes)
+                model.add_pool(pool)
+
+        mappings = [
+            ("host_0@backend_0#pool_0", "host_0@backend_0"),
+            ("host_0@backend_0#pool_1", "host_0@backend_0"),
+            ("host_1@backend_1#pool_0", "host_1@backend_1"),
+            ("host_1@backend_1#pool_1", "host_1@backend_1"),
+        ]
+
+        for pool_name, node_name in mappings:
+            model.map_pool(
+                model.get_pool_by_pool_name(pool_name),
+                model.get_node_by_name(node_name),
+            )
+
+        for k in range(volume_count):
+            uuid = "VOLUME_{0}".format(k)
+            name = "name_{0}".format(k)
+            project_id = "project_{0}".format(k)
+            volume_attributes = {
+                "size": 40,
+                "status": "in-use",
+                "uuid": uuid,
+                "attachments":
+                    '[{"server_id": "server","attachment_id": "attachment"}]',
+                "name": name,
+                "multiattach": 'True',
+                "snapshot_id": uuid,
+                "project_id": project_id,
+                "metadata": '{"readonly": false,"attached_mode": "rw"}',
+                "bootable": 'False'
+            }
+            volume = element.Volume(**volume_attributes)
+            model.add_volume(volume)
+
+        mappings = [
+            ("VOLUME_0", "host_0@backend_0#pool_0"),
+            ("VOLUME_1", "host_0@backend_0#pool_0"),
+            ("VOLUME_2", "host_0@backend_0#pool_1"),
+            ("VOLUME_3", "host_0@backend_0#pool_1"),
+            ("VOLUME_4", "host_1@backend_1#pool_0"),
+            ("VOLUME_5", "host_1@backend_1#pool_0"),
+            ("VOLUME_6", "host_1@backend_1#pool_1"),
+            ("VOLUME_7", "host_1@backend_1#pool_1"),
+        ]
+
+        for volume_uuid, pool_name in mappings:
+            model.map_volume(
+                model.get_volume_by_uuid(volume_uuid),
+                model.get_pool_by_pool_name(pool_name),
+            )
+
+        return model
+
+    def generate_scenario_1(self):
+        return self.load_model('storage_scenario_1.xml')

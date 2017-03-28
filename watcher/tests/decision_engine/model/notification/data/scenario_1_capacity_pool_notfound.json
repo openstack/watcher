@@ -1,0 +1,14 @@
+{
+  "priority": "INFO",
+  "publisher_id": "capacity.host_0@backend_0#pool_2",
+  "event_type": "capacity.pool",
+  "payload": {
+    "name_to_id": "host_0@backend_0#pool_2",
+    "total": 500,
+    "free": 380,
+    "allocated": 120,
+    "provisioned": 120,
+    "virtual_free": 380,
+    "reported_at": "2017-05-15T13:42:11Z"
+  }
+}

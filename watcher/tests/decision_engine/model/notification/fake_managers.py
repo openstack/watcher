@@ -17,6 +17,7 @@
 # limitations under the License.
 
 from watcher.common import service_manager
+from watcher.decision_engine.model.notification import cinder as cnotification
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests.decision_engine.model import faker_cluster_state
 
@@ -64,4 +65,21 @@ class FakeManager(service_manager.ServiceManager):
             novanotification.LegacyInstanceUpdated(self.fake_cdmc),
             novanotification.LegacyLiveMigratedEnd(self.fake_cdmc),
             novanotification.LegacyInstanceDeletedEnd(self.fake_cdmc),
+        ]
+
+
+class FakeStorageManager(FakeManager):
+
+    fake_cdmc = faker_cluster_state.FakerStorageModelCollector()
+
+    @property
+    def notification_endpoints(self):
+        return [
+            cnotification.CapacityNotificationEndpoint(self.fake_cdmc),
+            cnotification.VolumeCreateEnd(self.fake_cdmc),
+            cnotification.VolumeUpdateEnd(self.fake_cdmc),
+            cnotification.VolumeDeleteEnd(self.fake_cdmc),
+            cnotification.VolumeAttachEnd(self.fake_cdmc),
+            cnotification.VolumeDetachEnd(self.fake_cdmc),
+            cnotification.VolumeResizeEnd(self.fake_cdmc),
         ]

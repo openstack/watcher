@@ -18,11 +18,23 @@
 
 from watcher.decision_engine.model.element import instance
 from watcher.decision_engine.model.element import node
+from watcher.decision_engine.model.element import volume
 
 ServiceState = node.ServiceState
 ComputeNode = node.ComputeNode
+StorageNode = node.StorageNode
+Pool = node.Pool
 
 InstanceState = instance.InstanceState
 Instance = instance.Instance
+VolumeState = volume.VolumeState
+Volume = volume.Volume
 
-__all__ = ['ServiceState', 'ComputeNode', 'InstanceState', 'Instance']
+__all__ = ['ServiceState',
+           'ComputeNode',
+           'InstanceState',
+           'Instance',
+           'StorageNode',
+           'Pool',
+           'VolumeState',
+           'Volume']

@@ -1,0 +1,23 @@
+<ModelRoot>
+  <StorageNode status="enabled" zone="zone_0" state="up" volume_type="type_0" host="host_0@backend_0" human_id="">
+    <Pool total_capacity_gb="500" name="host_0@backend_0#pool_0" total_volumes="2" provisioned_capacity_gb="80" human_id="" allocated_capacity_gb="80" free_capacity_gb="420" virtual_free="420">
+      <Volume status="in-use" uuid="VOLUME_0" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_0" human_id="" name="name_0" bootable="false"/>
+      <Volume status="in-use" uuid="VOLUME_1" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_1" human_id="" name="name_1" bootable="false"/>
+    </Pool>
+    <Pool total_capacity_gb="500" name="host_0@backend_0#pool_1" total_volumes="2" provisioned_capacity_gb="80" human_id="" allocated_capacity_gb="80" free_capacity_gb="420" virtual_free="420">
+     <Volume status="in-use" uuid="VOLUME_2" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_2" human_id="" name="name_2" bootable="false"/>
+     <Volume status="in-use" uuid="VOLUME_3" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_3" human_id="" name="name_3" bootable="false"/>
+    </Pool>
+  </StorageNode>
+  <StorageNode status="enabled" zone="zone_1" state="up" volume_type="type_1" host="host_1@backend_1" human_id="">
+    <Pool total_capacity_gb="500" name="host_1@backend_1#pool_0" total_volumes="2" provisioned_capacity_gb="80" human_id="" allocated_capacity_gb="80" free_capacity_gb="420" virtual_free="420">
+      <Volume status="in-use" uuid="VOLUME_4" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_4" human_id="" name="name_4" bootable="false"/>
+      <Volume status="in-use" uuid="VOLUME_5" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_5" human_id="" name="name_5" bootable="false"/>
+    </Pool>
+    <Pool total_capacity_gb="500" name="host_1@backend_1#pool_1" total_volumes="2" provisioned_capacity_gb="80" human_id="" allocated_capacity_gb="80" free_capacity_gb="420" virtual_free="420">
+     <Volume status="in-use" uuid="VOLUME_6" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_6" human_id="" name="name_6" bootable="false"/>
+     <Volume status="in-use" uuid="VOLUME_7" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_7" human_id="" name="name_7" bootable="false"/>
+    </Pool>
+  </StorageNode>
+  <Volume status="in-use" uuid="VOLUME_8" attachments='[{"server_id": "server", "attachment_id": "attachment"}]' multiattach="true" size="40" metadata='{"readonly": false, "attached_mode": "rw"}' snapshot_id="" project_id="project_8" human_id="" name="name_8" bootable="false"/>
+</ModelRoot>

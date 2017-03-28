@@ -70,3 +70,85 @@ class TestElement(base.TestCase):
     def test_as_xml_element(self):
         el = self.cls(**self.data)
         el.as_xml_element()
+
+
+class TestStorageElement(base.TestCase):
+
+    scenarios = [
+        ("StorageNode_with_all_fields", dict(
+            cls=element.StorageNode,
+            data={
+                'host': 'host@backend',
+                'zone': 'zone',
+                'status': 'enabled',
+                'state': 'up',
+                'volume_type': 'volume_type',
+            })),
+        ("Pool_with_all_fields", dict(
+            cls=element.Pool,
+            data={
+                'name': 'host@backend#pool',
+                'total_volumes': 1,
+                'total_capacity_gb': 500,
+                'free_capacity_gb': 420,
+                'provisioned_capacity_gb': 80,
+                'allocated_capacity_gb': 80,
+                'virtual_free': 420,
+            })),
+        ("Pool_without_virtual_free_fields", dict(
+            cls=element.Pool,
+            data={
+                'name': 'host@backend#pool',
+                'total_volumes': 1,
+                'total_capacity_gb': 500,
+                'free_capacity_gb': 420,
+                'provisioned_capacity_gb': 80,
+                'allocated_capacity_gb': 80,
+            })),
+        ("Volume_with_all_fields", dict(
+            cls=element.Volume,
+            data={
+                'uuid': 'FAKE_UUID',
+                'size': 1,
+                'status': 'in-use',
+                'attachments': '[{"key": "value"}]',
+                'name': 'name',
+                'multiattach': 'false',
+                'snapshot_id': '',
+                'project_id': 'project_id',
+                'metadata': '{"key": "value"}',
+                'bootable': 'false',
+                'human_id': 'human_id',
+            })),
+        ("Volume_without_bootable_fields", dict(
+            cls=element.Volume,
+            data={
+                'uuid': 'FAKE_UUID',
+                'size': 1,
+                'status': 'in-use',
+                'attachments': '[]',
+                'name': 'name',
+                'multiattach': 'false',
+                'snapshot_id': '',
+                'project_id': 'project_id',
+                'metadata': '{"key": "value"}',
+                'human_id': 'human_id',
+            })),
+        ("Volume_without_human_id_fields", dict(
+            cls=element.Volume,
+            data={
+                'uuid': 'FAKE_UUID',
+                'size': 1,
+                'status': 'in-use',
+                'attachments': '[]',
+                'name': 'name',
+                'multiattach': 'false',
+                'snapshot_id': '',
+                'project_id': 'project_id',
+                'metadata': '{"key": "value"}',
+            })),
+    ]
+
+    def test_as_xml_element(self):
+        el = self.cls(**self.data)
+        el.as_xml_element()

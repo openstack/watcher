@@ -63,6 +63,21 @@ class TestModel(base.TestCase):
         model = model_root.ModelRoot.from_xml(struct_str)
         self.assertEqual(expected_model.to_string(), model.to_string())
 
+    def test_get_node_by_instance_uuid(self):
+        model = model_root.ModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        node = element.ComputeNode(id=1)
+        node.uuid = uuid_
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_uuid(uuid_))
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        instance = element.Instance(id=1)
+        instance.uuid = uuid_
+        model.add_instance(instance)
+        self.assertEqual(instance, model.get_instance_by_uuid(uuid_))
+        model.map_instance(instance, node)
+        self.assertEqual(node, model.get_node_by_instance_uuid(instance.uuid))
+
     def test_add_node(self):
         model = model_root.ModelRoot()
         uuid_ = "{0}".format(uuidutils.generate_uuid())
@@ -151,3 +166,204 @@ class TestModel(base.TestCase):
         model = model_root.ModelRoot()
         self.assertRaises(exception.IllegalArgumentException,
                           model.assert_instance, "valeur_qcq")
+
+
+class TestStorageModel(base.TestCase):
+
+    def load_data(self, filename):
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        data_folder = os.path.join(cwd, "data")
+
+        with open(os.path.join(data_folder, filename), 'rb') as xml_file:
+            xml_data = xml_file.read()
+
+        return xml_data
+
+    def load_model(self, filename):
+        return model_root.StorageModelRoot.from_xml(self.load_data(filename))
+
+    def test_model_structure(self):
+        fake_cluster = faker_cluster_state.FakerStorageModelCollector()
+        model1 = fake_cluster.build_scenario_1()
+
+        self.assertEqual(2, len(model1.get_all_storage_nodes()))
+        self.assertEqual(9, len(model1.get_all_volumes()))
+        self.assertEqual(12, len(model1.edges()))
+
+        expected_struct_str = self.load_data('storage_scenario_1.xml')
+        model2 = model_root.StorageModelRoot.from_xml(expected_struct_str)
+        self.assertTrue(
+            model_root.StorageModelRoot.is_isomorphic(model2, model1))
+
+    def test_build_model_from_xml(self):
+        fake_cluster = faker_cluster_state.FakerStorageModelCollector()
+
+        expected_model = fake_cluster.generate_scenario_1()
+        struct_str = self.load_data('storage_scenario_1.xml')
+
+        model = model_root.StorageModelRoot.from_xml(struct_str)
+        self.assertEqual(expected_model.to_string(), model.to_string())
+
+    def test_assert_node_raise(self):
+        model = model_root.StorageModelRoot()
+        node = element.StorageNode(host="host@backend")
+        model.add_node(node)
+        self.assertRaises(exception.IllegalArgumentException,
+                          model.assert_node, "obj")
+
+    def test_assert_pool_raise(self):
+        model = model_root.StorageModelRoot()
+        pool = element.Pool(name="host@backend#pool")
+        model.add_pool(pool)
+        self.assertRaises(exception.IllegalArgumentException,
+                          model.assert_pool, "obj")
+
+    def test_assert_volume_raise(self):
+        model = model_root.StorageModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertRaises(exception.IllegalArgumentException,
+                          model.assert_volume, "obj")
+
+    def test_add_node(self):
+        model = model_root.StorageModelRoot()
+        hostname = "host@backend"
+        node = element.StorageNode(host=hostname)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_name(hostname))
+
+    def test_add_pool(self):
+        model = model_root.StorageModelRoot()
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+
+    def test_remove_node(self):
+        model = model_root.StorageModelRoot()
+        hostname = "host@backend"
+        node = element.StorageNode(host=hostname)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_name(hostname))
+        model.remove_node(node)
+        self.assertRaises(exception.StorageNodeNotFound,
+                          model.get_node_by_name, hostname)
+
+    def test_remove_pool(self):
+        model = model_root.StorageModelRoot()
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        model.remove_pool(pool)
+        self.assertRaises(exception.PoolNotFound,
+                          model.get_pool_by_pool_name, pool_name)
+
+    def test_map_unmap_pool(self):
+        model = model_root.StorageModelRoot()
+        hostname = "host@backend"
+        node = element.StorageNode(host=hostname)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_name(hostname))
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        model.map_pool(pool, node)
+        self.assertTrue(pool.name in model.predecessors(node.host))
+        model.unmap_pool(pool, node)
+        self.assertFalse(pool.name in model.predecessors(node.host))
+
+    def test_add_volume(self):
+        model = model_root.StorageModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
+
+    def test_remove_volume(self):
+        model = model_root.StorageModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
+        model.remove_volume(volume)
+        self.assertRaises(exception.VolumeNotFound,
+                          model.get_volume_by_uuid, uuid_)
+
+    def test_map_unmap_volume(self):
+        model = model_root.StorageModelRoot()
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
+        model.map_volume(volume, pool)
+        self.assertTrue(volume.uuid in model.predecessors(pool.name))
+        model.unmap_volume(volume, pool)
+        self.assertFalse(volume.uuid in model.predecessors(pool.name))
+
+    def test_get_all_storage_nodes(self):
+        model = model_root.StorageModelRoot()
+        for i in range(10):
+            hostname = "host_{0}".format(i)
+            node = element.StorageNode(host=hostname)
+            model.add_node(node)
+        all_nodes = model.get_all_storage_nodes()
+        for hostname in all_nodes:
+            node = model.get_node_by_name(hostname)
+            model.assert_node(node)
+
+    def test_get_all_volumes(self):
+        model = model_root.StorageModelRoot()
+        for id_ in range(10):
+            uuid_ = "{0}".format(uuidutils.generate_uuid())
+            volume = element.Volume(uuid=uuid_)
+            model.add_volume(volume)
+        all_volumes = model.get_all_volumes()
+        for vol in all_volumes:
+            volume = model.get_volume_by_uuid(vol)
+            model.assert_volume(volume)
+
+    def test_get_node_pools(self):
+        model = model_root.StorageModelRoot()
+        hostname = "host@backend"
+        node = element.StorageNode(host=hostname)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_name(hostname))
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        model.map_pool(pool, node)
+        self.assertEqual([pool], model.get_node_pools(node))
+
+    def test_get_pool_by_volume(self):
+        model = model_root.StorageModelRoot()
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
+        model.map_volume(volume, pool)
+        self.assertEqual(pool, model.get_pool_by_volume(volume))
+
+    def test_get_pool_volumes(self):
+        model = model_root.StorageModelRoot()
+        pool_name = "host@backend#pool"
+        pool = element.Pool(name=pool_name)
+        model.add_pool(pool)
+        self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        volume = element.Volume(uuid=uuid_)
+        model.add_volume(volume)
+        self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
+        model.map_volume(volume, pool)
+        self.assertEqual([volume], model.get_pool_volumes(pool))
