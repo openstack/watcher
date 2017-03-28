@@ -17,6 +17,7 @@
 # limitations under the License.
 #
 import collections
+import datetime
 import mock
 
 from watcher.applier.loading import default
@@ -27,14 +28,24 @@ from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import gnocchi_metrics
 
 
 class TestWorkloadBalance(base.TestCase):
 
+    scenarios = [
+        ("Ceilometer",
+         {"datasource": "ceilometer",
+          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
+        ("Gnocchi",
+         {"datasource": "gnocchi",
+          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+    ]
+
     def setUp(self):
         super(TestWorkloadBalance, self).setUp()
         # fake metrics
-        self.fake_metrics = ceilometer_metrics.FakeCeilometerMetrics()
+        self.fake_metrics = self.fake_datasource_cls()
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
@@ -44,11 +55,11 @@ class TestWorkloadBalance(base.TestCase):
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
-        p_ceilometer = mock.patch.object(
-            strategies.WorkloadBalance, "ceilometer",
+        p_datasource = mock.patch.object(
+            strategies.WorkloadBalance, self.datasource,
             new_callable=mock.PropertyMock)
-        self.m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
+        self.m_datasource = p_datasource.start()
+        self.addCleanup(p_datasource.stop)
 
         p_audit_scope = mock.patch.object(
             strategies.WorkloadBalance, "audit_scope",
@@ -58,11 +69,10 @@ class TestWorkloadBalance(base.TestCase):
         self.addCleanup(p_audit_scope.stop)
 
         self.m_audit_scope.return_value = mock.Mock()
-
-        self.m_model.return_value = model_root.ModelRoot()
-        self.m_ceilometer.return_value = mock.Mock(
+        self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
-        self.strategy = strategies.WorkloadBalance(config=mock.Mock())
+        self.strategy = strategies.WorkloadBalance(
+            config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update({'threshold': 25.0,
                                                'period': 300})
@@ -110,7 +120,7 @@ class TestWorkloadBalance(base.TestCase):
     def test_filter_destination_hosts(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        self.strategy.ceilometer = mock.MagicMock(
+        self.strategy.datasource = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
@@ -168,3 +178,40 @@ class TestWorkloadBalance(base.TestCase):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_periods(self):
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        p_ceilometer = mock.patch.object(
+            strategies.WorkloadBalance, "ceilometer")
+        m_ceilometer = p_ceilometer.start()
+        self.addCleanup(p_ceilometer.stop)
+        p_gnocchi = mock.patch.object(strategies.WorkloadBalance, "gnocchi")
+        m_gnocchi = p_gnocchi.start()
+        self.addCleanup(p_gnocchi.stop)
+        datetime_patcher = mock.patch.object(
+            datetime, 'datetime',
+            mock.Mock(wraps=datetime.datetime)
+        )
+        mocked_datetime = datetime_patcher.start()
+        mocked_datetime.utcnow.return_value = datetime.datetime(
+            2017, 3, 19, 18, 53, 11, 657417)
+        self.addCleanup(datetime_patcher.stop)
+        m_ceilometer.statistic_aggregation = mock.Mock(
+            side_effect=self.fake_metrics.mock_get_statistics_wb)
+        m_gnocchi.statistic_aggregation = mock.Mock(
+            side_effect=self.fake_metrics.mock_get_statistics_wb)
+        instance0 = model.get_instance_by_uuid("INSTANCE_0")
+        self.strategy.group_hosts_by_cpu_util()
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_any_call(
+                aggregate='avg', meter_name='cpu_util',
+                period=300, resource_id=instance0.uuid)
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('300'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=mock.ANY, metric='cpu_util',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')

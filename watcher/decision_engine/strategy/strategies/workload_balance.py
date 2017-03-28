@@ -46,12 +46,15 @@ hosts nodes.
   algorithm with `CONTINUOUS` audits.
 """
 
+import datetime
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -104,6 +107,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # reaches threshold
         self._meter = self.METER_NAME
         self._ceilometer = None
+        self._gnocchi = None
 
     @property
     def ceilometer(self):
@@ -114,6 +118,16 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     @ceilometer.setter
     def ceilometer(self, c):
         self._ceilometer = c
+
+    @property
+    def gnocchi(self):
+        if self._gnocchi is None:
+            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+        return self._gnocchi
+
+    @gnocchi.setter
+    def gnocchi(self, gnocchi):
+        self._gnocchi = gnocchi
 
     @classmethod
     def get_name(cls):
@@ -126,6 +140,10 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Workload Balance Migration Strategy"
+
+    @property
+    def granularity(self):
+        return self.input_parameters.get('granularity', 300)
 
     @classmethod
     def get_schema(cls):
@@ -142,8 +160,24 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     "type": "number",
                     "default": 300
                 },
+                "granularity": {
+                    "description": "The time between two measures in an "
+                                   "aggregated timeseries of a metric.",
+                    "type": "number",
+                    "default": 300
+                },
             },
         }
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                default="ceilometer",
+                choices=["ceilometer", "gnocchi"])
+        ]
 
     def calculate_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
@@ -251,15 +285,30 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             instances = self.compute_model.get_node_instances(node)
             node_workload = 0.0
             for instance in instances:
+                cpu_util = None
                 try:
-                    cpu_util = self.ceilometer.statistic_aggregation(
-                        resource_id=instance.uuid,
-                        meter_name=self._meter,
-                        period=self._period,
-                        aggregate='avg')
+                    if self.config.datasource == "ceilometer":
+                        cpu_util = self.ceilometer.statistic_aggregation(
+                            resource_id=instance.uuid,
+                            meter_name=self._meter,
+                            period=self._period,
+                            aggregate='avg')
+                    elif self.config.datasource == "gnocchi":
+                        stop_time = datetime.datetime.utcnow()
+                        start_time = stop_time - datetime.timedelta(
+                            seconds=int(self._period))
+                        cpu_util = self.gnocchi.statistic_aggregation(
+                            resource_id=instance.uuid,
+                            metric=self._meter,
+                            granularity=self.granularity,
+                            start_time=start_time,
+                            stop_time=stop_time,
+                            aggregation='mean'
+                        )
                 except Exception as exc:
                     LOG.exception(exc)
-                    LOG.error("Can not get cpu_util from Ceilometer")
+                    LOG.error("Can not get cpu_util from %s",
+                              self.config.datasource)
                     continue
                 if cpu_util is None:
                     LOG.debug("Instance (%s): cpu_util is None", instance.uuid)
