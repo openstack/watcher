@@ -40,9 +40,16 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
         self.addCleanup(p_action_plan_notifications.stop)
 
         obj_utils.create_test_goal(self.context)
-        obj_utils.create_test_strategy(self.context)
-        obj_utils.create_test_audit(self.context)
-        self.action_plan = obj_utils.create_test_action_plan(self.context)
+        self.strategy = obj_utils.create_test_strategy(self.context)
+        self.audit = obj_utils.create_test_audit(
+            self.context, strategy_id=self.strategy.id)
+        self.action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id)
+        self.action = obj_utils.create_test_action(
+            self.context, action_plan_id=self.action_plan.id,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
 
     @mock.patch.object(objects.ActionPlan, "get_by_uuid")
     def test_launch_action_plan(self, m_get_action_plan):
