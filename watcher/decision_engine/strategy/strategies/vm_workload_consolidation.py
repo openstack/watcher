@@ -52,13 +52,16 @@ correctly on all compute nodes within the cluster.
 This strategy assumes it is possible to live migrate any VM from
 an active compute node to any other active compute node.
 """
+import datetime
 
+from oslo_config import cfg
 from oslo_log import log
 import six
 
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -68,12 +71,33 @@ LOG = log.getLogger(__name__)
 class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     """VM Workload Consolidation Strategy"""
 
+    HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
+    INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
+
+    METRIC_NAMES = dict(
+        ceilometer=dict(
+            cpu_util_metric='cpu_util',
+            ram_util_metric='memory.usage',
+            ram_alloc_metric='memory',
+            disk_alloc_metric='disk.root.size'),
+        gnocchi=dict(
+            cpu_util_metric='cpu_util',
+            ram_util_metric='memory.usage',
+            ram_alloc_metric='memory',
+            disk_alloc_metric='disk.root.size'),
+    )
+
+    MIGRATION = "migrate"
+    CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
+
     def __init__(self, config, osc=None):
         super(VMWorkloadConsolidation, self).__init__(config, osc)
         self._ceilometer = None
+        self._gnocchi = None
         self.number_of_migrations = 0
         self.number_of_released_nodes = 0
-        self.ceilometer_instance_data_cache = dict()
+        # self.ceilometer_instance_data_cache = dict()
+        self.datasource_instance_data_cache = dict()
 
     @classmethod
     def get_name(cls):
@@ -101,6 +125,20 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def ceilometer(self, ceilometer):
         self._ceilometer = ceilometer
 
+    @property
+    def gnocchi(self):
+        if self._gnocchi is None:
+            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+        return self._gnocchi
+
+    @gnocchi.setter
+    def gnocchi(self, gnocchi):
+        self._gnocchi = gnocchi
+
+    @property
+    def granularity(self):
+        return self.input_parameters.get('granularity', 300)
+
     @classmethod
     def get_schema(cls):
         # Mandatory default setting for each element
@@ -111,9 +149,25 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                                    "getting statistic aggregation",
                     "type": "number",
                     "default": 3600
-                }
+                },
+                "granularity": {
+                    "description": "The time between two measures in an "
+                                   "aggregated timeseries of a metric.",
+                    "type": "number",
+                    "default": 300
+                },
             }
         }
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                default="ceilometer",
+                choices=["ceilometer", "gnocchi"])
+        ]
 
     def get_state_str(self, state):
         """Get resource state in string format.
@@ -139,7 +193,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         params = {'state': element.ServiceState.ENABLED.value}
         self.solution.add_action(
-            action_type='change_nova_service_state',
+            action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
             input_parameters=params)
         self.number_of_released_nodes -= 1
@@ -152,7 +206,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         params = {'state': element.ServiceState.DISABLED.value}
         self.solution.add_action(
-            action_type='change_nova_service_state',
+            action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
             input_parameters=params)
         self.number_of_released_nodes += 1
@@ -189,7 +243,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             params = {'migration_type': migration_type,
                       'source_node': source_node.uuid,
                       'destination_node': destination_node.uuid}
-            self.solution.add_action(action_type='migrate',
+            self.solution.add_action(action_type=self.MIGRATION,
                                      resource_id=instance.uuid,
                                      input_parameters=params)
             self.number_of_migrations += 1
@@ -205,43 +259,85 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     element.ServiceState.DISABLED.value):
                 self.add_action_disable_node(node)
 
-    def get_instance_utilization(self, instance, aggr='avg'):
+    def get_instance_utilization(self, instance):
         """Collect cpu, ram and disk utilization statistics of a VM.
 
         :param instance: instance object
         :param aggr: string
         :return: dict(cpu(number of vcpus used), ram(MB used), disk(B used))
         """
-        if instance.uuid in self.ceilometer_instance_data_cache.keys():
-            return self.ceilometer_instance_data_cache.get(instance.uuid)
+        instance_cpu_util = None
+        instance_ram_util = None
+        instance_disk_util = None
 
-        cpu_util_metric = 'cpu_util'
-        ram_util_metric = 'memory.usage'
+        if instance.uuid in self.datasource_instance_data_cache.keys():
+            return self.datasource_instance_data_cache.get(instance.uuid)
 
-        ram_alloc_metric = 'memory'
-        disk_alloc_metric = 'disk.root.size'
-        instance_cpu_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance.uuid, meter_name=cpu_util_metric,
-            period=self.period, aggregate=aggr)
+        cpu_util_metric = self.METRIC_NAMES[
+            self.config.datasource]['cpu_util_metric']
+        ram_util_metric = self.METRIC_NAMES[
+            self.config.datasource]['ram_util_metric']
+        ram_alloc_metric = self.METRIC_NAMES[
+            self.config.datasource]['ram_alloc_metric']
+        disk_alloc_metric = self.METRIC_NAMES[
+            self.config.datasource]['disk_alloc_metric']
 
+        if self.config.datasource == "ceilometer":
+            instance_cpu_util = self.ceilometer.statistic_aggregation(
+                resource_id=instance.uuid, meter_name=cpu_util_metric,
+                period=self.period, aggregate='avg')
+            instance_ram_util = self.ceilometer.statistic_aggregation(
+                resource_id=instance.uuid, meter_name=ram_util_metric,
+                period=self.period, aggregate='avg')
+            if not instance_ram_util:
+                instance_ram_util = self.ceilometer.statistic_aggregation(
+                    resource_id=instance.uuid, meter_name=ram_alloc_metric,
+                    period=self.period, aggregate='avg')
+            instance_disk_util = self.ceilometer.statistic_aggregation(
+                resource_id=instance.uuid, meter_name=disk_alloc_metric,
+                period=self.period, aggregate='avg')
+        elif self.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int(self.period))
+            instance_cpu_util = self.gnocchi.statistic_aggregation(
+                resource_id=instance.uuid,
+                metric=cpu_util_metric,
+                granularity=self.granularity,
+                start_time=start_time,
+                stop_time=stop_time,
+                aggregation='mean'
+            )
+            instance_ram_util = self.gnocchi.statistic_aggregation(
+                resource_id=instance.uuid,
+                metric=ram_util_metric,
+                granularity=self.granularity,
+                start_time=start_time,
+                stop_time=stop_time,
+                aggregation='mean'
+            )
+            if not instance_ram_util:
+                instance_ram_util = self.gnocchi.statistic_aggregation(
+                    resource_id=instance.uuid,
+                    metric=ram_alloc_metric,
+                    granularity=self.granularity,
+                    start_time=start_time,
+                    stop_time=stop_time,
+                    aggregation='mean'
+                )
+            instance_disk_util = self.gnocchi.statistic_aggregation(
+                resource_id=instance.uuid,
+                metric=disk_alloc_metric,
+                granularity=self.granularity,
+                start_time=start_time,
+                stop_time=stop_time,
+                aggregation='mean'
+            )
         if instance_cpu_util:
             total_cpu_utilization = (
                 instance.vcpus * (instance_cpu_util / 100.0))
         else:
             total_cpu_utilization = instance.vcpus
-
-        instance_ram_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance.uuid, meter_name=ram_util_metric,
-            period=self.period, aggregate=aggr)
-
-        if not instance_ram_util:
-            instance_ram_util = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid, meter_name=ram_alloc_metric,
-                period=self.period, aggregate=aggr)
-
-        instance_disk_util = self.ceilometer.statistic_aggregation(
-            resource_id=instance.uuid, meter_name=disk_alloc_metric,
-            period=self.period, aggregate=aggr)
 
         if not instance_ram_util or not instance_disk_util:
             LOG.error(
@@ -249,12 +345,12 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 'or disk.root.size', instance.uuid)
             raise exception.NoDataFound
 
-        self.ceilometer_instance_data_cache[instance.uuid] = dict(
+        self.datasource_instance_data_cache[instance.uuid] = dict(
             cpu=total_cpu_utilization, ram=instance_ram_util,
             disk=instance_disk_util)
-        return self.ceilometer_instance_data_cache.get(instance.uuid)
+        return self.datasource_instance_data_cache.get(instance.uuid)
 
-    def get_node_utilization(self, node, aggr='avg'):
+    def get_node_utilization(self, node):
         """Collect cpu, ram and disk utilization statistics of a node.
 
         :param node: node object
@@ -267,7 +363,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         node_cpu_util = 0
         for instance in node_instances:
             instance_util = self.get_instance_utilization(
-                instance, aggr)
+                instance)
             node_cpu_util += instance_util['cpu']
             node_ram_util += instance_util['ram']
             node_disk_util += instance_util['disk']
@@ -372,7 +468,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         """
         migrate_actions = (
             a for a in self.solution.actions if a[
-                'action_type'] == 'migrate')
+                'action_type'] == self.MIGRATION)
         instance_to_be_migrated = (
             a['input_parameters']['resource_id'] for a in migrate_actions)
         instance_uuids = list(set(instance_to_be_migrated))

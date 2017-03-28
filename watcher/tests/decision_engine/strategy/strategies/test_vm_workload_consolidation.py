@@ -18,6 +18,7 @@
 # limitations under the License.
 #
 
+import datetime
 import mock
 
 from watcher.common import exception
@@ -28,6 +29,17 @@ from watcher.tests.decision_engine.model import faker_cluster_and_metrics
 
 
 class TestVMWorkloadConsolidation(base.TestCase):
+
+    scenarios = [
+        ("Ceilometer",
+         {"datasource": "ceilometer",
+          "fake_datasource_cls":
+          faker_cluster_and_metrics.FakeCeilometerMetrics}),
+        ("Gnocchi",
+         {"datasource": "gnocchi",
+          "fake_datasource_cls":
+          faker_cluster_and_metrics.FakeGnocchiMetrics}),
+    ]
 
     def setUp(self):
         super(TestVMWorkloadConsolidation, self).setUp()
@@ -41,11 +53,11 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
-        p_ceilometer = mock.patch.object(
-            strategies.VMWorkloadConsolidation, "ceilometer",
+        p_datasource = mock.patch.object(
+            strategies.VMWorkloadConsolidation, self.datasource,
             new_callable=mock.PropertyMock)
-        self.m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
+        self.m_datasource = p_datasource.start()
+        self.addCleanup(p_datasource.stop)
 
         p_audit_scope = mock.patch.object(
             strategies.VMWorkloadConsolidation, "audit_scope",
@@ -57,13 +69,14 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_audit_scope.return_value = mock.Mock()
 
         # fake metrics
-        self.fake_metrics = faker_cluster_and_metrics.FakeCeilometerMetrics(
+        self.fake_metrics = self.fake_datasource_cls(
             self.m_model.return_value)
 
         self.m_model.return_value = model_root.ModelRoot()
-        self.m_ceilometer.return_value = mock.Mock(
+        self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        self.strategy = strategies.VMWorkloadConsolidation(config=mock.Mock())
+        self.strategy = strategies.VMWorkloadConsolidation(
+            config=mock.Mock(datasource=self.datasource))
 
     def test_exception_stale_cdm(self):
         self.fake_cluster.set_cluster_data_model_as_stale()
@@ -81,7 +94,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         instance_util = dict(cpu=1.0, ram=1, disk=10)
         self.assertEqual(
             instance_util,
-            self.strategy.get_instance_utilization(instance_0, model))
+            self.strategy.get_instance_utilization(instance_0))
 
     def test_get_node_utilization(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -91,7 +104,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         node_util = dict(cpu=1.0, ram=1, disk=10)
         self.assertEqual(
             node_util,
-            self.strategy.get_node_utilization(node_0, model))
+            self.strategy.get_node_utilization(node_0))
 
     def test_get_node_capacity(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -301,10 +314,33 @@ class TestVMWorkloadConsolidation(base.TestCase):
             strategies.VMWorkloadConsolidation, "ceilometer")
         m_ceilometer = p_ceilometer.start()
         self.addCleanup(p_ceilometer.stop)
+        p_gnocchi = mock.patch.object(
+            strategies.VMWorkloadConsolidation, "gnocchi")
+        m_gnocchi = p_gnocchi.start()
+        self.addCleanup(p_gnocchi.stop)
+        datetime_patcher = mock.patch.object(
+            datetime, 'datetime',
+            mock.Mock(wraps=datetime.datetime)
+        )
+        mocked_datetime = datetime_patcher.start()
+        mocked_datetime.utcnow.return_value = datetime.datetime(
+            2017, 3, 19, 18, 53, 11, 657417)
+        self.addCleanup(datetime_patcher.stop)
         m_ceilometer.return_value = mock.Mock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+        m_gnocchi.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
         instance0 = model.get_instance_by_uuid("INSTANCE_0")
         self.strategy.get_instance_utilization(instance0)
-        m_ceilometer.statistic_aggregation.assert_any_call(
-            aggregate='avg', meter_name='disk.root.size',
-            period=3600, resource_id=instance0.uuid)
+        if self.strategy.config.datasource == "ceilometer":
+            m_ceilometer.statistic_aggregation.assert_any_call(
+                aggregate='avg', meter_name='disk.root.size',
+                period=3600, resource_id=instance0.uuid)
+        elif self.strategy.config.datasource == "gnocchi":
+            stop_time = datetime.datetime.utcnow()
+            start_time = stop_time - datetime.timedelta(
+                seconds=int('3600'))
+            m_gnocchi.statistic_aggregation.assert_called_with(
+                resource_id=instance0.uuid, metric='disk.root.size',
+                granularity=300, start_time=start_time, stop_time=stop_time,
+                aggregation='mean')
