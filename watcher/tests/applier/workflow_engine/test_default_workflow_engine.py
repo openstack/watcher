@@ -52,6 +52,9 @@ class FakeAction(abase.BaseAction):
     def execute(self):
         raise ExpectedException()
 
+    def get_description(self):
+        return "fake action, just for test"
+
 
 class TestDefaultWorkFlowEngine(base.DbTestCase):
     def setUp(self):
