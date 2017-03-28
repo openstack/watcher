@@ -26,13 +26,14 @@ SERVICE_OPTS = [
     cfg.IntOpt('periodic_interval',
                default=60,
                help=_('Seconds between running periodic tasks.')),
-    cfg.StrOpt('host',
-               default=socket.gethostname(),
-               help=_('Name of this node. This can be an opaque identifier. '
-                      'It is not necessarily a hostname, FQDN, or IP address. '
-                      'However, the node name must be valid within '
-                      'an AMQP key, and if using ZeroMQ, a valid '
-                      'hostname, FQDN, or IP address.')),
+    cfg.HostAddressOpt('host',
+                       default=socket.gethostname(),
+                       help=_('Name of this node. This can be an opaque '
+                              'identifier. It is not necessarily a hostname, '
+                              'FQDN, or IP address. However, the node name '
+                              'must be valid within an AMQP key, and if using '
+                              'ZeroMQ, a valid hostname, FQDN, or IP address.')
+                       ),
     cfg.IntOpt('service_down_time',
                default=90,
                help=_('Maximum time since last check-in for up service.'))

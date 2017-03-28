@@ -32,9 +32,10 @@ API_SERVICE_OPTS = [
     cfg.PortOpt('port',
                 default=9322,
                 help='The port for the watcher API server'),
-    cfg.StrOpt('host',
-               default='127.0.0.1',
-               help='The listen IP address for the watcher API server'),
+    cfg.HostAddressOpt('host',
+                       default='127.0.0.1',
+                       help='The listen IP address for the watcher API server'
+                       ),
     cfg.IntOpt('max_limit',
                default=1000,
                help='The maximum number of items returned in a single '
