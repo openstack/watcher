@@ -41,6 +41,9 @@ disable_service ceilometer-acompute
 # Enable the ceilometer api explicitly(bug:1667678)
 enable_service ceilometer-api
 
+# Enable the Gnocchi plugin
+enable_plugin gnocchi https://git.openstack.org/openstack/gnocchi
+
 LOGFILE=$DEST/logs/stack.sh.log
 LOGDAYS=2
 
