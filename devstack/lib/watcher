@@ -126,7 +126,7 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
 
-    iniset $WATCHER_CONF oslo_messaging_notifications driver "messaging"
+    iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
 
     iniset $NOVA_CONF oslo_messaging_notifications topics "notifications,watcher_notifications"
     iniset $NOVA_CONF notifications notify_on_state_change "vm_and_task_state"
