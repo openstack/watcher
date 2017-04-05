@@ -175,11 +175,12 @@ The HTML files are available into ``doc/build`` directory.
 Configure the Watcher services
 ==============================
 
-Watcher services require a configuration file. There is a sample configuration
-file that can be used to get started:
+Watcher services require a configuration file. Use tox to generate
+a sample configuration file that can be used to get started:
 
 .. code-block:: bash
 
+  $ tox -e genconfig
   $ cp etc/watcher.conf.sample etc/watcher.conf
 
 Most of the default configuration should be enough to get you going, but you
