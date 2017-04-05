@@ -14,7 +14,7 @@ Unit tests
 ==========
 
 All unit tests should be run using `tox`_. To run the same unit tests that are
-executing onto `Gerrit`_ which includes ``py34``, ``py27`` and ``pep8``, you
+executing onto `Gerrit`_ which includes ``py35``, ``py27`` and ``pep8``, you
 can issue the following command::
 
     $ workon watcher
@@ -26,7 +26,7 @@ If you want to only run one of the aforementioned, you can then issue one of
 the following::
 
     $ workon watcher
-    (watcher) $ tox -e py34
+    (watcher) $ tox -e py35
     (watcher) $ tox -e py27
     (watcher) $ tox -e pep8
 
