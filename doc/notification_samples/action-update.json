@@ -42,7 +42,7 @@
       "deleted_at": null
     }
   },
-  "event_type": "action.update"
+  "event_type": "action.update",
   "publisher_id": "infra-optim:node0",
   "timestamp": "2017-01-01 00:00:00.000000",
   "message_id": "530b409c-9b6b-459b-8f08-f93dbfeb4d41"
