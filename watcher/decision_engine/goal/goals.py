@@ -166,3 +166,29 @@ class AirflowOptimization(base.Goal):
     def get_efficacy_specification(cls):
         """The efficacy spec for the current goal"""
         return specs.Unclassified()
+
+
+class NoisyNeighborOptimization(base.Goal):
+    """NoisyNeighborOptimization
+
+    This goal is used to identify and migrate a Noisy Neighbor -
+    a low priority VM that negatively affects peformance of a high priority VM
+    in terms of IPC by over utilizing Last Level Cache.
+    """
+
+    @classmethod
+    def get_name(cls):
+        return "noisy_neighbor"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Noisy Neighbor")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Noisy Neighbor"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()

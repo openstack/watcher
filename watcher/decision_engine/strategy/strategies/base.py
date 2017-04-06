@@ -328,3 +328,11 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "workload_balancing"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class NoisyNeighborBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "noisy_neighbor"
