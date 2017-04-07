@@ -56,6 +56,7 @@ Getting Started
   dev/devstack
   deploy/configuration
   deploy/conf-files
+  deploy/apache-mod-wsgi
   dev/notifications
   dev/testing
   dev/rally_link

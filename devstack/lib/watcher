@@ -44,6 +44,9 @@ WATCHER_CONF_DIR=/etc/watcher
 WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
 WATCHER_POLICY_JSON=$WATCHER_CONF_DIR/policy.json
 
+WATCHER_DEVSTACK_DIR=$WATCHER_DIR/devstack
+WATCHER_DEVSTACK_FILES_DIR=$WATCHER_DEVSTACK_DIR/files
+
 NOVA_CONF_DIR=/etc/nova
 NOVA_CONF=$NOVA_CONF_DIR/nova.conf
 
@@ -51,6 +54,13 @@ if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
     WATCHER_SERVICE_PROTOCOL="https"
 fi
 
+WATCHER_USE_MOD_WSGI=$(trueorfalse TRUE WATCHER_USE_MOD_WSGI)
+
+if is_suse; then
+    WATCHER_WSGI_DIR=${WATCHER_WSGI_DIR:-/srv/www/htdocs/watcher}
+else
+    WATCHER_WSGI_DIR=${WATCHER_WSGI_DIR:-/var/www/watcher}
+fi
 # Public facing bits
 WATCHER_SERVICE_HOST=${WATCHER_SERVICE_HOST:-$HOST_IP}
 WATCHER_SERVICE_PORT=${WATCHER_SERVICE_PORT:-9322}
@@ -74,10 +84,21 @@ function is_watcher_enabled {
     return 1
 }
 
+#_cleanup_watcher_apache_wsgi - Remove wsgi files,
+#disable and remove apache vhost file
+function _cleanup_watcher_apache_wsgi {
+    sudo rm -rf $WATCHER_WSGI_DIR
+    sudo rm -f $(apache_site_config_for watcher-api)
+    restart_apache_server
+}
+
 # cleanup_watcher() - Remove residual data files, anything left over from previous
 # runs that a clean run would need to clean up
 function cleanup_watcher {
     sudo rm -rf $WATCHER_STATE_PATH $WATCHER_AUTH_CACHE_DIR
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        _cleanup_watcher_apache_wsgi
+    fi
 }
 
 # configure_watcher() - Set config files, create data dirs, etc
@@ -106,6 +127,28 @@ function create_watcher_accounts {
         "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT" \
         "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT" \
         "$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT"
+}
+
+# _config_watcher_apache_wsgi() - Set WSGI config files of watcher
+function _config_watcher_apache_wsgi {
+    local watcher_apache_conf
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        sudo mkdir -p $WATCHER_WSGI_DIR
+        sudo cp $WATCHER_DIR/watcher/api/app.wsgi $WATCHER_WSGI_DIR/app.wsgi
+        watcher_apache_conf=$(apache_site_config_for watcher-api)
+        sudo cp $WATCHER_DEVSTACK_FILES_DIR/apache-watcher-api.template $watcher_apache_conf
+        sudo sed -e "
+            s|%WATCHER_SERVICE_PORT%|$WATCHER_SERVICE_PORT|g;
+            s|%WATCHER_WSGI_DIR%|$WATCHER_WSGI_DIR|g;
+            s|%USER%|$STACK_USER|g;
+            s|%APIWORKERS%|$API_WORKERS|g;
+            s|%APACHE_NAME%|$APACHE_NAME|g;
+        " -i $watcher_apache_conf
+        enable_apache_site watcher-api
+        tail_log watcher-access /var/log/$APACHE_NAME/watcher-api-access.log
+        tail_log watcher-api /var/log/$APACHE_NAME/watcher-api.log
+   fi
+
 }
 
 # create_watcher_conf() - Create a new watcher.conf file
@@ -157,6 +200,10 @@ function create_watcher_conf {
         iniset $WATCHER_CONF DEFAULT logging_context_format_string "%(asctime)s.%(msecs)03d %(levelname)s %(name)s [%(request_id)s %(project_domain)s %(user_name)s %(project_name)s] %(instance)s%(message)s"
     fi
 
+    #config apache files
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        _config_watcher_apache_wsgi
+    fi
     # Register SSL certificates if provided
     if is_ssl_enabled_service watcher; then
         ensure_certificates WATCHER
@@ -205,19 +252,26 @@ function install_watcherclient {
 function install_watcher {
     git_clone $WATCHER_REPO $WATCHER_DIR $WATCHER_BRANCH
     setup_develop $WATCHER_DIR
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        install_apache_wsgi
+    fi
 }
 
 # start_watcher_api() - Start the API process ahead of other things
 function start_watcher_api {
     # Get right service port for testing
+
     local service_port=$WATCHER_SERVICE_PORT
     local service_protocol=$WATCHER_SERVICE_PROTOCOL
     if is_service_enabled tls-proxy; then
         service_port=$WATCHER_SERVICE_PORT_INT
         service_protocol="http"
     fi
-
-    run_process watcher-api "$WATCHER_BIN_DIR/watcher-api --config-file $WATCHER_CONF"
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        restart_apache_server
+    else
+        run_process watcher-api "$WATCHER_BIN_DIR/watcher-api --config-file $WATCHER_CONF"
+    fi
     echo "Waiting for watcher-api to start..."
     if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$WATCHER_SERVICE_HOST:$service_port; then
         die $LINENO "watcher-api did not start"
@@ -240,7 +294,12 @@ function start_watcher {
 
 # stop_watcher() - Stop running processes (non-screen)
 function stop_watcher {
-    for serv in watcher-api watcher-decision-engine watcher-applier; do
+    if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        disable_apache_site watcher-api
+    else
+        stop_process watcher-api
+    fi
+    for serv in watcher-decision-engine watcher-applier; do
         stop_process $serv
     done
 }

@@ -17,6 +17,10 @@ NETWORK_GATEWAY=10.254.1.1 # Change this for your network
 
 MULTI_HOST=1
 
+
+#Set this to FALSE if do not want to run watcher-api behind mod-wsgi
+#WATCHER_USE_MOD_WSGI=TRUE
+
 # This is the controller node, so disable nova-compute
 disable_service n-cpu
 
