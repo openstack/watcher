@@ -28,6 +28,7 @@ It assumes that live migrations are possible in your cluster.
 """
 
 import copy
+import datetime
 import itertools
 import math
 import random
@@ -41,6 +42,7 @@ import oslo_utils
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -72,6 +74,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         """
         super(WorkloadStabilization, self).__init__(config, osc)
         self._ceilometer = None
+        self._gnocchi = None
         self._nova = None
         self.weights = None
         self.metrics = None
@@ -92,6 +95,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     @classmethod
     def get_translatable_display_name(cls):
         return "Workload stabilization"
+
+    @property
+    def granularity(self):
+        return self.input_parameters.get('granularity', 300)
 
     @classmethod
     def get_schema(cls):
@@ -149,9 +156,25 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                                    " ones.",
                     "type": "object",
                     "default": {"instance": 720, "node": 600}
-                }
+                },
+                "granularity": {
+                    "description": "The time between two measures in an "
+                                   "aggregated timeseries of a metric.",
+                    "type": "number",
+                    "default": 300
+                },
             }
         }
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                default="ceilometer",
+                choices=["ceilometer", "gnocchi"])
+        ]
 
     @property
     def ceilometer(self):
@@ -173,6 +196,16 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def ceilometer(self, c):
         self._ceilometer = c
 
+    @property
+    def gnocchi(self):
+        if self._gnocchi is None:
+            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+        return self._gnocchi
+
+    @gnocchi.setter
+    def gnocchi(self, gnocchi):
+        self._gnocchi = gnocchi
+
     def transform_instance_cpu(self, instance_load, host_vcpus):
         """Transform instance cpu utilization to overall host cpu utilization.
 
@@ -186,7 +219,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
 
     @MEMOIZE
     def get_instance_load(self, instance):
-        """Gathering instance load through ceilometer statistic.
+        """Gathering instance load through ceilometer/gnocchi statistic.
 
         :param instance: instance for which statistic is gathered.
         :return: dict
@@ -194,12 +227,26 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         LOG.debug('get_instance_load started')
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
-            avg_meter = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid,
-                meter_name=meter,
-                period=self.periods['instance'],
-                aggregate='min'
-            )
+            avg_meter = None
+            if self.config.datasource == "ceilometer":
+                avg_meter = self.ceilometer.statistic_aggregation(
+                    resource_id=instance.uuid,
+                    meter_name=meter,
+                    period=self.periods['instance'],
+                    aggregate='min'
+                )
+            elif self.config.datasource == "gnocchi":
+                stop_time = datetime.datetime.utcnow()
+                start_time = stop_time - datetime.timedelta(
+                    seconds=int(self.periods['instance']))
+                avg_meter = self.gnocchi.statistic_aggregation(
+                    resource_id=instance.uuid,
+                    metric=meter,
+                    granularity=self.granularity,
+                    start_time=start_time,
+                    stop_time=stop_time,
+                    aggregation='mean'
+                )
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
@@ -232,21 +279,34 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         for node_id, node in self.get_available_nodes().items():
             hosts_load[node_id] = {}
             hosts_load[node_id]['vcpus'] = node.vcpus
-
             for metric in self.metrics:
                 resource_id = ''
+                avg_meter = None
                 meter_name = self.instance_metrics[metric]
                 if re.match('^compute.node', meter_name) is not None:
                     resource_id = "%s_%s" % (node.uuid, node.hostname)
                 else:
                     resource_id = node_id
+                if self.config.datasource == "ceilometer":
+                    avg_meter = self.ceilometer.statistic_aggregation(
+                        resource_id=resource_id,
+                        meter_name=self.instance_metrics[metric],
+                        period=self.periods['node'],
+                        aggregate='avg'
+                    )
+                elif self.config.datasource == "gnocchi":
+                    stop_time = datetime.datetime.utcnow()
+                    start_time = stop_time - datetime.timedelta(
+                        seconds=int(self.periods['node']))
+                    avg_meter = self.gnocchi.statistic_aggregation(
+                        resource_id=resource_id,
+                        metric=self.instance_metrics[metric],
+                        granularity=self.granularity,
+                        start_time=start_time,
+                        stop_time=stop_time,
+                        aggregation='mean'
+                    )
 
-                avg_meter = self.ceilometer.statistic_aggregation(
-                    resource_id=resource_id,
-                    meter_name=self.instance_metrics[metric],
-                    period=self.periods['node'],
-                    aggregate='avg'
-                )
                 if avg_meter is None:
                     raise exception.NoSuchMetricForHost(
                         metric=meter_name,
