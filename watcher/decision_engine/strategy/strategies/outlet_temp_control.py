@@ -28,11 +28,14 @@ Outlet (Exhaust Air) Temperature is one of the important thermal
 telemetries to measure thermal/workload status of server.
 """
 
+import datetime
+
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
 from watcher.datasource import ceilometer as ceil
+from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -71,8 +74,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     """  # noqa
 
     # The meter to report outlet temperature in ceilometer
-    METER_NAME = "hardware.ipmi.node.outlet_temperature"
     MIGRATION = "migrate"
+
+    METRIC_NAMES = dict(
+        ceilometer=dict(
+            host_outlet_temp='hardware.ipmi.node.outlet_temperature'),
+        gnocchi=dict(
+            host_outlet_temp='hardware.ipmi.node.outlet_temperature'),
+    )
 
     def __init__(self, config, osc=None):
         """Outlet temperature control using live migration
@@ -83,8 +92,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
         super(OutletTempControl, self).__init__(config, osc)
-        self._meter = self.METER_NAME
         self._ceilometer = None
+        self._gnocchi = None
 
     @classmethod
     def get_name(cls):
@@ -118,6 +127,12 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                     "type": "number",
                     "default": 30
                 },
+                "granularity": {
+                    "description": "The time between two measures in an "
+                                   "aggregated timeseries of a metric.",
+                    "type": "number",
+                    "default": 300
+                },
             },
         }
 
@@ -130,6 +145,20 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     @ceilometer.setter
     def ceilometer(self, c):
         self._ceilometer = c
+
+    @property
+    def gnocchi(self):
+        if self._gnocchi is None:
+            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+        return self._gnocchi
+
+    @gnocchi.setter
+    def gnocchi(self, g):
+        self._gnocchi = g
+
+    @property
+    def granularity(self):
+        return self.input_parameters.get('granularity', 300)
 
     def calc_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
@@ -153,14 +182,31 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         hosts_need_release = []
         hosts_target = []
+        metric_name = self.METRIC_NAMES[
+            self.config.datasource]['host_outlet_temp']
         for node in nodes.values():
             resource_id = node.uuid
+            outlet_temp = None
 
-            outlet_temp = self.ceilometer.statistic_aggregation(
-                resource_id=resource_id,
-                meter_name=self._meter,
-                period=self.period,
-                aggregate='avg')
+            if self.config.datasource == "ceilometer":
+                outlet_temp = self.ceilometer.statistic_aggregation(
+                    resource_id=resource_id,
+                    meter_name=metric_name,
+                    period=self.period,
+                    aggregate='avg'
+                )
+            elif self.config.datasource == "gnocchi":
+                stop_time = datetime.datetime.utcnow()
+                start_time = stop_time - datetime.timedelta(
+                    seconds=int(self.period))
+                outlet_temp = self.gnocchi.statistic_aggregation(
+                    resource_id=resource_id,
+                    metric=metric_name,
+                    granularity=self.granularity,
+                    start_time=start_time,
+                    stop_time=stop_time,
+                    aggregation='mean'
+                )
             # some hosts may not have outlet temp meters, remove from target
             if outlet_temp is None:
                 LOG.warning("%s: no outlet temp data", resource_id)
