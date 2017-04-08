@@ -157,8 +157,8 @@ class TestExecuteBasicStrategy(base.BaseInfraOptimScenarioTest):
 
         _, finished_audit = self.client.show_audit(audit['uuid'])
         if finished_audit.get('state') in ('FAILED', 'CANCELLED'):
-            self.fail("The audit ended in unexpected state: %s!",
-                      finished_audit.get('state'))
+            self.fail("The audit ended in unexpected state: %s!"
+                      % finished_audit.get('state'))
 
         _, action_plans = self.client.list_action_plans(
             audit_uuid=audit['uuid'])
