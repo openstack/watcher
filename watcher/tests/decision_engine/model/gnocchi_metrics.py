@@ -45,6 +45,13 @@ class FakeGnocchiMetrics(object):
             result = self.get_average_power(resource_id)
         return result
 
+    def mock_get_statistics_wb(self, resource_id, metric, granularity,
+                               start_time, stop_time, aggregation='mean'):
+        result = 0.0
+        if metric == "cpu_util":
+            result = self.get_average_usage_instance_cpu_wb(resource_id)
+        return result
+
     @staticmethod
     def get_average_outlet_temperature(uuid):
         """The average outlet temperature for host"""
@@ -106,8 +113,8 @@ class FakeGnocchiMetrics(object):
     def get_usage_node_cpu(uuid):
         """The last VM CPU usage values to average
 
-        :param uuid:00
-        :return:
+        :param uuid: instance UUID
+        :return: float value
         """
         # Normalize
         mock = {}
@@ -142,8 +149,8 @@ class FakeGnocchiMetrics(object):
     def get_average_usage_instance_cpu(uuid):
         """The last VM CPU usage values to average
 
-        :param uuid:00
-        :return:
+        :param uuid: instance UUID
+        :return: int value
         """
 
         # Normalize
@@ -214,3 +221,24 @@ class FakeGnocchiMetrics(object):
             mock[uuid] = 4
 
         return mock[str(uuid)]
+
+    @staticmethod
+    def get_average_usage_instance_cpu_wb(uuid):
+        """The last VM CPU usage values to average
+
+        :param uuid: instance UUID
+        :return: float value
+        """
+        # query influxdb stream
+
+        # compute in stream
+
+        # Normalize
+        mock = {}
+        # node 0
+        mock['INSTANCE_1'] = 80
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 50
+        # node 1
+        mock['INSTANCE_3'] = 20
+        mock['INSTANCE_4'] = 10
+        return float(mock[str(uuid)])
