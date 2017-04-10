@@ -25,7 +25,7 @@ operating costs, increased system performance via intelligent virtual machine
 migration, increased energy efficiency-and more!
 
 * Free software: Apache license
-* Wiki: http://wiki.openstack.org/wiki/Watcher
+* Wiki: https://wiki.openstack.org/wiki/Watcher
 * Source:  https://github.com/openstack/watcher
-* Bugs: http://bugs.launchpad.net/watcher
-* Documentation: http://docs.openstack.org/developer/watcher/
+* Bugs: https://bugs.launchpad.net/watcher
+* Documentation: https://docs.openstack.org/developer/watcher/
