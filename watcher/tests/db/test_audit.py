@@ -53,6 +53,10 @@ class TestDbAuditFilters(base.DbTestCase):
             self.audit3 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=3, uuid=None,
                 state=objects.audit.State.CANCELLED)
+        with freezegun.freeze_time(self.FAKE_OLDER_DATE):
+            self.audit4 = utils.create_test_audit(
+                audit_template_id=self.audit_template.id, id=4, uuid=None,
+                state=objects.audit.State.SUSPENDED)
 
     def _soft_delete_audits(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -92,8 +96,9 @@ class TestDbAuditFilters(base.DbTestCase):
         res = self.dbapi.get_audit_list(
             self.context, filters={'deleted': False})
 
-        self.assertEqual([self.audit2['id'], self.audit3['id']],
-                         [r.id for r in res])
+        self.assertEqual(
+            [self.audit2['id'], self.audit3['id'], self.audit4['id']],
+            [r.id for r in res])
 
     def test_get_audit_list_filter_deleted_at_eq(self):
         self._soft_delete_audits()
@@ -154,7 +159,7 @@ class TestDbAuditFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            [self.audit2['id'], self.audit3['id']],
+            [self.audit2['id'], self.audit3['id'], self.audit4['id']],
             [r.id for r in res])
 
     def test_get_audit_list_filter_created_at_lte(self):
@@ -162,7 +167,7 @@ class TestDbAuditFilters(base.DbTestCase):
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            [self.audit2['id'], self.audit3['id']],
+            [self.audit2['id'], self.audit3['id'], self.audit4['id']],
             [r.id for r in res])
 
     def test_get_audit_list_filter_created_at_gt(self):
@@ -230,18 +235,22 @@ class TestDbAuditFilters(base.DbTestCase):
     def test_get_audit_list_filter_state_in(self):
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state__in': (objects.audit.State.FAILED,
-                                   objects.audit.State.CANCELLED)})
+            filters={
+                'state__in':
+                    objects.audit.AuditStateTransitionManager.INACTIVE_STATES
+            })
 
         self.assertEqual(
-            [self.audit2['id'], self.audit3['id']],
+            [self.audit2['id'], self.audit3['id'], self.audit4['id']],
             [r.id for r in res])
 
     def test_get_audit_list_filter_state_notin(self):
         res = self.dbapi.get_audit_list(
             self.context,
-            filters={'state__notin': (objects.audit.State.FAILED,
-                                      objects.audit.State.CANCELLED)})
+            filters={
+                'state__notin':
+                    objects.audit.AuditStateTransitionManager.INACTIVE_STATES
+            })
 
         self.assertEqual(
             [self.audit1['id']],

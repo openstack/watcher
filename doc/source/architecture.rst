@@ -407,6 +407,9 @@ be one of the following:
 -  **CANCELLED** : the :ref:`Audit <audit_definition>` was in **PENDING** or
    **ONGOING** state and was cancelled by the
    :ref:`Administrator <administrator_definition>`
+-  **SUSPENDED** : the :ref:`Audit <audit_definition>` was in **ONGOING**
+   state and was suspended by the
+   :ref:`Administrator <administrator_definition>`
 
 The following diagram shows the different possible states of an
 :ref:`Audit <audit_definition>` and what event makes the state change to a new

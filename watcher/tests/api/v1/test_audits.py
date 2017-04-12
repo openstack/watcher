@@ -345,23 +345,10 @@ class TestPatch(api_base.FunctionalTest):
 
 
 ALLOWED_TRANSITIONS = [
-    {"original_state": objects.audit.State.PENDING,
-     "new_state": objects.audit.State.ONGOING},
-    {"original_state": objects.audit.State.PENDING,
-     "new_state": objects.audit.State.CANCELLED},
-    {"original_state": objects.audit.State.ONGOING,
-     "new_state": objects.audit.State.FAILED},
-    {"original_state": objects.audit.State.ONGOING,
-     "new_state": objects.audit.State.SUCCEEDED},
-    {"original_state": objects.audit.State.ONGOING,
-     "new_state": objects.audit.State.CANCELLED},
-    {"original_state": objects.audit.State.FAILED,
-     "new_state": objects.audit.State.DELETED},
-    {"original_state": objects.audit.State.SUCCEEDED,
-     "new_state": objects.audit.State.DELETED},
-    {"original_state": objects.audit.State.CANCELLED,
-     "new_state": objects.audit.State.DELETED},
-]
+    {"original_state": key, "new_state": value}
+    for key, values in (
+        objects.audit.AuditStateTransitionManager.TRANSITIONS.items())
+    for value in values]
 
 
 class TestPatchStateTransitionDenied(api_base.FunctionalTest):

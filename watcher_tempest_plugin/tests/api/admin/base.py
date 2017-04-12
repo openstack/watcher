@@ -27,9 +27,16 @@ class BaseInfraOptimTest(test.BaseTestCase):
     """Base class for Infrastructure Optimization API tests."""
 
     # States where the object is waiting for some event to perform a transition
-    IDLE_STATES = ('RECOMMENDED', 'FAILED', 'SUCCEEDED', 'CANCELLED')
+    IDLE_STATES = ('RECOMMENDED',
+                   'FAILED',
+                   'SUCCEEDED',
+                   'CANCELLED',
+                   'SUSPENDED')
     # States where the object can only be DELETED (end of its life-cycle)
-    FINISHED_STATES = ('FAILED', 'SUCCEEDED', 'CANCELLED', 'SUPERSEDED')
+    FINISHED_STATES = ('FAILED',
+                       'SUCCEEDED',
+                       'CANCELLED',
+                       'SUPERSEDED')
 
     @classmethod
     def setup_credentials(cls):
