@@ -85,6 +85,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "disk": 20,
                 "disk_capacity": 20,
                 "vcpus": 10,
+                "metadata":
+                    '{"optimize": true,"top": "floor","nested": {"x": "y"}}'
             }
 
             instance = element.Instance(**instance_attributes)

@@ -159,7 +159,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "datasource",
                 help="Data source to use in order to query the needed metrics",
                 default="ceilometer",
-                choices=["ceilometer", "monasca", "gnocchi"])
+                choices=["ceilometer", "monasca", "gnocchi"]),
+            cfg.BoolOpt(
+                "check_optimize_metadata",
+                help="Check optimize metadata field in instance before "
+                     "migration",
+                default=False),
         ]
 
     @property
@@ -437,9 +442,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def node_and_instance_score(self, sorted_scores):
         """Get List of VMs from node"""
         node_to_release = sorted_scores[len(sorted_scores) - 1][0]
-        instances_to_migrate = self.compute_model.get_node_instances(
+        instances = self.compute_model.get_node_instances(
             self.compute_model.get_node_by_uuid(node_to_release))
 
+        instances_to_migrate = self.filter_instances_by_audit_tag(instances)
         instance_score = []
         for instance in instances_to_migrate:
             if instance.state == element.InstanceState.ACTIVE.value:

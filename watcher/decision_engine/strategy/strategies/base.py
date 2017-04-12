@@ -39,6 +39,8 @@ which are dynamically loaded by Watcher at launch time.
 import abc
 import six
 
+from oslo_utils import strutils
+
 from watcher.common import clients
 from watcher.common import context
 from watcher.common import exception
@@ -263,6 +265,22 @@ class BaseStrategy(loadable.Loadable):
     @state_collector.setter
     def state_collector(self, s):
         self._cluster_state_collector = s
+
+    def filter_instances_by_audit_tag(self, instances):
+        if not self.config.check_optimize_metadata:
+            return instances
+        instances_to_migrate = []
+        for instance in instances:
+            optimize = True
+            if instance.metadata:
+                try:
+                    optimize = strutils.bool_from_string(
+                        instance.metadata.get('optimize'))
+                except ValueError:
+                    optimize = False
+            if optimize:
+                instances_to_migrate.append(instance)
+        return instances_to_migrate
 
 
 @six.add_metaclass(abc.ABCMeta)
