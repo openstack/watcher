@@ -58,5 +58,6 @@ class DefaultApplier(base.BaseApplier):
         LOG.debug("Executing action plan %s ", action_plan_uuid)
 
         filters = {'action_plan_uuid': action_plan_uuid}
-        actions = objects.Action.list(self.context, filters=filters)
+        actions = objects.Action.list(self.context, filters=filters,
+                                      eager=True)
         return self.engine.execute(actions)
