@@ -14,6 +14,7 @@ from ceilometerclient import client as ceclient
 from cinderclient import client as ciclient
 from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
+from ironicclient import client as irclient
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
 from monascaclient import client as monclient
@@ -45,6 +46,7 @@ class OpenStackClients(object):
         self._ceilometer = None
         self._monasca = None
         self._neutron = None
+        self._ironic = None
 
     def _get_keystone_session(self):
         auth = ka_loading.load_auth_from_conf_options(CONF,
@@ -188,3 +190,15 @@ class OpenStackClients(object):
                                          session=self.session)
         self._neutron.format = 'json'
         return self._neutron
+
+    @exception.wrap_keystone_exception
+    def ironic(self):
+        if self._ironic:
+            return self._ironic
+
+        ironicclient_version = self._get_client_option('ironic', 'api_version')
+        endpoint_type = self._get_client_option('ironic', 'endpoint_type')
+        self._ironic = irclient.get_client(ironicclient_version,
+                                           ironic_url=endpoint_type,
+                                           session=self.session)
+        return self._ironic
