@@ -109,6 +109,21 @@ class AuditTemplatePostType(wtypes.Base):
         common_utils.Draft4Validator(
             default.DefaultScope.DEFAULT_SCHEMA).validate(audit_template.scope)
 
+        include_host_aggregates = False
+        exclude_host_aggregates = False
+        for rule in audit_template.scope:
+            if 'host_aggregates' in rule:
+                include_host_aggregates = True
+            elif 'exclude' in rule:
+                for resource in rule['exclude']:
+                    if 'host_aggregates' in resource:
+                        exclude_host_aggregates = True
+        if include_host_aggregates and exclude_host_aggregates:
+            raise exception.Invalid(
+                message=_(
+                    "host_aggregates can't be "
+                    "included and excluded together"))
+
         if audit_template.strategy:
             available_strategies = objects.Strategy.list(
                 AuditTemplatePostType._ctx)

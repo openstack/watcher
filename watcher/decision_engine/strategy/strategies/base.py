@@ -235,7 +235,7 @@ class BaseStrategy(loadable.Loadable):
     def audit_scope_handler(self):
         if not self._audit_scope_handler:
             self._audit_scope_handler = default_scope.DefaultScope(
-                self.audit_scope)
+                self.audit_scope, self.config)
         return self._audit_scope_handler
 
     @property

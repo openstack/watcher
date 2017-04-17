@@ -193,8 +193,8 @@ class TestBasicConsolidation(base.TestCase):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()
         self.m_model.return_value = copy.deepcopy(model)
 
-        self.assertEqual(
-            model.to_string(), self.strategy.compute_model.to_string())
+        self.assertTrue(model_root.ModelRoot.is_isomorphic(
+            model, self.strategy.compute_model))
         self.assertIsNot(model, self.strategy.compute_model)
 
     def test_basic_consolidation_migration(self):

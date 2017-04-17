@@ -82,6 +82,23 @@ class DefaultScope(base.BaseScope):
                                         }
                                     }
                                 }
+                            },
+                            "host_aggregates": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "anyOf": [
+                                            {"type": ["string", "number"]}
+                                        ]
+                                    },
+                                }
+                            },
+                            "instance_metadata": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
                             }
                         },
                         "additionalProperties": False
@@ -92,8 +109,8 @@ class DefaultScope(base.BaseScope):
         }
     }
 
-    def __init__(self, scope, osc=None):
-        super(DefaultScope, self).__init__(scope)
+    def __init__(self, scope, config, osc=None):
+        super(DefaultScope, self).__init__(scope, config)
         self._osc = osc
         self.wrapper = nova_helper.NovaHelper(osc=self._osc)
 
@@ -110,7 +127,7 @@ class DefaultScope(base.BaseScope):
                     resource="host aggregates")
         return False
 
-    def _collect_aggregates(self, host_aggregates, allowed_nodes):
+    def _collect_aggregates(self, host_aggregates, compute_nodes):
         aggregate_list = self.wrapper.get_aggregate_list()
         aggregate_ids = [aggregate['id'] for aggregate
                          in host_aggregates if 'id' in aggregate]
@@ -125,7 +142,7 @@ class DefaultScope(base.BaseScope):
             if (detailed_aggregate.id in aggregate_ids or
                 detailed_aggregate.name in aggregate_names or
                     include_all_nodes):
-                allowed_nodes.extend(detailed_aggregate.hosts)
+                compute_nodes.extend(detailed_aggregate.hosts)
 
     def _collect_zones(self, availability_zones, allowed_nodes):
         zone_list = self.wrapper.get_availability_zone_list()
@@ -145,6 +162,8 @@ class DefaultScope(base.BaseScope):
     def exclude_resources(self, resources, **kwargs):
         instances_to_exclude = kwargs.get('instances')
         nodes_to_exclude = kwargs.get('nodes')
+        instance_metadata = kwargs.get('instance_metadata')
+
         for resource in resources:
             if 'instances' in resource:
                 instances_to_exclude.extend(
@@ -154,6 +173,14 @@ class DefaultScope(base.BaseScope):
                 nodes_to_exclude.extend(
                     [host['name'] for host
                      in resource['compute_nodes']])
+            elif 'host_aggregates' in resource:
+                prohibited_nodes = []
+                self._collect_aggregates(resource['host_aggregates'],
+                                         prohibited_nodes)
+                nodes_to_exclude.extend(prohibited_nodes)
+            elif 'instance_metadata' in resource:
+                instance_metadata.extend(
+                    [metadata for metadata in resource['instance_metadata']])
 
     def remove_nodes_from_model(self, nodes_to_remove, cluster_model):
         for node_uuid in nodes_to_remove:
@@ -179,6 +206,19 @@ class DefaultScope(base.BaseScope):
                 cluster_model.get_instance_by_uuid(instance_uuid),
                 node_name)
 
+    def exclude_instances_with_given_metadata(
+            self, instance_metadata, cluster_model, instances_to_remove):
+        metadata_dict = {
+            key: val for d in instance_metadata for key, val in d.items()}
+        instances = cluster_model.get_all_instances()
+        for uuid, instance in instances.items():
+            metadata = instance.metadata
+            common_metadata = set(metadata_dict) & set(metadata)
+            if common_metadata and len(common_metadata) == len(metadata_dict):
+                for key, value in metadata_dict.items():
+                    if str(value).lower() == str(metadata.get(key)).lower():
+                        instances_to_remove.add(uuid)
+
     def get_scoped_model(self, cluster_model):
         """Leave only nodes and instances proposed in the audit scope"""
         if not cluster_model:
@@ -188,6 +228,7 @@ class DefaultScope(base.BaseScope):
         nodes_to_exclude = []
         nodes_to_remove = set()
         instances_to_exclude = []
+        instance_metadata = []
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
         if not self.scope:
@@ -203,7 +244,8 @@ class DefaultScope(base.BaseScope):
             elif 'exclude' in rule:
                 self.exclude_resources(
                     rule['exclude'], instances=instances_to_exclude,
-                    nodes=nodes_to_exclude)
+                    nodes=nodes_to_exclude,
+                    instance_metadata=instance_metadata)
 
         instances_to_remove = set(instances_to_exclude)
         if allowed_nodes:
@@ -211,6 +253,11 @@ class DefaultScope(base.BaseScope):
         nodes_to_remove.update(nodes_to_exclude)
 
         self.remove_nodes_from_model(nodes_to_remove, cluster_model)
+
+        if instance_metadata and self.config.check_optimize_metadata:
+            self.exclude_instances_with_given_metadata(
+                instance_metadata, cluster_model, instances_to_remove)
+
         self.remove_instances_from_model(instances_to_remove, cluster_model)
 
         return cluster_model
