@@ -424,7 +424,7 @@ to Watcher receives Nova notifications in ``watcher_notifications`` as well.
     into which Nova services will publish events ::
 
       [oslo_messaging_notifications]
-      driver = messaging
+      driver = messagingv2
       topics = notifications,watcher_notifications
 
   * Restart the Nova services.
