@@ -171,7 +171,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
         :param audit_template_uuid: Audit Template UUID this audit will use
         :param audit_type: Audit type (either ONESHOT or CONTINUOUS)
         :param state: Audit state (str)
-        :param interval: Audit interval in seconds (int)
+        :param interval: Audit interval in seconds or cron syntax (str)
         :return: A tuple with The HTTP response and its body
         """
         resp, body = cls.client.create_audit(

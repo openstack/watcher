@@ -202,6 +202,10 @@ class InvalidUuidOrName(Invalid):
     msg_fmt = _("Expected a logical name or uuid but received %(name)s")
 
 
+class InvalidIntervalOrCron(Invalid):
+    msg_fmt = _("Expected an interval or cron syntax but received %(name)s")
+
+
 class GoalNotFound(ResourceNotFound):
     msg_fmt = _("Goal %(goal)s could not be found")
 
@@ -416,6 +420,10 @@ class ServiceNotFound(ResourceNotFound):
 class WildcardCharacterIsUsed(WatcherException):
     msg_fmt = _("You shouldn't use any other IDs of %(resource)s if you use "
                 "wildcard character.")
+
+
+class CronFormatIsInvalid(WatcherException):
+    msg_fmt = _("Provided cron is invalid: %(message)s")
 
 
 # Model

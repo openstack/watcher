@@ -69,9 +69,11 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
                     "interval": None,
+                    "next_run_time": None,
+                    "auto_trigger": False,
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -141,9 +143,11 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
                     "interval": None,
+                    "next_run_time": None,
+                    "auto_trigger": False,
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
                     "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
@@ -200,9 +204,11 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
                     "interval": None,
+                    "next_run_time": None,
+                    "auto_trigger": False,
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -263,9 +269,11 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
                     "interval": None,
+                    "next_run_time": None,
+                    "auto_trigger": False,
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -350,6 +358,8 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.version": "1.0"
                         },
                         "interval": None,
+                        "next_run_time": None,
+                        "auto_trigger": False,
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
@@ -374,7 +384,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification
@@ -434,6 +444,8 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.version": "1.0"
                         },
                         "interval": None,
+                        "next_run_time": None,
+                        "auto_trigger": False,
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
@@ -458,7 +470,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification

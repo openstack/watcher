@@ -173,11 +173,12 @@ class Audit(Base):
     audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
     parameters = Column(JSONEncodedDict, nullable=True)
-    interval = Column(Integer, nullable=True)
+    interval = Column(String(36), nullable=True)
     goal_id = Column(Integer, ForeignKey('goals.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=True)
     scope = Column(JSONEncodedList, nullable=True)
     auto_trigger = Column(Boolean, nullable=False)
+    next_run_time = Column(DateTime, nullable=True)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)

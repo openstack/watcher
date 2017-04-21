@@ -63,7 +63,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         audit_params = dict(
             audit_template_uuid=audit_template['uuid'],
             audit_type='CONTINUOUS',
-            interval=7200,
+            interval='7200',
         )
 
         _, body = self.create_audit(**audit_params)

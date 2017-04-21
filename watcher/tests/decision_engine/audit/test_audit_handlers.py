@@ -14,12 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import datetime
+
 import mock
 from oslo_utils import uuidutils
 
 from apscheduler import job
 
 from watcher.applier import rpcapi
+from watcher.common import exception
 from watcher.common import scheduling
 from watcher.db.sqlalchemy import api as sq_api
 from watcher.decision_engine.audit import continuous
@@ -241,20 +244,65 @@ class TestContinuousAuditHandler(base.DbTestCase):
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
-    def test_launch_audits_periodically(self, mock_list, mock_jobs,
-                                        m_add_job, m_engine, m_service):
+    def test_launch_audits_periodically_with_interval(
+            self, mock_list, mock_jobs, m_add_job, m_engine, m_service):
         audit_handler = continuous.ContinuousAuditHandler()
         mock_list.return_value = self.audits
+        self.audits[0].next_run_time = (datetime.datetime.now() -
+                                        datetime.timedelta(seconds=1800))
         mock_jobs.return_value = mock.MagicMock()
         m_engine.return_value = mock.MagicMock()
-        m_add_job.return_value = audit_handler.execute_audit(
-            self.audits[0], self.context)
+        m_add_job.return_value = mock.MagicMock()
 
         audit_handler.launch_audits_periodically()
         m_service.assert_called()
         m_engine.assert_called()
         m_add_job.assert_called()
         mock_jobs.assert_called()
+        self.assertIsNotNone(self.audits[0].next_run_time)
+        self.assertIsNone(self.audits[1].next_run_time)
+
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
+    @mock.patch.object(objects.audit.Audit, 'list')
+    def test_launch_audits_periodically_with_cron(
+            self, mock_list, mock_jobs, m_add_job, m_engine, m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
+        mock_list.return_value = self.audits
+        self.audits[0].interval = "*/5 * * * *"
+        mock_jobs.return_value = mock.MagicMock()
+        m_engine.return_value = mock.MagicMock()
+        m_add_job.return_value = mock.MagicMock()
+
+        audit_handler.launch_audits_periodically()
+        m_service.assert_called()
+        m_engine.assert_called()
+        m_add_job.assert_called()
+        mock_jobs.assert_called()
+        self.assertIsNotNone(self.audits[0].next_run_time)
+        self.assertIsNone(self.audits[1].next_run_time)
+
+    @mock.patch.object(continuous.ContinuousAuditHandler, '_next_cron_time')
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
+    @mock.patch.object(objects.audit.Audit, 'list')
+    def test_launch_audits_periodically_with_invalid_cron(
+            self, mock_list, mock_jobs, m_add_job, m_engine, m_service,
+            mock_cron):
+        audit_handler = continuous.ContinuousAuditHandler()
+        mock_list.return_value = self.audits
+        self.audits[0].interval = "*/5* * * *"
+        mock_cron.side_effect = exception.CronFormatIsInvalid
+        mock_jobs.return_value = mock.MagicMock()
+        m_engine.return_value = mock.MagicMock()
+        m_add_job.return_value = mock.MagicMock()
+
+        self.assertRaises(exception.CronFormatIsInvalid,
+                          audit_handler.launch_audits_periodically)
 
     @mock.patch.object(objects.service.Service, 'list')
     @mock.patch.object(sq_api, 'get_engine')
@@ -273,7 +321,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
                            args=[mock.ANY, mock.ANY],
                            seconds=3600,
                            name='execute_audit',
-                           next_run_time=mock.ANY) for audit in self.audits]
+                           next_run_time=mock.ANY) for _ in self.audits]
         audit_handler.launch_audits_periodically()
         m_add_job.assert_has_calls(calls)
 

@@ -39,6 +39,8 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
         'parameters': ('audit', 'parameters'),
         'interval': ('audit', 'interval'),
         'scope': ('audit', 'scope'),
+        'auto_trigger': ('audit', 'auto_trigger'),
+        'next_run_time': ('audit', 'next_run_time'),
 
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
@@ -46,17 +48,22 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     }
 
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' boolean field,
+    #              Added 'next_run_time' DateTime field,
+    #              'interval' type has been changed from Integer to String
+    VERSION = '1.1'
 
     fields = {
         'uuid': wfields.UUIDField(),
         'audit_type': wfields.StringField(),
         'state': wfields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
-        'interval': wfields.IntegerField(nullable=True),
+        'interval': wfields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
+        'auto_trigger': wfields.BooleanField(),
+        'next_run_time': wfields.DateTimeField(nullable=True),
 
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
@@ -79,6 +86,8 @@ class AuditPayload(TerseAuditPayload):
         'parameters': ('audit', 'parameters'),
         'interval': ('audit', 'interval'),
         'scope': ('audit', 'scope'),
+        'auto_trigger': ('audit', 'auto_trigger'),
+        'next_run_time': ('audit', 'next_run_time'),
 
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
@@ -86,7 +95,9 @@ class AuditPayload(TerseAuditPayload):
     }
 
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' field,
+    #              Added 'next_run_time' field
+    VERSION = '1.1'
 
     fields = {
         'goal': wfields.ObjectField('GoalPayload'),
@@ -119,7 +130,9 @@ class AuditStateUpdatePayload(notificationbase.NotificationPayloadBase):
 @base.WatcherObjectRegistry.register_notification
 class AuditCreatePayload(AuditPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' field,
+    #              Added 'next_run_time' field
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, audit, goal, strategy):
@@ -133,7 +146,9 @@ class AuditCreatePayload(AuditPayload):
 @base.WatcherObjectRegistry.register_notification
 class AuditUpdatePayload(AuditPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' field,
+    #              Added 'next_run_time' field
+    VERSION = '1.1'
     fields = {
         'state_update': wfields.ObjectField('AuditStateUpdatePayload'),
     }
@@ -150,7 +165,9 @@ class AuditUpdatePayload(AuditPayload):
 @base.WatcherObjectRegistry.register_notification
 class AuditActionPayload(AuditPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' field,
+    #              Added 'next_run_time' field
+    VERSION = '1.1'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -167,7 +184,9 @@ class AuditActionPayload(AuditPayload):
 @base.WatcherObjectRegistry.register_notification
 class AuditDeletePayload(AuditPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'auto_trigger' field,
+    #              Added 'next_run_time' field
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, audit, goal, strategy):
