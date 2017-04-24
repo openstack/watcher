@@ -108,8 +108,14 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def do_execute(self, *args, **kwargs):
         LOG.debug("Running action: %s", self.name)
 
-        self.action.execute()
-        self.engine.notify(self._db_action, objects.action.State.SUCCEEDED)
+        # NOTE: For result is False, set action state fail
+        result = self.action.execute()
+        if result is False:
+            self.engine.notify(self._db_action,
+                               objects.action.State.FAILED)
+        else:
+            self.engine.notify(self._db_action,
+                               objects.action.State.SUCCEEDED)
 
     def do_post_execute(self):
         LOG.debug("Post-condition action: %s", self.name)
