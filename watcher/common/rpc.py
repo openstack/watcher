@@ -17,6 +17,8 @@ from oslo_config import cfg
 from oslo_log import log
 import oslo_messaging as messaging
 
+from oslo_messaging.rpc import dispatcher
+
 from watcher.common import context as watcher_context
 from watcher.common import exception
 
@@ -128,12 +130,14 @@ def get_client(target, version_cap=None, serializer=None):
 
 def get_server(target, endpoints, serializer=None):
     assert TRANSPORT is not None
+    access_policy = dispatcher.DefaultRPCAccessPolicy
     serializer = RequestContextSerializer(serializer)
     return messaging.get_rpc_server(TRANSPORT,
                                     target,
                                     endpoints,
                                     executor='eventlet',
-                                    serializer=serializer)
+                                    serializer=serializer,
+                                    access_policy=access_policy)
 
 
 def get_notifier(publisher_id):
