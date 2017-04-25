@@ -25,7 +25,7 @@ GLANCE_HOSTPORT=${SERVICE_HOST}:9292
 DATABASE_TYPE=mysql
 
 # Enable services (including neutron)
-ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt
+ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt,placement-client
 
 NOVA_VNC_ENABLED=True
 NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_auto.html"
