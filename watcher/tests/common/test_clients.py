@@ -17,6 +17,8 @@ from cinderclient.v1 import client as ciclient_v1
 from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
 from gnocchiclient.v1 import client as gnclient_v1
+from ironicclient import client as irclient
+from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import loading as ka_loading
 import mock
 from monascaclient import client as monclient
@@ -387,3 +389,41 @@ class TestClients(base.TestCase):
         monasca = osc.monasca()
         monasca_cached = osc.monasca()
         self.assertEqual(monasca, monasca_cached)
+
+    @mock.patch.object(irclient, 'Client')
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_ironic(self, mock_session, mock_call):
+        osc = clients.OpenStackClients()
+        osc._ironic = None
+        osc.ironic()
+        mock_call.assert_called_once_with(
+            CONF.ironic_client.api_version,
+            CONF.ironic_client.endpoint_type,
+            max_retries=None,
+            os_ironic_api_version=None,
+            retry_interval=None,
+            session=mock_session)
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_ironic_diff_vers(self, mock_session):
+        CONF.set_override('api_version', '1', group='ironic_client')
+        osc = clients.OpenStackClients()
+        osc._ironic = None
+        osc.ironic()
+        self.assertEqual(irclient_v1.Client, type(osc.ironic()))
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_ironic_diff_endpoint(self, mock_session):
+        CONF.set_override('endpoint_type', 'publicURL', group='ironic_client')
+        osc = clients.OpenStackClients()
+        osc._ironic = None
+        osc.ironic()
+        self.assertEqual('publicURL', osc.ironic().http_client.endpoint)
+
+    @mock.patch.object(clients.OpenStackClients, 'session')
+    def test_clients_ironic_cached(self, mock_session):
+        osc = clients.OpenStackClients()
+        osc._ironic = None
+        ironic = osc.ironic()
+        ironic_cached = osc.ironic()
+        self.assertEqual(ironic, ironic_cached)
