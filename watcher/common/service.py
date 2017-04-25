@@ -28,6 +28,8 @@ from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
 
+from oslo_messaging.rpc import dispatcher
+
 from watcher._i18n import _
 from watcher.api import app
 from watcher.common import config
@@ -225,6 +227,7 @@ class Service(service.ServiceBase):
         self.conductor_client = c
 
     def build_topic_handler(self, topic_name, endpoints=()):
+        access_policy = dispatcher.DefaultRPCAccessPolicy
         serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
         target = om.Target(
             topic=topic_name,
@@ -234,7 +237,8 @@ class Service(service.ServiceBase):
         )
         return om.get_rpc_server(
             self.transport, target, endpoints,
-            executor='eventlet', serializer=serializer)
+            executor='eventlet', serializer=serializer,
+            access_policy=access_policy)
 
     def build_notification_handler(self, topic_names, endpoints=()):
         serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
