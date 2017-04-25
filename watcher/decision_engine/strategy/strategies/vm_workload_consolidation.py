@@ -339,11 +339,15 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         else:
             total_cpu_utilization = instance.vcpus
 
-        if not instance_ram_util or not instance_disk_util:
-            LOG.error(
-                'No values returned by %s for memory.usage '
-                'or disk.root.size', instance.uuid)
-            raise exception.NoDataFound
+        if not instance_ram_util:
+            instance_ram_util = instance.memory
+            LOG.warning('No values returned by %s for memory.usage, '
+                        'use instance flavor ram value', instance.uuid)
+
+        if not instance_disk_util:
+            instance_disk_util = instance.disk
+            LOG.warning('No values returned by %s for disk.root.size, '
+                        'use instance flavor disk value', instance.uuid)
 
         self.datasource_instance_data_cache[instance.uuid] = dict(
             cpu=total_cpu_utilization, ram=instance_ram_util,
