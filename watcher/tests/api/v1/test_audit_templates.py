@@ -13,6 +13,7 @@
 import datetime
 import itertools
 import mock
+from webtest.app import AppError
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
@@ -36,6 +37,7 @@ def post_get_test_audit_template(**kw):
     strategy = db_utils.get_test_strategy(goal_id=goal['id'])
     kw['goal'] = kw.get('goal', goal['uuid'])
     kw['strategy'] = kw.get('strategy', strategy['uuid'])
+    kw['scope'] = kw.get('scope', [])
     audit_template = api_utils.audit_template_post_data(**kw)
     return audit_template
 
@@ -509,6 +511,27 @@ class TestPost(FunctionalTestWithSetup):
         return_created_at = timeutils.parse_isotime(
             response.json['created_at']).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
+
+    def test_create_audit_template_vlidation_with_aggregates(self):
+        scope = [{'host_aggregates': [{'id': '*'}]},
+                 {'availability_zones': [{'name': 'AZ1'},
+                                         {'name': 'AZ2'}]},
+                 {'exclude': [
+                     {'instances': [
+                         {'uuid': 'INSTANCE_1'},
+                         {'uuid': 'INSTANCE_2'}]},
+                     {'compute_nodes': [
+                         {'name': 'Node_1'},
+                         {'name': 'Node_2'}]},
+                     {'host_aggregates': [{'id': '*'}]}
+                     ]}
+                 ]
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid,
+            strategy=self.fake_strategy1.uuid, scope=scope)
+        with self.assertRaisesRegexp(AppError,
+                                     "be included and excluded together"):
+            self.post_json('/audit_templates', audit_template_dict)
 
     def test_create_audit_template_does_autogenerate_id(self):
         audit_template_dict = post_get_test_audit_template(

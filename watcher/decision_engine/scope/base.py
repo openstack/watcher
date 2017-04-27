@@ -29,9 +29,10 @@ class BaseScope(object):
     requires Cluster Data Model which can be segregated to achieve audit scope.
     """
 
-    def __init__(self, scope):
+    def __init__(self, scope, config):
         self.ctx = context.make_context()
         self.scope = scope
+        self.config = config
 
     @abc.abstractmethod
     def get_scoped_model(self, cluster_model):
