@@ -54,7 +54,7 @@ if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
     WATCHER_SERVICE_PROTOCOL="https"
 fi
 
-WATCHER_USE_MOD_WSGI=$(trueorfalse TRUE WATCHER_USE_MOD_WSGI)
+WATCHER_USE_MOD_WSGI=$(trueorfalse True WATCHER_USE_MOD_WSGI)
 
 if is_suse; then
     WATCHER_WSGI_DIR=${WATCHER_WSGI_DIR:-/srv/www/htdocs/watcher}
