@@ -26,10 +26,10 @@ NOVA_CLIENT_OPTS = [
                default='2',
                help='Version of Nova API to use in novaclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='publicURL',
                help='Type of endpoint to use in novaclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.')]
+                    'The default is publicURL.')]
 
 
 def register_opts(conf):
