@@ -24,6 +24,7 @@ from oslo_log import log
 
 from watcher.applier import rpcapi
 from watcher.common import exception
+from watcher.common import service
 from watcher.decision_engine.planner import manager as planner_manager
 from watcher.decision_engine.strategy.context import default as default_context
 from watcher import notifications
@@ -34,6 +35,7 @@ LOG = log.getLogger(__name__)
 
 
 @six.add_metaclass(abc.ABCMeta)
+@six.add_metaclass(service.Singleton)
 class BaseAuditHandler(object):
 
     @abc.abstractmethod
@@ -55,8 +57,9 @@ class BaseAuditHandler(object):
 
 @six.add_metaclass(abc.ABCMeta)
 class AuditHandler(BaseAuditHandler):
-    def __init__(self, messaging):
-        self._messaging = messaging
+
+    def __init__(self):
+        super(AuditHandler, self).__init__()
         self._strategy_context = default_context.DefaultStrategyContext()
         self._planner_manager = planner_manager.PlannerManager()
         self._planner = None
@@ -66,10 +69,6 @@ class AuditHandler(BaseAuditHandler):
         if self._planner is None:
             self._planner = self._planner_manager.load()
         return self._planner
-
-    @property
-    def messaging(self):
-        return self._messaging
 
     @property
     def strategy_context(self):
@@ -96,14 +95,12 @@ class AuditHandler(BaseAuditHandler):
                 phase=fields.NotificationPhase.ERROR)
             raise
 
-    @staticmethod
-    def update_audit_state(audit, state):
+    def update_audit_state(self, audit, state):
         LOG.debug("Update audit state: %s", state)
         audit.state = state
         audit.save()
 
-    @staticmethod
-    def check_ongoing_action_plans(request_context):
+    def check_ongoing_action_plans(self, request_context):
         a_plan_filters = {'state': objects.action_plan.State.ONGOING}
         ongoing_action_plans = objects.ActionPlan.list(
             request_context, filters=a_plan_filters)

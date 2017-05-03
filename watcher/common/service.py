@@ -112,16 +112,19 @@ class WSGIService(service.ServiceBase):
 
 class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
 
+    service_name = None
+
     def __init__(self, gconfig=None, service_name=None, **kwargs):
         gconfig = None or {}
         super(ServiceHeartbeat, self).__init__(gconfig, **kwargs)
-        self.service_name = service_name
+        ServiceHeartbeat.service_name = service_name
         self.context = context.make_context()
+        self.send_beat()
 
     def send_beat(self):
         host = CONF.host
         watcher_list = objects.Service.list(
-            self.context, filters={'name': self.service_name,
+            self.context, filters={'name': ServiceHeartbeat.service_name,
                                    'host': host})
         if watcher_list:
             watcher_service = watcher_list[0]
@@ -129,13 +132,17 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
             watcher_service.save()
         else:
             watcher_service = objects.Service(self.context)
-            watcher_service.name = self.service_name
+            watcher_service.name = ServiceHeartbeat.service_name
             watcher_service.host = host
             watcher_service.create()
 
     def add_heartbeat_job(self):
         self.add_job(self.send_beat, 'interval', seconds=60,
                      next_run_time=datetime.datetime.now())
+
+    @classmethod
+    def get_service_name(cls):
+        return CONF.host, cls.service_name
 
     def start(self):
         """Start service."""
@@ -170,6 +177,13 @@ class Service(service.ServiceBase):
         self.conductor_topic = self.manager.conductor_topic
         self.notification_topics = self.manager.notification_topics
 
+        self.heartbeat = None
+
+        self.service_name = self.manager.service_name
+        if self.service_name:
+            self.heartbeat = ServiceHeartbeat(
+                service_name=self.manager.service_name)
+
         self.conductor_endpoints = [
             ep(self) for ep in self.manager.conductor_endpoints
         ]
@@ -185,8 +199,6 @@ class Service(service.ServiceBase):
         self.conductor_topic_handler = None
         self.notification_handler = None
 
-        self.heartbeat = None
-
         if self.conductor_topic and self.conductor_endpoints:
             self.conductor_topic_handler = self.build_topic_handler(
                 self.conductor_topic, self.conductor_endpoints)
@@ -194,10 +206,6 @@ class Service(service.ServiceBase):
             self.notification_handler = self.build_notification_handler(
                 self.notification_topics, self.notification_endpoints
             )
-        self.service_name = self.manager.service_name
-        if self.service_name:
-            self.heartbeat = ServiceHeartbeat(
-                service_name=self.manager.service_name)
 
     @property
     def transport(self):

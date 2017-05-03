@@ -16,6 +16,7 @@
 
 import mock
 
+from watcher.decision_engine.audit import continuous as continuous_handler
 from watcher.decision_engine.audit import oneshot as oneshot_handler
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.model.collector import manager
@@ -34,11 +35,12 @@ class TestAuditEndpoint(base.DbTestCase):
             self.context,
             audit_template_id=self.audit_template.id)
 
+    @mock.patch.object(continuous_handler.ContinuousAuditHandler, 'start')
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
-    def test_do_trigger_audit(self, mock_collector):
+    def test_do_trigger_audit(self, mock_collector, mock_handler):
         mock_collector.return_value = faker_cluster_state.FakerModelCollector()
 
-        audit_handler = oneshot_handler.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot_handler.OneShotAuditHandler
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
         with mock.patch.object(oneshot_handler.OneShotAuditHandler,
@@ -48,11 +50,12 @@ class TestAuditEndpoint(base.DbTestCase):
 
         self.assertEqual(mock_call.call_count, 1)
 
+    @mock.patch.object(continuous_handler.ContinuousAuditHandler, 'start')
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
-    def test_trigger_audit(self, mock_collector):
+    def test_trigger_audit(self, mock_collector, mock_handler):
         mock_collector.return_value = faker_cluster_state.FakerModelCollector()
 
-        audit_handler = oneshot_handler.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot_handler.OneShotAuditHandler
         endpoint = audit_endpoint.AuditEndpoint(audit_handler)
 
         with mock.patch.object(endpoint.executor, 'submit') as mock_call:

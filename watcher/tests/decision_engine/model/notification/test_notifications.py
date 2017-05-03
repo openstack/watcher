@@ -72,8 +72,9 @@ class TestReceiveNotifications(NotificationTestCase):
         m_from_dict.return_value = self.context
         self.addCleanup(p_from_dict.stop)
 
+    @mock.patch.object(watcher_service.ServiceHeartbeat, 'send_beat')
     @mock.patch.object(DummyNotification, 'info')
-    def test_receive_dummy_notification(self, m_info):
+    def test_receive_dummy_notification(self, m_info, m_heartbeat):
         message = {
             'publisher_id': 'nova-compute',
             'event_type': 'compute.dummy',
@@ -90,8 +91,9 @@ class TestReceiveNotifications(NotificationTestCase):
             {'data': {'nested': 'TEST'}},
             {'message_id': None, 'timestamp': None})
 
+    @mock.patch.object(watcher_service.ServiceHeartbeat, 'send_beat')
     @mock.patch.object(DummyNotification, 'info')
-    def test_skip_unwanted_notification(self, m_info):
+    def test_skip_unwanted_notification(self, m_info, m_heartbeat):
         message = {
             'publisher_id': 'nova-compute',
             'event_type': 'compute.dummy',

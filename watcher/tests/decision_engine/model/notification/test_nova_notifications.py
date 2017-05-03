@@ -56,6 +56,10 @@ class TestReceiveNovaNotifications(NotificationTestCase):
         m_from_dict = p_from_dict.start()
         m_from_dict.return_value = self.context
         self.addCleanup(p_from_dict.stop)
+        p_heartbeat = mock.patch.object(
+            watcher_service.ServiceHeartbeat, "send_beat")
+        self.m_heartbeat = p_heartbeat.start()
+        self.addCleanup(p_heartbeat.stop)
 
     @mock.patch.object(novanotification.ServiceUpdated, 'info')
     def test_nova_receive_service_update(self, m_info):

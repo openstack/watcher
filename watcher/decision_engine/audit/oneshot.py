@@ -19,6 +19,7 @@ from watcher import objects
 
 
 class OneShotAuditHandler(base.AuditHandler):
+
     def do_execute(self, audit, request_context):
         # execute the strategy
         solution = self.strategy_context.execute_strategy(

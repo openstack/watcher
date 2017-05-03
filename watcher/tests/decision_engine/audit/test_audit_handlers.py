@@ -14,11 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from apscheduler.schedulers import background
 import mock
 from oslo_utils import uuidutils
 
+from apscheduler import job
+
 from watcher.applier import rpcapi
+from watcher.common import scheduling
+from watcher.db.sqlalchemy import api as sq_api
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.model.collector import manager
@@ -57,7 +60,7 @@ class TestOneShotAuditHandler(base.DbTestCase):
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_without_errors(self, m_collector):
         m_collector.return_value = faker.FakerModelCollector()
-        audit_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot.OneShotAuditHandler()
         audit_handler.execute(self.audit, self.context)
 
         expected_calls = [
@@ -83,7 +86,7 @@ class TestOneShotAuditHandler(base.DbTestCase):
     def test_trigger_audit_with_error(self, m_collector, m_do_execute):
         m_collector.return_value = faker.FakerModelCollector()
         m_do_execute.side_effect = Exception
-        audit_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot.OneShotAuditHandler()
         audit_handler.execute(self.audit, self.context)
 
         expected_calls = [
@@ -102,7 +105,7 @@ class TestOneShotAuditHandler(base.DbTestCase):
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_state_succeeded(self, m_collector):
         m_collector.return_value = faker.FakerModelCollector()
-        audit_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot.OneShotAuditHandler()
         audit_handler.execute(self.audit, self.context)
         audit = objects.audit.Audit.get_by_uuid(self.context, self.audit.uuid)
         self.assertEqual(objects.audit.State.SUCCEEDED, audit.state)
@@ -127,9 +130,8 @@ class TestOneShotAuditHandler(base.DbTestCase):
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_send_notification(self, m_collector):
-        messaging = mock.MagicMock()
         m_collector.return_value = faker.FakerModelCollector()
-        audit_handler = oneshot.OneShotAuditHandler(messaging)
+        audit_handler = oneshot.OneShotAuditHandler()
         audit_handler.execute(self.audit, self.context)
 
         expected_calls = [
@@ -194,7 +196,7 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
     def test_trigger_audit_with_actionplan_ongoing(self, mock_list,
                                                    mock_do_execute):
         mock_list.return_value = [self.ongoing_action_plan]
-        audit_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
+        audit_handler = oneshot.OneShotAuditHandler()
         audit_handler.execute(self.audit, self.context)
         self.assertFalse(mock_do_execute.called)
 
@@ -205,9 +207,9 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
                                                  mock_list, mock_applier):
         mock_get_by_id.return_value = self.audit
         mock_list.return_value = []
-        auto_trigger_handler = oneshot.OneShotAuditHandler(mock.MagicMock())
-        with mock.patch.object(auto_trigger_handler, 'do_schedule',
-                               new_callable=mock.PropertyMock) as m_schedule:
+        auto_trigger_handler = oneshot.OneShotAuditHandler()
+        with mock.patch.object(auto_trigger_handler,
+                               'do_schedule') as m_schedule:
             m_schedule().uuid = self.recommended_action_plan.uuid
             auto_trigger_handler.post_execute(self.audit, mock.MagicMock(),
                                               self.context)
@@ -234,30 +236,39 @@ class TestContinuousAuditHandler(base.DbTestCase):
                 goal=self.goal)
             for id_ in range(2, 4)]
 
-    @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
-    @mock.patch.object(background.BackgroundScheduler, 'add_job')
-    @mock.patch.object(background.BackgroundScheduler, 'get_jobs')
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
     def test_launch_audits_periodically(self, mock_list, mock_jobs,
-                                        m_add_job, m_collector):
-        audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
+                                        m_add_job, m_engine, m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
         mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
+        m_engine.return_value = mock.MagicMock()
         m_add_job.return_value = audit_handler.execute_audit(
             self.audits[0], self.context)
-        m_collector.return_value = faker.FakerModelCollector()
 
         audit_handler.launch_audits_periodically()
+        m_service.assert_called()
+        m_engine.assert_called()
         m_add_job.assert_called()
+        mock_jobs.assert_called()
 
-    @mock.patch.object(background.BackgroundScheduler, 'add_job')
-    @mock.patch.object(background.BackgroundScheduler, 'get_jobs')
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
     def test_launch_multiply_audits_periodically(self, mock_list,
-                                                 mock_jobs, m_add_job):
-        audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
+                                                 mock_jobs, m_add_job,
+                                                 m_engine, m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
         mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
+        m_engine.return_value = mock.MagicMock()
+        m_service.return_value = mock.MagicMock()
         calls = [mock.call(audit_handler.execute_audit, 'interval',
                            args=[mock.ANY, mock.ANY],
                            seconds=3600,
@@ -266,26 +277,39 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.launch_audits_periodically()
         m_add_job.assert_has_calls(calls)
 
-    @mock.patch.object(background.BackgroundScheduler, 'add_job')
-    @mock.patch.object(background.BackgroundScheduler, 'get_jobs')
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
     def test_period_audit_not_called_when_deleted(self, mock_list,
-                                                  mock_jobs, m_add_job):
-        audit_handler = continuous.ContinuousAuditHandler(mock.MagicMock())
+                                                  mock_jobs, m_add_job,
+                                                  m_engine, m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
         mock_list.return_value = self.audits
         mock_jobs.return_value = mock.MagicMock()
+        m_service.return_value = mock.MagicMock()
+        m_engine.return_value = mock.MagicMock()
+        self.audits[1].state = objects.audit.State.CANCELLED
+        self.audits[0].state = objects.audit.State.SUSPENDED
 
-        for state in [objects.audit.State.CANCELLED,
-                      objects.audit.State.SUSPENDED]:
-            self.audits[1].state = state
-            calls = [mock.call(audit_handler.execute_audit, 'interval',
-                               args=[mock.ANY, mock.ANY],
-                               seconds=3600,
-                               name='execute_audit',
-                               next_run_time=mock.ANY)]
-            audit_handler.launch_audits_periodically()
-            m_add_job.assert_has_calls(calls)
+        ap_jobs = [job.Job(mock.MagicMock(), name='execute_audit',
+                           func=audit_handler.execute_audit,
+                           args=(self.audits[0], mock.MagicMock()),
+                           kwargs={}),
+                   job.Job(mock.MagicMock(), name='execute_audit',
+                           func=audit_handler.execute_audit,
+                           args=(self.audits[1], mock.MagicMock()),
+                           kwargs={})
+                   ]
+        mock_jobs.return_value = ap_jobs
+        audit_handler.launch_audits_periodically()
 
-            audit_handler.update_audit_state(self.audits[1], state)
-            is_inactive = audit_handler._is_audit_inactive(self.audits[1])
+        audit_handler.update_audit_state(self.audits[1],
+                                         objects.audit.State.CANCELLED)
+        audit_handler.update_audit_state(self.audits[0],
+                                         objects.audit.State.SUSPENDED)
+        is_inactive = audit_handler._is_audit_inactive(self.audits[1])
+        self.assertTrue(is_inactive)
+        is_inactive = audit_handler._is_audit_inactive(self.audits[0])
         self.assertTrue(is_inactive)
