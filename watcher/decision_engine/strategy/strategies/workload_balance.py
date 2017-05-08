@@ -46,6 +46,7 @@ hosts nodes.
   algorithm with `CONTINUOUS` audits.
 """
 
+from __future__ import division
 import datetime
 
 from oslo_config import cfg
