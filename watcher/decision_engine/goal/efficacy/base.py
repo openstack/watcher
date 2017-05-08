@@ -15,7 +15,7 @@
 # limitations under the License.
 
 """
-An efficacy specfication is a contract that is associated to each :ref:`Goal
+An efficacy specification is a contract that is associated to each :ref:`Goal
 <goal_definition>` that defines the various :ref:`efficacy indicators
 <efficacy_indicator_definition>` a strategy achieving the associated goal
 should provide within its :ref:`solution <solution_definition>`. Indeed, each
