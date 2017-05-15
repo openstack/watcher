@@ -547,9 +547,10 @@ class NovaHelper(object):
         else:
             return False
 
-    def disable_service_nova_compute(self, hostname):
-        if self.nova.services.disable(host=hostname,
-                                      binary='nova-compute'). \
+    def disable_service_nova_compute(self, hostname, reason=None):
+        if self.nova.services.disable_log_reason(host=hostname,
+                                                 binary='nova-compute',
+                                                 reason=reason). \
                 status == 'disabled':
             return True
         else:

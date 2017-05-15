@@ -37,7 +37,13 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         m_nova_helper = mock.Mock(name="nova_helper")
         m_nova_helper_cls.return_value = m_nova_helper
         m_nova_helper.get_service.return_value = mock.Mock(
-            host="test_hostname")
+            id=1355,
+            host='test_hostname',
+            binary='nova-compute',
+            status='enabled',
+            state='up',
+            disabled_reason='',
+        )
 
         fake_compute_node = mock.Mock(
             id=1337,

@@ -197,8 +197,10 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n = model.get_node_by_uuid('Node_0')
         self.strategy.add_action_disable_node(n)
         expected = [{'action_type': 'change_nova_service_state',
-                     'input_parameters': {'state': 'disabled',
-                                          'resource_id': 'Node_0'}}]
+                     'input_parameters': {
+                         'state': 'disabled',
+                         'disabled_reason': 'watcher_disabled',
+                         'resource_id': 'Node_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_disable_unused_nodes(self):
@@ -217,8 +219,10 @@ class TestVMWorkloadConsolidation(base.TestCase):
 
         self.strategy.disable_unused_nodes()
         expected = {'action_type': 'change_nova_service_state',
-                    'input_parameters': {'state': 'disabled',
-                                         'resource_id': 'Node_0'}}
+                    'input_parameters': {
+                        'state': 'disabled',
+                        'disabled_reason': 'watcher_disabled',
+                        'resource_id': 'Node_0'}}
         self.assertEqual(2, len(self.strategy.solution.actions))
         self.assertEqual(expected, self.strategy.solution.actions[1])
 

@@ -331,6 +331,8 @@ class UnclassifiedStrategy(BaseStrategy):
 @six.add_metaclass(abc.ABCMeta)
 class ServerConsolidationBaseStrategy(BaseStrategy):
 
+    REASON_FOR_DISABLE = 'watcher_disabled'
+
     @classmethod
     def get_goal_name(cls):
         return "server_consolidation"

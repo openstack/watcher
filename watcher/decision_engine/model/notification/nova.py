@@ -122,11 +122,15 @@ class NovaNotification(base.NotificationEndpoint):
         node_status = (
             element.ServiceState.DISABLED.value
             if node_data['disabled'] else element.ServiceState.ENABLED.value)
+        disabled_reason = (
+            node_data['disabled_reason']
+            if node_data['disabled'] else None)
 
         node.update({
             'hostname': node_data['host'],
             'state': node_state,
             'status': node_status,
+            'disabled_reason': disabled_reason,
         })
 
     def create_compute_node(self, node_hostname):

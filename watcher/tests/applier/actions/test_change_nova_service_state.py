@@ -110,18 +110,22 @@ class TestChangeNovaServiceState(base.TestCase):
     def test_execute_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
             element.ServiceState.DISABLED.value)
+        self.action.input_parameters["disabled_reason"] = (
+            "watcher_disabled")
         self.action.execute()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
-            "compute-1")
+            "compute-1", "watcher_disabled")
 
     def test_revert_change_service_state_with_enable_target(self):
+        self.action.input_parameters["disabled_reason"] = (
+            "watcher_disabled")
         self.action.revert()
 
         self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
         self.m_helper.disable_service_nova_compute.assert_called_once_with(
-            "compute-1")
+            "compute-1", "watcher_disabled")
 
     def test_revert_change_service_state_with_disable_target(self):
         self.action.input_parameters["state"] = (
