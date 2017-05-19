@@ -529,8 +529,8 @@ class TestPost(FunctionalTestWithSetup):
         audit_template_dict = post_get_test_audit_template(
             goal=self.fake_goal1.uuid,
             strategy=self.fake_strategy1.uuid, scope=scope)
-        with self.assertRaisesRegexp(AppError,
-                                     "be included and excluded together"):
+        with self.assertRaisesRegex(AppError,
+                                    "be included and excluded together"):
             self.post_json('/audit_templates', audit_template_dict)
 
     def test_create_audit_template_does_autogenerate_id(self):
