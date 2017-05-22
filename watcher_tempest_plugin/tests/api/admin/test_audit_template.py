@@ -18,8 +18,8 @@ from __future__ import unicode_literals
 
 from oslo_utils import uuidutils
 
+from tempest.lib import decorators
 from tempest.lib import exceptions
-from tempest import test
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -27,7 +27,7 @@ from watcher_tempest_plugin.tests.api.admin import base
 class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
     """Tests on audit templates"""
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_template(self):
         goal_name = "dummy"
         _, goal = self.client.show_goal(goal_name)
@@ -50,7 +50,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         _, audit_template = self.client.show_audit_template(body['uuid'])
         self.assert_expected(audit_template, body)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_template_unicode_description(self):
         goal_name = "dummy"
         _, goal = self.client.show_goal(goal_name)
@@ -74,7 +74,7 @@ class TestCreateDeleteAuditTemplate(base.BaseInfraOptimTest):
         _, audit_template = self.client.show_audit_template(body['uuid'])
         self.assert_expected(audit_template, body)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_delete_audit_template(self):
         _, goal = self.client.show_goal("dummy")
         _, body = self.create_audit_template(goal=goal['uuid'])
@@ -97,14 +97,14 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         _, cls.audit_template = cls.create_audit_template(
             goal=cls.goal['uuid'], strategy=cls.strategy['uuid'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_audit_template(self):
         _, audit_template = self.client.show_audit_template(
             self.audit_template['uuid'])
 
         self.assert_expected(self.audit_template, audit_template)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_filter_audit_template_by_goal_uuid(self):
         _, audit_templates = self.client.list_audit_templates(
             goal=self.audit_template['goal_uuid'])
@@ -113,7 +113,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
             at["uuid"] for at in audit_templates['audit_templates']]
         self.assertIn(self.audit_template['uuid'], audit_template_uuids)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_filter_audit_template_by_strategy_uuid(self):
         _, audit_templates = self.client.list_audit_templates(
             strategy=self.audit_template['strategy_uuid'])
@@ -122,7 +122,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
             at["uuid"] for at in audit_templates['audit_templates']]
         self.assertIn(self.audit_template['uuid'], audit_template_uuids)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_audit_template_with_links(self):
         _, audit_template = self.client.show_audit_template(
             self.audit_template['uuid'])
@@ -131,7 +131,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         self.assertIn(audit_template['uuid'],
                       audit_template['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_audit_templates(self):
         _, body = self.client.list_audit_templates()
         self.assertIn(self.audit_template['uuid'],
@@ -141,7 +141,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
             self.validate_self_link('audit_templates', audit_template['uuid'],
                                     audit_template['links'][0]['href'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_list_with_limit(self):
         # We create 3 extra audit templates to exceed the limit we fix
         for _ in range(3):
@@ -153,7 +153,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         self.assertEqual(3, len(body['audit_templates']))
         self.assertIn(next_marker, body['next'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_update_audit_template_replace(self):
         _, new_goal = self.client.show_goal("server_consolidation")
         _, new_strategy = self.client.show_strategy("basic")
@@ -188,7 +188,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         self.assertEqual(new_goal['uuid'], body['goal_uuid'])
         self.assertEqual(new_strategy['uuid'], body['strategy_uuid'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_update_audit_template_remove(self):
         description = 'my at description'
         name = 'my at name %s' % uuidutils.generate_uuid()
@@ -211,7 +211,7 @@ class TestAuditTemplate(base.BaseInfraOptimTest):
         self.assertIsNone(body['description'])
         self.assertEqual(self.goal['uuid'], body['goal_uuid'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_update_audit_template_add(self):
         params = {'name': 'my at name %s' % uuidutils.generate_uuid(),
                   'goal': self.goal['uuid']}

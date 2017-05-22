@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from tempest import test
+from tempest.lib import decorators
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -22,7 +22,7 @@ from watcher_tempest_plugin.tests.api.admin import base
 class TestApiDiscovery(base.BaseInfraOptimTest):
     """Tests for API discovery features."""
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_api_versions(self):
         _, descr = self.client.get_api_description()
         expected_versions = ('v1',)
@@ -31,13 +31,13 @@ class TestApiDiscovery(base.BaseInfraOptimTest):
         for v in expected_versions:
             self.assertIn(v, versions)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_default_version(self):
         _, descr = self.client.get_api_description()
         default_version = descr['default_version']
         self.assertEqual('v1', default_version['id'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_version_1_resources(self):
         _, descr = self.client.get_version_description(version='v1')
         expected_resources = ('audit_templates', 'audits', 'action_plans',
