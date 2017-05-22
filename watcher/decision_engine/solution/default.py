@@ -16,9 +16,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_log import log
+
 from watcher.applier.actions import base as baction
 from watcher.common import exception
 from watcher.decision_engine.solution import base
+
+LOG = log.getLogger(__name__)
 
 
 class DefaultSolution(base.BaseSolution):
@@ -50,7 +54,11 @@ class DefaultSolution(base.BaseSolution):
             'action_type': action_type,
             'input_parameters': input_parameters
         }
-        self._actions.append(action)
+        if action not in self._actions:
+            self._actions.append(action)
+        else:
+            LOG.warning('Action %s has been added into the solution, '
+                        'duplicate action will be dropped.', str(action))
 
     def __str__(self):
         return "\n".join(self._actions)
