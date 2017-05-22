@@ -33,7 +33,7 @@ class WeightPlanner(base.BasePlanner):
     """Weight planner implementation
 
     This implementation builds actions with parents in accordance with weights.
-    Set of actions having a lower weight will be scheduled before
+    Set of actions having a higher weight will be scheduled before
     the other ones. There are two config options to configure:
     action_weights and parallelization.
 
