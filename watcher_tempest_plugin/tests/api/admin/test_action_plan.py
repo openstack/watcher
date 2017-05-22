@@ -19,8 +19,8 @@ from __future__ import unicode_literals
 import functools
 
 from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
 from tempest.lib import exceptions
-from tempest import test
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -28,7 +28,7 @@ from watcher_tempest_plugin.tests.api.admin import base
 class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
     """Tests for action plans"""
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_action_plan(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -48,7 +48,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         self.assertEqual(audit['uuid'], action_plan['audit_uuid'])
         self.assertEqual('RECOMMENDED', action_plan['state'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_delete_action_plan(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -70,7 +70,7 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         self.assertRaises(exceptions.NotFound, self.client.show_action_plan,
                           action_plan['uuid'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_execute_dummy_action_plan(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -126,14 +126,14 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
             audit_uuid=cls.audit['uuid'])
         cls.action_plan = action_plans['action_plans'][0]
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_action_plan(self):
         _, action_plan = self.client.show_action_plan(
             self.action_plan['uuid'])
 
         self.assert_expected(self.action_plan, action_plan)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_action_plan_detail(self):
         _, action_plans = self.client.list_action_plans_detail(
             audit_uuid=self.audit['uuid'])
@@ -142,7 +142,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
 
         self.assert_expected(self.action_plan, action_plan)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_action_plan_with_links(self):
         _, action_plan = self.client.show_action_plan(
             self.action_plan['uuid'])
@@ -151,7 +151,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
         self.assertIn(action_plan['uuid'],
                       action_plan['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_action_plans(self):
         _, body = self.client.list_action_plans()
         self.assertIn(self.action_plan['uuid'],
@@ -161,7 +161,7 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
             self.validate_self_link('action_plans', action_plan['uuid'],
                                     action_plan['links'][0]['href'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_list_with_limit(self):
         # We create 3 extra audits to exceed the limit we fix
         for _ in range(3):

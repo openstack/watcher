@@ -16,7 +16,7 @@
 
 from __future__ import unicode_literals
 
-from tempest import test
+from tempest.lib import decorators
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -36,7 +36,7 @@ class TestShowListService(base.BaseInfraOptimTest):
         super(TestShowListService, self).assert_expected(
             expected, actual, keys)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_service(self):
         _, service = self.client.show_service(self.DECISION_ENGINE)
 
@@ -45,7 +45,7 @@ class TestShowListService(base.BaseInfraOptimTest):
         self.assertIn("last_seen_up", service.keys())
         self.assertIn("status", service.keys())
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_service_with_links(self):
         _, service = self.client.show_service(self.DECISION_ENGINE)
         self.assertIn('links', service.keys())
@@ -53,7 +53,7 @@ class TestShowListService(base.BaseInfraOptimTest):
         self.assertIn(str(service['id']),
                       service['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_services(self):
         _, body = self.client.list_services()
         self.assertIn('services', body)

@@ -16,7 +16,7 @@
 
 from __future__ import unicode_literals
 
-from tempest import test
+from tempest.lib import decorators
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -35,14 +35,14 @@ class TestShowListStrategy(base.BaseInfraOptimTest):
         super(TestShowListStrategy, self).assert_expected(
             expected, actual, keys)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_strategy(self):
         _, strategy = self.client.show_strategy(self.DUMMY_STRATEGY)
 
         self.assertEqual(self.DUMMY_STRATEGY, strategy['name'])
         self.assertIn("display_name", strategy.keys())
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_strategy_with_links(self):
         _, strategy = self.client.show_strategy(self.DUMMY_STRATEGY)
         self.assertIn('links', strategy.keys())
@@ -50,7 +50,7 @@ class TestShowListStrategy(base.BaseInfraOptimTest):
         self.assertIn(strategy['uuid'],
                       strategy['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_strategies(self):
         _, body = self.client.list_strategies()
         self.assertIn('strategies', body)

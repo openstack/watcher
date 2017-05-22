@@ -20,7 +20,7 @@ import collections
 import functools
 
 from tempest.lib.common.utils import test_utils
-from tempest import test
+from tempest.lib import decorators
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -44,7 +44,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
             audit_uuid=cls.audit['uuid'])
         cls.action_plan = action_plans['action_plans'][0]
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_one_action(self):
         _, body = self.client.list_actions(
             action_plan_uuid=self.action_plan["uuid"])
@@ -55,7 +55,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
         self.assertEqual(self.action_plan["uuid"], action['action_plan_uuid'])
         self.assertEqual("PENDING", action['state'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_action_with_links(self):
         _, body = self.client.list_actions(
             action_plan_uuid=self.action_plan["uuid"])
@@ -67,7 +67,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
         self.assertEqual(2, len(action['links']))
         self.assertIn(action['uuid'], action['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_actions(self):
         _, body = self.client.list_actions()
 
@@ -76,7 +76,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
             self.validate_self_link('actions', action['uuid'],
                                     action['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_actions_by_action_plan(self):
         _, body = self.client.list_actions(
             action_plan_uuid=self.action_plan["uuid"])
@@ -93,7 +93,7 @@ class TestShowListAction(base.BaseInfraOptimTest):
         self.assertEqual(2, action_counter.get("nop"))
         self.assertEqual(1, action_counter.get("sleep"))
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_actions_by_audit(self):
         _, body = self.client.list_actions(audit_uuid=self.audit["uuid"])
 

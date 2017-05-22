@@ -16,7 +16,7 @@
 
 from __future__ import unicode_literals
 
-from tempest import test
+from tempest.lib import decorators
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -35,7 +35,7 @@ class TestShowListGoal(base.BaseInfraOptimTest):
         super(TestShowListGoal, self).assert_expected(
             expected, actual, keys)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_goal(self):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
 
@@ -46,7 +46,7 @@ class TestShowListGoal(base.BaseInfraOptimTest):
             'updated_at', 'uuid'}
         self.assertEqual(expected_fields, set(goal.keys()))
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_goal_with_links(self):
         _, goal = self.client.show_goal(self.DUMMY_GOAL)
         self.assertIn('links', goal.keys())
@@ -54,7 +54,7 @@ class TestShowListGoal(base.BaseInfraOptimTest):
         self.assertIn(goal['uuid'],
                       goal['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_goals(self):
         _, body = self.client.list_goals()
         self.assertIn(self.DUMMY_GOAL,

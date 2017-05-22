@@ -19,8 +19,8 @@ from __future__ import unicode_literals
 import functools
 
 from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
 from tempest.lib import exceptions
-from tempest import test
 
 from watcher_tempest_plugin.tests.api.admin import base
 
@@ -37,7 +37,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         super(TestCreateUpdateDeleteAudit, self).assert_expected(
             expected, actual, keys)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_oneshot(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -55,7 +55,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         _, audit = self.client.show_audit(body['uuid'])
         self.assert_expected(audit, body)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_continuous(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -74,7 +74,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         _, audit = self.client.show_audit(body['uuid'])
         self.assert_expected(audit, body)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_with_wrong_audit_template(self):
         audit_params = dict(
             audit_template_uuid='INVALID',
@@ -84,7 +84,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         self.assertRaises(
             exceptions.BadRequest, self.create_audit, **audit_params)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_with_invalid_state(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -97,7 +97,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
         self.assertRaises(
             exceptions.BadRequest, self.create_audit, **audit_params)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_create_audit_with_no_state(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -119,7 +119,7 @@ class TestCreateUpdateDeleteAudit(base.BaseInfraOptimTest):
 
         self.assert_expected(audit, body)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_delete_audit(self):
         _, goal = self.client.show_goal("dummy")
         _, audit_template = self.create_audit_template(goal['uuid'])
@@ -169,7 +169,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         super(TestShowListAudit, self).assert_expected(
             expected, actual, keys)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_audit(self):
         _, audit = self.client.show_audit(
             self.audit['uuid'])
@@ -183,7 +183,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         self.assertIn(audit_state, self.audit_states)
         self.assert_expected(initial_audit, actual_audit)
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_show_audit_with_links(self):
         _, audit = self.client.show_audit(
             self.audit['uuid'])
@@ -192,7 +192,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         self.assertIn(audit['uuid'],
                       audit['links'][0]['href'])
 
-    @test.attr(type="smoke")
+    @decorators.attr(type="smoke")
     def test_list_audits(self):
         _, body = self.client.list_audits()
         self.assertIn(self.audit['uuid'],
@@ -202,7 +202,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
             self.validate_self_link('audits', audit['uuid'],
                                     audit['links'][0]['href'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_list_with_limit(self):
         # We create 3 extra audits to exceed the limit we fix
         for _ in range(3):
@@ -214,7 +214,7 @@ class TestShowListAudit(base.BaseInfraOptimTest):
         self.assertEqual(3, len(body['audits']))
         self.assertIn(next_marker, body['next'])
 
-    @test.attr(type='smoke')
+    @decorators.attr(type='smoke')
     def test_list_audits_related_to_given_audit_template(self):
         _, body = self.client.list_audits(
             goal=self.goal['uuid'])
