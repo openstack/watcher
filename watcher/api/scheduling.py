@@ -21,7 +21,6 @@ from oslo_log import log
 from oslo_utils import timeutils
 import six
 
-from watcher._i18n import _LW
 from watcher.common import context as watcher_context
 from watcher.common import scheduling
 from watcher import notifications
@@ -67,9 +66,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
         elapsed = timeutils.delta_seconds(last_heartbeat, timeutils.utcnow())
         is_up = abs(elapsed) <= CONF.service_down_time
         if not is_up:
-            LOG.warning(_LW('Seems service %(name)s on host %(host)s is down. '
-                            'Last heartbeat was %(lhb)s.'
-                            'Elapsed time is %(el)s'),
+            LOG.warning('Seems service %(name)s on host %(host)s is down. '
+                        'Last heartbeat was %(lhb)s. Elapsed time is %(el)s',
                         {'name': service.name,
                          'host': service.host,
                          'lhb': str(last_heartbeat), 'el': str(elapsed)})
