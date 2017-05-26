@@ -649,8 +649,7 @@ class Connection(api.BaseConnection):
             query = self._set_eager_options(models.Audit, query)
         query = self._add_audits_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(
-                ~(models.Audit.state == objects.audit.State.DELETED))
+            query = query.filter_by(deleted_at=None)
 
         return _paginate_query(models.Audit, limit, marker,
                                sort_key, sort_dir, query)
@@ -736,8 +735,7 @@ class Connection(api.BaseConnection):
             query = self._set_eager_options(models.Action, query)
         query = self._add_actions_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(
-                ~(models.Action.state == objects.action.State.DELETED))
+            query = query.filter_by(deleted_at=None)
         return _paginate_query(models.Action, limit, marker,
                                sort_key, sort_dir, query)
 
@@ -817,9 +815,7 @@ class Connection(api.BaseConnection):
             query = self._set_eager_options(models.ActionPlan, query)
         query = self._add_action_plans_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter(
-                ~(models.ActionPlan.state ==
-                  objects.action_plan.State.DELETED))
+            query = query.filter_by(deleted_at=None)
 
         return _paginate_query(models.ActionPlan, limit, marker,
                                sort_key, sort_dir, query)
