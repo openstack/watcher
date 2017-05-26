@@ -488,6 +488,7 @@ class ActionPlansController(rest.RestController):
             raise exception.PatchError(patch=patch, reason=e)
 
         launch_action_plan = False
+        cancel_action_plan = False
 
         # transitions that are allowed via PATCH
         allowed_patch_transitions = [
@@ -496,7 +497,7 @@ class ActionPlansController(rest.RestController):
             (ap_objects.State.RECOMMENDED,
              ap_objects.State.CANCELLED),
             (ap_objects.State.ONGOING,
-             ap_objects.State.CANCELLED),
+             ap_objects.State.CANCELLING),
             (ap_objects.State.PENDING,
              ap_objects.State.CANCELLED),
         ]
@@ -515,6 +516,8 @@ class ActionPlansController(rest.RestController):
 
             if action_plan.state == ap_objects.State.PENDING:
                 launch_action_plan = True
+            if action_plan.state == ap_objects.State.CANCELLED:
+                cancel_action_plan = True
 
         # Update only the fields that have changed
         for field in objects.ActionPlan.fields:
@@ -533,6 +536,16 @@ class ActionPlansController(rest.RestController):
                 launch_action_plan = True
 
         action_plan_to_update.save()
+
+        # NOTE: if action plan is cancelled from pending or recommended
+        # state update action state here only
+        if cancel_action_plan:
+            filters = {'action_plan_uuid': action_plan.uuid}
+            actions = objects.Action.list(pecan.request.context,
+                                          filters=filters, eager=True)
+            for a in actions:
+                a.state = objects.action.State.CANCELLED
+                a.save()
 
         if launch_action_plan:
             applier_client = rpcapi.ApplierAPI()

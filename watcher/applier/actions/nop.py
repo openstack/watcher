@@ -23,7 +23,6 @@ import voluptuous
 
 from watcher.applier.actions import base
 
-
 LOG = log.getLogger(__name__)
 
 
@@ -69,3 +68,6 @@ class Nop(base.BaseAction):
     def get_description(self):
         """Description of the action"""
         return "Logging a NOP message"
+
+    def abort(self):
+        LOG.debug("Abort action NOP")

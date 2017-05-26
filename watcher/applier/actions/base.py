@@ -32,6 +32,9 @@ class BaseAction(loadable.Loadable):
     # watcher dashboard and will be nested in input_parameters
     RESOURCE_ID = 'resource_id'
 
+    # Add action class name to the list, if implementing abort.
+    ABORT_TRUE = ['Sleep', 'Nop']
+
     def __init__(self, config, osc=None):
         """Constructor
 
@@ -134,3 +137,6 @@ class BaseAction(loadable.Loadable):
     def get_description(self):
         """Description of the action"""
         raise NotImplementedError()
+
+    def check_abort(self):
+        return bool(self.__class__.__name__ in self.ABORT_TRUE)

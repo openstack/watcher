@@ -30,6 +30,7 @@ class State(object):
     SUCCEEDED = 'SUCCEEDED'
     DELETED = 'DELETED'
     CANCELLED = 'CANCELLED'
+    CANCELLING = 'CANCELLING'
 
 
 @base.WatcherObjectRegistry.register

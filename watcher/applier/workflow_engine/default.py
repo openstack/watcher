@@ -19,6 +19,7 @@ from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import log
 from taskflow import engines
+from taskflow import exceptions as tf_exception
 from taskflow.patterns import graph_flow as gf
 from taskflow import task as flow_task
 
@@ -90,6 +91,15 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
             return flow
 
+        except exception.ActionPlanCancelled as e:
+            raise
+
+        except tf_exception.WrappedFailure as e:
+            if e.check("watcher.common.exception.ActionPlanCancelled"):
+                raise exception.ActionPlanCancelled
+            else:
+                raise exception.WorkflowExecutionException(error=e)
+
         except Exception as e:
             raise exception.WorkflowExecutionException(error=e)
 
@@ -121,7 +131,7 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         LOG.debug("Post-condition action: %s", self.name)
         self.action.post_condition()
 
-    def revert(self, *args, **kwargs):
+    def do_revert(self, *args, **kwargs):
         LOG.warning("Revert action: %s", self.name)
         try:
             # TODO(jed): do we need to update the states in case of failure?
@@ -129,6 +139,15 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         except Exception as e:
             LOG.exception(e)
             LOG.critical("Oops! We need a disaster recover plan.")
+
+    def do_abort(self, *args, **kwargs):
+        LOG.warning("Aborting action: %s", self.name)
+        try:
+            self.action.abort()
+            self.engine.notify(self._db_action, objects.action.State.CANCELLED)
+        except Exception as e:
+            self.engine.notify(self._db_action, objects.action.State.FAILED)
+            LOG.exception(e)
 
 
 class TaskFlowNop(flow_task.Task):
