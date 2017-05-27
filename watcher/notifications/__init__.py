@@ -25,4 +25,5 @@ from watcher.notifications import action_plan  # noqa
 from watcher.notifications import audit  # noqa
 from watcher.notifications import exception  # noqa
 from watcher.notifications import goal  # noqa
+from watcher.notifications import service  # noqa
 from watcher.notifications import strategy  # noqa
