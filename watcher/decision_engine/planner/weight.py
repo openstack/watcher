@@ -104,7 +104,7 @@ class WeightPlanner(base.BasePlanner):
         # START --> migrate-1 --> migrate-3
         #     \                            \--> resize-1 --> FINISH
         #      \--> migrate-2 -------------/
-        # In the above case migrate-1 will the only memeber of the leaf
+        # In the above case migrate-1 will be the only member of the leaf
         # group that migrate-3 will use as parent group, whereas
         # resize-1 will have both migrate-2 and migrate-3 in its
         # parent/leaf group

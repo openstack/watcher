@@ -55,7 +55,7 @@ def validate_sort_dir(sort_dir):
 
 
 def validate_search_filters(filters, allowed_fields):
-    # Very leightweight validation for now
+    # Very lightweight validation for now
     # todo: improve this (e.g. https://www.parse.com/docs/rest/guide/#queries)
     for filter_name in filters.keys():
         if filter_name not in allowed_fields:

@@ -104,7 +104,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         :param osc: :py:class:`~.OpenStackClients` instance
         """
         super(WorkloadBalance, self).__init__(config, osc)
-        # the migration plan will be triggered when the CPU utlization %
+        # the migration plan will be triggered when the CPU utilization %
         # reaches threshold
         self._meter = self.METER_NAME
         self._ceilometer = None

@@ -152,7 +152,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                                    "metrics. The period is simply a repeating"
                                    " interval of time into which the samples"
                                    " are grouped for aggregation. Watcher "
-                                   "uses only the last period of all recieved"
+                                   "uses only the last period of all received"
                                    " ones.",
                     "type": "object",
                     "default": {"instance": 720, "node": 600}

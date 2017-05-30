@@ -688,7 +688,7 @@ class BaseConnection(object):
     def update_efficacy_indicator(self, efficacy_indicator_id, values):
         """Update properties of an efficacy indicator.
 
-        :param efficacy_indicator_uuid: The UUID of an efficacy indicator
+        :param efficacy_indicator_id: The ID of an efficacy indicator
         :returns: An efficacy indicator
         :raises: :py:class:`~.EfficacyIndicatorNotFound`
         :raises: :py:class:`~.Invalid`

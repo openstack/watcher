@@ -74,15 +74,15 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator1.uuid,
-                values={"description": "New decription 1"})
+                values={"description": "New description 1"})
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator2.uuid,
-                values={"description": "New decription 2"})
+                values={"description": "New description 2"})
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.dbapi.update_efficacy_indicator(
                 self.efficacy_indicator3.uuid,
-                values={"description": "New decription 3"})
+                values={"description": "New description 3"})
 
     def test_get_efficacy_indicator_filter_deleted_true(self):
         with freezegun.freeze_time(self.FAKE_TODAY):

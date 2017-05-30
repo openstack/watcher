@@ -297,7 +297,7 @@ class UnclassifiedStrategy(BaseStrategy):
 
     The goal defined within this strategy can be used to simplify the
     documentation explaining how to implement a new strategy plugin by
-    ommitting the need for the strategy developer to define a goal straight
+    omitting the need for the strategy developer to define a goal straight
     away.
     """
 
