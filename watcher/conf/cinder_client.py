@@ -26,10 +26,10 @@ CINDER_CLIENT_OPTS = [
                default='3',
                help='Version of Cinder API to use in cinderclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='publicURL',
                help='Type of endpoint to use in cinderclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.')]
+                    'The default is publicURL.')]
 
 
 def register_opts(conf):
