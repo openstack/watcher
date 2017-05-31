@@ -111,7 +111,7 @@ class BaseAction(loadable.Loadable):
     def post_condition(self):
         """Hook: called after the execution of an action
 
-        This function is called regardless of whether an action succeded or
+        This function is called regardless of whether an action succeeded or
         not. So you can use it to perform cleanup operations.
         """
         raise NotImplementedError()

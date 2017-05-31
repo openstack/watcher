@@ -181,7 +181,7 @@ class JsonPatchType(wtypes.Base):
 
     @staticmethod
     def mandatory_attrs():
-        """Retruns a list of mandatory attributes.
+        """Returns a list of mandatory attributes.
 
         Mandatory attributes can't be removed from the document. This
         method should be overwritten by derived class.

@@ -165,7 +165,7 @@ class BaseInfraOptimTest(test.BaseTestCase):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
-        :param type: Audit type (either ONESHOT or CONTINUOUS)
+        :param audit_type: Audit type (either ONESHOT or CONTINUOUS)
         :param state: Audit state (str)
         :param interval: Audit interval in seconds (int)
         :return: A tuple with The HTTP response and its body

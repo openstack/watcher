@@ -59,7 +59,7 @@ class GnocchiHelper(object):
         :param start_time: Start datetime from which metrics will be used
         :param stop_time: End datetime from which metrics will be used
         :param granularity: frequency of marking metric point, in seconds
-        :param aggregation: Should be chosen in accrodance with policy
+        :param aggregation: Should be chosen in accordance with policy
                             aggregations
         :return: value of aggregated metric
         """

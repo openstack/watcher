@@ -44,10 +44,10 @@ def main():
     syncer.sync()
 
     de_service = watcher_service.Service(manager.DecisionEngineManager)
-    bg_schedulder_service = scheduling.DecisionEngineSchedulingService()
+    bg_scheduler_service = scheduling.DecisionEngineSchedulingService()
 
     # Only 1 process
     launcher = watcher_service.launch(CONF, de_service)
-    launcher.launch_service(bg_schedulder_service)
+    launcher.launch_service(bg_scheduler_service)
 
     launcher.wait()
