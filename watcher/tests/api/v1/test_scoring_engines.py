@@ -109,7 +109,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
             obj_utils.create_test_scoring_engine(
                 self.context, id=idx, uuid=utils.generate_uuid(),
                 name=str(idx), description='SE_{0}'.format(idx))
-        cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
+        cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
 

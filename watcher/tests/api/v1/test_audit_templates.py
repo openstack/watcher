@@ -231,8 +231,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         self.assertIn(next_marker, response['next'])
 
     def test_collection_links_default_limit(self):
-        cfg.CONF.set_override('max_limit', 3, 'api',
-                              enforce_type=True)
+        cfg.CONF.set_override('max_limit', 3, 'api')
         for id_ in range(5):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
