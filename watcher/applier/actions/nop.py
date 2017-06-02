@@ -65,3 +65,7 @@ class Nop(base.BaseAction):
 
     def post_condition(self):
         pass
+
+    def get_description(self):
+        """Description of the action"""
+        return "Logging a NOP message"

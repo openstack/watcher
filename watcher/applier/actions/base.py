@@ -129,3 +129,8 @@ class BaseAction(loadable.Loadable):
     def validate_parameters(self):
         self.schema(self.input_parameters)
         return True
+
+    @abc.abstractmethod
+    def get_description(self):
+        """Description of the action"""
+        raise NotImplementedError()

@@ -101,3 +101,9 @@ class ChangeNovaServiceState(base.BaseAction):
 
     def post_condition(self):
         pass
+
+    def get_description(self):
+        """Description of the action"""
+        return ("Disables or enables the nova-compute service."
+                "A disabled nova-compute service can not be selected "
+                "by the nova for future deployment of new server.")
