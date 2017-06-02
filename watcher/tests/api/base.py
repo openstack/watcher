@@ -51,11 +51,9 @@ class FunctionalTest(base.DbTestCase):
     def setUp(self):
         super(FunctionalTest, self).setUp()
         cfg.CONF.set_override("auth_version", "v2.0",
-                              group='keystone_authtoken',
-                              enforce_type=True)
+                              group='keystone_authtoken')
         cfg.CONF.set_override("admin_user", "admin",
-                              group='keystone_authtoken',
-                              enforce_type=True)
+                              group='keystone_authtoken')
 
         p_services = mock.patch.object(n_service, "send_service_update",
                                        new_callable=mock.PropertyMock)

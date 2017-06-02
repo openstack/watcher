@@ -127,7 +127,7 @@ class TestListService(api_base.FunctionalTest):
                 self.context, id=idx,
                 host='CONTROLLER',
                 name='SERVICE_{0}'.format(idx))
-        cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
+        cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/services')
         self.assertEqual(3, len(response['services']))
 

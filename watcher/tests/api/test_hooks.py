@@ -120,7 +120,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         p = mock.patch.object(root.Root, 'convert')
         self.root_convert_mock = p.start()
         self.addCleanup(p.stop)
-        cfg.CONF.set_override('debug', False, enforce_type=True)
+        cfg.CONF.set_override('debug', False)
 
     def test_hook_exception_success(self):
         self.root_convert_mock.side_effect = Exception(self.MSG_WITH_TRACE)
@@ -164,7 +164,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         self._test_hook_without_traceback()
 
     def test_hook_without_traceback_debug(self):
-        cfg.CONF.set_override('debug', True, enforce_type=True)
+        cfg.CONF.set_override('debug', True)
         self._test_hook_without_traceback()
 
     def _test_hook_on_serverfault(self):
@@ -177,12 +177,12 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         return actual_msg
 
     def test_hook_on_serverfault(self):
-        cfg.CONF.set_override('debug', False, enforce_type=True)
+        cfg.CONF.set_override('debug', False)
         msg = self._test_hook_on_serverfault()
         self.assertEqual(self.MSG_WITHOUT_TRACE, msg)
 
     def test_hook_on_serverfault_debug(self):
-        cfg.CONF.set_override('debug', True, enforce_type=True)
+        cfg.CONF.set_override('debug', True)
         msg = self._test_hook_on_serverfault()
         self.assertEqual(self.MSG_WITH_TRACE, msg)
 
@@ -202,7 +202,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         self.assertEqual(self.MSG_WITHOUT_TRACE, msg)
 
     def test_hook_on_clientfault_debug_tracebacks(self):
-        cfg.CONF.set_override('debug', True, enforce_type=True)
+        cfg.CONF.set_override('debug', True)
         msg = self._test_hook_on_clientfault()
         self.assertEqual(self.MSG_WITH_TRACE, msg)
 

@@ -59,11 +59,9 @@ class TestCase(BaseTestCase):
         self.messaging_conf.transport_driver = 'fake'
 
         cfg.CONF.set_override("auth_type", "admin_token",
-                              group='keystone_authtoken',
-                              enforce_type=True)
+                              group='keystone_authtoken')
         cfg.CONF.set_override("auth_uri", "http://127.0.0.1/identity",
-                              group='keystone_authtoken',
-                              enforce_type=True)
+                              group='keystone_authtoken')
 
         app_config_path = os.path.join(os.path.dirname(__file__), 'config.py')
         self.app = testing.load_test_app(app_config_path)
@@ -128,7 +126,7 @@ class TestCase(BaseTestCase):
         """Override config options for a test."""
         group = kw.pop('group', None)
         for k, v in kw.items():
-            CONF.set_override(k, v, group, enforce_type=True)
+            CONF.set_override(k, v, group)
 
     def get_path(self, project_file=None):
         """Get the absolute path to a file. Used for testing the API.

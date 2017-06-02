@@ -116,7 +116,7 @@ class TestListGoal(api_base.FunctionalTest):
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
                 name='GOAL_{0}'.format(idx))
-        cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
+        cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
 

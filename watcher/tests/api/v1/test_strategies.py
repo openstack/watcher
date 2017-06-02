@@ -128,7 +128,7 @@ class TestListStrategy(api_base.FunctionalTest):
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
                 name='STRATEGY_{0}'.format(idx))
-        cfg.CONF.set_override('max_limit', 3, 'api', enforce_type=True)
+        cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/strategies')
         self.assertEqual(3, len(response['strategies']))
 
