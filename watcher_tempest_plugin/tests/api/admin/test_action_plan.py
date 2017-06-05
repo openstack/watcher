@@ -124,7 +124,8 @@ class TestShowListActionPlan(base.BaseInfraOptimTest):
         )
         _, action_plans = cls.client.list_action_plans(
             audit_uuid=cls.audit['uuid'])
-        cls.action_plan = action_plans['action_plans'][0]
+        if len(action_plans['action_plans']) > 0:
+            cls.action_plan = action_plans['action_plans'][0]
 
     @decorators.attr(type='smoke')
     def test_show_action_plan(self):
