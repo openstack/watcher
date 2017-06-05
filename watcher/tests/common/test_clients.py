@@ -239,11 +239,12 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type', 'publicURL', group='cinder_client')
+        CONF.set_override('endpoint_type',
+                          'internalURL', group='cinder_client')
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
-        self.assertEqual('publicURL', osc.cinder().client.interface)
+        self.assertEqual('internalURL', osc.cinder().client.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_cached(self, mock_session):
