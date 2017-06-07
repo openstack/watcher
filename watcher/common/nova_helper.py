@@ -105,7 +105,7 @@ class NovaHelper(object):
                             % (volume.id, status, timeout))
         return volume.status == status
 
-    def watcher_non_live_migrate_instance(self, instance_id, node_id,
+    def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
                                           keep_original_image_name=True):
         """This method migrates a given instance
 
@@ -268,7 +268,7 @@ class NovaHelper(object):
             # We create the new instance from
             # the intermediate image of the original instance
             new_instance = self. \
-                create_instance(node_id,
+                create_instance(dest_hostname,
                                 instance_name,
                                 image_uuid,
                                 flavor_name,
@@ -573,6 +573,9 @@ class NovaHelper(object):
         if not instance:
             LOG.debug("Instance not found: %s" % instance_id)
             return False
+        elif getattr(instance, 'OS-EXT-STS:vm_state') == "stopped":
+            LOG.debug("Instance has been stopped: %s" % instance_id)
+            return True
         else:
             self.nova.servers.stop(instance_id)
 
