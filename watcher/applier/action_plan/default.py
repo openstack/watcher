@@ -20,6 +20,7 @@ from oslo_log import log
 
 from watcher.applier.action_plan import base
 from watcher.applier import default
+from watcher.common import exception
 from watcher import notifications
 from watcher import objects
 from watcher.objects import fields
@@ -39,6 +40,9 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
         try:
             action_plan = objects.ActionPlan.get_by_uuid(
                 self.ctx, self.action_plan_uuid, eager=True)
+            if action_plan.state == objects.action_plan.State.CANCELLED:
+                self._update_action_from_pending_to_cancelled()
+                return
             action_plan.state = objects.action_plan.State.ONGOING
             action_plan.save()
             notifications.action_plan.send_action_notification(
@@ -54,6 +58,12 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
                 self.ctx, action_plan,
                 action=fields.NotificationAction.EXECUTION,
                 phase=fields.NotificationPhase.END)
+
+        except exception.ActionPlanCancelled as e:
+            LOG.exception(e)
+            action_plan.state = objects.action_plan.State.CANCELLED
+            self._update_action_from_pending_to_cancelled()
+
         except Exception as e:
             LOG.exception(e)
             action_plan.state = objects.action_plan.State.FAILED
@@ -64,3 +74,12 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
                 phase=fields.NotificationPhase.ERROR)
         finally:
             action_plan.save()
+
+    def _update_action_from_pending_to_cancelled(self):
+        filters = {'action_plan_uuid': self.action_plan_uuid,
+                   'state': objects.action.State.PENDING}
+        actions = objects.Action.list(self.ctx, filters=filters, eager=True)
+        if actions:
+            for a in actions:
+                a.state = objects.action.State.CANCELLED
+                a.save()

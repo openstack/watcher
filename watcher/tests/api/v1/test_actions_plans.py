@@ -456,7 +456,7 @@ ALLOWED_TRANSITIONS = [
     {"original_state": objects.action_plan.State.RECOMMENDED,
      "new_state": objects.action_plan.State.CANCELLED},
     {"original_state": objects.action_plan.State.ONGOING,
-     "new_state": objects.action_plan.State.CANCELLED},
+     "new_state": objects.action_plan.State.CANCELLING},
     {"original_state": objects.action_plan.State.PENDING,
      "new_state": objects.action_plan.State.CANCELLED},
 ]

@@ -70,3 +70,6 @@ class Sleep(base.BaseAction):
     def get_description(self):
         """Description of the action"""
         return "Wait for a given interval in seconds."
+
+    def abort(self):
+        LOG.debug("Abort action sleep")

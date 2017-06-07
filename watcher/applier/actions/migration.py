@@ -164,6 +164,10 @@ class Migrate(base.BaseAction):
     def revert(self):
         return self.migrate(destination=self.source_node)
 
+    def abort(self):
+        # TODO(adisky): implement abort for migration
+        LOG.warning("Abort for migration not implemented")
+
     def pre_condition(self):
         # TODO(jed): check if the instance exists / check if the instance is on
         # the source_node

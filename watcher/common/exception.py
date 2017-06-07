@@ -274,6 +274,10 @@ class ActionPlanReferenced(Invalid):
                 "multiple actions")
 
 
+class ActionPlanCancelled(WatcherException):
+    msg_fmt = _("Action Plan with UUID %(uuid)s is cancelled by user")
+
+
 class ActionPlanIsOngoing(Conflict):
     msg_fmt = _("Action Plan %(action_plan)s is currently running.")
 

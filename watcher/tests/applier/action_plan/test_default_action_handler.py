@@ -19,6 +19,7 @@ import mock
 
 from watcher.applier.action_plan import default
 from watcher.applier import default as ap_applier
+from watcher.common import exception
 from watcher import notifications
 from watcher import objects
 from watcher.objects import action_plan as ap_objects
@@ -99,3 +100,27 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
             self.m_action_plan_notifications
                 .send_action_notification
                 .call_args_list)
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_cancel_action_plan(self, m_get_action_plan):
+        m_get_action_plan.return_value = self.action_plan
+        self.action_plan.state = ap_objects.State.CANCELLED
+        self.action_plan.save()
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
+        command.execute()
+        action = self.action.get_by_uuid(self.context, self.action.uuid)
+        self.assertEqual(ap_objects.State.CANCELLED, self.action_plan.state)
+        self.assertEqual(objects.action.State.CANCELLED, action.state)
+
+    @mock.patch.object(ap_applier.DefaultApplier, "execute")
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_cancel_action_plan_with_exception(self, m_get_action_plan,
+                                               m_execute):
+        m_get_action_plan.return_value = self.action_plan
+        m_execute.side_effect = exception.ActionPlanCancelled(
+            self.action_plan.uuid)
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
+        command.execute()
+        self.assertEqual(ap_objects.State.CANCELLED, self.action_plan.state)
