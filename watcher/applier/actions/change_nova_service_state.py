@@ -17,8 +17,7 @@
 # limitations under the License.
 #
 
-import six
-import voluptuous
+import jsonschema
 
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -51,15 +50,31 @@ class ChangeNovaServiceState(base.BaseAction):
 
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID):
-                voluptuous.All(
-                    voluptuous.Any(*six.string_types),
-                    voluptuous.Length(min=1)),
-            voluptuous.Required(self.STATE):
-                voluptuous.Any(*[state.value
-                                 for state in list(element.ServiceState)]),
-        })
+        return {
+            'type': 'object',
+            'properties': {
+                'resource_id': {
+                    'type': 'string',
+                    "minlength": 1
+                },
+                'state': {
+                    'type': 'string',
+                    'enum': [element.ServiceState.ONLINE.value,
+                             element.ServiceState.OFFLINE.value,
+                             element.ServiceState.ENABLED.value,
+                             element.ServiceState.DISABLED.value]
+                }
+            },
+            'required': ['resource_id', 'state'],
+            'additionalProperties': False,
+        }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def host(self):

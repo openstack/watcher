@@ -15,8 +15,8 @@
 
 from __future__ import unicode_literals
 
+import jsonschema
 import mock
-import voluptuous
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import change_nova_service_state
@@ -73,33 +73,20 @@ class TestChangeNovaServiceState(base.TestCase):
         self.action.input_parameters = {
             baction.BaseAction.RESOURCE_ID: "compute-1",
             self.action.STATE: 'error'}
-        exc = self.assertRaises(
-            voluptuous.Invalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['state'], voluptuous.ScalarInvalid)],
-            [([str(p) for p in e.path], type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_resource_id_empty(self):
         self.action.input_parameters = {
             self.action.STATE: element.ServiceState.ENABLED.value,
         }
-        exc = self.assertRaises(
-            voluptuous.Invalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['resource_id'], voluptuous.RequiredFieldInvalid)],
-            [([str(p) for p in e.path], type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_applies_add_extra(self):
         self.action.input_parameters = {"extra": "failed"}
-        exc = self.assertRaises(
-            voluptuous.Invalid, self.action.validate_parameters)
-        self.assertEqual(
-            sorted([(['resource_id'], voluptuous.RequiredFieldInvalid),
-                    (['state'], voluptuous.RequiredFieldInvalid),
-                    (['extra'], voluptuous.Invalid)],
-                   key=lambda x: str(x[0])),
-            sorted([([str(p) for p in e.path], type(e)) for e in exc.errors],
-                   key=lambda x: str(x[0])))
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_change_service_state_pre_condition(self):
         try:
