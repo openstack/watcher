@@ -14,9 +14,8 @@
 # limitations under the License.
 
 from __future__ import unicode_literals
-
+import jsonschema
 import mock
-import voluptuous
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import resize
@@ -69,31 +68,23 @@ class TestResize(base.TestCase):
                       self.INSTANCE_UUID,
                       self.action.FLAVOR: None}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual([(['flavor'], voluptuous.TypeInvalid)],
-                         [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_flavor(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
                       self.action.FLAVOR: None}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['flavor'], voluptuous.TypeInvalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_resource_id(self):
         parameters = {baction.BaseAction.RESOURCE_ID: "EFEF",
                       self.action.FLAVOR: 'x1'}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['resource_id'], voluptuous.Invalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_execute_resize(self):
         self.r_helper.find_instance.return_value = self.INSTANCE_UUID
