@@ -17,9 +17,8 @@
 # limitations under the License.
 #
 
+import jsonschema
 from oslo_log import log
-import six
-import voluptuous
 
 from watcher.applier.actions import base
 
@@ -43,10 +42,23 @@ class Nop(base.BaseAction):
 
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.MESSAGE): voluptuous.Any(
-                voluptuous.Any(*six.string_types), None)
-        })
+        return {
+            'type': 'object',
+            'properties': {
+                'message': {
+                    'type': ['string', 'null']
+                }
+            },
+            'required': ['message'],
+            'additionalProperties': False,
+        }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def message(self):
