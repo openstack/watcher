@@ -38,7 +38,15 @@ class TestShowListService(base.BaseInfraOptimTest):
 
     @decorators.attr(type='smoke')
     def test_show_service(self):
-        _, service = self.client.show_service(self.DECISION_ENGINE)
+        _, body = self.client.list_services()
+        self.assertIn('services', body)
+        services = body['services']
+        self.assertIn(self.DECISION_ENGINE,
+                      [i['name'] for i in body['services']])
+
+        service_id = filter(lambda x: self.DECISION_ENGINE == x['name'],
+                            services)[0]['id']
+        _, service = self.client.show_service(service_id)
 
         self.assertEqual(self.DECISION_ENGINE, service['name'])
         self.assertIn("host", service.keys())
@@ -47,7 +55,16 @@ class TestShowListService(base.BaseInfraOptimTest):
 
     @decorators.attr(type='smoke')
     def test_show_service_with_links(self):
-        _, service = self.client.show_service(self.DECISION_ENGINE)
+        _, body = self.client.list_services()
+        self.assertIn('services', body)
+        services = body['services']
+        self.assertIn(self.DECISION_ENGINE,
+                      [i['name'] for i in body['services']])
+
+        service_id = filter(lambda x: self.DECISION_ENGINE == x['name'],
+                            services)[0]['id']
+        _, service = self.client.show_service(service_id)
+
         self.assertIn('links', service.keys())
         self.assertEqual(2, len(service['links']))
         self.assertIn(str(service['id']),

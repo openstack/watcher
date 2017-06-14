@@ -81,12 +81,16 @@ class BaseInfraOptimTest(test.BaseTestCase):
                     ap['uuid'] for ap in action_plans['action_plans'])
 
                 for action_plan in action_plans['action_plans']:
-                    test_utils.call_until_true(
-                        func=functools.partial(
-                            cls.is_action_plan_idle, action_plan['uuid']),
-                        duration=30,
-                        sleep_for=.5
-                    )
+                    try:
+                        test_utils.call_until_true(
+                            func=functools.partial(
+                                cls.is_action_plan_idle, action_plan['uuid']),
+                            duration=30,
+                            sleep_for=.5
+                        )
+                    except Exception:
+                        action_plans_to_be_deleted.remove(
+                            action_plan['uuid'])
 
             # Phase 2: Delete them all
             for action_plan_uuid in action_plans_to_be_deleted:

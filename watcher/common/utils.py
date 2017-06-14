@@ -111,7 +111,7 @@ def extend_with_default(validator_class):
 
     def set_defaults(validator, properties, instance, schema):
         for prop, subschema in properties.items():
-            if "default" in subschema:
+            if "default" in subschema and instance is not None:
                 instance.setdefault(prop, subschema["default"])
 
             for error in validate_properties(
@@ -128,6 +128,9 @@ def extend_with_strict_schema(validator_class):
     validate_properties = validator_class.VALIDATORS["properties"]
 
     def strict_schema(validator, properties, instance, schema):
+        if instance is None:
+            return
+
         for para in instance.keys():
             if para not in properties.keys():
                 raise exception.AuditParameterNotAllowed(parameter=para)

@@ -308,13 +308,17 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     )
 
                 if avg_meter is None:
-                    raise exception.NoSuchMetricForHost(
-                        metric=meter_name,
-                        host=node_id)
-                if meter_name == 'hardware.memory.used':
-                    avg_meter /= oslo_utils.units.Ki
-                if meter_name == 'compute.node.cpu.percent':
-                    avg_meter /= 100
+                    if meter_name == 'hardware.memory.used':
+                        avg_meter = node.memory
+                    if meter_name == 'compute.node.cpu.percent':
+                        avg_meter = 1
+                    LOG.warning('No values returned by node %s for %s',
+                                node_id, meter_name)
+                else:
+                    if meter_name == 'hardware.memory.used':
+                        avg_meter /= oslo_utils.units.Ki
+                    if meter_name == 'compute.node.cpu.percent':
+                        avg_meter /= 100
                 hosts_load[node_id][metric] = avg_meter
         return hosts_load
 
