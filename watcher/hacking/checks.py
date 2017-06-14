@@ -15,8 +15,6 @@
 import os
 import re
 
-import pep8
-
 
 def flake8ext(f):
     """Decorator to indicate flake8 extension.
@@ -58,27 +56,10 @@ def _regex_for_level(level, hint):
     }
 
 
-log_translation_hint = re.compile(
-    '|'.join('(?:%s)' % _regex_for_level(level, hint)
-             for level, hint in _all_log_levels.items()))
-
 log_warn = re.compile(
     r"(.)*LOG\.(warn)\(\s*('|\"|_)")
 unittest_imports_dot = re.compile(r"\bimport[\s]+unittest\b")
 unittest_imports_from = re.compile(r"\bfrom[\s]+unittest\b")
-
-
-@flake8ext
-def validate_log_translations(logical_line, physical_line, filename):
-    # Translations are not required in the test directory
-    if "watcher/tests" in filename:
-        return
-    if pep8.noqa(physical_line):
-        return
-
-    msg = "N320: Log messages require translation hints!"
-    if log_translation_hint.match(logical_line):
-        yield (0, msg)
 
 
 @flake8ext
@@ -291,7 +272,6 @@ def check_builtins_gettext(logical_line, tokens, filename, lines, noqa):
 
 
 def factory(register):
-    register(validate_log_translations)
     register(use_jsonutils)
     register(check_assert_called_once_with)
     register(no_translate_debug_logs)
