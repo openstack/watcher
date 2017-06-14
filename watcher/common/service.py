@@ -210,7 +210,7 @@ class Service(service.ServiceBase):
     @property
     def transport(self):
         if self._transport is None:
-            self._transport = om.get_transport(CONF)
+            self._transport = om.get_rpc_transport(CONF)
         return self._transport
 
     @property
