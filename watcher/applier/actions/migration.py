@@ -17,15 +17,13 @@
 # limitations under the License.
 #
 
-from oslo_log import log
-import six
-import voluptuous
 
+import jsonschema
+from oslo_log import log
 from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import exception
 from watcher.common import nova_helper
-from watcher.common import utils
 
 LOG = log.getLogger(__name__)
 
@@ -62,28 +60,42 @@ class Migrate(base.BaseAction):
     DESTINATION_NODE = 'destination_node'
     SOURCE_NODE = 'source_node'
 
-    def check_resource_id(self, value):
-        if (value is not None and
-                len(value) > 0 and not
-                utils.is_uuid_like(value)):
-            raise voluptuous.Invalid(_("The parameter "
-                                       "resource_id is invalid."))
-
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID): self.check_resource_id,
-            voluptuous.Required(
-                self.MIGRATION_TYPE, default=self.LIVE_MIGRATION):
-                    voluptuous.Any(
-                        *[self.LIVE_MIGRATION, self.COLD_MIGRATION]),
-            voluptuous.Required(self.DESTINATION_NODE):
-                voluptuous.All(voluptuous.Any(*six.string_types),
-                               voluptuous.Length(min=1)),
-            voluptuous.Required(self.SOURCE_NODE):
-                voluptuous.All(voluptuous.Any(*six.string_types),
-                               voluptuous.Length(min=1)),
-        })
+        return {
+            'type': 'object',
+            'properties': {
+                'destination_node': {
+                    'type': 'string',
+                    "minLength": 1
+                },
+                'migration_type': {
+                    'type': 'string',
+                    "enum": ["live", "cold"]
+                },
+                'resource_id': {
+                    'type': 'string',
+                    "minlength": 1,
+                    "pattern": ("^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-"
+                                "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
+                                "([a-fA-F0-9]){12}$")
+                },
+                'source_node': {
+                    'type': 'string',
+                    "minLength": 1
+                    }
+            },
+            'required': ['destination_node', 'migration_type',
+                         'resource_id', 'source_node'],
+            'additionalProperties': False,
+        }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def instance_uuid(self):
@@ -137,7 +149,6 @@ class Migrate(base.BaseAction):
             LOG.critical("Unexpected error occurred. Migration failed for "
                          "instance %s. Leaving instance on previous "
                          "host.", self.instance_uuid)
-
         return result
 
     def migrate(self, destination):

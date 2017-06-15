@@ -15,8 +15,9 @@
 
 from __future__ import unicode_literals
 
+
+import jsonschema
 import mock
-import voluptuous
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
@@ -93,13 +94,8 @@ class TestMigration(base.TestCase):
                       'source_node': None,
                       'destination_node': None}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            sorted([(['migration_type'], voluptuous.ScalarInvalid),
-                    (['source_node'], voluptuous.TypeInvalid),
-                    (['destination_node'], voluptuous.TypeInvalid)]),
-            sorted([(e.path, type(e)) for e in exc.errors]))
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_migration_type(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
@@ -108,11 +104,8 @@ class TestMigration(base.TestCase):
                       'source_node': 'compute-2',
                       'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.Invalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['migration_type'], voluptuous.ScalarInvalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_source_node(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
@@ -121,11 +114,8 @@ class TestMigration(base.TestCase):
                       'source_node': None,
                       'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['source_node'], voluptuous.TypeInvalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_destination_node(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
@@ -134,11 +124,8 @@ class TestMigration(base.TestCase):
                       'source_node': 'compute-1',
                       'destination_node': None}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['destination_node'], voluptuous.TypeInvalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_parameters_exception_resource_id(self):
         parameters = {baction.BaseAction.RESOURCE_ID: "EFEF",
@@ -146,11 +133,8 @@ class TestMigration(base.TestCase):
                       'source_node': 'compute-2',
                       'destination_node': 'compute-3'}
         self.action.input_parameters = parameters
-        exc = self.assertRaises(
-            voluptuous.MultipleInvalid, self.action.validate_parameters)
-        self.assertEqual(
-            [(['resource_id'], voluptuous.Invalid)],
-            [(e.path, type(e)) for e in exc.errors])
+        self.assertRaises(jsonschema.ValidationError,
+                          self.action.validate_parameters)
 
     def test_migration_pre_condition(self):
         try:
