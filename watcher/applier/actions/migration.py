@@ -151,6 +151,18 @@ class Migrate(base.BaseAction):
                          "host.", self.instance_uuid)
         return result
 
+    def _abort_cold_migrate(self, nova):
+        # TODO(adisky): currently watcher uses its own version of cold migrate
+        # implement cold migrate using nova dependent on the blueprint
+        # https://blueprints.launchpad.net/nova/+spec/cold-migration-with-target
+        # Abort operation for cold migrate is dependent on blueprint
+        # https://blueprints.launchpad.net/nova/+spec/abort-cold-migration
+        LOG.warning("Abort operation for cold migration is not implemented")
+
+    def _abort_live_migrate(self, nova, source, destination):
+        return nova.abort_live_migrate(instance_id=self.instance_uuid,
+                                       source=source, destination=destination)
+
     def migrate(self, destination):
         nova = nova_helper.NovaHelper(osc=self.osc)
         LOG.debug("Migrate instance %s to %s", self.instance_uuid,
@@ -176,8 +188,17 @@ class Migrate(base.BaseAction):
         return self.migrate(destination=self.source_node)
 
     def abort(self):
-        # TODO(adisky): implement abort for migration
-        LOG.warning("Abort for migration not implemented")
+        nova = nova_helper.NovaHelper(osc=self.osc)
+        instance = nova.find_instance(self.instance_uuid)
+        if instance:
+            if self.migration_type == self.COLD_MIGRATION:
+                return self._abort_cold_migrate(nova)
+            elif self.migration_type == self.LIVE_MIGRATION:
+                return self._abort_live_migrate(
+                    nova, source=self.source_node,
+                    destination=self.destination_node)
+        else:
+            raise exception.InstanceNotFound(name=self.instance_uuid)
 
     def pre_condition(self):
         # TODO(jed): check if the instance exists / check if the instance is on

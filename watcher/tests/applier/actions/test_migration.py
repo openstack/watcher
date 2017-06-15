@@ -238,3 +238,18 @@ class TestMigration(base.TestCase):
                     ]
         self.m_helper.live_migrate_instance.mock_calls == expected
         self.assertEqual(2, self.m_helper.live_migrate_instance.call_count)
+
+    def test_abort_live_migrate(self):
+        migration = mock.MagicMock()
+        migration.id = "2"
+        migrations = [migration]
+        self.m_helper.get_running_migration.return_value = migrations
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+        try:
+            self.action.abort()
+        except Exception as exc:
+            self.fail(exc)
+
+        self.m_helper.abort_live_migrate.assert_called_once_with(
+            instance_id=self.INSTANCE_UUID, source="compute1-hostname",
+            destination="compute2-hostname")
