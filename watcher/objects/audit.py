@@ -86,13 +86,15 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     # Version 1.2: Added 'auto_trigger' boolean field
     # Version 1.3: Added 'next_run_time' DateTime field,
     #              'interval' type has been changed from Integer to String
-    VERSION = '1.3'
+    # Version 1.4: Added 'name' string field
+    VERSION = '1.4'
 
     dbapi = db_api.get_instance()
 
     fields = {
         'id': wfields.IntegerField(),
         'uuid': wfields.UUIDField(),
+        'name': wfields.StringField(),
         'audit_type': wfields.StringField(),
         'state': wfields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
@@ -201,6 +203,25 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         """
 
         db_audit = cls.dbapi.get_audit_by_uuid(context, uuid, eager=eager)
+        audit = cls._from_db_object(cls(context), db_audit, eager=eager)
+        return audit
+
+    @base.remotable_classmethod
+    def get_by_name(cls, context, name, eager=False):
+        """Find an audit based on name and return a :class:`Audit` object.
+
+        :param context: Security context. NOTE: This should only
+                        be used internally by the indirection_api.
+                        Unfortunately, RPC requires context as the first
+                        argument, even though we don't use it.
+                        A context should be set when instantiating the
+                        object, e.g.: Audit(context)
+        :param name: the name of an audit.
+        :param eager: Load object fields if True (Default: False)
+        :returns: a :class:`Audit` object.
+        """
+
+        db_audit = cls.dbapi.get_audit_by_name(context, name, eager=eager)
         audit = cls._from_db_object(cls(context), db_audit, eager=eager)
         return audit
 

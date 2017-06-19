@@ -128,12 +128,12 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_many_with_soft_deleted_audit_uuid(self):
         action_plan_list = []
-        audit1 = obj_utils.create_test_audit(self.context,
-                                             id=2,
-                                             uuid=utils.generate_uuid())
-        audit2 = obj_utils.create_test_audit(self.context,
-                                             id=3,
-                                             uuid=utils.generate_uuid())
+        audit1 = obj_utils.create_test_audit(
+            self.context, id=2,
+            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
+        audit2 = obj_utils.create_test_audit(
+            self.context, id=3,
+            uuid=utils.generate_uuid(), name='My Audit {0}'.format(3))
 
         for id_ in range(0, 2):
             action_plan = obj_utils.create_test_action_plan(
@@ -163,9 +163,9 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_many_with_audit_uuid(self):
         action_plan_list = []
-        audit = obj_utils.create_test_audit(self.context,
-                                            id=2,
-                                            uuid=utils.generate_uuid())
+        audit = obj_utils.create_test_audit(
+            self.context, id=2,
+            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -178,18 +178,18 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_many_with_audit_uuid_filter(self):
         action_plan_list1 = []
-        audit1 = obj_utils.create_test_audit(self.context,
-                                             id=2,
-                                             uuid=utils.generate_uuid())
+        audit1 = obj_utils.create_test_audit(
+            self.context, id=2,
+            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit1.id)
             action_plan_list1.append(action_plan.uuid)
 
-        audit2 = obj_utils.create_test_audit(self.context,
-                                             id=3,
-                                             uuid=utils.generate_uuid())
+        audit2 = obj_utils.create_test_audit(
+            self.context, id=3,
+            uuid=utils.generate_uuid(), name='My Audit {0}'.format(3))
         action_plan_list2 = []
         for id_ in [5, 6, 7]:
             action_plan = obj_utils.create_test_action_plan(
@@ -237,9 +237,9 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_many_with_sort_key_audit_uuid(self):
         audit_list = []
         for id_ in range(2, 5):
-            audit = obj_utils.create_test_audit(self.context,
-                                                id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit.id)

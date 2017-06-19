@@ -61,7 +61,7 @@ class TestStrategyContext(base.DbTestCase):
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2,
+            id=2, name='My Audit {0}'.format(2),
             goal_id=goal.id,
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
@@ -89,7 +89,7 @@ class TestStrategyContext(base.DbTestCase):
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2,
+            id=2, name='My Audit {0}'.format(2),
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )

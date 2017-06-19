@@ -154,8 +154,9 @@ class TestListAudit(api_base.FunctionalTest):
     def test_many(self):
         audit_list = []
         for id_ in range(5):
-            audit = obj_utils.create_test_audit(self.context, id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             audit_list.append(audit.uuid)
         response = self.get_json('/audits')
         self.assertEqual(len(audit_list), len(response['audits']))
@@ -165,12 +166,14 @@ class TestListAudit(api_base.FunctionalTest):
     def test_many_without_soft_deleted(self):
         audit_list = []
         for id_ in [1, 2, 3]:
-            audit = obj_utils.create_test_audit(self.context, id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
-            audit = obj_utils.create_test_audit(self.context, id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             audit.soft_delete()
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
@@ -180,12 +183,14 @@ class TestListAudit(api_base.FunctionalTest):
     def test_many_with_soft_deleted(self):
         audit_list = []
         for id_ in [1, 2, 3]:
-            audit = obj_utils.create_test_audit(self.context, id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
-            audit = obj_utils.create_test_audit(self.context, id=id_,
-                                                uuid=utils.generate_uuid())
+            audit = obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
             audit.soft_delete()
             audit_list.append(audit.uuid)
         response = self.get_json('/audits',
@@ -203,7 +208,7 @@ class TestListAudit(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
             obj_utils.create_test_audit(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                goal_id=goal.id)
+                goal_id=goal.id, name='My Audit {0}'.format(id_))
             goal_list.append(goal.uuid)
 
         response = self.get_json('/audits/?sort_key=goal_uuid')
@@ -214,7 +219,9 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_links(self):
         uuid = utils.generate_uuid()
-        obj_utils.create_test_audit(self.context, id=1, uuid=uuid)
+        obj_utils.create_test_audit(
+            self.context, id=1, uuid=uuid,
+            name='My Audit {0}'.format(1))
         response = self.get_json('/audits/%s' % uuid)
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
@@ -225,8 +232,9 @@ class TestListAudit(api_base.FunctionalTest):
 
     def test_collection_links(self):
         for id_ in range(5):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid())
+            obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
         response = self.get_json('/audits/?limit=3')
         self.assertEqual(3, len(response['audits']))
 
@@ -236,8 +244,9 @@ class TestListAudit(api_base.FunctionalTest):
     def test_collection_links_default_limit(self):
         cfg.CONF.set_override('max_limit', 3, 'api')
         for id_ in range(5):
-            obj_utils.create_test_audit(self.context, id=id_,
-                                        uuid=utils.generate_uuid())
+            obj_utils.create_test_audit(
+                self.context, id=id_,
+                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
 

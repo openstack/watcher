@@ -38,25 +38,31 @@ class TestDbAuditFilters(base.DbTestCase):
 
     def _data_setup(self):
         self.audit_template_name = "Audit Template"
+        gen_name = lambda: "Audit %s" % w_utils.generate_uuid()
+        self.audit1_name = gen_name()
+        self.audit2_name = gen_name()
+        self.audit3_name = gen_name()
+        self.audit4_name = gen_name()
 
         self.audit_template = utils.create_test_audit_template(
             name=self.audit_template_name, id=1, uuid=None)
 
         with freezegun.freeze_time(self.FAKE_TODAY):
             self.audit1 = utils.create_test_audit(
-                audit_template_id=self.audit_template.id, id=1, uuid=None)
+                audit_template_id=self.audit_template.id, id=1, uuid=None,
+                name=self.audit1_name)
         with freezegun.freeze_time(self.FAKE_OLD_DATE):
             self.audit2 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=2, uuid=None,
-                state=objects.audit.State.FAILED)
+                name=self.audit2_name, state=objects.audit.State.FAILED)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.audit3 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=3, uuid=None,
-                state=objects.audit.State.CANCELLED)
+                name=self.audit3_name, state=objects.audit.State.CANCELLED)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.audit4 = utils.create_test_audit(
                 audit_template_id=self.audit_template.id, id=4, uuid=None,
-                state=objects.audit.State.SUSPENDED)
+                name=self.audit4_name, state=objects.audit.State.SUSPENDED)
 
     def _soft_delete_audits(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -266,8 +272,9 @@ class DbAuditTestCase(base.DbTestCase):
 
     def test_get_audit_list(self):
         uuids = []
-        for _ in range(1, 4):
-            audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
+        for id_ in range(1, 4):
+            audit = utils.create_test_audit(uuid=w_utils.generate_uuid(),
+                                            name='My Audit {0}'.format(id_))
             uuids.append(six.text_type(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context)
         audit_uuids = [a.uuid for a in audits]
@@ -286,6 +293,7 @@ class DbAuditTestCase(base.DbTestCase):
         for i in range(1, 4):
             audit = utils.create_test_audit(
                 id=i, uuid=w_utils.generate_uuid(),
+                name='My Audit {0}'.format(i),
                 goal_id=goal.id, strategy_id=strategy.id)
             uuids.append(six.text_type(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context, eager=True)
@@ -300,6 +308,7 @@ class DbAuditTestCase(base.DbTestCase):
             id=1,
             audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
+            name='My Audit {0}'.format(1),
             state=objects.audit.State.ONGOING)
         audit2 = self._create_test_audit(
             id=2,
@@ -389,3 +398,21 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual(audit['id'], action_plan.audit_id)
         self.assertRaises(exception.AuditReferenced,
                           self.dbapi.destroy_audit, audit['id'])
+
+    def test_create_audit_already_exists(self):
+        uuid = w_utils.generate_uuid()
+        self._create_test_audit(id=1, uuid=uuid)
+        self.assertRaises(exception.AuditAlreadyExists,
+                          self._create_test_audit,
+                          id=2, uuid=uuid)
+
+    def test_create_same_name_audit(self):
+        audit = utils.create_test_audit(
+            uuid=w_utils.generate_uuid(),
+            name='my_audit')
+        self.assertEqual(audit['uuid'], audit.uuid)
+        self.assertRaises(
+            exception.AuditAlreadyExists,
+            utils.create_test_audit,
+            uuid=w_utils.generate_uuid(),
+            name='my_audit')

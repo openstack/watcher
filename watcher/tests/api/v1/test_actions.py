@@ -169,7 +169,8 @@ class TestListAction(api_base.FunctionalTest):
             action_list.append(action.uuid)
 
         audit2 = obj_utils.create_test_audit(
-            self.context, id=2, uuid=utils.generate_uuid())
+            self.context, id=2, uuid=utils.generate_uuid(),
+            name='My Audit {0}'.format(2))
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),

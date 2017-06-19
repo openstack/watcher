@@ -249,7 +249,7 @@ class AuditNotFound(ResourceNotFound):
 
 
 class AuditAlreadyExists(Conflict):
-    msg_fmt = _("An audit with UUID %(uuid)s already exists")
+    msg_fmt = _("An audit with UUID or name %(audit)s already exists")
 
 
 class AuditIntervalNotSpecified(Invalid):
