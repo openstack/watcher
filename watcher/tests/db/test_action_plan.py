@@ -307,6 +307,14 @@ class DbActionPlanTestCase(base.DbTestCase):
         for r in res:
             self.assertEqual(audit['id'], r.audit_id)
 
+        self.dbapi.soft_delete_action_plan(action_plan1['uuid'])
+        res = self.dbapi.get_action_plan_list(
+            self.context,
+            filters={'audit_uuid': audit['uuid']})
+
+        self.assertEqual([action_plan2['id']], [r.id for r in res])
+        self.assertNotEqual([action_plan1['id']], [r.id for r in res])
+
     def test_get_action_plan_list_with_filter_by_uuid(self):
         action_plan = self._create_test_action_plan()
         res = self.dbapi.get_action_plan_list(

@@ -815,7 +815,7 @@ class Connection(api.BaseConnection):
             query = self._set_eager_options(models.ActionPlan, query)
         query = self._add_action_plans_filters(query, filters)
         if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
+            query = query.filter(models.ActionPlan.deleted_at.is_(None))
 
         return _paginate_query(models.ActionPlan, limit, marker,
                                sort_key, sort_dir, query)
