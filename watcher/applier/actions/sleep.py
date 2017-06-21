@@ -17,11 +17,10 @@
 # limitations under the License.
 #
 
+import jsonschema
 import time
 
 from oslo_log import log
-import voluptuous
-
 from watcher.applier.actions import base
 
 LOG = log.getLogger(__name__)
@@ -43,10 +42,24 @@ class Sleep(base.BaseAction):
 
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.DURATION, default=1):
-                voluptuous.All(float, voluptuous.Range(min=0))
-        })
+        return {
+            'type': 'object',
+            'properties': {
+                'duration': {
+                    'type': 'number',
+                    'minimum': 0
+                },
+            },
+            'required': ['duration'],
+            'additionalProperties': False,
+        }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def duration(self):

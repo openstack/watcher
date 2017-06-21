@@ -13,8 +13,9 @@
 # limitations under the License.
 #
 
+
+import jsonschema
 import mock
-import voluptuous
 
 from watcher.applier.actions import sleep
 from watcher.tests import base
@@ -31,12 +32,15 @@ class TestSleep(base.TestCase):
 
     def test_parameters_duration_empty(self):
         self.s.input_parameters = {self.s.DURATION: None}
-        self.assertRaises(voluptuous.Invalid, self.s.validate_parameters)
+        self.assertRaises(jsonschema.ValidationError,
+                          self.s.validate_parameters)
 
     def test_parameters_wrong_parameter(self):
         self.s.input_parameters = {self.s.DURATION: "ef"}
-        self.assertRaises(voluptuous.Invalid, self.s.validate_parameters)
+        self.assertRaises(jsonschema.ValidationError,
+                          self.s.validate_parameters)
 
     def test_parameters_add_field(self):
         self.s.input_parameters = {self.s.DURATION: 1.0, "not_required": "nop"}
-        self.assertRaises(voluptuous.Invalid, self.s.validate_parameters)
+        self.assertRaises(jsonschema.ValidationError,
+                          self.s.validate_parameters)
