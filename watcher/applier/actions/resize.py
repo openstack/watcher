@@ -17,14 +17,11 @@
 # limitations under the License.
 #
 
+import jsonschema
 from oslo_log import log
-import six
-import voluptuous
 
-from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import nova_helper
-from watcher.common import utils
 
 LOG = log.getLogger(__name__)
 
@@ -49,21 +46,33 @@ class Resize(base.BaseAction):
     # input parameters constants
     FLAVOR = 'flavor'
 
-    def check_resource_id(self, value):
-        if (value is not None and
-                len(value) > 0 and not
-                utils.is_uuid_like(value)):
-            raise voluptuous.Invalid(_("The parameter "
-                                       "resource_id is invalid."))
-
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID): self.check_resource_id,
-            voluptuous.Required(self.FLAVOR):
-                voluptuous.All(voluptuous.Any(*six.string_types),
-                               voluptuous.Length(min=1)),
-        })
+            return {
+                'type': 'object',
+                'properties': {
+                    'resource_id': {
+                        'type': 'string',
+                        'minlength': 1,
+                        'pattern': ('^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-'
+                                    '([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-'
+                                    '([a-fA-F0-9]){12}$')
+                    },
+                    'flavor': {
+                        'type': 'string',
+                        'minlength': 1,
+                    },
+                },
+                'required': ['resource_id', 'flavor'],
+                'additionalProperties': False,
+            }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def instance_uuid(self):
