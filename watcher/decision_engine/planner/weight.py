@@ -47,12 +47,13 @@ class WeightPlanner(base.BasePlanner):
         super(WeightPlanner, self).__init__(config)
 
     action_weights = {
-        'turn_host_to_acpi_s3_state': 10,
-        'resize': 20,
-        'migrate': 30,
-        'sleep': 40,
-        'change_nova_service_state': 50,
         'nop': 60,
+        'change_nova_service_state': 50,
+        'sleep': 40,
+        'migrate': 30,
+        'resize': 20,
+        'turn_host_to_acpi_s3_state': 10,
+        'change_node_power_state': 9,
     }
 
     parallelization = {
@@ -62,6 +63,7 @@ class WeightPlanner(base.BasePlanner):
         'sleep': 1,
         'change_nova_service_state': 1,
         'nop': 1,
+        'change_node_power_state': 2,
     }
 
     @classmethod
