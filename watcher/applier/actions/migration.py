@@ -66,8 +66,10 @@ class Migrate(base.BaseAction):
             'type': 'object',
             'properties': {
                 'destination_node': {
-                    'type': 'string',
-                    "minLength": 1
+                    "anyof": [
+                        {'type': 'string', "minLength": 1},
+                        {'type': 'None'}
+                        ]
                 },
                 'migration_type': {
                     'type': 'string',
@@ -85,8 +87,7 @@ class Migrate(base.BaseAction):
                     "minLength": 1
                     }
             },
-            'required': ['destination_node', 'migration_type',
-                         'resource_id', 'source_node'],
+            'required': ['migration_type', 'resource_id', 'source_node'],
             'additionalProperties': False,
         }
 
@@ -163,10 +164,14 @@ class Migrate(base.BaseAction):
         return nova.abort_live_migrate(instance_id=self.instance_uuid,
                                        source=source, destination=destination)
 
-    def migrate(self, destination):
+    def migrate(self, destination=None):
         nova = nova_helper.NovaHelper(osc=self.osc)
-        LOG.debug("Migrate instance %s to %s", self.instance_uuid,
-                  destination)
+        if destination is None:
+            LOG.debug("Migrating instance %s, destination node will be "
+                      "determined by nova-scheduler", self.instance_uuid)
+        else:
+            LOG.debug("Migrate instance %s to %s", self.instance_uuid,
+                      destination)
         instance = nova.find_instance(self.instance_uuid)
         if instance:
             if self.migration_type == self.LIVE_MIGRATION:

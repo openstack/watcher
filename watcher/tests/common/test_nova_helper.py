@@ -69,6 +69,31 @@ class TestNovaHelper(base.TestCase):
         else:
             nova_util.nova.server_migration.list.return_value = [list]
 
+    @staticmethod
+    def fake_live_migrate(server, *args, **kwargs):
+
+        def side_effect(*args, **kwargs):
+            setattr(server, 'OS-EXT-SRV-ATTR:host', "compute-2")
+
+        server.live_migrate.side_effect = side_effect
+
+    @staticmethod
+    def fake_confirm_resize(server, *args, **kwargs):
+
+        def side_effect(*args, **kwargs):
+            setattr(server, 'status', 'ACTIVE')
+
+        server.confirm_resize.side_effect = side_effect
+
+    @staticmethod
+    def fake_cold_migrate(server, *args, **kwargs):
+
+        def side_effect(*args, **kwargs):
+            setattr(server, 'OS-EXT-SRV-ATTR:host', "compute-2")
+            setattr(server, 'status', 'VERIFY_RESIZE')
+
+        server.migrate.side_effect = side_effect
+
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_stop_instance(self, mock_glance, mock_cinder, mock_neutron,
                            mock_nova):
@@ -139,6 +164,19 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
         self.assertFalse(is_success)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_live_migrate_instance_no_destination_node(
+            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        self.destination_node = None
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+        self.fake_live_migrate(server)
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+        self.assertTrue(is_success)
 
     def test_watcher_non_live_migrate_instance_not_found(
             self, mock_glance, mock_cinder, mock_neutron, mock_nova):
@@ -227,6 +265,21 @@ class TestNovaHelper(base.TestCase):
         self.assertRaises(Exception, nova_util.abort_live_migrate,
                           (self.instance_uuid, self.source_node,
                            self.destination_node))
+
+    def test_non_live_migrate_instance_no_destination_node(
+            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host',
+                self.source_node)
+        self.destination_node = None
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+        self.fake_cold_migrate(server)
+        self.fake_confirm_resize(server)
+        is_success = nova_util.watcher_non_live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+        self.assertTrue(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_create_image_from_instance(self, mock_glance, mock_cinder,
