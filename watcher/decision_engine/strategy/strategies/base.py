@@ -358,3 +358,11 @@ class NoisyNeighborBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "noisy_neighbor"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class SavingEnergyBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "saving_energy"
