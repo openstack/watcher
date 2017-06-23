@@ -4,6 +4,7 @@
   "payload": {
     "watcher_object.name": "AuditUpdatePayload",
     "watcher_object.data": {
+      "name": "my_audit",
       "strategy_uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",
       "strategy": {
         "watcher_object.name": "StrategyPayload",

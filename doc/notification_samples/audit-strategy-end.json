@@ -2,6 +2,7 @@
   "priority": "INFO",
   "payload": {
     "watcher_object.data": {
+      "name": "my_audit",
       "audit_type": "ONESHOT",
       "parameters": {
         "para2": "hello",

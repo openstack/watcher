@@ -33,7 +33,7 @@ CONF = cfg.CONF
 class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     SCHEMA = {
         'uuid': ('audit', 'uuid'),
-
+        'name': ('audit', 'name'),
         'audit_type': ('audit', 'audit_type'),
         'state': ('audit', 'state'),
         'parameters': ('audit', 'parameters'),
@@ -51,10 +51,12 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     # Version 1.1: Added 'auto_trigger' boolean field,
     #              Added 'next_run_time' DateTime field,
     #              'interval' type has been changed from Integer to String
-    VERSION = '1.1'
+    # Version 1.2: Added 'name' string field
+    VERSION = '1.2'
 
     fields = {
         'uuid': wfields.UUIDField(),
+        'name': wfields.StringField(),
         'audit_type': wfields.StringField(),
         'state': wfields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
@@ -80,7 +82,7 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
 class AuditPayload(TerseAuditPayload):
     SCHEMA = {
         'uuid': ('audit', 'uuid'),
-
+        'name': ('audit', 'name'),
         'audit_type': ('audit', 'audit_type'),
         'state': ('audit', 'state'),
         'parameters': ('audit', 'parameters'),
@@ -97,7 +99,8 @@ class AuditPayload(TerseAuditPayload):
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
-    VERSION = '1.1'
+    # Version 1.2: Added 'name' string field
+    VERSION = '1.2'
 
     fields = {
         'goal': wfields.ObjectField('GoalPayload'),

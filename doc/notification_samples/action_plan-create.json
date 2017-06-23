@@ -23,6 +23,7 @@
       "audit": {
         "watcher_object.version": "1.0",
         "watcher_object.data": {
+          "name": "my_audit",
           "audit_type": "ONESHOT",
           "scope": [],
           "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",

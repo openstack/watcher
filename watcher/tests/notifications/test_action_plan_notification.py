@@ -98,6 +98,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             "auto_trigger": False,
                             "parameters": {},
                             "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                            "name": "My Audit",
                             "strategy_uuid": None,
                             "goal_uuid": (
                                 "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -110,7 +111,7 @@ class TestActionPlanNotification(base.DbTestCase):
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.1"
+                        "watcher_object.version": "1.2"
                     },
                     "deleted_at": None,
                     "state": "ONGOING",
@@ -174,6 +175,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             "auto_trigger": False,
                             "parameters": {},
                             "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                            "name": "My Audit",
                             "strategy_uuid": None,
                             "goal_uuid": (
                                 "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -186,7 +188,7 @@ class TestActionPlanNotification(base.DbTestCase):
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.1"
+                        "watcher_object.version": "1.2"
                     },
                     "deleted_at": None,
                     "state": "PENDING",
@@ -242,6 +244,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             "auto_trigger": False,
                             "parameters": {},
                             "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                            "name": "My Audit",
                             "strategy_uuid": None,
                             "goal_uuid": (
                                 "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -254,7 +257,7 @@ class TestActionPlanNotification(base.DbTestCase):
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.1"
+                        "watcher_object.version": "1.2"
                     },
                     "deleted_at": None,
                     "state": "DELETED",
@@ -293,13 +296,14 @@ class TestActionPlanNotification(base.DbTestCase):
                         "audit": {
                             "watcher_object.namespace": "watcher",
                             "watcher_object.name": "TerseAuditPayload",
-                            "watcher_object.version": "1.1",
+                            "watcher_object.version": "1.2",
                             "watcher_object.data": {
                                 "interval": None,
                                 "next_run_time": None,
                                 "auto_trigger": False,
                                 "parameters": {},
                                 "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                "name": "My Audit",
                                 "strategy_uuid": None,
                                 "goal_uuid": (
                                     "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -385,6 +389,7 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "auto_trigger": False,
                                 "parameters": {},
                                 "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                "name": "My Audit",
                                 "strategy_uuid": None,
                                 "goal_uuid": (
                                     "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -397,7 +402,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             },
                             "watcher_object.name": "TerseAuditPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.1"
+                            "watcher_object.version": "1.2"
                         },
                         "global_efficacy": {},
                         "state": "ONGOING",
@@ -454,13 +459,14 @@ class TestActionPlanNotification(base.DbTestCase):
                         "audit": {
                             "watcher_object.namespace": "watcher",
                             "watcher_object.name": "TerseAuditPayload",
-                            "watcher_object.version": "1.1",
+                            "watcher_object.version": "1.2",
                             "watcher_object.data": {
                                 "interval": None,
                                 "next_run_time": None,
                                 "auto_trigger": False,
                                 "parameters": {},
                                 "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                'name': 'My Audit',
                                 "strategy_uuid": None,
                                 "goal_uuid": (
                                     "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -546,6 +552,7 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "auto_trigger": False,
                                 "parameters": {},
                                 "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                                'name': 'My Audit',
                                 "strategy_uuid": None,
                                 "goal_uuid": (
                                     "f7ad87ae-4298-91cf-93a0-f35a852e3652"),
@@ -558,7 +565,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             },
                             "watcher_object.name": "TerseAuditPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.1"
+                            "watcher_object.version": "1.2"
                         },
                         "global_efficacy": {},
                         "state": "ONGOING",

@@ -8,6 +8,7 @@
       "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
       "audit": {
         "watcher_object.data": {
+          "name": "my_audit",
           "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
           "goal_uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",
           "strategy_uuid": "75234dfe-87e3-4f11-a0e0-3c3305d86a39",

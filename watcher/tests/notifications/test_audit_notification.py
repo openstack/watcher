@@ -91,6 +91,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "name": "My Audit",
                     "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
@@ -150,6 +151,7 @@ class TestAuditNotification(base.DbTestCase):
                     "auto_trigger": False,
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "name": "My Audit",
                     "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
@@ -226,6 +228,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "name": "My Audit",
                     "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
@@ -291,6 +294,7 @@ class TestAuditNotification(base.DbTestCase):
                     },
                     "parameters": {},
                     "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                    "name": "My Audit",
                     "goal_uuid": "f7ad87ae-4298-91cf-93a0-f35a852e3652",
                     "goal": {
                         "watcher_object.namespace": "watcher",
@@ -360,6 +364,7 @@ class TestAuditNotification(base.DbTestCase):
                         "interval": None,
                         "next_run_time": None,
                         "auto_trigger": False,
+                        "name": "My Audit",
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
@@ -446,6 +451,7 @@ class TestAuditNotification(base.DbTestCase):
                         "interval": None,
                         "next_run_time": None,
                         "auto_trigger": False,
+                        "name": "My Audit",
                         "parameters": {},
                         "scope": [],
                         "state": "ONGOING",
