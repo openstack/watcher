@@ -57,6 +57,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             metadata={'hi': 'hello'},
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
+        setattr(fake_instance, 'OS-EXT-SRV-ATTR:host', 'test_hostname')
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
         # m_nova_helper.get_instances_by_node.return_value = [fake_instance]
         m_nova_helper.get_instance_list.return_value = [fake_instance]
