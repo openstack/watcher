@@ -310,3 +310,28 @@ class TestNovaHelper(base.TestCase):
 
         nova_util.get_flavor_instance(instance, cache)
         self.assertEqual(instance.flavor['name'], cache['name'])
+
+    @staticmethod
+    def fake_volume(**kwargs):
+        volume = mock.MagicMock()
+        volume.id = kwargs.get('id', '45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba')
+        volume.size = kwargs.get('size', '1')
+        volume.status = kwargs.get('status', 'available')
+        volume.snapshot_id = kwargs.get('snapshot_id', None)
+        volume.availability_zone = kwargs.get('availability_zone', 'nova')
+        return volume
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_swap_volume(self, mock_glance, mock_cinder,
+                         mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+
+        old_volume = self.fake_volume(
+            status='in-use', attachments=[{'server_id': self.instance_uuid}])
+        new_volume = self.fake_volume(
+            id=utils.generate_uuid(), status='in-use')
+
+        result = nova_util.swap_volume(old_volume, new_volume)
+        self.assertTrue(result)

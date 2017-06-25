@@ -1,3 +1,4 @@
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -13,6 +14,7 @@
 #
 
 import mock
+import time
 
 from watcher.common import cinder_helper
 from watcher.common import clients
@@ -124,3 +126,120 @@ class TestCinderHelper(base.TestCase):
             'nobackend')
 
         self.assertEqual("", volume_type_name)
+
+    @staticmethod
+    def fake_volume(**kwargs):
+        volume = mock.MagicMock()
+        volume.id = kwargs.get('id', '45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba')
+        volume.name = kwargs.get('name', 'fakename')
+        volume.size = kwargs.get('size', '1')
+        volume.status = kwargs.get('status', 'available')
+        volume.snapshot_id = kwargs.get('snapshot_id', None)
+        volume.availability_zone = kwargs.get('availability_zone', 'nova')
+        volume.volume_type = kwargs.get('volume_type', 'fake_type')
+        return volume
+
+    def test_can_cold_success(self, mock_cinder):
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.can_cold(volume)
+        self.assertTrue(result)
+
+    def test_can_cold_fail(self, mock_cinder):
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume(status='in-use')
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.can_cold(volume)
+        self.assertFalse(result)
+
+        volume = self.fake_volume(snapshot_id='snapshot_id')
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.can_cold(volume)
+        self.assertFalse(result)
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'host@backend#pool')
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.can_cold(volume, 'host@backend#pool')
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_migrate_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'migration_status', 'success')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        volume_type = self.fake_volume_type()
+        cinder_util.cinder.volume_types.list.return_value = [volume_type]
+
+        result = cinder_util.migrate(volume, 'host@backend#pool')
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_migrate_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        volume_type = self.fake_volume_type()
+        volume_type.name = 'notbackend'
+        cinder_util.cinder.volume_types.list.return_value = [volume_type]
+
+        self.assertRaisesRegex(
+            exception.Invalid,
+            "Volume type must be same for migrating",
+            cinder_util.migrate, volume, 'host@backend#pool')
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'migration_status', 'error')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        volume_type = self.fake_volume_type()
+        cinder_util.cinder.volume_types.list.return_value = [volume_type]
+
+        result = cinder_util.migrate(volume, 'host@backend#pool')
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_retype_success(self, mock_cinder):
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'migration_status', 'success')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        result = cinder_util.retype(volume, 'notfake_type')
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_retype_fail(self, mock_cinder):
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'migration_status', 'success')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        self.assertRaisesRegex(
+            exception.Invalid,
+            "Volume type must be different for retyping",
+            cinder_util.retype, volume, 'fake_type')
+
+        volume = self.fake_volume()
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'migration_status', 'error')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        result = cinder_util.retype(volume, 'notfake_type')
+        self.assertFalse(result)
