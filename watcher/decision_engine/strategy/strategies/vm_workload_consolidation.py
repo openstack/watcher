@@ -169,20 +169,36 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 choices=["ceilometer", "gnocchi"])
         ]
 
-    def get_state_str(self, state):
-        """Get resource state in string format.
+    def get_instance_state_str(self, instance):
+        """Get instance state in string format.
 
-        :param state: resource state of unknown type
+        :param instance:
         """
-        if isinstance(state, six.string_types):
-            return state
-        elif isinstance(state, (element.InstanceState, element.ServiceState)):
-            return state.value
+        if isinstance(instance.state, six.string_types):
+            return instance.state
+        elif isinstance(instance.state, element.InstanceState):
+            return instance.state.value
         else:
-            LOG.error('Unexpected resource state type, '
+            LOG.error('Unexpected instance state type, '
                       'state=%(state)s, state_type=%(st)s.' %
-                      dict(state=state,
-                           st=type(state)))
+                      dict(state=instance.state,
+                           st=type(instance.state)))
+            raise exception.WatcherException
+
+    def get_node_status_str(self, node):
+        """Get node status in string format.
+
+        :param node:
+        """
+        if isinstance(node.status, six.string_types):
+            return node.status
+        elif isinstance(node.status, element.ServiceState):
+            return node.status.value
+        else:
+            LOG.error('Unexpected node status type, '
+                      'status=%(status)s, status_type=%(st)s.' %
+                      dict(status=node.status,
+                           st=type(node.status)))
             raise exception.WatcherException
 
     def add_action_enable_compute_node(self, node):
@@ -219,7 +235,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param destination_node: node object
         :return: None
         """
-        instance_state_str = self.get_state_str(instance.state)
+        instance_state_str = self.get_instance_state_str(instance)
         if instance_state_str != element.InstanceState.ACTIVE.value:
             # Watcher currently only supports live VM migration and block live
             # VM migration which both requires migrated VM to be active.
@@ -234,8 +250,12 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         migration_type = 'live'
 
-        destination_node_state_str = self.get_state_str(destination_node.state)
-        if destination_node_state_str == element.ServiceState.DISABLED.value:
+        # Here will makes repeated actions to enable the same compute node,
+        # when migrating VMs to the destination node which is disabled.
+        # Whether should we remove the same actions in the solution???
+        destination_node_status_str = self.get_node_status_str(
+            destination_node)
+        if destination_node_status_str == element.ServiceState.DISABLED.value:
             self.add_action_enable_compute_node(destination_node)
 
         if self.compute_model.migrate_instance(
@@ -406,8 +426,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         rcu = {}
         counters = {}
         for node in nodes:
-            node_state_str = self.get_state_str(node.state)
-            if node_state_str == element.ServiceState.ENABLED.value:
+            node_status_str = self.get_node_status_str(node)
+            if node_status_str == element.ServiceState.ENABLED.value:
                 rhu = self.get_relative_node_utilization(node)
                 for k in rhu.keys():
                     if k not in rcu:
