@@ -339,8 +339,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=self.strategy)
 
         parameters = {
-            "source_node": "server1",
-            "destination_node": "server2",
+            "source_node": "server0",
+            "destination_node": "server1",
         }
         solution.add_action(action_type="migrate",
                             resource_id="DOESNOTMATTER",
@@ -435,8 +435,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=self.strategy)
 
         parameters = {
-            "source_node": "server1",
-            "destination_node": "server2",
+            "source_node": "server0",
+            "destination_node": "server1",
         }
         solution.add_action(action_type="migrate",
                             resource_id="DOESNOTMATTER",
@@ -534,8 +534,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=self.strategy)
 
         parameters = {
-            "source_node": "server1",
-            "destination_node": "server2",
+            "source_node": "server0",
+            "destination_node": "server1",
         }
         solution.add_action(action_type="migrate",
                             resource_id="DOESNOTMATTER",
@@ -639,8 +639,8 @@ class TestActionScheduling(base.DbTestCase):
             goal=mock.Mock(), strategy=self.strategy)
 
         parameters = {
-            "source_node": "server1",
-            "destination_node": "server2",
+            "source_node": "server0",
+            "destination_node": "server1",
         }
         solution.add_action(action_type="migrate",
                             resource_id="DOESNOTMATTER",
