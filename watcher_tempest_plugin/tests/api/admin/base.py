@@ -232,6 +232,8 @@ class BaseInfraOptimTest(test.BaseTestCase):
         )
 
         _, action_plans = cls.client.list_action_plans(audit_uuid=audit_uuid)
+        if len(action_plans['action_plans']) == 0:
+            return
 
         return action_plans['action_plans'][0]
 
