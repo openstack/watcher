@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath('./'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'oslo_config.sphinxconfiggen',
-    'oslosphinx',
+    'openstackdocstheme',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
@@ -117,11 +117,19 @@ man_pages = [
 # Sphinx are currently 'default' and 'sphinxdoc'.
 # html_theme_path = ["."]
 # html_theme = '_theme'
+html_theme = 'openstackdocs'
 # html_static_path = ['static']
-html_theme_options = {'incubating': True}
+# html_theme_options = {}
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = '%sdoc' % project
+
+html_last_updated_fmt = '%Y-%m-%d %H:%M'
+
+#openstackdocstheme options
+repository_name = 'openstack/watcher'
+bug_project = 'watcher'
+bug_tag = ''
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass
