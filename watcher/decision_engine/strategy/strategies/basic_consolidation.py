@@ -197,6 +197,14 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def gnocchi(self, gnocchi):
         self._gnocchi = gnocchi
 
+    def get_available_compute_nodes(self):
+        default_node_scope = [element.ServiceState.ENABLED.value,
+                              element.ServiceState.DISABLED.value]
+        return {uuid: cn for uuid, cn in
+                self.compute_model.get_all_compute_nodes().items()
+                if cn.state == element.ServiceState.ONLINE.value and
+                cn.status in default_node_scope}
+
     def check_migration(self, source_node, destination_node,
                         instance_to_migrate):
         """Check if the migration is possible
@@ -428,7 +436,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def compute_score_of_nodes(self):
         """Calculate score of nodes based on load by VMs"""
         score = []
-        for node in self.compute_model.get_all_compute_nodes().values():
+        for node in self.get_available_compute_nodes().values():
             if node.status == element.ServiceState.ENABLED.value:
                 self.number_of_enabled_nodes += 1
 
@@ -502,7 +510,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
-        if len(self.compute_model.get_all_compute_nodes()) == 0:
+        if len(self.get_available_compute_nodes()) == 0:
             raise exception.ClusterEmpty()
 
         if self.compute_model.stale:
