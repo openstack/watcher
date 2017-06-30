@@ -471,3 +471,13 @@ class ZoneMigrationBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "hardware_maintenance"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class HostMaintenanceBaseStrategy(BaseStrategy):
+
+    REASON_FOR_MAINTAINING = 'watcher_maintaining'
+
+    @classmethod
+    def get_goal_name(cls):
+        return "cluster_maintaining"
