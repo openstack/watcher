@@ -50,6 +50,8 @@ class FakeGnocchiMetrics(object):
         result = 0.0
         if metric == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)
+        elif metric == "memory.resident":
+            result = self.get_average_usage_instance_memory_wb(resource_id)
         return result
 
     @staticmethod
@@ -242,3 +244,17 @@ class FakeGnocchiMetrics(object):
         mock['INSTANCE_3'] = 20
         mock['INSTANCE_4'] = 10
         return float(mock[str(uuid)])
+
+    @staticmethod
+    def get_average_usage_instance_memory_wb(uuid):
+        mock = {}
+        # node 0
+        mock['INSTANCE_1'] = 30
+        # node 1
+        mock['INSTANCE_3'] = 12
+        mock['INSTANCE_4'] = 12
+        if uuid not in mock.keys():
+            # mock[uuid] = random.randint(1, 4)
+            mock[uuid] = 12
+
+        return mock[str(uuid)]

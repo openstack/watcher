@@ -74,10 +74,12 @@ class TestWorkloadBalance(base.TestCase):
         self.strategy = strategies.WorkloadBalance(
             config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
-        self.strategy.input_parameters.update({'threshold': 25.0,
+        self.strategy.input_parameters.update({'metrics': 'cpu_util',
+                                               'threshold': 25.0,
                                                'period': 300})
         self.strategy.threshold = 25.0
         self.strategy._period = 300
+        self.strategy._meter = "cpu_util"
 
     def test_calc_used_resource(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
@@ -86,21 +88,31 @@ class TestWorkloadBalance(base.TestCase):
         cores_used, mem_used, disk_used = (
             self.strategy.calculate_used_resource(node))
 
-        self.assertEqual((cores_used, mem_used, disk_used), (20, 4, 40))
+        self.assertEqual((cores_used, mem_used, disk_used), (20, 64, 40))
 
     def test_group_hosts_by_cpu_util(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
         self.strategy.threshold = 30
-        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         self.assertEqual(n1[0]['node'].uuid, 'Node_0')
         self.assertEqual(n2[0]['node'].uuid, 'Node_1')
         self.assertEqual(avg, 8.0)
 
+    def test_group_hosts_by_ram_util(self):
+        model = self.fake_cluster.generate_scenario_6_with_2_nodes()
+        self.m_model.return_value = model
+        self.strategy._meter = "memory.resident"
+        self.strategy.threshold = 30
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
+        self.assertEqual(n1[0]['node'].uuid, 'Node_0')
+        self.assertEqual(n2[0]['node'].uuid, 'Node_1')
+        self.assertEqual(avg, 33.0)
+
     def test_choose_instance_to_migrate(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
             n1, avg, w_map)
         self.assertEqual(instance_to_mig[0].uuid, 'Node_0')
@@ -110,7 +122,7 @@ class TestWorkloadBalance(base.TestCase):
     def test_choose_instance_notfound(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()
         self.m_model.return_value = model
-        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instances = model.get_all_instances()
         [model.remove_instance(inst) for inst in instances.values()]
         instance_to_mig = self.strategy.choose_instance_to_migrate(
@@ -122,7 +134,7 @@ class TestWorkloadBalance(base.TestCase):
         self.m_model.return_value = model
         self.strategy.datasource = mock.MagicMock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
-        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_util()
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         instance_to_mig = self.strategy.choose_instance_to_migrate(
             n1, avg, w_map)
         dest_hosts = self.strategy.filter_destination_hosts(
@@ -202,7 +214,7 @@ class TestWorkloadBalance(base.TestCase):
         m_gnocchi.statistic_aggregation = mock.Mock(
             side_effect=self.fake_metrics.mock_get_statistics_wb)
         instance0 = model.get_instance_by_uuid("INSTANCE_0")
-        self.strategy.group_hosts_by_cpu_util()
+        self.strategy.group_hosts_by_cpu_or_ram_util()
         if self.strategy.config.datasource == "ceilometer":
             m_ceilometer.statistic_aggregation.assert_any_call(
                 aggregate='avg', meter_name='cpu_util',
