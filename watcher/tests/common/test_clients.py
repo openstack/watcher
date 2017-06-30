@@ -167,11 +167,12 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_glance_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type', 'publicURL', group='glance_client')
+        CONF.set_override('endpoint_type',
+                          'internalURL', group='glance_client')
         osc = clients.OpenStackClients()
         osc._glance = None
         osc.glance()
-        self.assertEqual('publicURL', osc.glance().http_client.interface)
+        self.assertEqual('internalURL', osc.glance().http_client.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_glance_cached(self, mock_session):

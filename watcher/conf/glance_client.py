@@ -26,10 +26,10 @@ GLANCE_CLIENT_OPTS = [
                default='2',
                help='Version of Glance API to use in glanceclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='publicURL',
                help='Type of endpoint to use in glanceclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.')]
+                    'The default is publicURL.')]
 
 
 def register_opts(conf):
