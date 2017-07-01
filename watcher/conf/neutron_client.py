@@ -26,10 +26,10 @@ NEUTRON_CLIENT_OPTS = [
                default='2.0',
                help='Version of Neutron API to use in neutronclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='publicURL',
                help='Type of endpoint to use in neutronclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.')]
+                    'The default is publicURL.')]
 
 
 def register_opts(conf):

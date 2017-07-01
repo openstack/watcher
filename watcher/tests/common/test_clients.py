@@ -329,12 +329,12 @@ class TestClients(base.TestCase):
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_diff_endpoint(self, mock_session):
         '''neutronclient currently only has one version (v2)'''
-        CONF.set_override('endpoint_type', 'publicURL',
+        CONF.set_override('endpoint_type', 'internalURL',
                           group='neutron_client')
         osc = clients.OpenStackClients()
         osc._neutron = None
         osc.neutron()
-        self.assertEqual('publicURL', osc.neutron().httpclient.interface)
+        self.assertEqual('internalURL', osc.neutron().httpclient.interface)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_neutron_cached(self, mock_session):
