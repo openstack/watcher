@@ -15,13 +15,13 @@ you must create a database, service credentials, and API endpoints.
 
    * Create the ``watcher`` database:
 
-     .. code-block:: none
+     .. code-block:: console
 
         CREATE DATABASE watcher CHARACTER SET utf8;
 
    * Grant proper access to the ``watcher`` database:
 
-     .. code-block:: none
+     .. code-block:: console
 
         GRANT ALL PRIVILEGES ON watcher.* TO 'watcher'@'localhost' \
           IDENTIFIED BY 'WATCHER_DBPASS';
@@ -32,7 +32,7 @@ you must create a database, service credentials, and API endpoints.
 
    * Exit the database access client.
 
-     .. code-block:: none
+     .. code-block:: console
 
         exit;
 

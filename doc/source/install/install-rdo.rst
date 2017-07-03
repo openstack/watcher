@@ -4,8 +4,8 @@ Install and configure for Red Hat Enterprise Linux and CentOS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-This section describes how to install and configure the Infrastructure Optimization service
-for Red Hat Enterprise Linux 7 and CentOS 7.
+This section describes how to install and configure the Infrastructure
+Optimization service for Red Hat Enterprise Linux 7 and CentOS 7.
 
 .. include:: common_prerequisites.rst
 

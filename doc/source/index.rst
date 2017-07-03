@@ -43,7 +43,7 @@ Introduction
 
   glossary
   architecture
-  dev/contributing
+  contributor/contributing
 
 
 Getting Started
@@ -52,14 +52,14 @@ Getting Started
 .. toctree::
   :maxdepth: 1
 
-  dev/environment
-  dev/devstack
-  deploy/configuration
-  deploy/conf-files
-  deploy/apache-mod-wsgi
-  dev/notifications
-  dev/testing
-  dev/rally_link
+  contributor/index
+
+Installation
+------------
+.. toctree::
+  :maxdepth: 2
+
+  install/index
 
 API References
 --------------
@@ -67,7 +67,7 @@ API References
 .. toctree::
   :maxdepth: 1
 
-  webapi/v1
+  webapi/index
 
 Plugins
 -------
@@ -75,30 +75,23 @@ Plugins
 .. toctree::
   :maxdepth: 1
 
-  dev/plugin/base-setup
-  dev/plugin/goal-plugin
-  dev/plugin/scoring-engine-plugin
-  dev/plugin/strategy-plugin
-  dev/plugin/cdmc-plugin
-  dev/plugin/action-plugin
-  dev/plugin/planner-plugin
-  dev/plugins
-
+  contributor/plugin/index
 
 Admin Guide
 ===========
 
-Introduction
-------------
-
 .. toctree::
   :maxdepth: 1
 
-  deploy/installation
-  deploy/user-guide
-  deploy/policy
-  deploy/gmr
-  strategies/strategies
+  admin/index
+
+User Guide
+==========
+
+.. toctree::
+  :maxdepth: 2
+
+  user/index
 
 Watcher Manual Pages
 ====================
@@ -107,7 +100,7 @@ Watcher Manual Pages
    :glob:
    :maxdepth: 1
 
-   man/*
+   man/index
 
 .. # NOTE(mriedem): This is the section where we hide things that we don't
    # actually want in the table of contents but sphinx build would fail if

@@ -23,14 +23,14 @@ of data center operating costs, increased system performance
 via intelligent virtual machine migration, increased energy
 efficiency—and more!
 
-watcher also supports a pluggable architecture by which custom
+Watcher also supports a pluggable architecture by which custom
 optimization algorithms, data metrics and data profilers can be
 developed and inserted into the Watcher framework.
 
-check the documentation for watcher optimization strategies at
+Check the documentation for watcher optimization strategies at
 https://docs.openstack.org/developer/watcher/strategies
 
-check watcher glossary at
+Check watcher glossary at
 https://docs.openstack.org/developer/watcher/glossary.html
 
 

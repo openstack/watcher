@@ -4,8 +4,9 @@
 Install and configure for openSUSE and SUSE Linux Enterprise
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This section describes how to install and configure the Infrastructure Optimization service
-for openSUSE Leap 42.1 and SUSE Linux Enterprise Server 12 SP1.
+This section describes how to install and configure the Infrastructure
+Optimization service for openSUSE Leap 42.1 and
+SUSE Linux Enterprise Server 12 SP1.
 
 .. include:: common_prerequisites.rst
 
