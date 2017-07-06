@@ -67,7 +67,7 @@ Planner
 
 Default Watcher's planner:
 
-    .. watcher-term:: watcher.decision_engine.planner.default.DefaultPlanner
+    .. watcher-term:: watcher.decision_engine.planner.weight.WeightPlanner
 
 
 Configuration

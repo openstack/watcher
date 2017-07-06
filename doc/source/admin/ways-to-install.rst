@@ -4,12 +4,13 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-==================
-Installing Watcher
-==================
+=======================
+Ways to install Watcher
+=======================
 
-This document describes how to install Watcher in order to use it. If you are
-intending to develop on or with Watcher, please read :doc:`../dev/environment`.
+This document describes some ways to install Watcher in order to use it.
+If you are intending to develop on or with Watcher,
+please read :doc:`../dev/environment`.
 
 Prerequisites
 -------------

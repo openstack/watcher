@@ -20,6 +20,17 @@ Goals
 .. autotype:: watcher.api.controllers.v1.goal.Goal
    :members:
 
+Strategies
+==========
+
+.. rest-controller:: watcher.api.controllers.v1.strategy:StrategiesController
+   :webprefix: /v1/strategies
+
+.. autotype:: watcher.api.controllers.v1.strategy.StrategyCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.strategy.Strategy
+   :members:
 
 Audit Templates
 ===============
