@@ -54,20 +54,13 @@ Getting Started
 
   contributor/index
 
-Installation
-------------
-.. toctree::
-  :maxdepth: 2
-
-  install/index
-
 API References
 --------------
 
 .. toctree::
   :maxdepth: 1
 
-  webapi/index
+  api/index
 
 Plugins
 -------
@@ -76,6 +69,13 @@ Plugins
   :maxdepth: 1
 
   contributor/plugin/index
+
+Installation
+============
+.. toctree::
+  :maxdepth: 2
+
+  install/index
 
 Admin Guide
 ===========
