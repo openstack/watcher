@@ -28,4 +28,4 @@ migration, increased energy efficiency-and more!
 * Wiki: https://wiki.openstack.org/wiki/Watcher
 * Source:  https://github.com/openstack/watcher
 * Bugs: https://bugs.launchpad.net/watcher
-* Documentation: https://docs.openstack.org/developer/watcher/
+* Documentation: https://docs.openstack.org/watcher/latest/
