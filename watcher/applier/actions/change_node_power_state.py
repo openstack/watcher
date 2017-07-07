@@ -18,8 +18,7 @@
 #
 
 import enum
-import six
-import voluptuous
+import jsonschema
 
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -53,15 +52,29 @@ class ChangeNodePowerState(base.BaseAction):
 
     @property
     def schema(self):
-        return voluptuous.Schema({
-            voluptuous.Required(self.RESOURCE_ID):
-                voluptuous.All(
-                    voluptuous.Any(*six.string_types),
-                    voluptuous.Length(min=1)),
-            voluptuous.Required(self.STATE):
-                voluptuous.Any(*[NodeState.POWERON.value,
-                               NodeState.POWEROFF.value]),
-        })
+        return {
+            'type': 'object',
+            'properties': {
+                'resource_id': {
+                    'type': 'string',
+                    "minlength": 1
+                },
+                'state': {
+                    'type': 'string',
+                    'enum': [NodeState.POWERON.value,
+                             NodeState.POWEROFF.value]
+                }
+            },
+            'required': ['resource_id', 'state'],
+            'additionalProperties': False,
+        }
+
+    def validate_parameters(self):
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @property
     def node_uuid(self):
