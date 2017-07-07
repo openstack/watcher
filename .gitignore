@@ -42,9 +42,11 @@ output/*/index.html
 
 # Sphinx
 doc/build
-doc/source/api
+doc/source/api/*
 doc/source/samples
 doc/source/watcher.conf.sample
+!doc/source/api/index.rst
+!doc/source/api/v1.rst
 
 # pbr generates these
 AUTHORS
