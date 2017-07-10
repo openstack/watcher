@@ -1,0 +1,12 @@
+<ModelRoot>
+  <IronicNode uuid="c5941348-5a87-4016-94d4-4f9e0ce2b87a" power_state="power on" maintenance="false" maintenance_reason="null">
+    <extra>
+      <compute_node_id> 1</compute_node_id>
+    </extra>
+  </IronicNode>
+  <IronicNode uuid="c5941348-5a87-4016-94d4-4f9e0ce2b87c" power_state="power on" maintenance="false" maintenance_reason="null">
+    <extra>
+      <compute_node_id> 2</compute_node_id>
+    </extra>
+  </IronicNode>
+</ModelRoot>
