@@ -162,9 +162,10 @@ class CeilometerHelper(object):
         return item_value
 
     def get_last_sample_values(self, resource_id, meter_name, limit=1):
-        samples = self.query_sample(meter_name=meter_name,
-                                    query=self.build_query(resource_id),
-                                    limit=limit)
+        samples = self.query_sample(
+            meter_name=meter_name,
+            query=self.build_query(resource_id=resource_id),
+            limit=limit)
         values = []
         for index, sample in enumerate(samples):
             values.append(
@@ -174,8 +175,9 @@ class CeilometerHelper(object):
         return values
 
     def get_last_sample_value(self, resource_id, meter_name):
-        samples = self.query_sample(meter_name=meter_name,
-                                    query=self.build_query(resource_id))
+        samples = self.query_sample(
+            meter_name=meter_name,
+            query=self.build_query(resource_id=resource_id))
         if samples:
             return samples[-1]._info['counter_volume']
         else:
