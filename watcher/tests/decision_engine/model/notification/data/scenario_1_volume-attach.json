@@ -1,0 +1,16 @@
+{
+  "priority": "INFO",
+  "publisher_id": "volume.host_0@backend_0#pool_0",
+  "event_type": "volume.attach.end",
+  "payload": {
+    "host": "host_0@backend_0#pool_0",
+    "volume_id": "VOLUME_0",
+    "display_name": "name_0",
+    "size": "40",
+    "status": "in-use",
+    "volume_attachment": [{"server_id": "server", "attachment_id": "attachment"}],
+    "snapshot_id": "",
+    "tenant_id": "project_0",
+    "metadata": {"readonly": false, "attached_mode": "rw"}
+  }
+}

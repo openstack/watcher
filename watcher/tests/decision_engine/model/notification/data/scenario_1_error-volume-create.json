@@ -1,0 +1,16 @@
+{
+  "priority": "INFO",
+  "publisher_id": "volume.host_0@backend_0#pool_0",
+  "event_type": "volume.create.end",
+  "payload": {
+    "host": "",
+    "volume_id": "VOLUME_00",
+    "display_name": "name_00",
+    "size": "40",
+    "status": "error",
+    "volume_attachment": [],
+    "snapshot_id": "",
+    "tenant_id": "project_00",
+    "metadata": {}
+  }
+}

@@ -17,6 +17,7 @@
 import enum
 
 from watcher.decision_engine.model.element import compute_resource
+from watcher.decision_engine.model.element import storage_resource
 from watcher.objects import base
 from watcher.objects import fields as wfields
 
@@ -41,6 +42,38 @@ class ComputeNode(compute_resource.ComputeResource):
         "disk": wfields.IntegerField(),
         "disk_capacity": wfields.NonNegativeIntegerField(),
         "vcpus": wfields.NonNegativeIntegerField(),
+    }
+
+    def accept(self, visitor):
+        raise NotImplementedError()
+
+
+@base.WatcherObjectRegistry.register_if(False)
+class StorageNode(storage_resource.StorageResource):
+
+    fields = {
+        "host": wfields.StringField(),
+        "zone": wfields.StringField(),
+        "status": wfields.StringField(default=ServiceState.ENABLED.value),
+        "state": wfields.StringField(default=ServiceState.ONLINE.value),
+        "volume_type": wfields.StringField()
+    }
+
+    def accept(self, visitor):
+        raise NotImplementedError()
+
+
+@base.WatcherObjectRegistry.register_if(False)
+class Pool(storage_resource.StorageResource):
+
+    fields = {
+        "name": wfields.StringField(),
+        "total_volumes": wfields.NonNegativeIntegerField(),
+        "total_capacity_gb": wfields.NonNegativeIntegerField(),
+        "free_capacity_gb": wfields.NonNegativeIntegerField(),
+        "provisioned_capacity_gb": wfields.NonNegativeIntegerField(),
+        "allocated_capacity_gb": wfields.NonNegativeIntegerField(),
+        "virtual_free": wfields.NonNegativeIntegerField(),
     }
 
     def accept(self, visitor):

@@ -432,6 +432,22 @@ class ComputeNodeNotFound(ComputeResourceNotFound):
     msg_fmt = _("The compute node %(name)s could not be found")
 
 
+class StorageResourceNotFound(WatcherException):
+    msg_fmt = _("The storage resource '%(name)s' could not be found")
+
+
+class StorageNodeNotFound(StorageResourceNotFound):
+    msg_fmt = _("The storage node %(name)s could not be found")
+
+
+class PoolNotFound(StorageResourceNotFound):
+    msg_fmt = _("The pool %(name)s could not be found")
+
+
+class VolumeNotFound(StorageResourceNotFound):
+    msg_fmt = _("The volume '%(name)s' could not be found")
+
+
 class LoadingError(WatcherException):
     msg_fmt = _("Error loading plugin '%(name)s'")
 
