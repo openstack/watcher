@@ -11,7 +11,7 @@ Watcher User Guide
 ==================
 
 See the
-`architecture page <http://docs.openstack.org/developer/watcher/architecture.html>`_
+`architecture page <https://docs.openstack.org/watcher/latest/architecture.html>`_
 for an architectural overview of the different components of Watcher and how
 they fit together.
 
