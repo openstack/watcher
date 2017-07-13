@@ -64,8 +64,9 @@ IRC Channel
     ``#openstack-watcher`` (changelog_)
 
 Weekly Meetings
-    on Wednesdays at 14:00 UTC on even weeks, 9:00 UTC on odd weeks, in the
-    ``#openstack-meeting-4`` IRC channel (`meetings logs`_)
+    On Wednesdays at 14:00 UTC on even weeks in the ``#openstack-meeting-4``
+    IRC channel, 13:00 UTC on odd weeks in the ``#openstack-meeting-alt``
+    IRC channel (`meetings logs`_)
 
 .. _changelog: http://eavesdrop.openstack.org/irclogs/%23openstack-watcher/
 .. _meetings logs:  http://eavesdrop.openstack.org/meetings/watcher/
