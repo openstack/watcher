@@ -88,10 +88,6 @@ class BaseWorkFlowEngine(loadable.Loadable):
     def notify(self, action, state):
         db_action = objects.Action.get_by_uuid(self.context, action.uuid,
                                                eager=True)
-        if (db_action.state in [objects.action.State.CANCELLING,
-           objects.action.State.CANCELLED] and
-           state == objects.action.State.SUCCEEDED):
-            return
         db_action.state = state
         db_action.save()
 
@@ -204,7 +200,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                objects.action.State.FAILED] or
                action_plan_object.state in CANCEL_STATE):
                 break
-            time.sleep(2)
+            time.sleep(1)
         try:
             # NOTE: kill the action execution thread, if action plan is
             # cancelled for all other cases wait for the result from action
@@ -246,15 +242,19 @@ class BaseTaskFlowActionContainer(flow_task.Task):
         # if due to some other exception keep the flow intact.
         if action_plan.state not in CANCEL_STATE:
             self.do_revert()
+            return
+
         action_object = objects.Action.get_by_uuid(
             self.engine.context, self._db_action.uuid, eager=True)
         if action_object.state == objects.action.State.ONGOING:
             action_object.state = objects.action.State.CANCELLING
             action_object.save()
             self.abort()
-        if action_object.state == objects.action.State.PENDING:
+        elif action_object.state == objects.action.State.PENDING:
             action_object.state = objects.action.State.CANCELLED
             action_object.save()
+        else:
+            pass
 
     def abort(self, *args, **kwargs):
         self.do_abort(*args, **kwargs)

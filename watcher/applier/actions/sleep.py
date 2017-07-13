@@ -86,3 +86,4 @@ class Sleep(base.BaseAction):
 
     def abort(self):
         LOG.debug("Abort action sleep")
+        return True

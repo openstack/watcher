@@ -143,8 +143,14 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def do_abort(self, *args, **kwargs):
         LOG.warning("Aborting action: %s", self.name)
         try:
-            self.action.abort()
-            self.engine.notify(self._db_action, objects.action.State.CANCELLED)
+            result = self.action.abort()
+            if result:
+                # Aborted the action.
+                self.engine.notify(self._db_action,
+                                   objects.action.State.CANCELLED)
+            else:
+                self.engine.notify(self._db_action,
+                                   objects.action.State.SUCCEEDED)
         except Exception as e:
             self.engine.notify(self._db_action, objects.action.State.FAILED)
             LOG.exception(e)

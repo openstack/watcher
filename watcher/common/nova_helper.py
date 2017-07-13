@@ -432,6 +432,43 @@ class NovaHelper(object):
 
             return True
 
+    def abort_live_migrate(self, instance_id, source, destination, retry=240):
+        LOG.debug("Aborting live migration of instance %s" % instance_id)
+        migration = self.get_running_migration(instance_id)
+        if migration:
+            migration_id = getattr(migration[0], "id")
+            try:
+                self.nova.server_migrations.live_migration_abort(
+                    server=instance_id, migration=migration_id)
+            except exception as e:
+                # Note: Does not return from here, as abort request can't be
+                # accepted but migration still going on.
+                LOG.exception(e)
+        else:
+            LOG.debug(
+                "No running migrations found for instance %s" % instance_id)
+
+        while retry:
+            instance = self.nova.servers.get(instance_id)
+            if (getattr(instance, 'OS-EXT-STS:task_state') is None and
+               getattr(instance, 'status') in ['ACTIVE', 'ERROR']):
+                break
+            time.sleep(2)
+            retry -= 1
+        instance_host = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+        instance_status = getattr(instance, 'status')
+
+        # Abort live migration successfull, action is cancelled
+        if instance_host == source and instance_status == 'ACTIVE':
+            return True
+        # Nova Unable to abort live migration, action is succeded
+        elif instance_host == destination and instance_status == 'ACTIVE':
+            return False
+
+        else:
+            raise Exception("Live migration execution and abort both failed "
+                            "for the instance %s" % instance_id)
+
     def enable_service_nova_compute(self, hostname):
         if self.nova.services.enable(host=hostname,
                                      binary='nova-compute'). \
@@ -757,3 +794,6 @@ class NovaHelper(object):
                 instance.flavor[attr] = default
                 continue
             instance.flavor[attr] = getattr(flavor, attr, default)
+
+    def get_running_migration(self, instance_id):
+        return self.nova.server_migrations.list(server=instance_id)

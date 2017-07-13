@@ -49,12 +49,25 @@ class TestNovaHelper(base.TestCase):
         return server
 
     @staticmethod
+    def fake_migration(*args, **kwargs):
+        migration = mock.MagicMock()
+        migration.id = args[0]
+        return migration
+
+    @staticmethod
     def fake_nova_find_list(nova_util, find=None, list=None):
         nova_util.nova.servers.get.return_value = find
         if list is None:
             nova_util.nova.servers.list.return_value = []
         else:
             nova_util.nova.servers.list.return_value = [list]
+
+    @staticmethod
+    def fake_nova_migration_list(nova_util, list=None):
+        if list is None:
+            nova_util.nova.server_migrations.list.return_value = []
+        else:
+            nova_util.nova.server_migration.list.return_value = [list]
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_stop_instance(self, mock_glance, mock_cinder, mock_neutron,
@@ -188,6 +201,32 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid,
             self.destination_node, keep_original_image_name=False)
         self.assertTrue(is_success)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_abort_live_migrate_instance(self, mock_glance, mock_cinder,
+                                         mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host',
+                        self.source_node)
+        setattr(server, 'OS-EXT-STS:task_state', None)
+        migration = self.fake_migration(2)
+        self.fake_nova_migration_list(nova_util, list=migration)
+
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+
+        self.assertTrue(nova_util.abort_live_migrate(
+            self.instance_uuid, self.source_node, self.destination_node))
+
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+
+        self.assertFalse(nova_util.abort_live_migrate(
+            self.instance_uuid, self.source_node, self.destination_node))
+
+        setattr(server, 'status', 'ERROR')
+        self.assertRaises(Exception, nova_util.abort_live_migrate,
+                          (self.instance_uuid, self.source_node,
+                           self.destination_node))
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_create_image_from_instance(self, mock_glance, mock_cinder,

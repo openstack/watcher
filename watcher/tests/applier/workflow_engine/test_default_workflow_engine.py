@@ -343,7 +343,6 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions.append(action1)
         actions.append(action2)
         actions.append(action3)
-
         self.assertRaises(exception.ActionPlanCancelled,
                           self.engine.execute, actions)
         try:
