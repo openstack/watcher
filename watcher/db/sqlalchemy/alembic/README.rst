@@ -36,13 +36,13 @@ To run the offline migration between specific migration versions::
 
 Upgrade the database incrementally::
 
-    $ watcher-db-manage --config-file /path/to/watcher.conf upgrade --delta \
+    $ watcher-db-manage --config-file /path/to/watcher.conf upgrade --revision \
         <# of revs>
 
 
 Downgrade the database by a certain number of revisions::
 
-    $ watcher-db-manage --config-file /path/to/watcher.conf downgrade --delta \
+    $ watcher-db-manage --config-file /path/to/watcher.conf downgrade --revision \
         <# of revs>
 
 
