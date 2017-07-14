@@ -22,7 +22,7 @@ The *vm_workload_consolidation* strategy requires the following metrics:
 ============================ ============ ======= =======
 metric                       service name plugins comment
 ============================ ============ ======= =======
-``memory``             	     ceilometer_  none
+``memory``                   ceilometer_  none
 ``disk.root.size``           ceilometer_  none
 ============================ ============ ======= =======
 
@@ -32,7 +32,7 @@ the strategy if available:
 ============================ ============ ======= =======
 metric                       service name plugins comment
 ============================ ============ ======= =======
-``memory.usage``             ceilometer_  none
+``memory.resident``          ceilometer_  none
 ``cpu_util``                 ceilometer_  none
 ============================ ============ ======= =======
 

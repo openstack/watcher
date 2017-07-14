@@ -87,7 +87,7 @@ class FakeCeilometerMetrics(object):
             return self.get_node_cpu_util(resource_id)
         elif meter_name == "cpu_util":
             return self.get_instance_cpu_util(resource_id)
-        elif meter_name == "memory.usage":
+        elif meter_name == "memory.resident":
             return self.get_instance_ram_util(resource_id)
         elif meter_name == "disk.root.size":
             return self.get_instance_disk_root_size(resource_id)
@@ -169,7 +169,7 @@ class FakeGnocchiMetrics(object):
             return self.get_node_cpu_util(resource_id)
         elif metric == "cpu_util":
             return self.get_instance_cpu_util(resource_id)
-        elif metric == "memory.usage":
+        elif metric == "memory.resident":
             return self.get_instance_ram_util(resource_id)
         elif metric == "disk.root.size":
             return self.get_instance_disk_root_size(resource_id)

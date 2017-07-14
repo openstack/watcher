@@ -1,0 +1,8 @@
+---
+features:
+  - Enhancement of vm_workload_consolidation strategy
+    by using 'memory.resident' metric in place of
+    'memory.usage', as memory.usage shows the memory
+    usage inside guest-os and memory.resident
+    represents volume of RAM used by instance
+    on host machine.
