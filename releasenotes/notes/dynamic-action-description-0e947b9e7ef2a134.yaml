@@ -1,0 +1,4 @@
+---
+features:
+  - Add description property for dynamic action. Admin can see detail information
+    of any specify action.

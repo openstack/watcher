@@ -419,6 +419,7 @@ expected_object_fingerprints = {
     'ScoringEngine': '1.0-4abbe833544000728e17bd9e83f97576',
     'Service': '1.0-4b35b99ada9677a882c9de2b30212f35',
     'MyObj': '1.5-23c516d1e842f365f694e688d34e47c3',
+    'ActionDescription': '1.0-5761a3d16651046e7a0c357b57a6583e'
 }
 
 

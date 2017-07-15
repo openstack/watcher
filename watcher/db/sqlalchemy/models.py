@@ -278,3 +278,17 @@ class Service(Base):
     name = Column(String(255), nullable=False)
     host = Column(String(255), nullable=False)
     last_seen_up = Column(DateTime, nullable=True)
+
+
+class ActionDescription(Base):
+    """Represents a action description"""
+
+    __tablename__ = 'action_descriptions'
+    __table_args__ = (
+        UniqueConstraint('action_type',
+                         name="uniq_action_description0action_type"),
+        table_args()
+    )
+    id = Column(Integer, primary_key=True)
+    action_type = Column(String(255), nullable=False)
+    description = Column(String(255), nullable=False)

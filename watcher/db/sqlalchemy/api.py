@@ -1127,3 +1127,74 @@ class Connection(api.BaseConnection):
             return self._soft_delete(models.Service, service_id)
         except exception.ResourceNotFound:
             raise exception.ServiceNotFound(service=service_id)
+
+    # ### ACTION_DESCRIPTIONS ### #
+
+    def _add_action_descriptions_filters(self, query, filters):
+        if not filters:
+            filters = {}
+
+        plain_fields = ['id', 'action_type']
+
+        return self._add_filters(
+            query=query, model=models.ActionDescription, filters=filters,
+            plain_fields=plain_fields)
+
+    def get_action_description_list(self, context, filters=None, limit=None,
+                                    marker=None, sort_key=None,
+                                    sort_dir=None, eager=False):
+        query = model_query(models.ActionDescription)
+        if eager:
+            query = self._set_eager_options(models.ActionDescription, query)
+        query = self._add_action_descriptions_filters(query, filters)
+        if not context.show_deleted:
+            query = query.filter_by(deleted_at=None)
+        return _paginate_query(models.ActionDescription, limit, marker,
+                               sort_key, sort_dir, query)
+
+    def create_action_description(self, values):
+        try:
+            action_description = self._create(models.ActionDescription, values)
+        except db_exc.DBDuplicateEntry:
+            raise exception.ActionDescriptionAlreadyExists(
+                action_type=values['action_type'])
+        return action_description
+
+    def _get_action_description(self, context, fieldname, value, eager):
+        try:
+            return self._get(context, model=models.ActionDescription,
+                             fieldname=fieldname, value=value, eager=eager)
+        except exception.ResourceNotFound:
+            raise exception.ActionDescriptionNotFound(action_id=value)
+
+    def get_action_description_by_id(self, context,
+                                     action_id, eager=False):
+                return self._get_action_description(
+                    context, fieldname="id", value=action_id, eager=eager)
+
+    def get_action_description_by_type(self, context,
+                                       action_type, eager=False):
+        return self._get_action_description(
+            context, fieldname="action_type", value=action_type, eager=eager)
+
+    def destroy_action_description(self, action_id):
+        try:
+            return self._destroy(models.ActionDescription, action_id)
+        except exception.ResourceNotFound:
+            raise exception.ActionDescriptionNotFound(
+                action_id=action_id)
+
+    def update_action_description(self, action_id, values):
+        try:
+            return self._update(models.ActionDescription,
+                                action_id, values)
+        except exception.ResourceNotFound:
+            raise exception.ActionDescriptionNotFound(
+                action_id=action_id)
+
+    def soft_delete_action_description(self, action_id):
+        try:
+            return self._soft_delete(models.ActionDescription, action_id)
+        except exception.ResourceNotFound:
+            raise exception.ActionDescriptionNotFound(
+                action_id=action_id)

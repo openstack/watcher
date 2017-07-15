@@ -118,6 +118,9 @@ class Action(base.APIBase):
     action_type = wtypes.text
     """Action type"""
 
+    description = wtypes.text
+    """Action description"""
+
     input_parameters = types.jsontype
     """One or more key/value pairs """
 
@@ -141,6 +144,7 @@ class Action(base.APIBase):
             setattr(self, field, kwargs.get(field, wtypes.Unset))
 
         self.fields.append('action_plan_id')
+        self.fields.append('description')
         setattr(self, 'action_plan_uuid', kwargs.get('action_plan_id',
                 wtypes.Unset))
 
@@ -162,6 +166,14 @@ class Action(base.APIBase):
     @classmethod
     def convert_with_links(cls, action, expand=True):
         action = Action(**action.as_dict())
+        try:
+            obj_action_desc = objects.ActionDescription.get_by_type(
+                pecan.request.context, action.action_type)
+            description = obj_action_desc.description
+        except exception.ActionDescriptionNotFound:
+            description = ""
+        setattr(action, 'description', description)
+
         return cls._convert_with_links(action, pecan.request.host_url, expand)
 
     @classmethod

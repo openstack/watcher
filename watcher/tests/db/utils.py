@@ -331,3 +331,26 @@ def create_test_efficacy_indicator(**kwargs):
         del efficacy_indicator['id']
     dbapi = db_api.get_instance()
     return dbapi.create_efficacy_indicator(efficacy_indicator)
+
+
+def get_test_action_desc(**kwargs):
+    return {
+        'id': kwargs.get('id', 1),
+        'action_type': kwargs.get('action_type', 'nop'),
+        'description': kwargs.get('description', 'Logging a NOP message'),
+        'created_at': kwargs.get('created_at'),
+        'updated_at': kwargs.get('updated_at'),
+        'deleted_at': kwargs.get('deleted_at'),
+    }
+
+
+def create_test_action_desc(**kwargs):
+    """Create test action description entry in DB and return ActionDescription.
+
+    Function to be used to create test ActionDescription objects in the DB.
+    :param kwargs: kwargs with overriding values for service's attributes.
+    :returns: Test ActionDescription DB object.
+    """
+    action_desc = get_test_action_desc(**kwargs)
+    dbapi = db_api.get_instance()
+    return dbapi.create_action_description(action_desc)
