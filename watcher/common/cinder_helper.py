@@ -139,13 +139,13 @@ class CinderHelper(object):
             volume = self.get_volume(volume.id)
             time.sleep(retry_interval)
             retry -= 1
-            LOG.debug("retry count: %s" % retry)
-            LOG.debug("Waiting to complete deletion of volume %s" % volume.id)
+            LOG.debug("retry count: %s", retry)
+            LOG.debug("Waiting to complete deletion of volume %s", volume.id)
         if self._can_get_volume(volume.id):
-            LOG.error("Volume deletion error: %s" % volume.id)
+            LOG.error("Volume deletion error: %s", volume.id)
             return False
 
-        LOG.debug("Volume %s was deleted successfully." % volume.id)
+        LOG.debug("Volume %s was deleted successfully.", volume.id)
         return True
 
     def check_migrated(self, volume, retry_interval=10):
@@ -179,8 +179,7 @@ class CinderHelper(object):
             LOG.error(error_msg)
             return False
         LOG.debug(
-            "Volume migration succeeded : "
-            "volume %s is now on host '%s'." % (
+            "Volume migration succeeded : volume %s is now on host '%s'.", (
                 volume.id, host_name))
         return True
 
@@ -194,8 +193,8 @@ class CinderHelper(object):
                 message=(_("Volume type must be same for migrating")))
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
-        LOG.debug("Volume %s found on host '%s'."
-                  % (volume.id, source_node))
+        LOG.debug("Volume %s found on host '%s'.",
+                  (volume.id, source_node))
 
         self.cinder.volumes.migrate_volume(
             volume, dest_node, False, True)
@@ -211,8 +210,8 @@ class CinderHelper(object):
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
         LOG.debug(
-            "Volume %s found on host '%s'." % (
-                volume.id, source_node))
+            "Volume %s found on host '%s'.",
+            (volume.id, source_node))
 
         self.cinder.volumes.retype(
             volume, dest_type, "on-demand")
@@ -234,14 +233,14 @@ class CinderHelper(object):
             LOG.debug('Waiting volume creation of {0}'.format(new_volume))
             time.sleep(retry_interval)
             retry -= 1
-            LOG.debug("retry count: %s" % retry)
+            LOG.debug("retry count: %s", retry)
 
         if getattr(new_volume, 'status') != 'available':
             error_msg = (_("Failed to create volume '%(volume)s. ") %
                          {'volume': new_volume.id})
             raise Exception(error_msg)
 
-        LOG.debug("Volume %s was created successfully." % new_volume)
+        LOG.debug("Volume %s was created successfully.", new_volume)
         return new_volume
 
     def delete_volume(self, volume):

@@ -48,7 +48,7 @@ class AuditEndpoint(object):
         self._oneshot_handler.execute(audit, context)
 
     def trigger_audit(self, context, audit_uuid):
-        LOG.debug("Trigger audit %s" % audit_uuid)
+        LOG.debug("Trigger audit %s", audit_uuid)
         self.executor.submit(self.do_trigger_audit,
                              context,
                              audit_uuid)

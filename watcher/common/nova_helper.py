@@ -106,7 +106,7 @@ class NovaHelper(object):
             return True
         else:
             LOG.debug("confirm resize failed for the "
-                      "instance %s" % instance.id)
+                      "instance %s", instance.id)
             return False
 
     def wait_for_volume_status(self, volume, status, timeout=60,
@@ -154,19 +154,20 @@ class NovaHelper(object):
         """
         new_image_name = ""
         LOG.debug(
-            "Trying a non-live migrate of instance '%s' " % instance_id)
+            "Trying a non-live migrate of instance '%s' ", instance_id)
 
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
         if not instance:
-            LOG.debug("Instance %s not found !" % instance_id)
+            LOG.debug("Instance %s not found !", instance_id)
             return False
         else:
             # NOTE: If destination node is None call Nova API to migrate
             # instance
             host_name = getattr(instance, "OS-EXT-SRV-ATTR:host")
             LOG.debug(
-                "Instance %s found on host '%s'." % (instance_id, host_name))
+                "Instance %(instance)s found on host '%(host)s'.",
+                {'instance': instance_id, 'host': host_name})
 
             if dest_hostname is None:
                 previous_status = getattr(instance, 'status')
@@ -186,12 +187,12 @@ class NovaHelper(object):
                         return False
                     LOG.debug(
                         "cold migration succeeded : "
-                        "instance %s is now on host '%s'." % (
+                        "instance %s is now on host '%s'.", (
                             instance_id, new_hostname))
                     return True
                 else:
                     LOG.debug(
-                        "cold migration for instance %s failed" % instance_id)
+                        "cold migration for instance %s failed", instance_id)
                     return False
 
             if not keep_original_image_name:
@@ -220,7 +221,7 @@ class NovaHelper(object):
 
             for network_name, network_conf_obj in addresses.items():
                 LOG.debug(
-                    "Extracting network configuration for network '%s'" %
+                    "Extracting network configuration for network '%s'",
                     network_name)
 
                 network_names_list.append(network_name)
@@ -241,7 +242,7 @@ class NovaHelper(object):
             stopped_ok = self.stop_instance(instance_id)
 
             if not stopped_ok:
-                LOG.debug("Could not stop instance: %s" % instance_id)
+                LOG.debug("Could not stop instance: %s", instance_id)
                 return False
 
             # Building the temporary image which will be used
@@ -251,7 +252,7 @@ class NovaHelper(object):
 
             if not image_uuid:
                 LOG.debug(
-                    "Could not build temporary image of instance: %s" %
+                    "Could not build temporary image of instance: %s",
                     instance_id)
                 return False
 
@@ -299,8 +300,10 @@ class NovaHelper(object):
                     blocks.append(
                         block_device_mapping_v2_item)
 
-                    LOG.debug("Detaching volume %s from instance: %s" % (
-                        volume_id, instance_id))
+                    LOG.debug(
+                        "Detaching volume %(volume)s from "
+                        "instance: %(instance)s",
+                        {'volume': volume_id, 'instance': instance_id})
                     # volume.detach()
                     self.nova.volumes.delete_server_volume(instance_id,
                                                            volume_id)
@@ -308,11 +311,12 @@ class NovaHelper(object):
                     if not self.wait_for_volume_status(volume, "available", 5,
                                                        10):
                         LOG.debug(
-                            "Could not detach volume %s from instance: %s" % (
-                                volume_id, instance_id))
+                            "Could not detach volume %(volume)s "
+                            "from instance: %(instance)s",
+                            {'volume': volume_id, 'instance': instance_id})
                         return False
                 except ciexceptions.NotFound:
-                    LOG.debug("Volume '%s' not found " % image_id)
+                    LOG.debug("Volume '%s' not found ", image_id)
                     return False
 
             # We create the new instance from
@@ -331,18 +335,21 @@ class NovaHelper(object):
             if not new_instance:
                 LOG.debug(
                     "Could not create new instance "
-                    "for non-live migration of instance %s" % instance_id)
+                    "for non-live migration of instance %s", instance_id)
                 return False
 
             try:
-                LOG.debug("Detaching floating ip '%s' from instance %s" % (
-                    floating_ip, instance_id))
+                LOG.debug(
+                    "Detaching floating ip '%(floating_ip)s' "
+                    "from instance %(instance)s",
+                    {'floating_ip': floating_ip, 'instance': instance_id})
                 # We detach the floating ip from the current instance
                 instance.remove_floating_ip(floating_ip)
 
                 LOG.debug(
-                    "Attaching floating ip '%s' to the new instance %s" % (
-                        floating_ip, new_instance.id))
+                    "Attaching floating ip '%(ip)s' to the new "
+                    "instance %(id)s",
+                    {'ip': floating_ip, 'id': new_instance.id})
 
                 # We attach the same floating ip to the new instance
                 new_instance.add_floating_ip(floating_ip)
@@ -354,12 +361,12 @@ class NovaHelper(object):
             # Deleting the old instance (because no more useful)
             delete_ok = self.delete_instance(instance_id)
             if not delete_ok:
-                LOG.debug("Could not delete instance: %s" % instance_id)
+                LOG.debug("Could not delete instance: %s", instance_id)
                 return False
 
             LOG.debug(
                 "Instance %s has been successfully migrated "
-                "to new host '%s' and its new id is %s." % (
+                "to new host '%s' and its new id is %s.", (
                     instance_id, new_host_name, new_instance.id))
 
             return True
@@ -376,8 +383,10 @@ class NovaHelper(object):
         :param instance_id: the unique id of the instance to resize.
         :param flavor: the name or ID of the flavor to resize to.
         """
-        LOG.debug("Trying a resize of instance %s to flavor '%s'" % (
-            instance_id, flavor))
+        LOG.debug(
+            "Trying a resize of instance %(instance)s to "
+            "flavor '%(flavor)s'",
+            {'instance': instance_id, 'flavor': flavor})
 
         # Looking for the instance to resize
         instance = self.find_instance(instance_id)
@@ -394,17 +403,17 @@ class NovaHelper(object):
                       "instance %s. Exception: %s", instance_id, e)
 
         if not flavor_id:
-            LOG.debug("Flavor not found: %s" % flavor)
+            LOG.debug("Flavor not found: %s", flavor)
             return False
 
         if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
+            LOG.debug("Instance not found: %s", instance_id)
             return False
 
         instance_status = getattr(instance, 'OS-EXT-STS:vm_state')
         LOG.debug(
-            "Instance %s is in '%s' status." % (instance_id,
-                                                instance_status))
+            "Instance %(id)s is in '%(status)s' status.",
+            {'id': instance_id, 'status': instance_status})
 
         instance.resize(flavor=flavor_id)
         while getattr(instance,
@@ -442,17 +451,20 @@ class NovaHelper(object):
                               destination_node is None, nova scheduler choose
                               the destination host
         """
-        LOG.debug("Trying to live migrate instance %s " % (instance_id))
+        LOG.debug(
+            "Trying a live migrate instance %(instance)s ",
+            {'instance': instance_id})
 
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
         if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
+            LOG.debug("Instance not found: %s", instance_id)
             return False
         else:
             host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
             LOG.debug(
-                "Instance %s found on host '%s'." % (instance_id, host_name))
+                "Instance %(instance)s found on host '%(host)s'.",
+                {'instance': instance_id, 'host': host_name})
 
             # From nova api version 2.25(Mitaka release), the default value of
             # block_migration is None which is mapped to 'auto'.
@@ -474,7 +486,7 @@ class NovaHelper(object):
                 if host_name != new_hostname and instance.status == 'ACTIVE':
                     LOG.debug(
                         "Live migration succeeded : "
-                        "instance %s is now on host '%s'." % (
+                        "instance %s is now on host '%s'.", (
                             instance_id, new_hostname))
                     return True
                 else:
@@ -485,7 +497,7 @@ class NovaHelper(object):
                     and retry:
                 instance = self.nova.servers.get(instance.id)
                 if not getattr(instance, 'OS-EXT-STS:task_state'):
-                    LOG.debug("Instance task state: %s is null" % instance_id)
+                    LOG.debug("Instance task state: %s is null", instance_id)
                     break
                 LOG.debug(
                     'Waiting the migration of {0}  to {1}'.format(
@@ -501,13 +513,13 @@ class NovaHelper(object):
 
             LOG.debug(
                 "Live migration succeeded : "
-                "instance %s is now on host '%s'." % (
-                    instance_id, host_name))
+                "instance %(instance)s is now on host '%(host)s'.",
+                {'instance': instance_id, 'host': host_name})
 
             return True
 
     def abort_live_migrate(self, instance_id, source, destination, retry=240):
-        LOG.debug("Aborting live migration of instance %s" % instance_id)
+        LOG.debug("Aborting live migration of instance %s", instance_id)
         migration = self.get_running_migration(instance_id)
         if migration:
             migration_id = getattr(migration[0], "id")
@@ -520,7 +532,7 @@ class NovaHelper(object):
                 LOG.exception(e)
         else:
             LOG.debug(
-                "No running migrations found for instance %s" % instance_id)
+                "No running migrations found for instance %s", instance_id)
 
         while retry:
             instance = self.nova.servers.get(instance_id)
@@ -585,7 +597,7 @@ class NovaHelper(object):
         host = self.nova.hosts.get(hostname)
 
         if not host:
-            LOG.debug("host not found: %s" % hostname)
+            LOG.debug("host not found: %s", hostname)
             return False
         else:
             host[0].update(
@@ -607,18 +619,19 @@ class NovaHelper(object):
             key-value pairs to associate to the image as metadata.
         """
         LOG.debug(
-            "Trying to create an image from instance %s ..." % instance_id)
+            "Trying to create an image from instance %s ...", instance_id)
 
         # Looking for the instance
         instance = self.find_instance(instance_id)
 
         if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
+            LOG.debug("Instance not found: %s", instance_id)
             return None
         else:
             host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
             LOG.debug(
-                "Instance %s found on host '%s'." % (instance_id, host_name))
+                "Instance %(instance)s found on host '%(host)s'.",
+                {'instance': instance_id, 'host': host_name})
 
             # We need to wait for an appropriate status
             # of the instance before we can build an image from it
@@ -645,14 +658,15 @@ class NovaHelper(object):
                     if not image:
                         break
                     status = image.status
-                    LOG.debug("Current image status: %s" % status)
+                    LOG.debug("Current image status: %s", status)
 
                 if not image:
-                    LOG.debug("Image not found: %s" % image_uuid)
+                    LOG.debug("Image not found: %s", image_uuid)
                 else:
                     LOG.debug(
-                        "Image %s successfully created for instance %s" % (
-                            image_uuid, instance_id))
+                        "Image %(image)s successfully created for "
+                        "instance %(instance)s",
+                        {'image': image_uuid, 'instance': instance_id})
                     return image_uuid
         return None
 
@@ -661,16 +675,16 @@ class NovaHelper(object):
 
         :param instance_id: the unique id of the instance to delete.
         """
-        LOG.debug("Trying to remove instance %s ..." % instance_id)
+        LOG.debug("Trying to remove instance %s ...", instance_id)
 
         instance = self.find_instance(instance_id)
 
         if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
+            LOG.debug("Instance not found: %s", instance_id)
             return False
         else:
             self.nova.servers.delete(instance_id)
-            LOG.debug("Instance %s removed." % instance_id)
+            LOG.debug("Instance %s removed.", instance_id)
             return True
 
     def stop_instance(self, instance_id):
@@ -678,21 +692,21 @@ class NovaHelper(object):
 
         :param instance_id: the unique id of the instance to stop.
         """
-        LOG.debug("Trying to stop instance %s ..." % instance_id)
+        LOG.debug("Trying to stop instance %s ...", instance_id)
 
         instance = self.find_instance(instance_id)
 
         if not instance:
-            LOG.debug("Instance not found: %s" % instance_id)
+            LOG.debug("Instance not found: %s", instance_id)
             return False
         elif getattr(instance, 'OS-EXT-STS:vm_state') == "stopped":
-            LOG.debug("Instance has been stopped: %s" % instance_id)
+            LOG.debug("Instance has been stopped: %s", instance_id)
             return True
         else:
             self.nova.servers.stop(instance_id)
 
             if self.wait_for_instance_state(instance, "stopped", 8, 10):
-                LOG.debug("Instance %s stopped." % instance_id)
+                LOG.debug("Instance %s stopped.", instance_id)
                 return True
             else:
                 return False
@@ -733,11 +747,11 @@ class NovaHelper(object):
             return False
 
         while instance.status not in status_list and retry:
-            LOG.debug("Current instance status: %s" % instance.status)
+            LOG.debug("Current instance status: %s", instance.status)
             time.sleep(sleep)
             instance = self.nova.servers.get(instance.id)
             retry -= 1
-        LOG.debug("Current instance status: %s" % instance.status)
+        LOG.debug("Current instance status: %s", instance.status)
         return instance.status in status_list
 
     def create_instance(self, node_id, inst_name="test", image_id=None,
@@ -753,26 +767,26 @@ class NovaHelper(object):
         It returns the unique id of the created instance.
         """
         LOG.debug(
-            "Trying to create new instance '%s' "
-            "from image '%s' with flavor '%s' ..." % (
-                inst_name, image_id, flavor_name))
+            "Trying to create new instance '%(inst)s' "
+            "from image '%(image)s' with flavor '%(flavor)s' ...",
+            {'inst': inst_name, 'image': image_id, 'flavor': flavor_name})
 
         try:
             self.nova.keypairs.findall(name=keypair_name)
         except nvexceptions.NotFound:
-            LOG.debug("Key pair '%s' not found " % keypair_name)
+            LOG.debug("Key pair '%s' not found ", keypair_name)
             return
 
         try:
             image = self.glance.images.get(image_id)
         except glexceptions.NotFound:
-            LOG.debug("Image '%s' not found " % image_id)
+            LOG.debug("Image '%s' not found ", image_id)
             return
 
         try:
             flavor = self.nova.flavors.find(name=flavor_name)
         except nvexceptions.NotFound:
-            LOG.debug("Flavor '%s' not found " % flavor_name)
+            LOG.debug("Flavor '%s' not found ", flavor_name)
             return
 
         # Make sure all security groups exist
@@ -780,7 +794,7 @@ class NovaHelper(object):
             group_id = self.get_security_group_id_from_name(sec_group_name)
 
             if not group_id:
-                LOG.debug("Security group '%s' not found " % sec_group_name)
+                LOG.debug("Security group '%s' not found ", sec_group_name)
                 return
 
         net_list = list()
@@ -789,7 +803,7 @@ class NovaHelper(object):
             nic_id = self.get_network_id_from_name(network_name)
 
             if not nic_id:
-                LOG.debug("Network '%s' not found " % network_name)
+                LOG.debug("Network '%s' not found ", network_name)
                 return
             net_obj = {"net-id": nic_id}
             net_list.append(net_obj)
@@ -815,14 +829,16 @@ class NovaHelper(object):
                 if create_new_floating_ip and instance.status == 'ACTIVE':
                     LOG.debug(
                         "Creating a new floating IP"
-                        " for instance '%s'" % instance.id)
+                        " for instance '%s'", instance.id)
                     # Creating floating IP for the new instance
                     floating_ip = self.nova.floating_ips.create()
 
                     instance.add_floating_ip(floating_ip)
 
-                    LOG.debug("Instance %s associated to Floating IP '%s'" % (
-                        instance.id, floating_ip.ip))
+                    LOG.debug(
+                        "Instance %(instance)s associated to "
+                        "Floating IP '%(ip)s'",
+                        {'instance': instance.id, 'ip': floating_ip.ip})
 
         return instance
 
@@ -896,7 +912,7 @@ class NovaHelper(object):
             LOG.debug('Waiting volume update to {0}'.format(new_volume))
             time.sleep(retry_interval)
             retry -= 1
-            LOG.debug("retry count: %s" % retry)
+            LOG.debug("retry count: %s", retry)
         if getattr(new_volume, 'status') != "in-use":
             LOG.error("Volume update retry timeout or error")
             return False
@@ -904,5 +920,6 @@ class NovaHelper(object):
         host_name = getattr(new_volume, "os-vol-host-attr:host")
         LOG.debug(
             "Volume update succeeded : "
-            "Volume %s is now on host '%s'." % (new_volume.id, host_name))
+            "Volume %s is now on host '%s'.",
+            (new_volume.id, host_name))
         return True
