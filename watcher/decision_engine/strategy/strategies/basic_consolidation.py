@@ -277,7 +277,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             resource_id = "%s_%s" % (node.uuid, node.hostname)
             LOG.error(
                 "No values returned by %(resource_id)s "
-                "for %(metric_name)s" % dict(
+                "for %(metric_name)s", dict(
                     resource_id=resource_id,
                     metric_name=self.METRIC_NAMES[
                         self.config.datasource]['host_cpu_usage']))
@@ -297,7 +297,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         if instance_cpu_utilization is None:
             LOG.error(
                 "No values returned by %(resource_id)s "
-                "for %(metric_name)s" % dict(
+                "for %(metric_name)s", dict(
                     resource_id=instance.uuid,
                     metric_name=self.METRIC_NAMES[
                         self.config.datasource]['instance_cpu_usage']))

@@ -203,7 +203,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
-                    "for %(metric_name)s" % dict(
+                    "for %(metric_name)s", dict(
                         resource_id=instance.uuid, metric_name=meter))
                 return
             if meter == 'cpu_util':
@@ -376,12 +376,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_load = self.normalize_hosts_load(hosts_load)
         for metric in self.metrics:
             metric_sd = self.get_sd(normalized_load, metric)
-            LOG.info("Standard deviation for %s is %s."
-                     % (metric, metric_sd))
+            LOG.info("Standard deviation for %s is %s.",
+                     (metric, metric_sd))
             if metric_sd > float(self.thresholds[metric]):
                 LOG.info("Standard deviation of %s exceeds"
-                         " appropriate threshold %s."
-                         % (metric, metric_sd))
+                         " appropriate threshold %s.",
+                         (metric, metric_sd))
                 return self.simulate_migrations(hosts_load)
 
     def add_migration(self,

@@ -191,7 +191,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             return instance.state.value
         else:
             LOG.error('Unexpected instance state type, '
-                      'state=%(state)s, state_type=%(st)s.' %
+                      'state=%(state)s, state_type=%(st)s.',
                       dict(state=instance.state,
                            st=type(instance.state)))
             raise exception.WatcherException
@@ -207,7 +207,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             return node.status.value
         else:
             LOG.error('Unexpected node status type, '
-                      'status=%(status)s, status_type=%(st)s.' %
+                      'status=%(status)s, status_type=%(st)s.',
                       dict(status=node.status,
                            st=type(node.status)))
             raise exception.WatcherException
@@ -256,7 +256,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             # migration mechanism to move non active VMs.
             LOG.error(
                 'Cannot live migrate: instance_uuid=%(instance_uuid)s, '
-                'state=%(instance_state)s.' % dict(
+                'state=%(instance_state)s.', dict(
                     instance_uuid=instance.uuid,
                     instance_state=instance_state_str))
             return

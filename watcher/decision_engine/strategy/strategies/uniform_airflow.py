@@ -375,7 +375,8 @@ class UniformAirflow(base.BaseStrategy):
                 LOG.warning("%s: no airflow data", resource_id)
                 continue
 
-            LOG.debug("%s: airflow %f" % (resource_id, airflow))
+            LOG.debug("%(resource)s: airflow %(airflow)f",
+                      {'resource': resource_id, 'airflow': airflow})
             nodemap = {'node': node, 'airflow': airflow}
             if airflow >= self.threshold_airflow:
                 # mark the node to release resources

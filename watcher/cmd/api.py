@@ -40,10 +40,10 @@ def main():
 
     if host == '127.0.0.1':
         LOG.info('serving on 127.0.0.1:%(port)s, '
-                 'view at %(protocol)s://127.0.0.1:%(port)s' %
+                 'view at %(protocol)s://127.0.0.1:%(port)s',
                  dict(protocol=protocol, port=port))
     else:
-        LOG.info('serving on %(protocol)s://%(host)s:%(port)s' %
+        LOG.info('serving on %(protocol)s://%(host)s:%(port)s',
                  dict(protocol=protocol, host=host, port=port))
 
     api_schedule = scheduling.APISchedulingService()
