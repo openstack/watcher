@@ -24,6 +24,7 @@ from oslo_log import log
 
 from watcher.common import clients
 from watcher.common import exception
+from watcher.common import utils as common_utils
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -71,6 +72,17 @@ class GnocchiHelper(object):
         if stop_time is not None and not isinstance(stop_time, datetime):
             raise exception.InvalidParameter(parameter='stop_time',
                                              parameter_type=datetime)
+
+        if not common_utils.is_uuid_like(resource_id):
+            kwargs = dict(query={"=": {"original_resource_id": resource_id}},
+                          limit=1)
+            resources = self.query_retry(
+                f=self.gnocchi.resource.search, **kwargs)
+
+            if not resources:
+                raise exception.ResourceNotFound(name=resource_id)
+
+            resource_id = resources[0]['id']
 
         raw_kwargs = dict(
             metric=metric,
