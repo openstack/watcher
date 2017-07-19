@@ -83,8 +83,10 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
 
     # Version 1.0: Initial version
     # Version 1.1: Added 'goal' and 'strategy' object field
-    # Version 1.2  Added 'auto_trigger' boolean field
-    VERSION = '1.2'
+    # Version 1.2: Added 'auto_trigger' boolean field
+    # Version 1.3: Added 'next_run_time' DateTime field,
+    #              'interval' type has been changed from Integer to String
+    VERSION = '1.3'
 
     dbapi = db_api.get_instance()
 
@@ -94,11 +96,13 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'audit_type': wfields.StringField(),
         'state': wfields.StringField(),
         'parameters': wfields.FlexibleDictField(nullable=True),
-        'interval': wfields.IntegerField(nullable=True),
+        'interval': wfields.StringField(nullable=True),
         'scope': wfields.FlexibleListOfDictField(nullable=True),
         'goal_id': wfields.IntegerField(),
         'strategy_id': wfields.IntegerField(nullable=True),
         'auto_trigger': wfields.BooleanField(),
+        'next_run_time': wfields.DateTimeField(nullable=True,
+                                               tzinfo_aware=False),
 
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),

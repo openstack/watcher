@@ -16,7 +16,10 @@
 
 """Utilities and helper functions."""
 
+import datetime
 import re
+
+from croniter import croniter
 
 from jsonschema import validators
 from oslo_log import log as logging
@@ -61,6 +64,15 @@ generate_uuid = uuidutils.generate_uuid
 is_uuid_like = uuidutils.is_uuid_like
 is_int_like = strutils.is_int_like
 strtime = timeutils.strtime
+
+
+def is_cron_like(value):
+    """Return True is submitted value is like cron syntax"""
+    try:
+        croniter(value, datetime.datetime.now())
+    except Exception as e:
+        raise exception.CronFormatIsInvalid(message=str(e))
+    return True
 
 
 def safe_rstrip(value, chars=None):

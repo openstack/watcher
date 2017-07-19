@@ -89,11 +89,12 @@ def get_test_audit(**kwargs):
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
         'parameters': kwargs.get('parameters', {}),
-        'interval': kwargs.get('interval', 3600),
+        'interval': kwargs.get('interval', '3600'),
         'goal_id': kwargs.get('goal_id', 1),
         'strategy_id': kwargs.get('strategy_id', None),
         'scope': kwargs.get('scope', []),
-        'auto_trigger': kwargs.get('auto_trigger', False)
+        'auto_trigger': kwargs.get('auto_trigger', False),
+        'next_run_time': kwargs.get('next_run_time')
     }
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.

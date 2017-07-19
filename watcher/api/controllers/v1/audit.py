@@ -65,7 +65,7 @@ class AuditPostType(wtypes.Base):
 
     parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
                                default={})
-    interval = wsme.wsattr(int, mandatory=False)
+    interval = wsme.wsattr(types.interval_or_cron, mandatory=False)
 
     scope = wtypes.wsattr(types.jsontype, readonly=True)
 
@@ -261,7 +261,7 @@ class Audit(base.APIBase):
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit links"""
 
-    interval = wsme.wsattr(int, mandatory=False)
+    interval = wsme.wsattr(wtypes.text, mandatory=False)
     """Launch audit periodically (in seconds)"""
 
     scope = wsme.wsattr(types.jsontype, mandatory=False)
@@ -269,6 +269,9 @@ class Audit(base.APIBase):
 
     auto_trigger = wsme.wsattr(bool, mandatory=False, default=False)
     """Autoexecute action plan once audit is succeeded"""
+
+    next_run_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    """The next time audit launch"""
 
     def __init__(self, **kwargs):
         self.fields = []
@@ -301,7 +304,8 @@ class Audit(base.APIBase):
             audit.unset_fields_except(['uuid', 'audit_type', 'state',
                                        'goal_uuid', 'interval', 'scope',
                                        'strategy_uuid', 'goal_name',
-                                       'strategy_name', 'auto_trigger'])
+                                       'strategy_name', 'auto_trigger',
+                                       'next_run_time'])
 
         audit.links = [link.Link.make_link('self', url,
                                            'audits', audit.uuid),
@@ -325,9 +329,10 @@ class Audit(base.APIBase):
                      created_at=datetime.datetime.utcnow(),
                      deleted_at=None,
                      updated_at=datetime.datetime.utcnow(),
-                     interval=7200,
+                     interval='7200',
                      scope=[],
-                     auto_trigger=False)
+                     auto_trigger=False,
+                     next_run_time=datetime.datetime.utcnow())
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'

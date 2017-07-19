@@ -19,11 +19,14 @@
 
 
 import datetime
+from dateutil import tz
 
 from apscheduler.jobstores import memory
+from croniter import croniter
 
 from watcher.common import context
 from watcher.common import scheduling
+from watcher.common import utils
 from watcher import conf
 from watcher.db.sqlalchemy import api as sq_api
 from watcher.db.sqlalchemy import job_store
@@ -81,11 +84,38 @@ class ContinuousAuditHandler(base.AuditHandler):
                 plan.save()
         return solution
 
+    def _next_cron_time(self, audit):
+        if utils.is_cron_like(audit.interval):
+            return croniter(audit.interval, datetime.datetime.utcnow()
+                            ).get_next(datetime.datetime)
+
     @classmethod
     def execute_audit(cls, audit, request_context):
         self = cls()
         if not self._is_audit_inactive(audit):
-            self.execute(audit, request_context)
+            try:
+                self.execute(audit, request_context)
+            except Exception:
+                raise
+            finally:
+                if utils.is_int_like(audit.interval):
+                    audit.next_run_time = (
+                        datetime.datetime.utcnow() +
+                        datetime.timedelta(seconds=int(audit.interval)))
+                else:
+                    audit.next_run_time = self._next_cron_time(audit)
+                audit.save()
+
+    def _add_job(self, trigger, audit, audit_context, **trigger_args):
+        time_var = 'next_run_time' if trigger_args.get(
+            'next_run_time') else 'run_date'
+        # We should convert UTC time to local time without tzinfo
+        trigger_args[time_var] = trigger_args[time_var].replace(
+            tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).replace(tzinfo=None)
+        self.scheduler.add_job(self.execute_audit, trigger,
+                               args=[audit, audit_context],
+                               name='execute_audit',
+                               **trigger_args)
 
     def launch_audits_periodically(self):
         audit_context = context.RequestContext(is_admin=True)
@@ -101,13 +131,34 @@ class ContinuousAuditHandler(base.AuditHandler):
             job.args for job in self.scheduler.get_jobs()
             if job.name == 'execute_audit']
         for audit in audits:
+            # if audit is not presented in scheduled audits yet.
             if audit.uuid not in [arg[0].uuid for arg in scheduler_job_args]:
-                self.scheduler.add_job(
-                    self.execute_audit, 'interval',
-                    args=[audit, audit_context],
-                    seconds=audit.interval,
-                    name='execute_audit',
-                    next_run_time=datetime.datetime.now())
+                # if interval is provided with seconds
+                if utils.is_int_like(audit.interval):
+                    # if audit has already been provided and we need
+                    # to restore it after shutdown
+                    if audit.next_run_time is not None:
+                        old_run_time = audit.next_run_time
+                        current = datetime.datetime.utcnow()
+                        if old_run_time < current:
+                            delta = datetime.timedelta(
+                                seconds=(int(audit.interval) - (
+                                    current - old_run_time).seconds %
+                                    int(audit.interval)))
+                            audit.next_run_time = current + delta
+                        next_run_time = audit.next_run_time
+                    # if audit is new one
+                    else:
+                        next_run_time = datetime.datetime.utcnow()
+                    self._add_job('interval', audit, audit_context,
+                                  seconds=int(audit.interval),
+                                  next_run_time=next_run_time)
+
+                else:
+                    audit.next_run_time = self._next_cron_time(audit)
+                    self._add_job('date', audit, audit_context,
+                                  run_date=audit.next_run_time)
+                audit.save()
 
     def start(self):
         self.scheduler.add_job(

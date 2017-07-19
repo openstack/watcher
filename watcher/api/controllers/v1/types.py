@@ -43,6 +43,28 @@ class UuidOrNameType(wtypes.UserType):
         return UuidOrNameType.validate(value)
 
 
+class IntervalOrCron(wtypes.UserType):
+    """A simple int value or cron syntax type"""
+
+    basetype = wtypes.text
+    name = 'interval_or_cron'
+
+    @staticmethod
+    def validate(value):
+        if not (utils.is_int_like(value) or utils.is_cron_like(value)):
+            raise exception.InvalidIntervalOrCron(name=value)
+        return value
+
+    @staticmethod
+    def frombasetype(value):
+        if value is None:
+            return None
+        return IntervalOrCron.validate(value)
+
+
+interval_or_cron = IntervalOrCron()
+
+
 class NameType(wtypes.UserType):
     """A simple logical name type."""
 
