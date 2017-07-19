@@ -71,7 +71,7 @@ def add_command_parsers(subparsers):
              "Optionally, use --revision to specify an alembic revision "
              "string to upgrade to.")
     parser.set_defaults(func=DBCommand.upgrade)
-    parser.add_argument('revision', nargs='?')
+    parser.add_argument('--revision', nargs='?')
 
     parser = subparsers.add_parser(
         'downgrade',
@@ -79,7 +79,7 @@ def add_command_parsers(subparsers):
              "While optional, one should generally use --revision to "
              "specify the alembic revision string to downgrade to.")
     parser.set_defaults(func=DBCommand.downgrade)
-    parser.add_argument('revision', nargs='?')
+    parser.add_argument('--revision', nargs='?')
 
     parser = subparsers.add_parser('stamp')
     parser.add_argument('revision', nargs='?')
