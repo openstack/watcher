@@ -26,10 +26,10 @@ IRONIC_CLIENT_OPTS = [
                default=1,
                help='Version of Ironic API to use in ironicclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='publicURL',
                help='Type of endpoint to use in ironicclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.')]
+                    'The default is publicURL.')]
 
 
 def register_opts(conf):
