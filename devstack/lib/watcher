@@ -235,7 +235,7 @@ function init_watcher {
         recreate_database watcher
 
         # Create watcher schema
-        $WATCHER_BIN_DIR/watcher-db-manage --config-file $WATCHER_CONF upgrade head
+        $WATCHER_BIN_DIR/watcher-db-manage --config-file $WATCHER_CONF upgrade
     fi
     create_watcher_cache_dir
 }
