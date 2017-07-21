@@ -1,0 +1,7 @@
+---
+features:
+  - There is new ability to create Watcher continuous audits with cron
+    interval. It means you may use, for example, optional argument
+    '--interval "\*/5 \* \* \* \*"' to launch audit every 5 minutes.
+    These jobs are executed on a best effort basis and therefore, we
+    recommend you to use a minimal cron interval of at least one minute.

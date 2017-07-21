@@ -1,0 +1,6 @@
+---
+features:
+  - Added the functionality to filter out instances which have metadata field
+    'optimize' set to False. For now, this is only available for the
+    basic_consolidation strategy (if "check_optimize_metadata" configuration
+    option is enabled).
