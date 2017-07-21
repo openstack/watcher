@@ -117,15 +117,14 @@ class TestMigration(base.TestCase):
         self.assertRaises(jsonschema.ValidationError,
                           self.action.validate_parameters)
 
-    def test_parameters_exception_destination_node(self):
+    def test_parameters_destination_node_none(self):
         parameters = {baction.BaseAction.RESOURCE_ID:
                       self.INSTANCE_UUID,
                       'migration_type': 'live',
                       'source_node': 'compute-1',
                       'destination_node': None}
         self.action.input_parameters = parameters
-        self.assertRaises(jsonschema.ValidationError,
-                          self.action.validate_parameters)
+        self.assertTrue(self.action.validate_parameters)
 
     def test_parameters_exception_resource_id(self):
         parameters = {baction.BaseAction.RESOURCE_ID: "EFEF",

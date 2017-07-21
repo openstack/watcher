@@ -85,6 +85,20 @@ class NovaHelper(object):
     def find_instance(self, instance_id):
         return self.nova.servers.get(instance_id)
 
+    def confirm_resize(self, instance, previous_status, retry=60):
+        instance.confirm_resize()
+        instance = self.nova.servers.get(instance.id)
+        while instance.status != previous_status and retry:
+            instance = self.nova.servers.get(instance.id)
+            retry -= 1
+            time.sleep(1)
+        if instance.status == previous_status:
+            return True
+        else:
+            LOG.debug("confirm resize failed for the "
+                      "instance %s" % instance.id)
+            return False
+
     def wait_for_volume_status(self, volume, status, timeout=60,
                                poll_interval=1):
         """Wait until volume reaches given status.
@@ -106,7 +120,8 @@ class NovaHelper(object):
         return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
-                                          keep_original_image_name=True):
+                                          keep_original_image_name=True,
+                                          retry=120):
         """This method migrates a given instance
 
         using an image of this instance and creating a new instance
@@ -118,6 +133,9 @@ class NovaHelper(object):
         It returns True if the migration was successful,
         False otherwise.
 
+        if destination hostname not given, this method calls nova api
+        to migrate the instance.
+
         :param instance_id: the unique id of the instance to migrate.
         :param keep_original_image_name: flag indicating whether the
             image name from which the original instance was built must be
@@ -125,10 +143,8 @@ class NovaHelper(object):
             If this flag is False, a temporary image name is built
         """
         new_image_name = ""
-
         LOG.debug(
-            "Trying a non-live migrate of instance '%s' "
-            "using a temporary image ..." % instance_id)
+            "Trying a non-live migrate of instance '%s' " % instance_id)
 
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
@@ -136,9 +152,37 @@ class NovaHelper(object):
             LOG.debug("Instance %s not found !" % instance_id)
             return False
         else:
+            # NOTE: If destination node is None call Nova API to migrate
+            # instance
             host_name = getattr(instance, "OS-EXT-SRV-ATTR:host")
             LOG.debug(
                 "Instance %s found on host '%s'." % (instance_id, host_name))
+
+            if dest_hostname is None:
+                previous_status = getattr(instance, 'status')
+
+                instance.migrate()
+                instance = self.nova.servers.get(instance_id)
+                while (getattr(instance, 'status') not in
+                       ["VERIFY_RESIZE", "ERROR"] and retry):
+                    instance = self.nova.servers.get(instance.id)
+                    time.sleep(2)
+                    retry -= 1
+                new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+
+                if (host_name != new_hostname and
+                   instance.status == 'VERIFY_RESIZE'):
+                    if not self.confirm_resize(instance, previous_status):
+                        return False
+                    LOG.debug(
+                        "cold migration succeeded : "
+                        "instance %s is now on host '%s'." % (
+                            instance_id, new_hostname))
+                    return True
+                else:
+                    LOG.debug(
+                        "cold migration for instance %s failed" % instance_id)
+                    return False
 
             if not keep_original_image_name:
                 # randrange gives you an integral value
@@ -389,15 +433,15 @@ class NovaHelper(object):
         False otherwise.
 
         :param instance_id: the unique id of the instance to migrate.
-        :param dest_hostname: the name of the destination compute node.
+        :param dest_hostname: the name of the destination compute node, if
+                              destination_node is None, nova scheduler choose
+                              the destination host
         :param block_migration:  No shared storage is required.
         """
-        LOG.debug("Trying a live migrate of instance %s to host '%s'" % (
-            instance_id, dest_hostname))
+        LOG.debug("Trying to live migrate instance %s " % (instance_id))
 
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
-
         if not instance:
             LOG.debug("Instance not found: %s" % instance_id)
             return False
@@ -409,6 +453,29 @@ class NovaHelper(object):
             instance.live_migrate(host=dest_hostname,
                                   block_migration=block_migration,
                                   disk_over_commit=True)
+
+            instance = self.nova.servers.get(instance_id)
+
+            # NOTE: If destination host is not specified for live migration
+            # let nova scheduler choose the destination host.
+            if dest_hostname is None:
+                while (instance.status not in ['ACTIVE', 'ERROR'] and retry):
+                    instance = self.nova.servers.get(instance.id)
+                    LOG.debug(
+                        'Waiting the migration of {0}'.format(instance.id))
+                    time.sleep(1)
+                    retry -= 1
+                new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+
+                if host_name != new_hostname and instance.status == 'ACTIVE':
+                    LOG.debug(
+                        "Live migration succeeded : "
+                        "instance %s is now on host '%s'." % (
+                            instance_id, new_hostname))
+                    return True
+                else:
+                    return False
+
             while getattr(instance,
                           'OS-EXT-SRV-ATTR:host') != dest_hostname \
                     and retry:
