@@ -194,7 +194,7 @@ still need to configure the following sections:
   message bus
 
 So if you need some more details on how to configure one or more of these
-sections, please do have a look at :doc:`../deploy/configuration` before
+sections, please do have a look at :doc:`../configuration/configuring` before
 continuing.
 
 
@@ -240,7 +240,7 @@ To run the Watcher Applier service, use:
     (watcher) $ watcher-applier
 
 Default configuration of these services are available into ``/etc/watcher``
-directory. See :doc:`../deploy/configuration` for details on how Watcher is
+directory. See :doc:`../configuration/configuring` for details on how Watcher is
 configured. By default, Watcher is configured with SQL backends.
 
 

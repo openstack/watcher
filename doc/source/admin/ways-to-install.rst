@@ -10,7 +10,7 @@ Ways to install Watcher
 
 This document describes some ways to install Watcher in order to use it.
 If you are intending to develop on or with Watcher,
-please read :doc:`../dev/environment`.
+please read :doc:`../contributor/environment`.
 
 Prerequisites
 -------------
@@ -78,9 +78,10 @@ Install the Watcher modules dependencies:
 
     # pip install -r requirements.txt
 
-From here, refer to :doc:`configuration` to declare Watcher as a new service
-into Keystone and to configure its different modules. Once configured, you
-should be able to run the Watcher services by issuing these commands:
+From here, refer to :doc:`../configuration/configuring` to declare Watcher
+as a new service into Keystone and to configure its different modules.
+Once configured, you should be able to run the Watcher services by issuing
+these commands:
 
 .. code-block:: bash
 
@@ -108,7 +109,7 @@ installed on your system.
 
 Once installed, you still need to declare Watcher as a new service into
 Keystone and to configure its different modules, which you can find described
-in :doc:`configuration`.
+in :doc:`../configuration/configuring`.
 
 
 Installing from packages: Debian (experimental)

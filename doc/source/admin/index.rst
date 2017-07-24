@@ -6,8 +6,6 @@ Administrator Guide
    :maxdepth: 2
 
    apache-mod-wsgi
-   conf-files
-   configuration
    gmr
    policy
    ways-to-install

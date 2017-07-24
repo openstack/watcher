@@ -550,7 +550,7 @@ class AuditTemplatesController(rest.RestController):
     def get_one(self, audit_template):
         """Retrieve information about the given audit template.
 
-        :param audit audit_template: UUID or name of an audit template.
+        :param audit_template: UUID or name of an audit template.
         """
         if self.from_audit_templates:
             raise exception.OperationNotPermitted
@@ -597,7 +597,7 @@ class AuditTemplatesController(rest.RestController):
     def patch(self, audit_template, patch):
         """Update an existing audit template.
 
-        :param audit template_uuid: UUID of a audit template.
+        :param template_uuid: UUID of a audit template.
         :param patch: a json PATCH document to apply to this audit template.
         """
         if self.from_audit_templates:
@@ -645,7 +645,7 @@ class AuditTemplatesController(rest.RestController):
     def delete(self, audit_template):
         """Delete a audit template.
 
-        :param audit template_uuid: UUID or name of an audit template.
+        :param template_uuid: UUID or name of an audit template.
         """
         context = pecan.request.context
         audit_template_to_delete = api_utils.get_resource('AuditTemplate',

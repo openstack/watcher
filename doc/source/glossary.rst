@@ -65,6 +65,14 @@ Audit
 
 .. _audit_template_definition:
 
+Audit Scope
+===========
+
+An Audit Scope is a set of audited resources. Audit Scope should be defined
+in each Audit Template (which contains the Audit settings).
+
+.. _audit_scope_definition:
+
 Audit Template
 ==============
 

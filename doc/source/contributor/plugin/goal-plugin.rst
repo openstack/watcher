@@ -123,8 +123,9 @@ Here below is how you would proceed to register ``NewGoal`` using pbr_:
         new_goal = thirdparty.new:NewGoal
 
 
-To get a better understanding on how to implement a more advanced goal,
-have a look at the :py:class:`~.ServerConsolidation` class.
+To get a better understanding on how to implement a more advanced goal, have
+a look at the
+:py:class:`watcher.decision_engine.goal.goals.ServerConsolidation` class.
 
 .. _pbr: http://docs.openstack.org/developer/pbr/
 

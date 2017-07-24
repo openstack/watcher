@@ -44,7 +44,7 @@ output/*/index.html
 doc/build
 doc/source/api/*
 doc/source/samples
-doc/source/watcher.conf.sample
+doc/source/_static/*.sample
 !doc/source/api/index.rst
 !doc/source/api/v1.rst
 
