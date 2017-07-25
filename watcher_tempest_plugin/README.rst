@@ -12,7 +12,7 @@ Tempest tests
 The following procedure gets you started with Tempest testing but you can also
 refer to the `Tempest documentation`_ for more details.
 
-.. _Tempest documentation: http://docs.openstack.org/developer/tempest/
+.. _Tempest documentation: https://docs.openstack.org/tempest/latest
 
 
 Tempest installation
@@ -112,11 +112,11 @@ enable the execution of multi-node scenarios::
 
 For more information, please refer to:
 
-- Keystone connection: http://docs.openstack.org/developer/tempest/configuration.html#keystone-connection-info
-- Dynamic Keystone Credentials: http://docs.openstack.org/developer/tempest/configuration.html#dynamic-credentials
+- Keystone connection: https://docs.openstack.org/tempest/latest/configuration.html#keystone-connection-info
+- Dynamic Keystone Credentials: https://docs.openstack.org/tempest/latest/configuration.html#dynamic-credentials
 
 .. _virtual environment: http://docs.python-guide.org/en/latest/dev/virtualenvs/
-.. _Tempest configuration guide: http://docs.openstack.org/developer/tempest/configuration.html
+.. _Tempest configuration guide: http://docs.openstack.org/tempest/latest/configuration.html
 
 
 Watcher Tempest tests execution
@@ -150,7 +150,7 @@ before you can do so, you need to follow the Tempest explanation on running
     $ export TEMPEST_CONFIG_DIR=<TEMPEST_DIR>/watcher-cloud/etc/
     $ tox -eall-plugin watcher
 
-.. _tox with plugins: http://docs.openstack.org/developer/tempest/plugin.html#notes-for-using-plugins-with-virtualenvs
+.. _tox with plugins: https://docs.openstack.org/tempest/latest/plugin.html#notes-for-using-plugins-with-virtualenvs
 
 And, to run a specific test::
 
