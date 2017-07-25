@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-import jsonschema
 import time
 
 from oslo_log import log
@@ -53,13 +52,6 @@ class Sleep(base.BaseAction):
             'required': ['duration'],
             'additionalProperties': False,
         }
-
-    def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
 
     @property
     def duration(self):

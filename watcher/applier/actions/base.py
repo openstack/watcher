@@ -18,6 +18,7 @@
 
 import abc
 
+import jsonschema
 import six
 
 from watcher.common import clients
@@ -130,8 +131,11 @@ class BaseAction(loadable.Loadable):
         raise NotImplementedError()
 
     def validate_parameters(self):
-        self.schema(self.input_parameters)
-        return True
+        try:
+            jsonschema.validate(self.input_parameters, self.schema)
+            return True
+        except jsonschema.ValidationError as e:
+            raise e
 
     @abc.abstractmethod
     def get_description(self):

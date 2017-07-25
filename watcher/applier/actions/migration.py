@@ -18,7 +18,6 @@
 #
 
 
-import jsonschema
 from oslo_log import log
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -90,13 +89,6 @@ class Migrate(base.BaseAction):
             'required': ['migration_type', 'resource_id', 'source_node'],
             'additionalProperties': False,
         }
-
-    def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
 
     @property
     def instance_uuid(self):

@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-import jsonschema
 from oslo_log import log
 
 from watcher.applier.actions import base
@@ -51,13 +50,6 @@ class Nop(base.BaseAction):
             'required': ['message'],
             'additionalProperties': False,
         }
-
-    def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
 
     @property
     def message(self):

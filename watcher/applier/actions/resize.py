@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-import jsonschema
 from oslo_log import log
 
 from watcher.applier.actions import base
@@ -66,13 +65,6 @@ class Resize(base.BaseAction):
                 'required': ['resource_id', 'flavor'],
                 'additionalProperties': False,
             }
-
-    def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
 
     @property
     def instance_uuid(self):

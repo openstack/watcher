@@ -18,7 +18,6 @@
 #
 
 import enum
-import jsonschema
 
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -68,13 +67,6 @@ class ChangeNodePowerState(base.BaseAction):
             'required': ['resource_id', 'state'],
             'additionalProperties': False,
         }
-
-    def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
 
     @property
     def node_uuid(self):
