@@ -416,11 +416,12 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type', 'publicURL', group='ironic_client')
+        CONF.set_override('endpoint_type', 'internalURL',
+                          group='ironic_client')
         osc = clients.OpenStackClients()
         osc._ironic = None
         osc.ironic()
-        self.assertEqual('publicURL', osc.ironic().http_client.endpoint)
+        self.assertEqual('internalURL', osc.ironic().http_client.endpoint)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_cached(self, mock_session):
