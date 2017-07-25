@@ -28,10 +28,10 @@ optimization algorithms, data metrics and data profilers can be
 developed and inserted into the Watcher framework.
 
 Check the documentation for watcher optimization strategies at
-https://docs.openstack.org/developer/watcher/strategies
+https://docs.openstack.org/watcher/latest/strategies/index.html
 
 Check watcher glossary at
-https://docs.openstack.org/developer/watcher/glossary.html
+https://docs.openstack.org/watcher/latest/glossary.html
 
 
 This chapter assumes a working setup of OpenStack following the
