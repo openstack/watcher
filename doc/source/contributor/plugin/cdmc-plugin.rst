@@ -198,7 +198,7 @@ Here below is how to register ``DummyClusterDataModelCollector`` using pbr_:
     watcher_cluster_data_model_collectors =
         dummy = thirdparty.dummy:DummyClusterDataModelCollector
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: http://docs.openstack.org/pbr/latest
 
 
 Add new notification endpoints
