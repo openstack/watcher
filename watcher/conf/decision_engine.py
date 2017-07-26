@@ -49,7 +49,7 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     '-whose number of hours has been offset by this value-'
                     ' is older that the current time.'),
     cfg.IntOpt('check_periodic_interval',
-               default=30*60,
+               default=30 * 60,
                help='Interval (in seconds) for checking action plan expiry.')
 ]
 

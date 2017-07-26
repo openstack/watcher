@@ -77,11 +77,19 @@ Installation
 
   install/index
 
+Watcher Configuration Options
+=============================
+
+.. toctree::
+  :maxdepth: 2
+
+  configuration/index
+
 Admin Guide
 ===========
 
 .. toctree::
-  :maxdepth: 1
+  :maxdepth: 2
 
   admin/index
 

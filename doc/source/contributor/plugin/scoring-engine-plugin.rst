@@ -37,7 +37,8 @@ Create a new scoring engine plugin
 
 In order to create a new scoring engine you have to:
 
-- Extend the :py:class:`~.ScoringEngine` class
+- Extend the :py:class:`watcher.decision_engine.scoring.base.ScoringEngine`
+  class
 - Implement its :py:meth:`~.ScoringEngine.get_name` method to return the
   **unique** ID of the new scoring engine you want to create. This unique ID
   should be the same as the name of :ref:`the entry point we will declare later
@@ -124,7 +125,8 @@ scoring engine deployed as a web service on external servers:
 Abstract Plugin Class
 =====================
 
-Here below is the abstract :py:class:`~.ScoringEngine` class:
+Here below is the abstract
+:py:class:`watcher.decision_engine.scoring.base.ScoringEngine` class:
 
 .. autoclass:: watcher.decision_engine.scoring.base.ScoringEngine
     :members:

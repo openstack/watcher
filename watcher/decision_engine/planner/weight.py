@@ -19,7 +19,6 @@ import collections
 
 import networkx as nx
 from oslo_config import cfg
-from oslo_config import types
 from oslo_log import log
 
 from watcher.common import utils
@@ -69,17 +68,15 @@ class WeightPlanner(base.BasePlanner):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.Opt(
+            cfg.DictOpt(
                 'weights',
-                type=types.Dict(value_type=types.Integer()),
                 help="These weights are used to schedule the actions. "
                      "Action Plan will be build in accordance with sets of "
                      "actions ordered by descending weights."
                      "Two action types cannot have the same weight. ",
                 default=cls.action_weights),
-            cfg.Opt(
+            cfg.DictOpt(
                 'parallelization',
-                type=types.Dict(value_type=types.Integer()),
                 help="Number of actions to be run in parallel on a per "
                      "action type basis.",
                 default=cls.parallelization),

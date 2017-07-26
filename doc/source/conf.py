@@ -31,8 +31,7 @@ sys.path.insert(0, os.path.abspath('./'))
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
-    'oslo_config.sphinxconfiggen',
-    'openstackdocstheme',
+    'oslo_config.sphinxext',
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
@@ -41,10 +40,14 @@ extensions = [
     'wsmeext.sphinxext',
     'ext.term',
     'ext.versioned_notifications',
+    'oslo_config.sphinxconfiggen',
+    'openstackdocstheme',
 ]
 
 wsme_protocols = ['restjson']
-config_generator_config_file = '../../etc/watcher/watcher-config-generator.conf'
+config_generator_config_file = [(
+    '../../etc/watcher/oslo-config-generator/watcher.conf',
+    '_static/watcher')]
 sample_config_basename = 'watcher'
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
@@ -91,6 +94,8 @@ add_function_parentheses = True
 # If true, the current module name will be prepended to all description
 # unit titles (such as .. function::).
 add_module_names = True
+
+suppress_warnings = ['app.add_directive']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
