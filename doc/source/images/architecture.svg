@@ -339,6 +339,34 @@
          style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
          transform="matrix(-0.8,0,0,-0.8,4.8,0)" />
     </marker>
+    <marker
+       inkscape:stockid="EmptyTriangleInL"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="EmptyTriangleInL-6"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7091-2"
+         d="m 5.77,0 -8.65,5 0,-10 8.65,5 z"
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,4.8,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="EmptyTriangleInL"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="EmptyTriangleInL-12"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path7091-70"
+         d="m 5.77,0 -8.65,5 0,-10 8.65,5 z"
+         style="fill:#ffffff;fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,4.8,0)" />
+    </marker>
   </defs>
   <sodipodi:namedview
      inkscape:document-units="mm"
@@ -348,13 +376,13 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4142136"
-     inkscape:cx="261.24633"
+     inkscape:cx="665.19215"
      inkscape:cy="108.90512"
-     inkscape:current-layer="g5356"
+     inkscape:current-layer="g4866-2-3"
      id="namedview4950"
      showgrid="true"
-     inkscape:window-width="1215"
-     inkscape:window-height="776"
+     inkscape:window-width="1211"
+     inkscape:window-height="698"
      inkscape:window-x="65"
      inkscape:window-y="24"
      inkscape:window-maximized="1">
@@ -381,6 +409,12 @@
     <g
        id="g5356"
        transform="translate(-15.096057,-107.16694)">
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path3284-4-2-3-77-5-9"
+         d="m 813.66791,753.1462 0,-92.21768"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#EmptyTriangleInL-6)" />
       <rect
          y="377.8927"
          x="96.920677"
@@ -875,8 +909,8 @@
          sodipodi:nodetypes="cc"
          inkscape:connector-curvature="0"
          id="path5110-9"
-         d="m 472.18905,726.66568 221.85496,0"
-         style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;display:inline" />
+         d="m 472.18905,726.66568 331.45651,0"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:1.22230256px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
       <path
          sodipodi:nodetypes="cc"
          inkscape:connector-curvature="0"
@@ -919,8 +953,8 @@
          sodipodi:nodetypes="cc"
          inkscape:connector-curvature="0"
          id="path3284-4-2-3-4-6"
-         d="m 540.57926,651.7922 179.16488,0"
-         style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:1.99999999, 1.99999999;stroke-dashoffset:0;marker-start:url(#TriangleInL);display:inline" />
+         d="m 543.75943,651.7922 280.63651,0"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:1.25154257;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:2.50308524, 2.50308524;stroke-dashoffset:0;stroke-opacity:1;marker-start:url(#TriangleInL)" />
       <rect
          y="262.01205"
          x="451.89563"
@@ -1402,6 +1436,48 @@
          id="path5110-9-6"
          d="m 192.18905,726.66568 221.85496,0"
          style="display:inline;fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+      <g
+         id="g4866-2-3"
+         style="display:inline"
+         transform="matrix(1.7775787,0,0,1.7775787,991.15946,596.08131)">
+        <rect
+           style="display:inline;fill:#ffffff;stroke:#000000;stroke-width:0.562563;stroke-opacity:1"
+           id="rect4267-4-7-7-6"
+           width="49.81258"
+           height="24.243191"
+           x="-116.67716"
+           y="88.977051" />
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-weight:normal;font-size:11.73851585px;line-height:125%;font-family:Sans;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;display:inline;fill:#000000;fill-opacity:1;stroke:none"
+           x="-91.899979"
+           y="104.01585"
+           id="text5037-4-6-9-7"
+           sodipodi:linespacing="125%"><tspan
+             sodipodi:role="line"
+             x="-91.899979"
+             y="104.01585"
+             style="font-size:11.2512598px;text-align:center;text-anchor:middle"
+             id="tspan5184-3-5-5">cinder</tspan></text>
+      </g>
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path3284-4-2-3-4-9-3"
+         d="m 824.37881,651.58554 0,102.98987"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:1.99999999, 1.99999999;stroke-dashoffset:0;stroke-opacity:1;marker-start:none" />
+      <circle
+         r="2.6672709"
+         cy="693.98395"
+         cx="823.72699"
+         id="path13407-89-5"
+         style="color:#000000;display:inline;overflow:visible;visibility:visible;fill:#ececec;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;enable-background:accumulate" />
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path3284-4-2-3-7-9"
+         d="m 804.16781,752.35205 0,-26.2061"
+         style="display:inline;fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:url(#EmptyTriangleInL-12)" />
     </g>
   </g>
 </svg>
