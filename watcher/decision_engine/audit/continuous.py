@@ -62,10 +62,11 @@ class ContinuousAuditHandler(base.AuditHandler):
         if objects.audit.AuditStateTransitionManager().is_inactive(audit):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
-            [job for job in self.scheduler.get_jobs()
-             if job.name == 'execute_audit' and
-             job.args[0].uuid == audit.uuid][0].remove()
-            return True
+            if self.scheduler.get_jobs():
+                [job for job in self.scheduler.get_jobs()
+                 if job.name == 'execute_audit' and
+                 job.args[0].uuid == audit.uuid][0].remove()
+                return True
 
         return False
 

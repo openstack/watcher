@@ -361,3 +361,26 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertTrue(is_inactive)
         is_inactive = audit_handler._is_audit_inactive(self.audits[0])
         self.assertTrue(is_inactive)
+
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
+    @mock.patch.object(objects.audit.AuditStateTransitionManager,
+                       'is_inactive')
+    @mock.patch.object(continuous.ContinuousAuditHandler, 'execute')
+    def test_execute_audit_with_interval_no_job(
+            self,
+            m_execute,
+            m_is_inactive,
+            m_get_jobs,
+            m_get_engine,
+            m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
+        self.audits[0].next_run_time = (datetime.datetime.now() -
+                                        datetime.timedelta(seconds=1800))
+        m_is_inactive.return_value = True
+        m_get_jobs.return_value = None
+
+        audit_handler.execute_audit(self.audits[0], self.context)
+        m_execute.assert_called_once_with(self.audits[0], self.context)
+        self.assertIsNotNone(self.audits[0].next_run_time)
