@@ -426,6 +426,15 @@ class CronFormatIsInvalid(WatcherException):
     msg_fmt = _("Provided cron is invalid: %(message)s")
 
 
+class ActionDescriptionAlreadyExists(Conflict):
+    msg_fmt = _("An action description with type %(action_type)s is "
+                "already exist.")
+
+
+class ActionDescriptionNotFound(ResourceNotFound):
+    msg_fmt = _("The action description %(action_id)s cannot be found.")
+
+
 # Model
 
 class ComputeResourceNotFound(WatcherException):

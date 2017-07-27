@@ -33,3 +33,4 @@ def register_all():
     __import__('watcher.objects.efficacy_indicator')
     __import__('watcher.objects.scoring_engine')
     __import__('watcher.objects.service')
+    __import__('watcher.objects.action_description')

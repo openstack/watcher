@@ -22,6 +22,7 @@ import types
 import mock
 from oslo_config import cfg
 from oslo_service import service
+from watcher.applier import sync
 from watcher.common import service as watcher_service
 
 from watcher.cmd import applier
@@ -49,6 +50,7 @@ class TestApplier(base.BaseTestCase):
         super(TestApplier, self).tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
+    @mock.patch.object(sync.Syncer, "sync", mock.Mock())
     @mock.patch.object(service, "launch")
     def test_run_applier_app(self, m_launch):
         applier.main()
