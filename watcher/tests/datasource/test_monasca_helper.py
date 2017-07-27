@@ -15,7 +15,6 @@
 # limitations under the License.
 
 import mock
-from monascaclient import exc
 from oslo_config import cfg
 from oslo_utils import timeutils
 
@@ -94,8 +93,7 @@ class TestMonascaHelper(base.BaseTestCase):
                 ['2016-07-29T12:55:36.000Z', 0.8, {}]],
             'name': 'cpu.percent'}]
 
-        monasca.metrics.list_measurements.side_effect = [
-            exc.HTTPUnauthorized, expected_result]
+        monasca.metrics.list_measurements.side_effect = [expected_result]
         mock_monasca.return_value = monasca
         helper = monasca_helper.MonascaHelper()
         val = helper.statistics_list(meter_name="cpu.percent", dimensions={})
