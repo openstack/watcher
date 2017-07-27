@@ -111,9 +111,11 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         super(TaskFlowActionContainer, self).__init__(name, db_action, engine)
 
     def do_pre_execute(self):
-        self.engine.notify(self._db_action, objects.action.State.ONGOING)
+        db_action = self.engine.notify(self._db_action,
+                                       objects.action.State.ONGOING)
         LOG.debug("Pre-condition action: %s", self.name)
         self.action.pre_condition()
+        return db_action
 
     def do_execute(self, *args, **kwargs):
         LOG.debug("Running action: %s", self.name)
@@ -121,11 +123,11 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         # NOTE: For result is False, set action state fail
         result = self.action.execute()
         if result is False:
-            self.engine.notify(self._db_action,
-                               objects.action.State.FAILED)
+            return self.engine.notify(self._db_action,
+                                      objects.action.State.FAILED)
         else:
-            self.engine.notify(self._db_action,
-                               objects.action.State.SUCCEEDED)
+            return self.engine.notify(self._db_action,
+                                      objects.action.State.SUCCEEDED)
 
     def do_post_execute(self):
         LOG.debug("Post-condition action: %s", self.name)
@@ -146,14 +148,15 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
             result = self.action.abort()
             if result:
                 # Aborted the action.
-                self.engine.notify(self._db_action,
-                                   objects.action.State.CANCELLED)
+                return self.engine.notify(self._db_action,
+                                          objects.action.State.CANCELLED)
             else:
-                self.engine.notify(self._db_action,
-                                   objects.action.State.SUCCEEDED)
+                return self.engine.notify(self._db_action,
+                                          objects.action.State.SUCCEEDED)
         except Exception as e:
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
             LOG.exception(e)
+            return self.engine.notify(self._db_action,
+                                      objects.action.State.FAILED)
 
 
 class TaskFlowNop(flow_task.Task):
