@@ -46,7 +46,8 @@ class WeightPlanner(base.BasePlanner):
         super(WeightPlanner, self).__init__(config)
 
     action_weights = {
-        'nop': 60,
+        'nop': 70,
+        'volume_migrate': 60,
         'change_nova_service_state': 50,
         'sleep': 40,
         'migrate': 30,
@@ -63,6 +64,7 @@ class WeightPlanner(base.BasePlanner):
         'change_nova_service_state': 1,
         'nop': 1,
         'change_node_power_state': 2,
+        'volume_migrate': 2
     }
 
     @classmethod

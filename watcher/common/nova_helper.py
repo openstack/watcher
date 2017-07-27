@@ -864,3 +864,27 @@ class NovaHelper(object):
 
     def get_running_migration(self, instance_id):
         return self.nova.server_migrations.list(server=instance_id)
+
+    def swap_volume(self, old_volume, new_volume,
+                    retry=120, retry_interval=10):
+        """Swap old_volume for new_volume"""
+        attachments = old_volume.attachments
+        instance_id = attachments[0]['server_id']
+        # do volume update
+        self.nova.volumes.update_server_volume(
+            instance_id, old_volume.id, new_volume.id)
+        while getattr(new_volume, 'status') != 'in-use' and retry:
+            new_volume = self.cinder.volumes.get(new_volume.id)
+            LOG.debug('Waiting volume update to {0}'.format(new_volume))
+            time.sleep(retry_interval)
+            retry -= 1
+            LOG.debug("retry count: %s" % retry)
+        if getattr(new_volume, 'status') != "in-use":
+            LOG.error("Volume update retry timeout or error")
+            return False
+
+        host_name = getattr(new_volume, "os-vol-host-attr:host")
+        LOG.debug(
+            "Volume update succeeded : "
+            "Volume %s is now on host '%s'." % (new_volume.id, host_name))
+        return True
