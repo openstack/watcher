@@ -22,7 +22,8 @@ ThermalOptimization = goals.ThermalOptimization
 Unclassified = goals.Unclassified
 WorkloadBalancing = goals.WorkloadBalancing
 NoisyNeighbor = goals.NoisyNeighborOptimization
+SavingEnergy = goals.SavingEnergy
 
 __all__ = ("Dummy", "ServerConsolidation", "ThermalOptimization",
            "Unclassified", "WorkloadBalancing",
-           "NoisyNeighborOptimization",)
+           "NoisyNeighborOptimization", "SavingEnergy")

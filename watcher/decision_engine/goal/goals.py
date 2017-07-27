@@ -192,3 +192,27 @@ class NoisyNeighborOptimization(base.Goal):
     def get_efficacy_specification(cls):
         """The efficacy spec for the current goal"""
         return specs.Unclassified()
+
+
+class SavingEnergy(base.Goal):
+    """SavingEnergy
+
+    This goal is used to reduce power consumption within a data center.
+    """
+
+    @classmethod
+    def get_name(cls):
+        return "saving_energy"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Saving Energy")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Saving Energy"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.Unclassified()
