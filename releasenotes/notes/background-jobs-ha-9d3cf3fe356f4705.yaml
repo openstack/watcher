@@ -1,0 +1,4 @@
+---
+features:
+  - Added binding between apscheduler job and Watcher decision engine service.
+    It will allow to provide HA support in the future.

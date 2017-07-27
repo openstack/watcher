@@ -1,0 +1,5 @@
+---
+features:
+  - Added strategy to identify and migrate a Noisy Neighbor - a low priority VM
+    that negatively affects peformance of a high priority VM by over utilizing
+    Last Level Cache.

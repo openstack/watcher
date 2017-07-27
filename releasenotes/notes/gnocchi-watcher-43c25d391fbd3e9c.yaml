@@ -1,0 +1,4 @@
+---
+features:
+  - Added gnocchi support as data source for metrics. Administrator can change
+    data source for each strategy using config file.
