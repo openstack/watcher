@@ -787,6 +787,9 @@ class NovaHelper(object):
             net_obj = {"net-id": nic_id}
             net_list.append(net_obj)
 
+        # get availability zone of destination host
+        azone = self.nova.services.list(host=node_id,
+                                        binary='nova-compute')[0].zone
         instance = self.nova.servers.create(
             inst_name, image,
             flavor=flavor,
@@ -794,7 +797,7 @@ class NovaHelper(object):
             security_groups=sec_group_list,
             nics=net_list,
             block_device_mapping_v2=block_device_mapping_v2,
-            availability_zone="nova:%s" % node_id)
+            availability_zone="%s:%s" % (azone, node_id))
 
         # Poll at 5 second intervals, until the status is no longer 'BUILD'
         if instance:
