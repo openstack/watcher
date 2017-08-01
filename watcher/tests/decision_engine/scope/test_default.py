@@ -32,20 +32,20 @@ class TestDefaultScope(base.TestCase):
         super(TestDefaultScope, self).setUp()
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_get_scoped_model_with_zones_and_instances(self, mock_zone_list):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
-            mock.Mock(zoneName='AZ{0}'.format(i),
-                      hosts={'Node_{0}'.format(i): {}})
+            mock.Mock(zone='AZ{0}'.format(i),
+                      host={'Node_{0}'.format(i): {}})
             for i in range(2)]
         model = default.DefaultScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
         expected_edges = [('INSTANCE_2', 'Node_1')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
         model = self.fake_cluster.generate_scenario_1()
         default.DefaultScope([], mock.Mock(),
@@ -125,26 +125,26 @@ class TestDefaultScope(base.TestCase):
             [{'name': 'HA_1'}, {'id': 0}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_collect_zones(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zoneName="AZ{0}".format(i + 1),
-                      hosts={'Node_{0}'.format(2 * i): 1,
-                             'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{0}".format(i + 1),
+                      host={'Node_{0}'.format(2 * i): 1,
+                            'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
         default.DefaultScope([{'availability_zones': [{'name': "AZ1"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
             [{'name': "AZ1"}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], sorted(allowed_nodes))
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_zones_wildcard_is_used(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zoneName="AZ{0}".format(i + 1),
-                      hosts={'Node_{0}'.format(2 * i): 1,
-                             'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{0}".format(i + 1),
+                      host={'Node_{0}'.format(2 * i): 1,
+                            'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
         default.DefaultScope([{'availability_zones': [{'name': "*"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -152,13 +152,13 @@ class TestDefaultScope(base.TestCase):
         self.assertEqual(['Node_0', 'Node_1', 'Node_2', 'Node_3'],
                          sorted(allowed_nodes))
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_availability_zone_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_zones_wildcard_with_other_ids(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zoneName="AZ{0}".format(i + 1),
-                      hosts={'Node_{0}'.format(2 * i): 1,
-                             'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{0}".format(i + 1),
+                      host={'Node_{0}'.format(2 * i): 1,
+                            'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
         scope_handler = default.DefaultScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],

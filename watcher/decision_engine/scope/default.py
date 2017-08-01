@@ -145,7 +145,7 @@ class DefaultScope(base.BaseScope):
                 compute_nodes.extend(detailed_aggregate.hosts)
 
     def _collect_zones(self, availability_zones, allowed_nodes):
-        zone_list = self.wrapper.get_availability_zone_list()
+        service_list = self.wrapper.get_service_list()
         zone_names = [zone['name'] for zone
                       in availability_zones]
         include_all_nodes = False
@@ -155,9 +155,9 @@ class DefaultScope(base.BaseScope):
             else:
                 raise exception.WildcardCharacterIsUsed(
                     resource="availability zones")
-        for zone in zone_list:
-            if zone.zoneName in zone_names or include_all_nodes:
-                allowed_nodes.extend(zone.hosts.keys())
+        for service in service_list:
+            if service.zone in zone_names or include_all_nodes:
+                allowed_nodes.extend(service.host)
 
     def exclude_resources(self, resources, **kwargs):
         instances_to_exclude = kwargs.get('instances')
