@@ -217,3 +217,11 @@ which is only able to process the Watcher built-in actions. Therefore, you will
 either have to use an existing third-party planner or :ref:`implement another
 planner <implement_planner_plugin>` that will be able to take into account your
 new action plugin.
+
+
+Test your new action
+====================
+
+In order to test your new action via a manual test or a Tempest test, you can
+use the  :py:class:`~.Actuator` strategy and pass it one or more actions to
+execute. This way, you can isolate your action to see if it works as expected.

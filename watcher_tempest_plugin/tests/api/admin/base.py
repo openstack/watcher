@@ -165,18 +165,19 @@ class BaseInfraOptimTest(test.BaseTestCase):
 
     @classmethod
     def create_audit(cls, audit_template_uuid, audit_type='ONESHOT',
-                     state=None, interval=None):
+                     state=None, interval=None, parameters=None):
         """Wrapper utility for creating a test audit
 
         :param audit_template_uuid: Audit Template UUID this audit will use
         :param audit_type: Audit type (either ONESHOT or CONTINUOUS)
         :param state: Audit state (str)
         :param interval: Audit interval in seconds or cron syntax (str)
+        :param parameters: list of execution parameters
         :return: A tuple with The HTTP response and its body
         """
         resp, body = cls.client.create_audit(
             audit_template_uuid=audit_template_uuid, audit_type=audit_type,
-            state=state, interval=interval)
+            state=state, interval=interval, parameters=parameters)
 
         cls.created_audits.add(body['uuid'])
         cls.created_action_plans_audit_uuids.add(body['uuid'])
@@ -250,11 +251,6 @@ class BaseInfraOptimTest(test.BaseTestCase):
             cls.created_action_plans_audit_uuids.remove(action_plan_uuid)
 
         return resp
-
-    @classmethod
-    def has_action_plan_finished(cls, action_plan_uuid):
-        _, action_plan = cls.client.show_action_plan(action_plan_uuid)
-        return action_plan.get('state') in cls.FINISHED_STATES
 
     @classmethod
     def is_action_plan_idle(cls, action_plan_uuid):

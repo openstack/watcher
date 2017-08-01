@@ -70,42 +70,6 @@ class TestCreateDeleteExecuteActionPlan(base.BaseInfraOptimTest):
         self.assertRaises(exceptions.NotFound, self.client.show_action_plan,
                           action_plan['uuid'])
 
-    @decorators.attr(type='smoke')
-    def test_execute_dummy_action_plan(self):
-        _, goal = self.client.show_goal("dummy")
-        _, audit_template = self.create_audit_template(goal['uuid'])
-        _, audit = self.create_audit(audit_template['uuid'])
-
-        self.assertTrue(test_utils.call_until_true(
-            func=functools.partial(self.has_audit_finished, audit['uuid']),
-            duration=30,
-            sleep_for=.5
-        ))
-        _, action_plans = self.client.list_action_plans(
-            audit_uuid=audit['uuid'])
-        action_plan = action_plans['action_plans'][0]
-
-        _, action_plan = self.client.show_action_plan(action_plan['uuid'])
-
-        if action_plan['state'] in ['SUPERSEDED', 'SUCCEEDED']:
-            # This means the action plan is superseded so we cannot trigger it,
-            # or it is empty.
-            return
-
-        # Execute the action by changing its state to PENDING
-        _, updated_ap = self.client.start_action_plan(action_plan['uuid'])
-
-        self.assertTrue(test_utils.call_until_true(
-            func=functools.partial(
-                self.has_action_plan_finished, action_plan['uuid']),
-            duration=30,
-            sleep_for=.5
-        ))
-        _, finished_ap = self.client.show_action_plan(action_plan['uuid'])
-
-        self.assertIn(updated_ap['state'], ('PENDING', 'ONGOING'))
-        self.assertIn(finished_ap['state'], ('SUCCEEDED', 'SUPERSEDED'))
-
 
 class TestShowListActionPlan(base.BaseInfraOptimTest):
     """Tests for action_plan."""
