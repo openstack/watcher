@@ -24,9 +24,6 @@ from watcher.tests import base
 
 class TestDecisionEngineAPI(base.TestCase):
 
-    def setUp(self):
-        super(TestDecisionEngineAPI, self).setUp()
-
     api = rpcapi.DecisionEngineAPI()
 
     def test_get_api_version(self):

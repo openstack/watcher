@@ -24,9 +24,6 @@ from watcher.tests import base
 
 class TestDummyScoringContainer(base.TestCase):
 
-    def setUp(self):
-        super(TestDummyScoringContainer, self).setUp()
-
     def test_get_scoring_engine_list(self):
         scorers = (dummy_scoring_container.DummyScoringContainer
                                           .get_scoring_engine_list())

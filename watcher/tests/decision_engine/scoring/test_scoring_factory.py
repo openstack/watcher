@@ -22,9 +22,6 @@ from watcher.tests import base
 
 class TestScoringFactory(base.TestCase):
 
-    def setUp(self):
-        super(TestScoringFactory, self).setUp()
-
     def test_get_scoring_engine(self):
         scorer = scoring_factory.get_scoring_engine('dummy_scorer')
         self.assertEqual('dummy_scorer', scorer.get_name())

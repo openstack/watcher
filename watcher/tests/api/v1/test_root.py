@@ -16,5 +16,4 @@ from watcher.tests.api import base as api_base
 
 
 class TestV1Routing(api_base.FunctionalTest):
-    def setUp(self):
-        super(TestV1Routing, self).setUp()
+    pass
