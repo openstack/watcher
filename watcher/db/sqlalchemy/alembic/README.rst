@@ -20,7 +20,7 @@ You can upgrade to the latest database version via::
 
 To check the current database version::
 
-    $ watcher-db-manage --config-file /path/to/watcher.conf current
+    $ watcher-db-manage --config-file /path/to/watcher.conf version
 
 
 To create a script to run the migration offline::
