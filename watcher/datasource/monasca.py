@@ -33,7 +33,7 @@ class MonascaHelper(object):
     def query_retry(self, f, *args, **kwargs):
         try:
             return f(*args, **kwargs)
-        except exc.HTTPUnauthorized:
+        except exc.Unauthorized:
             self.osc.reset_clients()
             self.monasca = self.osc.monasca()
             return f(*args, **kwargs)
