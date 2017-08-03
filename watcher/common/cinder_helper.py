@@ -40,9 +40,8 @@ class CinderHelper(object):
     def get_storage_node_by_name(self, name):
         """Get storage node by name(host@backendname)"""
         try:
-            storages = list(filter(lambda storage:
-                            storage.host == name,
-                            self.get_storage_node_list()))
+            storages = [storage for storage in self.get_storage_node_list()
+                        if storage.host == name]
             if len(storages) != 1:
                 raise exception.StorageNodeNotFound(name=name)
             return storages[0]
@@ -56,9 +55,8 @@ class CinderHelper(object):
     def get_storage_pool_by_name(self, name):
         """Get pool by name(host@backend#poolname)"""
         try:
-            pools = list(filter(lambda pool:
-                         pool.name == name,
-                         self.get_storage_pool_list()))
+            pools = [pool for pool in self.get_storage_pool_list()
+                     if pool.name == name]
             if len(pools) != 1:
                 raise exception.PoolNotFound(name=name)
             return pools[0]
@@ -75,10 +73,9 @@ class CinderHelper(object):
     def get_volume_type_by_backendname(self, backendname):
         volume_type_list = self.get_volume_type_list()
 
-        volume_type = list(filter(
-            lambda volume_type:
-                volume_type.extra_specs.get(
-                    'volume_backend_name') == backendname, volume_type_list))
+        volume_type = [volume_type for volume_type in volume_type_list
+                       if volume_type.extra_specs.get(
+                           'volume_backend_name') == backendname]
         if volume_type:
             return volume_type[0].name
         else:
