@@ -164,6 +164,33 @@ class TestSavingEnergy(base.TestCase):
         self.assertEqual(len(self.strategy.free_poweron_node_pool), 0)
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 2)
 
+    def test_get_hosts_pool_with_node_out_model(self):
+        mock_node1 = mock.Mock()
+        mock_node2 = mock.Mock()
+        mock_node1.to_dict.return_value = {
+            'extra': {'compute_node_id': 1},
+            'power_state': 'power off'}
+        mock_node2.to_dict.return_value = {
+            'extra': {'compute_node_id': 2},
+            'power_state': 'power off'}
+        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
+
+        mock_hyper1 = mock.Mock()
+        mock_hyper2 = mock.Mock()
+        mock_hyper1.to_dict.return_value = {
+            'running_vms': 0, 'service': {'host': 'Node_0'}, 'state': 'up'}
+        mock_hyper2.to_dict.return_value = {
+            'running_vms': 0, 'service': {'host': 'Node_10'}, 'state': 'up'}
+        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
+
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        self.strategy.get_hosts_pool()
+
+        self.assertEqual(len(self.strategy.with_vms_node_pool), 0)
+        self.assertEqual(len(self.strategy.free_poweron_node_pool), 0)
+        self.assertEqual(len(self.strategy.free_poweroff_node_pool), 1)
+
     def test_save_energy_poweron(self):
         self.strategy.free_poweroff_node_pool = [
             '922d4762-0bc5-4b30-9cb9-48ab644dd861',
