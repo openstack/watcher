@@ -395,12 +395,14 @@ class TestClients(base.TestCase):
     @mock.patch.object(irclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic(self, mock_session, mock_call):
+        ironic_url = 'http://localhost:6385/'
+        mock_session.get_endpoint.return_value = ironic_url
         osc = clients.OpenStackClients()
         osc._ironic = None
         osc.ironic()
         mock_call.assert_called_once_with(
             CONF.ironic_client.api_version,
-            CONF.ironic_client.endpoint_type,
+            ironic_url,
             max_retries=None,
             os_ironic_api_version=None,
             retry_interval=None,
@@ -408,6 +410,8 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_diff_vers(self, mock_session):
+        ironic_url = 'http://localhost:6385/'
+        mock_session.get_endpoint.return_value = ironic_url
         CONF.set_override('api_version', '1', group='ironic_client')
         osc = clients.OpenStackClients()
         osc._ironic = None
@@ -416,15 +420,29 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type', 'internalURL',
-                          group='ironic_client')
+        ironic_url = 'http://localhost:6385/'
+        mock_session.get_endpoint.return_value = ironic_url
         osc = clients.OpenStackClients()
         osc._ironic = None
         osc.ironic()
-        self.assertEqual('internalURL', osc.ironic().http_client.endpoint)
+        mock_session.get_endpoint.assert_called_once_with(
+            interface='publicURL',
+            region_name=None,
+            service_type='baremetal')
+
+        CONF.set_override('endpoint_type', 'internalURL',
+                          group='ironic_client')
+        osc._ironic = None
+        osc.ironic()
+        mock_session.get_endpoint.assert_called_with(
+            interface='internalURL',
+            region_name=None,
+            service_type='baremetal')
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_cached(self, mock_session):
+        ironic_url = 'http://localhost:6385/'
+        mock_session.get_endpoint.return_value = ironic_url
         osc = clients.OpenStackClients()
         osc._ironic = None
         ironic = osc.ironic()
