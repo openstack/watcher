@@ -30,6 +30,7 @@ telemetries to measure thermal/workload status of server.
 
 import datetime
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
@@ -159,6 +160,16 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     @property
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
+
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.StrOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                default="ceilometer",
+                choices=["ceilometer", "gnocchi"])
+        ]
 
     def calc_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
