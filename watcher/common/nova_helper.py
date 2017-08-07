@@ -82,6 +82,9 @@ class NovaHelper(object):
     def get_availability_zone_list(self):
         return self.nova.availability_zones.list(detailed=True)
 
+    def get_service_list(self):
+        return self.nova.services.list(binary='nova-compute')
+
     def find_instance(self, instance_id):
         return self.nova.servers.get(instance_id)
 
