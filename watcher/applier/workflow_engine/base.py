@@ -90,6 +90,7 @@ class BaseWorkFlowEngine(loadable.Loadable):
                                                eager=True)
         db_action.state = state
         db_action.save()
+        return db_action
 
     @abc.abstractmethod
     def execute(self, actions):
@@ -149,9 +150,9 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 self.engine.context, self._db_action.action_plan_id)
             if action_plan.state in CANCEL_STATE:
                 raise exception.ActionPlanCancelled(uuid=action_plan.uuid)
-            self.do_pre_execute()
+            db_action = self.do_pre_execute()
             notifications.action.send_execution_notification(
-                self.engine.context, self._db_action,
+                self.engine.context, db_action,
                 fields.NotificationAction.EXECUTION,
                 fields.NotificationPhase.START)
         except exception.ActionPlanCancelled as e:
@@ -159,9 +160,10 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             raise
         except Exception as e:
             LOG.exception(e)
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
+            db_action = self.engine.notify(self._db_action,
+                                           objects.action.State.FAILED)
             notifications.action.send_execution_notification(
-                self.engine.context, self._db_action,
+                self.engine.context, db_action,
                 fields.NotificationAction.EXECUTION,
                 fields.NotificationPhase.ERROR,
                 priority=fields.NotificationPriority.ERROR)
@@ -169,19 +171,19 @@ class BaseTaskFlowActionContainer(flow_task.Task):
     def execute(self, *args, **kwargs):
         def _do_execute_action(*args, **kwargs):
             try:
-                self.do_execute(*args, **kwargs)
+                db_action = self.do_execute(*args, **kwargs)
                 notifications.action.send_execution_notification(
-                    self.engine.context, self._db_action,
+                    self.engine.context, db_action,
                     fields.NotificationAction.EXECUTION,
                     fields.NotificationPhase.END)
             except Exception as e:
                 LOG.exception(e)
                 LOG.error('The workflow engine has failed'
                           'to execute the action: %s', self.name)
-                self.engine.notify(self._db_action,
-                                   objects.action.State.FAILED)
+                db_action = self.engine.notify(self._db_action,
+                                               objects.action.State.FAILED)
                 notifications.action.send_execution_notification(
-                    self.engine.context, self._db_action,
+                    self.engine.context, db_action,
                     fields.NotificationAction.EXECUTION,
                     fields.NotificationPhase.ERROR,
                     priority=fields.NotificationPriority.ERROR)
@@ -227,9 +229,10 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             self.do_post_execute()
         except Exception as e:
             LOG.exception(e)
-            self.engine.notify(self._db_action, objects.action.State.FAILED)
+            db_action = self.engine.notify(self._db_action,
+                                           objects.action.State.FAILED)
             notifications.action.send_execution_notification(
-                self.engine.context, self._db_action,
+                self.engine.context, db_action,
                 fields.NotificationAction.EXECUTION,
                 fields.NotificationPhase.ERROR,
                 priority=fields.NotificationPriority.ERROR)
