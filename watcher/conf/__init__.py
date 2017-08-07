@@ -24,6 +24,7 @@ from watcher.conf import applier
 from watcher.conf import ceilometer_client
 from watcher.conf import cinder_client
 from watcher.conf import clients_auth
+from watcher.conf import collector
 from watcher.conf import db
 from watcher.conf import decision_engine
 from watcher.conf import exception
@@ -58,3 +59,4 @@ ceilometer_client.register_opts(CONF)
 neutron_client.register_opts(CONF)
 clients_auth.register_opts(CONF)
 ironic_client.register_opts(CONF)
+collector.register_opts(CONF)

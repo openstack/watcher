@@ -17,6 +17,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from oslo_config import cfg
+
 from watcher.common import utils
 from watcher.decision_engine.loading import default
 
@@ -31,8 +33,8 @@ class CollectorManager(object):
     def get_collectors(self):
         if self._collectors is None:
             collectors = utils.Struct()
-            available_collectors = self.collector_loader.list_available()
-            for collector_name in available_collectors:
+            collector_plugins = cfg.CONF.collector.collector_plugins
+            for collector_name in collector_plugins:
                 collector = self.collector_loader.load(collector_name)
                 collectors[collector_name] = collector
             self._collectors = collectors

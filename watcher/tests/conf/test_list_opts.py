@@ -32,7 +32,7 @@ class TestListOpts(base.TestCase):
             'watcher_applier', 'watcher_planner', 'nova_client',
             'glance_client', 'gnocchi_client', 'cinder_client',
             'ceilometer_client', 'monasca_client', 'ironic_client',
-            'neutron_client', 'watcher_clients_auth']
+            'neutron_client', 'watcher_clients_auth', 'collector']
         self.opt_sections = list(dict(opts.list_opts()).keys())
 
     def test_run_list_opts(self):
