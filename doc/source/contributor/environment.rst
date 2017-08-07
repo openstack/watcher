@@ -25,7 +25,7 @@ Prerequisites
 This document assumes you are using Ubuntu or Fedora, and that you have the
 following tools available on your system:
 
-- Python_ 2.7 and 3.4
+- Python_ 2.7 and 3.5
 - git_
 - setuptools_
 - pip_
@@ -77,13 +77,13 @@ extension, PyPi) cannot satisfy. These dependencies should be installed
 prior to using `pip`, and the installation method may vary depending on
 your platform.
 
-* Ubuntu 14.04::
+* Ubuntu 16.04::
 
     $ sudo apt-get install python-dev libssl-dev libmysqlclient-dev libffi-dev
 
-* Fedora 19+::
+* Fedora 24+::
 
-    $ sudo yum install openssl-devel libffi-devel mysql-devel
+    $ sudo dnf install redhat-rpm-config gcc python-devel libxml2-devel
 
 * CentOS 7::
 
