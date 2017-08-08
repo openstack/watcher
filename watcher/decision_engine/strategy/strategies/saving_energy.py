@@ -129,7 +129,9 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             hypervisor_node = hypervisor_node.to_dict()
             compute_service = hypervisor_node.get('service', None)
             host_uuid = compute_service.get('host')
-            if not self.compute_model.get_node_by_uuid(host_uuid):
+            try:
+                self.compute_model.get_node_by_uuid(host_uuid)
+            except wexc.ComputeNodeNotFound:
                 continue
 
             if not (hypervisor_node.get('state') == 'up'):
