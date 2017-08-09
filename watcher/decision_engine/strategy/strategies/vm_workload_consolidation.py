@@ -77,12 +77,12 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     METRIC_NAMES = dict(
         ceilometer=dict(
             cpu_util_metric='cpu_util',
-            ram_util_metric='memory.usage',
+            ram_util_metric='memory.resident',
             ram_alloc_metric='memory',
             disk_alloc_metric='disk.root.size'),
         gnocchi=dict(
             cpu_util_metric='cpu_util',
-            ram_util_metric='memory.usage',
+            ram_util_metric='memory.resident',
             ram_alloc_metric='memory',
             disk_alloc_metric='disk.root.size'),
     )
@@ -361,7 +361,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         if not instance_ram_util:
             instance_ram_util = instance.memory
-            LOG.warning('No values returned by %s for memory.usage, '
+            LOG.warning('No values returned by %s for memory.resident, '
                         'use instance flavor ram value', instance.uuid)
 
         if not instance_disk_util:
