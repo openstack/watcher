@@ -45,9 +45,6 @@ class DummyManager(object):
 
 class TestServiceHeartbeat(base.TestCase):
 
-    def setUp(self):
-        super(TestServiceHeartbeat, self).setUp()
-
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Service, 'create')
     def test_send_beat_with_creating_service(self, mock_create,

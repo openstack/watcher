@@ -24,9 +24,6 @@ from watcher.tests import base
 
 class TestDummyScorer(base.TestCase):
 
-    def setUp(self):
-        super(TestDummyScorer, self).setUp()
-
     def test_metadata(self):
         scorer = dummy_scorer.DummyScorer(config=None)
         self.assertEqual('dummy_scorer', scorer.get_name())

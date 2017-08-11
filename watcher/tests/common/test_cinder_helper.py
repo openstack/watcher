@@ -25,9 +25,6 @@ from watcher.tests import base
 @mock.patch.object(clients.OpenStackClients, 'cinder')
 class TestCinderHelper(base.TestCase):
 
-    def setUp(self):
-        super(TestCinderHelper, self).setUp()
-
     @staticmethod
     def fake_storage_node(**kwargs):
         node = mock.MagicMock()

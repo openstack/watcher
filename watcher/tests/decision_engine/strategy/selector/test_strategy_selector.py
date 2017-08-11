@@ -26,9 +26,6 @@ from watcher.tests import base
 
 class TestStrategySelector(base.TestCase):
 
-    def setUp(self):
-        super(TestStrategySelector, self).setUp()
-
     @mock.patch.object(default_loader.DefaultStrategyLoader, 'load')
     def test_select_with_strategy_name(self, m_load):
         expected_goal = 'dummy'

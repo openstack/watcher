@@ -31,9 +31,6 @@ class TestTriggerActionPlan(base.TestCase):
         self.applier = mock.MagicMock()
         self.endpoint = trigger.TriggerActionPlan(self.applier)
 
-    def setUp(self):
-        super(TestTriggerActionPlan, self).setUp()
-
     def test_launch_action_plan(self):
         action_plan_uuid = utils.generate_uuid()
         expected_uuid = self.endpoint.launch_action_plan(self.context,

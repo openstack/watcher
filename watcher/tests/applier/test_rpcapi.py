@@ -30,9 +30,6 @@ class TestApplierAPI(base.TestCase):
 
     api = rpcapi.ApplierAPI()
 
-    def setUp(self):
-        super(TestApplierAPI, self).setUp()
-
     def test_get_api_version(self):
         with mock.patch.object(om.RPCClient, 'call') as mock_call:
             expected_context = self.context
