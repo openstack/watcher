@@ -353,3 +353,133 @@ class TestActionNotification(base.DbTestCase):
             },
             notification
         )
+
+    def test_send_action_cancel(self):
+        action = utils.create_test_action(
+            mock.Mock(), state=objects.action.State.PENDING,
+            action_type='nop', input_parameters={'param1': 1, 'param2': 2},
+            parents=[], action_plan_id=self.action_plan.id)
+        notifications.action.send_cancel_notification(
+            mock.MagicMock(), action, 'cancel', phase='start', host='node0')
+
+        # The 1st notification is because we created the audit object.
+        # The 2nd notification is because we created the action plan object.
+        self.assertEqual(4, self.m_notifier.info.call_count)
+        notification = self.m_notifier.info.call_args[1]
+
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
+        self.assertDictEqual(
+            {
+                'event_type': 'action.cancel.start',
+                'payload': {
+                    'watcher_object.namespace': 'watcher',
+                    'watcher_object.version': '1.0',
+                    'watcher_object.name': 'ActionCancelPayload',
+                    'watcher_object.data': {
+                        'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
+                        'input_parameters': {
+                            'param2': 2,
+                            'param1': 1
+                        },
+                        'created_at': '2016-10-18T09:52:05Z',
+                        'fault': None,
+                        'updated_at': None,
+                        'state': 'PENDING',
+                        'action_plan': {
+                            'watcher_object.namespace': 'watcher',
+                            'watcher_object.version': '1.0',
+                            'watcher_object.name': 'TerseActionPlanPayload',
+                            'watcher_object.data': {
+                                'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
+                                'global_efficacy': {},
+                                'created_at': '2016-10-18T09:52:05Z',
+                                'updated_at': None,
+                                'state': 'ONGOING',
+                                'audit_uuid': '10a47dd1-4874-4298'
+                                              '-91cf-eff046dbdb8d',
+                                'strategy_uuid': 'cb3d0b58-4415-4d90'
+                                                 '-b75b-1e96878730e3',
+                                'deleted_at': None
+                            }
+                        },
+                        'parents': [],
+                        'action_type': 'nop',
+                        'deleted_at': None
+                    }
+                }
+            },
+            notification
+        )
+
+    def test_send_action_cancel_with_error(self):
+        action = utils.create_test_action(
+            mock.Mock(), state=objects.action.State.FAILED,
+            action_type='nop', input_parameters={'param1': 1, 'param2': 2},
+            parents=[], action_plan_id=self.action_plan.id)
+
+        try:
+            # This is to load the exception in sys.exc_info()
+            raise exception.WatcherException("TEST")
+        except exception.WatcherException:
+            notifications.action.send_cancel_notification(
+                mock.MagicMock(), action, 'cancel', phase='error',
+                host='node0', priority='error')
+
+        self.assertEqual(1, self.m_notifier.error.call_count)
+        notification = self.m_notifier.error.call_args[1]
+        self.assertEqual("infra-optim:node0", self.m_notifier.publisher_id)
+        self.assertDictEqual(
+            {
+                'event_type': 'action.cancel.error',
+                'payload': {
+                    'watcher_object.namespace': 'watcher',
+                    'watcher_object.version': '1.0',
+                    'watcher_object.name': 'ActionCancelPayload',
+                    'watcher_object.data': {
+                        'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
+                        'input_parameters': {
+                            'param2': 2,
+                            'param1': 1
+                        },
+                        'created_at': '2016-10-18T09:52:05Z',
+                        'fault': {
+                            'watcher_object.data': {
+                                'exception': u'WatcherException',
+                                'exception_message': u'TEST',
+                                'function_name': (
+                                    'test_send_action_cancel_with_error'),
+                                'module_name': (
+                                    'watcher.tests.notifications.'
+                                    'test_action_notification')
+                            },
+                            'watcher_object.name': 'ExceptionPayload',
+                            'watcher_object.namespace': 'watcher',
+                            'watcher_object.version': '1.0'
+                        },
+                        'updated_at': None,
+                        'state': 'FAILED',
+                        'action_plan': {
+                            'watcher_object.namespace': 'watcher',
+                            'watcher_object.version': '1.0',
+                            'watcher_object.name': 'TerseActionPlanPayload',
+                            'watcher_object.data': {
+                                'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
+                                'global_efficacy': {},
+                                'created_at': '2016-10-18T09:52:05Z',
+                                'updated_at': None,
+                                'state': 'ONGOING',
+                                'audit_uuid': '10a47dd1-4874-4298'
+                                              '-91cf-eff046dbdb8d',
+                                'strategy_uuid': 'cb3d0b58-4415-4d90'
+                                                 '-b75b-1e96878730e3',
+                                'deleted_at': None
+                            }
+                        },
+                        'parents': [],
+                        'action_type': 'nop',
+                        'deleted_at': None
+                    }
+                }
+            },
+            notification
+        )

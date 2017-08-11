@@ -153,7 +153,10 @@ class NotificationAction(BaseWatcherEnum):
     PLANNER = 'planner'
     EXECUTION = 'execution'
 
-    ALL = (CREATE, UPDATE, EXCEPTION, DELETE, STRATEGY, PLANNER, EXECUTION)
+    CANCEL = 'cancel'
+
+    ALL = (CREATE, UPDATE, EXCEPTION, DELETE, STRATEGY, PLANNER, EXECUTION,
+           CANCEL)
 
 
 class NotificationPriorityField(BaseEnumField):

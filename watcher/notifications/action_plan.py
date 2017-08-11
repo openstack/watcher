@@ -167,6 +167,22 @@ class ActionPlanDeletePayload(ActionPlanPayload):
             strategy=strategy)
 
 
+@base.WatcherObjectRegistry.register_notification
+class ActionPlanCancelPayload(ActionPlanPayload):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+    fields = {
+        'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
+    }
+
+    def __init__(self, action_plan, audit, strategy, **kwargs):
+        super(ActionPlanCancelPayload, self).__init__(
+            action_plan=action_plan,
+            audit=audit,
+            strategy=strategy,
+            **kwargs)
+
+
 @notificationbase.notification_sample('action_plan-execution-error.json')
 @notificationbase.notification_sample('action_plan-execution-end.json')
 @notificationbase.notification_sample('action_plan-execution-start.json')
@@ -210,6 +226,19 @@ class ActionPlanDeleteNotification(notificationbase.NotificationBase):
 
     fields = {
         'payload': wfields.ObjectField('ActionPlanDeletePayload')
+    }
+
+
+@notificationbase.notification_sample('action_plan-cancel-error.json')
+@notificationbase.notification_sample('action_plan-cancel-end.json')
+@notificationbase.notification_sample('action_plan-cancel-start.json')
+@base.WatcherObjectRegistry.register_notification
+class ActionPlanCancelNotification(notificationbase.NotificationBase):
+    # Version 1.0: Initial version
+    VERSION = '1.0'
+
+    fields = {
+        'payload': wfields.ObjectField('ActionPlanCancelPayload')
     }
 
 
@@ -327,6 +356,37 @@ def send_action_notification(context, action_plan, action, phase=None,
     )
 
     notification = ActionPlanActionNotification(
+        priority=priority,
+        event_type=notificationbase.EventType(
+            object='action_plan',
+            action=action,
+            phase=phase),
+        publisher=notificationbase.NotificationPublisher(
+            host=host or CONF.host,
+            binary=service),
+        payload=versioned_payload)
+
+    notification.emit(context)
+
+
+def send_cancel_notification(context, action_plan, action, phase=None,
+                             priority=wfields.NotificationPriority.INFO,
+                             service='infra-optim', host=None):
+    """Emit an action_plan cancel notification."""
+    audit_payload, strategy_payload = _get_common_payload(action_plan)
+
+    fault = None
+    if phase == wfields.NotificationPhase.ERROR:
+        fault = exception_notifications.ExceptionPayload.from_exception()
+
+    versioned_payload = ActionPlanCancelPayload(
+        action_plan=action_plan,
+        audit=audit_payload,
+        strategy=strategy_payload,
+        fault=fault,
+    )
+
+    notification = ActionPlanCancelNotification(
         priority=priority,
         event_type=notificationbase.EventType(
             object='action_plan',
