@@ -25,6 +25,7 @@ The *workload_balance* strategy requires the following metrics:
 metric                  service name plugins comment
 ======================= ============ ======= =======
 ``cpu_util``            ceilometer_  none
+``memory.resident``     ceilometer_  none
 ======================= ============ ======= =======
 
 .. _ceilometer: http://docs.openstack.org/admin-guide/telemetry-measurements.html#openstack-compute
@@ -66,6 +67,9 @@ Strategy parameters are:
 ============== ====== ============= ====================================
 parameter      type   default Value description
 ============== ====== ============= ====================================
+``metrics``    String 'cpu_util'    Workload balance base on cpu or ram
+                                    utilization. choice: ['cpu_util',
+                                    'memory.resident']
 ``threshold``  Number 25.0          Workload threshold for migration
 ``period``     Number 300           Aggregate time period of ceilometer
 ============== ====== ============= ====================================
@@ -90,7 +94,7 @@ How to use it ?
       at1 workload_balancing --strategy workload_balance
 
     $ openstack optimize audit create -a at1 -p threshold=26.0 \
-            -p period=310
+            -p period=310 -p metrics=cpu_util
 
 External Links
 --------------

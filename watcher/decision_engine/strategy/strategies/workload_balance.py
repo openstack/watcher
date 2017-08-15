@@ -22,7 +22,7 @@
 *Description*
 
 This strategy migrates a VM based on the VM workload of the hosts.
-It makes decision to migrate a workload whenever a host's CPU
+It makes decision to migrate a workload whenever a host's CPU or RAM
 utilization % is higher than the specified threshold. The VM to
 be moved should make the host close to average workload of all
 hosts nodes.
@@ -32,7 +32,7 @@ hosts nodes.
 * Hardware: compute node should use the same physical CPUs
 * Software: Ceilometer component ceilometer-agent-compute
   running in each compute node, and Ceilometer API can
-  report such telemetry "cpu_util" successfully.
+  report such telemetry "cpu_util" and "memory.resident" successfully.
 * You must have at least 2 physical compute nodes to run
   this strategy.
 
@@ -69,16 +69,16 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         It is a migration strategy based on the VM workload of physical
         servers. It generates solutions to move a workload whenever a server's
-        CPU utilization % is higher than the specified threshold.
+        CPU or RAM utilization % is higher than the specified threshold.
         The VM to be moved should make the host close to average workload
         of all compute nodes.
 
     *Requirements*
 
-        * Hardware: compute node should use the same physical CPUs
+        * Hardware: compute node should use the same physical CPUs/RAMs
         * Software: Ceilometer component ceilometer-agent-compute running
           in each compute node, and Ceilometer API can report such telemetry
-          "cpu_util" successfully.
+          "cpu_util" and "memory.resident" successfully.
         * You must have at least 2 physical compute nodes to run this strategy
 
     *Limitations*
@@ -91,8 +91,12 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     """
 
     # The meter to report CPU utilization % of VM in ceilometer
-    METER_NAME = "cpu_util"
     # Unit: %, value range is [0 , 100]
+    CPU_METER_NAME = "cpu_util"
+
+    # The meter to report memory resident of VM in ceilometer
+    # Unit: MB
+    MEM_METER_NAME = "memory.resident"
 
     MIGRATION = "migrate"
 
@@ -104,9 +108,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         :param osc: :py:class:`~.OpenStackClients` instance
         """
         super(WorkloadBalance, self).__init__(config, osc)
-        # the migration plan will be triggered when the CPU utilization %
-        # reaches threshold
-        self._meter = self.METER_NAME
+        # the migration plan will be triggered when the CPU or RAM
+        # utilization % reaches threshold
+        self._meter = None
         self._ceilometer = None
         self._gnocchi = None
 
@@ -151,6 +155,13 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # Mandatory default setting for each element
         return {
             "properties": {
+                "metrics": {
+                    "description": "Workload balance based on metrics: "
+                                   "cpu or ram utilization",
+                    "type": "string",
+                    "choice": ["cpu_util", "memory.resident"],
+                    "default": "cpu_util"
+                },
                 "threshold": {
                     "description": "workload threshold for migration",
                     "type": "number",
@@ -251,18 +262,21 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             cores_available = host.vcpus - cores_used
             disk_available = host.disk - disk_used
             mem_available = host.memory - mem_used
-            if (
-                    cores_available >= required_cores and
-                    disk_available >= required_disk and
+            if (cores_available >= required_cores and
                     mem_available >= required_mem and
+                    disk_available >= required_disk):
+                if (self._meter == self.CPU_METER_NAME and
                     ((src_instance_workload + workload) <
-                     self.threshold / 100 * host.vcpus)
-            ):
-                destination_hosts.append(instance_data)
+                     self.threshold / 100 * host.vcpus)):
+                    destination_hosts.append(instance_data)
+                if (self._meter == self.MEM_METER_NAME and
+                    ((src_instance_workload + workload) <
+                     self.threshold / 100 * host.memory)):
+                    destination_hosts.append(instance_data)
 
         return destination_hosts
 
-    def group_hosts_by_cpu_util(self):
+    def group_hosts_by_cpu_or_ram_util(self):
         """Calculate the workloads of each node
 
         try to find out the nodes which have reached threshold
@@ -286,10 +300,10 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             instances = self.compute_model.get_node_instances(node)
             node_workload = 0.0
             for instance in instances:
-                cpu_util = None
+                instance_util = None
                 try:
                     if self.config.datasource == "ceilometer":
-                        cpu_util = self.ceilometer.statistic_aggregation(
+                        instance_util = self.ceilometer.statistic_aggregation(
                             resource_id=instance.uuid,
                             meter_name=self._meter,
                             period=self._period,
@@ -298,7 +312,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         stop_time = datetime.datetime.utcnow()
                         start_time = stop_time - datetime.timedelta(
                             seconds=int(self._period))
-                        cpu_util = self.gnocchi.statistic_aggregation(
+                        instance_util = self.gnocchi.statistic_aggregation(
                             resource_id=instance.uuid,
                             metric=self._meter,
                             granularity=self.granularity,
@@ -308,23 +322,32 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         )
                 except Exception as exc:
                     LOG.exception(exc)
-                    LOG.error("Can not get cpu_util from %s",
+                    LOG.error("Can not get %s from %s", self._meter,
                               self.config.datasource)
                     continue
-                if cpu_util is None:
-                    LOG.debug("Instance (%s): cpu_util is None", instance.uuid)
+                if instance_util is None:
+                    LOG.debug("Instance (%s): %s is None",
+                              instance.uuid, self._meter)
                     continue
-                workload_cache[instance.uuid] = cpu_util * instance.vcpus / 100
+                if self._meter == self.CPU_METER_NAME:
+                    workload_cache[instance.uuid] = (instance_util *
+                                                     instance.vcpus / 100)
+                else:
+                    workload_cache[instance.uuid] = instance_util
                 node_workload += workload_cache[instance.uuid]
-                LOG.debug("VM (%s): cpu_util %f", instance.uuid, cpu_util)
-            node_cpu_util = node_workload / node.vcpus * 100
+                LOG.debug("VM (%s): %s %f", instance.uuid, self._meter,
+                          instance_util)
 
             cluster_workload += node_workload
+            if self._meter == self.CPU_METER_NAME:
+                node_util = node_workload / node.vcpus * 100
+            else:
+                node_util = node_workload / node.memory * 100
 
             instance_data = {
-                'node': node, "cpu_util": node_cpu_util,
+                'node': node, self._meter: node_util,
                 'workload': node_workload}
-            if node_cpu_util >= self.threshold:
+            if node_util >= self.threshold:
                 # mark the node to release resources
                 overload_hosts.append(instance_data)
             else:
@@ -356,8 +379,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         """
         self.threshold = self.input_parameters.threshold
         self._period = self.input_parameters.period
+        self._meter = self.input_parameters.metrics
         source_nodes, target_nodes, avg_workload, workload_cache = (
-            self.group_hosts_by_cpu_util())
+            self.group_hosts_by_cpu_or_ram_util())
 
         if not source_nodes:
             LOG.debug("No hosts require optimization")
@@ -373,7 +397,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # choose the server with largest cpu_util
         source_nodes = sorted(source_nodes,
                               reverse=True,
-                              key=lambda x: (x[self.METER_NAME]))
+                              key=lambda x: (x[self._meter]))
 
         instance_to_migrate = self.choose_instance_to_migrate(
             source_nodes, avg_workload, workload_cache)
@@ -391,7 +415,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         "be because of there's no enough CPU/Memory/DISK")
             return self.solution
         destination_hosts = sorted(destination_hosts,
-                                   key=lambda x: (x["cpu_util"]))
+                                   key=lambda x: (x[self._meter]))
         # always use the host with lowerest CPU utilization
         mig_destination_node = destination_hosts[0]['node']
         # generate solution to migrate the instance to the dest server,
