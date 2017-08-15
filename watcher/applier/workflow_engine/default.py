@@ -120,14 +120,15 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def do_execute(self, *args, **kwargs):
         LOG.debug("Running action: %s", self.name)
 
-        # NOTE: For result is False, set action state fail
+        # NOTE:Some actions(such as migrate) will return None when exception
+        #      Only when True is returned, the action state is set to SUCCEEDED
         result = self.action.execute()
-        if result is False:
-            return self.engine.notify(self._db_action,
-                                      objects.action.State.FAILED)
-        else:
+        if result is True:
             return self.engine.notify(self._db_action,
                                       objects.action.State.SUCCEEDED)
+        else:
+            return self.engine.notify(self._db_action,
+                                      objects.action.State.FAILED)
 
     def do_post_execute(self):
         LOG.debug("Post-condition action: %s", self.name)
