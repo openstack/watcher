@@ -659,3 +659,56 @@ class TestSyncer(base.DbTestCase):
             all(ap.state == objects.action_plan.State.CANCELLED
                 for ap in modified_action_plans.values()))
         self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))
+
+    def test_sync_strategies_with_removed_goal(self):
+        # ### Setup ### #
+
+        goal1 = objects.Goal(
+            self.ctx, id=1, uuid=utils.generate_uuid(),
+            name="dummy_1", display_name="Dummy 1",
+            efficacy_specification=self.goal1_spec.serialize_indicators_specs()
+        )
+        goal2 = objects.Goal(
+            self.ctx, id=2, uuid=utils.generate_uuid(),
+            name="dummy_2", display_name="Dummy 2",
+            efficacy_specification=self.goal2_spec.serialize_indicators_specs()
+        )
+        goal1.create()
+        goal2.create()
+
+        strategy1 = objects.Strategy(
+            self.ctx, id=1, name="strategy_1", uuid=utils.generate_uuid(),
+            display_name="Strategy 1", goal_id=goal1.id)
+        strategy2 = objects.Strategy(
+            self.ctx, id=2, name="strategy_2", uuid=utils.generate_uuid(),
+            display_name="Strategy 2", goal_id=goal2.id)
+        strategy1.create()
+        strategy2.create()
+        # to be removed by some reasons
+        goal2.soft_delete()
+
+        before_goals = objects.Goal.list(self.ctx)
+        before_strategies = objects.Strategy.list(self.ctx)
+
+        # ### Action under test ### #
+
+        try:
+            self.syncer.sync()
+        except Exception as exc:
+            self.fail(exc)
+
+        # ### Assertions ### #
+
+        after_goals = objects.Goal.list(self.ctx)
+        after_strategies = objects.Strategy.list(self.ctx)
+
+        self.assertEqual(1, len(before_goals))
+        self.assertEqual(2, len(before_strategies))
+        self.assertEqual(2, len(after_goals))
+        self.assertEqual(4, len(after_strategies))
+        self.assertEqual(
+            {"dummy_1", "dummy_2"},
+            set([g.name for g in after_goals]))
+        self.assertEqual(
+            {"strategy_1", "strategy_2", "strategy_3", "strategy_4"},
+            set([s.name for s in after_strategies]))
