@@ -178,7 +178,7 @@ Here below is how you would proceed to register ``DummyAction`` using pbr_:
     watcher_actions =
         dummy = thirdparty.dummy:DummyAction
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: https://docs.openstack.org/pbr/latest
 
 
 Using action plugins
