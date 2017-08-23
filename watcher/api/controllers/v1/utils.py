@@ -57,7 +57,7 @@ def validate_sort_dir(sort_dir):
 def validate_search_filters(filters, allowed_fields):
     # Very lightweight validation for now
     # todo: improve this (e.g. https://www.parse.com/docs/rest/guide/#queries)
-    for filter_name in filters.keys():
+    for filter_name in filters:
         if filter_name not in allowed_fields:
             raise wsme.exc.ClientSideError(
                 _("Invalid filter: %s") % filter_name)
