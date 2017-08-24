@@ -1,0 +1,7 @@
+---
+features:
+  - Existing workload_balance strategy based on
+    the VM workloads of CPU. This feature improves
+    the strategy. By the input parameter "metrics",
+    it makes decision to migrate a VM base on CPU
+    or memory utilization.
