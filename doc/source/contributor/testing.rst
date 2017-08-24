@@ -47,4 +47,12 @@ When you're done, deactivate the virtualenv::
 
     $ deactivate
 
-.. include:: ../../../watcher_tempest_plugin/README.rst
+.. _tempest_tests:
+
+Tempest tests
+=============
+
+Tempest tests for Watcher has been migrated to the external repo
+`watcher-tempest-plugin`_.
+
+.. _watcher-tempest-plugin: https://github.com/openstack/watcher-tempest-plugin
