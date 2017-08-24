@@ -78,6 +78,14 @@ class Syncer(object):
         """Strategies loaded from DB"""
         if self._available_strategies is None:
             self._available_strategies = objects.Strategy.list(self.ctx)
+            goal_ids = [g.id for g in self.available_goals]
+            stale_strategies = [s for s in self._available_strategies
+                                if s.goal_id not in goal_ids]
+            for s in stale_strategies:
+                LOG.info("Can't find Goal id %d of strategy %s",
+                         s.goal_id, s.name)
+                s.soft_delete()
+                self._available_strategies.remove(s)
         return self._available_strategies
 
     @property
