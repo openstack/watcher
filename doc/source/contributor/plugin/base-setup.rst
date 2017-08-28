@@ -34,7 +34,7 @@ First off, we need to create the project structure. To do so, we can use
 generate the skeleton of our project::
 
     $ virtualenv thirdparty
-    $ source thirdparty/bin/activate
+    $ . thirdparty/bin/activate
     $ pip install cookiecutter
     $ cookiecutter https://github.com/openstack-dev/cookiecutter
 
