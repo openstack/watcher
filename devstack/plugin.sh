@@ -7,7 +7,7 @@ _XTRACE_WATCHER_PLUGIN=$(set +o | grep xtrace)
 set -o xtrace
 
 echo_summary "watcher's plugin.sh was called..."
-source $DEST/watcher/devstack/lib/watcher
+. $DEST/watcher/devstack/lib/watcher
 
 # Show all of defined environment variables
 (set -o posix; set)
