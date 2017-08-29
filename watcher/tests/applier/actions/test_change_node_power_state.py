@@ -90,7 +90,14 @@ class TestChangeNodePowerState(base.TestCase):
     def test_execute_node_service_state_with_poweron_target(
             self, mock_ironic, mock_nova):
         mock_irclient = mock_ironic.return_value
-        self.action.execute()
+        self.action.input_parameters["state"] = (
+            change_node_power_state.NodeState.POWERON.value)
+        mock_irclient.node.get.side_effect = [
+            mock.MagicMock(power_state='power off'),
+            mock.MagicMock(power_state='power on')]
+
+        result = self.action.execute()
+        self.assertTrue(result)
 
         mock_irclient.node.set_power_state.assert_called_once_with(
             COMPUTE_NODE, change_node_power_state.NodeState.POWERON.value)
@@ -104,7 +111,12 @@ class TestChangeNodePowerState(base.TestCase):
         mock_nvclient.hypervisors.get.return_value = mock_get
         self.action.input_parameters["state"] = (
             change_node_power_state.NodeState.POWEROFF.value)
-        self.action.execute()
+        mock_irclient.node.get.side_effect = [
+            mock.MagicMock(power_state='power on'),
+            mock.MagicMock(power_state='power on'),
+            mock.MagicMock(power_state='power off')]
+        result = self.action.execute()
+        self.assertTrue(result)
 
         mock_irclient.node.set_power_state.assert_called_once_with(
             COMPUTE_NODE, change_node_power_state.NodeState.POWEROFF.value)
@@ -118,6 +130,10 @@ class TestChangeNodePowerState(base.TestCase):
         mock_nvclient.hypervisors.get.return_value = mock_get
         self.action.input_parameters["state"] = (
             change_node_power_state.NodeState.POWERON.value)
+        mock_irclient.node.get.side_effect = [
+            mock.MagicMock(power_state='power on'),
+            mock.MagicMock(power_state='power on'),
+            mock.MagicMock(power_state='power off')]
         self.action.revert()
 
         mock_irclient.node.set_power_state.assert_called_once_with(
@@ -128,6 +144,9 @@ class TestChangeNodePowerState(base.TestCase):
         mock_irclient = mock_ironic.return_value
         self.action.input_parameters["state"] = (
             change_node_power_state.NodeState.POWEROFF.value)
+        mock_irclient.node.get.side_effect = [
+            mock.MagicMock(power_state='power off'),
+            mock.MagicMock(power_state='power on')]
         self.action.revert()
 
         mock_irclient.node.set_power_state.assert_called_once_with(
