@@ -210,12 +210,12 @@ class StrategiesController(rest.RestController):
     def _get_strategies_collection(self, filters, marker, limit, sort_key,
                                    sort_dir, expand=False, resource_url=None):
         api_utils.validate_search_filters(
-            filters, list(objects.strategy.Strategy.fields.keys()) +
+            filters, list(objects.strategy.Strategy.fields) +
             ["goal_uuid", "goal_name"])
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
-        sort_db_key = (sort_key if sort_key in objects.Strategy.fields.keys()
+        sort_db_key = (sort_key if sort_key in objects.Strategy.fields
                        else None)
 
         marker_obj = None

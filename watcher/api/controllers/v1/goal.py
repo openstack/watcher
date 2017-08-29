@@ -170,7 +170,7 @@ class GoalsController(rest.RestController):
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
-        sort_db_key = (sort_key if sort_key in objects.Goal.fields.keys()
+        sort_db_key = (sort_key if sort_key in objects.Goal.fields
                        else None)
 
         marker_obj = None

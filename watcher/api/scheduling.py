@@ -42,7 +42,7 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
         services = objects.service.Service.list(context)
         for service in services:
             result = self.get_service_status(context, service.id)
-            if service.id not in self.services_status.keys():
+            if service.id not in self.services_status:
                 self.services_status[service.id] = result
                 continue
             if self.services_status[service.id] != result:

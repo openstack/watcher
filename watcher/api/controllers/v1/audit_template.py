@@ -448,7 +448,7 @@ class AuditTemplatesController(rest.RestController):
                                         sort_key, sort_dir, expand=False,
                                         resource_url=None):
         api_utils.validate_search_filters(
-            filters, list(objects.audit_template.AuditTemplate.fields.keys()) +
+            filters, list(objects.audit_template.AuditTemplate.fields) +
             ["goal_uuid", "goal_name", "strategy_uuid", "strategy_name"])
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)

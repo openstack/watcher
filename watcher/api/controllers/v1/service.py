@@ -104,7 +104,7 @@ class Service(base.APIBase):
     def __init__(self, **kwargs):
         super(Service, self).__init__()
 
-        fields = list(objects.Service.fields.keys()) + ['status']
+        fields = list(objects.Service.fields) + ['status']
         self.fields = []
         for field in fields:
             self.fields.append(field)
@@ -194,7 +194,7 @@ class ServicesController(rest.RestController):
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
-        sort_db_key = (sort_key if sort_key in objects.Service.fields.keys()
+        sort_db_key = (sort_key if sort_key in objects.Service.fields
                        else None)
 
         marker_obj = None
