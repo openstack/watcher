@@ -241,7 +241,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
         action_plan = objects.ActionPlan.get_by_id(
             self.engine.context, self._db_action.action_plan_id, eager=True)
         # NOTE: check if revert cause by cancel action plan or
-        # some other exception occured during action plan execution
+        # some other exception occurred during action plan execution
         # if due to some other exception keep the flow intact.
         if action_plan.state not in CANCEL_STATE:
             self.do_revert()

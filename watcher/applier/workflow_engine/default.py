@@ -45,7 +45,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
         # (or whether the execution of v should be ignored,
         # and therefore not executed). It is expected to take as single
         # keyword argument history which will be the execution results of
-        # all u decideable links that have v as a target. It is expected
+        # all u decidable links that have v as a target. It is expected
         # to return a single boolean
         # (True to allow v execution or False to not).
         return True

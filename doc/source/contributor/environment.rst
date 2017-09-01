@@ -4,7 +4,7 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-.. _watcher_developement_environment:
+.. _watcher_development_environment:
 
 =========================================
 Set up a development environment manually

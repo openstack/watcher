@@ -100,7 +100,7 @@ parameter            type   default Value         description
                                                   into which the samples are
                                                   grouped for aggregation.
                                                   Watcher uses only the last
-                                                  period of all recieved ones.
+                                                  period of all received ones.
 ==================== ====== ===================== =============================
 
 .. |metrics| replace:: ["cpu_util", "memory.resident"]

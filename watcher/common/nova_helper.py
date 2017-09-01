@@ -528,10 +528,10 @@ class NovaHelper(object):
         instance_host = getattr(instance, 'OS-EXT-SRV-ATTR:host')
         instance_status = getattr(instance, 'status')
 
-        # Abort live migration successfull, action is cancelled
+        # Abort live migration successful, action is cancelled
         if instance_host == source and instance_status == 'ACTIVE':
             return True
-        # Nova Unable to abort live migration, action is succeded
+        # Nova Unable to abort live migration, action is succeeded
         elif instance_host == destination and instance_status == 'ACTIVE':
             return False
 

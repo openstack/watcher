@@ -117,7 +117,7 @@ class ModelBuilder(object):
         # cpu_id, cpu_node = self.build_cpu_compute_node(base_id, node)
         # self.add_node(cpu_id, cpu_node)
 
-        # # Connect the base compute node to the dependant nodes.
+        # # Connect the base compute node to the dependent nodes.
         # self.add_edges_from([(base_id, disk_id), (base_id, mem_id),
         #                      (base_id, cpu_id), (base_id, net_id)],
         #                     label="contains")

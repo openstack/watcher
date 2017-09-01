@@ -22,7 +22,7 @@ Pre-requisites
 We assume that you have set up a working Watcher development environment. So if
 this not already the case, you can check out our documentation which explains
 how to set up a :ref:`development environment
-<watcher_developement_environment>`.
+<watcher_development_environment>`.
 
 .. _development environment:
 
