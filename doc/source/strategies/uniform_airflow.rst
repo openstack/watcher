@@ -5,7 +5,7 @@ Uniform Airflow Migration Strategy
 Synopsis
 --------
 
-**display name**: ``uniform_airflow``
+**display name**: ``Uniform airflow migration strategy``
 
 **goal**: ``airflow_optimization``
 

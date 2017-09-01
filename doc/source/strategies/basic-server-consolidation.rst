@@ -5,7 +5,7 @@ Basic Offline Server Consolidation
 Synopsis
 --------
 
-**display name**: ``basic``
+**display name**: ``Basic offline consolidation``
 
 **goal**: ``server_consolidation``
 

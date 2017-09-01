@@ -5,7 +5,7 @@ VM Workload Consolidation Strategy
 Synopsis
 --------
 
-**display name**: ``vm_workload_consolidation``
+**display name**: ``VM Workload Consolidation Strategy``
 
 **goal**: ``vm_consolidation``
 

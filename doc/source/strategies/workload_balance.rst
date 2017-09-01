@@ -5,7 +5,7 @@ Workload Balance Migration Strategy
 Synopsis
 --------
 
-**display name**: ``workload_balance``
+**display name**: ``Workload Balance Migration Strategy``
 
 **goal**: ``workload_balancing``
 

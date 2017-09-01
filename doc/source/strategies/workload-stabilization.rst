@@ -5,7 +5,7 @@ Watcher Overload standard deviation algorithm
 Synopsis
 --------
 
-**display name**: ``workload_stabilization``
+**display name**: ``Workload stabilization``
 
 **goal**: ``workload_balancing``
 
