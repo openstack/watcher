@@ -33,7 +33,7 @@ class ServiceState(enum.Enum):
 class ComputeNode(compute_resource.ComputeResource):
 
     fields = {
-        "id": wfields.NonNegativeIntegerField(),
+        "id": wfields.StringField(),
         "hostname": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
         "state": wfields.StringField(default=ServiceState.ONLINE.value),
