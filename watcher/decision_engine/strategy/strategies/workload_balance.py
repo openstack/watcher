@@ -191,6 +191,13 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 choices=["ceilometer", "gnocchi"])
         ]
 
+    def get_available_compute_nodes(self):
+        default_node_scope = [element.ServiceState.ENABLED.value]
+        return {uuid: cn for uuid, cn in
+                self.compute_model.get_all_compute_nodes().items()
+                if cn.state == element.ServiceState.ONLINE.value and
+                cn.status in default_node_scope}
+
     def calculate_used_resource(self, node):
         """Calculate the used vcpus, memory and disk based on VM flavors"""
         instances = self.compute_model.get_node_instances(node)
@@ -285,7 +292,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         and also generate the instance workload map.
         """
 
-        nodes = self.compute_model.get_all_compute_nodes()
+        nodes = self.get_available_compute_nodes()
         cluster_size = len(nodes)
         if not nodes:
             raise wexc.ClusterEmpty()

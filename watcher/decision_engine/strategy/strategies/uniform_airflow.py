@@ -214,6 +214,13 @@ class UniformAirflow(base.BaseStrategy):
                 choices=["ceilometer", "gnocchi"])
         ]
 
+    def get_available_compute_nodes(self):
+        default_node_scope = [element.ServiceState.ENABLED.value]
+        return {uuid: cn for uuid, cn in
+                self.compute_model.get_all_compute_nodes().items()
+                if cn.state == element.ServiceState.ONLINE.value and
+                cn.status in default_node_scope}
+
     def calculate_used_resource(self, node):
         """Compute the used vcpus, memory and disk based on instance flavors"""
         instances = self.compute_model.get_node_instances(node)
@@ -334,7 +341,7 @@ class UniformAirflow(base.BaseStrategy):
     def group_hosts_by_airflow(self):
         """Group hosts based on airflow meters"""
 
-        nodes = self.compute_model.get_all_compute_nodes()
+        nodes = self.get_available_compute_nodes()
         if not nodes:
             raise wexc.ClusterEmpty()
         overload_hosts = []

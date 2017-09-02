@@ -169,6 +169,14 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 choices=["ceilometer", "gnocchi"])
         ]
 
+    def get_available_compute_nodes(self):
+        default_node_scope = [element.ServiceState.ENABLED.value,
+                              element.ServiceState.DISABLED.value]
+        return {uuid: cn for uuid, cn in
+                self.compute_model.get_all_compute_nodes().items()
+                if cn.state == element.ServiceState.ONLINE.value and
+                cn.status in default_node_scope}
+
     def get_instance_state_str(self, instance):
         """Get instance state in string format.
 
@@ -273,7 +281,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :return: None
         """
-        for node in self.compute_model.get_all_compute_nodes().values():
+        for node in self.get_available_compute_nodes().values():
             if (len(self.compute_model.get_node_instances(node)) == 0 and
                     node.status !=
                     element.ServiceState.DISABLED.value):
@@ -422,7 +430,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         RCU is an average of relative utilizations (rhu) of active nodes.
         :return: {'cpu': <0,1>, 'ram': <0,1>, 'disk': <0,1>}
         """
-        nodes = self.compute_model.get_all_compute_nodes().values()
+        nodes = self.get_available_compute_nodes().values()
         rcu = {}
         counters = {}
         for node in nodes:
@@ -534,7 +542,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param cc: dictionary containing resource capacity coefficients
         """
         sorted_nodes = sorted(
-            self.compute_model.get_all_compute_nodes().values(),
+            self.get_available_compute_nodes().values(),
             key=lambda x: self.get_node_utilization(x)['cpu'])
         for node in reversed(sorted_nodes):
             if self.is_overloaded(node, cc):
@@ -567,7 +575,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param cc: dictionary containing resource capacity coefficients
         """
         sorted_nodes = sorted(
-            self.compute_model.get_all_compute_nodes().values(),
+            self.get_available_compute_nodes().values(),
             key=lambda x: self.get_node_utilization(x)['cpu'])
         asc = 0
         for node in sorted_nodes:
@@ -630,7 +638,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         rcu_after = self.get_relative_cluster_utilization()
         info = {
             "compute_nodes_count": len(
-                self.compute_model.get_all_compute_nodes()),
+                self.get_available_compute_nodes()),
             'number_of_migrations': self.number_of_migrations,
             'number_of_released_nodes':
                 self.number_of_released_nodes,
@@ -643,7 +651,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def post_execute(self):
         self.solution.set_efficacy_indicators(
             compute_nodes_count=len(
-                self.compute_model.get_all_compute_nodes()),
+                self.get_available_compute_nodes()),
             released_compute_nodes_count=self.number_of_released_nodes,
             instance_migrations_count=self.number_of_migrations,
         )
