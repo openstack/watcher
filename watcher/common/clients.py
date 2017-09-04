@@ -110,8 +110,12 @@ class OpenStackClients(object):
                                                         'api_version')
         gnocchiclient_interface = self._get_client_option('gnocchi',
                                                           'endpoint_type')
+        adapter_options = {
+            "interface": gnocchiclient_interface
+        }
+
         self._gnocchi = gnclient.Client(gnocchiclient_version,
-                                        interface=gnocchiclient_interface,
+                                        adapter_options=adapter_options,
                                         session=self.session)
         return self._gnocchi
 

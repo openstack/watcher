@@ -190,7 +190,8 @@ class TestClients(base.TestCase):
         osc.gnocchi()
         mock_call.assert_called_once_with(
             CONF.gnocchi_client.api_version,
-            interface=CONF.gnocchi_client.endpoint_type,
+            adapter_options={
+                "interface": CONF.gnocchi_client.endpoint_type},
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
