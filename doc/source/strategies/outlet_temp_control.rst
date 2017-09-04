@@ -5,7 +5,7 @@ Outlet Temperature Based Strategy
 Synopsis
 --------
 
-**display name**: ``outlet_temperature``
+**display name**: ``Outlet temperature based strategy``
 
 **goal**: ``thermal_optimization``
 
