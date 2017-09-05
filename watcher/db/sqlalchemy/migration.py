@@ -69,7 +69,7 @@ def create_schema(config=None, engine=None):
     #                schema, it will only add the new tables, but leave
     #                existing as is. So we should avoid of this situation.
     if version(engine=engine) is not None:
-        raise db_exc.DbMigrationError(
+        raise db_exc.DBMigrationError(
             _("Watcher database schema is already under version control; "
               "use upgrade() instead"))
 
