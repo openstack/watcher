@@ -26,10 +26,10 @@ GNOCCHI_CLIENT_OPTS = [
                default='1',
                help='Version of Gnocchi API to use in gnocchiclient.'),
     cfg.StrOpt('endpoint_type',
-               default='internalURL',
+               default='public',
                help='Type of endpoint to use in gnocchi client.'
-                    'Supported values: internalURL, publicURL, adminURL'
-                    'The default is internalURL.'),
+                    'Supported values: internal, public, admin'
+                    'The default is public.'),
     cfg.IntOpt('query_max_retries',
                default=10,
                help='How many times Watcher is trying to query again'),
