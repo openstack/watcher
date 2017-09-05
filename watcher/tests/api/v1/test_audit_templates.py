@@ -511,7 +511,7 @@ class TestPost(FunctionalTestWithSetup):
             response.json['created_at']).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
-    def test_create_audit_template_vlidation_with_aggregates(self):
+    def test_create_audit_template_validation_with_aggregates(self):
         scope = [{'host_aggregates': [{'id': '*'}]},
                  {'availability_zones': [{'name': 'AZ1'},
                                          {'name': 'AZ2'}]},
@@ -531,6 +531,14 @@ class TestPost(FunctionalTestWithSetup):
         with self.assertRaisesRegex(AppError,
                                     "be included and excluded together"):
             self.post_json('/audit_templates', audit_template_dict)
+
+        scope = [{'host_aggregates': [{'id1': '*'}]}]
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid,
+            strategy=self.fake_strategy1.uuid, scope=scope)
+        response = self.post_json('/audit_templates',
+                                  audit_template_dict, expect_errors=True)
+        self.assertEqual(500, response.status_int)
 
     def test_create_audit_template_does_autogenerate_id(self):
         audit_template_dict = post_get_test_audit_template(

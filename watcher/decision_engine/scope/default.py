@@ -36,12 +36,10 @@ class DefaultScope(base.BaseScope):
                 "host_aggregates": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "anyOf": [
-                                {"type": ["string", "number"]}
-                            ]
-                        },
+                        "anyOf": [
+                            {"$ref": "#/host_aggregates/id"},
+                            {"$ref": "#/host_aggregates/name"},
+                        ]
                     }
                 },
                 "availability_zones": {
@@ -69,7 +67,8 @@ class DefaultScope(base.BaseScope):
                                         "uuid": {
                                             "type": "string"
                                         }
-                                    }
+                                    },
+                                    "additionalProperties": False
                                 }
                             },
                             "compute_nodes": {
@@ -80,18 +79,17 @@ class DefaultScope(base.BaseScope):
                                         "name": {
                                             "type": "string"
                                         }
-                                    }
+                                    },
+                                    "additionalProperties": False
                                 }
                             },
                             "host_aggregates": {
                                 "type": "array",
                                 "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "anyOf": [
-                                            {"type": ["string", "number"]}
-                                        ]
-                                    },
+                                    "anyOf": [
+                                        {"$ref": "#/host_aggregates/id"},
+                                        {"$ref": "#/host_aggregates/name"},
+                                    ]
                                 }
                             },
                             "instance_metadata": {
@@ -106,7 +104,29 @@ class DefaultScope(base.BaseScope):
                 }
             },
             "additionalProperties": False
-        }
+        },
+        "host_aggregates": {
+            "id": {
+                "properties": {
+                    "id": {
+                        "oneOf": [
+                            {"type": "integer"},
+                            {"enum": ["*"]}
+                        ]
+                    }
+                },
+                "additionalProperties": False
+            },
+            "name": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
+        "additionalProperties": False
     }
 
     def __init__(self, scope, config, osc=None):
