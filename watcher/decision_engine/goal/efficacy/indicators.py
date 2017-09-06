@@ -72,38 +72,6 @@ class IndicatorSpecification(object):
         return str(self.to_dict())
 
 
-class AverageCpuLoad(IndicatorSpecification):
-
-    def __init__(self):
-        super(AverageCpuLoad, self).__init__(
-            name="avg_cpu_percent",
-            description=_("Average CPU load as a percentage of the CPU time."),
-            unit="%",
-        )
-
-    @property
-    def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0, max=100), required=True)
-
-
-class MigrationEfficacy(IndicatorSpecification):
-
-    def __init__(self):
-        super(MigrationEfficacy, self).__init__(
-            name="migration_efficacy",
-            description=_("Represents the percentage of released nodes out of "
-                          "the total number of migrations."),
-            unit="%",
-            required=True
-        )
-
-    @property
-    def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0, max=100), required=True)
-
-
 class ComputeNodesCount(IndicatorSpecification):
     def __init__(self):
         super(ComputeNodesCount, self).__init__(
