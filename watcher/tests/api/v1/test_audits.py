@@ -829,8 +829,10 @@ class TestDelete(api_base.FunctionalTest):
         self.context.show_deleted = True
         audit = objects.Audit.get_by_uuid(self.context, self.audit.uuid)
 
-        return_deleted_at = timeutils.strtime(audit['deleted_at'])
-        self.assertEqual(timeutils.strtime(test_time), return_deleted_at)
+        return_deleted_at = \
+            audit['deleted_at'].strftime('%Y-%m-%dT%H:%M:%S.%f')
+        self.assertEqual(test_time.strftime('%Y-%m-%dT%H:%M:%S.%f'),
+                         return_deleted_at)
         self.assertEqual(objects.audit.State.DELETED, audit['state'])
 
     def test_delete_audit_not_found(self):
