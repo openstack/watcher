@@ -71,7 +71,7 @@ class TestGoalObject(base.DbTestCase):
         goal.create()
         expected_goal = self.fake_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=iso8601.iso8601.Utc())
+            tzinfo=iso8601.UTC)
         mock_create_goal.assert_called_once_with(expected_goal)
         self.assertEqual(self.context, goal._context)
 
@@ -130,9 +130,9 @@ class TestGoalObject(base.DbTestCase):
 
         expected_goal = fake_deleted_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=iso8601.iso8601.Utc())
+            tzinfo=iso8601.UTC)
         expected_goal['deleted_at'] = expected_goal['deleted_at'].replace(
-            tzinfo=iso8601.iso8601.Utc())
+            tzinfo=iso8601.UTC)
 
         uuid = self.fake_goal['uuid']
         goal = objects.Goal.get_by_uuid(self.context, uuid)
