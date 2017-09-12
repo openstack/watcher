@@ -123,11 +123,18 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
 
     STALE_MODEL = model_root.ModelRoot(stale=True)
 
-    def __init__(self, config, osc=None):
+    def __init__(self, config, osc=None, audit_scope=None):
         super(BaseClusterDataModelCollector, self).__init__(config)
         self.osc = osc if osc else clients.OpenStackClients()
         self._cluster_data_model = None
         self.lock = threading.RLock()
+        self._audit_scope = audit_scope
+        self._audit_scope_handler = None
+
+    @abc.abstractproperty
+    def audit_scope_handler(self):
+        """Get audit scope handler"""
+        raise NotImplementedError()
 
     @property
     def cluster_data_model(self):

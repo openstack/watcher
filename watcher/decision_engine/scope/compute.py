@@ -24,113 +24,11 @@ from watcher.decision_engine.scope import base
 LOG = log.getLogger(__name__)
 
 
-class DefaultScope(base.BaseScope):
-    """Default Audit Scope Handler"""
-
-    DEFAULT_SCHEMA = {
-        "$schema": "http://json-schema.org/draft-04/schema#",
-        "type": "array",
-        "items": {
-            "type": "object",
-            "properties": {
-                "host_aggregates": {
-                    "type": "array",
-                    "items": {
-                        "anyOf": [
-                            {"$ref": "#/host_aggregates/id"},
-                            {"$ref": "#/host_aggregates/name"},
-                        ]
-                    }
-                },
-                "availability_zones": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "name": {
-                                "type": "string"
-                            }
-                        },
-                        "additionalProperties": False
-                    }
-                },
-                "exclude": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "instances": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "uuid": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
-                            },
-                            "compute_nodes": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object",
-                                    "properties": {
-                                        "name": {
-                                            "type": "string"
-                                        }
-                                    },
-                                    "additionalProperties": False
-                                }
-                            },
-                            "host_aggregates": {
-                                "type": "array",
-                                "items": {
-                                    "anyOf": [
-                                        {"$ref": "#/host_aggregates/id"},
-                                        {"$ref": "#/host_aggregates/name"},
-                                    ]
-                                }
-                            },
-                            "instance_metadata": {
-                                "type": "array",
-                                "items": {
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "additionalProperties": False
-                    }
-                }
-            },
-            "additionalProperties": False
-        },
-        "host_aggregates": {
-            "id": {
-                "properties": {
-                    "id": {
-                        "oneOf": [
-                            {"type": "integer"},
-                            {"enum": ["*"]}
-                        ]
-                    }
-                },
-                "additionalProperties": False
-            },
-            "name": {
-                "properties": {
-                    "name": {
-                        "type": "string"
-                    }
-                },
-                "additionalProperties": False
-            }
-        },
-        "additionalProperties": False
-    }
+class ComputeScope(base.BaseScope):
+    """Compute Audit Scope Handler"""
 
     def __init__(self, scope, config, osc=None):
-        super(DefaultScope, self).__init__(scope, config)
+        super(ComputeScope, self).__init__(scope, config)
         self._osc = osc
         self.wrapper = nova_helper.NovaHelper(osc=self._osc)
 

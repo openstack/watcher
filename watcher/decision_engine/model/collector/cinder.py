@@ -38,6 +38,10 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
         super(CinderClusterDataModelCollector, self).__init__(config, osc)
 
     @property
+    def audit_scope_handler(self):
+        return None
+
+    @property
     def notification_endpoints(self):
         """Associated notification endpoints
 

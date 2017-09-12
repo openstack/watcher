@@ -48,7 +48,6 @@ from watcher.common.loader import loadable
 from watcher.common import utils
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
-from watcher.decision_engine.scope import default as default_scope
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
 
@@ -85,7 +84,6 @@ class BaseStrategy(loadable.Loadable):
         self._storage_model = None
         self._input_parameters = utils.Struct()
         self._audit_scope = None
-        self._audit_scope_handler = None
 
     @classmethod
     @abc.abstractmethod
@@ -181,8 +179,9 @@ class BaseStrategy(loadable.Loadable):
         """
         if self._compute_model is None:
             collector = self.collector_manager.get_cluster_model_collector(
-                'compute', osc=self.osc)
-            self._compute_model = self.audit_scope_handler.get_scoped_model(
+                'compute', osc=self.osc, audit_scope=self.audit_scope)
+            audit_scope_handler = collector.audit_scope_handler
+            self._compute_model = audit_scope_handler.get_scoped_model(
                 collector.get_latest_cluster_data_model())
 
         if not self._compute_model:
@@ -252,13 +251,6 @@ class BaseStrategy(loadable.Loadable):
     @audit_scope.setter
     def audit_scope(self, s):
         self._audit_scope = s
-
-    @property
-    def audit_scope_handler(self):
-        if not self._audit_scope_handler:
-            self._audit_scope_handler = default_scope.DefaultScope(
-                self.audit_scope, self.config)
-        return self._audit_scope_handler
 
     @property
     def name(self):

@@ -512,18 +512,20 @@ class TestPost(FunctionalTestWithSetup):
         self.assertEqual(test_time, return_created_at)
 
     def test_create_audit_template_validation_with_aggregates(self):
-        scope = [{'host_aggregates': [{'id': '*'}]},
-                 {'availability_zones': [{'name': 'AZ1'},
-                                         {'name': 'AZ2'}]},
-                 {'exclude': [
-                     {'instances': [
-                         {'uuid': 'INSTANCE_1'},
-                         {'uuid': 'INSTANCE_2'}]},
-                     {'compute_nodes': [
-                         {'name': 'Node_1'},
-                         {'name': 'Node_2'}]},
-                     {'host_aggregates': [{'id': '*'}]}
-                     ]}
+        scope = [{'compute': [{'host_aggregates': [{'id': '*'}]},
+                              {'availability_zones': [{'name': 'AZ1'},
+                                                      {'name': 'AZ2'}]},
+                              {'exclude': [
+                                  {'instances': [
+                                      {'uuid': 'INSTANCE_1'},
+                                      {'uuid': 'INSTANCE_2'}]},
+                                  {'compute_nodes': [
+                                      {'name': 'Node_1'},
+                                      {'name': 'Node_2'}]},
+                                  {'host_aggregates': [{'id': '*'}]}
+                              ]}
+                              ]
+                  }
                  ]
         audit_template_dict = post_get_test_audit_template(
             goal=self.fake_goal1.uuid,
