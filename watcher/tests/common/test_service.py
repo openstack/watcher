@@ -28,12 +28,18 @@ from watcher.tests import base
 CONF = cfg.CONF
 
 
+class DummyEndpoint(object):
+
+    def __init__(self, messaging):
+        self._messaging = messaging
+
+
 class DummyManager(object):
 
     API_VERSION = '1.0'
 
-    conductor_endpoints = [mock.Mock()]
-    notification_endpoints = [mock.Mock()]
+    conductor_endpoints = [DummyEndpoint]
+    notification_endpoints = [DummyEndpoint]
 
     def __init__(self):
         self.publisher_id = "pub_id"
