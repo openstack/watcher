@@ -56,7 +56,7 @@ class TestServiceObject(base.DbTestCase):
         service.create()
         expected_service = self.fake_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+            'created_at'].replace(tzinfo=iso8601.UTC)
 
         mock_create_service.assert_called_once_with(expected_service)
         self.assertEqual(self.context, service._context)
@@ -103,9 +103,9 @@ class TestServiceObject(base.DbTestCase):
 
         expected_service = fake_deleted_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=iso8601.iso8601.Utc())
+            'created_at'].replace(tzinfo=iso8601.UTC)
         expected_service['deleted_at'] = expected_service[
-            'deleted_at'].replace(tzinfo=iso8601.iso8601.Utc())
+            'deleted_at'].replace(tzinfo=iso8601.UTC)
 
         _id = self.fake_service['id']
         service = objects.Service.get(self.context, _id)
