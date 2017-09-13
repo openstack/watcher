@@ -190,7 +190,7 @@ the :py:class:`~.DummyScoringContainer` and the way it is configured in
     watcher_scoring_engine_containers =
         new_scoring_container = thirdparty.new:NewContainer
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: https://docs.openstack.org/pbr/latest/
 
 
 Using scoring engine plugins
