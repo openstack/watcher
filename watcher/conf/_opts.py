@@ -30,7 +30,6 @@ from watcher.conf import neutron_client as conf_neutron_client
 from watcher.conf import nova_client as conf_nova_client
 from watcher.conf import paths
 from watcher.conf import planner as conf_planner
-from watcher.conf import utils
 
 
 def list_opts():
@@ -39,8 +38,7 @@ def list_opts():
         ('DEFAULT',
          (conf_api.AUTH_OPTS +
           exception.EXC_LOG_OPTS +
-          paths.PATH_OPTS +
-          utils.UTILS_OPTS)),
+          paths.PATH_OPTS)),
         ('api', conf_api.API_SERVICE_OPTS),
         ('database', db.SQL_OPTS),
         ('watcher_planner', conf_planner.WATCHER_PLANNER_OPTS),

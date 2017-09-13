@@ -37,13 +37,11 @@ from watcher.conf import nova_client
 from watcher.conf import paths
 from watcher.conf import planner
 from watcher.conf import service
-from watcher.conf import utils
 
 CONF = cfg.CONF
 
 service.register_opts(CONF)
 api.register_opts(CONF)
-utils.register_opts(CONF)
 paths.register_opts(CONF)
 exception.register_opts(CONF)
 db.register_opts(CONF)
