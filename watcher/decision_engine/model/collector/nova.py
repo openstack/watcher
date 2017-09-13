@@ -53,6 +53,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             nova.LegacyInstanceUpdated(self),
             nova.LegacyInstanceDeletedEnd(self),
             nova.LegacyLiveMigratedEnd(self),
+            nova.LegacyInstanceResizeConfirmEnd(self),
         ]
 
     def execute(self):
