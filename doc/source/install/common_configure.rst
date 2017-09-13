@@ -39,12 +39,12 @@
      Replace WATCHER_PASS with the password you chose for the watcher user in the Identity service.
 
    * Watcher interacts with other OpenStack projects via project clients, in order to instantiate these
-     clients, Watcher requests new session from Identity service. In the `[watcher_client_auth]` section,
+     clients, Watcher requests new session from Identity service. In the `[watcher_clients_auth]` section,
      configure the identity service access to interact with other OpenStack project clients.
 
      .. code-block:: ini
 
-        [watcher_client_auth]
+        [watcher_clients_auth]
         ...
         auth_type = password
         auth_url = http://controller:35357
