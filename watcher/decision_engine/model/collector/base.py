@@ -27,7 +27,7 @@ It is represented as a set of :ref:`Managed resources
 <managed_resource_definition>` (which may be a simple tree or a flat list of
 key-value pairs) which enables Watcher :ref:`Strategies <strategy_definition>`
 to know the current relationships between the different :ref:`resources
-<managed_resource_definition>`) of the :ref:`Cluster <cluster_definition>`
+<managed_resource_definition>` of the :ref:`Cluster <cluster_definition>`
 during an :ref:`Audit <audit_definition>` and enables the :ref:`Strategy
 <strategy_definition>` to request information such as:
 
