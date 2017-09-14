@@ -26,7 +26,6 @@ from croniter import croniter
 from jsonschema import validators
 from oslo_log import log as logging
 from oslo_utils import strutils
-from oslo_utils import timeutils
 from oslo_utils import uuidutils
 import six
 
@@ -65,7 +64,6 @@ class Struct(dict):
 generate_uuid = uuidutils.generate_uuid
 is_uuid_like = uuidutils.is_uuid_like
 is_int_like = strutils.is_int_like
-strtime = timeutils.strtime
 
 
 def is_cron_like(value):

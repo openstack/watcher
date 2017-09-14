@@ -15,8 +15,6 @@ from oslo_log import log as logging
 from oslo_utils import timeutils
 import six
 
-from watcher.common import utils
-
 LOG = logging.getLogger(__name__)
 
 
@@ -102,7 +100,7 @@ class RequestContext(context.RequestContext):
             'domain_name': getattr(self, 'domain_name', None),
             'auth_token_info': getattr(self, 'auth_token_info', None),
             'is_admin': getattr(self, 'is_admin', None),
-            'timestamp': utils.strtime(self.timestamp) if hasattr(
+            'timestamp': self.timestamp.isoformat() if hasattr(
                 self, 'timestamp') else None,
             'request_id': getattr(self, 'request_id', None),
         })
