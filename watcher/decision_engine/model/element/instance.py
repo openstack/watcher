@@ -42,6 +42,9 @@ class InstanceState(enum.Enum):
 class Instance(compute_resource.ComputeResource):
 
     fields = {
+        # If the resource is excluded by the scope,
+        # 'watcher_exclude' property will be set True.
+        "watcher_exclude": wfields.BooleanField(default=False),
         "state": wfields.StringField(default=InstanceState.ACTIVE.value),
 
         "memory": wfields.NonNegativeIntegerField(),
