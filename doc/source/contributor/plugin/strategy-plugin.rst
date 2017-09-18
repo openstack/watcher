@@ -219,7 +219,7 @@ Here below is how you would proceed to register ``NewStrategy`` using pbr_:
 To get a better understanding on how to implement a more advanced strategy,
 have a look at the :py:class:`~.BasicConsolidation` class.
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: https://docs.openstack.org/pbr/latest
 
 Using strategy plugins
 ======================
@@ -264,11 +264,11 @@ requires new metrics not covered by Ceilometer, you can add them through a
 
 
 .. _`Helper`: https://github.com/openstack/watcher/blob/master/watcher/decision_engine/cluster/history/ceilometer.py
-.. _`Ceilometer developer guide`: http://docs.openstack.org/developer/ceilometer/architecture.html#storing-the-data
-.. _`Ceilometer`: http://docs.openstack.org/developer/ceilometer/
+.. _`Ceilometer developer guide`: https://docs.openstack.org/ceilometer/latest/contributor/architecture.html#storing-accessing-the-data
+.. _`Ceilometer`: https://docs.openstack.org/ceilometer/latest
 .. _`Monasca`: https://github.com/openstack/monasca-api/blob/master/docs/monasca-api-spec.md
-.. _`here`: http://docs.openstack.org/developer/ceilometer/install/dbreco.html#choosing-a-database-backend
-.. _`Ceilometer plugin`: http://docs.openstack.org/developer/ceilometer/plugins.html
+.. _`here`: https://docs.openstack.org/ceilometer/latest/contributor/install/dbreco.html#choosing-a-database-backend
+.. _`Ceilometer plugin`: https://docs.openstack.org/ceilometer/latest/contributor/plugins.html
 .. _`Ceilosca`: https://github.com/openstack/monasca-ceilometer/blob/master/ceilosca/ceilometer/storage/impl_monasca.py
 
 Read usage metrics using the Watcher Datasource Helper

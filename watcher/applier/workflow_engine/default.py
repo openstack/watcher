@@ -34,7 +34,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
     """Taskflow as a workflow engine for Watcher
 
     Full documentation on taskflow at
-    http://docs.openstack.org/developer/taskflow/
+    https://docs.openstack.org/taskflow/latest
     """
 
     def decider(self, history):

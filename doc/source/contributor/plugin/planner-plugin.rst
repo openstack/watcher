@@ -145,7 +145,7 @@ Here below is how you would proceed to register ``DummyPlanner`` using pbr_:
     watcher_planners =
         dummy = third_party.dummy:DummyPlanner
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: https://docs.openstack.org/pbr/latest
 
 
 Using planner plugins

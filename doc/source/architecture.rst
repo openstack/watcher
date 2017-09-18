@@ -130,7 +130,7 @@ The Watcher Dashboard can be used to interact with the Watcher system through
 Horizon in order to control it or to know its current status.
 
 Please, read `the detailed documentation about Watcher Dashboard
-<http://docs.openstack.org/developer/watcher-dashboard/>`_.
+<https://docs.openstack.org/watcher-dashboard/latest>`_.
 
 .. _archi_watcher_database_definition:
 
@@ -170,7 +170,7 @@ Unless specified, it then selects the most appropriate :ref:`strategy
 goal.
 
 The :ref:`Strategy <strategy_definition>` is then dynamically loaded (via
-`stevedore <http://docs.openstack.org/developer/stevedore/>`_). The
+`stevedore <https://docs.openstack.org/stevedore/latest>`_). The
 :ref:`Watcher Decision Engine <watcher_decision_engine_definition>` executes
 the strategy.
 
