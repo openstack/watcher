@@ -232,7 +232,7 @@ class TestBasicConsolidation(base.TestCase):
         num_node_state_change = actions_counter.get(
             "change_nova_service_state", 0)
 
-        global_efficacy_value = solution.global_efficacy.get("value", 0)
+        global_efficacy_value = solution.global_efficacy[0].get('value', 0)
 
         self.assertEqual(expected_num_migrations, num_migrations)
         self.assertEqual(expected_power_state, num_node_state_change)
@@ -258,7 +258,9 @@ class TestBasicConsolidation(base.TestCase):
         ) as mock_score_call:
             mock_score_call.return_value = 0
             solution = self.strategy.execute()
-            self.assertEqual(0, solution.efficacy.global_efficacy.value)
+
+            self.assertEqual(0,
+                             solution.efficacy.global_efficacy[0].get('value'))
 
     def test_check_parameters(self):
         model = self.fake_cluster.generate_scenario_3_with_2_nodes()

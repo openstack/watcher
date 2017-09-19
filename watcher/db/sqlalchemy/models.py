@@ -199,7 +199,7 @@ class ActionPlan(Base):
     audit_id = Column(Integer, ForeignKey('audits.id'), nullable=False)
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
     state = Column(String(20), nullable=True)
-    global_efficacy = Column(JSONEncodedDict, nullable=True)
+    global_efficacy = Column(JSONEncodedList, nullable=True)
 
     audit = orm.relationship(Audit, foreign_keys=audit_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)

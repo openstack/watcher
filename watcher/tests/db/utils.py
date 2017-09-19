@@ -167,7 +167,7 @@ def get_test_action_plan(**kwargs):
         'state': kwargs.get('state', objects.action_plan.State.ONGOING),
         'audit_id': kwargs.get('audit_id', 1),
         'strategy_id': kwargs.get('strategy_id', 1),
-        'global_efficacy': kwargs.get('global_efficacy', {}),
+        'global_efficacy': kwargs.get('global_efficacy', []),
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
