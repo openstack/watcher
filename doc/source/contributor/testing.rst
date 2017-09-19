@@ -41,7 +41,7 @@ you can run the desired test::
     $ workon watcher
     (watcher) $ tox -e py27 -- -r watcher.tests.api
 
-.. _os-testr: http://docs.openstack.org/developer/os-testr/
+.. _os-testr: https://docs.openstack.org/os-testr/latest
 
 When you're done, deactivate the virtualenv::
 

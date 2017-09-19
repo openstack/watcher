@@ -83,7 +83,7 @@ Audit Template
 Availability Zone
 =================
 
-Please, read `the official OpenStack definition of an Availability Zone <http://docs.openstack.org/developer/nova/aggregates.html#availability-zones-azs>`_.
+Please, read `the official OpenStack definition of an Availability Zone <https://docs.openstack.org/nova/latest/user/aggregates.html#availability-zones-azs>`_.
 
 .. _cluster_definition:
 
@@ -167,7 +167,7 @@ Host Aggregate
 ==============
 
 Please, read `the official OpenStack definition of a Host Aggregate
-<http://docs.openstack.org/developer/nova/aggregates.html>`_.
+<https://docs.openstack.org/nova/latest/user/aggregates.html>`_.
 
 .. _instance_definition:
 
@@ -206,18 +206,18 @@ the Watcher system can act on.
 Here are some examples of
 :ref:`Managed resource types <managed_resource_definition>`:
 
--  `Nova Host Aggregates <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Nova::HostAggregate>`_
--  `Nova Servers <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Nova::Server>`_
--  `Cinder Volumes <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Cinder::Volume>`_
--  `Neutron Routers <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Neutron::Router>`_
--  `Neutron Networks <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Neutron::Net>`_
--  `Neutron load-balancers <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Neutron::LoadBalancer>`_
--  `Sahara Hadoop Cluster <http://docs.openstack.org/developer/heat/template_guide/openstack.html#OS::Sahara::Cluster>`_
+-  `Nova Host Aggregates <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Nova::HostAggregate>`_
+-  `Nova Servers <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Nova::Server>`_
+-  `Cinder Volumes <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Cinder::Volume>`_
+-  `Neutron Routers <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Neutron::Router>`_
+-  `Neutron Networks <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Neutron::Net>`_
+-  `Neutron load-balancers <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Neutron::LoadBalancer>`_
+-  `Sahara Hadoop Cluster <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Sahara::Cluster>`_
 -  ...
 
 It can be any of the `the official list of available resource types defined in
 OpenStack for HEAT
-<http://docs.openstack.org/developer/heat/template_guide/openstack.html>`_.
+<https://docs.openstack.org/heat/latest/template_guide/openstack.html>`_.
 
 .. _efficacy_indicator_definition:
 

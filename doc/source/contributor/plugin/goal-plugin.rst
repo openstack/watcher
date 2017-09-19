@@ -127,7 +127,7 @@ To get a better understanding on how to implement a more advanced goal, have
 a look at the
 :py:class:`watcher.decision_engine.goal.goals.ServerConsolidation` class.
 
-.. _pbr: http://docs.openstack.org/developer/pbr/
+.. _pbr: https://docs.openstack.org/pbr/latest
 
 .. _implement_efficacy_specification:
 

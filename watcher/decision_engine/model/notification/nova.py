@@ -249,7 +249,9 @@ class InstanceCreated(VersionedNotificationEndpoint):
             event_type='instance.update',
             # To be "fully" created, an instance transitions
             # from the 'building' state to the 'active' one.
-            # See http://docs.openstack.org/developer/nova/vmstates.html
+            # See https://docs.openstack.org/nova/latest/reference/
+            # vm-states.html
+
             payload={
                 'nova_object.data': {
                     'state': element.InstanceState.ACTIVE.value,

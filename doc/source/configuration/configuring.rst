@@ -373,7 +373,7 @@ Configure Measurements
 
 You can configure and install Ceilometer by following the documentation below :
 
-#. http://docs.openstack.org/developer/ceilometer
+#. https://docs.openstack.org/ceilometer/latest
 #. http://docs.openstack.org/kilo/install-guide/install/apt/content/ceilometer-nova.html
 
 The built-in strategy 'basic_consolidation' provided by watcher requires
@@ -386,13 +386,13 @@ the OpenStack site.
 You can use 'ceilometer meter-list' to list the available meters.
 
 For more information:
-http://docs.openstack.org/developer/ceilometer/measurements.html
+https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html
 
 Ceilometer is designed to collect measurements from OpenStack services and from
 other external components. If you would like to add new meters to the currently
 existing ones, you need to follow the documentation below:
 
-#. http://docs.openstack.org/developer/ceilometer/new_meters.html
+#. https://docs.openstack.org/ceilometer/latest/contributor/new_meters.html#meters
 
 The Ceilometer collector uses a pluggable storage system, meaning that you can
 pick any database system you prefer.

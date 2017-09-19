@@ -24,8 +24,8 @@ Watcher plugin::
 For more detailed instructions, see `Detailed DevStack Instructions`_. Check
 out the `DevStack documentation`_ for more information regarding DevStack.
 
-.. _PluginModelDocs: http://docs.openstack.org/developer/devstack/plugins.html
-.. _DevStack documentation: http://docs.openstack.org/developer/devstack/
+.. _PluginModelDocs: https://docs.openstack.org/devstack/latest/plugins.html
+.. _DevStack documentation: https://docs.openstack.org/devstack/latest
 
 Detailed DevStack Instructions
 ==============================

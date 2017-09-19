@@ -39,10 +39,10 @@ named ``watcher``, or by using the `OpenStack CLI`_ ``openstack``.
 If you want to deploy Watcher in Horizon, please refer to the `Watcher Horizon
 plugin installation guide`_.
 
-.. _`installation guide`: http://docs.openstack.org/developer/python-watcherclient
-.. _`Watcher Horizon plugin installation guide`: http://docs.openstack.org/developer/watcher-dashboard/deploy/installation.html
-.. _`OpenStack CLI`: http://docs.openstack.org/developer/python-openstackclient/man/openstack.html
-.. _`Watcher CLI`: http://docs.openstack.org/developer/python-watcherclient/index.html
+.. _`installation guide`: https://docs.openstack.org/python-watcherclient/latest
+.. _`Watcher Horizon plugin installation guide`: https://docs.openstack.org/watcher-dashboard/latest/install/installation.html
+.. _`OpenStack CLI`: https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
+.. _`Watcher CLI`: https://docs.openstack.org/python-watcherclient/latest/cli/index.html
 
 Seeing what the Watcher CLI can do ?
 ------------------------------------
