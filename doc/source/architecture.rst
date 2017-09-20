@@ -119,7 +119,7 @@ The watcher command-line interface (CLI) can be used to interact with the
 Watcher system in order to control it or to know its current status.
 
 Please, read `the detailed documentation about Watcher CLI
-<https://factory.b-com.com/www/watcher/doc/python-watcherclient/>`_.
+<https://docs.openstack.org/python-watcherclient/latest/cli/>`_.
 
 .. _archi_watcher_dashboard_definition:
 
