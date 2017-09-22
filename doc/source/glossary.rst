@@ -115,15 +115,8 @@ Cluster Data Model (CDM)
 Controller Node
 ===============
 
-A controller node is a machine that typically runs the following core OpenStack
-services:
-
--  Keystone: for identity and service management
--  Cinder scheduler: for volumes management
--  Glance controller: for image management
--  Neutron controller: for network management
--  Nova controller: for global compute resources management with services
-   such as nova-scheduler, nova-conductor and nova-network.
+Please, read `the official OpenStack definition of a Controller Node
+<https://docs.openstack.org/nova/latest/install/overview.html#controller>`_.
 
 In many configurations, Watcher will reside on a controller node even if it
 can potentially be hosted on a dedicated machine.
@@ -134,7 +127,7 @@ Compute node
 ============
 
 Please, read `the official OpenStack definition of a Compute Node
-<http://docs.openstack.org/ops-guide/arch-compute-nodes.html>`_.
+<https://docs.openstack.org/nova/latest/install/overview.html#compute>`_.
 
 .. _customer_definition:
 
