@@ -15,7 +15,7 @@ Service overview
 ================
 
 The Watcher system is a collection of services that provides support to
-optimize your IAAS platform. The Watcher service may, depending upon
+optimize your IaaS platform. The Watcher service may, depending upon
 configuration, interact with several other OpenStack services. This includes:
 
 - the OpenStack Identity service (`keystone`_) for request authentication and
@@ -27,7 +27,7 @@ configuration, interact with several other OpenStack services. This includes:
 
 The Watcher service includes the following components:
 
-- ``watcher-decision-engine``: runs audit on part of your IAAS and return an
+- ``watcher-decision-engine``: runs audit on part of your IaaS and return an
   action plan in order to optimize resource placement.
 - ``watcher-api``: A RESTful API that processes application requests by sending
   them to the watcher-decision-engine over RPC.
