@@ -87,6 +87,7 @@ class WeightPlanner(base.BasePlanner):
     @staticmethod
     def chunkify(lst, n):
         """Yield successive n-sized chunks from lst."""
+        n = int(n)
         if n < 1:
             # Just to make sure the number is valid
             n = 1
