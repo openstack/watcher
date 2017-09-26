@@ -56,6 +56,16 @@
 
      Replace WATCHER_PASS with the password you chose for the watcher user in the Identity service.
 
+   * In the `[api]` section, configure host option.
+
+     .. code-block:: ini
+
+        [api]
+        ...
+        host = controller
+
+     Replace controller with the IP address of the management network interface on your controller node, typically 10.0.0.11 for the first node in the example architecture.
+
    * In the `[oslo_messaging_notifications]` section, configure the messaging driver.
 
      .. code-block:: ini
