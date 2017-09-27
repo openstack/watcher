@@ -68,4 +68,4 @@
 
    .. code-block:: ini
 
-     su -s /bin/sh -c "watcher-db-manage --config-file /etc/watcher/watcher.conf create_schema"
+     su -s /bin/sh -c "watcher-db-manage --config-file /etc/watcher/watcher.conf upgrade"
