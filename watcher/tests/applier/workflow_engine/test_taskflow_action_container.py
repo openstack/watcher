@@ -21,6 +21,7 @@ import mock
 
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher import objects
 from watcher.tests.db import base
@@ -79,7 +80,9 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
-        action_container.execute()
+
+        self.assertRaises(exception.ActionExecutionFailure,
+                          action_container.execute, action_id=action.uuid)
 
         self.assertTrue(action.state, objects.action.State.FAILED)
 

@@ -127,8 +127,10 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
             return self.engine.notify(self._db_action,
                                       objects.action.State.SUCCEEDED)
         else:
-            return self.engine.notify(self._db_action,
-                                      objects.action.State.FAILED)
+            self.engine.notify(self._db_action,
+                               objects.action.State.FAILED)
+            raise exception.ActionExecutionFailure(
+                action_id=self._db_action.uuid)
 
     def do_post_execute(self):
         LOG.debug("Post-condition action: %s", self.name)
