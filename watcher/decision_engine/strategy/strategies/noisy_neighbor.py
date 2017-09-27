@@ -50,7 +50,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
+            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
