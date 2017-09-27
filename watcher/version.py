@@ -16,4 +16,4 @@
 import pbr.version
 
 version_info = pbr.version.VersionInfo('python-watcher')
-version_string = version_info.version_string
+version_string = version_info.version_string()
