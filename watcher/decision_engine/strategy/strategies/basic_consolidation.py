@@ -372,6 +372,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                  sorted_score):
         number_migrations = 0
         for mig_instance, __ in sorted_instances:
+            # skip exclude instance when migrating
+            if mig_instance.watcher_exclude:
+                LOG.debug("Instance is excluded by scope, "
+                          "skipped: %s", mig_instance.uuid)
+                continue
             for node_uuid, __ in sorted_score:
                 mig_source_node = self.compute_model.get_node_by_uuid(
                     node_to_release)

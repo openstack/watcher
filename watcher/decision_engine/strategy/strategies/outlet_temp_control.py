@@ -211,6 +211,11 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 mig_source_node)
             for instance in instances_of_src:
                 try:
+                    # NOTE: skip exclude instance when migrating
+                    if instance.watcher_exclude:
+                        LOG.debug("Instance is excluded by scope, "
+                                  "skipped: %s", instance.uuid)
+                        continue
                     # select the first active instance to migrate
                     if (instance.state !=
                             element.InstanceState.ACTIVE.value):

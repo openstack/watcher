@@ -121,6 +121,9 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
     def generate_scenario_1_with_1_node_unavailable(self):
         return self.load_model('scenario_1_with_1_node_unavailable.xml')
 
+    def generate_scenario_1_with_all_instances_exclude(self):
+        return self.load_model('scenario_1_with_all_instances_exclude.xml')
+
     def generate_scenario_3_with_2_nodes(self):
         return self.load_model('scenario_3_with_2_nodes.xml')
 

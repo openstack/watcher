@@ -240,6 +240,11 @@ class UniformAirflow(base.BaseStrategy):
                 else:
                     # migrate the first active instance
                     for instance in source_instances:
+                        # NOTE: skip exclude instance when migrating
+                        if instance.watcher_exclude:
+                            LOG.debug("Instance is excluded by scope, "
+                                      "skipped: %s", instance.uuid)
+                            continue
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):
                             LOG.info(

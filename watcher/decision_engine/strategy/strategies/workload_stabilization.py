@@ -347,10 +347,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             c_nodes.remove(src_host)
             node_list = yield_nodes(c_nodes)
             for instance in self.compute_model.get_node_instances(src_node):
-                min_sd_case = {'value': current_weighted_sd}
+                # NOTE: skip exclude instance when migrating
+                if instance.watcher_exclude:
+                    LOG.debug("Instance is excluded by scope, "
+                              "skipped: %s", instance.uuid)
+                    continue
                 if instance.state not in [element.InstanceState.ACTIVE.value,
                                           element.InstanceState.PAUSED.value]:
                     continue
+                min_sd_case = {'value': current_weighted_sd}
                 for dst_host in next(node_list):
                     dst_node = self.compute_model.get_node_by_uuid(dst_host)
                     sd_case = self.calculate_migration_case(

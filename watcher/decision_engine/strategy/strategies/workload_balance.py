@@ -208,6 +208,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 instance_id = None
                 for instance in source_instances:
                     try:
+                        # NOTE: skip exclude instance when migrating
+                        if instance.watcher_exclude:
+                            LOG.debug("Instance is excluded by scope, "
+                                      "skipped: %s", instance.uuid)
+                            continue
                         # select the first active VM to migrate
                         if (instance.state !=
                                 element.InstanceState.ACTIVE.value):

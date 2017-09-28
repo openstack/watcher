@@ -1,0 +1,6 @@
+---
+features:
+  - Watcher has a whole scope of the cluster, when building
+    compute CDM which includes all instances.
+    It filters excluded instances when migration during the
+    audit.

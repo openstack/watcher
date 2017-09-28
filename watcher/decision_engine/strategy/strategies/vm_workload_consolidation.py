@@ -504,6 +504,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                         key=lambda x: self.get_instance_utilization(
                             x)['cpu']
                 ):
+                    # skip exclude instance when migrating
+                    if instance.watcher_exclude:
+                        LOG.debug("Instance is excluded by scope, "
+                                  "skipped: %s", instance.uuid)
+                        continue
                     for destination_node in reversed(sorted_nodes):
                         if self.instance_fits(
                                 instance, destination_node, cc):
@@ -536,6 +541,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 self.compute_model.get_node_instances(node),
                 key=lambda x: self.get_instance_utilization(x)['cpu'])
             for instance in reversed(instances):
+                # skip exclude instance when migrating
+                if instance.watcher_exclude:
+                    LOG.debug("Instance is excluded by scope, "
+                              "skipped: %s", instance.uuid)
+                    continue
                 dsc = len(sorted_nodes) - 1
                 for destination_node in reversed(sorted_nodes):
                     if asc >= dsc:
