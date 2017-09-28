@@ -454,8 +454,7 @@ class NovaHelper(object):
                 "Instance %s found on host '%s'." % (instance_id, host_name))
 
             instance.live_migrate(host=dest_hostname,
-                                  block_migration=block_migration,
-                                  disk_over_commit=True)
+                                  block_migration=block_migration)
 
             instance = self.nova.servers.get(instance_id)
 
