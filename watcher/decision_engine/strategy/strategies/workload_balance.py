@@ -95,6 +95,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     # Unit: MB
     MEM_METER_NAME = "memory.resident"
 
+    DATASOURCE_METRICS = ['instance_cpu_usage', 'instance_ram_usage']
+
     MIGRATION = "migrate"
 
     def __init__(self, config, osc=None):

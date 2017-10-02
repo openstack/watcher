@@ -77,6 +77,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     # The meter to report outlet temperature in ceilometer
     MIGRATION = "migrate"
 
+    DATASOURCE_METRICS = ['host_outlet_temp']
+
     METRIC_NAMES = dict(
         ceilometer=dict(
             host_outlet_temp='hardware.ipmi.node.outlet_temperature'),

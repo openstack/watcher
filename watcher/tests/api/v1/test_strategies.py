@@ -10,11 +10,14 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import mock
+
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from six.moves.urllib import parse as urlparse
 
 from watcher.common import utils
+from watcher.decision_engine import rpcapi as deapi
 from watcher.tests.api import base as api_base
 from watcher.tests.objects import utils as obj_utils
 
@@ -30,6 +33,28 @@ class TestListStrategy(api_base.FunctionalTest):
         strategy_fields = ['uuid', 'name', 'display_name', 'goal_uuid']
         for field in strategy_fields:
             self.assertIn(field, strategy)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'get_strategy_info')
+    def test_state(self, mock_strategy_info):
+        strategy = obj_utils.create_test_strategy(self.context)
+        mock_state = [
+            {"type": "Datasource", "mandatory": True, "comment": "",
+             "state": "gnocchi: True"},
+            {"type": "Metrics", "mandatory": False, "comment": "",
+             "state": [{"compute.node.cpu.percent": "available"},
+                       {"cpu_util": "available"}]},
+            {"type": "CDM", "mandatory": True, "comment": "",
+             "state": [{"compute_model": "available"},
+                       {"storage_model": "not available"}]},
+            {"type": "Name", "mandatory": "", "comment": "",
+             "state": strategy.name}
+        ]
+
+        mock_strategy_info.return_value = mock_state
+        response = self.get_json('/strategies/%s/state' % strategy.uuid)
+        strategy_name = [requirement["state"] for requirement in response
+                         if requirement["type"] == "Name"][0]
+        self.assertEqual(strategy.name, strategy_name)
 
     def test_one(self):
         strategy = obj_utils.create_test_strategy(self.context)
@@ -234,6 +259,13 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
             '/strategies/detail',
             expect_errors=True)
 
+    def test_policy_disallow_state(self):
+        strategy = obj_utils.create_test_strategy(self.context)
+        self._common_policy_check(
+            "strategy:get", self.get_json,
+            '/strategies/%s/state' % strategy.uuid,
+            expect_errors=True)
+
 
 class TestStrategyEnforcementWithAdminContext(
         TestListStrategy, api_base.AdminRoleTest):
@@ -245,4 +277,5 @@ class TestStrategyEnforcementWithAdminContext(
             "default": "rule:admin_api",
             "strategy:detail": "rule:default",
             "strategy:get": "rule:default",
-            "strategy:get_all": "rule:default"})
+            "strategy:get_all": "rule:default",
+            "strategy:state": "rule:default"})

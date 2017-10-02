@@ -115,6 +115,13 @@ class CeilometerHelper(base.DataSourceBase):
         except Exception:
             raise
 
+    def check_availability(self):
+        try:
+            self.query_retry(self.ceilometer.resources.list)
+        except Exception:
+            return 'not available'
+        return 'available'
+
     def query_sample(self, meter_name, query, limit=1):
         return self.query_retry(f=self.ceilometer.samples.list,
                                 meter_name=meter_name,
@@ -129,11 +136,14 @@ class CeilometerHelper(base.DataSourceBase):
             period=period)
         return statistics
 
-    def meter_list(self, query=None):
+    def list_metrics(self):
         """List the user's meters."""
-        meters = self.query_retry(f=self.ceilometer.meters.list,
-                                  query=query)
-        return meters
+        try:
+            meters = self.query_retry(f=self.ceilometer.meters.list)
+        except Exception:
+            return set()
+        else:
+            return meters
 
     def statistic_aggregation(self,
                               resource_id,

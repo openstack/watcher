@@ -1,0 +1,6 @@
+---
+features:
+  - Added a way to check state of strategy before audit's execution.
+    Administrator can use "watcher strategy state <strategy_name>" command
+    to get information about metrics' availability, datasource's availability
+    and CDM's availability.

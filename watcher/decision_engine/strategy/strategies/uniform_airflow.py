@@ -86,6 +86,8 @@ class UniformAirflow(base.BaseStrategy):
     # choose 300 seconds as the default duration of meter aggregation
     PERIOD = 300
 
+    DATASOURCE_METRICS = ['host_airflow', 'host_inlet_temp', 'host_power']
+
     METRIC_NAMES = dict(
         ceilometer=dict(
             # The meter to report Airflow of physical server in ceilometer

@@ -40,6 +40,8 @@ See :doc:`../architecture` for more details on this component.
 from watcher.common import service_manager
 from watcher.decision_engine.messaging import audit_endpoint
 from watcher.decision_engine.model.collector import manager
+from watcher.decision_engine.strategy.strategies import base \
+    as strategy_endpoint
 
 from watcher import conf
 
@@ -70,7 +72,8 @@ class DecisionEngineManager(service_manager.ServiceManager):
 
     @property
     def conductor_endpoints(self):
-        return [audit_endpoint.AuditEndpoint]
+        return [audit_endpoint.AuditEndpoint,
+                strategy_endpoint.StrategyEndpoint]
 
     @property
     def notification_endpoints(self):

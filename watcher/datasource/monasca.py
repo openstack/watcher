@@ -65,6 +65,18 @@ class MonascaHelper(base.DataSourceBase):
 
         return start_timestamp, end_timestamp, period
 
+    def check_availability(self):
+        try:
+            self.query_retry(self.monasca.metrics.list)
+        except Exception:
+            return 'not available'
+        return 'available'
+
+    def list_metrics(self):
+        # TODO(alexchadin): this method should be implemented in accordance to
+        # monasca API.
+        pass
+
     def statistics_list(self, meter_name, dimensions, start_time=None,
                         end_time=None, period=None,):
         """List of statistics."""

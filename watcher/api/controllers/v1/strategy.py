@@ -41,6 +41,7 @@ from watcher.api.controllers.v1 import utils as api_utils
 from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
+from watcher.decision_engine import rpcapi
 from watcher import objects
 
 
@@ -205,6 +206,7 @@ class StrategiesController(rest.RestController):
 
     _custom_actions = {
         'detail': ['GET'],
+        'state': ['GET'],
     }
 
     def _get_strategies_collection(self, filters, marker, limit, sort_key,
@@ -287,6 +289,26 @@ class StrategiesController(rest.RestController):
 
         return self._get_strategies_collection(
             filters, marker, limit, sort_key, sort_dir, expand, resource_url)
+
+    @wsme_pecan.wsexpose(wtypes.text, wtypes.text)
+    def state(self, strategy):
+        """Retrieve a inforamation about strategy requirements.
+
+        :param strategy: name of the strategy.
+        """
+        context = pecan.request.context
+        policy.enforce(context, 'strategy:state', action='strategy:state')
+        parents = pecan.request.path.split('/')[:-1]
+        if parents[-2] != "strategies":
+            raise exception.HTTPNotFound
+        rpc_strategy = api_utils.get_resource('Strategy', strategy)
+        de_client = rpcapi.DecisionEngineAPI()
+        strategy_state = de_client.get_strategy_info(context,
+                                                     rpc_strategy.name)
+        strategy_state.extend([{
+            'type': 'Name', 'state': rpc_strategy.name,
+            'mandatory': '', 'comment': ''}])
+        return strategy_state
 
     @wsme_pecan.wsexpose(Strategy, wtypes.text)
     def get_one(self, strategy):

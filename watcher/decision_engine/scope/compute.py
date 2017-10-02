@@ -157,6 +157,9 @@ class ComputeScope(base.BaseScope):
         compute_scope = []
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
+        if not self.scope:
+            return cluster_model
+
         for scope in self.scope:
             compute_scope = scope.get('compute')
 

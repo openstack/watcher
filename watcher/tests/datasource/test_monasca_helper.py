@@ -57,6 +57,21 @@ class TestMonascaHelper(base.BaseTestCase):
         )
         self.assertEqual(expected_result, result)
 
+    def test_check_availability(self, mock_monasca):
+        monasca = mock.MagicMock()
+        monasca.metrics.list.return_value = True
+        mock_monasca.return_value = monasca
+        helper = monasca_helper.MonascaHelper()
+        result = helper.check_availability()
+        self.assertEqual('available', result)
+
+    def test_check_availability_with_failure(self, mock_monasca):
+        monasca = mock.MagicMock()
+        monasca.metrics.list.side_effect = Exception()
+        mock_monasca.return_value = monasca
+        helper = monasca_helper.MonascaHelper()
+        self.assertEqual('not available', helper.check_availability())
+
     def test_monasca_statistic_list(self, mock_monasca):
         monasca = mock.MagicMock()
         expected_result = [{

@@ -58,6 +58,14 @@ class DataSourceBase(object):
     )
 
     @abc.abstractmethod
+    def list_metrics(self):
+        pass
+
+    @abc.abstractmethod
+    def check_availability(self):
+        pass
+
+    @abc.abstractmethod
     def get_host_cpu_usage(self, resource_id, period, aggregate,
                            granularity=None):
         pass

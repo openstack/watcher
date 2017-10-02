@@ -152,3 +152,40 @@ class TestGnocchiHelper(base.BaseTestCase):
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_power'], 600, 300,
             aggregation='mean')
+
+    def test_gnocchi_check_availability(self, mock_gnocchi):
+        gnocchi = mock.MagicMock()
+        gnocchi.status.get.return_value = True
+        mock_gnocchi.return_value = gnocchi
+        helper = gnocchi_helper.GnocchiHelper()
+        result = helper.check_availability()
+        self.assertEqual('available', result)
+
+    def test_gnocchi_check_availability_with_failure(self, mock_gnocchi):
+        cfg.CONF.set_override("query_max_retries", 1,
+                              group='gnocchi_client')
+        gnocchi = mock.MagicMock()
+        gnocchi.status.get.side_effect = Exception()
+        mock_gnocchi.return_value = gnocchi
+        helper = gnocchi_helper.GnocchiHelper()
+
+        self.assertEqual('not available', helper.check_availability())
+
+    def test_gnocchi_list_metrics(self, mock_gnocchi):
+        gnocchi = mock.MagicMock()
+        metrics = [{"name": "metric1"}, {"name": "metric2"}]
+        expected_metrics = set(["metric1", "metric2"])
+        gnocchi.metric.list.return_value = metrics
+        mock_gnocchi.return_value = gnocchi
+        helper = gnocchi_helper.GnocchiHelper()
+        result = helper.list_metrics()
+        self.assertEqual(expected_metrics, result)
+
+    def test_gnocchi_list_metrics_with_failure(self, mock_gnocchi):
+        cfg.CONF.set_override("query_max_retries", 1,
+                              group='gnocchi_client')
+        gnocchi = mock.MagicMock()
+        gnocchi.metric.list.side_effect = Exception()
+        mock_gnocchi.return_value = gnocchi
+        helper = gnocchi_helper.GnocchiHelper()
+        self.assertFalse(helper.list_metrics())

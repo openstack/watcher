@@ -409,6 +409,10 @@ class UnsupportedDataSource(UnsupportedError):
                 "by strategy %(strategy)s")
 
 
+class DataSourceNotAvailable(WatcherException):
+    msg_fmt = _("Datasource %(datasource)s is not available.")
+
+
 class NoSuchMetricForHost(WatcherException):
     msg_fmt = _("No %(metric)s metric for %(host)s found.")
 
