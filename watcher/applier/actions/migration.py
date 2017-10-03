@@ -124,7 +124,8 @@ class Migrate(base.BaseAction):
                 LOG.debug("Nova client exception occurred while live "
                           "migrating instance %s.Exception: %s" %
                           (self.instance_uuid, e))
-        except Exception:
+        except Exception as e:
+            LOG.exception(e)
             LOG.critical("Unexpected error occurred. Migration failed for "
                          "instance %s. Leaving instance on previous "
                          "host.", self.instance_uuid)
