@@ -42,7 +42,7 @@ WATCHER_AUTH_CACHE_DIR=${WATCHER_AUTH_CACHE_DIR:-/var/cache/watcher}
 
 WATCHER_CONF_DIR=/etc/watcher
 WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
-WATCHER_POLICY_JSON=$WATCHER_CONF_DIR/policy.json
+WATCHER_POLICY_YAML=$WATCHER_CONF_DIR/policy.yaml.sample
 
 WATCHER_DEVSTACK_DIR=$WATCHER_DIR/devstack
 WATCHER_DEVSTACK_FILES_DIR=$WATCHER_DEVSTACK_DIR/files
@@ -106,7 +106,25 @@ function configure_watcher {
     # Put config files in ``/etc/watcher`` for everyone to find
     sudo install -d -o $STACK_USER $WATCHER_CONF_DIR
 
-    install_default_policy watcher
+    local project=watcher
+    local project_uc
+    project_uc=$(echo watcher|tr a-z A-Z)
+    local conf_dir="${project_uc}_CONF_DIR"
+    # eval conf dir to get the variable
+    conf_dir="${!conf_dir}"
+    local project_dir="${project_uc}_DIR"
+    # eval project dir to get the variable
+    project_dir="${!project_dir}"
+    local sample_conf_dir="${project_dir}/etc/${project}"
+    local sample_policy_dir="${project_dir}/etc/${project}/policy.d"
+    local sample_policy_generator="${project_dir}/etc/${project}/oslo-policy-generator/watcher-policy-generator.conf"
+
+    # first generate policy.yaml
+    oslopolicy-sample-generator --config-file $sample_policy_generator
+    # then optionally copy over policy.d
+    if [[ -d $sample_policy_dir ]]; then
+        cp -r $sample_policy_dir $conf_dir/policy.d
+    fi
 
     # Rebuild the config file from scratch
     create_watcher_conf
@@ -163,7 +181,7 @@ function create_watcher_conf {
     iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
     iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
 
-    iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_JSON
+    iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
 
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
     iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
