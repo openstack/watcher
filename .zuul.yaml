@@ -1,0 +1,39 @@
+- project:
+    name: openstack/watcher
+    check:
+      jobs:
+        - watcher-tempest-multinode
+        - legacy-rally-dsvm-watcher-rally
+
+- job:
+    name: watcher-tempest-base-multinode
+    parent: legacy-dsvm-base-multinode
+    run: playbooks/legacy/watcher-tempest-base-multinode/run.yaml
+    post-run: playbooks/legacy/watcher-tempest-base-multinode/post.yaml
+    timeout: 4200
+    required-projects:
+      - openstack-infra/devstack-gate
+      - openstack/python-openstackclient
+      - openstack/python-watcherclient
+      - openstack/watcher
+      - openstack/watcher-tempest-plugin
+    nodeset: legacy-ubuntu-xenial-2-node
+
+- job:
+    name: watcher-tempest-multinode
+    parent: watcher-tempest-base-multinode
+    voting: false
+
+- job:
+    # This job is used by python-watcherclient repo
+    name: watcherclient-tempest-functional
+    parent: legacy-dsvm-base
+    run: playbooks/legacy/watcherclient-tempest-functional/run.yaml
+    post-run: playbooks/legacy/watcherclient-tempest-functional/post.yaml
+    timeout: 4200
+    required-projects:
+      - openstack-dev/devstack
+      - openstack-infra/devstack-gate
+      - openstack/python-openstackclient
+      - openstack/python-watcherclient
+      - openstack/watcher
