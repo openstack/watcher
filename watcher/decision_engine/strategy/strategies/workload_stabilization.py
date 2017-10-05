@@ -179,13 +179,13 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
+            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @property
     def nova(self):
         if self._nova is None:
-            self._nova = self.osc.nova()
+            self.nova = self.osc.nova()
         return self._nova
 
     @nova.setter
@@ -199,7 +199,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     @property
     def gnocchi(self):
         if self._gnocchi is None:
-            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
         return self._gnocchi
 
     @gnocchi.setter

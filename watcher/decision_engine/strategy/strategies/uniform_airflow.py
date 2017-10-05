@@ -130,7 +130,7 @@ class UniformAirflow(base.BaseStrategy):
     @property
     def ceilometer(self):
         if self._ceilometer is None:
-            self._ceilometer = ceil.CeilometerHelper(osc=self.osc)
+            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
         return self._ceilometer
 
     @ceilometer.setter
@@ -140,7 +140,7 @@ class UniformAirflow(base.BaseStrategy):
     @property
     def gnocchi(self):
         if self._gnocchi is None:
-            self._gnocchi = gnoc.GnocchiHelper(osc=self.osc)
+            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
         return self._gnocchi
 
     @gnocchi.setter
