@@ -96,9 +96,10 @@ class AuditHandler(BaseAuditHandler):
             raise
 
     def update_audit_state(self, audit, state):
-        LOG.debug("Update audit state: %s", state)
-        audit.state = state
-        audit.save()
+        if audit.state != state:
+            LOG.debug("Update audit state: %s", state)
+            audit.state = state
+            audit.save()
 
     def check_ongoing_action_plans(self, request_context):
         a_plan_filters = {'state': objects.action_plan.State.ONGOING}
