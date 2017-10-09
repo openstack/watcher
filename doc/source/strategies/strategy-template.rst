@@ -33,7 +33,7 @@ power                   ceilometer_  kwapi_  one point every 60s
 ======================= ============ ======= =======
 
 
-.. _ceilometer: http://docs.openstack.org/admin-guide/telemetry-measurements.html#openstack-compute
+.. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
 .. _monasca: https://github.com/openstack/monasca-agent/blob/master/docs/Libvirt.md
 .. _kwapi: https://kwapi.readthedocs.io/en/latest/index.html
 

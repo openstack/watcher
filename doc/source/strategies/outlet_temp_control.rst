@@ -33,7 +33,7 @@ metric                                    service name plugins comment
 ``hardware.ipmi.node.outlet_temperature`` ceilometer_  IPMI
 ========================================= ============ ======= =======
 
-.. _ceilometer: http://docs.openstack.org/admin-guide/telemetry-measurements.html#ipmi-based-meters
+.. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#ipmi-based-meters
 
 Cluster data model
 ******************
