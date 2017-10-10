@@ -227,14 +227,14 @@ class ModelBuilder(object):
         :param instance: Nova VM object.
         :return: A instance node for the graph.
         """
-        flavor = self.nova_helper.get_flavor(instance.flavor["id"])
+        flavor = instance.flavor
         instance_attributes = {
             "uuid": instance.id,
             "human_id": instance.human_id,
-            "memory": flavor.ram,
-            "disk": flavor.disk,
-            "disk_capacity": flavor.disk,
-            "vcpus": flavor.vcpus,
+            "memory": flavor["ram"],
+            "disk": flavor["disk"],
+            "disk_capacity": flavor["disk"],
+            "vcpus": flavor["vcpus"],
             "state": getattr(instance, "OS-EXT-STS:vm_state"),
             "metadata": instance.metadata}
 

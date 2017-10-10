@@ -70,9 +70,6 @@ class NovaHelper(object):
     def get_service(self, service_id):
         return self.nova.services.find(id=service_id)
 
-    def get_flavor(self, flavor_id):
-        return self.nova.flavors.get(flavor_id)
-
     def get_aggregate_list(self):
         return self.nova.aggregates.list()
 
