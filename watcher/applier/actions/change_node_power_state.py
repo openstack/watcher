@@ -18,6 +18,7 @@
 #
 
 import enum
+import time
 
 from watcher._i18n import _
 from watcher.applier.actions import base
@@ -87,25 +88,39 @@ class ChangeNodePowerState(base.BaseAction):
             target_state = NodeState.POWERON.value
         return self._node_manage_power(target_state)
 
-    def _node_manage_power(self, state):
+    def _node_manage_power(self, state, retry=60):
         if state is None:
             raise exception.IllegalArgumentException(
                 message=_("The target state is not defined"))
 
-        result = False
         ironic_client = self.osc.ironic()
         nova_client = self.osc.nova()
+        current_state = ironic_client.node.get(self.node_uuid).power_state
+        # power state: 'power on' or 'power off', if current node state
+        # is the same as state, just return True
+        if state in current_state:
+            return True
+
         if state == NodeState.POWEROFF.value:
             node_info = ironic_client.node.get(self.node_uuid).to_dict()
             compute_node_id = node_info['extra']['compute_node_id']
             compute_node = nova_client.hypervisors.get(compute_node_id)
             compute_node = compute_node.to_dict()
             if (compute_node['running_vms'] == 0):
-                result = ironic_client.node.set_power_state(
+                ironic_client.node.set_power_state(
                     self.node_uuid, state)
         else:
-            result = ironic_client.node.set_power_state(self.node_uuid, state)
-        return result
+            ironic_client.node.set_power_state(self.node_uuid, state)
+
+        ironic_node = ironic_client.node.get(self.node_uuid)
+        while ironic_node.power_state == current_state and retry:
+            time.sleep(10)
+            retry -= 1
+            ironic_node = ironic_client.node.get(self.node_uuid)
+        if retry > 0:
+            return True
+        else:
+            return False
 
     def pre_condition(self):
         pass
