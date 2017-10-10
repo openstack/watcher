@@ -54,6 +54,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             applier.execute(self.action_plan_uuid)
 
             action_plan.state = objects.action_plan.State.SUCCEEDED
+            action_plan.save()
             notifications.action_plan.send_action_notification(
                 self.ctx, action_plan,
                 action=fields.NotificationAction.EXECUTION,
@@ -63,17 +64,32 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             LOG.exception(e)
             action_plan.state = objects.action_plan.State.CANCELLED
             self._update_action_from_pending_to_cancelled()
+            action_plan.save()
+            notifications.action_plan.send_cancel_notification(
+                self.ctx, action_plan,
+                action=fields.NotificationAction.CANCEL,
+                phase=fields.NotificationPhase.END)
 
         except Exception as e:
             LOG.exception(e)
-            action_plan.state = objects.action_plan.State.FAILED
-            notifications.action_plan.send_action_notification(
-                self.ctx, action_plan,
-                action=fields.NotificationAction.EXECUTION,
-                priority=fields.NotificationPriority.ERROR,
-                phase=fields.NotificationPhase.ERROR)
-        finally:
-            action_plan.save()
+            action_plan = objects.ActionPlan.get_by_uuid(
+                self.ctx, self.action_plan_uuid, eager=True)
+            if action_plan.state == objects.action_plan.State.CANCELLING:
+                action_plan.state = objects.action_plan.State.FAILED
+                action_plan.save()
+                notifications.action_plan.send_cancel_notification(
+                    self.ctx, action_plan,
+                    action=fields.NotificationAction.CANCEL,
+                    priority=fields.NotificationPriority.ERROR,
+                    phase=fields.NotificationPhase.ERROR)
+            else:
+                action_plan.state = objects.action_plan.State.FAILED
+                action_plan.save()
+                notifications.action_plan.send_action_notification(
+                    self.ctx, action_plan,
+                    action=fields.NotificationAction.EXECUTION,
+                    priority=fields.NotificationPriority.ERROR,
+                    phase=fields.NotificationPhase.ERROR)
 
     def _update_action_from_pending_to_cancelled(self):
         filters = {'action_plan_uuid': self.action_plan_uuid,

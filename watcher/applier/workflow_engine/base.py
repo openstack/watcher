@@ -57,6 +57,7 @@ class BaseWorkFlowEngine(loadable.Loadable):
         self._applier_manager = applier_manager
         self._action_factory = factory.ActionFactory()
         self._osc = None
+        self._is_notified = False
 
     @classmethod
     def get_config_opts(cls):
@@ -91,6 +92,17 @@ class BaseWorkFlowEngine(loadable.Loadable):
         db_action.state = state
         db_action.save()
         return db_action
+
+    def notify_cancel_start(self, action_plan_uuid):
+        action_plan = objects.ActionPlan.get_by_uuid(self.context,
+                                                     action_plan_uuid,
+                                                     eager=True)
+        if not self._is_notified:
+            self._is_notified = True
+            notifications.action_plan.send_cancel_notification(
+                self._context, action_plan,
+                action=fields.NotificationAction.CANCEL,
+                phase=fields.NotificationPhase.START)
 
     @abc.abstractmethod
     def execute(self, actions):
@@ -157,6 +169,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 fields.NotificationPhase.START)
         except exception.ActionPlanCancelled as e:
             LOG.exception(e)
+            self.engine.notify_cancel_start(action_plan.uuid)
             raise
         except Exception as e:
             LOG.exception(e)
@@ -218,6 +231,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             # taskflow will call revert for the action,
             # we will redirect it to abort.
         except eventlet.greenlet.GreenletExit:
+            self.engine.notify_cancel_start(action_plan_object.uuid)
             raise exception.ActionPlanCancelled(uuid=action_plan_object.uuid)
 
         except Exception as e:
@@ -249,15 +263,42 @@ class BaseTaskFlowActionContainer(flow_task.Task):
 
         action_object = objects.Action.get_by_uuid(
             self.engine.context, self._db_action.uuid, eager=True)
-        if action_object.state == objects.action.State.ONGOING:
-            action_object.state = objects.action.State.CANCELLING
+        try:
+            if action_object.state == objects.action.State.ONGOING:
+                action_object.state = objects.action.State.CANCELLING
+                action_object.save()
+                notifications.action.send_cancel_notification(
+                    self.engine.context, action_object,
+                    fields.NotificationAction.CANCEL,
+                    fields.NotificationPhase.START)
+                action_object = self.abort()
+
+                notifications.action.send_cancel_notification(
+                    self.engine.context, action_object,
+                    fields.NotificationAction.CANCEL,
+                    fields.NotificationPhase.END)
+
+            if action_object.state == objects.action.State.PENDING:
+                notifications.action.send_cancel_notification(
+                    self.engine.context, action_object,
+                    fields.NotificationAction.CANCEL,
+                    fields.NotificationPhase.START)
+                action_object.state = objects.action.State.CANCELLED
+                action_object.save()
+                notifications.action.send_cancel_notification(
+                    self.engine.context, action_object,
+                    fields.NotificationAction.CANCEL,
+                    fields.NotificationPhase.END)
+
+        except Exception as e:
+            LOG.exception(e)
+            action_object.state = objects.action.State.FAILED
             action_object.save()
-            self.abort()
-        elif action_object.state == objects.action.State.PENDING:
-            action_object.state = objects.action.State.CANCELLED
-            action_object.save()
-        else:
-            pass
+            notifications.action.send_cancel_notification(
+                self.engine.context, action_object,
+                fields.NotificationAction.CANCEL,
+                fields.NotificationPhase.ERROR,
+                priority=fields.NotificationPriority.ERROR)
 
     def abort(self, *args, **kwargs):
-        self.do_abort(*args, **kwargs)
+        return self.do_abort(*args, **kwargs)

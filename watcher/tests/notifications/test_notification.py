@@ -250,7 +250,7 @@ class TestNotificationBase(testbase.TestCase):
 
 
 expected_notification_fingerprints = {
-    'EventType': '1.3-4258a2c86eca79fd34a7dffe1278eab9',
+    'EventType': '1.3-bc4f4bc4a497d789e5a3c30f921edae1',
     'ExceptionNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ExceptionPayload': '1.0-4516ae282a55fe2fd5c754967ee6248b',
     'NotificationPublisher': '1.0-bbbc1402fb0e443a3eb227cc52b61545',
@@ -277,6 +277,8 @@ expected_notification_fingerprints = {
     'ActionPlanUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionPlanUpdatePayload': '1.0-3e1a348a0579c6c43c1c3d7257e3f26b',
     'ActionPlanActionNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ActionPlanCancelNotification': '1.0-9b69de0724fda8310d05e18418178866',
+    'ActionCancelNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionCreateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionCreatePayload': '1.0-519b93b7450319d8928b4b6e6362df31',
     'ActionDeleteNotification': '1.0-9b69de0724fda8310d05e18418178866',
@@ -287,6 +289,8 @@ expected_notification_fingerprints = {
     'ActionStateUpdatePayload': '1.0-1a1b606bf14a2c468800c2b010801ce5',
     'ActionUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ActionUpdatePayload': '1.0-03306c7e7f4d49ac328c261eff6b30b8',
+    'ActionPlanCancelPayload': '1.0-d9f134708e06cf2ff2d3b8d522ac2aa8',
+    'ActionCancelPayload': '1.0-bff9f820a2abf7bb6d7027b7450157df',
     'TerseActionPlanPayload': '1.0-42bf7a5585cc111a9a4dbc008a04c67e',
     'ServiceUpdateNotification': '1.0-9b69de0724fda8310d05e18418178866',
     'ServicePayload': '1.0-9c5a9bc51e6606e0ec3cf95baf698f4f',
