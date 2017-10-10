@@ -435,6 +435,10 @@ class ActionDescriptionNotFound(ResourceNotFound):
     msg_fmt = _("The action description %(action_id)s cannot be found.")
 
 
+class ActionExecutionFailure(WatcherException):
+    msg_fmt = _("The action %(action_id)s execution failed.")
+
+
 # Model
 
 class ComputeResourceNotFound(WatcherException):

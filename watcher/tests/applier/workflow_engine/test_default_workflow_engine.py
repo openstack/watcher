@@ -51,7 +51,7 @@ class FakeAction(abase.BaseAction):
         pass
 
     def execute(self):
-        raise ExpectedException()
+        return False
 
     def get_description(self):
         return "fake action, just for test"
@@ -311,7 +311,8 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         exc = self.assertRaises(exception.WorkflowExecutionException,
                                 self.engine.execute, actions)
 
-        self.assertIsInstance(exc.kwargs['error'], ExpectedException)
+        self.assertIsInstance(exc.kwargs['error'],
+                              exception.ActionExecutionFailure)
         self.check_action_state(actions[0], objects.action.State.FAILED)
 
     @mock.patch.object(objects.ActionPlan, "get_by_uuid")
