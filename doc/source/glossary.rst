@@ -208,7 +208,7 @@ Here are some examples of
 -  `Sahara Hadoop Cluster <https://docs.openstack.org/heat/latest/template_guide/openstack.html#OS::Sahara::Cluster>`_
 -  ...
 
-It can be any of the `the official list of available resource types defined in
+It can be any of `the official list of available resource types defined in
 OpenStack for HEAT
 <https://docs.openstack.org/heat/latest/template_guide/openstack.html>`_.
 
