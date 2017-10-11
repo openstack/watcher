@@ -29,6 +29,42 @@ LOG = log.getLogger(__name__)
 
 
 class SavingEnergy(base.SavingEnergyBaseStrategy):
+    """Saving Energy Strategy
+
+    Saving Energy Strategy together with VM Workload Consolidation Strategy
+    can perform the Dynamic Power Management (DPM) functionality, which tries
+    to save power by dynamically consolidating workloads even further during
+    periods of low resource utilization. Virtual machines are migrated onto
+    fewer hosts and the unneeded  hosts are powered off.
+
+    After consolidation, Saving Energy Strategy produces a solution of powering
+    off/on according to the following detailed policy:
+
+    In this policy, a preset number(min_free_hosts_num) is given by user, and
+    this min_free_hosts_num describes minimum free compute nodes that users
+    expect to have, where "free compute nodes" refers to those nodes unused
+    but still powered on.
+
+    If the actual number of unused nodes(in power-on state) is larger than
+    the given number, randomly select the redundant nodes and power off them;
+    If the actual number of unused nodes(in poweron state) is smaller than
+    the given number and there are spare unused nodes(in poweroff state),
+    randomly select some nodes(unused,poweroff) and power on them.
+
+    In this policy, in order to calculate the min_free_hosts_num,
+    users must provide two parameters:
+
+      * One parameter("min_free_hosts_num") is a constant int number.
+        This number should be int type and larger than zero.
+
+      * The other parameter("free_used_percent") is a percentage number, which
+        describes the quotient of min_free_hosts_num/nodes_with_VMs_num,
+        where nodes_with_VMs_num is the number of nodes with VMs running on it.
+        This parameter is used to calculate a dynamic min_free_hosts_num.
+        The nodes with VMs refer to those nodes with VMs running on it.
+
+    Then choose the larger one as the final min_free_hosts_num.
+    """
 
     def __init__(self, config, osc=None):
 
