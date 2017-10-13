@@ -6,4 +6,4 @@ Next steps
 Your OpenStack environment now includes the watcher service.
 
 To add additional services, see
-https://docs.openstack.org/project-install-guide/ocata/.
+https://docs.openstack.org/pike/install/.
