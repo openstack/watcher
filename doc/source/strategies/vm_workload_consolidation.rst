@@ -36,7 +36,7 @@ metric                       service name plugins comment
 ``cpu_util``                 ceilometer_  none
 ============================ ============ ======= =======
 
-.. _ceilometer: http://docs.openstack.org/admin-guide/telemetry-measurements.html#openstack-compute
+.. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
 
 Cluster data model
 ******************
