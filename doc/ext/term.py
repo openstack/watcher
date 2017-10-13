@@ -22,7 +22,7 @@ from docutils import nodes
 from docutils.parsers import rst
 from docutils import statemachine
 
-from watcher.version import version_info
+from watcher.version import version_string
 
 
 class BaseWatcherDirective(rst.Directive):
@@ -169,4 +169,4 @@ class WatcherFunc(BaseWatcherDirective):
 def setup(app):
     app.add_directive('watcher-term', WatcherTerm)
     app.add_directive('watcher-func', WatcherFunc)
-    return {'version': version_info.version_string()}
+    return {'version': version_string}

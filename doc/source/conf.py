@@ -72,7 +72,7 @@ copyright = u'OpenStack Foundation'
 # The full version, including alpha/beta/rc tags.
 release = watcher_version.version_info.release_string()
 # The short X.Y version.
-version = watcher_version.version_info.version_string()
+version = watcher_version.version_string
 
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['watcher.']
