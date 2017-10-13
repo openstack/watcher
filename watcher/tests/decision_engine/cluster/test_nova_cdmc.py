@@ -19,7 +19,6 @@
 import mock
 
 from watcher.common import nova_helper
-from watcher.common import utils
 from watcher.decision_engine.model.collector import nova
 from watcher.tests import base
 from watcher.tests import conf_fixture
@@ -61,9 +60,6 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
         # m_nova_helper.get_instances_by_node.return_value = [fake_instance]
         m_nova_helper.get_instance_list.return_value = [fake_instance]
-
-        m_nova_helper.get_flavor.return_value = utils.Struct(**{
-            'ram': 333, 'disk': 222, 'vcpus': 4})
 
         m_config = mock.Mock()
         m_osc = mock.Mock()
