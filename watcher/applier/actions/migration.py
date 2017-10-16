@@ -112,18 +112,9 @@ class Migrate(base.BaseAction):
             result = nova.live_migrate_instance(instance_id=self.instance_uuid,
                                                 dest_hostname=destination)
         except nova_helper.nvexceptions.ClientException as e:
-            if e.code == 400:
-                LOG.debug("Live migration of instance %s failed. "
-                          "Trying to live migrate using block migration."
-                          % self.instance_uuid)
-                result = nova.live_migrate_instance(
-                    instance_id=self.instance_uuid,
-                    dest_hostname=destination,
-                    block_migration=True)
-            else:
-                LOG.debug("Nova client exception occurred while live "
-                          "migrating instance %s.Exception: %s" %
-                          (self.instance_uuid, e))
+            LOG.debug("Nova client exception occurred while live "
+                      "migrating instance %s.Exception: %s" %
+                      (self.instance_uuid, e))
         except Exception as e:
             LOG.exception(e)
             LOG.critical("Unexpected error occurred. Migration failed for "
