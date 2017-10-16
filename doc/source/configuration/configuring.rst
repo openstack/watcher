@@ -366,7 +366,7 @@ Configure Nova compute
 Please check your hypervisor configuration to correctly handle
 `instance migration`_.
 
-.. _`instance migration`: http://docs.openstack.org/admin-guide/compute-live-migration-usage.html
+.. _`instance migration`: https://docs.openstack.org/nova/latest/admin/migration.html
 
 Configure Measurements
 ======================
@@ -374,7 +374,6 @@ Configure Measurements
 You can configure and install Ceilometer by following the documentation below :
 
 #. https://docs.openstack.org/ceilometer/latest
-#. http://docs.openstack.org/kilo/install-guide/install/apt/content/ceilometer-nova.html
 
 The built-in strategy 'basic_consolidation' provided by watcher requires
 "**compute.node.cpu.percent**" and "**cpu_util**" measurements to be collected
