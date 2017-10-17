@@ -338,8 +338,6 @@ class TestContinuousAuditHandler(base.DbTestCase):
         mock_jobs.return_value = mock.MagicMock()
         m_service.return_value = mock.MagicMock()
         m_engine.return_value = mock.MagicMock()
-        self.audits[1].state = objects.audit.State.CANCELLED
-        self.audits[0].state = objects.audit.State.SUSPENDED
 
         ap_jobs = [job.Job(mock.MagicMock(), name='execute_audit',
                            func=audit_handler.execute_audit,
