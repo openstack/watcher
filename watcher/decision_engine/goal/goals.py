@@ -172,7 +172,7 @@ class NoisyNeighborOptimization(base.Goal):
     """NoisyNeighborOptimization
 
     This goal is used to identify and migrate a Noisy Neighbor -
-    a low priority VM that negatively affects peformance of a high priority VM
+    a low priority VM that negatively affects performance of a high priority VM
     in terms of IPC by over utilizing Last Level Cache.
     """
 
