@@ -20,13 +20,13 @@
 import sys
 
 from oslo_config import cfg
-from oslo_log import log as logging
+from oslo_log import log
 
 from watcher.api import scheduling
 from watcher.common import service
 from watcher import conf
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 CONF = conf.CONF
 
 

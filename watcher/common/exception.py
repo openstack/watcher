@@ -26,14 +26,14 @@ import functools
 import sys
 
 from keystoneclient import exceptions as keystone_exceptions
-from oslo_log import log as logging
+from oslo_log import log
 import six
 
 from watcher._i18n import _
 
 from watcher import conf
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 CONF = conf.CONF
 

@@ -24,7 +24,7 @@ import string
 from croniter import croniter
 
 from jsonschema import validators
-from oslo_log import log as logging
+from oslo_log import log
 from oslo_utils import strutils
 from oslo_utils import uuidutils
 import six
@@ -35,7 +35,7 @@ from watcher import conf
 
 CONF = conf.CONF
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 
 class Struct(dict):
