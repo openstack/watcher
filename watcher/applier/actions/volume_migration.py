@@ -45,7 +45,7 @@ class VolumeMigrate(base.BaseAction):
             'migration_type': str,  # choices -> "swap", "cold"
             'destination_node': str,
             'destination_type': str,
-        )}
+        })
 
     The `resource_id` is the UUID of cinder volume to migrate.
     The `destination_node` is the destination block storage pool name.
