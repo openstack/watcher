@@ -165,7 +165,8 @@ class CinderHelper(object):
 
     def check_migrated(self, volume, retry_interval=10):
         volume = self.get_volume(volume)
-        while getattr(volume, 'migration_status') == 'migrating':
+        final_status = ('success', 'error')
+        while getattr(volume, 'migration_status') not in final_status:
             volume = self.get_volume(volume.id)
             LOG.debug('Waiting the migration of {0}'.format(volume))
             time.sleep(retry_interval)
