@@ -422,8 +422,7 @@ class NovaHelper(object):
 
         return True
 
-    def live_migrate_instance(self, instance_id, dest_hostname,
-                              block_migration=False, retry=120):
+    def live_migrate_instance(self, instance_id, dest_hostname, retry=120):
         """This method does a live migration of a given instance
 
         This method uses the Nova built-in live_migrate()
@@ -436,7 +435,6 @@ class NovaHelper(object):
         :param dest_hostname: the name of the destination compute node, if
                               destination_node is None, nova scheduler choose
                               the destination host
-        :param block_migration:  No shared storage is required.
         """
         LOG.debug("Trying to live migrate instance %s " % (instance_id))
 
@@ -450,8 +448,9 @@ class NovaHelper(object):
             LOG.debug(
                 "Instance %s found on host '%s'." % (instance_id, host_name))
 
-            instance.live_migrate(host=dest_hostname,
-                                  block_migration=block_migration)
+            # From nova api version 2.25(Mitaka release), the default value of
+            # block_migration is None which is mapped to 'auto'.
+            instance.live_migrate(host=dest_hostname)
 
             instance = self.nova.servers.get(instance_id)
 

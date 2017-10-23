@@ -210,34 +210,6 @@ class TestMigration(base.TestCase):
                 dest_hostname="compute1-hostname"
             )
 
-    def test_live_migrate_non_shared_storage_instance(self):
-        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
-
-        self.m_helper.live_migrate_instance.side_effect = [
-            nova_helper.nvexceptions.ClientException(400, "BadRequest"), True]
-
-        try:
-            self.action.execute()
-        except Exception as exc:
-            self.fail(exc)
-
-        self.m_helper.live_migrate_instance.assert_has_calls([
-            mock.call(instance_id=self.INSTANCE_UUID,
-                      dest_hostname="compute2-hostname"),
-            mock.call(instance_id=self.INSTANCE_UUID,
-                      dest_hostname="compute2-hostname",
-                      block_migration=True)
-        ])
-
-        expected = [mock.call.first(instance_id=self.INSTANCE_UUID,
-                                    dest_hostname="compute2-hostname"),
-                    mock.call.second(instance_id=self.INSTANCE_UUID,
-                                     dest_hostname="compute2-hostname",
-                                     block_migration=True)
-                    ]
-        self.m_helper.live_migrate_instance.mock_calls == expected
-        self.assertEqual(2, self.m_helper.live_migrate_instance.call_count)
-
     def test_abort_live_migrate(self):
         migration = mock.MagicMock()
         migration.id = "2"
