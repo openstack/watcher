@@ -25,7 +25,7 @@ _DEFAULT_SQL_CONNECTION = 'sqlite:///{0}'.format(
     paths.state_path_def('watcher.sqlite'))
 
 database = cfg.OptGroup(name='database',
-                             title='Configuration Options for database')
+                        title='Configuration Options for database')
 
 SQL_OPTS = [
     cfg.StrOpt('mysql_engine',
