@@ -69,8 +69,8 @@ itself.
 
 These dependencies can be installed from PyPi_ using the Python tool pip_.
 
-.. _PyPi: http://pypi.python.org/
-.. _pip: http://pypi.python.org/pypi/pip
+.. _PyPi: https://pypi.python.org/
+.. _pip: https://pypi.python.org/pypi/pip
 
 However, your system *may* need additional dependencies that `pip` (and by
 extension, PyPi) cannot satisfy. These dependencies should be installed
@@ -125,7 +125,7 @@ You can re-activate this virtualenv for your current shell using:
 
 For more information on virtual environments, see virtualenv_.
 
-.. _virtualenv: http://www.virtualenv.org/
+.. _virtualenv: https://www.virtualenv.org/
 
 
 
