@@ -16,13 +16,13 @@
 
 import numbers
 
-from oslo_log import log as logging
+from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.common import utils
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 
 class IndicatorsMap(utils.Struct):

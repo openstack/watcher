@@ -20,13 +20,13 @@
 
 import sys
 
-from oslo_log import log as logging
+from oslo_log import log
 
 from watcher.common import service as service
 from watcher import conf
 from watcher.decision_engine import sync
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 CONF = conf.CONF
 
 

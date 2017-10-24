@@ -11,11 +11,11 @@
 # under the License.
 
 from oslo_context import context
-from oslo_log import log as logging
+from oslo_log import log
 from oslo_utils import timeutils
 import six
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 
 
 class RequestContext(context.RequestContext):

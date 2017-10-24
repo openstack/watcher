@@ -20,14 +20,14 @@
 import os
 import sys
 
-from oslo_log import log as logging
+from oslo_log import log
 
 from watcher.applier import manager
 from watcher.applier import sync
 from watcher.common import service as watcher_service
 from watcher import conf
 
-LOG = logging.getLogger(__name__)
+LOG = log.getLogger(__name__)
 CONF = conf.CONF
 
 
