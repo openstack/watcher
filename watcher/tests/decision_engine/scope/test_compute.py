@@ -18,18 +18,19 @@
 from jsonschema import validators
 import mock
 
+from watcher.api.controllers.v1 import audit_template
 from watcher.common import exception
 from watcher.common import nova_helper
-from watcher.decision_engine.scope import default
+from watcher.decision_engine.scope import compute
 from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.decision_engine.scope import fake_scopes
 
 
-class TestDefaultScope(base.TestCase):
+class TestComputeScope(base.TestCase):
 
     def setUp(self):
-        super(TestDefaultScope, self).setUp()
+        super(TestComputeScope, self).setUp()
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
@@ -40,7 +41,7 @@ class TestDefaultScope(base.TestCase):
             mock.Mock(zone='AZ{0}'.format(i),
                       host={'Node_{0}'.format(i): {}})
             for i in range(2)]
-        model = default.DefaultScope(audit_scope, mock.Mock(),
+        model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
         expected_edges = [('INSTANCE_2', 'Node_1')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
@@ -48,13 +49,13 @@ class TestDefaultScope(base.TestCase):
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
     def test_get_scoped_model_without_scope(self, mock_zone_list):
         model = self.fake_cluster.generate_scenario_1()
-        default.DefaultScope([], mock.Mock(),
+        compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).get_scoped_model(model)
         assert not mock_zone_list.called
 
     def test_remove_instance(self):
         model = self.fake_cluster.generate_scenario_1()
-        default.DefaultScope([], mock.Mock(), osc=mock.Mock()).remove_instance(
+        compute.ComputeScope([], mock.Mock(), osc=mock.Mock()).remove_instance(
             model, model.get_instance_by_uuid('INSTANCE_2'), 'Node_1')
         expected_edges = [
             ('INSTANCE_0', 'Node_0'),
@@ -74,7 +75,7 @@ class TestDefaultScope(base.TestCase):
         mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
         mock_detailed_aggregate.side_effect = [
             mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
-        default.DefaultScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
+        compute.ComputeScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': 1}, {'id': 2}], allowed_nodes)
         self.assertEqual(['Node_1'], allowed_nodes)
@@ -87,7 +88,7 @@ class TestDefaultScope(base.TestCase):
         mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
         mock_detailed_aggregate.side_effect = [
             mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
-        default.DefaultScope([{'host_aggregates': [{'id': '*'}]}],
+        compute.ComputeScope([{'host_aggregates': [{'id': '*'}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': '*'}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], allowed_nodes)
@@ -96,7 +97,7 @@ class TestDefaultScope(base.TestCase):
     def test_aggregates_wildcard_with_other_ids(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
-        scope_handler = default.DefaultScope(
+        scope_handler = compute.ComputeScope(
             [{'host_aggregates': [{'id': '*'}, {'id': 1}]}],
             mock.Mock(), osc=mock.Mock())
         self.assertRaises(exception.WildcardCharacterIsUsed,
@@ -119,7 +120,7 @@ class TestDefaultScope(base.TestCase):
 
         mock_detailed_aggregate.side_effect = mock_collection
 
-        default.DefaultScope([{'host_aggregates': [{'name': 'HA_1'},
+        compute.ComputeScope([{'host_aggregates': [{'name': 'HA_1'},
                                                    {'id': 0}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'name': 'HA_1'}, {'id': 0}], allowed_nodes)
@@ -133,7 +134,7 @@ class TestDefaultScope(base.TestCase):
                       host={'Node_{0}'.format(2 * i): 1,
                             'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
-        default.DefaultScope([{'availability_zones': [{'name': "AZ1"}]}],
+        compute.ComputeScope([{'availability_zones': [{'name': "AZ1"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
             [{'name': "AZ1"}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1'], sorted(allowed_nodes))
@@ -146,7 +147,7 @@ class TestDefaultScope(base.TestCase):
                       host={'Node_{0}'.format(2 * i): 1,
                             'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
-        default.DefaultScope([{'availability_zones': [{'name': "*"}]}],
+        compute.ComputeScope([{'availability_zones': [{'name': "*"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
             [{'name': "*"}], allowed_nodes)
         self.assertEqual(['Node_0', 'Node_1', 'Node_2', 'Node_3'],
@@ -160,7 +161,7 @@ class TestDefaultScope(base.TestCase):
                       host={'Node_{0}'.format(2 * i): 1,
                             'Node_{0}'.format(2 * i + 1): 2})
             for i in range(2)]
-        scope_handler = default.DefaultScope(
+        scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
             mock.Mock(), osc=mock.Mock())
         self.assertRaises(exception.WildcardCharacterIsUsed,
@@ -168,10 +169,11 @@ class TestDefaultScope(base.TestCase):
                           [{'name': "*"}, {'name': 'AZ1'}],
                           allowed_nodes)
 
-    def test_default_schema(self):
-        test_scope = fake_scopes.default_scope
+    def test_compute_schema(self):
+        test_scope = fake_scopes.compute_scope
         validators.Draft4Validator(
-            default.DefaultScope.DEFAULT_SCHEMA).validate(test_scope)
+            audit_template.AuditTemplatePostType._build_schema()
+            ).validate(test_scope)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
@@ -197,7 +199,7 @@ class TestDefaultScope(base.TestCase):
         instances_to_exclude = []
         nodes_to_exclude = []
         instance_metadata = []
-        default.DefaultScope([], mock.Mock(),
+        compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).exclude_resources(
             resources_to_exclude, instances=instances_to_exclude,
             nodes=nodes_to_exclude, instance_metadata=instance_metadata)
@@ -213,7 +215,7 @@ class TestDefaultScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         instance_metadata = [{'optimize': True}]
         instances_to_remove = set()
-        default.DefaultScope(
+        compute.ComputeScope(
             [], mock.Mock(),
             osc=mock.Mock()).exclude_instances_with_given_metadata(
                 instance_metadata, cluster, instances_to_remove)
@@ -222,7 +224,7 @@ class TestDefaultScope(base.TestCase):
 
         instance_metadata = [{'optimize': False}]
         instances_to_remove = set()
-        default.DefaultScope(
+        compute.ComputeScope(
             [], mock.Mock(),
             osc=mock.Mock()).exclude_instances_with_given_metadata(
                 instance_metadata, cluster, instances_to_remove)
@@ -230,7 +232,7 @@ class TestDefaultScope(base.TestCase):
 
     def test_remove_nodes_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        default.DefaultScope([], mock.Mock(),
+        compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).remove_nodes_from_model(
             ['Node_1', 'Node_2'], model)
         expected_edges = [
@@ -242,7 +244,7 @@ class TestDefaultScope(base.TestCase):
 
     def test_remove_instances_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        default.DefaultScope([], mock.Mock(),
+        compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).remove_instances_from_model(
             ['INSTANCE_1', 'INSTANCE_2'], model)
         expected_edges = [

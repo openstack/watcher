@@ -21,15 +21,16 @@ fake_scope_1 = [{'availability_zones': [{'name': 'AZ1'}]},
                  }
                 ]
 
-default_scope = [{'host_aggregates': [{'id': '*'}]},
-                 {'availability_zones': [{'name': 'AZ1'},
-                                         {'name': 'AZ2'}]},
-                 {'exclude': [
-                     {'instances': [
-                         {'uuid': 'INSTANCE_1'},
-                         {'uuid': 'INSTANCE_2'}]},
-                     {'compute_nodes': [
-                         {'name': 'Node_1'},
-                         {'name': 'Node_2'}]}
-                     ]}
+compute_scope = [{'compute': [{'host_aggregates': [{'id': '*'}]},
+                              {'availability_zones': [{'name': 'AZ1'},
+                                                      {'name': 'AZ2'}]},
+                              {'exclude': [
+                                  {'instances': [
+                                      {'uuid': 'INSTANCE_1'},
+                                      {'uuid': 'INSTANCE_2'}]},
+                                  {'compute_nodes': [
+                                      {'name': 'Node_1'},
+                                      {'name': 'Node_2'}]}
+                              ]}]
+                  }
                  ]

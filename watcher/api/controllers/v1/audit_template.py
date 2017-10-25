@@ -51,6 +51,8 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_log import log
+
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -61,8 +63,10 @@ from watcher.common import context as context_utils
 from watcher.common import exception
 from watcher.common import policy
 from watcher.common import utils as common_utils
-from watcher.decision_engine.scope import default
+from watcher.decision_engine.loading import default as default_loading
 from watcher import objects
+
+LOG = log.getLogger(__name__)
 
 
 class AuditTemplatePostType(wtypes.Base):
@@ -95,6 +99,27 @@ class AuditTemplatePostType(wtypes.Base):
         )
 
     @staticmethod
+    def _build_schema():
+        SCHEMA = {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": AuditTemplatePostType._get_schemas(),
+                "additionalProperties": False
+            }
+        }
+        return SCHEMA
+
+    @staticmethod
+    def _get_schemas():
+        collectors = default_loading.ClusterDataModelCollectorLoader(
+            ).list_available()
+        schemas = {k: c.SCHEMA for k, c
+                   in collectors.items() if hasattr(c, "SCHEMA")}
+        return schemas
+
+    @staticmethod
     def validate(audit_template):
         available_goals = objects.Goal.list(AuditTemplatePostType._ctx)
         available_goal_uuids_map = {g.uuid: g for g in available_goals}
@@ -106,23 +131,25 @@ class AuditTemplatePostType(wtypes.Base):
         else:
             raise exception.InvalidGoal(goal=audit_template.goal)
 
-        common_utils.Draft4Validator(
-            default.DefaultScope.DEFAULT_SCHEMA).validate(audit_template.scope)
+        if audit_template.scope:
+            common_utils.Draft4Validator(
+                AuditTemplatePostType._build_schema()
+                ).validate(audit_template.scope)
 
-        include_host_aggregates = False
-        exclude_host_aggregates = False
-        for rule in audit_template.scope:
-            if 'host_aggregates' in rule:
-                include_host_aggregates = True
-            elif 'exclude' in rule:
-                for resource in rule['exclude']:
-                    if 'host_aggregates' in resource:
-                        exclude_host_aggregates = True
-        if include_host_aggregates and exclude_host_aggregates:
-            raise exception.Invalid(
-                message=_(
-                    "host_aggregates can't be "
-                    "included and excluded together"))
+            include_host_aggregates = False
+            exclude_host_aggregates = False
+            for rule in audit_template.scope[0]['compute']:
+                if 'host_aggregates' in rule:
+                    include_host_aggregates = True
+                elif 'exclude' in rule:
+                    for resource in rule['exclude']:
+                        if 'host_aggregates' in resource:
+                            exclude_host_aggregates = True
+            if include_host_aggregates and exclude_host_aggregates:
+                raise exception.Invalid(
+                    message=_(
+                        "host_aggregates can't be "
+                        "included and excluded together"))
 
         if audit_template.strategy:
             available_strategies = objects.Strategy.list(

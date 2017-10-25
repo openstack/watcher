@@ -50,14 +50,17 @@ class CollectorManager(object):
 
         return self._notification_endpoints
 
-    def get_cluster_model_collector(self, name, osc=None):
+    def get_cluster_model_collector(self, name, osc=None, audit_scope=None):
         """Retrieve cluster data model collector
 
         :param name: name of the cluster data model collector plugin
         :type name: str
         :param osc: an OpenStackClients instance
         :type osc: :py:class:`~.OpenStackClients` instance
+        :param audit_scope: an BaseScope instance
+        :type audit_scope: :py:class:`~.BaseScope` instance
         :returns: cluster data model collector plugin
         :rtype: :py:class:`~.BaseClusterDataModelCollector`
         """
-        return self.collector_loader.load(name, osc=osc)
+        return self.collector_loader.load(
+            name, osc=osc, audit_scope=audit_scope)

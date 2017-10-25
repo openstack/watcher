@@ -27,10 +27,14 @@ from watcher.decision_engine.model import model_root as modelroot
 
 class FakerModelCollector(base.BaseClusterDataModelCollector):
 
-    def __init__(self, config=None, osc=None):
+    def __init__(self, config=None, osc=None, audit_scope=None):
         if config is None:
             config = mock.Mock()
         super(FakerModelCollector, self).__init__(config)
+
+    @property
+    def audit_scope_handler(self):
+        return None
 
     @property
     def notification_endpoints(self):

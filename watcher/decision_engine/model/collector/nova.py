@@ -21,6 +21,7 @@ from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.model.notification import nova
+from watcher.decision_engine.scope import compute as compute_scope
 
 LOG = log.getLogger(__name__)
 
@@ -32,8 +33,118 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
     representation of the resources exposed by the compute service.
     """
 
+    HOST_AGGREGATES = "#/items/properties/compute/host_aggregates/"
+    SCHEMA = {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "host_aggregates": {
+                    "type": "array",
+                    "items": {
+                        "anyOf": [
+                            {"$ref": HOST_AGGREGATES + "id"},
+                            {"$ref": HOST_AGGREGATES + "name"},
+                        ]
+                    }
+                },
+                "availability_zones": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": False
+                    }
+                },
+                "exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "instances": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
+                            },
+                            "compute_nodes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
+                            },
+                            "host_aggregates": {
+                                "type": "array",
+                                "items": {
+                                    "anyOf": [
+                                        {"$ref": HOST_AGGREGATES + "id"},
+                                        {"$ref": HOST_AGGREGATES + "name"},
+                                    ]
+                                }
+                            },
+                            "instance_metadata": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object"
+                                }
+                            }
+                        },
+                        "additionalProperties": False
+                    }
+                }
+            },
+            "additionalProperties": False
+        },
+        "host_aggregates": {
+            "id": {
+                "properties": {
+                    "id": {
+                        "oneOf": [
+                            {"type": "integer"},
+                            {"enum": ["*"]}
+                        ]
+                    }
+                },
+                "additionalProperties": False
+            },
+            "name": {
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": False
+            }
+        },
+        "additionalProperties": False
+    }
+
     def __init__(self, config, osc=None):
         super(NovaClusterDataModelCollector, self).__init__(config, osc)
+
+    @property
+    def audit_scope_handler(self):
+        if not self._audit_scope_handler:
+            self._audit_scope_handler = compute_scope.ComputeScope(
+                self._audit_scope, self.config)
+        return self._audit_scope_handler
 
     @property
     def notification_endpoints(self):
