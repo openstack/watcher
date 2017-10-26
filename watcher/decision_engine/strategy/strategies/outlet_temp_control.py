@@ -71,8 +71,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     *Spec URL*
 
-    https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/approved/outlet-temperature-based-strategy.rst
-    """  # noqa
+    https://github.com/openstack/watcher-specs/blob/master/specs/mitaka/implemented/outlet-temperature-based-strategy.rst
+    """
 
     # The meter to report outlet temperature in ceilometer
     MIGRATION = "migrate"
