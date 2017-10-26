@@ -478,6 +478,9 @@ class NovaHelper(object):
                           'OS-EXT-SRV-ATTR:host') != dest_hostname \
                     and retry:
                 instance = self.nova.servers.get(instance.id)
+                if not getattr(instance, 'OS-EXT-STS:task_state'):
+                    LOG.debug("Instance task state: %s is null" % instance_id)
+                    break
                 LOG.debug(
                     'Waiting the migration of {0}  to {1}'.format(
                         instance,
