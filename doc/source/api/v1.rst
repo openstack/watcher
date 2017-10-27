@@ -86,3 +86,15 @@ Actions
 
 .. autotype:: watcher.api.controllers.v1.action.Action
    :members:
+
+Scoring Engine
+==============
+
+.. rest-controller:: watcher.api.controllers.v1.scoring_engine:ScoringEngineController
+   :webprefix: /v1/scoring_engine
+
+.. autotype:: watcher.api.controllers.v1.scoring_engine.ScoringEngineCollection
+   :members:
+
+.. autotype:: watcher.api.controllers.v1.scoring_engine.ScoringEngine
+   :members:
