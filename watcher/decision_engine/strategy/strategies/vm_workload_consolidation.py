@@ -245,7 +245,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         instance_state_str = self.get_instance_state_str(instance)
-        if instance_state_str != element.InstanceState.ACTIVE.value:
+        if instance_state_str not in (element.InstanceState.ACTIVE.value,
+                                      element.InstanceState.PAUSED.value):
             # Watcher currently only supports live VM migration and block live
             # VM migration which both requires migrated VM to be active.
             # When supported, the cold migration may be used as a fallback

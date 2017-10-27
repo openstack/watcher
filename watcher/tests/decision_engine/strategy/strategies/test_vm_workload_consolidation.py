@@ -22,6 +22,7 @@ import datetime
 import mock
 
 from watcher.common import exception
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -131,7 +132,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         expected_cru = {'cpu': 0.05, 'disk': 0.05, 'ram': 0.0234375}
         self.assertEqual(expected_cru, cru)
 
-    def test_add_migration(self):
+    def test_add_migration_with_active_state(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
         self.fake_metrics.model = model
@@ -139,6 +140,28 @@ class TestVMWorkloadConsolidation(base.TestCase):
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
         instance = model.get_instance_by_uuid(instance_uuid)
+        self.strategy.add_migration(instance, n1, n2)
+        self.assertEqual(1, len(self.strategy.solution.actions))
+        expected = {'action_type': 'migrate',
+                    'input_parameters': {'destination_node': n2.uuid,
+                                         'source_node': n1.uuid,
+                                         'migration_type': 'live',
+                                         'resource_id': instance_uuid}}
+        self.assertEqual(expected, self.strategy.solution.actions[0])
+
+    def test_add_migration_with_paused_state(self):
+        model = self.fake_cluster.generate_scenario_1()
+        self.m_model.return_value = model
+        self.fake_metrics.model = model
+        n1 = model.get_node_by_uuid('Node_0')
+        n2 = model.get_node_by_uuid('Node_1')
+        instance_uuid = 'INSTANCE_0'
+        instance = model.get_instance_by_uuid(instance_uuid)
+        setattr(instance, 'state', element.InstanceState.ERROR.value)
+        self.strategy.add_migration(instance, n1, n2)
+        self.assertEqual(0, len(self.strategy.solution.actions))
+
+        setattr(instance, 'state', element.InstanceState.PAUSED.value)
         self.strategy.add_migration(instance, n1, n2)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = {'action_type': 'migrate',
