@@ -52,6 +52,8 @@ from watcher import objects
 
 class AuditPostType(wtypes.Base):
 
+    name = wtypes.wsattr(wtypes.text, mandatory=False)
+
     audit_template_uuid = wtypes.wsattr(types.uuid, mandatory=False)
 
     goal = wtypes.wsattr(wtypes.text, mandatory=False)
@@ -111,7 +113,25 @@ class AuditPostType(wtypes.Base):
                         setattr(self, k, at_attr)
                     except AttributeError:
                         pass
+
+        # Note: If audit name was not provided, used a default name
+        if not self.name:
+            if self.strategy:
+                strategy = objects.Strategy.get(context, self.strategy)
+                self.name = "%s-%s" % (strategy.name,
+                                       datetime.datetime.utcnow().isoformat())
+            elif self.audit_template_uuid:
+                audit_template = objects.AuditTemplate.get(
+                    context, self.audit_template_uuid)
+                self.name = "%s-%s" % (audit_template.name,
+                                       datetime.datetime.utcnow().isoformat())
+            else:
+                goal = objects.Goal.get(context, self.goal)
+                self.name = "%s-%s" % (goal.name,
+                                       datetime.datetime.utcnow().isoformat())
+
         return Audit(
+            name=self.name,
             audit_type=self.audit_type,
             parameters=self.parameters,
             goal_id=self.goal,
@@ -233,6 +253,9 @@ class Audit(base.APIBase):
     uuid = types.uuid
     """Unique UUID for this audit"""
 
+    name = wtypes.text
+    """Name of this audit"""
+
     audit_type = wtypes.text
     """Type of this audit"""
 
@@ -301,7 +324,7 @@ class Audit(base.APIBase):
     @staticmethod
     def _convert_with_links(audit, url, expand=True):
         if not expand:
-            audit.unset_fields_except(['uuid', 'audit_type', 'state',
+            audit.unset_fields_except(['uuid', 'name', 'audit_type', 'state',
                                        'goal_uuid', 'interval', 'scope',
                                        'strategy_uuid', 'goal_name',
                                        'strategy_name', 'auto_trigger',
@@ -324,6 +347,7 @@ class Audit(base.APIBase):
     @classmethod
     def sample(cls, expand=True):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
+                     name='My Audit',
                      audit_type='ONESHOT',
                      state='PENDING',
                      created_at=datetime.datetime.utcnow(),
@@ -483,17 +507,17 @@ class AuditsController(rest.RestController):
                                            resource_url,
                                            goal=goal)
 
-    @wsme_pecan.wsexpose(Audit, types.uuid)
-    def get_one(self, audit_uuid):
+    @wsme_pecan.wsexpose(Audit, wtypes.text)
+    def get_one(self, audit):
         """Retrieve information about the given audit.
 
-        :param audit_uuid: UUID of a audit.
+        :param audit_uuid: UUID or name of an audit.
         """
         if self.from_audits:
             raise exception.OperationNotPermitted
 
         context = pecan.request.context
-        rpc_audit = api_utils.get_resource('Audit', audit_uuid)
+        rpc_audit = api_utils.get_resource('Audit', audit)
         policy.enforce(context, 'audit:get', rpc_audit, action='audit:get')
 
         return Audit.convert_with_links(rpc_audit)
@@ -551,11 +575,11 @@ class AuditsController(rest.RestController):
         return Audit.convert_with_links(new_audit)
 
     @wsme.validate(types.uuid, [AuditPatchType])
-    @wsme_pecan.wsexpose(Audit, types.uuid, body=[AuditPatchType])
-    def patch(self, audit_uuid, patch):
+    @wsme_pecan.wsexpose(Audit, wtypes.text, body=[AuditPatchType])
+    def patch(self, audit, patch):
         """Update an existing audit.
 
-        :param audit_uuid: UUID of a audit.
+        :param auditd: UUID or name of a audit.
         :param patch: a json PATCH document to apply to this audit.
         """
         if self.from_audits:
@@ -563,7 +587,7 @@ class AuditsController(rest.RestController):
 
         context = pecan.request.context
         audit_to_update = api_utils.get_resource(
-            'Audit', audit_uuid, eager=True)
+            'Audit', audit, eager=True)
         policy.enforce(context, 'audit:update', audit_to_update,
                        action='audit:update')
 
@@ -600,15 +624,15 @@ class AuditsController(rest.RestController):
         audit_to_update.save()
         return Audit.convert_with_links(audit_to_update)
 
-    @wsme_pecan.wsexpose(None, types.uuid, status_code=204)
-    def delete(self, audit_uuid):
-        """Delete a audit.
+    @wsme_pecan.wsexpose(None, wtypes.text, status_code=204)
+    def delete(self, audit):
+        """Delete an audit.
 
-        :param audit_uuid: UUID of a audit.
+        :param audit: UUID or name of an audit.
         """
         context = pecan.request.context
         audit_to_delete = api_utils.get_resource(
-            'Audit', audit_uuid, eager=True)
+            'Audit', audit, eager=True)
         policy.enforce(context, 'audit:update', audit_to_delete,
                        action='audit:update')
 

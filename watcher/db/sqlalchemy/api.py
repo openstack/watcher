@@ -659,6 +659,14 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
+        query = model_query(models.Audit)
+        query = query.filter_by(name=values.get('name'),
+                                deleted_at=None)
+
+        if len(query.all()) > 0:
+            raise exception.AuditAlreadyExists(
+                audit=values['name'])
+
         if values.get('state') is None:
             values['state'] = objects.audit.State.PENDING
 
@@ -668,7 +676,7 @@ class Connection(api.BaseConnection):
         try:
             audit = self._create(models.Audit, values)
         except db_exc.DBDuplicateEntry:
-            raise exception.AuditAlreadyExists(uuid=values['uuid'])
+            raise exception.AuditAlreadyExists(audit=values['uuid'])
         return audit
 
     def _get_audit(self, context, fieldname, value, eager):
@@ -685,6 +693,10 @@ class Connection(api.BaseConnection):
     def get_audit_by_uuid(self, context, audit_uuid, eager=False):
         return self._get_audit(
             context, fieldname="uuid", value=audit_uuid, eager=eager)
+
+    def get_audit_by_name(self, context, audit_name, eager=False):
+        return self._get_audit(
+            context, fieldname="name", value=audit_name, eager=eager)
 
     def destroy_audit(self, audit_id):
         def is_audit_referenced(session, audit_id):

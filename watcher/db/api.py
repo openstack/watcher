@@ -401,6 +401,16 @@ class BaseConnection(object):
         :raises: :py:class:`~.AuditNotFound`
         """
 
+    def get_audit_by_name(self, context, audit_name, eager=False):
+        """Return an audit.
+
+        :param context: The security context
+        :param audit_name: The name of an audit.
+        :param eager: If True, also loads One-to-X data (Default: False)
+        :returns: An audit.
+        :raises: :py:class:`~.AuditNotFound`
+        """
+
     @abc.abstractmethod
     def destroy_audit(self, audit_id):
         """Destroy an audit and all associated action plans.

@@ -166,10 +166,12 @@ class Audit(Base):
     __tablename__ = 'audits'
     __table_args__ = (
         UniqueConstraint('uuid', name='uniq_audits0uuid'),
+        UniqueConstraint('name', 'deleted', name='uniq_audits0name'),
         table_args()
     )
     id = Column(Integer, primary_key=True, autoincrement=True)
     uuid = Column(String(36))
+    name = Column(String(63), nullable=True)
     audit_type = Column(String(20))
     state = Column(String(20), nullable=True)
     parameters = Column(JSONEncodedDict, nullable=True)

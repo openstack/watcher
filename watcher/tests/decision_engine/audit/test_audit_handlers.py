@@ -232,6 +232,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
             obj_utils.create_test_audit(
                 self.context,
                 id=id_,
+                name='My Audit {0}'.format(id_),
                 uuid=uuidutils.generate_uuid(),
                 audit_template_id=audit_template.id,
                 goal_id=self.goal.id,
