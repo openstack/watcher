@@ -29,14 +29,14 @@ Useful links
 
 * How to install: https://docs.openstack.org/rally/latest/install_and_upgrade/install.html
 
-* How to set Rally up and launch your first scenario:  https://rally.readthedocs.io/en/latest/tutorial/step_1_setting_up_env_and_running_benchmark_from_samples.html
+* How to set Rally up and launch your first scenario: https://rally.readthedocs.io/en/latest/tutorial/step_1_setting_up_env_and_running_benchmark_from_samples.html
 
-* More about Rally: https://rally.readthedocs.org/en/latest/
+* More about Rally: https://docs.openstack.org/rally/latest/
 
-* Rally release notes: https://rally.readthedocs.org/en/latest/release_notes.html
+* Rally project info and release notes: https://docs.openstack.org/rally/latest/project_info/index.html
 
-* How to add rally-gates: https://rally.readthedocs.org/en/latest/gates.html
+* How to add rally-gates: https://docs.openstack.org/rally/latest/quick_start/gates.html#gate-jobs
 
-* About plugins:  https://rally.readthedocs.org/en/latest/plugins.html
+* About plugins: https://docs.openstack.org/rally/latest/plugins/index.html
 
-* Plugin samples: https://github.com/openstack/rally/tree/master/samples/plugins
+* Plugin samples: https://github.com/openstack/rally/tree/master/samples/
