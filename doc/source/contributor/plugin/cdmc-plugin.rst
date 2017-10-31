@@ -28,6 +28,8 @@ In order to create a new cluster data model collector, you have to:
 - Implement its :py:meth:`~.BaseClusterDataModelCollector.execute` abstract
   method to return your entire cluster data model that this method should
   build.
+- Implement its :py:meth:`~.BaseClusterDataModelCollector.audit_scope_handler`
+  abstract property to return your audit scope handler.
 - Implement its :py:meth:`~.Goal.notification_endpoints` abstract property to
   return the list of all the :py:class:`~.base.NotificationEndpoint` instances
   that will be responsible for handling incoming notifications in order to
@@ -56,6 +58,10 @@ Here is an example showing how you can write a plugin called
             model = model_root.ModelRoot()
             # Do something here...
             return model
+
+        @property
+        def audit_scope_handler(self):
+            return None
 
         @property
         def notification_endpoints(self):
@@ -134,6 +140,10 @@ class method as followed:
             model = model_root.ModelRoot()
             # Do something here...
             return model
+
+        @property
+        def audit_scope_handler(self):
+            return None
 
         @property
         def notification_endpoints(self):

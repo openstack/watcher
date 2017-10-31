@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Each CDM collector can have its own CDM scoper now. This changed Scope
+    JSON schema definition for the audit template POST data. Please see audit
+    template create help message in python-watcherclient.
