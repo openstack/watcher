@@ -43,11 +43,20 @@ APPLIER_MANAGER_OPTS = [
                help='Select the engine to use to execute the workflow'),
 ]
 
+APPLIER_OPTS = [
+    cfg.BoolOpt('rollback_when_actionplan_failed',
+                default=False,
+                help='If set True, the failed actionplan will rollback '
+                     'when executing. Defaule value is False.'),
+]
+
 
 def register_opts(conf):
     conf.register_group(watcher_applier)
     conf.register_opts(APPLIER_MANAGER_OPTS, group=watcher_applier)
+    conf.register_opts(APPLIER_OPTS, group=watcher_applier)
 
 
 def list_opts():
-    return [(watcher_applier, APPLIER_MANAGER_OPTS)]
+    return [(watcher_applier, APPLIER_MANAGER_OPTS),
+            (watcher_applier, APPLIER_OPTS)]
