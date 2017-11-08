@@ -126,7 +126,7 @@ Here is single Dockerfile snippet you can use to run your Docker container:
     MAINTAINER David TARDIVEL <david.tardivel@b-com.com>
 
     RUN  apt-get update
-    RUN  apt-get dist-upgrade -y
+    RUN  apt-get dist-upgrade
     RUN  apt-get install vim  net-tools
     RUN  apt-get install experimental watcher-api
 
