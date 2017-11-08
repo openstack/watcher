@@ -166,6 +166,27 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_live_migrate_instance_with_task_state(
+            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host',
+                        self.source_node)
+        setattr(server, 'OS-EXT-STS:task_state', '')
+        self.fake_nova_find_list(nova_util, find=server, list=None)
+        nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+        time.sleep.assert_not_called()
+
+        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+        self.fake_nova_find_list(nova_util, find=server, list=server)
+        nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+        time.sleep.assert_called_with(1)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance_no_destination_node(
             self, mock_glance, mock_cinder, mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
