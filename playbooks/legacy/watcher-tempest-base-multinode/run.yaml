@@ -1,0 +1,67 @@
+- hosts: primary
+  name: Legacy Watcher tempest base multinode
+  tasks:
+
+    - name: Ensure legacy workspace directory
+      file:
+        path: '{{ ansible_user_dir }}/workspace'
+        state: directory
+
+    - shell:
+        cmd: |
+          set -e
+          set -x
+          cat > clonemap.yaml << EOF
+          clonemap:
+            - name: openstack-infra/devstack-gate
+              dest: devstack-gate
+          EOF
+          /usr/zuul-env/bin/zuul-cloner -m clonemap.yaml --cache-dir /opt/git \
+              git://git.openstack.org \
+              openstack-infra/devstack-gate
+        executable: /bin/bash
+        chdir: '{{ ansible_user_dir }}/workspace'
+      environment: '{{ zuul | zuul_legacy_vars }}'
+
+    - shell:
+        cmd: |
+          set -e
+          set -x
+          cat << 'EOF' >>"/tmp/dg-local.conf"
+          [[local|localrc]]
+          TEMPEST_PLUGINS='/opt/stack/new/watcher-tempest-plugin'
+          enable_plugin ceilometer git://git.openstack.org/openstack/ceilometer
+          # Enable watcher devstack plugin.
+          enable_plugin watcher git://git.openstack.org/openstack/watcher
+
+          EOF
+        executable: /bin/bash
+        chdir: '{{ ansible_user_dir }}/workspace'
+      environment: '{{ zuul | zuul_legacy_vars }}'
+
+    - shell:
+        cmd: |
+          set -e
+          set -x
+
+          export DEVSTACK_SUBNODE_CONFIG=" "
+          export PYTHONUNBUFFERED=true
+          export DEVSTACK_GATE_TEMPEST=1
+          export DEVSTACK_GATE_NEUTRON=1
+          export DEVSTACK_GATE_TOPOLOGY="multinode"
+          export PROJECTS="openstack/watcher $PROJECTS"
+          export PROJECTS="openstack/python-watcherclient $PROJECTS"
+          export PROJECTS="openstack/watcher-tempest-plugin $PROJECTS"
+
+          export DEVSTACK_GATE_TEMPEST_REGEX="watcher_tempest_plugin"
+
+          export BRANCH_OVERRIDE=default
+          if [ "$BRANCH_OVERRIDE" != "default" ] ; then
+              export OVERRIDE_ZUUL_BRANCH=$BRANCH_OVERRIDE
+          fi
+
+          cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
+          ./safe-devstack-vm-gate-wrap.sh
+        executable: /bin/bash
+        chdir: '{{ ansible_user_dir }}/workspace'
+      environment: '{{ zuul | zuul_legacy_vars }}'
