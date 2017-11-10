@@ -46,6 +46,7 @@ from watcher.common import context
 from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
+from watcher.datasource import manager as ds_manager
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
@@ -59,6 +60,8 @@ class BaseStrategy(loadable.Loadable):
     A Strategy is an algorithm implementation which is able to find a
     Solution for a given Goal.
     """
+
+    DATASOURCE_METRICS = []
 
     def __init__(self, config, osc=None):
         """Constructor: the signature should be identical within the subclasses
@@ -84,6 +87,7 @@ class BaseStrategy(loadable.Loadable):
         self._storage_model = None
         self._input_parameters = utils.Struct()
         self._audit_scope = None
+        self._datasource_backend = None
 
     @classmethod
     @abc.abstractmethod
@@ -222,6 +226,15 @@ class BaseStrategy(loadable.Loadable):
         :rtype: dict
         """
         return {}
+
+    @property
+    def datasource_backend(self):
+        if not self._datasource_backend:
+            self._datasource_backend = ds_manager.DataSourceManager(
+                config=self.config,
+                osc=self.osc
+            ).get_backend(self.DATASOURCE_METRICS)
+        return self._datasource_backend
 
     @property
     def input_parameters(self):
