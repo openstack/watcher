@@ -57,7 +57,8 @@ class EfficacySpecification(object):
                                efficacy indicators related to this spec
         :type indicators_map: :py:class:`~.IndicatorsMap` instance
         :raises: NotImplementedError
-        :returns: :py:class:`~.Indicator` instance
+        :returns: :py:class:`~.Indicator` instance list, each instance specify
+                  global efficacy for different openstack resource.
         """
         raise NotImplementedError()
 

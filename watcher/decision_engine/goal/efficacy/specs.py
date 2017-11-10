@@ -40,14 +40,16 @@ class ServerConsolidation(base.EfficacySpecification):
 
     def get_global_efficacy_indicator(self, indicators_map=None):
         value = 0
+        global_efficacy = []
         if indicators_map and indicators_map.compute_nodes_count > 0:
             value = (float(indicators_map.released_compute_nodes_count) /
                      float(indicators_map.compute_nodes_count)) * 100
-
-        return efficacy.Indicator(
+        global_efficacy.append(efficacy.Indicator(
             name="released_nodes_ratio",
             description=_("Ratio of released compute nodes divided by the "
                           "total number of enabled compute nodes."),
             unit='%',
             value=value,
-        )
+        ))
+
+        return global_efficacy

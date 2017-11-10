@@ -62,7 +62,7 @@ class Efficacy(object):
         self.indicators = []
         # Used to compute the global efficacy
         self._indicators_mapping = IndicatorsMap()
-        self.global_efficacy = None
+        self.global_efficacy = []
 
     def set_efficacy_indicators(self, **indicators_map):
         """Set the efficacy indicators
