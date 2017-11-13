@@ -57,7 +57,7 @@
           "state": "SUCCEEDED"
         }
       },
-      "global_efficacy": {},
+      "global_efficacy": [],
       "state": "CANCELLING"
     }
   },

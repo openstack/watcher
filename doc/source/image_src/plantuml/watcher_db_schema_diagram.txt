@@ -75,7 +75,7 @@ table(action_plans) {
     foreign_key("strategy_id : Integer")
     uuid : String[36]
     state : String[20], nullable
-    global_efficacy : JSONEncodedDict, nullable
+    global_efficacy : JSONEncodedList, nullable
 
     created_at : DateTime
     updated_at : DateTime

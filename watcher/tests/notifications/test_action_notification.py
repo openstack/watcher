@@ -95,11 +95,11 @@ class TestActionNotification(base.DbTestCase):
                     'state': 'ONGOING',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.0',
+                        'watcher_object.version': '1.1',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                            'global_efficacy': {},
+                            'global_efficacy': [],
                             'created_at': '2016-10-18T09:52:05Z',
                             'updated_at': None,
                             'state': 'ONGOING',
@@ -147,11 +147,11 @@ class TestActionNotification(base.DbTestCase):
                     'state': 'PENDING',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.0',
+                        'watcher_object.version': '1.1',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                            'global_efficacy': {},
+                            'global_efficacy': [],
                             'created_at': '2016-10-18T09:52:05Z',
                             'updated_at': None,
                             'state': 'ONGOING',
@@ -201,11 +201,11 @@ class TestActionNotification(base.DbTestCase):
                     'state': 'DELETED',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.0',
+                        'watcher_object.version': '1.1',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                            'global_efficacy': {},
+                            'global_efficacy': [],
                             'created_at': '2016-10-18T09:52:05Z',
                             'updated_at': None,
                             'state': 'ONGOING',
@@ -257,11 +257,11 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'PENDING',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.0',
+                            'watcher_object.version': '1.1',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                                'global_efficacy': {},
+                                'global_efficacy': [],
                                 'created_at': '2016-10-18T09:52:05Z',
                                 'updated_at': None,
                                 'state': 'ONGOING',
@@ -330,11 +330,11 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'FAILED',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.0',
+                            'watcher_object.version': '1.1',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                                'global_efficacy': {},
+                                'global_efficacy': [],
                                 'created_at': '2016-10-18T09:52:05Z',
                                 'updated_at': None,
                                 'state': 'ONGOING',
@@ -387,11 +387,11 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'PENDING',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.0',
+                            'watcher_object.version': '1.1',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                                'global_efficacy': {},
+                                'global_efficacy': [],
                                 'created_at': '2016-10-18T09:52:05Z',
                                 'updated_at': None,
                                 'state': 'ONGOING',
@@ -460,11 +460,11 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'FAILED',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.0',
+                            'watcher_object.version': '1.1',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
-                                'global_efficacy': {},
+                                'global_efficacy': [],
                                 'created_at': '2016-10-18T09:52:05Z',
                                 'updated_at': None,
                                 'state': 'ONGOING',

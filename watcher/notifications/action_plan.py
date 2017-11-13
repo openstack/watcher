@@ -45,12 +45,13 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
     }
 
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed 'global_efficacy' type Dictionary to List
+    VERSION = '1.1'
 
     fields = {
         'uuid': wfields.UUIDField(),
         'state': wfields.StringField(),
-        'global_efficacy': wfields.FlexibleDictField(nullable=True),
+        'global_efficacy': wfields.FlexibleListOfDictField(nullable=True),
         'audit_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
 
@@ -80,7 +81,8 @@ class ActionPlanPayload(TerseActionPlanPayload):
     }
 
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Vesrsion 1.1: changed global_efficacy type
+    VERSION = '1.1'
 
     fields = {
         'audit': wfields.ObjectField('TerseAuditPayload'),
@@ -112,7 +114,8 @@ class ActionPlanStateUpdatePayload(notificationbase.NotificationPayloadBase):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanCreatePayload(ActionPlanPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed global_efficacy_type
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
@@ -125,7 +128,8 @@ class ActionPlanCreatePayload(ActionPlanPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanUpdatePayload(ActionPlanPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed global_efficacy_type
+    VERSION = '1.1'
     fields = {
         'state_update': wfields.ObjectField('ActionPlanStateUpdatePayload'),
     }
@@ -141,7 +145,8 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanActionPayload(ActionPlanPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed global_efficacy_type
+    VERSION = '1.1'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -157,7 +162,8 @@ class ActionPlanActionPayload(ActionPlanPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanDeletePayload(ActionPlanPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed global_efficacy_type
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
@@ -170,7 +176,8 @@ class ActionPlanDeletePayload(ActionPlanPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanCancelPayload(ActionPlanPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Changed global_efficacy_type
+    VERSION = '1.1'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
