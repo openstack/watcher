@@ -33,10 +33,6 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         super(FakerModelCollector, self).__init__(config)
 
     @property
-    def audit_scope_handler(self):
-        return None
-
-    @property
     def notification_endpoints(self):
         return []
 
@@ -51,6 +47,9 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
     def load_model(self, filename):
         return modelroot.ModelRoot.from_xml(self.load_data(filename))
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
 
     def execute(self):
         return self._cluster_data_model or self.build_scenario_1()
@@ -149,10 +148,6 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
         super(FakerStorageModelCollector, self).__init__(config)
 
     @property
-    def audit_scope_handler(self):
-        return None
-
-    @property
     def notification_endpoints(self):
         return []
 
@@ -167,6 +162,9 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
     def load_model(self, filename):
         return modelroot.StorageModelRoot.from_xml(self.load_data(filename))
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
 
     def execute(self):
         return self._cluster_data_model or self.build_scenario_1()

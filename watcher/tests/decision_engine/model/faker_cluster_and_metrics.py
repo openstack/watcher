@@ -33,12 +33,11 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         super(FakerModelCollector, self).__init__(config)
 
     @property
-    def audit_scope_handler(self):
-        return None
-
-    @property
     def notification_endpoints(self):
         return []
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
 
     def execute(self):
         return self.generate_scenario_1()

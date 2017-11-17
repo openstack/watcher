@@ -140,13 +140,6 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         super(NovaClusterDataModelCollector, self).__init__(config, osc)
 
     @property
-    def audit_scope_handler(self):
-        if not self._audit_scope_handler:
-            self._audit_scope_handler = compute_scope.ComputeScope(
-                self._audit_scope, self.config)
-        return self._audit_scope_handler
-
-    @property
     def notification_endpoints(self):
         """Associated notification endpoints
 
@@ -165,6 +158,11 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             nova.LegacyInstanceDeletedEnd(self),
             nova.LegacyLiveMigratedEnd(self),
         ]
+
+    def get_audit_scope_handler(self, audit_scope):
+        self._audit_scope_handler = compute_scope.ComputeScope(
+            audit_scope, self.config)
+        return self._audit_scope_handler
 
     def execute(self):
         """Build the compute cluster data model"""
