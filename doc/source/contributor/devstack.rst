@@ -37,7 +37,7 @@ Detailed DevStack Instructions
    needed (i.e., no computes are needed if you want to just experiment with
    the Watcher services). These servers can be VMs running on your local
    machine via VirtualBox if you prefer. DevStack currently recommends that
-   you use Ubuntu 14.04 LTS. The servers should also have connections to the
+   you use Ubuntu 16.04 LTS. The servers should also have connections to the
    same network such that they are all able to communicate with one another.
 
 #. For each server, clone the DevStack repository and create the stack user::
