@@ -37,4 +37,3 @@ LOG.debug("Configuration:")
 CONF.log_opt_values(LOG, log.DEBUG)
 
 application = app.VersionSelectorApplication()
-
