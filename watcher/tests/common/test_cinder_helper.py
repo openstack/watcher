@@ -136,33 +136,6 @@ class TestCinderHelper(base.TestCase):
         volume.volume_type = kwargs.get('volume_type', 'fake_type')
         return volume
 
-    def test_can_cold_success(self, mock_cinder):
-        cinder_util = cinder_helper.CinderHelper()
-
-        volume = self.fake_volume()
-        cinder_util.cinder.volumes.get.return_value = volume
-        result = cinder_util.can_cold(volume)
-        self.assertTrue(result)
-
-    def test_can_cold_fail(self, mock_cinder):
-        cinder_util = cinder_helper.CinderHelper()
-
-        volume = self.fake_volume(status='in-use')
-        cinder_util.cinder.volumes.get.return_value = volume
-        result = cinder_util.can_cold(volume)
-        self.assertFalse(result)
-
-        volume = self.fake_volume(snapshot_id='snapshot_id')
-        cinder_util.cinder.volumes.get.return_value = volume
-        result = cinder_util.can_cold(volume)
-        self.assertFalse(result)
-
-        volume = self.fake_volume()
-        setattr(volume, 'os-vol-host-attr:host', 'host@backend#pool')
-        cinder_util.cinder.volumes.get.return_value = volume
-        result = cinder_util.can_cold(volume, 'host@backend#pool')
-        self.assertFalse(result)
-
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_migrate_success(self, mock_cinder):
 

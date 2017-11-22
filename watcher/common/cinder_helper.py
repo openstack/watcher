@@ -111,23 +111,6 @@ class CinderHelper(object):
             return True
         return False
 
-    def can_cold(self, volume, host=None):
-        """Judge volume can be migrated"""
-        can_cold = False
-        status = self.get_volume(volume).status
-        snapshot = self._has_snapshot(volume)
-
-        same_host = False
-        if host and getattr(volume, 'os-vol-host-attr:host') == host:
-            same_host = True
-
-        if (status == 'available' and
-                snapshot is False and
-                same_host is False):
-            can_cold = True
-
-        return can_cold
-
     def get_deleting_volume(self, volume):
         volume = self.get_volume(volume)
         all_volume = self.get_volume_list()

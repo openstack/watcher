@@ -36,13 +36,16 @@ class VolumeMigrate(base.BaseAction):
 
     By using this action, you will be able to migrate cinder volume.
     Migration type 'swap' can only be used for migrating attached volume.
-    Migration type 'cold' can only be used for migrating detached volume.
+    Migration type 'migrate' can be used for migrating detached volume to
+    the pool of same volume type.
+    Migration type 'retype' can be used for changing volume type of
+    detached volume.
 
     The action schema is::
 
         schema = Schema({
             'resource_id': str,  # should be a UUID
-            'migration_type': str,  # choices -> "swap", "cold"
+            'migration_type': str,  # choices -> "swap", "migrate","retype"
             'destination_node': str,
             'destination_type': str,
         })
@@ -60,7 +63,8 @@ class VolumeMigrate(base.BaseAction):
 
     MIGRATION_TYPE = 'migration_type'
     SWAP = 'swap'
-    COLD = 'cold'
+    RETYPE = 'retype'
+    MIGRATE = 'migrate'
     DESTINATION_NODE = "destination_node"
     DESTINATION_TYPE = "destination_type"
 
@@ -85,7 +89,7 @@ class VolumeMigrate(base.BaseAction):
                 },
                 'migration_type': {
                     'type': 'string',
-                    "enum": ["swap", "cold"]
+                    "enum": ["swap", "retype", "migrate"]
                 },
                 'destination_node': {
                     "anyof": [
@@ -126,20 +130,6 @@ class VolumeMigrate(base.BaseAction):
     @property
     def destination_type(self):
         return self.input_parameters.get(self.DESTINATION_TYPE)
-
-    def _cold_migrate(self, volume, dest_node, dest_type):
-        if not self.cinder_util.can_cold(volume, dest_node):
-            raise exception.Invalid(
-                message=(_("Invalid state for cold migration")))
-
-        if dest_node:
-            return self.cinder_util.migrate(volume, dest_node)
-        elif dest_type:
-            return self.cinder_util.retype(volume, dest_type)
-        else:
-            raise exception.Invalid(
-                message=(_("destination host or destination type is "
-                           "required when migration type is cold")))
 
     def _can_swap(self, volume):
         """Judge volume can be swapped"""
@@ -212,12 +202,14 @@ class VolumeMigrate(base.BaseAction):
 
         try:
             volume = self.cinder_util.get_volume(volume_id)
-            if self.migration_type == self.COLD:
-                return self._cold_migrate(volume, dest_node, dest_type)
-            elif self.migration_type == self.SWAP:
+            if self.migration_type == self.SWAP:
                 if dest_node:
                     LOG.warning("dest_node is ignored")
                 return self._swap_volume(volume, dest_type)
+            elif self.migration_type == self.RETYPE:
+                return self.cinder_util.retype(volume, dest_type)
+            elif self.migration_type == self.MIGRATE:
+                return self.cinder_util.migrate(volume, dest_node)
             else:
                 raise exception.Invalid(
                     message=(_("Migration of type '%(migration_type)s' is not "

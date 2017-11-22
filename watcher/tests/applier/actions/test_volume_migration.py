@@ -84,7 +84,7 @@ class TestMigration(base.TestCase):
         self.action_swap.input_parameters = self.input_parameters_swap
 
         self.input_parameters_migrate = {
-            "migration_type": "cold",
+            "migration_type": "migrate",
             "destination_node": "storage1-poolname",
             "destination_type": "",
             baction.BaseAction.RESOURCE_ID: self.VOLUME_UUID,
@@ -93,7 +93,7 @@ class TestMigration(base.TestCase):
         self.action_migrate.input_parameters = self.input_parameters_migrate
 
         self.input_parameters_retype = {
-            "migration_type": "cold",
+            "migration_type": "retype",
             "destination_node": "",
             "destination_type": "storage1-typename",
             baction.BaseAction.RESOURCE_ID: self.VOLUME_UUID,
@@ -130,7 +130,7 @@ class TestMigration(base.TestCase):
     def test_parameters_migrate(self):
         params = {baction.BaseAction.RESOURCE_ID:
                   self.VOLUME_UUID,
-                  self.action.MIGRATION_TYPE: 'cold',
+                  self.action.MIGRATION_TYPE: 'migrate',
                   self.action.DESTINATION_NODE: 'node-1',
                   self.action.DESTINATION_TYPE: None}
         self.action_migrate.input_parameters = params
@@ -139,7 +139,7 @@ class TestMigration(base.TestCase):
     def test_parameters_retype(self):
         params = {baction.BaseAction.RESOURCE_ID:
                   self.VOLUME_UUID,
-                  self.action.MIGRATION_TYPE: 'cold',
+                  self.action.MIGRATION_TYPE: 'retype',
                   self.action.DESTINATION_NODE: None,
                   self.action.DESTINATION_TYPE: 'type-1'}
         self.action_retype.input_parameters = params
@@ -157,7 +157,6 @@ class TestMigration(base.TestCase):
     def test_migrate_success(self):
         volume = self.fake_volume()
 
-        self.m_c_helper.can_cold.return_value = True
         self.m_c_helper.get_volume.return_value = volume
         result = self.action_migrate.execute()
         self.assertTrue(result)
@@ -166,16 +165,9 @@ class TestMigration(base.TestCase):
             "storage1-poolname"
         )
 
-    def test_migrate_fail(self):
-        self.m_c_helper.can_cold.return_value = False
-        result = self.action_migrate.execute()
-        self.assertFalse(result)
-        self.m_c_helper.migrate.assert_not_called()
-
     def test_retype_success(self):
         volume = self.fake_volume()
 
-        self.m_c_helper.can_cold.return_value = True
         self.m_c_helper.get_volume.return_value = volume
         result = self.action_retype.execute()
         self.assertTrue(result)
@@ -183,12 +175,6 @@ class TestMigration(base.TestCase):
             volume,
             "storage1-typename",
         )
-
-    def test_retype_fail(self):
-        self.m_c_helper.can_cold.return_value = False
-        result = self.action_migrate.execute()
-        self.assertFalse(result)
-        self.m_c_helper.migrate.assert_not_called()
 
     def test_swap_success(self):
         volume = self.fake_volume(
