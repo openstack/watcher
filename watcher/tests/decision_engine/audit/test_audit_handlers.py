@@ -377,7 +377,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler = continuous.ContinuousAuditHandler()
         self.audits[0].next_run_time = (datetime.datetime.now() -
                                         datetime.timedelta(seconds=1800))
-        m_is_inactive.return_value = True
+        m_is_inactive.return_value = False
         m_get_jobs.return_value = None
 
         audit_handler.execute_audit(self.audits[0], self.context)

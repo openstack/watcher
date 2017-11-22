@@ -66,7 +66,7 @@ class ContinuousAuditHandler(base.AuditHandler):
                 [job for job in self.scheduler.get_jobs()
                  if job.name == 'execute_audit' and
                  job.args[0].uuid == audit.uuid][0].remove()
-                return True
+            return True
 
         return False
 
@@ -131,6 +131,9 @@ class ContinuousAuditHandler(base.AuditHandler):
         scheduler_job_args = [
             job.args for job in self.scheduler.get_jobs()
             if job.name == 'execute_audit']
+        for args in scheduler_job_args:
+            if self._is_audit_inactive(args[0]):
+                scheduler_job_args.remove(args)
         for audit in audits:
             # if audit is not presented in scheduled audits yet.
             if audit.uuid not in [arg[0].uuid for arg in scheduler_job_args]:
