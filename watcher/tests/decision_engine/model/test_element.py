@@ -82,7 +82,7 @@ class TestStorageElement(base.TestCase):
                 'zone': 'zone',
                 'status': 'enabled',
                 'state': 'up',
-                'volume_type': 'volume_type',
+                'volume_type': ['volume_type'],
             })),
         ("Pool_with_all_fields", dict(
             cls=element.Pool,

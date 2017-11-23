@@ -112,7 +112,7 @@ class TestCinderHelper(base.TestCase):
         volume_type_name = cinder_util.get_volume_type_by_backendname(
             'backend')
 
-        self.assertEqual(volume_type_name, volume_type1.name)
+        self.assertEqual(volume_type_name[0], volume_type1.name)
 
     def test_get_volume_type_by_backendname_with_no_backend_exist(
             self, mock_cinder):
@@ -122,7 +122,7 @@ class TestCinderHelper(base.TestCase):
         volume_type_name = cinder_util.get_volume_type_by_backendname(
             'nobackend')
 
-        self.assertEqual("", volume_type_name)
+        self.assertEqual([], volume_type_name)
 
     @staticmethod
     def fake_volume(**kwargs):
