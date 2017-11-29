@@ -228,7 +228,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param node: node object
         :return: None
         """
-        params = {'state': element.ServiceState.DISABLED.value}
+        params = {'state': element.ServiceState.DISABLED.value,
+                  'disabled_reason': self.REASON_FOR_DISABLE}
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,

@@ -248,7 +248,8 @@ class ModelBuilder(object):
             "disk_capacity": node.local_gb,
             "vcpus": node.vcpus,
             "state": node.state,
-            "status": node.status}
+            "status": node.status,
+            "disabled_reason": compute_service.disabled_reason}
 
         compute_node = element.ComputeNode(**node_attributes)
         # compute_node = self._build_node("physical", "compute", "hypervisor",

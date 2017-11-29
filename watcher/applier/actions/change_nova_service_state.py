@@ -36,15 +36,20 @@ class ChangeNovaServiceState(base.BaseAction):
         schema = Schema({
          'resource_id': str,
          'state': str,
+         'disabled_reason': str,
         })
 
     The `resource_id` references a nova-compute service name (list of available
     nova-compute services is returned by this command: ``nova service-list
     --binary nova-compute``).
     The `state` value should either be `ONLINE` or `OFFLINE`.
+    The `disabled_reason` references the reason why Watcher disables this
+    nova-compute service. The value should be with `watcher_` prefix, such as
+    `watcher_disabled`, `watcher_maintaining`.
     """
 
     STATE = 'state'
+    REASON = 'disabled_reason'
 
     @property
     def schema(self):
@@ -61,6 +66,10 @@ class ChangeNovaServiceState(base.BaseAction):
                              element.ServiceState.OFFLINE.value,
                              element.ServiceState.ENABLED.value,
                              element.ServiceState.DISABLED.value]
+                },
+                'disabled_reason': {
+                    'type': 'string',
+                    "minlength": 1
                 }
             },
             'required': ['resource_id', 'state'],
@@ -74,6 +83,10 @@ class ChangeNovaServiceState(base.BaseAction):
     @property
     def state(self):
         return self.input_parameters.get(self.STATE)
+
+    @property
+    def reason(self):
+        return self.input_parameters.get(self.REASON)
 
     def execute(self):
         target_state = None
@@ -100,7 +113,7 @@ class ChangeNovaServiceState(base.BaseAction):
         if state is True:
             return nova.enable_service_nova_compute(self.host)
         else:
-            return nova.disable_service_nova_compute(self.host)
+            return nova.disable_service_nova_compute(self.host, self.reason)
 
     def pre_condition(self):
         pass

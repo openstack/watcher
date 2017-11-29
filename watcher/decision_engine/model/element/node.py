@@ -36,8 +36,8 @@ class ComputeNode(compute_resource.ComputeResource):
         "id": wfields.StringField(),
         "hostname": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
+        "disabled_reason": wfields.StringField(nullable=True),
         "state": wfields.StringField(default=ServiceState.ONLINE.value),
-
         "memory": wfields.NonNegativeIntegerField(),
         "disk": wfields.IntegerField(),
         "disk_capacity": wfields.NonNegativeIntegerField(),

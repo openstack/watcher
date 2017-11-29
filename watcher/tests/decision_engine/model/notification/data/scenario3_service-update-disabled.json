@@ -10,7 +10,7 @@
             "last_seen_up": "2012-10-29T13:42:05Z",
             "binary": "nova-compute",
             "topic": "compute",
-            "disabled_reason": null,
+            "disabled_reason": "watcher_disabled",
             "report_count": 1,
             "forced_down": true,
             "version": 15

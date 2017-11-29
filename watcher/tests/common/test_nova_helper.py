@@ -349,13 +349,13 @@ class TestNovaHelper(base.TestCase):
                                           mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
         nova_services = nova_util.nova.services
-        nova_services.disable.return_value = mock.MagicMock(
+        nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='enabled')
 
         result = nova_util.disable_service_nova_compute('nanjing')
         self.assertFalse(result)
 
-        nova_services.disable.return_value = mock.MagicMock(
+        nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='disabled')
 
         result = nova_util.disable_service_nova_compute('nanjing')

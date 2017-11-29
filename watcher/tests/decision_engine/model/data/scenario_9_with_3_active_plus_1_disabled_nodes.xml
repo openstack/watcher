@@ -10,7 +10,7 @@
   <ComputeNode hostname="hostname_2" uuid="Node_2" id="2" state="up" human_id="" status="enabled" vcpus="16" disk="250" disk_capacity="250" memory="64">
     <Instance human_id="" state="active" uuid="INSTANCE_4" vcpus="2" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
   </ComputeNode>
-  <ComputeNode hostname="hostname_3" uuid="Node_3" id="3" state="up" human_id="" status="disabled" vcpus="16" disk="250" disk_capacity="250" memory="64">
+  <ComputeNode hostname="hostname_3" uuid="Node_3" id="3" state="up" human_id="" status="disabled" disabled_reason='watcher_disabled' vcpus="16" disk="250" disk_capacity="250" memory="64">
     <Instance human_id="" state="active" uuid="INSTANCE_5" vcpus="2" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
   </ComputeNode>
 </ModelRoot>
