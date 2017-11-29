@@ -38,10 +38,6 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
         super(CinderClusterDataModelCollector, self).__init__(config, osc)
 
     @property
-    def audit_scope_handler(self):
-        return None
-
-    @property
     def notification_endpoints(self):
         """Associated notification endpoints
 
@@ -57,6 +53,9 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
             cinder.VolumeDetachEnd(self),
             cinder.VolumeResizeEnd(self)
         ]
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
 
     def execute(self):
         """Build the storage cluster data model"""

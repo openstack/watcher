@@ -24,12 +24,11 @@ from watcher.tests import base as test_base
 class DummyClusterDataModelCollector(base.BaseClusterDataModelCollector):
 
     @property
-    def audit_scope_handler(self):
-        return None
-
-    @property
     def notification_endpoints(self):
         return []
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
 
     def execute(self):
         model = model_root.ModelRoot()
