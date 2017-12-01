@@ -187,7 +187,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             cfg.StrOpt(
                 "datasource",
                 help="Data source to use in order to query the needed metrics",
-                default="ceilometer",
+                default="gnocchi",
                 choices=["ceilometer", "gnocchi"])
         ]
 
