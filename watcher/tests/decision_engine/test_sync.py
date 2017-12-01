@@ -363,25 +363,25 @@ class TestSyncer(base.DbTestCase):
         action_plan1 = objects.ActionPlan(
             self.ctx, id=1, uuid=utils.generate_uuid(),
             audit_id=audit1.id, strategy_id=strategy1.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
         # Stale after syncing because the goal of the audit has been modified
         # (compared to the defined fake goals)
         action_plan2 = objects.ActionPlan(
             self.ctx, id=2, uuid=utils.generate_uuid(),
             audit_id=audit2.id, strategy_id=strategy2.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
         # Stale after syncing because the strategy has been modified
         # (compared to the defined fake strategies)
         action_plan3 = objects.ActionPlan(
             self.ctx, id=3, uuid=utils.generate_uuid(),
             audit_id=audit3.id, strategy_id=strategy3.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
         # Stale after syncing because both the strategy and the related audit
         # have been modified (compared to the defined fake goals/strategies)
         action_plan4 = objects.ActionPlan(
             self.ctx, id=4, uuid=utils.generate_uuid(),
             audit_id=audit4.id, strategy_id=strategy4.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
 
         action_plan1.create()
         action_plan2.create()
@@ -571,12 +571,12 @@ class TestSyncer(base.DbTestCase):
         action_plan1 = objects.ActionPlan(
             self.ctx, id=1, uuid=utils.generate_uuid(),
             audit_id=audit1.id, strategy_id=strategy1.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
         # Stale after syncing because its related goal has been soft deleted
         action_plan2 = objects.ActionPlan(
             self.ctx, id=2, uuid=utils.generate_uuid(),
             audit_id=audit2.id, strategy_id=strategy2.id,
-            state='DOESNOTMATTER', global_efficacy={})
+            state='DOESNOTMATTER', global_efficacy=[])
 
         action_plan1.create()
         action_plan2.create()

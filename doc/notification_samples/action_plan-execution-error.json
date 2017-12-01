@@ -58,7 +58,7 @@
           "state": "PENDING"
         }
       },
-      "global_efficacy": {},
+      "global_efficacy": [],
       "state": "ONGOING"
     }
   },

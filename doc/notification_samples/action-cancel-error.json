@@ -30,7 +30,7 @@
         "watcher_object.name": "TerseActionPlanPayload",
         "watcher_object.data": {
           "uuid": "76be87bd-3422-43f9-93a0-e85a577e3061",
-          "global_efficacy": {},
+          "global_efficacy": [],
           "created_at": "2016-10-18T09:52:05Z",
           "updated_at": null,
           "state": "CANCELLING",

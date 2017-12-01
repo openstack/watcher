@@ -71,9 +71,9 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
-                    "global_efficacy": {},
+                    "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -148,9 +148,9 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
-                    "global_efficacy": {},
+                    "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -217,9 +217,9 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.0",
+                "watcher_object.version": "1.1",
                 "watcher_object.data": {
-                    "global_efficacy": {},
+                    "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
                     "strategy": {
                         "watcher_object.namespace": "watcher",
@@ -315,7 +315,7 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "audit_type": "ONESHOT"
                             }
                         },
-                        "global_efficacy": {},
+                        "global_efficacy": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
@@ -338,7 +338,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification
@@ -404,7 +404,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             "watcher_object.namespace": "watcher",
                             "watcher_object.version": "1.2"
                         },
-                        "global_efficacy": {},
+                        "global_efficacy": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
@@ -427,7 +427,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification
@@ -478,7 +478,7 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "audit_type": "ONESHOT"
                             }
                         },
-                        "global_efficacy": {},
+                        "global_efficacy": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
@@ -501,7 +501,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanCancelPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification
@@ -567,7 +567,7 @@ class TestActionPlanNotification(base.DbTestCase):
                             "watcher_object.namespace": "watcher",
                             "watcher_object.version": "1.2"
                         },
-                        "global_efficacy": {},
+                        "global_efficacy": [],
                         "state": "ONGOING",
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
@@ -590,7 +590,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanCancelPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.0"
+                    "watcher_object.version": "1.1"
                 }
             },
             notification
