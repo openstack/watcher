@@ -216,3 +216,28 @@ class SavingEnergy(base.Goal):
     def get_efficacy_specification(cls):
         """The efficacy spec for the current goal"""
         return specs.Unclassified()
+
+
+class HardwareMaintenance(base.Goal):
+    """HardwareMaintenance
+
+    This goal is to migrate instances and volumes on a set of compute nodes
+    and storage from nodes under maintenance
+    """
+
+    @classmethod
+    def get_name(cls):
+        return "hardware_maintenance"
+
+    @classmethod
+    def get_display_name(cls):
+        return _("Hardware Maintenance")
+
+    @classmethod
+    def get_translatable_display_name(cls):
+        return "Hardware Maintenance"
+
+    @classmethod
+    def get_efficacy_specification(cls):
+        """The efficacy spec for the current goal"""
+        return specs.HardwareMaintenance()

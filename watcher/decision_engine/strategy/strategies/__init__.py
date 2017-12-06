@@ -28,6 +28,8 @@ from watcher.decision_engine.strategy.strategies import \
     vm_workload_consolidation
 from watcher.decision_engine.strategy.strategies import workload_balance
 from watcher.decision_engine.strategy.strategies import workload_stabilization
+from watcher.decision_engine.strategy.strategies import zone_migration
+
 
 Actuator = actuation.Actuator
 BasicConsolidation = basic_consolidation.BasicConsolidation
@@ -41,8 +43,10 @@ WorkloadBalance = workload_balance.WorkloadBalance
 WorkloadStabilization = workload_stabilization.WorkloadStabilization
 UniformAirflow = uniform_airflow.UniformAirflow
 NoisyNeighbor = noisy_neighbor.NoisyNeighbor
+ZoneMigration = zone_migration.ZoneMigration
 
 __all__ = ("Actuator", "BasicConsolidation", "OutletTempControl",
            "DummyStrategy", "DummyWithScorer", "VMWorkloadConsolidation",
            "WorkloadBalance", "WorkloadStabilization", "UniformAirflow",
-           "NoisyNeighbor", "SavingEnergy", "StorageCapacityBalance")
+           "NoisyNeighbor", "SavingEnergy", "StorageCapacityBalance",
+           "ZoneMigration")

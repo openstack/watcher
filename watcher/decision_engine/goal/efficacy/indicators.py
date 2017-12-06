@@ -112,3 +112,118 @@ class InstanceMigrationsCount(IndicatorSpecification):
     def schema(self):
         return voluptuous.Schema(
             voluptuous.Range(min=0), required=True)
+
+
+class LiveInstanceMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(LiveInstanceMigrateCount, self).__init__(
+            name="live_migrate_instance_count",
+            description=_("The number of instances actually live migrated."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(PlannedLiveInstanceMigrateCount, self).__init__(
+            name="planned_live_migrate_instance_count",
+            description=_("The number of instances planned to live migrate."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class ColdInstanceMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(ColdInstanceMigrateCount, self).__init__(
+            name="cold_migrate_instance_count",
+            description=_("The number of instances actually cold migrated."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class PlannedColdInstanceMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(PlannedColdInstanceMigrateCount, self).__init__(
+            name="planned_cold_migrate_instance_count",
+            description=_("The number of instances planned to cold migrate."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class VolumeMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(VolumeMigrateCount, self).__init__(
+            name="volume_migrate_count",
+            description=_("The number of detached volumes actually migrated."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class PlannedVolumeMigrateCount(IndicatorSpecification):
+    def __init__(self):
+        super(PlannedVolumeMigrateCount, self).__init__(
+            name="planned_volume_migrate_count",
+            description=_("The number of detached volumes planned"
+                          " to migrate."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class VolumeUpdateCount(IndicatorSpecification):
+    def __init__(self):
+        super(VolumeUpdateCount, self).__init__(
+            name="volume_update_count",
+            description=_("The number of attached volumes actually"
+                          " migrated."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)
+
+
+class PlannedVolumeUpdateCount(IndicatorSpecification):
+    def __init__(self):
+        super(PlannedVolumeUpdateCount, self).__init__(
+            name="planned_volume_update_count",
+            description=_("The number of attached volumes planned to"
+                          " migrate."),
+            unit=None,
+        )
+
+    @property
+    def schema(self):
+        return voluptuous.Schema(
+            voluptuous.Range(min=0), required=True)

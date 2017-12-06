@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Added strategy "Zone migration" and it's goal "Hardware maintenance".
+    The strategy migrates many instances and volumes efficiently with
+    minimum downtime automatically.
