@@ -200,11 +200,7 @@ class NovaHelper(object):
                 new_image_name = getattr(image, "name")
 
             instance_name = getattr(instance, "name")
-            flavordict = getattr(instance, "flavor")
-            # a_dict = dict([flavorstr.strip('{}').split(":"),])
-            flavor_id = flavordict["id"]
-            flavor = self.nova.flavors.get(flavor_id)
-            flavor_name = getattr(flavor, "name")
+            flavor_name = instance.flavor.get('original_name')
             keypair_name = getattr(instance, "key_name")
 
             addresses = getattr(instance, "addresses")
@@ -771,10 +767,9 @@ class NovaHelper(object):
 
         # Make sure all security groups exist
         for sec_group_name in sec_group_list:
-            try:
-                self.nova.security_groups.find(name=sec_group_name)
+            group_id = self.get_security_group_id_from_name(sec_group_name)
 
-            except nvexceptions.NotFound:
+            if not group_id:
                 LOG.debug("Security group '%s' not found " % sec_group_name)
                 return
 
@@ -820,6 +815,14 @@ class NovaHelper(object):
                         instance.id, floating_ip.ip))
 
         return instance
+
+    def get_security_group_id_from_name(self, group_name="default"):
+        """This method returns the security group of the provided group name"""
+        security_groups = self.neutron.list_security_groups(name=group_name)
+
+        security_group_id = security_groups['security_groups'][0]['id']
+
+        return security_group_id
 
     def get_network_id_from_name(self, net_name="private"):
         """This method returns the unique id of the provided network name"""
