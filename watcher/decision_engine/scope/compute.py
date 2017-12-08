@@ -147,12 +147,16 @@ class ComputeScope(base.BaseScope):
         nodes_to_remove = set()
         instances_to_exclude = []
         instance_metadata = []
+        compute_scope = []
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
-        if not self.scope:
+        for scope in self.scope:
+            compute_scope = scope.get('compute')
+
+        if not compute_scope:
             return cluster_model
 
-        for rule in self.scope:
+        for rule in compute_scope:
             if 'host_aggregates' in rule:
                 self._collect_aggregates(rule['host_aggregates'],
                                          allowed_nodes)
