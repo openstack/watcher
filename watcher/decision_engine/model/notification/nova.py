@@ -470,3 +470,30 @@ class LegacyLiveMigratedEnd(UnversionedNotificationEndpoint):
         instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.legacy_update_instance(instance, payload)
+
+
+class LegacyInstanceResizeConfirmEnd(UnversionedNotificationEndpoint):
+
+    @property
+    def filter_rule(self):
+        """Nova compute.instance.resize.confirm.end filter"""
+        return filtering.NotificationFilter(
+            publisher_id=self.publisher_id_regex,
+            event_type='compute.instance.resize.confirm.end',
+        )
+
+    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+        ctxt.request_id = metadata['message_id']
+        ctxt.project_domain = event_type
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s" %
+                 dict(event=event_type,
+                      publisher=publisher_id,
+                      metadata=metadata))
+        LOG.debug(payload)
+
+        instance_uuid = payload['instance_id']
+        node_uuid = payload.get('node')
+        instance = self.get_or_create_instance(instance_uuid, node_uuid)
+
+        self.legacy_update_instance(instance, payload)

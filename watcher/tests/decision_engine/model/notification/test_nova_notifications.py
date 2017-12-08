@@ -521,3 +521,27 @@ class TestLegacyNovaNotifications(NotificationTestCase):
         self.assertRaises(
             exception.InstanceNotFound,
             compute_model.get_instance_by_uuid, instance0_uuid)
+
+    def test_legacy_instance_resize_confirm_end(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.LegacyLiveMigratedEnd(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+
+        node = compute_model.get_node_by_instance_uuid(instance0_uuid)
+        self.assertEqual('Node_0', node.uuid)
+
+        message = self.load_message(
+            'scenario3_legacy_instance-resize-confirm-end.json')
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+        node = compute_model.get_node_by_instance_uuid(instance0_uuid)
+        self.assertEqual('Node_1', node.uuid)
+        self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)

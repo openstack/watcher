@@ -157,6 +157,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             nova.LegacyInstanceUpdated(self),
             nova.LegacyInstanceDeletedEnd(self),
             nova.LegacyLiveMigratedEnd(self),
+            nova.LegacyInstanceResizeConfirmEnd(self),
         ]
 
     def get_audit_scope_handler(self, audit_scope):
