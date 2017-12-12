@@ -15,11 +15,13 @@
 
 """Policy Engine For Watcher."""
 
+import sys
+
 from oslo_config import cfg
 from oslo_policy import policy
 
 from watcher.common import exception
-
+from watcher.common import policies
 
 _ENFORCER = None
 CONF = cfg.CONF
@@ -56,6 +58,7 @@ def init(policy_file=None, rules=None,
                                     default_rule=default_rule,
                                     use_conf=use_conf,
                                     overwrite=overwrite)
+        _ENFORCER.register_defaults(policies.list_rules())
     return _ENFORCER
 
 
@@ -92,3 +95,23 @@ def enforce(context, rule=None, target=None,
                   'user_id': context.user_id}
     return enforcer.enforce(rule, target, credentials,
                             do_raise=do_raise, exc=exc, *args, **kwargs)
+
+
+def get_enforcer():
+    # This method is for use by oslopolicy CLI scripts. Those scripts need the
+    # 'output-file' and 'namespace' options, but having those in sys.argv means
+    # loading the Watcher config options will fail as those are not expected
+    # to be present. So we pass in an arg list with those stripped out.
+    conf_args = []
+    # Start at 1 because cfg.CONF expects the equivalent of sys.argv[1:]
+    i = 1
+    while i < len(sys.argv):
+        if sys.argv[i].strip('-') in ['namespace', 'output-file']:
+            i += 2
+            continue
+        conf_args.append(sys.argv[i])
+        i += 1
+
+    cfg.CONF(conf_args, project='watcher')
+    init()
+    return _ENFORCER
