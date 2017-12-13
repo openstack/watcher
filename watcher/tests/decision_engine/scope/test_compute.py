@@ -242,16 +242,22 @@ class TestComputeScope(base.TestCase):
             ('INSTANCE_7', 'Node_4')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
-    def test_remove_instances_from_model(self):
+    def test_update_exclude_instances_in_model(self):
         model = self.fake_cluster.generate_scenario_1()
         compute.ComputeScope([], mock.Mock(),
-                             osc=mock.Mock()).remove_instances_from_model(
+                             osc=mock.Mock()).update_exclude_instance_in_model(
             ['INSTANCE_1', 'INSTANCE_2'], model)
         expected_edges = [
             ('INSTANCE_0', 'Node_0'),
+            ('INSTANCE_1', 'Node_0'),
+            ('INSTANCE_2', 'Node_1'),
             ('INSTANCE_3', 'Node_2'),
             ('INSTANCE_4', 'Node_2'),
             ('INSTANCE_5', 'Node_2'),
             ('INSTANCE_6', 'Node_3'),
             ('INSTANCE_7', 'Node_4')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
+        self.assertFalse(
+            model.get_instance_by_uuid('INSTANCE_0').watcher_exclude)
+        self.assertTrue(
+            model.get_instance_by_uuid('INSTANCE_1').watcher_exclude)

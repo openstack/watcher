@@ -36,6 +36,12 @@ class ComputeScope(base.BaseScope):
         node = cluster_model.get_node_by_uuid(node_name)
         cluster_model.delete_instance(instance, node)
 
+    def update_exclude_instance(self, cluster_model, instance, node_name):
+        node = cluster_model.get_node_by_uuid(node_name)
+        cluster_model.unmap_instance(instance, node)
+        instance.update({"watcher_exclude": True})
+        cluster_model.map_instance(instance, node)
+
     def _check_wildcard(self, aggregate_list):
         if '*' in aggregate_list:
             if len(aggregate_list) == 1:
@@ -108,8 +114,9 @@ class ComputeScope(base.BaseScope):
                 self.remove_instance(cluster_model, instance, node_uuid)
             cluster_model.remove_node(node)
 
-    def remove_instances_from_model(self, instances_to_remove, cluster_model):
-        for instance_uuid in instances_to_remove:
+    def update_exclude_instance_in_model(
+            self, instances_to_exclude, cluster_model):
+        for instance_uuid in instances_to_exclude:
             try:
                 node_name = cluster_model.get_node_by_instance_uuid(
                     instance_uuid).uuid
@@ -119,7 +126,7 @@ class ComputeScope(base.BaseScope):
                             " instance was hosted on.",
                             instance_uuid)
                 continue
-            self.remove_instance(
+            self.update_exclude_instance(
                 cluster_model,
                 cluster_model.get_instance_by_uuid(instance_uuid),
                 node_name)
@@ -165,7 +172,7 @@ class ComputeScope(base.BaseScope):
                     nodes=nodes_to_exclude,
                     instance_metadata=instance_metadata)
 
-        instances_to_remove = set(instances_to_exclude)
+        instances_to_exclude = set(instances_to_exclude)
         if allowed_nodes:
             nodes_to_remove = set(model_hosts) - set(allowed_nodes)
         nodes_to_remove.update(nodes_to_exclude)
@@ -174,8 +181,9 @@ class ComputeScope(base.BaseScope):
 
         if instance_metadata and self.config.check_optimize_metadata:
             self.exclude_instances_with_given_metadata(
-                instance_metadata, cluster_model, instances_to_remove)
+                instance_metadata, cluster_model, instances_to_exclude)
 
-        self.remove_instances_from_model(instances_to_remove, cluster_model)
+        self.update_exclude_instance_in_model(instances_to_exclude,
+                                              cluster_model)
 
         return cluster_model
