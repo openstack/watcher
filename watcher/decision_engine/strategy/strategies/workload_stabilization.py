@@ -28,7 +28,6 @@ It assumes that live migrations are possible in your cluster.
 """
 
 import copy
-import datetime
 import itertools
 import math
 import random
@@ -41,8 +40,6 @@ import oslo_utils
 
 from watcher._i18n import _
 from watcher.common import exception
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -73,9 +70,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :param osc: :py:class:`~.OpenStackClients` instance
         """
         super(WorkloadStabilization, self).__init__(config, osc)
-        self._ceilometer = None
-        self._gnocchi = None
-        self._nova = None
         self.weights = None
         self.metrics = None
         self.thresholds = None
@@ -169,42 +163,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "gnocchi"])
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca'])
         ]
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @property
-    def nova(self):
-        if self._nova is None:
-            self.nova = self.osc.nova()
-        return self._nova
-
-    @nova.setter
-    def nova(self, n):
-        self._nova = n
-
-    @ceilometer.setter
-    def ceilometer(self, c):
-        self._ceilometer = c
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, gnocchi):
-        self._gnocchi = gnocchi
 
     def transform_instance_cpu(self, instance_load, host_vcpus):
         """Transform instance cpu utilization to overall host cpu utilization.
@@ -227,26 +194,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         LOG.debug('get_instance_load started')
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
-            avg_meter = None
-            if self.config.datasource == "ceilometer":
-                avg_meter = self.ceilometer.statistic_aggregation(
-                    resource_id=instance.uuid,
-                    meter_name=meter,
-                    period=self.periods['instance'],
-                    aggregate='min'
-                )
-            elif self.config.datasource == "gnocchi":
-                stop_time = datetime.datetime.utcnow()
-                start_time = stop_time - datetime.timedelta(
-                    seconds=int(self.periods['instance']))
-                avg_meter = self.gnocchi.statistic_aggregation(
-                    resource_id=instance.uuid,
-                    metric=meter,
-                    granularity=self.granularity,
-                    start_time=start_time,
-                    stop_time=stop_time,
-                    aggregation='mean'
-                )
+            avg_meter = self.datasource_backend.statistic_aggregation(
+                instance.uuid, meter, self.periods['instance'], 'mean',
+                granularity=self.granularity)
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
@@ -287,25 +237,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     resource_id = "%s_%s" % (node.uuid, node.hostname)
                 else:
                     resource_id = node_id
-                if self.config.datasource == "ceilometer":
-                    avg_meter = self.ceilometer.statistic_aggregation(
-                        resource_id=resource_id,
-                        meter_name=self.instance_metrics[metric],
-                        period=self.periods['node'],
-                        aggregate='avg'
-                    )
-                elif self.config.datasource == "gnocchi":
-                    stop_time = datetime.datetime.utcnow()
-                    start_time = stop_time - datetime.timedelta(
-                        seconds=int(self.periods['node']))
-                    avg_meter = self.gnocchi.statistic_aggregation(
-                        resource_id=resource_id,
-                        metric=self.instance_metrics[metric],
-                        granularity=self.granularity,
-                        start_time=start_time,
-                        stop_time=stop_time,
-                        aggregation='mean'
-                    )
+                avg_meter = self.datasource_backend.statistic_aggregation(
+                    resource_id, self.instance_metrics[metric],
+                    self.periods['node'], 'mean', granularity=self.granularity)
 
                 if avg_meter is None:
                     if meter_name == 'hardware.memory.used':
