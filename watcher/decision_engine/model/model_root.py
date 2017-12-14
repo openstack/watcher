@@ -508,7 +508,13 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
         root = etree.fromstring(data)
         for cn in root.findall('.//StorageNode'):
-            node = element.StorageNode(**cn.attrib)
+            ndata = {}
+            for attr, val in cn.items():
+                ndata[attr] = val
+            volume_type = ndata.get('volume_type')
+            if volume_type:
+                ndata['volume_type'] = [volume_type]
+            node = element.StorageNode(**ndata)
             model.add_node(node)
 
         for p in root.findall('.//Pool'):

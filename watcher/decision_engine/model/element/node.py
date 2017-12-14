@@ -56,7 +56,7 @@ class StorageNode(storage_resource.StorageResource):
         "zone": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
         "state": wfields.StringField(default=ServiceState.ONLINE.value),
-        "volume_type": wfields.StringField()
+        "volume_type": wfields.ListOfStringsField()
     }
 
     def accept(self, visitor):

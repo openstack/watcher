@@ -182,7 +182,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
         for i in range(0, node_count):
             host = "host_{0}@backend_{0}".format(i)
             zone = "zone_{0}".format(i)
-            volume_type = "type_{0}".format(i)
+            volume_type = ["type_{0}".format(i)]
             node_attributes = {
                 "host": host,
                 "zone": zone,

@@ -287,8 +287,7 @@ class TestCinderNotifications(NotificationTestCase):
             side_effect=lambda name: return_node_mock)
 
         m_get_volume_type_by_backendname = mock.Mock(
-            side_effect=lambda name: mock.Mock('backend_2'))
-
+            side_effect=lambda name: [mock.Mock('backend_2')])
         m_cinder_helper.return_value = mock.Mock(
             get_storage_pool_by_name=m_get_storage_pool_by_name,
             get_storage_node_by_name=m_get_storage_node_by_name,
@@ -299,6 +298,7 @@ class TestCinderNotifications(NotificationTestCase):
         handler = cnotification.CapacityNotificationEndpoint(self.fake_cdmc)
 
         message = self.load_message('scenario_1_capacity_node_notfound.json')
+        # self.assertRaises(exception.StorageNodeNotFound, handler.info,
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
@@ -448,7 +448,7 @@ class TestCinderNotifications(NotificationTestCase):
             side_effect=lambda name: return_node_mock)
 
         m_get_volume_type_by_backendname = mock.Mock(
-            side_effect=lambda name: mock.Mock('backend_2'))
+            side_effect=lambda name: [mock.Mock('backend_2')])
 
         m_cinder_helper.return_value = mock.Mock(
             get_storage_pool_by_name=m_get_storage_pool_by_name,

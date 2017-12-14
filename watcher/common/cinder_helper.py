@@ -71,15 +71,13 @@ class CinderHelper(object):
         return self.cinder.volume_types.list()
 
     def get_volume_type_by_backendname(self, backendname):
+        """Retrun a list of volume type"""
         volume_type_list = self.get_volume_type_list()
 
-        volume_type = [volume_type for volume_type in volume_type_list
+        volume_type = [volume_type.name for volume_type in volume_type_list
                        if volume_type.extra_specs.get(
                            'volume_backend_name') == backendname]
-        if volume_type:
-            return volume_type[0].name
-        else:
-            return ""
+        return volume_type
 
     def get_volume(self, volume):
 
@@ -204,7 +202,7 @@ class CinderHelper(object):
         volume = self.get_volume(volume)
         dest_backend = self.backendname_from_poolname(dest_node)
         dest_type = self.get_volume_type_by_backendname(dest_backend)
-        if volume.volume_type != dest_type:
+        if volume.volume_type not in dest_type:
             raise exception.Invalid(
                 message=(_("Volume type must be same for migrating")))
 
