@@ -383,3 +383,37 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.execute_audit(self.audits[0], self.context)
         m_execute.assert_called_once_with(self.audits[0], self.context)
         self.assertIsNotNone(self.audits[0].next_run_time)
+
+    @mock.patch.object(objects.service.Service, 'list')
+    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'remove_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
+    @mock.patch.object(objects.audit.Audit, 'list')
+    def test_launch_audits_periodically_with_diff_interval(
+            self, mock_list, mock_jobs, m_add_job, m_remove_job,
+            m_engine, m_service):
+        audit_handler = continuous.ContinuousAuditHandler()
+        mock_list.return_value = self.audits
+        self.audits[0].next_run_time = (datetime.datetime.now() -
+                                        datetime.timedelta(seconds=1800))
+        m_job1 = mock.MagicMock()
+        m_job1.name = 'execute_audit'
+        m_audit = mock.MagicMock()
+        m_audit.uuid = self.audits[0].uuid
+        m_audit.interval = 60
+        m_job1.args = [m_audit]
+        mock_jobs.return_value = [m_job1]
+        m_engine.return_value = mock.MagicMock()
+        m_add_job.return_value = mock.MagicMock()
+
+        audit_handler.launch_audits_periodically()
+        m_service.assert_called()
+        m_engine.assert_called()
+        m_add_job.assert_called()
+        mock_jobs.assert_called()
+        self.assertIsNotNone(self.audits[0].next_run_time)
+        self.assertIsNone(self.audits[1].next_run_time)
+
+        audit_handler.launch_audits_periodically()
+        m_remove_job.assert_called()
