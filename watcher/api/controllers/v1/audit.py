@@ -636,4 +636,11 @@ class AuditsController(rest.RestController):
         policy.enforce(context, 'audit:update', audit_to_delete,
                        action='audit:update')
 
+        initial_state = audit_to_delete.state
+        new_state = objects.audit.State.DELETED
+        if not objects.audit.AuditStateTransitionManager(
+                ).check_transition(initial_state, new_state):
+            raise exception.DeleteError(
+                state=initial_state)
+
         audit_to_delete.soft_delete()

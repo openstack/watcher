@@ -147,6 +147,11 @@ class TestListActionPlan(api_base.FunctionalTest):
                 audit_id=audit2.id)
             action_plan_list.append(action_plan.uuid)
 
+        new_state = objects.audit.State.CANCELLED
+        self.patch_json(
+            '/audits/%s' % audit1.uuid,
+            [{'path': '/state', 'value': new_state,
+             'op': 'replace'}])
         self.delete('/audits/%s' % audit1.uuid)
 
         response = self.get_json('/action_plans')

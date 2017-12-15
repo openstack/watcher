@@ -828,6 +828,23 @@ class TestDelete(api_base.FunctionalTest):
     def test_delete_audit(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
+
+        new_state = objects.audit.State.ONGOING
+        self.patch_json(
+            '/audits/%s' % self.audit.uuid,
+            [{'path': '/state', 'value': new_state,
+             'op': 'replace'}])
+        response = self.delete('/audits/%s' % self.audit.uuid,
+                               expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+        new_state = objects.audit.State.CANCELLED
+        self.patch_json(
+            '/audits/%s' % self.audit.uuid,
+            [{'path': '/state', 'value': new_state,
+             'op': 'replace'}])
         self.delete('/audits/%s' % self.audit.uuid)
         response = self.get_json('/audits/%s' % self.audit.uuid,
                                  expect_errors=True)

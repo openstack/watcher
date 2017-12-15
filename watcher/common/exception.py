@@ -332,6 +332,10 @@ class PatchError(Invalid):
     msg_fmt = _("Couldn't apply patch '%(patch)s'. Reason: %(reason)s")
 
 
+class DeleteError(Invalid):
+    msg_fmt = _("Couldn't delete when state is '%(state)s'.")
+
+
 # decision engine
 
 class WorkflowExecutionException(WatcherException):
