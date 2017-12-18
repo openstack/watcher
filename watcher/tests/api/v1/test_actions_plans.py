@@ -309,6 +309,13 @@ class TestDelete(api_base.FunctionalTest):
         action_plan.destroy()
 
     def test_delete_action_plan_without_action(self):
+        response = self.delete('/action_plans/%s' % self.action_plan.uuid,
+                               expect_errors=True)
+        self.assertEqual(400, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+        self.action_plan.state = objects.action_plan.State.SUCCEEDED
+        self.action_plan.save()
         self.delete('/action_plans/%s' % self.action_plan.uuid)
         response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
                                  expect_errors=True)
@@ -320,6 +327,8 @@ class TestDelete(api_base.FunctionalTest):
         action = obj_utils.create_test_action(
             self.context, id=1)
 
+        self.action_plan.state = objects.action_plan.State.SUCCEEDED
+        self.action_plan.save()
         self.delete('/action_plans/%s' % self.action_plan.uuid)
         ap_response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
                                     expect_errors=True)
