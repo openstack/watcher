@@ -1,0 +1,59 @@
+{
+    "event_type": "compute.instance.rebuild.end",
+    "payload": {
+        "state_description": "",
+        "availability_zone": "nova",
+        "terminated_at": "",
+        "ephemeral_gb": 0,
+        "instance_type_id": 5,
+        "deleted_at": "",
+        "fixed_ips": [
+            {
+                "version": 4,
+                "vif_mac": "fa:16:3e:78:e1:a0",
+                "floating_ips": [],
+                "label": "test-net",
+                "meta": {},
+                "address": "192.168.200.16",
+                "type": "fixed"
+            }
+        ],
+        "instance_id": "73b09e16-35b7-4922-804e-e8f5d9b740fc",
+        "display_name": "INSTANCE_0",
+        "reservation_id": "r-jmbnz8nc",
+        "hostname": "INSTANCE_1",
+        "state": "active",
+        "progress": "",
+        "launched_at": "2017-09-13T06:10:42.751392",
+        "metadata": {},
+        "node": "Node_1",
+        "ramdisk_id": "",
+        "access_ip_v6": null,
+        "disk_gb": 20,
+        "access_ip_v4": null,
+        "kernel_id": "",
+        "image_name": "",
+        "host": "Node_1",
+        "user_id": "0c1add55e6d149108deedee780fdb540",
+        "image_ref_url": "http://10.21.1.16:9292/images/886eae2b-b41f-4340-acd1-a1b926671b0a",
+        "cell_name": "",
+        "root_gb": 20,
+        "tenant_id": "b18faa9487864b20b61386438b7ae2ce",
+        "created_at": "2017-09-11 09:48:05+00:00",
+        "memory_mb": 2048,
+        "instance_type": "m1.small",
+        "vcpus": 1,
+        "image_meta": {
+            "min_disk": "20",
+            "container_format": "bare",
+            "min_ram": "0",
+            "disk_format": "raw",
+            "base_image_ref": "886eae2b-b41f-4340-acd1-a1b926671b0a"
+        },
+        "architecture": null,
+        "os_type": null,
+        "instance_flavor_id": "2"
+    },
+    "priority": "INFO",
+    "publisher_id": "compute.Node_1"
+}
