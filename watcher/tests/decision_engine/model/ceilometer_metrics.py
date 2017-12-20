@@ -158,12 +158,13 @@ class FakeCeilometerMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_usage_node_cpu(uuid):
+    def get_usage_node_cpu(*args, **kwargs):
         """The last VM CPU usage values to average
 
         :param uuid:00
         :return:
         """
+        uuid = args[0]
         # query influxdb stream
 
         # compute in stream
@@ -234,12 +235,13 @@ class FakeCeilometerMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_usage_instance_cpu(uuid):
+    def get_average_usage_instance_cpu(*args, **kwargs):
         """The last VM CPU usage values to average
 
         :param uuid:00
         :return:
         """
+        uuid = args[0]
         # query influxdb stream
 
         # compute in stream

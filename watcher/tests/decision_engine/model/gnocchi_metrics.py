@@ -119,12 +119,13 @@ class FakeGnocchiMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_usage_node_cpu(uuid):
+    def get_usage_node_cpu(*args, **kwargs):
         """The last VM CPU usage values to average
 
         :param uuid: instance UUID
         :return: float value
         """
+        uuid = args[0]
         # Normalize
         mock = {}
         # node 0
@@ -155,13 +156,13 @@ class FakeGnocchiMetrics(object):
         return float(mock[str(uuid)])
 
     @staticmethod
-    def get_average_usage_instance_cpu(uuid):
+    def get_average_usage_instance_cpu(*args, **kwargs):
         """The last VM CPU usage values to average
 
         :param uuid: instance UUID
         :return: int value
         """
-
+        uuid = args[0]
         # Normalize
         mock = {}
         # node 0

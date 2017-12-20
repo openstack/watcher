@@ -26,6 +26,13 @@ class FakeMonascaMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
+    # This method is added as temporary solution until all strategies use
+    # datasource_backend property
+    def temp_mock_get_statistics(self, metric, dimensions, period,
+                                 aggregate='avg', granularity=300):
+        return self.mock_get_statistics(metric, dimensions,
+                                        period, aggregate='avg')
+
     def mock_get_statistics(self, meter_name, dimensions, period,
                             aggregate='avg'):
         resource_id = dimensions.get(
@@ -121,7 +128,11 @@ class FakeMonascaMetrics(object):
                  'statistics': [[float(measurements[str(uuid)])]]}]
 
     @staticmethod
-    def get_usage_node_cpu(uuid):
+    def get_usage_node_cpu(*args, **kwargs):
+        uuid = args[0]
+        if type(uuid) is dict:
+            uuid = uuid.get("resource_id") or uuid.get("hostname")
+        uuid = uuid.rsplit('_', 2)[0]
         """The last VM CPU usage values to average
 
         :param uuid:00
@@ -153,8 +164,16 @@ class FakeMonascaMetrics(object):
             # measurements[uuid] = random.randint(1, 4)
             measurements[uuid] = 8
 
-        return [{'columns': ['avg'],
-                 'statistics': [[float(measurements[str(uuid)])]]}]
+        statistics = [
+            {'columns': ['avg'],
+             'statistics': [[float(measurements[str(uuid)])]]}]
+        cpu_usage = None
+        for stat in statistics:
+            avg_col_idx = stat['columns'].index('avg')
+            values = [r[avg_col_idx] for r in stat['statistics']]
+            value = float(sum(values)) / len(values)
+            cpu_usage = value
+        return cpu_usage
         # return float(measurements[str(uuid)])
 
     @staticmethod
@@ -180,7 +199,10 @@ class FakeMonascaMetrics(object):
                  'statistics': [[float(measurements[str(uuid)])]]}]
 
     @staticmethod
-    def get_average_usage_instance_cpu(uuid):
+    def get_average_usage_instance_cpu(*args, **kwargs):
+        uuid = args[0]
+        if type(uuid) is dict:
+            uuid = uuid.get("resource_id") or uuid.get("hostname")
         """The last VM CPU usage values to average
 
         :param uuid:00
@@ -211,8 +233,16 @@ class FakeMonascaMetrics(object):
             # measurements[uuid] = random.randint(1, 4)
             measurements[uuid] = 8
 
-        return [{'columns': ['avg'],
-                 'statistics': [[float(measurements[str(uuid)])]]}]
+        statistics = [
+            {'columns': ['avg'],
+             'statistics': [[float(measurements[str(uuid)])]]}]
+        cpu_usage = None
+        for stat in statistics:
+            avg_col_idx = stat['columns'].index('avg')
+            values = [r[avg_col_idx] for r in stat['statistics']]
+            value = float(sum(values)) / len(values)
+            cpu_usage = value
+        return cpu_usage
 
     @staticmethod
     def get_average_usage_instance_memory(uuid):

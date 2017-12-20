@@ -155,7 +155,7 @@ class MonascaHelper(base.DataSourceBase):
 
         statistics = self.statistic_aggregation(
             meter_name=metric_name,
-            dimensions=dict(hostname=resource_id),
+            dimensions=dict(resource_id=resource_id),
             period=period,
             aggregate=aggregate
         )

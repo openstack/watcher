@@ -35,16 +35,11 @@ migration is possible on your OpenStack cluster.
 
 """
 
-import datetime
-
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
-from watcher.datasource import monasca as mon
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -90,10 +85,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         # set default value for the efficacy
         self.efficacy = 100
-
-        self._ceilometer = None
-        self._monasca = None
-        self._gnocchi = None
 
         # TODO(jed): improve threshold overbooking?
         self.threshold_mem = 1
@@ -155,47 +146,18 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
+            cfg.ListOpt(
                 "datasource",
                 help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "monasca", "gnocchi"]),
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca']),
             cfg.BoolOpt(
                 "check_optimize_metadata",
                 help="Check optimize metadata field in instance before "
                      "migration",
                 default=False),
         ]
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, ceilometer):
-        self._ceilometer = ceilometer
-
-    @property
-    def monasca(self):
-        if self._monasca is None:
-            self.monasca = mon.MonascaHelper(osc=self.osc)
-        return self._monasca
-
-    @monasca.setter
-    def monasca(self, monasca):
-        self._monasca = monasca
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, gnocchi):
-        self._gnocchi = gnocchi
 
     def get_available_compute_nodes(self):
         default_node_scope = [element.ServiceState.ENABLED.value,
@@ -290,87 +252,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         return (score_cores + score_disk + score_memory) / 3
 
     def get_node_cpu_usage(self, node):
-        metric_name = self.METRIC_NAMES[
-            self.config.datasource]['host_cpu_usage']
-        if self.config.datasource == "ceilometer":
-            resource_id = "%s_%s" % (node.uuid, node.hostname)
-            return self.ceilometer.statistic_aggregation(
-                resource_id=resource_id,
-                meter_name=metric_name,
-                period=self.period,
-                aggregate='avg',
-            )
-        elif self.config.datasource == "gnocchi":
-            resource_id = "%s_%s" % (node.uuid, node.hostname)
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int(self.period))
-            return self.gnocchi.statistic_aggregation(
-                resource_id=resource_id,
-                metric=metric_name,
-                granularity=self.granularity,
-                start_time=start_time,
-                stop_time=stop_time,
-                aggregation='mean'
-            )
-        elif self.config.datasource == "monasca":
-            statistics = self.monasca.statistic_aggregation(
-                meter_name=metric_name,
-                dimensions=dict(hostname=node.uuid),
-                period=self.period,
-                aggregate='avg'
-            )
-            cpu_usage = None
-            for stat in statistics:
-                avg_col_idx = stat['columns'].index('avg')
-                values = [r[avg_col_idx] for r in stat['statistics']]
-                value = float(sum(values)) / len(values)
-                cpu_usage = value
-
-            return cpu_usage
-
-        raise exception.UnsupportedDataSource(
-            strategy=self.name, datasource=self.config.datasource)
+        resource_id = "%s_%s" % (node.uuid, node.hostname)
+        return self.datasource_backend.get_host_cpu_usage(
+            resource_id, self.period, 'mean', granularity=300)
 
     def get_instance_cpu_usage(self, instance):
-        metric_name = self.METRIC_NAMES[
-            self.config.datasource]['instance_cpu_usage']
-        if self.config.datasource == "ceilometer":
-            return self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid,
-                meter_name=metric_name,
-                period=self.period,
-                aggregate='avg'
-            )
-        elif self.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int(self.period))
-            return self.gnocchi.statistic_aggregation(
-                resource_id=instance.uuid,
-                metric=metric_name,
-                granularity=self.granularity,
-                start_time=start_time,
-                stop_time=stop_time,
-                aggregation='mean',
-            )
-        elif self.config.datasource == "monasca":
-            statistics = self.monasca.statistic_aggregation(
-                meter_name=metric_name,
-                dimensions=dict(resource_id=instance.uuid),
-                period=self.period,
-                aggregate='avg'
-            )
-            cpu_usage = None
-            for stat in statistics:
-                avg_col_idx = stat['columns'].index('avg')
-                values = [r[avg_col_idx] for r in stat['statistics']]
-                value = float(sum(values)) / len(values)
-                cpu_usage = value
-            return cpu_usage
-
-        raise exception.UnsupportedDataSource(
-            strategy=self.name, datasource=self.config.datasource)
+        return self.datasource_backend.get_instance_cpu_usage(
+            instance.uuid, self.period, 'mean', granularity=300)
 
     def calculate_score_node(self, node):
         """Calculate the score that represent the utilization level
