@@ -22,7 +22,7 @@ import sys
 
 from oslo_log import log
 
-from watcher.common import service as service
+from watcher.common import service
 from watcher import conf
 from watcher.decision_engine import sync
 
