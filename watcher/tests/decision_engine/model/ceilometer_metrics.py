@@ -64,12 +64,12 @@ class FakeCeilometerMetrics(object):
             result = self.get_average_usage_instance_memory_wb(resource_id)
         return result
 
-    def mock_get_statistics_nn(self, resource_id, meter_name, period,
-                               aggregate='avg'):
+    def mock_get_statistics_nn(self, resource_id, period,
+                               aggregation, granularity=300):
         result = 0.0
-        if meter_name == "cpu_l3_cache" and period == 100:
+        if period == 100:
             result = self.get_average_l3_cache_current(resource_id)
-        if meter_name == "cpu_l3_cache" and period == 200:
+        if period == 200:
             result = self.get_average_l3_cache_previous(resource_id)
         return result
 

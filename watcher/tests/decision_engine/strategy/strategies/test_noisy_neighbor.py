@@ -27,14 +27,24 @@ from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import gnocchi_metrics
 
 
 class TestNoisyNeighbor(base.TestCase):
 
+    scenarios = [
+        ("Ceilometer",
+         {"datasource": "ceilometer",
+          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
+        ("Gnocchi",
+         {"datasource": "gnocchi",
+          "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
+    ]
+
     def setUp(self):
         super(TestNoisyNeighbor, self).setUp()
         # fake metrics
-        self.fake_metrics = ceilometer_metrics.FakeCeilometerMetrics()
+        self.f_metrics = self.fake_datasource_cls()
         # fake cluster
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
@@ -44,11 +54,11 @@ class TestNoisyNeighbor(base.TestCase):
         self.m_model = p_model.start()
         self.addCleanup(p_model.stop)
 
-        p_ceilometer = mock.patch.object(
-            strategies.NoisyNeighbor, "ceilometer",
+        p_datasource = mock.patch.object(
+            strategies.NoisyNeighbor, "datasource_backend",
             new_callable=mock.PropertyMock)
-        self.m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
+        self.m_datasource = p_datasource.start()
+        self.addCleanup(p_datasource.stop)
 
         p_audit_scope = mock.patch.object(
             strategies.NoisyNeighbor, "audit_scope",
@@ -60,8 +70,8 @@ class TestNoisyNeighbor(base.TestCase):
         self.m_audit_scope.return_value = mock.Mock()
 
         self.m_model.return_value = model_root.ModelRoot()
-        self.m_ceilometer.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics_nn)
+        self.m_datasource.return_value = mock.Mock(
+            get_instance_l3_cache_usage=self.f_metrics.mock_get_statistics_nn)
         self.strategy = strategies.NoisyNeighbor(config=mock.Mock())
 
         self.strategy.input_parameters = utils.Struct()

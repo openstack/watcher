@@ -146,7 +146,9 @@ class GnocchiHelper(base.DataSourceBase):
 
     def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
                                     granularity=300):
-        raise NotImplementedError
+        meter_name = self.METRIC_MAP.get('instance_l3_cache_usage')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
 
     def get_instance_ram_allocated(self, resource_id, period, aggregate,
                                    granularity=300):

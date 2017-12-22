@@ -16,14 +16,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
-from watcher.datasource import ceilometer as ceil
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
@@ -45,17 +46,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
         super(NoisyNeighbor, self).__init__(config, osc)
 
         self.meter_name = self.METER_NAME_L3
-        self._ceilometer = None
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, c):
-        self._ceilometer = c
 
     @classmethod
     def get_name(cls):
@@ -81,32 +71,39 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
                     "default": 35.0
                 },
                 "period": {
-                    "description": "Aggregate time period of ceilometer",
+                    "description": "Aggregate time period of "
+                                   "ceilometer and gnocchi",
                     "type": "number",
                     "default": 100.0
                 },
             },
         }
 
+    @classmethod
+    def get_config_opts(cls):
+        return [
+            cfg.ListOpt(
+                "datasource",
+                help="Data source to use in order to query the needed metrics",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca'])
+        ]
+
     def get_current_and_previous_cache(self, instance):
-
         try:
-            current_cache = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid,
-                meter_name=self.meter_name, period=self.period,
-                aggregate='avg')
-
+            curr_cache = self.datasource_backend.get_instance_l3_cache_usage(
+                instance.uuid, self.period, 'mean', granularity=300)
             previous_cache = 2 * (
-                self.ceilometer.statistic_aggregation(
-                    resource_id=instance.uuid,
-                    meter_name=self.meter_name,
-                    period=2*self.period, aggregate='avg')) - current_cache
+                self.datasource_backend.get_instance_l3_cache_usage(
+                    instance.uuid, 2 * self.period,
+                    'mean', granularity=300)) - curr_cache
 
         except Exception as exc:
             LOG.exception(exc)
-            return None
+            return None, None
 
-        return current_cache, previous_cache
+        return curr_cache, previous_cache
 
     def find_priority_instance(self, instance):
 
@@ -114,7 +111,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             self.get_current_and_previous_cache(instance)
 
         if None in (current_cache, previous_cache):
-            LOG.warning("Ceilometer unable to pick L3 Cache "
+            LOG.warning("Datasource unable to pick L3 Cache "
                         "values. Skipping the instance")
             return None
 
@@ -130,7 +127,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             self.get_current_and_previous_cache(instance)
 
         if None in (noisy_current_cache, noisy_previous_cache):
-            LOG.warning("Ceilometer unable to pick "
+            LOG.warning("Datasource unable to pick "
                         "L3 Cache. Skipping the instance")
             return None
 

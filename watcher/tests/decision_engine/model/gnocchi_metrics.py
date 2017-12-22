@@ -52,6 +52,41 @@ class FakeGnocchiMetrics(object):
             result = self.get_average_power(resource_id)
         return result
 
+    def mock_get_statistics_nn(self, resource_id, period,
+                               aggregation, granularity=300):
+        result = 0.0
+        if period == 100:
+            result = self.get_average_l3_cache_current(resource_id)
+        if period == 200:
+            result = self.get_average_l3_cache_previous(resource_id)
+        return result
+
+    @staticmethod
+    def get_average_l3_cache_current(uuid):
+        """The average l3 cache used by instance"""
+        mock = {}
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 35 * oslo_utils.units.Ki
+        mock['cae81432-1631-4d4e-b29c-6f3acdcde906'] = 30 * oslo_utils.units.Ki
+        mock['INSTANCE_3'] = 40 * oslo_utils.units.Ki
+        mock['INSTANCE_4'] = 35 * oslo_utils.units.Ki
+        if uuid not in mock.keys():
+            mock[uuid] = 25 * oslo_utils.units.Ki
+        return mock[str(uuid)]
+
+    @staticmethod
+    def get_average_l3_cache_previous(uuid):
+        """The average l3 cache used by instance"""
+        mock = {}
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 34.5 * (
+            oslo_utils.units.Ki)
+        mock['cae81432-1631-4d4e-b29c-6f3acdcde906'] = 30.5 * (
+            oslo_utils.units.Ki)
+        mock['INSTANCE_3'] = 60 * oslo_utils.units.Ki
+        mock['INSTANCE_4'] = 22.5 * oslo_utils.units.Ki
+        if uuid not in mock.keys():
+            mock[uuid] = 25 * oslo_utils.units.Ki
+        return mock[str(uuid)]
+
     def mock_get_statistics_wb(self, resource_id, metric, granularity,
                                start_time, stop_time, aggregation='mean'):
         result = 0.0
