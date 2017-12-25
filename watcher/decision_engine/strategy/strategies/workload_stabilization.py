@@ -379,6 +379,16 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         migration_case.append(new_hosts)
         return migration_case
 
+    def get_current_weighted_sd(self, hosts_load):
+        """Calculate current weighted sd"""
+        current_sd = []
+        normalized_load = self.normalize_hosts_load(hosts_load)
+        for metric in self.metrics:
+            metric_sd = self.get_sd(normalized_load, metric)
+            current_sd.append(metric_sd)
+        current_sd.append(hosts_load)
+        return self.calculate_weighted_sd(current_sd[:-1])
+
     def simulate_migrations(self, hosts):
         """Make sorted list of pairs instance:dst_host"""
         def yield_nodes(nodes):
@@ -393,14 +403,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     yield nodes
 
         instance_host_map = []
-        nodes = list(self.get_available_nodes())
+        nodes = sorted(list(self.get_available_nodes()))
+        current_weighted_sd = self.get_current_weighted_sd(hosts)
         for src_host in nodes:
             src_node = self.compute_model.get_node_by_uuid(src_host)
             c_nodes = copy.copy(nodes)
             c_nodes.remove(src_host)
             node_list = yield_nodes(c_nodes)
             for instance in self.compute_model.get_node_instances(src_node):
-                min_sd_case = {'value': len(self.metrics)}
+                min_sd_case = {'value': current_weighted_sd}
                 if instance.state not in [element.InstanceState.ACTIVE.value,
                                           element.InstanceState.PAUSED.value]:
                     continue
