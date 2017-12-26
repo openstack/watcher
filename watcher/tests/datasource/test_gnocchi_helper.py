@@ -39,7 +39,7 @@ class TestGnocchiHelper(base.BaseTestCase):
         mock_gnocchi.return_value = gnocchi
 
         helper = gnocchi_helper.GnocchiHelper()
-        result = helper.statistic_aggregation(
+        result = helper._statistic_aggregation(
             resource_id='16a86790-327a-45f9-bc82-45839f062fdc',
             metric='cpu_util',
             granularity=360,
@@ -59,10 +59,96 @@ class TestGnocchiHelper(base.BaseTestCase):
 
         helper = gnocchi_helper.GnocchiHelper()
         self.assertRaises(
-            exception.InvalidParameter, helper.statistic_aggregation,
+            exception.InvalidParameter, helper._statistic_aggregation,
             resource_id='16a86790-327a-45f9-bc82-45839f062fdc',
             metric='cpu_util',
             granularity=360,
             start_time="2017-02-02T09:00:00.000000",
             stop_time=timeutils.parse_isotime("2017-02-02T10:00:00.000000"),
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_cpu_usage(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_cpu_usage('compute1', 600, 'mean', granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_cpu_usage'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_instance_cpu_usage(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_instance_cpu_usage('compute1', 600, 'mean', granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['instance_cpu_usage'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_memory_usage(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_memory_usage('compute1', 600, 'mean', granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_memory_usage'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_instance_memory_usage(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_instance_memory_usage('compute1', 600, 'mean',
+                                         granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['instance_ram_usage'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_instance_ram_allocated(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_instance_ram_allocated('compute1', 600, 'mean',
+                                          granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['instance_ram_allocated'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_instance_root_disk_allocated(self, mock_aggregation,
+                                              mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_instance_root_disk_allocated('compute1', 600, 'mean',
+                                                granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['instance_root_disk_size'], 600,
+            300, aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_outlet_temperature(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_outlet_temperature('compute1', 600, 'mean',
+                                           granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_outlet_temp'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_inlet_temperature(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_inlet_temperature('compute1', 600, 'mean',
+                                          granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_inlet_temp'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_airflow(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_airflow('compute1', 600, 'mean', granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_airflow'], 600, 300,
+            aggregation='mean')
+
+    @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
+    def test_get_host_power(self, mock_aggregation, mock_gnocchi):
+        helper = gnocchi_helper.GnocchiHelper()
+        helper.get_host_power('compute1', 600, 'mean', granularity=300)
+        mock_aggregation.assert_called_once_with(
+            'compute1', helper.METRIC_MAP['host_power'], 600, 300,
             aggregation='mean')

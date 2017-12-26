@@ -21,9 +21,13 @@ import datetime
 from monascaclient import exc
 
 from watcher.common import clients
+from watcher.datasource import base
 
 
-class MonascaHelper(object):
+class MonascaHelper(base.DataSourceBase):
+
+    NAME = 'monasca'
+    METRIC_MAP = base.DataSourceBase.METRIC_MAP['monasca']
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
@@ -106,6 +110,9 @@ class MonascaHelper(object):
             start_time, end_time, period
         )
 
+        if aggregate == 'mean':
+            aggregate = 'avg'
+
         raw_kwargs = dict(
             name=meter_name,
             start_time=start_timestamp,
@@ -122,3 +129,77 @@ class MonascaHelper(object):
             f=self.monasca.metrics.list_statistics, **kwargs)
 
         return statistics
+
+    def get_host_cpu_usage(self, resource_id, period, aggregate,
+                           granularity=None):
+        metric_name = self.METRIC_MAP.get('host_cpu_usage')
+        node_uuid = resource_id.split('_')[0]
+        statistics = self.statistic_aggregation(
+            meter_name=metric_name,
+            dimensions=dict(hostname=node_uuid),
+            period=period,
+            aggregate=aggregate
+        )
+        cpu_usage = None
+        for stat in statistics:
+            avg_col_idx = stat['columns'].index('avg')
+            values = [r[avg_col_idx] for r in stat['statistics']]
+            value = float(sum(values)) / len(values)
+            cpu_usage = value
+
+        return cpu_usage
+
+    def get_instance_cpu_usage(self, resource_id, period, aggregate,
+                               granularity=None):
+        metric_name = self.METRIC_MAP.get('instance_cpu_usage')
+
+        statistics = self.statistic_aggregation(
+            meter_name=metric_name,
+            dimensions=dict(hostname=resource_id),
+            period=period,
+            aggregate=aggregate
+        )
+        cpu_usage = None
+        for stat in statistics:
+            avg_col_idx = stat['columns'].index('avg')
+            values = [r[avg_col_idx] for r in stat['statistics']]
+            value = float(sum(values)) / len(values)
+            cpu_usage = value
+
+        return cpu_usage
+
+    def get_host_memory_usage(self, resource_id, period, aggregate,
+                              granularity=None):
+        raise NotImplementedError
+
+    def get_instance_memory_usage(self, resource_id, period, aggregate,
+                                  granularity=None):
+        raise NotImplementedError
+
+    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
+                                    granularity=None):
+        raise NotImplementedError
+
+    def get_instance_ram_allocated(self, resource_id, period, aggregate,
+                                   granularity=None):
+        raise NotImplementedError
+
+    def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
+                                         granularity=None):
+        raise NotImplementedError
+
+    def get_host_outlet_temperature(self, resource_id, period, aggregate,
+                                    granularity=None):
+        raise NotImplementedError
+
+    def get_host_inlet_temperature(self, resource_id, period, aggregate,
+                                   granularity=None):
+        raise NotImplementedError
+
+    def get_host_airflow(self, resource_id, period, aggregate,
+                         granularity=None):
+        raise NotImplementedError
+
+    def get_host_power(self, resource_id, period, aggregate,
+                       granularity=None):
+        raise NotImplementedError

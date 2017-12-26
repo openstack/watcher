@@ -17,6 +17,7 @@
 # limitations under the License.
 
 from datetime import datetime
+from datetime import timedelta
 import time
 
 from oslo_config import cfg
@@ -25,12 +26,16 @@ from oslo_log import log
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common import utils as common_utils
+from watcher.datasource import base
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class GnocchiHelper(object):
+class GnocchiHelper(base.DataSourceBase):
+
+    NAME = 'gnocchi'
+    METRIC_MAP = base.DataSourceBase.METRIC_MAP['gnocchi']
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
@@ -46,13 +51,13 @@ class GnocchiHelper(object):
                 time.sleep(CONF.gnocchi_client.query_timeout)
         raise
 
-    def statistic_aggregation(self,
-                              resource_id,
-                              metric,
-                              granularity,
-                              start_time=None,
-                              stop_time=None,
-                              aggregation='mean'):
+    def _statistic_aggregation(self,
+                               resource_id,
+                               metric,
+                               granularity,
+                               start_time=None,
+                               stop_time=None,
+                               aggregation='mean'):
         """Representing a statistic aggregate by operators
 
         :param metric: metric name of which we want the statistics
@@ -102,3 +107,79 @@ class GnocchiHelper(object):
             # return value of latest measure
             # measure has structure [time, granularity, value]
             return statistics[-1][2]
+
+    def statistic_aggregation(self, resource_id, metric, period, granularity,
+                              aggregation='mean'):
+        stop_time = datetime.utcnow()
+        start_time = stop_time - timedelta(seconds=(int(period)))
+        return self._statistic_aggregation(
+            resource_id=resource_id,
+            metric=metric,
+            granularity=granularity,
+            start_time=start_time,
+            stop_time=stop_time,
+            aggregation=aggregation)
+
+    def get_host_cpu_usage(self, resource_id, period, aggregate,
+                           granularity=300):
+        meter_name = self.METRIC_MAP.get('host_cpu_usage')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_instance_cpu_usage(self, resource_id, period, aggregate,
+                               granularity=300):
+        meter_name = self.METRIC_MAP.get('instance_cpu_usage')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_host_memory_usage(self, resource_id, period, aggregate,
+                              granularity=300):
+        meter_name = self.METRIC_MAP.get('host_memory_usage')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_instance_memory_usage(self, resource_id, period, aggregate,
+                                  granularity=300):
+        meter_name = self.METRIC_MAP.get('instance_ram_usage')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
+                                    granularity=300):
+        raise NotImplementedError
+
+    def get_instance_ram_allocated(self, resource_id, period, aggregate,
+                                   granularity=300):
+        meter_name = self.METRIC_MAP.get('instance_ram_allocated')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
+                                         granularity=300):
+        meter_name = self.METRIC_MAP.get('instance_root_disk_size')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_host_outlet_temperature(self, resource_id, period, aggregate,
+                                    granularity=300):
+        meter_name = self.METRIC_MAP.get('host_outlet_temp')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_host_inlet_temperature(self, resource_id, period, aggregate,
+                                   granularity=300):
+        meter_name = self.METRIC_MAP.get('host_inlet_temp')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_host_airflow(self, resource_id, period, aggregate,
+                         granularity=300):
+        meter_name = self.METRIC_MAP.get('host_airflow')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
+
+    def get_host_power(self, resource_id, period, aggregate,
+                       granularity=300):
+        meter_name = self.METRIC_MAP.get('host_power')
+        return self.statistic_aggregation(resource_id, meter_name, period,
+                                          granularity, aggregation=aggregate)
