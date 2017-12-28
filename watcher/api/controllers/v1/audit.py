@@ -511,7 +511,7 @@ class AuditsController(rest.RestController):
     def get_one(self, audit):
         """Retrieve information about the given audit.
 
-        :param audit_uuid: UUID or name of an audit.
+        :param audit: UUID or name of an audit.
         """
         if self.from_audits:
             raise exception.OperationNotPermitted
@@ -579,7 +579,7 @@ class AuditsController(rest.RestController):
     def patch(self, audit, patch):
         """Update an existing audit.
 
-        :param auditd: UUID or name of a audit.
+        :param audit: UUID or name of a audit.
         :param patch: a json PATCH document to apply to this audit.
         """
         if self.from_audits:
