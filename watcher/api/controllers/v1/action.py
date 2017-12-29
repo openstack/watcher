@@ -341,7 +341,7 @@ class ActionsController(rest.RestController):
 
     @wsme_pecan.wsexpose(Action, body=Action, status_code=201)
     def post(self, action):
-        """Create a new action.
+        """Create a new action(forbidden).
 
         :param action: a action within the request body.
         """
@@ -364,7 +364,7 @@ class ActionsController(rest.RestController):
     @wsme.validate(types.uuid, [ActionPatchType])
     @wsme_pecan.wsexpose(Action, types.uuid, body=[ActionPatchType])
     def patch(self, action_uuid, patch):
-        """Update an existing action.
+        """Update an existing action(forbidden).
 
         :param action_uuid: UUID of a action.
         :param patch: a json PATCH document to apply to this action.
@@ -401,7 +401,7 @@ class ActionsController(rest.RestController):
 
     @wsme_pecan.wsexpose(None, types.uuid, status_code=204)
     def delete(self, action_uuid):
-        """Delete a action.
+        """Delete a action(forbidden).
 
         :param action_uuid: UUID of a action.
         """
