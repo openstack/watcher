@@ -166,10 +166,10 @@ class AuditPatchType(types.JsonPatchType):
 
 
 class Audit(base.APIBase):
-    """API representation of a audit.
+    """API representation of an audit.
 
     This class enforces type checking and value constraints, and converts
-    between the internal object model and the API representation of a audit.
+    between the internal object model and the API representation of an audit.
     """
     _goal_uuid = None
     _goal_name = None
@@ -264,19 +264,19 @@ class Audit(base.APIBase):
 
     goal_uuid = wsme.wsproperty(
         wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
-    """Goal UUID the audit template refers to"""
+    """Goal UUID the audit refers to"""
 
     goal_name = wsme.wsproperty(
         wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
-    """The name of the goal this audit template refers to"""
+    """The name of the goal this audit refers to"""
 
     strategy_uuid = wsme.wsproperty(
         wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
-    """Strategy UUID the audit template refers to"""
+    """Strategy UUID the audit refers to"""
 
     strategy_name = wsme.wsproperty(
         wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
-    """The name of the strategy this audit template refers to"""
+    """The name of the strategy this audit refers to"""
 
     parameters = {wtypes.text: types.jsontype}
     """The strategy parameters for this audit"""
@@ -526,7 +526,7 @@ class AuditsController(rest.RestController):
     def post(self, audit_p):
         """Create a new audit.
 
-        :param audit_p: a audit within the request body.
+        :param audit_p: an audit within the request body.
         """
         context = pecan.request.context
         policy.enforce(context, 'audit:create',
@@ -556,7 +556,7 @@ class AuditsController(rest.RestController):
 
         if no_schema and audit.parameters:
             raise exception.Invalid(_('Specify parameters but no predefined '
-                                      'strategy for audit template, or no '
+                                      'strategy for audit, or no '
                                       'parameter spec in predefined strategy'))
 
         audit_dict = audit.as_dict()
@@ -579,7 +579,7 @@ class AuditsController(rest.RestController):
     def patch(self, audit, patch):
         """Update an existing audit.
 
-        :param audit: UUID or name of a audit.
+        :param audit: UUID or name of an audit.
         :param patch: a json PATCH document to apply to this audit.
         """
         if self.from_audits:
