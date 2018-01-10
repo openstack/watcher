@@ -200,8 +200,8 @@ configuration file, in order:
 
 
 Although some configuration options are mentioned here, it is recommended that
-you review all the `available options
-<https://git.openstack.org/cgit/openstack/watcher/tree/etc/watcher/watcher.conf.sample>`_
+you review all the :ref:`available options
+<watcher_sample_configuration_files>`
 so that the watcher service is configured for your needs.
 
 #. The Watcher Service stores information in a database. This guide uses the
