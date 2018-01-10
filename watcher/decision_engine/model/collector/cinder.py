@@ -34,6 +34,85 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
     The Cinder cluster data model collector creates an in-memory
     representation of the resources exposed by the storage service.
     """
+    SCHEMA = {
+        "$schema": "http://json-schema.org/draft-04/schema#",
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "availability_zones": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": False
+                    }
+                },
+                "volume_types": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            }
+                        },
+                        "additionalProperties": False
+                    }
+                },
+                "exclude": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "storage_pools": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
+                            },
+                            "volumes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
+                            },
+                            "projects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
+                            },
+                            "additionalProperties": False
+                        }
+                    }
+                }
+            },
+            "additionalProperties": False
+        }
+    }
 
     def __init__(self, config, osc=None):
         super(CinderClusterDataModelCollector, self).__init__(config, osc)
