@@ -296,6 +296,8 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
             ap2_action_list.append(action)
 
+        action_plan1.state = objects.action_plan.State.CANCELLED
+        action_plan1.save()
         self.delete('/action_plans/%s' % action_plan1.uuid)
 
         response = self.get_json('/actions')

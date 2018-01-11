@@ -460,6 +460,15 @@ class ActionPlansController(rest.RestController):
         policy.enforce(context, 'action_plan:delete', action_plan,
                        action='action_plan:delete')
 
+        allowed_states = (ap_objects.State.SUCCEEDED,
+                          ap_objects.State.RECOMMENDED,
+                          ap_objects.State.FAILED,
+                          ap_objects.State.SUPERSEDED,
+                          ap_objects.State.CANCELLED)
+        if action_plan.state not in allowed_states:
+            raise exception.DeleteError(
+                state=action_plan.state)
+
         action_plan.soft_delete()
 
     @wsme.validate(types.uuid, [ActionPlanPatchType])
