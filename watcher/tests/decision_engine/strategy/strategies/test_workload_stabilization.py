@@ -228,9 +228,9 @@ class TestWorkloadStabilization(base.TestCase):
     def test_simulate_migrations(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
-        self.strategy.host_choice = 'retry'
+        self.strategy.host_choice = 'fullsearch'
         self.assertEqual(
-            8,
+            10,
             len(self.strategy.simulate_migrations(self.hosts_load_assert)))
 
     def test_check_threshold(self):
