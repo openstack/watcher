@@ -721,7 +721,7 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(400, response.status_int)
         expected_error_msg = ('Specify parameters but no predefined '
-                              'strategy for audit template, or no '
+                              'strategy for audit, or no '
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
@@ -743,7 +743,7 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(400, response.status_int)
         expected_error_msg = ('Specify parameters but no predefined '
-                              'strategy for audit template, or no '
+                              'strategy for audit, or no '
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
