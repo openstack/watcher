@@ -56,7 +56,7 @@ class FakeCeilometerMetrics(object):
         return result
 
     def mock_get_statistics_wb(self, resource_id, meter_name, period,
-                               aggregate='avg'):
+                               aggregate, granularity=300):
         result = 0.0
         if meter_name == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)

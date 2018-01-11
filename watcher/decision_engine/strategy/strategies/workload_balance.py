@@ -47,15 +47,12 @@ hosts nodes.
 """
 
 from __future__ import division
-import datetime
 
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -111,28 +108,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # the migration plan will be triggered when the CPU or RAM
         # utilization % reaches threshold
         self._meter = None
-        self._ceilometer = None
-        self._gnocchi = None
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, c):
-        self._ceilometer = c
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, gnocchi):
-        self._gnocchi = gnocchi
 
     @classmethod
     def get_name(cls):
@@ -184,11 +159,14 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "gnocchi"])
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca'])
         ]
 
     def get_available_compute_nodes(self):
@@ -307,43 +285,28 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             instances = self.compute_model.get_node_instances(node)
             node_workload = 0.0
             for instance in instances:
-                instance_util = None
+                util = None
                 try:
-                    if self.config.datasource == "ceilometer":
-                        instance_util = self.ceilometer.statistic_aggregation(
-                            resource_id=instance.uuid,
-                            meter_name=self._meter,
-                            period=self._period,
-                            aggregate='avg')
-                    elif self.config.datasource == "gnocchi":
-                        stop_time = datetime.datetime.utcnow()
-                        start_time = stop_time - datetime.timedelta(
-                            seconds=int(self._period))
-                        instance_util = self.gnocchi.statistic_aggregation(
-                            resource_id=instance.uuid,
-                            metric=self._meter,
-                            granularity=self.granularity,
-                            start_time=start_time,
-                            stop_time=stop_time,
-                            aggregation='mean'
-                        )
+                    util = self.datasource_backend.statistic_aggregation(
+                        instance.uuid, self._meter, self._period, 'mean',
+                        granularity=self.granularity)
                 except Exception as exc:
                     LOG.exception(exc)
                     LOG.error("Can not get %s from %s", self._meter,
                               self.config.datasource)
                     continue
-                if instance_util is None:
+                if util is None:
                     LOG.debug("Instance (%s): %s is None",
                               instance.uuid, self._meter)
                     continue
                 if self._meter == self.CPU_METER_NAME:
-                    workload_cache[instance.uuid] = (instance_util *
+                    workload_cache[instance.uuid] = (util *
                                                      instance.vcpus / 100)
                 else:
-                    workload_cache[instance.uuid] = instance_util
+                    workload_cache[instance.uuid] = util
                 node_workload += workload_cache[instance.uuid]
                 LOG.debug("VM (%s): %s %f", instance.uuid, self._meter,
-                          instance_util)
+                          util)
 
             cluster_workload += node_workload
             if self._meter == self.CPU_METER_NAME:

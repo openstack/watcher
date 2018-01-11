@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 import collections
-import datetime
 import mock
 
 from watcher.applier.loading import default
@@ -56,7 +55,7 @@ class TestWorkloadBalance(base.TestCase):
         self.addCleanup(p_model.stop)
 
         p_datasource = mock.patch.object(
-            strategies.WorkloadBalance, self.datasource,
+            strategies.WorkloadBalance, "datasource_backend",
             new_callable=mock.PropertyMock)
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
@@ -190,40 +189,3 @@ class TestWorkloadBalance(base.TestCase):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
-
-    def test_periods(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
-        p_ceilometer = mock.patch.object(
-            strategies.WorkloadBalance, "ceilometer")
-        m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
-        p_gnocchi = mock.patch.object(strategies.WorkloadBalance, "gnocchi")
-        m_gnocchi = p_gnocchi.start()
-        self.addCleanup(p_gnocchi.stop)
-        datetime_patcher = mock.patch.object(
-            datetime, 'datetime',
-            mock.Mock(wraps=datetime.datetime)
-        )
-        mocked_datetime = datetime_patcher.start()
-        mocked_datetime.utcnow.return_value = datetime.datetime(
-            2017, 3, 19, 18, 53, 11, 657417)
-        self.addCleanup(datetime_patcher.stop)
-        m_ceilometer.statistic_aggregation = mock.Mock(
-            side_effect=self.fake_metrics.mock_get_statistics_wb)
-        m_gnocchi.statistic_aggregation = mock.Mock(
-            side_effect=self.fake_metrics.mock_get_statistics_wb)
-        instance0 = model.get_instance_by_uuid("INSTANCE_0")
-        self.strategy.group_hosts_by_cpu_or_ram_util()
-        if self.strategy.config.datasource == "ceilometer":
-            m_ceilometer.statistic_aggregation.assert_any_call(
-                aggregate='avg', meter_name='cpu_util',
-                period=300, resource_id=instance0.uuid)
-        elif self.strategy.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int('300'))
-            m_gnocchi.statistic_aggregation.assert_called_with(
-                resource_id=mock.ANY, metric='cpu_util',
-                granularity=300, start_time=start_time, stop_time=stop_time,
-                aggregation='mean')

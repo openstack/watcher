@@ -87,8 +87,8 @@ class FakeGnocchiMetrics(object):
             mock[uuid] = 25 * oslo_utils.units.Ki
         return mock[str(uuid)]
 
-    def mock_get_statistics_wb(self, resource_id, metric, granularity,
-                               start_time, stop_time, aggregation='mean'):
+    def mock_get_statistics_wb(self, resource_id, metric, period, aggregate,
+                               granularity=300):
         result = 0.0
         if metric == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)
