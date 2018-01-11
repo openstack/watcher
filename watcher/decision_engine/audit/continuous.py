@@ -129,14 +129,25 @@ class ContinuousAuditHandler(base.AuditHandler):
         audits = objects.Audit.list(
             audit_context, filters=audit_filters, eager=True)
         scheduler_job_args = [
-            job.args for job in self.scheduler.get_jobs()
+            (job.args[0].uuid, job) for job
+            in self.scheduler.get_jobs()
             if job.name == 'execute_audit']
-        for args in scheduler_job_args:
-            if self._is_audit_inactive(args[0]):
-                scheduler_job_args.remove(args)
+        scheduler_jobs = dict(scheduler_job_args)
+        # if audit isn't in active states, audit's job should be removed
+        for job in scheduler_jobs.values():
+            if self._is_audit_inactive(job.args[0]):
+                scheduler_jobs.pop(job.args[0].uuid)
         for audit in audits:
-            # if audit is not presented in scheduled audits yet.
-            if audit.uuid not in [arg[0].uuid for arg in scheduler_job_args]:
+            existing_job = scheduler_jobs.get(audit.uuid, None)
+            # if audit is not presented in scheduled audits yet,
+            # just add a new audit job.
+            # if audit is already in the job queue, and interval has changed,
+            # we need to remove the old job and add a new one.
+            if (existing_job is None) or (
+                existing_job and
+                    audit.interval != existing_job.args[0].interval):
+                if existing_job:
+                    self.scheduler.remove_job(existing_job.id)
                 # if interval is provided with seconds
                 if utils.is_int_like(audit.interval):
                     # if audit has already been provided and we need
