@@ -69,7 +69,8 @@ _DEFAULT_LOG_LEVELS = ['amqp=WARN', 'amqplib=WARN', 'qpid.messaging=INFO',
                        'keystoneclient=INFO', 'stevedore=INFO',
                        'eventlet.wsgi.server=WARN', 'iso8601=WARN',
                        'paramiko=WARN', 'requests=WARN', 'neutronclient=WARN',
-                       'glanceclient=WARN', 'watcher.openstack.common=WARN']
+                       'glanceclient=WARN', 'watcher.openstack.common=WARN',
+                       'apscheduler=WARN']
 
 Singleton = service.Singleton
 
