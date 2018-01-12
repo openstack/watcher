@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-fake_scope_1 = [{'compute': [{'availability_zones': [{'name': 'AZ1'}]},
+fake_scope_1 = [{'compute': [{'availability_zones': [{'name': 'AZ1'},
+                                                     {'name': 'AZ3'}]},
                              {'exclude': [
                                  {'instances': [
                                      {'uuid': 'INSTANCE_6'}]},
