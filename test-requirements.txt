@@ -15,7 +15,7 @@ testtools>=2.2.0 # MIT
 
 # Doc requirements
 openstackdocstheme>=1.17.0 # Apache-2.0
-sphinx>=1.6.2 # BSD
+sphinx!=1.6.6,>=1.6.2 # BSD
 sphinxcontrib-pecanwsme>=0.8.0 # Apache-2.0
 
 
