@@ -23,6 +23,7 @@ from watcher.decision_engine.model.element import volume
 ServiceState = node.ServiceState
 ComputeNode = node.ComputeNode
 StorageNode = node.StorageNode
+IronicNode = node.IronicNode
 Pool = node.Pool
 
 InstanceState = instance.InstanceState
@@ -37,4 +38,5 @@ __all__ = ['ServiceState',
            'StorageNode',
            'Pool',
            'VolumeState',
-           'Volume']
+           'Volume',
+           'IronicNode']

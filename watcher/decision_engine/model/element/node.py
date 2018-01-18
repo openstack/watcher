@@ -16,6 +16,7 @@
 
 import enum
 
+from watcher.decision_engine.model.element import baremetal_resource
 from watcher.decision_engine.model.element import compute_resource
 from watcher.decision_engine.model.element import storage_resource
 from watcher.objects import base
@@ -74,6 +75,20 @@ class Pool(storage_resource.StorageResource):
         "provisioned_capacity_gb": wfields.NonNegativeIntegerField(),
         "allocated_capacity_gb": wfields.NonNegativeIntegerField(),
         "virtual_free": wfields.NonNegativeIntegerField(),
+    }
+
+    def accept(self, visitor):
+        raise NotImplementedError()
+
+
+@base.WatcherObjectRegistry.register_if(False)
+class IronicNode(baremetal_resource.BaremetalResource):
+
+    fields = {
+        "power_state": wfields.StringField(),
+        "maintenance": wfields.BooleanField(),
+        "maintenance_reason": wfields.StringField(),
+        "extra": wfields.DictField()
     }
 
     def accept(self, visitor):

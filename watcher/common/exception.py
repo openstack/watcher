@@ -473,6 +473,14 @@ class VolumeNotFound(StorageResourceNotFound):
     msg_fmt = _("The volume '%(name)s' could not be found")
 
 
+class BaremetalResourceNotFound(WatcherException):
+    msg_fmt = _("The baremetal resource '%(name)s' could not be found")
+
+
+class IronicNodeNotFound(BaremetalResourceNotFound):
+    msg_fmt = _("The ironic node %(uuid)s could not be found")
+
+
 class LoadingError(WatcherException):
     msg_fmt = _("Error loading plugin '%(name)s'")
 

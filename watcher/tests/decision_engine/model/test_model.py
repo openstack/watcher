@@ -367,3 +367,73 @@ class TestStorageModel(base.TestCase):
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
         model.map_volume(volume, pool)
         self.assertEqual([volume], model.get_pool_volumes(pool))
+
+
+class TestBaremetalModel(base.TestCase):
+
+    def load_data(self, filename):
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        data_folder = os.path.join(cwd, "data")
+
+        with open(os.path.join(data_folder, filename), 'rb') as xml_file:
+            xml_data = xml_file.read()
+
+        return xml_data
+
+    def load_model(self, filename):
+        return model_root.StorageModelRoot.from_xml(self.load_data(filename))
+
+    def test_model_structure(self):
+        fake_cluster = faker_cluster_state.FakerBaremetalModelCollector()
+        model1 = fake_cluster.build_scenario_1()
+        self.assertEqual(2, len(model1.get_all_ironic_nodes()))
+
+        expected_struct_str = self.load_data('ironic_scenario_1.xml')
+        model2 = model_root.BaremetalModelRoot.from_xml(expected_struct_str)
+        self.assertTrue(
+            model_root.BaremetalModelRoot.is_isomorphic(model2, model1))
+
+    def test_build_model_from_xml(self):
+        fake_cluster = faker_cluster_state.FakerBaremetalModelCollector()
+
+        expected_model = fake_cluster.generate_scenario_1()
+        struct_str = self.load_data('ironic_scenario_1.xml')
+
+        model = model_root.BaremetalModelRoot.from_xml(struct_str)
+        self.assertEqual(expected_model.to_string(), model.to_string())
+
+    def test_assert_node_raise(self):
+        model = model_root.BaremetalModelRoot()
+        node_uuid = uuidutils.generate_uuid()
+        node = element.IronicNode(uuid=node_uuid)
+        model.add_node(node)
+        self.assertRaises(exception.IllegalArgumentException,
+                          model.assert_node, "obj")
+
+    def test_add_node(self):
+        model = model_root.BaremetalModelRoot()
+        node_uuid = uuidutils.generate_uuid()
+        node = element.IronicNode(uuid=node_uuid)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_uuid(node_uuid))
+
+    def test_remove_node(self):
+        model = model_root.BaremetalModelRoot()
+        node_uuid = uuidutils.generate_uuid()
+        node = element.IronicNode(uuid=node_uuid)
+        model.add_node(node)
+        self.assertEqual(node, model.get_node_by_uuid(node_uuid))
+        model.remove_node(node)
+        self.assertRaises(exception.IronicNodeNotFound,
+                          model.get_node_by_uuid, node_uuid)
+
+    def test_get_all_ironic_nodes(self):
+        model = model_root.BaremetalModelRoot()
+        for i in range(10):
+            node_uuid = uuidutils.generate_uuid()
+            node = element.IronicNode(uuid=node_uuid)
+            model.add_node(node)
+        all_nodes = model.get_all_ironic_nodes()
+        for node_uuid in all_nodes:
+            node = model.get_node_by_uuid(node_uuid)
+            model.assert_node(node)

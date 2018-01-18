@@ -20,6 +20,7 @@ import os
 
 import mock
 
+from watcher.common import utils
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
@@ -261,3 +262,55 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
     def generate_scenario_1(self):
         return self.load_model('storage_scenario_1.xml')
+
+
+class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
+
+    def __init__(self, config=None, osc=None):
+        if config is None:
+            config = mock.Mock(period=777)
+        super(FakerBaremetalModelCollector, self).__init__(config)
+
+    @property
+    def notification_endpoints(self):
+        return []
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
+
+    def load_data(self, filename):
+        cwd = os.path.abspath(os.path.dirname(__file__))
+        data_folder = os.path.join(cwd, "data")
+
+        with open(os.path.join(data_folder, filename), 'rb') as xml_file:
+            xml_data = xml_file.read()
+
+        return xml_data
+
+    def load_model(self, filename):
+        return modelroot.BaremetalModelRoot.from_xml(self.load_data(filename))
+
+    def execute(self):
+        return self._cluster_data_model or self.build_scenario_1()
+
+    def build_scenario_1(self):
+        model = modelroot.BaremetalModelRoot()
+        # number of nodes
+        node_count = 2
+
+        for i in range(0, node_count):
+            uuid = utils.generate_uuid()
+            node_attributes = {
+                "uuid": uuid,
+                "power_state": "power on",
+                "maintenance": "false",
+                "maintenance_reason": "null",
+                "extra": {"compute_node_id": i}
+            }
+            node = element.IronicNode(**node_attributes)
+            model.add_node(node)
+
+        return model
+
+    def generate_scenario_1(self):
+        return self.load_model('ironic_scenario_1.xml')

@@ -545,3 +545,85 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def is_isomorphic(cls, G1, G2):
         return nx.algorithms.isomorphism.isomorph.is_isomorphic(
             G1, G2)
+
+
+class BaremetalModelRoot(nx.DiGraph, base.Model):
+
+    """Cluster graph for an Openstack cluster: Baremetal Cluster."""
+
+    def __init__(self, stale=False):
+        super(BaremetalModelRoot, self).__init__()
+        self.stale = stale
+
+    def __nonzero__(self):
+        return not self.stale
+
+    __bool__ = __nonzero__
+
+    @staticmethod
+    def assert_node(obj):
+        if not isinstance(obj, element.IronicNode):
+            raise exception.IllegalArgumentException(
+                message=_("'obj' argument type is not valid: %s") % type(obj))
+
+    @lockutils.synchronized("baremetal_model")
+    def add_node(self, node):
+        self.assert_node(node)
+        super(BaremetalModelRoot, self).add_node(node.uuid, node)
+
+    @lockutils.synchronized("baremetal_model")
+    def remove_node(self, node):
+        self.assert_node(node)
+        try:
+            super(BaremetalModelRoot, self).remove_node(node.uuid)
+        except nx.NetworkXError as exc:
+            LOG.exception(exc)
+            raise exception.IronicNodeNotFound(name=node.uuid)
+
+    @lockutils.synchronized("baremetal_model")
+    def get_all_ironic_nodes(self):
+        return {uuid: cn for uuid, cn in self.nodes(data=True)
+                if isinstance(cn, element.IronicNode)}
+
+    @lockutils.synchronized("baremetal_model")
+    def get_node_by_uuid(self, uuid):
+        try:
+            return self._get_by_uuid(uuid)
+        except exception.BaremetalResourceNotFound:
+            raise exception.IronicNodeNotFound(name=uuid)
+
+    def _get_by_uuid(self, uuid):
+        try:
+            return self.node[uuid]
+        except Exception as exc:
+            LOG.exception(exc)
+        raise exception.BaremetalResourceNotFound(name=uuid)
+
+    def to_string(self):
+        return self.to_xml()
+
+    def to_xml(self):
+        root = etree.Element("ModelRoot")
+        # Build Ironic node tree
+        for cn in sorted(self.get_all_ironic_nodes().values(),
+                         key=lambda cn: cn.uuid):
+            ironic_node_el = cn.as_xml_element()
+            root.append(ironic_node_el)
+
+        return etree.tostring(root, pretty_print=True).decode('utf-8')
+
+    @classmethod
+    def from_xml(cls, data):
+        model = cls()
+
+        root = etree.fromstring(data)
+        for cn in root.findall('.//IronicNode'):
+            node = element.IronicNode(**cn.attrib)
+            model.add_node(node)
+
+        return model
+
+    @classmethod
+    def is_isomorphic(cls, G1, G2):
+        return nx.algorithms.isomorphism.isomorph.is_isomorphic(
+            G1, G2)

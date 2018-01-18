@@ -152,3 +152,30 @@ class TestStorageElement(base.TestCase):
     def test_as_xml_element(self):
         el = self.cls(**self.data)
         el.as_xml_element()
+
+
+class TestIronicElement(base.TestCase):
+
+    scenarios = [
+        ("IronicNode_with_all_fields", dict(
+            cls=element.IronicNode,
+            data={
+                "uuid": 'FAKE_UUID',
+                "power_state": 'up',
+                "maintenance": "false",
+                "maintenance_reason": "null",
+                "extra": {"compute_node_id": 1}
+            })),
+        ("IronicNode_with_some_fields", dict(
+            cls=element.IronicNode,
+            data={
+                "uuid": 'FAKE_UUID',
+                "power_state": 'up',
+                "maintenance": "false",
+                "extra": {"compute_node_id": 1}
+            })),
+        ]
+
+    def test_as_xml_element(self):
+        el = self.cls(**self.data)
+        el.as_xml_element()

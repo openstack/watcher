@@ -85,6 +85,7 @@ class BaseStrategy(loadable.Loadable):
         self._collector_manager = None
         self._compute_model = None
         self._storage_model = None
+        self._baremetal_model = None
         self._input_parameters = utils.Struct()
         self._audit_scope = None
         self._datasource_backend = None
@@ -218,6 +219,29 @@ class BaseStrategy(loadable.Loadable):
             raise exception.ClusterStateStale()
 
         return self._storage_model
+
+    @property
+    def baremetal_model(self):
+        """Cluster data model
+
+        :returns: Cluster data model the strategy is executed on
+        :rtype model: :py:class:`~.ModelRoot` instance
+        """
+        if self._baremetal_model is None:
+            collector = self.collector_manager.get_cluster_model_collector(
+                'baremetal', osc=self.osc)
+            audit_scope_handler = collector.get_audit_scope_handler(
+                audit_scope=self.audit_scope)
+            self._baremetal_model = audit_scope_handler.get_scoped_model(
+                collector.get_latest_cluster_data_model())
+
+        if not self._baremetal_model:
+            raise exception.ClusterStateNotDefined()
+
+        if self._baremetal_model.stale:
+            raise exception.ClusterStateStale()
+
+        return self._baremetal_model
 
     @classmethod
     def get_schema(cls):
