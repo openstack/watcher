@@ -3,6 +3,9 @@
 # Make sure rabbit is enabled
 enable_service rabbit
 
+# Make sure mysql is enabled
+enable_service mysql
+
 # Enable Watcher services
 enable_service watcher-api
 enable_service watcher-decision-engine
