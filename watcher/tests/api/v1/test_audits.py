@@ -806,6 +806,35 @@ class TestPost(api_base.FunctionalTest):
             strategy_id=strategy['id'], uuid=template_uuid, name=template_name)
         return audit_template
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    @mock.patch('oslo_utils.timeutils.utcnow')
+    def test_create_audit_with_name(self, mock_utcnow, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        test_time = datetime.datetime(2000, 1, 1, 0, 0)
+        mock_utcnow.return_value = test_time
+
+        audit_dict = post_get_test_audit()
+        normal_name = 'this audit name is just for test'
+        # long_name length exceeds 63 characters
+        long_name = normal_name+audit_dict['uuid']
+        del audit_dict['uuid']
+        del audit_dict['state']
+        del audit_dict['interval']
+        del audit_dict['scope']
+        del audit_dict['next_run_time']
+
+        audit_dict['name'] = normal_name
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertEqual(normal_name, response.json['name'])
+
+        audit_dict['name'] = long_name
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertNotEqual(long_name, response.json['name'])
+
 
 class TestDelete(api_base.FunctionalTest):
 

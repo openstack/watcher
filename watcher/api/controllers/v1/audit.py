@@ -37,6 +37,8 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from oslo_log import log
+
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -48,6 +50,8 @@ from watcher.common import policy
 from watcher.common import utils
 from watcher.decision_engine import rpcapi
 from watcher import objects
+
+LOG = log.getLogger(__name__)
 
 
 class AuditPostType(wtypes.Base):
@@ -129,6 +133,11 @@ class AuditPostType(wtypes.Base):
                 goal = objects.Goal.get(context, self.goal)
                 self.name = "%s-%s" % (goal.name,
                                        datetime.datetime.utcnow().isoformat())
+        # No more than 63 characters
+        if len(self.name) > 63:
+            LOG.warning("Audit: %s length exceeds 63 characters",
+                        self.name)
+            self.name = self.name[0:63]
 
         return Audit(
             name=self.name,
