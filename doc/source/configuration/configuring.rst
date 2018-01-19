@@ -391,7 +391,7 @@ Ceilometer is designed to collect measurements from OpenStack services and from
 other external components. If you would like to add new meters to the currently
 existing ones, you need to follow the documentation below:
 
-#. https://docs.openstack.org/ceilometer/latest/contributor/new_meters.html#meters
+#. https://docs.openstack.org/ceilometer/latest/contributor/measurements.html#new-measurements
 
 The Ceilometer collector uses a pluggable storage system, meaning that you can
 pick any database system you prefer.
