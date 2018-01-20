@@ -1,0 +1,773 @@
+# Andi Chandler <andi@gowling.com>, 2017. #zanata
+# Andi Chandler <andi@gowling.com>, 2018. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: watcher VERSION\n"
+"Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
+"POT-Creation-Date: 2018-01-19 11:46+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2018-01-19 08:01+0000\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>\n"
+"Language-Team: English (United Kingdom)\n"
+"Language: en-GB\n"
+"X-Generator: Zanata 3.9.6\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+msgid " (may include orphans)"
+msgstr " (may include orphans)"
+
+msgid " (orphans excluded)"
+msgstr " (orphans excluded)"
+
+#, python-format
+msgid "%(client)s connection failed. Reason: %(reason)s"
+msgstr "%(client)s connection failed. Reason: %(reason)s"
+
+#, python-format
+msgid "%(field)s can't be updated."
+msgstr "%(field)s can't be updated."
+
+#, python-format
+msgid "%(parameter)s has to be of type %(parameter_type)s"
+msgstr "%(parameter)s has to be of type %(parameter_type)s"
+
+#, python-format
+msgid "%s is not JSON serializable"
+msgstr "%s is not JSON serialisable"
+
+#, python-format
+msgid ""
+"'%(strategy)s' strategy does relate to the '%(goal)s' goal. Possible "
+"choices: %(choices)s"
+msgstr ""
+"'%(strategy)s' strategy does relate to the '%(goal)s' goal. Possible "
+"choices: %(choices)s"
+
+#, python-format
+msgid "'%s' is a mandatory attribute and can not be removed"
+msgstr "'%s' is a mandatory attribute and can not be removed"
+
+#, python-format
+msgid "'%s' is an internal attribute and can not be updated"
+msgstr "'%s' is an internal attribute and can not be updated"
+
+msgid "'add' and 'replace' operations needs value"
+msgstr "'add' and 'replace' operations needs value"
+
+msgid "'obj' argument type is not valid"
+msgstr "'obj' argument type is not valid"
+
+#, python-format
+msgid "'obj' argument type is not valid: %s"
+msgstr "'obj' argument type is not valid: %s"
+
+#, python-format
+msgid "A datetime.datetime is required here. Got %s"
+msgstr "A datetime.datetime is required here. Got %s"
+
+#, python-format
+msgid "A goal with UUID %(uuid)s already exists"
+msgstr "A goal with UUID %(uuid)s already exists"
+
+#, python-format
+msgid "A scoring engine with UUID %(uuid)s already exists"
+msgstr "A scoring engine with UUID %(uuid)s already exists"
+
+#, python-format
+msgid "A service with name %(name)s is already working on %(host)s."
+msgstr "A service with name %(name)s is already working on %(host)s."
+
+#, python-format
+msgid "A strategy with UUID %(uuid)s already exists"
+msgstr "A strategy with UUID %(uuid)s already exists"
+
+msgid "A valid goal_id or audit_template_id must be provided"
+msgstr "A valid goal_id or audit_template_id must be provided"
+
+#, python-format
+msgid "Action %(action)s could not be found"
+msgstr "Action %(action)s could not be found"
+
+#, python-format
+msgid "Action %(action)s was not eagerly loaded"
+msgstr "Action %(action)s was not eagerly loaded"
+
+#, python-format
+msgid "Action Plan %(action_plan)s is currently running."
+msgstr "Action Plan %(action_plan)s is currently running."
+
+#, python-format
+msgid "Action Plan %(action_plan)s is referenced by one or multiple actions"
+msgstr "Action Plan %(action_plan)s is referenced by one or multiple actions"
+
+#, python-format
+msgid "Action Plan with UUID %(uuid)s is cancelled by user"
+msgstr "Action Plan with UUID %(uuid)s is cancelled by user"
+
+msgid "Action Plans"
+msgstr "Action Plans"
+
+#, python-format
+msgid "Action plan %(action_plan)s is invalid"
+msgstr "Action plan %(action_plan)s is invalid"
+
+#, python-format
+msgid "Action plan %(action_plan)s is referenced by one or multiple goals"
+msgstr "Action plan %(action_plan)s is referenced by one or multiple goals"
+
+#, python-format
+msgid "Action plan %(action_plan)s was not eagerly loaded"
+msgstr "Action plan %(action_plan)s was not eagerly loaded"
+
+#, python-format
+msgid "ActionPlan %(action_plan)s could not be found"
+msgstr "ActionPlan %(action_plan)s could not be found"
+
+msgid "Actions"
+msgstr "Actions"
+
+msgid "Actuator"
+msgstr "Actuator"
+
+#, python-format
+msgid "Adding a new attribute (%s) to the root of  the resource is not allowed"
+msgstr ""
+"Adding a new attribute (%s) to the root of  the resource is not allowed"
+
+msgid "Airflow Optimization"
+msgstr "Airflow Optimisation"
+
+#, python-format
+msgid "An action description with type %(action_type)s is already exist."
+msgstr "An action description with type %(action_type)s is already exist."
+
+#, python-format
+msgid "An action plan with UUID %(uuid)s already exists"
+msgstr "An action plan with UUID %(uuid)s already exists"
+
+#, python-format
+msgid "An action with UUID %(uuid)s already exists"
+msgstr "An action with UUID %(uuid)s already exists"
+
+#, python-format
+msgid "An audit with UUID or name %(audit)s already exists"
+msgstr "An audit with UUID or name %(audit)s already exists"
+
+#, python-format
+msgid "An audit_template with UUID or name %(audit_template)s already exists"
+msgstr "An audit_template with UUID or name %(audit_template)s already exists"
+
+msgid "An indicator value should be a number"
+msgstr "An indicator value should be a number"
+
+#, python-format
+msgid "An object of class %s is required here"
+msgstr "An object of class %s is required here"
+
+msgid "An unknown exception occurred"
+msgstr "An unknown exception occurred"
+
+msgid "At least one feature is required"
+msgstr "At least one feature is required"
+
+#, python-format
+msgid "Audit %(audit)s could not be found"
+msgstr "Audit %(audit)s could not be found"
+
+#, python-format
+msgid "Audit %(audit)s is invalid"
+msgstr "Audit %(audit)s is invalid"
+
+#, python-format
+msgid "Audit %(audit)s is referenced by one or multiple action plans"
+msgstr "Audit %(audit)s is referenced by one or multiple action plans"
+
+#, python-format
+msgid "Audit %(audit)s was not eagerly loaded"
+msgstr "Audit %(audit)s was not eagerly loaded"
+
+msgid "Audit Templates"
+msgstr "Audit Templates"
+
+#, python-format
+msgid "Audit parameter %(parameter)s are not allowed"
+msgstr "Audit parameter %(parameter)s are not allowed"
+
+#, python-format
+msgid "Audit type %(audit_type)s could not be found"
+msgstr "Audit type %(audit_type)s could not be found"
+
+#, python-format
+msgid "AuditTemplate %(audit_template)s could not be found"
+msgstr "AuditTemplate %(audit_template)s could not be found"
+
+#, python-format
+msgid ""
+"AuditTemplate %(audit_template)s is referenced by one or multiple audits"
+msgstr ""
+"AuditTemplate %(audit_template)s is referenced by one or multiple audits"
+
+msgid "Audits"
+msgstr "Audits"
+
+msgid "Basic offline consolidation"
+msgstr "Basic offline consolidation"
+
+msgid "CDMCs"
+msgstr "CDMCs"
+
+msgid "Cannot compile public API routes"
+msgstr "Cannot compile public API routes"
+
+msgid "Cannot create an action directly"
+msgstr "Cannot create an action directly"
+
+msgid "Cannot delete an action directly"
+msgstr "Cannot delete an action directly"
+
+msgid "Cannot modify an action directly"
+msgstr "Cannot modify an action directly"
+
+msgid "Cannot overwrite UUID for an existing Action Plan."
+msgstr "Cannot overwrite UUID for an existing Action Plan."
+
+msgid "Cannot overwrite UUID for an existing Action."
+msgstr "Cannot overwrite UUID for an existing Action."
+
+msgid "Cannot overwrite UUID for an existing Audit Template."
+msgstr "Cannot overwrite UUID for an existing Audit Template."
+
+msgid "Cannot overwrite UUID for an existing Audit."
+msgstr "Cannot overwrite UUID for an existing Audit."
+
+msgid "Cannot overwrite UUID for an existing Goal."
+msgstr "Cannot overwrite UUID for an existing Goal."
+
+msgid "Cannot overwrite UUID for an existing Scoring Engine."
+msgstr "Cannot overwrite UUID for an existing Scoring Engine."
+
+msgid "Cannot overwrite UUID for an existing Strategy."
+msgstr "Cannot overwrite UUID for an existing Strategy."
+
+msgid "Cannot overwrite UUID for an existing efficacy indicator."
+msgstr "Cannot overwrite UUID for an existing efficacy indicator."
+
+msgid "Cannot remove 'goal' attribute from an audit template"
+msgstr "Cannot remove 'goal' attribute from an audit template"
+
+msgid "Conflict"
+msgstr "Conflict"
+
+#, python-format
+msgid ""
+"Could not compute the global efficacy for the '%(goal)s' goal using the "
+"'%(strategy)s' strategy."
+msgstr ""
+"Could not compute the global efficacy for the '%(goal)s' goal using the "
+"'%(strategy)s' strategy."
+
+#, python-format
+msgid "Could not load any strategy for goal %(goal)s"
+msgstr "Could not load any strategy for goal %(goal)s"
+
+#, python-format
+msgid "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
+msgstr "Couldn't apply patch '%(patch)s'. Reason: %(reason)s"
+
+#, python-format
+msgid "Couldn't delete when state is '%(state)s'."
+msgstr "Couldn't delete when state is '%(state)s'."
+
+#, python-format
+msgid "Datasource %(datasource)s is not supported by strategy %(strategy)s"
+msgstr "Datasource %(datasource)s is not supported by strategy %(strategy)s"
+
+msgid "Do you want to delete objects up to the specified maximum number? [y/N]"
+msgstr ""
+"Do you want to delete objects up to the specified maximum number? [y/N]"
+
+#, python-format
+msgid "Domain name seems ambiguous: %s"
+msgstr "Domain name seems ambiguous: %s"
+
+#, python-format
+msgid "Domain not Found: %s"
+msgstr "Domain not Found: %s"
+
+msgid "Dummy Strategy using sample Scoring Engines"
+msgstr "Dummy Strategy using sample Scoring Engines"
+
+msgid "Dummy goal"
+msgstr "Dummy goal"
+
+msgid "Dummy strategy"
+msgstr "Dummy strategy"
+
+msgid "Dummy strategy with resize"
+msgstr "Dummy strategy with resize"
+
+#, python-format
+msgid "Efficacy indicator %(efficacy_indicator)s could not be found"
+msgstr "Efficacy indicator %(efficacy_indicator)s could not be found"
+
+#, python-format
+msgid "Error loading plugin '%(name)s'"
+msgstr "Error loading plugin '%(name)s'"
+
+#, python-format
+msgid "ErrorDocumentMiddleware received an invalid status %s"
+msgstr "ErrorDocumentMiddleware received an invalid status %s"
+
+#, python-format
+msgid "Expected a logical name but received %(name)s"
+msgstr "Expected a logical name but received %(name)s"
+
+#, python-format
+msgid "Expected a logical name or uuid but received %(name)s"
+msgstr "Expected a logical name or UUID but received %(name)s"
+
+#, python-format
+msgid "Expected a uuid but received %(uuid)s"
+msgstr "Expected a UUID but received %(uuid)s"
+
+#, python-format
+msgid "Expected a uuid or int but received %(identity)s"
+msgstr "Expected a UUID or int but received %(identity)s"
+
+#, python-format
+msgid "Expected an interval or cron syntax but received %(name)s"
+msgstr "Expected an interval or cron syntax but received %(name)s"
+
+#, python-format
+msgid "Failed to create volume '%(volume)s. "
+msgstr "Failed to create volume '%(volume)s. "
+
+#, python-format
+msgid "Failed to delete volume '%(volume)s. "
+msgstr "Failed to delete volume '%(volume)s. "
+
+#, python-format
+msgid "Filter operator is not valid: %(operator)s not in %(valid_operators)s"
+msgstr "Filter operator is not valid: %(operator)s not in %(valid_operators)s"
+
+msgid "Filtering actions on both audit and action-plan is prohibited"
+msgstr "Filtering actions on both audit and action-plan is prohibited"
+
+msgid "Goal"
+msgstr "Goal"
+
+#, python-format
+msgid "Goal %(goal)s could not be found"
+msgstr "Goal %(goal)s could not be found"
+
+#, python-format
+msgid "Goal %(goal)s is invalid"
+msgstr "Goal %(goal)s is invalid"
+
+msgid "Goals"
+msgstr "Goals"
+
+#, python-format
+msgid "Here below is a table containing the objects that can be purged%s:"
+msgstr "Here below is a table containing the objects that can be purged%s:"
+
+msgid "Illegal argument"
+msgstr "Illegal argument"
+
+#, python-format
+msgid ""
+"Incorrect mapping: could not find associated weight for %s in weight dict."
+msgstr ""
+"Incorrect mapping: could not find associated weight for %s in weight dict."
+
+#, python-format
+msgid "Interval of audit must be specified for %(audit_type)s."
+msgstr "Interval of audit must be specified for %(audit_type)s."
+
+#, python-format
+msgid "Interval of audit must not be set for %(audit_type)s."
+msgstr "Interval of audit must not be set for %(audit_type)s."
+
+#, python-format
+msgid "Invalid filter: %s"
+msgstr "Invalid filter: %s"
+
+msgid "Invalid number of features, expected 9"
+msgstr "Invalid number of features, expected 9"
+
+#, python-format
+msgid "Invalid query: %(start_time)s > %(end_time)s"
+msgstr "Invalid query: %(start_time)s > %(end_time)s"
+
+#, python-format
+msgid "Invalid sort direction: %s. Acceptable values are 'asc' or 'desc'"
+msgstr "Invalid sort direction: %s. Acceptable values are 'asc' or 'desc'"
+
+msgid "Invalid state for swapping volume"
+msgstr "Invalid state for swapping volume"
+
+#, python-format
+msgid "Invalid state: %(state)s"
+msgstr "Invalid state: %(state)s"
+
+msgid "JSON list expected in feature argument"
+msgstr "JSON list expected in feature argument"
+
+msgid "Keystone API endpoint is missing"
+msgstr "Keystone API endpoint is missing"
+
+msgid "Limit must be positive"
+msgstr "Limit must be positive"
+
+msgid "Limit should be positive"
+msgstr "Limit should be positive"
+
+msgid "Maximum time since last check-in for up service."
+msgstr "Maximum time since last check-in for up service."
+
+#, python-format
+msgid "Migration of type '%(migration_type)s' is not supported."
+msgstr "Migration of type '%(migration_type)s' is not supported."
+
+msgid ""
+"Name of this node. This can be an opaque identifier. It is not necessarily a "
+"hostname, FQDN, or IP address. However, the node name must be valid within "
+"an AMQP key, and if using ZeroMQ, a valid hostname, FQDN, or IP address."
+msgstr ""
+"Name of this node. This can be an opaque identifier. It is not necessarily a "
+"hostname, FQDN, or IP address. However, the node name must be valid within "
+"an AMQP key, and if using ZeroMQ, a valid hostname, FQDN, or IP address."
+
+#, python-format
+msgid "No %(metric)s metric for %(host)s found."
+msgstr "No %(metric)s metric for %(host)s found."
+
+msgid "No rows were returned"
+msgstr "No rows were returned"
+
+#, python-format
+msgid "No strategy could be found to achieve the '%(goal)s' goal."
+msgstr "No strategy could be found to achieve the '%(goal)s' goal."
+
+msgid "No such metric"
+msgstr "No such metric"
+
+#, python-format
+msgid "No values returned by %(resource_id)s for %(metric_name)s."
+msgstr "No values returned by %(resource_id)s for %(metric_name)s."
+
+msgid "Noisy Neighbor"
+msgstr "Noisy Neighbour"
+
+msgid "Not authorized"
+msgstr "Not authorised"
+
+msgid "Not supported"
+msgstr "Not supported"
+
+msgid "Operation not permitted"
+msgstr "Operation not permitted"
+
+msgid "Outlet temperature based strategy"
+msgstr "Outlet temperature based strategy"
+
+#, python-format
+msgid ""
+"Payload not populated when trying to send notification \"%(class_name)s\""
+msgstr ""
+"Payload not populated when trying to send notification \"%(class_name)s\""
+
+msgid "Plugins"
+msgstr "Plugins"
+
+#, python-format
+msgid "Policy doesn't allow %(action)s to be performed."
+msgstr "Policy doesn't allow %(action)s to be performed."
+
+#, python-format
+msgid "Project name seems ambiguous: %s"
+msgstr "Project name seems ambiguous: %s"
+
+#, python-format
+msgid "Project not Found: %s"
+msgstr "Project not Found: %s"
+
+#, python-format
+msgid "Provided %(action_type) is not supported yet"
+msgstr "Provided %(action_type) is not supported yet"
+
+#, python-format
+msgid "Provided cron is invalid: %(message)s"
+msgstr "Provided cron is invalid: %(message)s"
+
+#, python-format
+msgid "Purge results summary%s:"
+msgstr "Purge results summary%s:"
+
+msgid ""
+"Ratio of released compute nodes divided by the total number of enabled "
+"compute nodes."
+msgstr ""
+"Ratio of released compute nodes divided by the total number of enabled "
+"compute nodes."
+
+#, python-format
+msgid "Role name seems ambiguous: %s"
+msgstr "Role name seems ambiguous: %s"
+
+#, python-format
+msgid "Role not Found: %s"
+msgstr "Role not Found: %s"
+
+msgid "Saving Energy"
+msgstr "Saving Energy"
+
+msgid "Saving Energy Strategy"
+msgstr "Saving Energy Strategy"
+
+#, python-format
+msgid "Scoring Engine with name=%s not found"
+msgstr "Scoring Engine with name=%s not found"
+
+#, python-format
+msgid "ScoringEngine %(scoring_engine)s could not be found"
+msgstr "ScoringEngine %(scoring_engine)s could not be found"
+
+msgid "Seconds between running periodic tasks."
+msgstr "Seconds between running periodic tasks."
+
+msgid "Server Consolidation"
+msgstr "Server Consolidation"
+
+msgid ""
+"Specifies the minimum level for which to send notifications. If not set, no "
+"notifications will be sent. The default is for this option to be at the "
+"`INFO` level."
+msgstr ""
+"Specifies the minimum level for which to send notifications. If not set, no "
+"notifications will be sent. The default is for this option to be at the "
+"`INFO` level."
+
+msgid ""
+"Specify parameters but no predefined strategy for audit, or no parameter "
+"spec in predefined strategy"
+msgstr ""
+"Specify parameters but no predefined strategy for audit, or no parameter "
+"spec in predefined strategy"
+
+#, python-format
+msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
+msgstr "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
+
+msgid "Strategies"
+msgstr "Strategies"
+
+#, python-format
+msgid "Strategy %(strategy)s could not be found"
+msgstr "Strategy %(strategy)s could not be found"
+
+#, python-format
+msgid "Strategy %(strategy)s is invalid"
+msgstr "Strategy %(strategy)s is invalid"
+
+#, python-format
+msgid "The %(name)s %(id)s could not be found"
+msgstr "The %(name)s %(id)s could not be found"
+
+#, python-format
+msgid "The %(name)s resource %(id)s could not be found"
+msgstr "The %(name)s resource %(id)s could not be found"
+
+#, python-format
+msgid "The %(name)s resource %(id)s is not soft deleted"
+msgstr "The %(name)s resource %(id)s is not soft deleted"
+
+#, python-format
+msgid "The action %(action_id)s execution failed."
+msgstr "The action %(action_id)s execution failed."
+
+#, python-format
+msgid "The action description %(action_id)s cannot be found."
+msgstr "The action description %(action_id)s cannot be found."
+
+msgid "The audit template UUID or name specified is invalid"
+msgstr "The audit template UUID or name specified is invalid"
+
+#, python-format
+msgid "The baremetal resource '%(name)s' could not be found"
+msgstr "The baremetal resource '%(name)s' could not be found"
+
+#, python-format
+msgid "The capacity %(capacity)s is not defined for '%(resource)s'"
+msgstr "The capacity %(capacity)s is not defined for '%(resource)s'"
+
+#, python-format
+msgid "The cluster data model '%(cdm)s' could not be built"
+msgstr "The cluster data model '%(cdm)s' could not be built"
+
+msgid "The cluster state is not defined"
+msgstr "The cluster state is not defined"
+
+msgid "The cluster state is stale"
+msgstr "The cluster state is stale"
+
+#, python-format
+msgid "The compute node %(name)s could not be found"
+msgstr "The compute node %(name)s could not be found"
+
+#, python-format
+msgid "The compute resource '%(name)s' could not be found"
+msgstr "The compute resource '%(name)s' could not be found"
+
+#, python-format
+msgid "The identifier '%(name)s' is a reserved word"
+msgstr "The identifier '%(name)s' is a reserved word"
+
+#, python-format
+msgid ""
+"The indicator '%(name)s' with value '%(value)s' and spec type "
+"'%(spec_type)s' is invalid."
+msgstr ""
+"The indicator '%(name)s' with value '%(value)s' and spec type "
+"'%(spec_type)s' is invalid."
+
+#, python-format
+msgid "The instance '%(name)s' could not be found"
+msgstr "The instance '%(name)s' could not be found"
+
+#, python-format
+msgid "The ironic node %(uuid)s could not be found"
+msgstr "The Ironic node %(uuid)s could not be found"
+
+msgid "The list of compute node(s) in the cluster is empty"
+msgstr "The list of compute node(s) in the cluster is empty"
+
+msgid "The metrics resource collector is not defined"
+msgstr "The metrics resource collector is not defined"
+
+msgid "The number of VM migrations to be performed."
+msgstr "The number of VM migrations to be performed."
+
+msgid "The number of compute nodes to be released."
+msgstr "The number of compute nodes to be released."
+
+#, python-format
+msgid ""
+"The number of objects (%(num)s) to delete from the database exceeds the "
+"maximum number of objects (%(max_number)s) specified."
+msgstr ""
+"The number of objects (%(num)s) to delete from the database exceeds the "
+"maximum number of objects (%(max_number)s) specified."
+
+#, python-format
+msgid "The pool %(name)s could not be found"
+msgstr "The pool %(name)s could not be found"
+
+#, python-format
+msgid "The service %(service)s cannot be found."
+msgstr "The service %(service)s cannot be found."
+
+#, python-format
+msgid "The storage node %(name)s could not be found"
+msgstr "The storage node %(name)s could not be found"
+
+#, python-format
+msgid "The storage resource '%(name)s' could not be found"
+msgstr "The storage resource '%(name)s' could not be found"
+
+msgid "The target state is not defined"
+msgstr "The target state is not defined"
+
+msgid "The total number of enabled compute nodes."
+msgstr "The total number of enabled compute nodes."
+
+#, python-format
+msgid "The volume '%(name)s' could not be found"
+msgstr "The volume '%(name)s' could not be found"
+
+#, python-format
+msgid "There are %(count)d objects set for deletion. Continue? [y/N]"
+msgstr "There are %(count)d objects set for deletion. Continue? [y/N]"
+
+msgid "Thermal Optimization"
+msgstr "Thermal Optimisation"
+
+msgid "Total"
+msgstr "Total"
+
+msgid "Unable to parse features: "
+msgstr "Unable to parse features: "
+
+#, python-format
+msgid "Unable to parse features: %s"
+msgstr "Unable to parse features: %s"
+
+msgid "Unacceptable parameters"
+msgstr "Unacceptable parameters"
+
+msgid "Unclassified"
+msgstr "Unclassified"
+
+#, python-format
+msgid "Unexpected keystone client error occurred: %s"
+msgstr "Unexpected Keystone client error occurred: %s"
+
+msgid "Uniform airflow migration strategy"
+msgstr "Uniform airflow migration strategy"
+
+#, python-format
+msgid "User name seems ambiguous: %s"
+msgstr "User name seems ambiguous: %s"
+
+#, python-format
+msgid "User not Found: %s"
+msgstr "User not Found: %s"
+
+msgid "VM Workload Consolidation Strategy"
+msgstr "VM Workload Consolidation Strategy"
+
+msgid "Volume type must be different for retyping"
+msgstr "Volume type must be different for retyping"
+
+msgid "Volume type must be same for migrating"
+msgstr "Volume type must be same for migrating"
+
+msgid ""
+"Watcher database schema is already under version control; use upgrade() "
+"instead"
+msgstr ""
+"Watcher database schema is already under version control; use upgrade() "
+"instead"
+
+#, python-format
+msgid "Workflow execution error: %(error)s"
+msgstr "Workflow execution error: %(error)s"
+
+msgid "Workload Balance Migration Strategy"
+msgstr "Workload Balance Migration Strategy"
+
+msgid "Workload Balancing"
+msgstr "Workload Balancing"
+
+msgid "Workload stabilization"
+msgstr "Workload stabilisation"
+
+#, python-format
+msgid "Wrong type. Expected '%(type)s', got '%(value)s'"
+msgstr "Wrong type. Expected '%(type)s', got '%(value)s'"
+
+#, python-format
+msgid ""
+"You shouldn't use any other IDs of %(resource)s if you use wildcard "
+"character."
+msgstr ""
+"You shouldn't use any other IDs of %(resource)s if you use wildcard "
+"character."
+
+msgid "destination type is required when migration type is swap"
+msgstr "destination type is required when migration type is swap"
+
+msgid "host_aggregates can't be included and excluded together"
+msgstr "host_aggregates can't be included and excluded together"
