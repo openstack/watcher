@@ -132,6 +132,8 @@ class FakeGnocchiMetrics(object):
 
         # node 3
         mock['Node_6_hostname_6'] = 8
+        # This node doesn't send metrics
+        mock['LOST_NODE_hostname_7'] = None
         mock['Node_19_hostname_19'] = 10
         # node 4
         mock['INSTANCE_7_hostname_7'] = 4
@@ -145,7 +147,10 @@ class FakeGnocchiMetrics(object):
         if uuid not in mock.keys():
             mock[uuid] = 8
 
-        return float(mock[str(uuid)])
+        if mock[str(uuid)] is not None:
+            return float(mock[str(uuid)])
+        else:
+            return mock[str(uuid)]
 
     @staticmethod
     def get_average_usage_instance_cpu(uuid):
@@ -172,6 +177,8 @@ class FakeGnocchiMetrics(object):
 
         # node 4
         mock['INSTANCE_7'] = 4
+
+        mock['LOST_INSTANCE'] = None
         if uuid not in mock.keys():
             mock[uuid] = 8
 

@@ -252,7 +252,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "No values returned by %(resource_id)s "
                     "for %(metric_name)s" % dict(
                         resource_id=instance.uuid, metric_name=meter))
-                avg_meter = 0
+                return
             if meter == 'cpu_util':
                 avg_meter /= float(100)
             instance_load[meter] = avg_meter
@@ -308,12 +308,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     )
 
                 if avg_meter is None:
-                    if meter_name == 'hardware.memory.used':
-                        avg_meter = node.memory
-                    if meter_name == 'compute.node.cpu.percent':
-                        avg_meter = 1
                     LOG.warning('No values returned by node %s for %s',
                                 node_id, meter_name)
+                    del hosts_load[node_id]
+                    break
                 else:
                     if meter_name == 'hardware.memory.used':
                         avg_meter /= oslo_utils.units.Ki
@@ -362,6 +360,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         migration_case = []
         new_hosts = copy.deepcopy(hosts)
         instance_load = self.get_instance_load(instance)
+        if not instance_load:
+            return
         s_host_vcpus = new_hosts[src_node.uuid]['vcpus']
         d_host_vcpus = new_hosts[dst_node.uuid]['vcpus']
         for metric in self.metrics:
@@ -408,6 +408,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     dst_node = self.compute_model.get_node_by_uuid(dst_host)
                     sd_case = self.calculate_migration_case(
                         hosts, instance, src_node, dst_node)
+                    if sd_case is None:
+                        break
 
                     weighted_sd = self.calculate_weighted_sd(sd_case[:-1])
 
@@ -416,6 +418,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                             'host': dst_node.uuid, 'value': weighted_sd,
                             's_host': src_node.uuid, 'instance': instance.uuid}
                         instance_host_map.append(min_sd_case)
+                if sd_case is None:
+                    continue
         return sorted(instance_host_map, key=lambda x: x['value'])
 
     def check_threshold(self):
@@ -424,7 +428,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_load = self.normalize_hosts_load(hosts_load)
         for metric in self.metrics:
             metric_sd = self.get_sd(normalized_load, metric)
+            LOG.info("Standard deviation for %s is %s."
+                     % (metric, metric_sd))
             if metric_sd > float(self.thresholds[metric]):
+                LOG.info("Standard deviation of %s exceeds"
+                         " appropriate threshold %s."
+                         % (metric, metric_sd))
                 return self.simulate_migrations(hosts_load)
 
     def add_migration(self,
