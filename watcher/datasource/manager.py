@@ -33,7 +33,7 @@ class DataSourceManager(object):
         self._monasca = None
         self._gnocchi = None
         self.metric_map = base.DataSourceBase.METRIC_MAP
-        self.datasources = self.config.datasource
+        self.datasources = self.config.datasources
 
     @property
     def ceilometer(self):

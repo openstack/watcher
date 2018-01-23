@@ -28,7 +28,7 @@ class TestDataSourceManager(base.BaseTestCase):
     def test_get_backend(self, mock_gnoc):
         manager = ds_manager.DataSourceManager(
             config=mock.MagicMock(
-                datasource=['gnocchi', 'ceilometer', 'monasca']),
+                datasources=['gnocchi', 'ceilometer', 'monasca']),
             osc=mock.MagicMock())
         backend = manager.get_backend(['host_cpu_usage',
                                        'instance_cpu_usage'])
@@ -37,7 +37,7 @@ class TestDataSourceManager(base.BaseTestCase):
     def test_get_backend_wrong_metric(self):
         manager = ds_manager.DataSourceManager(
             config=mock.MagicMock(
-                datasource=['gnocchi', 'ceilometer', 'monasca']),
+                datasources=['gnocchi', 'ceilometer', 'monasca']),
             osc=mock.MagicMock())
         self.assertRaises(exception.NoSuchMetric, manager.get_backend,
                           ['host_cpu', 'instance_cpu_usage'])

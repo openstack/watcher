@@ -26,6 +26,12 @@ class FakeCeilometerMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
+    # TODO(alexchadin): This method is added as temporary solution until
+    # all strategies use datasource_backend property.
+    def temp_mock_get_statistics(self, resource_id, meter_name, period,
+                                 aggregate, granularity=300):
+        return self.mock_get_statistics(resource_id, meter_name, period)
+
     def mock_get_statistics(self, resource_id, meter_name, period,
                             aggregate='avg'):
         result = 0

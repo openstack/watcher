@@ -108,8 +108,8 @@ class GnocchiHelper(base.DataSourceBase):
             # measure has structure [time, granularity, value]
             return statistics[-1][2]
 
-    def statistic_aggregation(self, resource_id, metric, period, granularity,
-                              aggregation='mean'):
+    def statistic_aggregation(self, resource_id, metric, period, aggregation,
+                              granularity=300):
         stop_time = datetime.utcnow()
         start_time = stop_time - timedelta(seconds=(int(period)))
         return self._statistic_aggregation(
