@@ -551,7 +551,7 @@ class NovaHelper(object):
             return False
 
     def set_host_offline(self, hostname):
-        # See API on http://developer.openstack.org/api-ref-compute-v2.1.html
+        # See API on https://developer.openstack.org/api-ref/compute/
         # especially the PUT request
         # regarding this resource : /v2.1/os-hosts/​{host_name}​
         #
