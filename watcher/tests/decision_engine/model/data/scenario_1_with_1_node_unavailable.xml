@@ -1,0 +1,50 @@
+<ModelRoot>
+  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_0" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+    <Instance state="active" human_id="" uuid="INSTANCE_1" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_2" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_2" status="enabled" state="up" id="2" hostname="hostname_2" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_3" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+    <Instance state="active" human_id="" uuid="INSTANCE_4" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+    <Instance state="active" human_id="" uuid="INSTANCE_5" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_3" status="enabled" state="up" id="3" hostname="hostname_3" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_6" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="Node_4" status="enabled" state="up" id="4" hostname="hostname_4" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="INSTANCE_7" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <ComputeNode human_id="" uuid="LOST_NODE" status="enabled" state="up" id="1" hostname="hostname_7" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance state="active" human_id="" uuid="LOST_INSTANCE" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  </ComputeNode>
+  <Instance state="active" human_id="" uuid="INSTANCE_10" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_11" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_12" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_13" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_14" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_15" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_16" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_17" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_18" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_19" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_20" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_21" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_22" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_23" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_24" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_25" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_26" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_27" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_28" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_29" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_30" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_31" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_32" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_33" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_34" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_8" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+  <Instance state="active" human_id="" uuid="INSTANCE_9" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}'/>
+</ModelRoot>

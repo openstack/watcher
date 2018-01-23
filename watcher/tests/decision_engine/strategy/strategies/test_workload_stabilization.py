@@ -120,6 +120,12 @@ class TestWorkloadStabilization(base.TestCase):
         self.assertEqual(
             instance_0_dict, self.strategy.get_instance_load(instance0))
 
+    def test_get_instance_load_with_no_metrics(self):
+        model = self.fake_cluster.generate_scenario_1_with_1_node_unavailable()
+        self.m_model.return_value = model
+        lost_instance = model.get_instance_by_uuid("LOST_INSTANCE")
+        self.assertIsNone(self.strategy.get_instance_load(lost_instance))
+
     def test_normalize_hosts_load(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         fake_hosts = {'Node_0': {'cpu_util': 0.07, 'memory.resident': 7},
@@ -143,6 +149,12 @@ class TestWorkloadStabilization(base.TestCase):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.assertEqual(self.strategy.get_hosts_load(),
                          self.hosts_load_assert)
+
+    def test_get_hosts_load_with_node_missing(self):
+        self.m_model.return_value = \
+            self.fake_cluster.generate_scenario_1_with_1_node_unavailable()
+        self.assertEqual(self.hosts_load_assert,
+                         self.strategy.get_hosts_load())
 
     def test_get_sd(self):
         test_cpu_sd = 0.296
