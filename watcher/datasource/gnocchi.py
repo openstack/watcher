@@ -49,7 +49,14 @@ class GnocchiHelper(base.DataSourceBase):
             except Exception as e:
                 LOG.exception(e)
                 time.sleep(CONF.gnocchi_client.query_timeout)
-        raise
+        raise exception.DataSourceNotAvailable(datasource='gnocchi')
+
+    def check_availability(self):
+        try:
+            self.query_retry(self.gnocchi.status.get)
+        except Exception:
+            return 'not available'
+        return 'available'
 
     def _statistic_aggregation(self,
                                resource_id,
@@ -108,8 +115,17 @@ class GnocchiHelper(base.DataSourceBase):
             # measure has structure [time, granularity, value]
             return statistics[-1][2]
 
-    def statistic_aggregation(self, resource_id, metric, period, aggregation,
-                              granularity=300):
+    def list_metrics(self):
+        """List the user's meters."""
+        try:
+            response = self.query_retry(f=self.gnocchi.metric.list)
+        except Exception:
+            return set()
+        else:
+            return set([metric['name'] for metric in response])
+
+    def statistic_aggregation(self, resource_id, metric, period, granularity,
+                              aggregation='mean'):
         stop_time = datetime.utcnow()
         start_time = stop_time - timedelta(seconds=(int(period)))
         return self._statistic_aggregation(

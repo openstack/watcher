@@ -52,6 +52,8 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
 
+    DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage']
+
     METRIC_NAMES = dict(
         ceilometer=dict(
             host_cpu_usage='compute.node.cpu.percent',

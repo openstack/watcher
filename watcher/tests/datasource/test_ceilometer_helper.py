@@ -198,3 +198,19 @@ class TestCeilometerHelper(base.BaseTestCase):
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_power'], 600,
             aggregate='mean')
+
+    def test_check_availability(self, mock_ceilometer):
+        ceilometer = mock.MagicMock()
+        ceilometer.resources.list.return_value = True
+        mock_ceilometer.return_value = ceilometer
+        helper = ceilometer_helper.CeilometerHelper()
+        result = helper.check_availability()
+        self.assertEqual('available', result)
+
+    def test_check_availability_with_failure(self, mock_ceilometer):
+        ceilometer = mock.MagicMock()
+        ceilometer.resources.list.side_effect = Exception()
+        mock_ceilometer.return_value = ceilometer
+        helper = ceilometer_helper.CeilometerHelper()
+
+        self.assertEqual('not available', helper.check_availability())

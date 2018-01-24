@@ -30,6 +30,9 @@ CONF = cfg.CONF
 class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
     MIGRATION = "migrate"
+
+    DATASOURCE_METRICS = ['instance_l3_cache_usage']
+
     # The meter to report L3 cache in ceilometer
     METER_NAME_L3 = "cpu_l3_cache"
     DEFAULT_WATCHER_PRIORITY = 5

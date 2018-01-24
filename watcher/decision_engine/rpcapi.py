@@ -40,6 +40,10 @@ class DecisionEngineAPI(service.Service):
         self.conductor_client.cast(
             context, 'trigger_audit', audit_uuid=audit_uuid)
 
+    def get_strategy_info(self, context, strategy_name):
+        return self.conductor_client.call(
+            context, 'get_strategy_info', strategy_name=strategy_name)
+
 
 class DecisionEngineAPIManager(service_manager.ServiceManager):
 

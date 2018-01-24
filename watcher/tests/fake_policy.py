@@ -54,6 +54,7 @@ policy_data = """
     "strategy:detail": "",
     "strategy:get": "",
     "strategy:get_all": "",
+    "strategy:state": "",
 
     "service:detail": "",
     "service:get": "",

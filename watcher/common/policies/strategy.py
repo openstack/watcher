@@ -49,6 +49,17 @@ rules = [
                 'method': 'GET'
             }
         ]
+    ),
+    policy.DocumentedRuleDefault(
+        name=STRATEGY % 'state',
+        check_str=base.RULE_ADMIN_API,
+        description='Get state of strategy.',
+        operations=[
+            {
+                'path': '/v1/strategies{strategy_uuid}/state',
+                'method': 'GET'
+            }
+        ]
     )
 ]
 

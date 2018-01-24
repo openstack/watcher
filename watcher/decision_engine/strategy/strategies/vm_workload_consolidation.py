@@ -74,6 +74,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
 
+    DATASOURCE_METRICS = ['instance_ram_allocated', 'instance_cpu_usage',
+                          'instance_ram_usage', 'instance_root_disk_size']
+
     METRIC_NAMES = dict(
         ceilometer=dict(
             cpu_util_metric='cpu_util',

@@ -53,6 +53,69 @@ from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
 
 
+class StrategyEndpoint(object):
+    def __init__(self, messaging):
+        self._messaging = messaging
+
+    def _collect_metrics(self, strategy, datasource):
+        metrics = []
+        if not datasource:
+            return {'type': 'Metrics', 'state': metrics,
+                    'mandatory': False, 'comment': ''}
+        else:
+            ds_metrics = datasource.list_metrics()
+            if ds_metrics is None:
+                raise exception.DataSourceNotAvailable(
+                    datasource=strategy.config.datasource)
+            else:
+                for metric in strategy.DATASOURCE_METRICS:
+                    original_metric_name = datasource.METRIC_MAP.get(metric)
+                    if original_metric_name in ds_metrics:
+                        metrics.append({original_metric_name: 'available'})
+                    else:
+                        metrics.append({original_metric_name: 'not available'})
+        return {'type': 'Metrics', 'state': metrics,
+                'mandatory': False, 'comment': ''}
+
+    def _get_datasource_status(self, strategy, datasource):
+        if not datasource:
+            state = "Datasource is not presented for this strategy"
+        else:
+            state = "%s: %s" % (strategy.config.datasource,
+                                datasource.check_availability())
+        return {'type': 'Datasource',
+                'state': state,
+                'mandatory': True, 'comment': ''}
+
+    def _get_cdm(self, strategy):
+        models = []
+        for model in ['compute_model', 'storage_model']:
+            try:
+                getattr(strategy, model)
+            except Exception:
+                models.append({model: 'not available'})
+            else:
+                models.append({model: 'available'})
+        return {'type': 'CDM', 'state': models,
+                'mandatory': True, 'comment': ''}
+
+    def get_strategy_info(self, context, strategy_name):
+        strategy = loading.DefaultStrategyLoader().load(strategy_name)
+        try:
+            is_datasources = getattr(strategy.config, 'datasources', None)
+            if is_datasources:
+                datasource = is_datasources[0]
+            else:
+                datasource = getattr(strategy, strategy.config.datasource)
+        except (AttributeError, IndexError):
+            datasource = []
+        available_datasource = self._get_datasource_status(strategy,
+                                                           datasource)
+        available_metrics = self._collect_metrics(strategy, datasource)
+        available_cdm = self._get_cdm(strategy)
+        return [available_datasource, available_metrics, available_cdm]
+
+
 @six.add_metaclass(abc.ABCMeta)
 class BaseStrategy(loadable.Loadable):
     """A base class for all the strategies

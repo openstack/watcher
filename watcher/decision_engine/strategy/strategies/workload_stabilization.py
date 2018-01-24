@@ -62,6 +62,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     MIGRATION = "migrate"
     MEMOIZE = _set_memoize(CONF)
 
+    DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage',
+                          'instance_ram_usage', 'host_memory_usage']
+
     def __init__(self, config, osc=None):
         """Workload Stabilization control using live migration
 

@@ -46,3 +46,9 @@ class TestDecisionEngineAPI(base.TestCase):
             self.api.trigger_audit(self.context, audit_uuid)
             mock_cast.assert_called_once_with(
                 self.context, 'trigger_audit', audit_uuid=audit_uuid)
+
+    def test_get_strategy_info(self):
+        with mock.patch.object(om.RPCClient, 'call') as mock_call:
+            self.api.get_strategy_info(self.context, "dummy")
+            mock_call.assert_called_once_with(
+                self.context, 'get_strategy_info', strategy_name="dummy")
