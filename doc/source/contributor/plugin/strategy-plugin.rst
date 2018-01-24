@@ -263,7 +263,7 @@ requires new metrics not covered by Ceilometer, you can add them through a
 `Ceilometer plugin`_.
 
 
-.. _`Helper`: https://github.com/openstack/watcher/blob/master/watcher/decision_engine/cluster/history/ceilometer.py
+.. _`Helper`: https://github.com/openstack/watcher/blob/master/watcher/datasource/ceilometer.py
 .. _`Ceilometer developer guide`: https://docs.openstack.org/ceilometer/latest/contributor/architecture.html#storing-accessing-the-data
 .. _`Ceilometer`: https://docs.openstack.org/ceilometer/latest
 .. _`Monasca`: https://github.com/openstack/monasca-api/blob/master/docs/monasca-api-spec.md
