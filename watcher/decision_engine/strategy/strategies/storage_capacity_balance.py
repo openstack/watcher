@@ -113,7 +113,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
                 "ex_pools",
                 help="exclude pools",
                 default=['local_vstorage']),
-            ]
+        ]
 
     def get_pools(self, cinder):
         """Get all volume pools excepting ex_pools.
@@ -147,8 +147,8 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         status_volumes = list(
             filter(lambda v: v.status in valid_status, nosnap_volumes))
         valid_volumes = [v for v in status_volumes
-                         if getattr(v, 'migration_status') == 'success'
-                         or getattr(v, 'migration_status') is None]
+                         if getattr(v, 'migration_status') == 'success' or
+                         getattr(v, 'migration_status') is None]
         LOG.info("valid volumes: %s", valid_volumes)
 
         return valid_volumes
@@ -200,11 +200,11 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             total_cap = float(pool.total_capacity_gb)
             allocated = float(pool.allocated_capacity_gb)
             ratio = pool.max_over_subscription_ratio
-            if total_cap*ratio < allocated+float(volume.size):
+            if total_cap * ratio < allocated + float(volume.size):
                 LOG.info("pool %s allocated over", pool.name)
                 continue
-            free_cap = float(pool.free_capacity_gb)-float(volume.size)
-            if free_cap > (1-threshold)*total_cap:
+            free_cap = float(pool.free_capacity_gb) - float(volume.size)
+            if free_cap > (1 - threshold) * total_cap:
                 target_pool_name = pool.name
                 index = self.dest_pools.index(pool)
                 setattr(self.dest_pools[index], 'free_capacity_gb',
@@ -232,8 +232,8 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
 
         for src_key in src_extra_specs.keys():
             dst_pool_type = [pt for pt in dst_pool_type
-                             if pt.extra_specs.get(src_key)
-                             == src_extra_specs.get(src_key)]
+                             if pt.extra_specs.get(src_key) ==
+                             src_extra_specs.get(src_key)]
         if dst_pool_type:
             if volume.volume_type:
                 if dst_pool_type[0].name != volume.volume_type:
@@ -256,11 +256,11 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
             total_cap = float(pool.total_capacity_gb)
             allocated = float(pool.allocated_capacity_gb)
             ratio = pool.max_over_subscription_ratio
-            if total_cap*ratio < allocated+float(volume.size):
+            if total_cap * ratio < allocated + float(volume.size):
                 LOG.info("pool %s allocated over", pool.name)
                 continue
-            free_cap = float(pool.free_capacity_gb)-float(volume.size)
-            if free_cap > (1-threshold)*total_cap:
+            free_cap = float(pool.free_capacity_gb) - float(volume.size)
+            if free_cap > (1 - threshold) * total_cap:
                 target_type = self.check_pool_type(volume, pool)
                 if target_type is None:
                     continue
@@ -280,7 +280,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         retype_dicts = dict()
         migrate_dicts = dict()
         total_cap = float(pool.total_capacity_gb)
-        used_cap = float(pool.total_capacity_gb)-float(pool.free_capacity_gb)
+        used_cap = float(pool.total_capacity_gb) - float(pool.free_capacity_gb)
         seek_flag = True
 
         volumes_in_pool = list(
@@ -306,13 +306,13 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
                     vol_flag = True
             if vol_flag:
                 used_cap -= float(vol.size)
-                if used_cap < threshold*total_cap:
+                if used_cap < threshold * total_cap:
                     seek_flag = False
                     break
         if seek_flag:
             noboot_volumes = list(
-                filter(lambda v: v.bootable.lower() == 'false'
-                       and v.status == 'in-use', volumes_in_pool))
+                filter(lambda v: v.bootable.lower() == 'false' and
+                       v.status == 'in-use', volumes_in_pool))
             noboot_volumes.sort(key=lambda v: float(v.size))
             LOG.info("noboot volumes: %s ", str(noboot_volumes))
             for vol in noboot_volumes:
@@ -328,13 +328,15 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
                         vol_flag = True
                 if vol_flag:
                     used_cap -= float(vol.size)
-                    if used_cap < threshold*total_cap:
+                    if used_cap < threshold * total_cap:
                         seek_flag = False
                         break
 
         if seek_flag:
-            boot_volumes = list(filter(lambda v: v.bootable.lower() == 'true'
-                                and v.status == 'in-use', volumes_in_pool))
+            boot_volumes = list(
+                filter(lambda v: v.bootable.lower() == 'true' and
+                       v.status == 'in-use', volumes_in_pool)
+            )
             boot_volumes.sort(key=lambda v: float(v.size))
             LOG.info("boot volumes: %s ", str(boot_volumes))
             for vol in boot_volumes:
@@ -350,7 +352,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
                         vol_flag = True
                 if vol_flag:
                     used_cap -= float(vol.size)
-                    if used_cap < threshold*total_cap:
+                    if used_cap < threshold * total_cap:
                         seek_flag = False
                         break
         return retype_dicts, migrate_dicts
@@ -370,7 +372,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         """
         all_pools = self.get_pools(self.cinder)
         all_volumes = self.get_volumes(self.cinder)
-        threshold = float(self.volume_threshold)/100
+        threshold = float(self.volume_threshold) / 100
         self.source_pools, self.dest_pools = self.group_pools(
             all_pools, threshold)
         LOG.info(" source pools: %s dest pools:%s",
