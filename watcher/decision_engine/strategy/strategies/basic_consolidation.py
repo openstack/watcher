@@ -149,8 +149,10 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def get_config_opts(cls):
         return [
             cfg.ListOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
                 item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
                                                     'monasca']),
                 default=['gnocchi', 'ceilometer', 'monasca']),
