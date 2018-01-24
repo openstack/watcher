@@ -36,3 +36,14 @@ compute_scope = [{'compute': [{'host_aggregates': [{'id': '*'}]},
                               ]}]
                   }
                  ]
+
+fake_scope_2 = [{'storage': [{'availability_zones': [{'name': 'zone_0'}]},
+                             {'exclude': [
+                                 {'volumes': [
+                                     {'uuid': 'VOLUME_1'}]},
+
+                                 {'storage_pools': [
+                                     {'name': 'host_0@backend_0#pool_1'}]}
+                             ]}]
+                 }
+                ]

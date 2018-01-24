@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Adds audit scoper for storage data model, now watcher users can specify
+    audit scope for storage CDM in the same manner as compute scope.
