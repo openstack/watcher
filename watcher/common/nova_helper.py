@@ -67,6 +67,9 @@ class NovaHelper(object):
     def get_instance_list(self):
         return self.nova.servers.list(search_opts={'all_tenants': True})
 
+    def get_flavor_list(self):
+        return self.nova.flavors.list(**{'is_public': None})
+
     def get_service(self, service_id):
         return self.nova.services.find(id=service_id)
 

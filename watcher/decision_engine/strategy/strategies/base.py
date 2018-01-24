@@ -463,3 +463,11 @@ class SavingEnergyBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "saving_energy"
+
+
+@six.add_metaclass(abc.ABCMeta)
+class ZoneMigrationBaseStrategy(BaseStrategy):
+
+    @classmethod
+    def get_goal_name(cls):
+        return "hardware_maintenance"
