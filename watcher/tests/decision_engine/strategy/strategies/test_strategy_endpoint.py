@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-# Copyright (c) 2017 Servionica
+# Copyright (c) 2018 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -55,10 +55,12 @@ class TestStrategyEndpoint(base.BaseTestCase):
         strategy = mock.MagicMock()
         strategy.compute_model = mock.MagicMock()
         del strategy.storage_model
+        strategy.baremetal_model = mock.MagicMock()
         se = strategy_base.StrategyEndpoint(mock.MagicMock())
         result = se._get_cdm(strategy)
         expected_result = {'type': 'CDM',
                            'state': [{"compute_model": "available"},
-                                     {"storage_model": "not available"}],
+                                     {"storage_model": "not available"},
+                                     {"baremetal_model": "available"}],
                            'mandatory': True, 'comment': ''}
         self.assertEqual(expected_result, result)

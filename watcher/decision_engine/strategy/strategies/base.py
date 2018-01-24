@@ -89,7 +89,7 @@ class StrategyEndpoint(object):
 
     def _get_cdm(self, strategy):
         models = []
-        for model in ['compute_model', 'storage_model']:
+        for model in ['compute_model', 'storage_model', 'baremetal_model']:
             try:
                 getattr(strategy, model)
             except Exception:
