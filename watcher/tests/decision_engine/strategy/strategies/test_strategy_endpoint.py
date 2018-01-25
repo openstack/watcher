@@ -42,7 +42,7 @@ class TestStrategyEndpoint(base.BaseTestCase):
     def test_get_datasource_status(self):
         strategy = mock.MagicMock()
         datasource = mock.MagicMock()
-        strategy.config.datasource = "gnocchi"
+        datasource.NAME = 'gnocchi'
         datasource.check_availability.return_value = "available"
         se = strategy_base.StrategyEndpoint(mock.MagicMock())
         result = se._get_datasource_status(strategy, datasource)

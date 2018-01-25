@@ -66,7 +66,7 @@ class StrategyEndpoint(object):
             ds_metrics = datasource.list_metrics()
             if ds_metrics is None:
                 raise exception.DataSourceNotAvailable(
-                    datasource=strategy.config.datasource)
+                    datasource=datasource.NAME)
             else:
                 for metric in strategy.DATASOURCE_METRICS:
                     original_metric_name = datasource.METRIC_MAP.get(metric)
@@ -81,7 +81,7 @@ class StrategyEndpoint(object):
         if not datasource:
             state = "Datasource is not presented for this strategy"
         else:
-            state = "%s: %s" % (strategy.config.datasource,
+            state = "%s: %s" % (datasource.NAME,
                                 datasource.check_availability())
         return {'type': 'Datasource',
                 'state': state,
@@ -104,7 +104,7 @@ class StrategyEndpoint(object):
         try:
             is_datasources = getattr(strategy.config, 'datasources', None)
             if is_datasources:
-                datasource = is_datasources[0]
+                datasource = getattr(strategy, 'datasource_backend')
             else:
                 datasource = getattr(strategy, strategy.config.datasource)
         except (AttributeError, IndexError):
