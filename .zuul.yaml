@@ -1,5 +1,4 @@
 - project:
-    name: openstack/watcher
     check:
       jobs:
         - watcher-tempest-multinode
