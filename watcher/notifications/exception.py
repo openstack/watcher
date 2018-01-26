@@ -16,7 +16,7 @@ import sys
 import six
 
 from watcher.notifications import base as notificationbase
-from watcher.objects import base as base
+from watcher.objects import base
 from watcher.objects import fields as wfields
 
 
