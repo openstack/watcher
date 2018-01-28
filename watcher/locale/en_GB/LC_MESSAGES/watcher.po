@@ -4,11 +4,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: watcher VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2018-01-19 11:46+0000\n"
+"POT-Creation-Date: 2018-01-26 00:18+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-01-19 08:01+0000\n"
+"PO-Revision-Date: 2018-01-27 12:51+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en-GB\n"
@@ -281,6 +281,10 @@ msgid "Couldn't delete when state is '%(state)s'."
 msgstr "Couldn't delete when state is '%(state)s'."
 
 #, python-format
+msgid "Datasource %(datasource)s is not available."
+msgstr "Datasource %(datasource)s is not available."
+
+#, python-format
 msgid "Datasource %(datasource)s is not supported by strategy %(strategy)s"
 msgstr "Datasource %(datasource)s is not supported by strategy %(strategy)s"
 
@@ -368,6 +372,9 @@ msgstr "Goal %(goal)s is invalid"
 
 msgid "Goals"
 msgstr "Goals"
+
+msgid "Hardware Maintenance"
+msgstr "Hardware Maintenance"
 
 #, python-format
 msgid "Here below is a table containing the objects that can be purged%s:"
@@ -507,6 +514,30 @@ msgid "Purge results summary%s:"
 msgstr "Purge results summary%s:"
 
 msgid ""
+"Ratio of actual attached volumes migrated to planned attached volumes "
+"migrate."
+msgstr ""
+"Ratio of actual attached volumes migrated to planned attached volumes "
+"migrate."
+
+msgid ""
+"Ratio of actual cold migrated instances to planned cold migrate instances."
+msgstr ""
+"Ratio of actual cold migrated instances to planned cold migrate instances."
+
+msgid ""
+"Ratio of actual detached volumes migrated to planned detached volumes "
+"migrate."
+msgstr ""
+"Ratio of actual detached volumes migrated to planned detached volumes "
+"migrate."
+
+msgid ""
+"Ratio of actual live migrated instances to planned live migrate instances."
+msgstr ""
+"Ratio of actual live migrated instances to planned live migrate instances."
+
+msgid ""
 "Ratio of released compute nodes divided by the total number of enabled "
 "compute nodes."
 msgstr ""
@@ -560,6 +591,9 @@ msgstr ""
 #, python-format
 msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
 msgstr "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
+
+msgid "Storage Capacity Balance Strategy"
+msgstr "Storage Capacity Balance Strategy"
 
 msgid "Strategies"
 msgstr "Strategies"
@@ -644,14 +678,41 @@ msgstr "The Ironic node %(uuid)s could not be found"
 msgid "The list of compute node(s) in the cluster is empty"
 msgstr "The list of compute node(s) in the cluster is empty"
 
+msgid "The list of storage node(s) in the cluster is empty"
+msgstr "The list of storage node(s) in the cluster is empty"
+
 msgid "The metrics resource collector is not defined"
 msgstr "The metrics resource collector is not defined"
 
 msgid "The number of VM migrations to be performed."
 msgstr "The number of VM migrations to be performed."
 
+msgid "The number of attached volumes actually migrated."
+msgstr "The number of attached volumes actually migrated."
+
+msgid "The number of attached volumes planned to migrate."
+msgstr "The number of attached volumes planned to migrate."
+
 msgid "The number of compute nodes to be released."
 msgstr "The number of compute nodes to be released."
+
+msgid "The number of detached volumes actually migrated."
+msgstr "The number of detached volumes actually migrated."
+
+msgid "The number of detached volumes planned to migrate."
+msgstr "The number of detached volumes planned to migrate."
+
+msgid "The number of instances actually cold migrated."
+msgstr "The number of instances actually cold migrated."
+
+msgid "The number of instances actually live migrated."
+msgstr "The number of instances actually live migrated."
+
+msgid "The number of instances planned to cold migrate."
+msgstr "The number of instances planned to cold migrate."
+
+msgid "The number of instances planned to live migrate."
+msgstr "The number of instances planned to live migrate."
 
 #, python-format
 msgid ""
@@ -765,6 +826,9 @@ msgid ""
 msgstr ""
 "You shouldn't use any other IDs of %(resource)s if you use wildcard "
 "character."
+
+msgid "Zone migration"
+msgstr "Zone migration"
 
 msgid "destination type is required when migration type is swap"
 msgstr "destination type is required when migration type is swap"
