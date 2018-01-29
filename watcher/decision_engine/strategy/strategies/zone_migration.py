@@ -10,6 +10,14 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
+"""
+*Zone migration using instance and volume migration*
+
+This is zone migration strategy to migrate many instances and volumes
+efficiently with minimum downtime for hardware maintenance.
+
+"""
 
 from dateutil.parser import parse
 import six
@@ -40,6 +48,7 @@ IN_USE = "in-use"
 
 
 class ZoneMigration(base.ZoneMigrationBaseStrategy):
+    """Zone migration using instance and volume migration"""
 
     def __init__(self, config, osc=None):
 
@@ -371,15 +380,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         :param pool: pool name
         :returns: host name
         """
-
-        # TODO(hidekazu) use this
-        # mapping = zonemgr.get_host_pool_mapping()
-        # for host, pools in six.iteritems(mapping):
-        #    for _pool in pools:
-        #        if pool == _pool:
-        #            return host
-        # LOG.warning(self.msg_not_exist_corresponding_host % pool)
-        # return pool
         return pool.split('@')[0]
 
     def get_dst_node(self, src_node):
