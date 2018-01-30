@@ -58,32 +58,35 @@ class GnocchiHelper(base.DataSourceBase):
             return 'not available'
         return 'available'
 
-    def _statistic_aggregation(self,
-                               resource_id,
-                               metric,
-                               granularity,
-                               start_time=None,
-                               stop_time=None,
-                               aggregation='mean'):
+    def list_metrics(self):
+        """List the user's meters."""
+        try:
+            response = self.query_retry(f=self.gnocchi.metric.list)
+        except Exception:
+            return set()
+        else:
+            return set([metric['name'] for metric in response])
+
+    def statistic_aggregation(self, resource_id=None, meter_name=None,
+                              period=300, granularity=300, dimensions=None,
+                              aggregation='avg', group_by='*'):
         """Representing a statistic aggregate by operators
 
-        :param metric: metric name of which we want the statistics
-        :param resource_id: id of resource to list statistics for
-        :param start_time: Start datetime from which metrics will be used
-        :param stop_time: End datetime from which metrics will be used
-        :param granularity: frequency of marking metric point, in seconds
+        :param resource_id: id of resource to list statistics for.
+        :param meter_name: meter name of which we want the statistics.
+        :param period: Period in seconds over which to group samples.
+        :param granularity: frequency of marking metric point, in seconds.
+        :param dimensions: dimensions (dict). This param isn't used in
+                           Gnocchi datasource.
         :param aggregation: Should be chosen in accordance with policy
-                            aggregations
+                            aggregations.
+        :param group_by: list of columns to group the metrics to be returned.
+                         This param isn't used in Gnocchi datasource.
         :return: value of aggregated metric
         """
 
-        if start_time is not None and not isinstance(start_time, datetime):
-            raise exception.InvalidParameter(parameter='start_time',
-                                             parameter_type=datetime)
-
-        if stop_time is not None and not isinstance(stop_time, datetime):
-            raise exception.InvalidParameter(parameter='stop_time',
-                                             parameter_type=datetime)
+        stop_time = datetime.utcnow()
+        start_time = stop_time - timedelta(seconds=(int(period)))
 
         if not common_utils.is_uuid_like(resource_id):
             kwargs = dict(query={"=": {"original_resource_id": resource_id}},
@@ -97,7 +100,7 @@ class GnocchiHelper(base.DataSourceBase):
             resource_id = resources[0]['id']
 
         raw_kwargs = dict(
-            metric=metric,
+            metric=meter_name,
             start=start_time,
             stop=stop_time,
             resource_id=resource_id,
@@ -114,27 +117,6 @@ class GnocchiHelper(base.DataSourceBase):
             # return value of latest measure
             # measure has structure [time, granularity, value]
             return statistics[-1][2]
-
-    def list_metrics(self):
-        """List the user's meters."""
-        try:
-            response = self.query_retry(f=self.gnocchi.metric.list)
-        except Exception:
-            return set()
-        else:
-            return set([metric['name'] for metric in response])
-
-    def statistic_aggregation(self, resource_id, metric, period, granularity,
-                              aggregation='mean'):
-        stop_time = datetime.utcnow()
-        start_time = stop_time - timedelta(seconds=(int(period)))
-        return self._statistic_aggregation(
-            resource_id=resource_id,
-            metric=metric,
-            granularity=granularity,
-            start_time=start_time,
-            stop_time=stop_time,
-            aggregation=aggregation)
 
     def get_host_cpu_usage(self, resource_id, period, aggregate,
                            granularity=300):

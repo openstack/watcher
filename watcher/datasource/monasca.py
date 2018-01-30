@@ -21,6 +21,7 @@ import datetime
 from monascaclient import exc
 
 from watcher.common import clients
+from watcher.common import exception
 from watcher.datasource import base
 
 
@@ -97,41 +98,42 @@ class MonascaHelper(base.DataSourceBase):
 
         return statistics
 
-    def statistic_aggregation(self,
-                              meter_name,
-                              dimensions,
-                              start_time=None,
-                              end_time=None,
-                              period=None,
-                              aggregate='avg',
-                              group_by='*'):
+    def statistic_aggregation(self, resource_id=None, meter_name=None,
+                              period=300, granularity=300, dimensions=None,
+                              aggregation='avg', group_by='*'):
         """Representing a statistic aggregate by operators
 
-        :param meter_name: meter names of which we want the statistics
-        :param dimensions: dimensions (dict)
-        :param start_time: Start datetime from which metrics will be used
-        :param end_time: End datetime from which metrics will be used
+        :param resource_id: id of resource to list statistics for.
+                            This param isn't used in Monasca datasource.
+        :param meter_name: meter names of which we want the statistics.
         :param period: Sampling `period`: In seconds. If no period is given,
                        only one aggregate statistic is returned. If given, a
                        faceted result will be returned, divided into given
                        periods. Periods with no data are ignored.
-        :param aggregate: Should be either 'avg', 'count', 'min' or 'max'
+        :param granularity: frequency of marking metric point, in seconds.
+                            This param isn't used in Ceilometer datasource.
+        :param dimensions: dimensions (dict).
+        :param aggregation: Should be either 'avg', 'count', 'min' or 'max'.
+        :param group_by: list of columns to group the metrics to be returned.
         :return: A list of dict with each dict being a distinct result row
         """
-        start_timestamp, end_timestamp, period = self._format_time_params(
-            start_time, end_time, period
-        )
 
-        if aggregate == 'mean':
-            aggregate = 'avg'
+        if dimensions is None:
+            raise exception.UnsupportedDataSource(datasource='Monasca')
+
+        stop_time = datetime.datetime.utcnow()
+        start_time = stop_time - datetime.timedelta(seconds=(int(period)))
+
+        if aggregation == 'mean':
+            aggregation = 'avg'
 
         raw_kwargs = dict(
             name=meter_name,
-            start_time=start_timestamp,
-            end_time=end_timestamp,
+            start_time=start_time.isoformat(),
+            end_time=stop_time.isoformat(),
             dimensions=dimensions,
             period=period,
-            statistics=aggregate,
+            statistics=aggregation,
             group_by=group_by,
         )
 
@@ -140,45 +142,36 @@ class MonascaHelper(base.DataSourceBase):
         statistics = self.query_retry(
             f=self.monasca.metrics.list_statistics, **kwargs)
 
-        return statistics
+        cpu_usage = None
+        for stat in statistics:
+            avg_col_idx = stat['columns'].index(aggregation)
+            values = [r[avg_col_idx] for r in stat['statistics']]
+            value = float(sum(values)) / len(values)
+            cpu_usage = value
+
+        return cpu_usage
 
     def get_host_cpu_usage(self, resource_id, period, aggregate,
                            granularity=None):
         metric_name = self.METRIC_MAP.get('host_cpu_usage')
         node_uuid = resource_id.split('_')[0]
-        statistics = self.statistic_aggregation(
+        return self.statistic_aggregation(
             meter_name=metric_name,
             dimensions=dict(hostname=node_uuid),
             period=period,
-            aggregate=aggregate
+            aggregation=aggregate
         )
-        cpu_usage = None
-        for stat in statistics:
-            avg_col_idx = stat['columns'].index('avg')
-            values = [r[avg_col_idx] for r in stat['statistics']]
-            value = float(sum(values)) / len(values)
-            cpu_usage = value
-
-        return cpu_usage
 
     def get_instance_cpu_usage(self, resource_id, period, aggregate,
                                granularity=None):
         metric_name = self.METRIC_MAP.get('instance_cpu_usage')
 
-        statistics = self.statistic_aggregation(
+        return self.statistic_aggregation(
             meter_name=metric_name,
             dimensions=dict(resource_id=resource_id),
             period=period,
-            aggregate=aggregate
+            aggregation=aggregate
         )
-        cpu_usage = None
-        for stat in statistics:
-            avg_col_idx = stat['columns'].index('avg')
-            values = [r[avg_col_idx] for r in stat['statistics']]
-            value = float(sum(values)) / len(values)
-            cpu_usage = value
-
-        return cpu_usage
 
     def get_host_memory_usage(self, resource_id, period, aggregate,
                               granularity=None):

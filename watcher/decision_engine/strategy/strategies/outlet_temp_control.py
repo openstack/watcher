@@ -28,15 +28,11 @@ Outlet (Exhaust Air) Temperature is one of the important thermal
 telemetries to measure thermal/workload status of server.
 """
 
-import datetime
-
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -95,8 +91,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
         super(OutletTempControl, self).__init__(config, osc)
-        self._ceilometer = None
-        self._gnocchi = None
 
     @classmethod
     def get_name(cls):
@@ -138,26 +132,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 },
             },
         }
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, c):
-        self._ceilometer = c
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, g):
-        self._gnocchi = g
 
     @property
     def granularity(self):
@@ -208,25 +182,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             resource_id = node.uuid
             outlet_temp = None
 
-            if self.config.datasource == "ceilometer":
-                outlet_temp = self.ceilometer.statistic_aggregation(
-                    resource_id=resource_id,
-                    meter_name=metric_name,
-                    period=self.period,
-                    aggregate='avg'
-                )
-            elif self.config.datasource == "gnocchi":
-                stop_time = datetime.datetime.utcnow()
-                start_time = stop_time - datetime.timedelta(
-                    seconds=int(self.period))
-                outlet_temp = self.gnocchi.statistic_aggregation(
-                    resource_id=resource_id,
-                    metric=metric_name,
-                    granularity=self.granularity,
-                    start_time=start_time,
-                    stop_time=stop_time,
-                    aggregation='mean'
-                )
+            outlet_temp = self.datasource_backend.statistic_aggregation(
+                resource_id=resource_id,
+                meter_name=metric_name,
+                period=self.period,
+                granularity=self.granularity,
+            )
+
             # some hosts may not have outlet temp meters, remove from target
             if outlet_temp is None:
                 LOG.warning("%s: no outlet temp data", resource_id)

@@ -26,15 +26,9 @@ class FakeMonascaMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    # This method is added as temporary solution until all strategies use
-    # datasource_backend property
-    def temp_mock_get_statistics(self, metric, dimensions, period,
-                                 aggregate='avg', granularity=300):
-        return self.mock_get_statistics(metric, dimensions,
-                                        period, aggregate='avg')
-
-    def mock_get_statistics(self, meter_name, dimensions, period,
-                            aggregate='avg'):
+    def mock_get_statistics(self, resource_id=None, meter_name=None,
+                            period=None, granularity=None, dimensions=None,
+                            aggregation='avg', group_by='*'):
         resource_id = dimensions.get(
             "resource_id") or dimensions.get("hostname")
         result = 0.0

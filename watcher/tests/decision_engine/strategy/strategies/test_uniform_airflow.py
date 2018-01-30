@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 import collections
-import datetime
 import mock
 
 from watcher.applier.loading import default
@@ -56,7 +55,7 @@ class TestUniformAirflow(base.TestCase):
         self.addCleanup(p_model.stop)
 
         p_datasource = mock.patch.object(
-            strategies.UniformAirflow, self.datasource,
+            strategies.UniformAirflow, 'datasource_backend',
             new_callable=mock.PropertyMock)
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
@@ -211,39 +210,3 @@ class TestUniformAirflow(base.TestCase):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
-
-    def test_periods(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
-        p_ceilometer = mock.patch.object(
-            strategies.UniformAirflow, "ceilometer")
-        m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
-        p_gnocchi = mock.patch.object(strategies.UniformAirflow, "gnocchi")
-        m_gnocchi = p_gnocchi.start()
-        self.addCleanup(p_gnocchi.stop)
-        datetime_patcher = mock.patch.object(
-            datetime, 'datetime',
-            mock.Mock(wraps=datetime.datetime)
-        )
-        mocked_datetime = datetime_patcher.start()
-        mocked_datetime.utcnow.return_value = datetime.datetime(
-            2017, 3, 19, 18, 53, 11, 657417)
-        self.addCleanup(datetime_patcher.stop)
-        m_ceilometer.statistic_aggregation = mock.Mock(
-            side_effect=self.fake_metrics.mock_get_statistics)
-        m_gnocchi.statistic_aggregation = mock.Mock(
-            side_effect=self.fake_metrics.mock_get_statistics)
-        self.strategy.group_hosts_by_airflow()
-        if self.strategy.config.datasource == "ceilometer":
-            m_ceilometer.statistic_aggregation.assert_any_call(
-                aggregate='avg', meter_name='hardware.ipmi.node.airflow',
-                period=300, resource_id=mock.ANY)
-        elif self.strategy.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int('300'))
-            m_gnocchi.statistic_aggregation.assert_called_with(
-                resource_id=mock.ANY, metric='hardware.ipmi.node.airflow',
-                granularity=300, start_time=start_time, stop_time=stop_time,
-                aggregation='mean')

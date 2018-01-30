@@ -145,24 +145,28 @@ class CeilometerHelper(base.DataSourceBase):
         else:
             return meters
 
-    def statistic_aggregation(self,
-                              resource_id,
-                              meter_name,
-                              period,
-                              aggregate='avg'):
+    def statistic_aggregation(self, resource_id=None, meter_name=None,
+                              period=300, granularity=300, dimensions=None,
+                              aggregation='avg', group_by='*'):
         """Representing a statistic aggregate by operators
 
         :param resource_id: id of resource to list statistics for.
         :param meter_name: Name of meter to list statistics for.
         :param period: Period in seconds over which to group samples.
-        :param aggregate: Available aggregates are: count, cardinality,
-                           min, max, sum, stddev, avg. Defaults to avg.
+        :param granularity: frequency of marking metric point, in seconds.
+                            This param isn't used in Ceilometer datasource.
+        :param dimensions: dimensions (dict). This param isn't used in
+                           Ceilometer datasource.
+        :param aggregation: Available aggregates are: count, cardinality,
+                            min, max, sum, stddev, avg. Defaults to avg.
+        :param group_by: list of columns to group the metrics to be returned.
+                         This param isn't used in Ceilometer datasource.
         :return: Return the latest statistical data, None if no data.
         """
 
         end_time = datetime.datetime.utcnow()
-        if aggregate == 'mean':
-            aggregate = 'avg'
+        if aggregation == 'mean':
+            aggregation = 'avg'
         start_time = end_time - datetime.timedelta(seconds=int(period))
         query = self.build_query(
             resource_id=resource_id, start_time=start_time, end_time=end_time)
@@ -171,11 +175,11 @@ class CeilometerHelper(base.DataSourceBase):
                                      q=query,
                                      period=period,
                                      aggregates=[
-                                         {'func': aggregate}])
+                                         {'func': aggregation}])
 
         item_value = None
         if statistic:
-            item_value = statistic[-1]._info.get('aggregate').get(aggregate)
+            item_value = statistic[-1]._info.get('aggregate').get(aggregation)
         return item_value
 
     def get_last_sample_values(self, resource_id, meter_name, limit=1):
@@ -204,64 +208,64 @@ class CeilometerHelper(base.DataSourceBase):
                            granularity=None):
         meter_name = self.METRIC_MAP.get('host_cpu_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_instance_cpu_usage(self, resource_id, period, aggregate,
                                granularity=None):
         meter_name = self.METRIC_MAP.get('instance_cpu_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_host_memory_usage(self, resource_id, period, aggregate,
                               granularity=None):
         meter_name = self.METRIC_MAP.get('host_memory_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_instance_memory_usage(self, resource_id, period, aggregate,
                                   granularity=None):
         meter_name = self.METRIC_MAP.get('instance_ram_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
                                     granularity=None):
         meter_name = self.METRIC_MAP.get('instance_l3_cache_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_instance_ram_allocated(self, resource_id, period, aggregate,
                                    granularity=None):
         meter_name = self.METRIC_MAP.get('instance_ram_allocated')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
                                          granularity=None):
         meter_name = self.METRIC_MAP.get('instance_root_disk_size')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_host_outlet_temperature(self, resource_id, period, aggregate,
                                     granularity=None):
         meter_name = self.METRIC_MAP.get('host_outlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_host_inlet_temperature(self, resource_id, period, aggregate,
                                    granularity=None):
         meter_name = self.METRIC_MAP.get('host_inlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_host_airflow(self, resource_id, period, aggregate,
                          granularity=None):
         meter_name = self.METRIC_MAP.get('host_airflow')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)
 
     def get_host_power(self, resource_id, period, aggregate,
                        granularity=None):
         meter_name = self.METRIC_MAP.get('host_power')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          aggregate=aggregate)
+                                          granularity, aggregate=aggregate)

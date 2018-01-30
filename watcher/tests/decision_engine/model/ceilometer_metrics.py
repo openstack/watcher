@@ -26,14 +26,9 @@ class FakeCeilometerMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    # TODO(alexchadin): This method is added as temporary solution until
-    # all strategies use datasource_backend property.
-    def temp_mock_get_statistics(self, resource_id, meter_name, period,
-                                 aggregate, granularity=300):
-        return self.mock_get_statistics(resource_id, meter_name, period)
-
-    def mock_get_statistics(self, resource_id, meter_name, period,
-                            aggregate='avg'):
+    def mock_get_statistics(self, resource_id=None, meter_name=None,
+                            period=None, granularity=None, dimensions=None,
+                            aggregation='avg', group_by='*'):
         result = 0
         if meter_name == "hardware.cpu.util":
             result = self.get_usage_node_cpu(resource_id)
@@ -56,7 +51,8 @@ class FakeCeilometerMetrics(object):
         return result
 
     def mock_get_statistics_wb(self, resource_id, meter_name, period,
-                               aggregate, granularity=300):
+                               granularity, dimensions=None,
+                               aggregation='avg', group_by='*'):
         result = 0.0
         if meter_name == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)
