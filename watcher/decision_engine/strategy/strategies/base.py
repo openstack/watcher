@@ -272,7 +272,7 @@ class BaseStrategy(loadable.Loadable):
             collector = self.collector_manager.get_cluster_model_collector(
                 'storage', osc=self.osc)
             audit_scope_handler = collector.get_audit_scope_handler(
-                audit_scope=self.audit.scope)
+                audit_scope=self.audit_scope)
             self._storage_model = audit_scope_handler.get_scoped_model(
                 collector.get_latest_cluster_data_model())
 
