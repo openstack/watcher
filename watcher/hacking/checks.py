@@ -60,6 +60,7 @@ log_warn = re.compile(
     r"(.)*LOG\.(warn)\(\s*('|\"|_)")
 unittest_imports_dot = re.compile(r"\bimport[\s]+unittest\b")
 unittest_imports_from = re.compile(r"\bfrom[\s]+unittest\b")
+re_redundant_import_alias = re.compile(r".*import (.+) as \1$")
 
 
 @flake8ext
@@ -271,6 +272,18 @@ def check_builtins_gettext(logical_line, tokens, filename, lines, noqa):
             yield (0, msg)
 
 
+@flake8ext
+def no_redundant_import_alias(logical_line):
+    """Checking no redundant import alias.
+
+    https://bugs.launchpad.net/watcher/+bug/1745527
+
+    N342
+    """
+    if re.match(re_redundant_import_alias, logical_line):
+        yield(0, "N342: No redundant import alias.")
+
+
 def factory(register):
     register(use_jsonutils)
     register(check_assert_called_once_with)
@@ -286,3 +299,4 @@ def factory(register):
     register(check_log_warn_deprecated)
     register(check_oslo_i18n_wrapper)
     register(check_builtins_gettext)
+    register(no_redundant_import_alias)
