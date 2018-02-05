@@ -267,7 +267,7 @@ the same goal and same workload of the :ref:`Cluster <cluster_definition>`.
 Project
 =======
 
-:ref:`Projects <project_definition>` represent the base unit of “ownership”
+:ref:`Projects <project_definition>` represent the base unit of "ownership"
 in OpenStack, in that all :ref:`resources <managed_resource_definition>` in
 OpenStack should be owned by a specific :ref:`project <project_definition>`.
 In OpenStack Identity, a :ref:`project <project_definition>` must be owned by a
