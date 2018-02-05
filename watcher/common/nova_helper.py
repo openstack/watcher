@@ -52,14 +52,21 @@ class NovaHelper(object):
         return self.nova.hypervisors.get(utils.Struct(id=node_id))
 
     def get_compute_node_by_hostname(self, node_hostname):
-        """Get compute node by ID (*not* UUID)"""
-        # We need to pass an object with an 'id' attribute to make it work
+        """Get compute node by hostname"""
         try:
-            compute_nodes = self.nova.hypervisors.search(node_hostname)
-            if len(compute_nodes) != 1:
+            hypervisors = [hv for hv in self.get_compute_node_list()
+                           if hv.service['host'] == node_hostname]
+            if len(hypervisors) != 1:
+                # TODO(hidekazu)
+                # this may occur if VMware vCenter driver is used
                 raise exception.ComputeNodeNotFound(name=node_hostname)
+            else:
+                compute_nodes = self.nova.hypervisors.search(
+                    hypervisors[0].hypervisor_hostname)
+                if len(compute_nodes) != 1:
+                    raise exception.ComputeNodeNotFound(name=node_hostname)
 
-            return self.get_compute_node_by_id(compute_nodes[0].id)
+                return self.get_compute_node_by_id(compute_nodes[0].id)
         except Exception as exc:
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
