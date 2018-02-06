@@ -290,8 +290,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 util = None
                 try:
                     util = self.datasource_backend.statistic_aggregation(
-                        instance.uuid, self._meter, self._period, 'mean',
-                        granularity=self.granularity)
+                        instance.uuid, self._meter, self._period,
+                        self._granularity, aggregation='mean',
+                        dimensions=dict(resource_id=instance.uuid))
                 except Exception as exc:
                     LOG.exception(exc)
                     LOG.error("Can not get %s from %s", self._meter,
@@ -352,6 +353,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         self.threshold = self.input_parameters.threshold
         self._period = self.input_parameters.period
         self._meter = self.input_parameters.metrics
+        self._granularity = self.input_parameters.granularity
         source_nodes, target_nodes, avg_workload, workload_cache = (
             self.group_hosts_by_cpu_or_ram_util())
 

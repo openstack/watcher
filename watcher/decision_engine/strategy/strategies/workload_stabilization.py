@@ -198,8 +198,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
             avg_meter = self.datasource_backend.statistic_aggregation(
-                instance.uuid, meter, self.periods['instance'], 'mean',
-                granularity=self.granularity)
+                instance.uuid, meter, self.periods['instance'],
+                self.granularity, aggregation='mean')
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
@@ -242,8 +242,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     resource_id = node_id
                 avg_meter = self.datasource_backend.statistic_aggregation(
                     resource_id, self.instance_metrics[metric],
-                    self.periods['node'], 'mean', granularity=self.granularity)
-
+                    self.periods['node'], self.granularity, aggregation='mean')
                 if avg_meter is None:
                     LOG.warning('No values returned by node %s for %s',
                                 node_id, meter_name)

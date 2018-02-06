@@ -83,7 +83,7 @@ class TestWorkloadStabilization(base.TestCase):
         self.m_model.return_value = model_root.ModelRoot()
         self.m_audit_scope.return_value = mock.Mock()
         self.m_datasource.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.temp_mock_get_statistics)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
         self.strategy = strategies.WorkloadStabilization(
             config=mock.Mock(datasource=self.datasource))

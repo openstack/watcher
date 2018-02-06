@@ -42,15 +42,11 @@ airflow is higher than the specified threshold.
 - It assumes that live migrations are possible.
 """
 
-import datetime
-
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
 from watcher.common import exception as wexc
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -125,29 +121,7 @@ class UniformAirflow(base.BaseStrategy):
             self.config.datasource]['host_inlet_temp']
         self.meter_name_power = self.METRIC_NAMES[
             self.config.datasource]['host_power']
-        self._ceilometer = None
-        self._gnocchi = None
         self._period = self.PERIOD
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, c):
-        self._ceilometer = c
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, g):
-        self._gnocchi = g
 
     @classmethod
     def get_name(cls):
@@ -247,35 +221,16 @@ class UniformAirflow(base.BaseStrategy):
             source_instances = self.compute_model.get_node_instances(
                 source_node)
             if source_instances:
-                if self.config.datasource == "ceilometer":
-                    inlet_t = self.ceilometer.statistic_aggregation(
-                        resource_id=source_node.uuid,
-                        meter_name=self.meter_name_inlet_t,
-                        period=self._period,
-                        aggregate='avg')
-                    power = self.ceilometer.statistic_aggregation(
-                        resource_id=source_node.uuid,
-                        meter_name=self.meter_name_power,
-                        period=self._period,
-                        aggregate='avg')
-                elif self.config.datasource == "gnocchi":
-                    stop_time = datetime.datetime.utcnow()
-                    start_time = stop_time - datetime.timedelta(
-                        seconds=int(self._period))
-                    inlet_t = self.gnocchi.statistic_aggregation(
-                        resource_id=source_node.uuid,
-                        metric=self.meter_name_inlet_t,
-                        granularity=self.granularity,
-                        start_time=start_time,
-                        stop_time=stop_time,
-                        aggregation='mean')
-                    power = self.gnocchi.statistic_aggregation(
-                        resource_id=source_node.uuid,
-                        metric=self.meter_name_power,
-                        granularity=self.granularity,
-                        start_time=start_time,
-                        stop_time=stop_time,
-                        aggregation='mean')
+                inlet_t = self.datasource_backend.statistic_aggregation(
+                    resource_id=source_node.uuid,
+                    meter_name=self.meter_name_inlet_t,
+                    period=self._period,
+                    granularity=self.granularity)
+                power = self.datasource_backend.statistic_aggregation(
+                    resource_id=source_node.uuid,
+                    meter_name=self.meter_name_power,
+                    period=self._period,
+                    granularity=self.granularity)
                 if (power < self.threshold_power and
                         inlet_t < self.threshold_inlet_t):
                     # hardware issue, migrate all instances from this node
@@ -353,23 +308,11 @@ class UniformAirflow(base.BaseStrategy):
             node = self.compute_model.get_node_by_uuid(
                 node_id)
             resource_id = node.uuid
-            if self.config.datasource == "ceilometer":
-                airflow = self.ceilometer.statistic_aggregation(
-                    resource_id=resource_id,
-                    meter_name=self.meter_name_airflow,
-                    period=self._period,
-                    aggregate='avg')
-            elif self.config.datasource == "gnocchi":
-                stop_time = datetime.datetime.utcnow()
-                start_time = stop_time - datetime.timedelta(
-                    seconds=int(self._period))
-                airflow = self.gnocchi.statistic_aggregation(
-                    resource_id=resource_id,
-                    metric=self.meter_name_airflow,
-                    granularity=self.granularity,
-                    start_time=start_time,
-                    stop_time=stop_time,
-                    aggregation='mean')
+            airflow = self.datasource_backend.statistic_aggregation(
+                resource_id=resource_id,
+                meter_name=self.meter_name_airflow,
+                period=self._period,
+                granularity=self.granularity)
             # some hosts may not have airflow meter, remove from target
             if airflow is None:
                 LOG.warning("%s: no airflow data", resource_id)

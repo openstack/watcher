@@ -21,17 +21,10 @@ class FakeGnocchiMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    # TODO(alexchadin): This method is added as temporary solution until
-    # all strategies use datasource_backend property.
-    def temp_mock_get_statistics(self, resource_id, metric, period, aggregate,
-                                 granularity=300):
-        return self.mock_get_statistics(resource_id, metric, granularity,
-                                        0, 0, aggregation='mean')
-
-    def mock_get_statistics(self, resource_id, metric, granularity,
-                            start_time, stop_time, aggregation='mean'):
+    def mock_get_statistics(self, resource_id=None, meter_name=None,
+                            period=None, granularity=None, dimensions=None,
+                            aggregation='avg', group_by='*'):
         result = 0
-        meter_name = metric
         if meter_name == "hardware.cpu.util":
             result = self.get_usage_node_cpu(resource_id)
         elif meter_name == "compute.node.cpu.percent":
@@ -87,12 +80,13 @@ class FakeGnocchiMetrics(object):
             mock[uuid] = 25 * oslo_utils.units.Ki
         return mock[str(uuid)]
 
-    def mock_get_statistics_wb(self, resource_id, metric, period, aggregate,
-                               granularity=300):
+    def mock_get_statistics_wb(self, resource_id, meter_name, period,
+                               granularity, dimensions=None,
+                               aggregation='avg', group_by='*'):
         result = 0.0
-        if metric == "cpu_util":
+        if meter_name == "cpu_util":
             result = self.get_average_usage_instance_cpu_wb(resource_id)
-        elif metric == "memory.resident":
+        elif meter_name == "memory.resident":
             result = self.get_average_usage_instance_memory_wb(resource_id)
         return result
 

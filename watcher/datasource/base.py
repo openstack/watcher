@@ -58,6 +58,12 @@ class DataSourceBase(object):
     )
 
     @abc.abstractmethod
+    def statistic_aggregation(self, resource_id=None, meter_name=None,
+                              period=300, granularity=300, dimensions=None,
+                              aggregation='avg', group_by='*'):
+        pass
+
+    @abc.abstractmethod
     def list_metrics(self):
         pass
 

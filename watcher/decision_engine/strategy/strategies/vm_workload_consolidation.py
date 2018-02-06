@@ -52,7 +52,6 @@ correctly on all compute nodes within the cluster.
 This strategy assumes it is possible to live migrate any VM from
 an active compute node to any other active compute node.
 """
-import datetime
 
 from oslo_config import cfg
 from oslo_log import log
@@ -60,8 +59,6 @@ import six
 
 from watcher._i18n import _
 from watcher.common import exception
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -117,26 +114,6 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def period(self):
         return self.input_parameters.get('period', 3600)
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, ceilometer):
-        self._ceilometer = ceilometer
-
-    @property
-    def gnocchi(self):
-        if self._gnocchi is None:
-            self.gnocchi = gnoc.GnocchiHelper(osc=self.osc)
-        return self._gnocchi
-
-    @gnocchi.setter
-    def gnocchi(self, gnocchi):
-        self._gnocchi = gnocchi
 
     @property
     def granularity(self):
@@ -315,57 +292,28 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         disk_alloc_metric = self.METRIC_NAMES[
             self.config.datasource]['disk_alloc_metric']
 
-        if self.config.datasource == "ceilometer":
-            instance_cpu_util = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid, meter_name=cpu_util_metric,
-                period=self.period, aggregate='avg')
-            instance_ram_util = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid, meter_name=ram_util_metric,
-                period=self.period, aggregate='avg')
-            if not instance_ram_util:
-                instance_ram_util = self.ceilometer.statistic_aggregation(
-                    resource_id=instance.uuid, meter_name=ram_alloc_metric,
-                    period=self.period, aggregate='avg')
-            instance_disk_util = self.ceilometer.statistic_aggregation(
-                resource_id=instance.uuid, meter_name=disk_alloc_metric,
-                period=self.period, aggregate='avg')
-        elif self.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int(self.period))
-            instance_cpu_util = self.gnocchi.statistic_aggregation(
+        instance_cpu_util = self.datasource_backend.statistic_aggregation(
+            resource_id=instance.uuid,
+            meter_name=cpu_util_metric,
+            period=self.period,
+            granularity=self.granularity)
+        instance_ram_util = self.datasource_backend.statistic_aggregation(
+            resource_id=instance.uuid,
+            meter_name=ram_util_metric,
+            period=self.period,
+            granularity=self.granularity)
+        if not instance_ram_util:
+            instance_ram_util = self.datasource_backend.statistic_aggregation(
                 resource_id=instance.uuid,
-                metric=cpu_util_metric,
-                granularity=self.granularity,
-                start_time=start_time,
-                stop_time=stop_time,
-                aggregation='mean'
-            )
-            instance_ram_util = self.gnocchi.statistic_aggregation(
-                resource_id=instance.uuid,
-                metric=ram_util_metric,
-                granularity=self.granularity,
-                start_time=start_time,
-                stop_time=stop_time,
-                aggregation='mean'
-            )
-            if not instance_ram_util:
-                instance_ram_util = self.gnocchi.statistic_aggregation(
-                    resource_id=instance.uuid,
-                    metric=ram_alloc_metric,
-                    granularity=self.granularity,
-                    start_time=start_time,
-                    stop_time=stop_time,
-                    aggregation='mean'
-                )
-            instance_disk_util = self.gnocchi.statistic_aggregation(
-                resource_id=instance.uuid,
-                metric=disk_alloc_metric,
-                granularity=self.granularity,
-                start_time=start_time,
-                stop_time=stop_time,
-                aggregation='mean'
-            )
+                meter_name=ram_alloc_metric,
+                period=self.period,
+                granularity=self.granularity)
+        instance_disk_util = self.datasource_backend.statistic_aggregation(
+            resource_id=instance.uuid,
+            meter_name=disk_alloc_metric,
+            period=self.period,
+            granularity=self.granularity)
+
         if instance_cpu_util:
             total_cpu_utilization = (
                 instance.vcpus * (instance_cpu_util / 100.0))

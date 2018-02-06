@@ -84,8 +84,9 @@ class FakeCeilometerMetrics(object):
     def __init__(self, model):
         self.model = model
 
-    def mock_get_statistics(self, resource_id, meter_name, period=3600,
-                            aggregate='avg'):
+    def mock_get_statistics(self, resource_id=None, meter_name=None,
+                            period=300, granularity=300, dimensions=None,
+                            aggregation='avg', group_by='*'):
         if meter_name == "compute.node.cpu.percent":
             return self.get_node_cpu_util(resource_id)
         elif meter_name == "cpu_util":
@@ -166,15 +167,16 @@ class FakeGnocchiMetrics(object):
     def __init__(self, model):
         self.model = model
 
-    def mock_get_statistics(self, resource_id, metric, granularity,
-                            start_time, stop_time, aggregation='mean'):
-        if metric == "compute.node.cpu.percent":
+    def mock_get_statistics(self, resource_id=None, meter_name=None,
+                            period=300, granularity=300, dimensions=None,
+                            aggregation='avg', group_by='*'):
+        if meter_name == "compute.node.cpu.percent":
             return self.get_node_cpu_util(resource_id)
-        elif metric == "cpu_util":
+        elif meter_name == "cpu_util":
             return self.get_instance_cpu_util(resource_id)
-        elif metric == "memory.resident":
+        elif meter_name == "memory.resident":
             return self.get_instance_ram_util(resource_id)
-        elif metric == "disk.root.size":
+        elif meter_name == "disk.root.size":
             return self.get_instance_disk_root_size(resource_id)
 
     def get_node_cpu_util(self, r_id):

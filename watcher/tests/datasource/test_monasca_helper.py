@@ -16,7 +16,6 @@
 
 import mock
 from oslo_config import cfg
-from oslo_utils import timeutils
 
 from watcher.common import clients
 from watcher.datasource import monasca as monasca_helper
@@ -30,7 +29,7 @@ class TestMonascaHelper(base.BaseTestCase):
 
     def test_monasca_statistic_aggregation(self, mock_monasca):
         monasca = mock.MagicMock()
-        expected_result = [{
+        expected_stat = [{
             'columns': ['timestamp', 'avg'],
             'dimensions': {
                 'hostname': 'rdev-indeedsrv001',
@@ -39,23 +38,23 @@ class TestMonascaHelper(base.BaseTestCase):
             'name': 'cpu.percent',
             'statistics': [
                 ['2016-07-29T12:45:00Z', 0.0],
-                ['2016-07-29T12:50:00Z', 0.9100000000000001],
-                ['2016-07-29T12:55:00Z', 0.9111111111111112]]}]
+                ['2016-07-29T12:50:00Z', 0.9],
+                ['2016-07-29T12:55:00Z', 0.9]]}]
 
-        monasca.metrics.list_statistics.return_value = expected_result
+        monasca.metrics.list_statistics.return_value = expected_stat
         mock_monasca.return_value = monasca
 
         helper = monasca_helper.MonascaHelper()
         result = helper.statistic_aggregation(
+            resource_id=None,
             meter_name='cpu.percent',
-            dimensions={'hostname': 'NODE_UUID'},
-            start_time=timeutils.parse_isotime("2016-06-06T10:33:22.063176"),
-            end_time=None,
             period=7200,
-            aggregate='avg',
+            granularity=300,
+            dimensions={'hostname': 'NODE_UUID'},
+            aggregation='avg',
             group_by='*',
         )
-        self.assertEqual(expected_result, result)
+        self.assertEqual(0.6, result)
 
     def test_check_availability(self, mock_monasca):
         monasca = mock.MagicMock()
@@ -117,34 +116,14 @@ class TestMonascaHelper(base.BaseTestCase):
     @mock.patch.object(monasca_helper.MonascaHelper, 'statistic_aggregation')
     def test_get_host_cpu_usage(self, mock_aggregation, mock_monasca):
         node = "compute1_compute1"
-        mock_aggregation.return_value = [{
-            'columns': ['timestamp', 'avg'],
-            'dimensions': {
-                'hostname': 'rdev-indeedsrv001',
-                'service': 'monasca'},
-            'id': '0',
-            'name': 'cpu.percent',
-            'statistics': [
-                ['2016-07-29T12:45:00Z', 0.0],
-                ['2016-07-29T12:50:00Z', 0.9],
-                ['2016-07-29T12:55:00Z', 0.9]]}]
+        mock_aggregation.return_value = 0.6
         helper = monasca_helper.MonascaHelper()
         cpu_usage = helper.get_host_cpu_usage(node, 600, 'mean')
         self.assertEqual(0.6, cpu_usage)
 
     @mock.patch.object(monasca_helper.MonascaHelper, 'statistic_aggregation')
     def test_get_instance_cpu_usage(self, mock_aggregation, mock_monasca):
-        mock_aggregation.return_value = [{
-            'columns': ['timestamp', 'avg'],
-            'dimensions': {
-                'name': 'vm1',
-                'service': 'monasca'},
-            'id': '0',
-            'name': 'cpu.percent',
-            'statistics': [
-                ['2016-07-29T12:45:00Z', 0.0],
-                ['2016-07-29T12:50:00Z', 0.9],
-                ['2016-07-29T12:55:00Z', 0.9]]}]
+        mock_aggregation.return_value = 0.6
         helper = monasca_helper.MonascaHelper()
         cpu_usage = helper.get_instance_cpu_usage('vm1', 600, 'mean')
         self.assertEqual(0.6, cpu_usage)

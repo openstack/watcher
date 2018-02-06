@@ -75,10 +75,12 @@ class TestWorkloadBalance(base.TestCase):
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update({'metrics': 'cpu_util',
                                                'threshold': 25.0,
-                                               'period': 300})
+                                               'period': 300,
+                                               'granularity': 300})
         self.strategy.threshold = 25.0
         self.strategy._period = 300
         self.strategy._meter = "cpu_util"
+        self.strategy._granularity = 300
 
     def test_calc_used_resource(self):
         model = self.fake_cluster.generate_scenario_6_with_2_nodes()

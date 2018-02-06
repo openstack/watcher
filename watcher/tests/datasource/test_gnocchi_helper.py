@@ -16,10 +16,8 @@
 
 import mock
 from oslo_config import cfg
-from oslo_utils import timeutils
 
 from watcher.common import clients
-from watcher.common import exception
 from watcher.datasource import gnocchi as gnocchi_helper
 from watcher.tests import base
 
@@ -39,33 +37,16 @@ class TestGnocchiHelper(base.BaseTestCase):
         mock_gnocchi.return_value = gnocchi
 
         helper = gnocchi_helper.GnocchiHelper()
-        result = helper._statistic_aggregation(
+        result = helper.statistic_aggregation(
             resource_id='16a86790-327a-45f9-bc82-45839f062fdc',
-            metric='cpu_util',
+            meter_name='cpu_util',
+            period=300,
             granularity=360,
-            start_time=timeutils.parse_isotime("2017-02-02T09:00:00.000000"),
-            stop_time=timeutils.parse_isotime("2017-02-02T10:00:00.000000"),
-            aggregation='mean'
+            dimensions=None,
+            aggregation='mean',
+            group_by='*'
         )
         self.assertEqual(expected_result, result)
-
-    def test_gnocchi_wrong_datetime(self, mock_gnocchi):
-        gnocchi = mock.MagicMock()
-
-        expected_measures = [["2017-02-02T09:00:00.000000", 360, 5.5]]
-
-        gnocchi.metric.get_measures.return_value = expected_measures
-        mock_gnocchi.return_value = gnocchi
-
-        helper = gnocchi_helper.GnocchiHelper()
-        self.assertRaises(
-            exception.InvalidParameter, helper._statistic_aggregation,
-            resource_id='16a86790-327a-45f9-bc82-45839f062fdc',
-            metric='cpu_util',
-            granularity=360,
-            start_time="2017-02-02T09:00:00.000000",
-            stop_time=timeutils.parse_isotime("2017-02-02T10:00:00.000000"),
-            aggregation='mean')
 
     @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
     def test_get_host_cpu_usage(self, mock_aggregation, mock_gnocchi):
