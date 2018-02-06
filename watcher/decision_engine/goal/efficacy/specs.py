@@ -55,6 +55,32 @@ class ServerConsolidation(base.EfficacySpecification):
         return global_efficacy
 
 
+class WorkloadBalancing(base.EfficacySpecification):
+
+    def get_indicators_specifications(self):
+        return [
+            indicators.InstanceMigrationsCount(),
+            indicators.InstancesCount(),
+            indicators.StandardDeviationValue(),
+            indicators.OriginalStandardDeviationValue()
+        ]
+
+    def get_global_efficacy_indicator(self, indicators_map=None):
+        gl_indicators = []
+        mig_value = 0
+        if indicators_map and indicators_map.instance_migrations_count > 0:
+            mig_value = (
+                indicators_map.instance_migrations_count /
+                float(indicators_map.instances_count) * 100)
+        gl_indicators.append(efficacy.Indicator(
+            name="live_migrations_count",
+            description=_("Ratio of migrated virtual machines to audited "
+                          "virtual machines"),
+            unit='%',
+            value=mig_value))
+        return gl_indicators
+
+
 class HardwareMaintenance(base.EfficacySpecification):
 
     def get_indicators_specifications(self):

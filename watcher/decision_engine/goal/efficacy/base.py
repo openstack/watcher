@@ -72,7 +72,8 @@ class EfficacySpecification(object):
         }
         for indicator in self.indicators_specs:
             schema["properties"][indicator.name] = indicator.schema
-            schema["required"].append(indicator.name)
+            if indicator.required:
+                schema["required"].append(indicator.name)
         return schema
 
     def validate_efficacy_indicators(self, indicators_map):

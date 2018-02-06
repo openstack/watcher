@@ -80,6 +80,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.retry_count = None
         self.periods = None
         self.aggregation_method = None
+        self.sd_before_audit = 0
+        self.sd_after_audit = 0
+        self.instance_migrations_count = 0
+        self.instances_count = 0
 
     @classmethod
     def get_name(cls):
@@ -460,6 +464,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                           'threshold': float(self.thresholds[metric]),
                           'sd': metric_sd})
                 LOG.info("Launching workload optimization...")
+                self.sd_before_audit = metric_sd
                 return self.simulate_migrations(hosts_load)
 
     def add_migration(self,
@@ -482,6 +487,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             self.add_migration(mig_instance.uuid, 'live',
                                mig_source_node.uuid,
                                mig_destination_node.uuid)
+            self.instance_migrations_count += 1
 
     def migrate(self, instance_uuid, src_host, dst_host):
         mig_instance = self.compute_model.get_instance_by_uuid(instance_uuid)
@@ -545,6 +551,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     self.migrate(instance_host['instance'],
                                  instance_host['s_host'],
                                  instance_host['host'])
+                    self.sd_after_audit = min_sd
 
                 for metric, value in zip(self.metrics, instance_load[:-1]):
                     if value < float(self.thresholds[metric]):
@@ -563,5 +570,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         This can be used to compute the global efficacy
         """
         self.fill_solution()
+
+        self.solution.set_efficacy_indicators(
+            instance_migrations_count=self.instance_migrations_count,
+            standard_deviation_before_audit=self.sd_before_audit,
+            standard_deviation_after_audit=self.sd_after_audit,
+            instances_count=len(self.compute_model.get_all_instances()),
+        )
 
         LOG.debug(self.compute_model.to_string())
