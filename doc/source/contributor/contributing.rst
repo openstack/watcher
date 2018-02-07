@@ -39,7 +39,7 @@ notifications of important events.
 
    * https://launchpad.net
    * https://launchpad.net/watcher
-   * https://launchpad.net/~openstack
+   * https://launchpad.net/openstack
 
 
 Project Hosting Details
@@ -49,7 +49,7 @@ Bug tracker
     https://launchpad.net/watcher
 
 Mailing list (prefix subjects with ``[watcher]`` for faster responses)
-    https://lists.openstack.org/cgi-bin/mailman/listinfo/openstack-dev
+    http://lists.openstack.org/pipermail/openstack-dev/
 
 Wiki
     https://wiki.openstack.org/Watcher

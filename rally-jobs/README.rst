@@ -29,7 +29,7 @@ Useful links
 
 * How to install: https://docs.openstack.org/rally/latest/install_and_upgrade/install.html
 
-* How to set Rally up and launch your first scenario: https://rally.readthedocs.io/en/latest/tutorial/step_1_setting_up_env_and_running_benchmark_from_samples.html
+* How to set Rally up and launch your first scenario: https://rally.readthedocs.io/en/latest/quick_start/tutorial/step_1_setting_up_env_and_running_benchmark_from_samples.html
 
 * More about Rally: https://docs.openstack.org/rally/latest/
 
