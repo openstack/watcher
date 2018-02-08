@@ -1,0 +1,4 @@
+---
+features:
+  - Audits have 'name' field now, that is more friendly to end users.
+    Audit's name can't exceed 63 characters.

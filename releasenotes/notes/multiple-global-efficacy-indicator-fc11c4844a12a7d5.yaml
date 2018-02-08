@@ -1,0 +1,6 @@
+---
+features:
+  - Watcher got an ability to calculate multiple global efficacy indicators
+    during audit's execution. Now global efficacy can be calculated for many
+    resource types (like volumes, instances, network) if strategy supports
+    efficacy indicators.

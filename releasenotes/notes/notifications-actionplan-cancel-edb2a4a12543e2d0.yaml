@@ -1,0 +1,5 @@
+---
+features:
+  - Added notifications about cancelling of action plan.
+    Now event based plugins know when action plan cancel
+    started and completed.
