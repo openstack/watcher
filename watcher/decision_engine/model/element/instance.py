@@ -29,7 +29,7 @@ class InstanceState(enum.Enum):
     STOPPED = 'stopped'  # Instance is shut off, the disk image is still there.
     RESCUED = 'rescued'  # A rescue image is running with the original image
     # attached.
-    RESIZED = 'resized'  # a Instance with the new size is active.
+    RESIZED = 'resized'  # an Instance with the new size is active.
 
     SOFT_DELETED = 'soft-delete'
     # still available to restore.
