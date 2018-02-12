@@ -75,7 +75,7 @@ class CinderHelper(object):
             search_opts={'all_tenants': True})
 
     def get_volume_type_by_backendname(self, backendname):
-        """Retrun a list of volume type"""
+        """Return a list of volume type"""
         volume_type_list = self.get_volume_type_list()
 
         volume_type = [volume_type.name for volume_type in volume_type_list
