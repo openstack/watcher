@@ -123,9 +123,10 @@ You can re-activate this virtualenv for your current shell using:
 
     $ workon watcher
 
-For more information on virtual environments, see virtualenv_.
+For more information on virtual environments, see virtualenv_ and
+virtualenvwrapper_.
 
-.. _virtualenv: https://www.virtualenv.org/
+.. _virtualenv: https://pypi.python.org/pypi/virtualenv/
 
 
 
