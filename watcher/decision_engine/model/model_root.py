@@ -57,7 +57,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def add_node(self, node):
         self.assert_node(node)
-        super(ModelRoot, self).add_node(node.uuid, node)
+        super(ModelRoot, self).add_node(node.uuid, attr=node)
 
     @lockutils.synchronized("model_root")
     def remove_node(self, node):
@@ -72,7 +72,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     def add_instance(self, instance):
         self.assert_instance(instance)
         try:
-            super(ModelRoot, self).add_node(instance.uuid, instance)
+            super(ModelRoot, self).add_node(instance.uuid, attr=instance)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.InstanceNotFound(name=instance.uuid)
@@ -137,8 +137,8 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("model_root")
     def get_all_compute_nodes(self):
-        return {uuid: cn for uuid, cn in self.nodes(data=True)
-                if isinstance(cn, element.ComputeNode)}
+        return {uuid: cn['attr'] for uuid, cn in self.nodes(data=True)
+                if isinstance(cn['attr'], element.ComputeNode)}
 
     @lockutils.synchronized("model_root")
     def get_node_by_uuid(self, uuid):
@@ -156,7 +156,7 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]
+            return self.node[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.ComputeResourceNotFound(name=uuid)
@@ -172,8 +172,8 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("model_root")
     def get_all_instances(self):
-        return {uuid: inst for uuid, inst in self.nodes(data=True)
-                if isinstance(inst, element.Instance)}
+        return {uuid: inst['attr'] for uuid, inst in self.nodes(data=True)
+                if isinstance(inst['attr'], element.Instance)}
 
     @lockutils.synchronized("model_root")
     def get_node_instances(self, node):
@@ -239,7 +239,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     @classmethod
     def is_isomorphic(cls, G1, G2):
         def node_match(node1, node2):
-            return node1.as_dict() == node2.as_dict()
+            return node1['attr'].as_dict() == node2['attr'].as_dict()
         return nx.algorithms.isomorphism.isomorph.is_isomorphic(
             G1, G2, node_match=node_match)
 
@@ -277,12 +277,12 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("storage_model")
     def add_node(self, node):
         self.assert_node(node)
-        super(StorageModelRoot, self).add_node(node.host, node)
+        super(StorageModelRoot, self).add_node(node.host, attr=node)
 
     @lockutils.synchronized("storage_model")
     def add_pool(self, pool):
         self.assert_pool(pool)
-        super(StorageModelRoot, self).add_node(pool.name, pool)
+        super(StorageModelRoot, self).add_node(pool.name, attr=pool)
 
     @lockutils.synchronized("storage_model")
     def remove_node(self, node):
@@ -335,7 +335,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("storage_model")
     def add_volume(self, volume):
         self.assert_volume(volume)
-        super(StorageModelRoot, self).add_node(volume.uuid, volume)
+        super(StorageModelRoot, self).add_node(volume.uuid, attr=volume)
 
     @lockutils.synchronized("storage_model")
     def remove_volume(self, volume):
@@ -382,8 +382,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("storage_model")
     def get_all_storage_nodes(self):
-        return {host: cn for host, cn in self.nodes(data=True)
-                if isinstance(cn, element.StorageNode)}
+        return {host: cn['attr'] for host, cn in self.nodes(data=True)
+                if isinstance(cn['attr'], element.StorageNode)}
 
     @lockutils.synchronized("storage_model")
     def get_node_by_name(self, name):
@@ -412,14 +412,14 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]
+            return self.node[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.StorageResourceNotFound(name=uuid)
 
     def _get_by_name(self, name):
         try:
-            return self.node[name]
+            return self.node[name]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.StorageResourceNotFound(name=name)
@@ -456,8 +456,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("storage_model")
     def get_all_volumes(self):
-        return {name: vol for name, vol in self.nodes(data=True)
-                if isinstance(vol, element.Volume)}
+        return {name: vol['attr'] for name, vol in self.nodes(data=True)
+                if isinstance(vol['attr'], element.Volume)}
 
     @lockutils.synchronized("storage_model")
     def get_pool_volumes(self, pool):
@@ -569,7 +569,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("baremetal_model")
     def add_node(self, node):
         self.assert_node(node)
-        super(BaremetalModelRoot, self).add_node(node.uuid, node)
+        super(BaremetalModelRoot, self).add_node(node.uuid, attr=node)
 
     @lockutils.synchronized("baremetal_model")
     def remove_node(self, node):
@@ -582,8 +582,8 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("baremetal_model")
     def get_all_ironic_nodes(self):
-        return {uuid: cn for uuid, cn in self.nodes(data=True)
-                if isinstance(cn, element.IronicNode)}
+        return {uuid: cn['attr'] for uuid, cn in self.nodes(data=True)
+                if isinstance(cn['attr'], element.IronicNode)}
 
     @lockutils.synchronized("baremetal_model")
     def get_node_by_uuid(self, uuid):
@@ -594,7 +594,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]
+            return self.node[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
         raise exception.BaremetalResourceNotFound(name=uuid)
