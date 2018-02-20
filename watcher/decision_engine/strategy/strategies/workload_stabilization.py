@@ -365,7 +365,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         s_host_vcpus = new_hosts[src_node.uuid]['vcpus']
         d_host_vcpus = new_hosts[dst_node.uuid]['vcpus']
         for metric in self.metrics:
-            if metric is 'cpu_util':
+            if metric == 'cpu_util':
                 new_hosts[src_node.uuid][metric] -= (
                     self.transform_instance_cpu(instance_load, s_host_vcpus))
                 new_hosts[dst_node.uuid][metric] += (
