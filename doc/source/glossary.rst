@@ -274,7 +274,7 @@ In OpenStack Identity, a :ref:`project <project_definition>` must be owned by a
 specific domain.
 
 Please, read `the official OpenStack definition of a Project
-<http://docs.openstack.org/glossary/content/glossary.html>`_.
+<https://docs.openstack.org/doc-contrib-guide/common/glossary.html>`_.
 
 .. _scoring_engine_definition:
 

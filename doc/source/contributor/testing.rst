@@ -31,7 +31,7 @@ the following::
     (watcher) $ tox -e pep8
 
 .. _tox: https://tox.readthedocs.org/
-.. _Gerrit: http://review.openstack.org/
+.. _Gerrit: https://review.openstack.org/
 
 You may pass options to the test programs using positional arguments. To run a
 specific unit test, you can pass extra options to `os-testr`_ after putting
