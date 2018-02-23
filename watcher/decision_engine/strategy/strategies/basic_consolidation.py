@@ -178,7 +178,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param source_node: the current node of the virtual machine
         :param destination_node: the destination of the virtual machine
         :param instance_to_migrate: the instance / virtual machine
-        :return: True if the there is enough place otherwise false
+        :return: True if there is enough place otherwise false
         """
         if source_node == destination_node:
             return False
