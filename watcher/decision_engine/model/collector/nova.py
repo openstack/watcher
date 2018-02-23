@@ -337,7 +337,7 @@ class ModelBuilder(object):
         Create an instance node for the graph using nova and the
         `server` nova object.
         :param instance: Nova VM object.
-        :return: A instance node for the graph.
+        :return: An instance node for the graph.
         """
         flavor = instance.flavor
         instance_attributes = {
