@@ -199,10 +199,10 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
                                 hosts_need_release[node.uuid] = {
                                     'priority_vm': potential_priority_instance,
                                     'noisy_vm': potential_noisy_instance}
-                                LOG.debug("Priority VM found: %s" % (
-                                    potential_priority_instance.uuid))
-                                LOG.debug("Noisy VM found: %s" % (
-                                    potential_noisy_instance.uuid))
+                                LOG.debug("Priority VM found: %s",
+                                          potential_priority_instance.uuid)
+                                LOG.debug("Noisy VM found: %s",
+                                          potential_noisy_instance.uuid)
                                 loop_break_flag = True
                                 break
 

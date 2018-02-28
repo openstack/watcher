@@ -312,7 +312,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                     else:
                         self.instances_migration(targets, action_counter)
 
-        LOG.debug("action total: %s, pools: %s, nodes %s " % (
+        LOG.debug("action total: %s, pools: %s, nodes %s ", (
                   action_counter.total_count,
                   action_counter.per_pool_count,
                   action_counter.per_node_count))
@@ -413,13 +413,13 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             pool = getattr(volume, 'os-vol-host-attr:host')
             if action_counter.is_pool_max(pool):
                 LOG.debug("%s has objects to be migrated, but it has"
-                          " reached the limit of parallelization." % pool)
+                          " reached the limit of parallelization.", pool)
                 continue
 
             src_type = volume.volume_type
             dst_pool, dst_type = self.get_dst_pool_and_type(pool, src_type)
             LOG.debug(src_type)
-            LOG.debug("%s %s" % (dst_pool, dst_type))
+            LOG.debug("%s %s", (dst_pool, dst_type))
 
             if self.is_available(volume):
                 if src_type == dst_type:
@@ -448,7 +448,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
             if action_counter.is_node_max(src_node):
                 LOG.debug("%s has objects to be migrated, but it has"
-                          " reached the limit of parallelization." % src_node)
+                          " reached the limit of parallelization.", src_node)
                 continue
 
             dst_node = self.get_dst_node(src_node)
@@ -643,7 +643,7 @@ class ActionCounter(object):
         if not self.is_total_max() and not self.is_pool_max(pool):
             self.per_pool_count[pool] += 1
             self.total_count += 1
-            LOG.debug("total: %s, per_pool: %s" % (
+            LOG.debug("total: %s, per_pool: %s", (
                       self.total_count, self.per_pool_count))
             return True
         return False
@@ -660,7 +660,7 @@ class ActionCounter(object):
         if not self.is_total_max() and not self.is_node_max(node):
             self.per_node_count[node] += 1
             self.total_count += 1
-            LOG.debug("total: %s, per_node: %s" % (
+            LOG.debug("total: %s, per_node: %s", (
                       self.total_count, self.per_node_count))
             return True
         return False
@@ -679,9 +679,9 @@ class ActionCounter(object):
         """
         if pool not in self.per_pool_count:
             self.per_pool_count[pool] = 0
-        LOG.debug("the number of parallel per pool %s is %s " %
+        LOG.debug("the number of parallel per pool %s is %s ",
                   (pool, self.per_pool_count[pool]))
-        LOG.debug("per pool limit is %s" % self.per_pool_limit)
+        LOG.debug("per pool limit is %s", self.per_pool_limit)
         return self.per_pool_count[pool] >= self.per_pool_limit
 
     def is_node_max(self, node):
@@ -724,7 +724,7 @@ class BaseFilter(object):
             for k, v in six.iteritems(targets):
                 if not self.is_allowed(k):
                     continue
-                LOG.debug("filter:%s with the key: %s" % (cond, k))
+                LOG.debug("filter:%s with the key: %s", (cond, k))
                 targets[k] = self.exec_filter(v, cond)
 
         LOG.debug(targets)
@@ -778,7 +778,7 @@ class ProjectSortFilter(SortMovingToFrontFilter):
         """
 
         project_id = self.get_project_id(item)
-        LOG.debug("project_id: %s, sort_key: %s" % (project_id, sort_key))
+        LOG.debug("project_id: %s, sort_key: %s", (project_id, sort_key))
         return project_id == sort_key
 
     def get_project_id(self, item):
@@ -812,7 +812,7 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
         """
 
         host = self.get_host(item)
-        LOG.debug("host: %s, sort_key: %s" % (host, sort_key))
+        LOG.debug("host: %s, sort_key: %s", (host, sort_key))
         return host == sort_key
 
     def get_host(self, item):
@@ -840,7 +840,7 @@ class StorageHostSortFilter(SortMovingToFrontFilter):
         """
 
         host = self.get_host(item)
-        LOG.debug("host: %s, sort_key: %s" % (host, sort_key))
+        LOG.debug("host: %s, sort_key: %s", (host, sort_key))
         return host == sort_key
 
     def get_host(self, item):
@@ -867,7 +867,7 @@ class ComputeSpecSortFilter(BaseFilter):
         result = items
 
         if sort_key not in self.accept_keys:
-            LOG.warning("Invalid key is specified: %s" % sort_key)
+            LOG.warning("Invalid key is specified: %s", sort_key)
         else:
             result = self.get_sorted_items(items, sort_key)
 
@@ -912,11 +912,11 @@ class ComputeSpecSortFilter(BaseFilter):
         :returns: memory size of item
         """
 
-        LOG.debug("item: %s, flavors: %s" % (item, flavors))
+        LOG.debug("item: %s, flavors: %s", (item, flavors))
         for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s" % (item.flavor, flavor))
+            LOG.debug("item.flavor: %s, flavor: %s", (item.flavor, flavor))
             if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.ram: %s" % flavor.ram)
+                LOG.debug("flavor.ram: %s", flavor.ram)
                 return flavor.ram
 
     def get_vcpu_num(self, item, flavors):
@@ -927,11 +927,11 @@ class ComputeSpecSortFilter(BaseFilter):
         :returns: vcpu number of item
         """
 
-        LOG.debug("item: %s, flavors: %s" % (item, flavors))
+        LOG.debug("item: %s, flavors: %s", (item, flavors))
         for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s" % (item.flavor, flavor))
+            LOG.debug("item.flavor: %s, flavor: %s", (item.flavor, flavor))
             if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.vcpus: %s" % flavor.vcpus)
+                LOG.debug("flavor.vcpus: %s", flavor.vcpus)
                 return flavor.vcpus
 
     def get_disk_size(self, item, flavors):
@@ -942,11 +942,11 @@ class ComputeSpecSortFilter(BaseFilter):
         :returns: disk size of item
         """
 
-        LOG.debug("item: %s, flavors: %s" % (item, flavors))
+        LOG.debug("item: %s, flavors: %s", (item, flavors))
         for flavor in flavors:
-            LOG.debug("item.flavor: %s, flavor: %s" % (item.flavor, flavor))
+            LOG.debug("item.flavor: %s, flavor: %s", (item.flavor, flavor))
             if item.flavor.get('id') == flavor.id:
-                LOG.debug("flavor.disk: %s" % flavor.disk)
+                LOG.debug("flavor.disk: %s", flavor.disk)
                 return flavor.disk
 
 
@@ -960,7 +960,7 @@ class StorageSpecSortFilter(BaseFilter):
         result = items
 
         if sort_key not in self.accept_keys:
-            LOG.warning("Invalid key is specified: %s" % sort_key)
+            LOG.warning("Invalid key is specified: %s", sort_key)
             return result
 
         if sort_key == 'created_at':
