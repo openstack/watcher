@@ -42,6 +42,7 @@ extensions = [
     'ext.versioned_notifications',
     'oslo_config.sphinxconfiggen',
     'openstackdocstheme',
+    'sphinx.ext.napoleon',
 ]
 
 wsme_protocols = ['restjson']

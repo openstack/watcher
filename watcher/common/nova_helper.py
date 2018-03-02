@@ -29,8 +29,11 @@ import novaclient.exceptions as nvexceptions
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common import utils
+from watcher import conf
 
 LOG = log.getLogger(__name__)
+
+CONF = conf.CONF
 
 
 class NovaHelper(object):
@@ -556,21 +559,31 @@ class NovaHelper(object):
                             "for the instance %s" % instance_id)
 
     def enable_service_nova_compute(self, hostname):
-        if self.nova.services.enable(host=hostname,
-                                     binary='nova-compute'). \
-                status == 'enabled':
-            return True
+        if float(CONF.nova_client.api_version) < 2.53:
+            status = self.nova.services.enable(
+                host=hostname, binary='nova-compute').status == 'enabled'
         else:
-            return False
+            service_uuid = self.nova.services.list(host=hostname,
+                                                   binary='nova-compute')[0].id
+            status = self.nova.services.enable(
+                service_uuid=service_uuid).status == 'enabled'
+
+        return status
 
     def disable_service_nova_compute(self, hostname, reason=None):
-        if self.nova.services.disable_log_reason(host=hostname,
-                                                 binary='nova-compute',
-                                                 reason=reason). \
-                status == 'disabled':
-            return True
+        if float(CONF.nova_client.api_version) < 2.53:
+            status = self.nova.services.disable_log_reason(
+                host=hostname,
+                binary='nova-compute',
+                reason=reason).status == 'disabled'
         else:
-            return False
+            service_uuid = self.nova.services.list(host=hostname,
+                                                   binary='nova-compute')[0].id
+            status = self.nova.services.disable_log_reason(
+                service_uuid=service_uuid,
+                reason=reason).status == 'disabled'
+
+        return status
 
     def set_host_offline(self, hostname):
         # See API on https://developer.openstack.org/api-ref/compute/
