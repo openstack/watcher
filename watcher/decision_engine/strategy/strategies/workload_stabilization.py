@@ -23,6 +23,8 @@ This is workload stabilization strategy based on standard deviation
 algorithm. The goal is to determine if there is an overload in a cluster
 and respond to it by migrating VMs to stabilize the cluster.
 
+This strategy has been tested in a small (32 nodes) cluster.
+
 It assumes that live migrations are possible in your cluster.
 
 """
@@ -104,19 +106,47 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 "metrics": {
                     "description": "Metrics used as rates of cluster loads.",
                     "type": "array",
-                    "default": ["cpu_util", "memory.resident"]
+                    "items": {
+                        "type": "string",
+                        "enum": ["cpu_util", "memory.resident"]
+                    },
+                    "default": ["cpu_util"]
                 },
                 "thresholds": {
                     "description": "Dict where key is a metric and value "
                                    "is a trigger value.",
                     "type": "object",
-                    "default": {"cpu_util": 0.2, "memory.resident": 0.2}
+                    "properties": {
+                        "cpu_util": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "memory.resident": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    },
+                    "default": {"cpu_util": 0.1, "memory.resident": 0.1}
                 },
                 "weights": {
                     "description": "These weights used to calculate "
                                    "common standard deviation. Name of weight"
                                    " contains meter name and _weight suffix.",
                     "type": "object",
+                    "properties": {
+                        "cpu_util_weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        },
+                        "memory.resident_weight": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                        }
+                    },
                     "default": {"cpu_util_weight": 1.0,
                                 "memory.resident_weight": 1.0}
                 },
@@ -141,6 +171,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 "retry_count": {
                     "description": "Count of random returned hosts",
                     "type": "number",
+                    "minimum": 1,
                     "default": 1
                 },
                 "periods": {
@@ -152,12 +183,23 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                                    "uses only the last period of all received"
                                    " ones.",
                     "type": "object",
+                    "properties": {
+                        "instance": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                        "node": {
+                            "type": "integer",
+                            "minimum": 0
+                        },
+                    },
                     "default": {"instance": 720, "node": 600}
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
                                    "aggregated timeseries of a metric.",
                     "type": "number",
+                    "minimum": 0,
                     "default": 300
                 },
             }
