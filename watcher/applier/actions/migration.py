@@ -113,8 +113,10 @@ class Migrate(base.BaseAction):
                                                 dest_hostname=destination)
         except nova_helper.nvexceptions.ClientException as e:
             LOG.debug("Nova client exception occurred while live "
-                      "migrating instance %s.Exception: %s" %
-                      (self.instance_uuid, e))
+                      "migrating instance "
+                      "%(instance)s.Exception: %(exception)s",
+                      {'instance': self.instance_uuid, 'exception': e})
+
         except Exception as e:
             LOG.exception(e)
             LOG.critical("Unexpected error occurred. Migration failed for "

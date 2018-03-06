@@ -194,7 +194,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 LOG.warning("%s: no outlet temp data", resource_id)
                 continue
 
-            LOG.debug("%s: outlet temperature %f" % (resource_id, outlet_temp))
+            LOG.debug("%(resource)s: outlet temperature %(temp)f",
+                      {'resource': resource_id, 'temp': outlet_temp})
             instance_data = {'node': node, 'outlet_temp': outlet_temp}
             if outlet_temp >= self.threshold:
                 # mark the node to release resources

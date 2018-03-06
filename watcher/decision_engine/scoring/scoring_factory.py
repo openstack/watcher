@@ -91,16 +91,16 @@ def _reload_scoring_engines(refresh=False):
 
         for name in engines.keys():
             se_impl = default.DefaultScoringLoader().load(name)
-            LOG.debug("Found Scoring Engine plugin: %s" % se_impl.get_name())
+            LOG.debug("Found Scoring Engine plugin: %s", se_impl.get_name())
             _scoring_engine_map[se_impl.get_name()] = se_impl
 
         engine_containers = \
             default.DefaultScoringContainerLoader().list_available()
 
         for container_id, container_cls in engine_containers.items():
-            LOG.debug("Found Scoring Engine container plugin: %s" %
+            LOG.debug("Found Scoring Engine container plugin: %s",
                       container_id)
             for se in container_cls.get_scoring_engine_list():
-                LOG.debug("Found Scoring Engine plugin: %s" %
+                LOG.debug("Found Scoring Engine plugin: %s",
                           se.get_name())
                 _scoring_engine_map[se.get_name()] = se
