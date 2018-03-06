@@ -28,6 +28,6 @@ class StorageResource(base.Element):
     VERSION = '1.0'
 
     fields = {
-        "uuid": wfields.StringField(),
+        "uuid": wfields.StringField(default=""),
         "human_id": wfields.StringField(default=""),
     }
