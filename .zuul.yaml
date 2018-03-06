@@ -2,7 +2,12 @@
     check:
       jobs:
         - watcher-tempest-multinode
-        - legacy-rally-dsvm-watcher-rally
+        - legacy-rally-dsvm-watcher-rally-non-vote
+
+- job:
+    name: legacy-rally-dsvm-watcher-rally-non-vote
+    parent: legacy-rally-dsvm-watcher-rally
+    voting: false
 
 - job:
     name: watcher-tempest-base-multinode

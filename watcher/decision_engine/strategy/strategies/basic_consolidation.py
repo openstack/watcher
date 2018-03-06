@@ -258,11 +258,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def get_node_cpu_usage(self, node):
         resource_id = "%s_%s" % (node.uuid, node.hostname)
         return self.datasource_backend.get_host_cpu_usage(
-            resource_id, self.period, 'mean', granularity=300)
+            resource_id, self.period, 'mean', granularity=self.granularity)
 
     def get_instance_cpu_usage(self, instance):
         return self.datasource_backend.get_instance_cpu_usage(
-            instance.uuid, self.period, 'mean', granularity=300)
+            instance.uuid, self.period, 'mean', granularity=self.granularity)
 
     def calculate_score_node(self, node):
         """Calculate the score that represent the utilization level
