@@ -98,7 +98,8 @@ class TestWorkloadStabilization(base.TestCase):
                   "memory.resident": "hardware.memory.used"},
              'host_choice': 'retry',
              'retry_count': 1,
-             'periods': {"instance": 720, "node": 600}})
+             'periods': {"instance": 720, "node": 600},
+             'aggregation_method': {"instance": "mean", "node": "mean"}})
         self.strategy.metrics = ["cpu_util", "memory.resident"]
         self.strategy.thresholds = {"cpu_util": 0.2, "memory.resident": 0.2}
         self.strategy.weights = {"cpu_util_weight": 1.0,
@@ -109,6 +110,7 @@ class TestWorkloadStabilization(base.TestCase):
         self.strategy.host_choice = 'retry'
         self.strategy.retry_count = 1
         self.strategy.periods = {"instance": 720, "node": 600}
+        self.strategy.aggregation_method = {"instance": "mean", "node": "mean"}
 
     def test_get_instance_load(self):
         model = self.fake_cluster.generate_scenario_1()

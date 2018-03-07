@@ -82,6 +82,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.instance_metrics = None
         self.retry_count = None
         self.periods = None
+        self.aggregation_method = None
 
     @classmethod
     def get_name(cls):
@@ -195,6 +196,26 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     },
                     "default": {"instance": 720, "node": 600}
                 },
+                "aggregation_method": {
+                    "description": "Function used to aggregate multiple "
+                                   "measures into an aggregate. For example, "
+                                   "the min aggregation method will aggregate "
+                                   "the values of different measures to the "
+                                   "minimum value of all the measures in the "
+                                   "time range.",
+                    "type": "object",
+                    "properties": {
+                        "instance": {
+                            "type": "string",
+                            "default": 'mean'
+                        },
+                        "node": {
+                            "type": "string",
+                            "default": 'mean'
+                        },
+                    },
+                    "default": {"instance": 'mean', "node": 'mean'}
+                },
                 "granularity": {
                     "description": "The time between two measures in an "
                                    "aggregated timeseries of a metric.",
@@ -241,7 +262,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         for meter in self.metrics:
             avg_meter = self.datasource_backend.statistic_aggregation(
                 instance.uuid, meter, self.periods['instance'],
-                self.granularity, aggregation='mean')
+                self.granularity,
+                aggregation=self.aggregation_method['instance'])
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
@@ -284,7 +306,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     resource_id = node_id
                 avg_meter = self.datasource_backend.statistic_aggregation(
                     resource_id, self.instance_metrics[metric],
-                    self.periods['node'], self.granularity, aggregation='mean')
+                    self.periods['node'], self.granularity,
+                    aggregation=self.aggregation_method['node'])
                 if avg_meter is None:
                     LOG.warning('No values returned by node %s for %s',
                                 node_id, meter_name)
@@ -475,6 +498,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.instance_metrics = self.input_parameters.instance_metrics
         self.retry_count = self.input_parameters.retry_count
         self.periods = self.input_parameters.periods
+        self.aggregation_method = self.input_parameters.aggregation_method
 
     def do_execute(self):
         migration = self.check_threshold()
