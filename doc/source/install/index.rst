@@ -10,7 +10,7 @@ Infrastructure Optimization service
    verify.rst
    next-steps.rst
 
-The Infrastructure Optimization service (watcher) provides
+The Infrastructure Optimization service (Watcher) provides
 flexible and scalable resource optimization service for
 multi-tenant OpenStack-based clouds.
 
@@ -21,7 +21,7 @@ applier. This provides a robust framework to realize a wide
 range of cloud optimization goals, including the reduction
 of data center operating costs, increased system performance
 via intelligent virtual machine migration, increased energy
-efficiency—and more!
+efficiency and more!
 
 Watcher also supports a pluggable architecture by which custom
 optimization algorithms, data metrics and data profilers can be
