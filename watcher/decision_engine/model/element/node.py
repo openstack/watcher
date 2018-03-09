@@ -74,7 +74,7 @@ class Pool(storage_resource.StorageResource):
         "free_capacity_gb": wfields.NonNegativeIntegerField(),
         "provisioned_capacity_gb": wfields.NonNegativeIntegerField(),
         "allocated_capacity_gb": wfields.NonNegativeIntegerField(),
-        "virtual_free": wfields.NonNegativeIntegerField(),
+        "virtual_free": wfields.NonNegativeIntegerField(default=0),
     }
 
     def accept(self, visitor):
