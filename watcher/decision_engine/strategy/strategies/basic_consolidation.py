@@ -109,6 +109,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def granularity(self):
         return self.input_parameters.get('granularity', 300)
 
+    @property
+    def aggregation_method(self):
+        return self.input_parameters.get(
+            'aggregation_method',
+            {"instance": 'mean', "node": 'mean'})
+
     @classmethod
     def get_display_name(cls):
         return _("Basic offline consolidation")
@@ -141,6 +147,26 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                    "aggregated timeseries of a metric.",
                     "type": "number",
                     "default": 300
+                },
+                "aggregation_method": {
+                    "description": "Function used to aggregate multiple "
+                                   "measures into an aggregate. For example, "
+                                   "the min aggregation method will aggregate "
+                                   "the values of different measures to the "
+                                   "minimum value of all the measures in the "
+                                   "time range.",
+                    "type": "object",
+                    "properties": {
+                        "instance": {
+                            "type": "string",
+                            "default": 'mean'
+                        },
+                        "node": {
+                            "type": "string",
+                            "default": 'mean'
+                        },
+                    },
+                    "default": {"instance": 'mean', "node": 'mean'}
                 },
             },
         }
@@ -258,11 +284,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def get_node_cpu_usage(self, node):
         resource_id = "%s_%s" % (node.uuid, node.hostname)
         return self.datasource_backend.get_host_cpu_usage(
-            resource_id, self.period, 'mean', granularity=self.granularity)
+            resource_id, self.period, self.aggregation_method['node'],
+            granularity=300)
 
     def get_instance_cpu_usage(self, instance):
         return self.datasource_backend.get_instance_cpu_usage(
-            instance.uuid, self.period, 'mean', granularity=self.granularity)
+            instance.uuid, self.period, self.aggregation_method['instance'],
+            granularity=300)
 
     def calculate_score_node(self, node):
         """Calculate the score that represent the utilization level
