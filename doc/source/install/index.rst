@@ -36,4 +36,4 @@ https://docs.openstack.org/watcher/latest/glossary.html
 
 This chapter assumes a working setup of OpenStack following the
 `OpenStack Installation Tutorial
-<https://docs.openstack.org/rocky/install/>`_.
+<https://docs.openstack.org/queens/install/>`_.
