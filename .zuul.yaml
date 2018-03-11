@@ -1,39 +1,133 @@
 - project:
     check:
       jobs:
-        - watcher-tempest-multinode
-        - legacy-rally-dsvm-watcher-rally-non-vote
+        - watcher-tempest-zuulv3
+        - watcher-tempest-dummy_optim
+        - watcher-tempest-actuator
+        - watcher-tempest-basic_optim
+        - watcher-tempest-workload_balancing
+        - watcherclient-tempest-functional
+        - legacy-rally-dsvm-watcher-rally
+    gate:
+      jobs:
+        - watcher-tempest-zuulv3
+        - watcher-tempest-dummy_optim
+        - watcher-tempest-actuator
+        - watcher-tempest-basic_optim
+        - watcher-tempest-workload_balancing
+        - watcherclient-tempest-functional
+        - legacy-rally-dsvm-watcher-rally
 
 - job:
-    name: legacy-rally-dsvm-watcher-rally-non-vote
-    parent: legacy-rally-dsvm-watcher-rally
+    name: watcher-tempest-dummy_optim
     voting: false
+    parent: watcher-tempest-zuulv3
+    vars:
+      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim'
 
 - job:
-    name: watcher-tempest-base-multinode
-    parent: legacy-dsvm-base-multinode
-    run: playbooks/legacy/watcher-tempest-base-multinode/run.yaml
-    post-run: playbooks/legacy/watcher-tempest-base-multinode/post.yaml
-    timeout: 4200
+    name: watcher-tempest-actuator
+    voting: false
+    parent: watcher-tempest-zuulv3
+    vars:
+      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_actuator'
+
+- job:
+    name: watcher-tempest-basic_optim
+    voting: false
+    parent: watcher-tempest-zuulv3
+    vars:
+      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_basic_optim'
+
+- job:
+    name: watcher-tempest-workload_balancing
+    voting: false
+    parent: watcher-tempest-zuulv3
+    vars:
+      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing'
+
+- job:
+    name: watcher-tempest-zuulv3
+    parent: devstack-tempest
+    voting: true
+    timeout: 7200
+    nodeset: openstack-two-node
+    pre-run: playbooks/pre.yaml
+    run: playbooks/orchestrate-tempest.yaml
+    roles:
+      - zuul: openstack/tempest
     required-projects:
+      - openstack/ceilometer
       - openstack-infra/devstack-gate
       - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
       - openstack/watcher-tempest-plugin
-    nodeset: legacy-ubuntu-xenial-2-node
-
-- job:
-    name: watcher-tempest-multinode
-    parent: watcher-tempest-base-multinode
-    voting: false
+      - openstack/tempest
+    group-vars:
+      subnode:
+        devstack_local_conf:
+          post-config:
+            $NOVA_CONF:
+              libvirt:
+                live_migration_uri: 'qemu+ssh://root@%s/system'
+        devstack_services:
+          watcher-api: false
+          watcher-decision-engine: false
+          watcher-applier: false
+          # We need to add TLS support for watcher plugin
+          tls-proxy: false
+          ceilometer: false
+          ceilometer-acompute: false
+          ceilometer-acentral: false
+          ceilometer-anotification: false
+          watcher: false
+          gnocchi-api: false
+          gnocchi-metricd: false
+          rabbit: false
+          mysql: false
+    vars:
+      devstack_local_conf:
+        post-config:
+          $NOVA_CONF:
+            libvirt:
+              live_migration_uri: 'qemu+ssh://root@%s/system'
+        test-config:
+          $TEMPEST_CONFIG:
+            compute:
+              min_compute_nodes: 2
+            compute-feature-enabled:
+              live_migration: true
+              block_migration_for_live_migration: true
+      devstack_localrc:
+        WATCHER_USE_MOD_WSGI: False
+        TEMPEST_PLUGINS: '/opt/stack/watcher-tempest-plugin'
+      tempest_test_regex: 'watcher_tempest_plugin.tests.api'
+      devstack_plugins:
+        ceilometer: https://git.openstack.org/openstack/ceilometer
+        watcher: https://git.openstack.org/openstack/watcher
+      devstack_services:
+        tls-proxy: false
+        watcher-api: true
+        watcher-decision-engine: true
+        watcher-applier: true
+        tempest: true
+        s-account: false
+        s-container: false
+        s-object: false
+        s-proxy: false
+      tox_envlist: all
+      tox_environment:
+        # Do we really need to set this? It's cargo culted
+        PYTHONUNBUFFERED: 'true'
+      zuul_copy_output:
+        /etc/hosts: logs
 
 - job:
     # This job is used by python-watcherclient repo
     name: watcherclient-tempest-functional
-    parent: legacy-dsvm-base
-    run: playbooks/legacy/watcherclient-tempest-functional/run.yaml
-    post-run: playbooks/legacy/watcherclient-tempest-functional/post.yaml
+    parent: devstack-tempest
+    voting: false
     timeout: 4200
     required-projects:
       - openstack-dev/devstack
@@ -41,3 +135,20 @@
       - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
+      - openstack/tempest
+    vars:
+      devstack_localrc:
+        WATCHER_USE_MOD_WSGI: False
+        TEMPEST_PLUGINS: '/opt/stack/python-watcherclient'
+      tempest_test_regex: 'watcherclient.tests.functional'
+      devstack_plugins:
+        watcher: https://git.openstack.org/openstack/watcher
+      devstack_services:
+        rabbit: true
+        mysql: true
+        tls-proxy: false
+        watcher-api: true
+        watcher-decision-engine: true
+        watcher-applier: true
+        tempest: true
+      tox_envlist: all

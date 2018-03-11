@@ -1,0 +1,16 @@
+- name: Set up the list of hostnames and addresses
+  set_fact:
+    hostname_addresses: >
+      {% set hosts = {} -%}
+      {% for host, vars in hostvars.items() -%}
+      {% set _ = hosts.update({vars['ansible_hostname']: vars['nodepool']['private_ipv4']}) -%}
+      {% endfor -%}
+      {{- hosts -}}
+- name: Add inventory hostnames to the hosts file
+  become: yes
+  lineinfile:
+    dest: /etc/hosts
+    state: present
+    insertafter: EOF
+    line: "{{ item.value }} {{ item.key }}"
+  with_dict: "{{ hostname_addresses }}"

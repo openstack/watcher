@@ -179,7 +179,13 @@ function create_watcher_conf {
 
     iniset $WATCHER_CONF database connection $(database_connection_url watcher)
     iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
-    iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
+
+    if is_service_enabled tls-proxy; then
+        iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT_INT"
+        # iniset $WATCHER_CONF api enable_ssl_api "True"
+    else
+        iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
+    fi
 
     iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
 
@@ -297,8 +303,7 @@ function start_watcher_api {
 
     # Start proxies if enabled
     if is_service_enabled tls-proxy; then
-        start_tls_proxy '*' $WATCHER_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT &
-        start_tls_proxy '*' $EC2_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT &
+        start_tls_proxy watcher '*' $WATCHER_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT
     fi
 }
 
