@@ -251,11 +251,18 @@ class Service(service.ServiceBase):
 
     def build_notification_handler(self, topic_names, endpoints=()):
         serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
-        targets = [om.Target(topic=topic_name) for topic_name in topic_names]
+        targets = []
+        for topic in topic_names:
+            kwargs = {}
+            if '.' in topic:
+                exchange, topic = topic.split('.')
+                kwargs['exchange'] = exchange
+            kwargs['topic'] = topic
+            targets.append(om.Target(**kwargs))
         return om.get_notification_listener(
             self.notification_transport, targets, endpoints,
             executor='eventlet', serializer=serializer,
-            allow_requeue=False)
+            allow_requeue=False, pool=CONF.host)
 
     def start(self):
         LOG.debug("Connecting to '%s' (%s)",
