@@ -2,8 +2,8 @@
 Team and repository tags
 ========================
 
-.. image:: https://governance.openstack.org/badges/watcher.svg
-    :target: https://governance.openstack.org/reference/tags/index.html
+.. image:: https://governance.openstack.org/tc/badges/watcher.svg
+    :target: https://governance.openstack.org/tc/reference/tags/index.html
 
 .. Change things from this point on
 
@@ -26,6 +26,6 @@ migration, increased energy efficiency-and more!
 
 * Free software: Apache license
 * Wiki: https://wiki.openstack.org/wiki/Watcher
-* Source:  https://github.com/openstack/watcher
+* Source: https://github.com/openstack/watcher
 * Bugs: https://bugs.launchpad.net/watcher
 * Documentation: https://docs.openstack.org/watcher/latest/
