@@ -62,6 +62,7 @@ class RequestContext(context.RequestContext):
         # safely ignore this as we don't use it.
         kwargs.pop('user_identity', None)
         kwargs.pop('global_request_id', None)
+        kwargs.pop('project', None)
         if kwargs:
             LOG.warning('Arguments dropped when creating context: %s',
                         str(kwargs))
