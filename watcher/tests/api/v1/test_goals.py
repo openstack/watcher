@@ -120,6 +120,27 @@ class TestListGoal(api_base.FunctionalTest):
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
 
+    def test_many_with_sort_key_uuid(self):
+        goal_list = []
+        for idx in range(1, 6):
+            goal = obj_utils.create_test_goal(
+                self.context, id=idx,
+                uuid=utils.generate_uuid(),
+                name='GOAL_{0}'.format(idx))
+            goal_list.append(goal.uuid)
+
+        response = self.get_json('/goals/?sort_key=uuid')
+
+        self.assertEqual(5, len(response['goals']))
+        uuids = [s['uuid'] for s in response['goals']]
+        self.assertEqual(sorted(goal_list), uuids)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/goals?sort_key=%s' % 'bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
 
 class TestGoalPolicyEnforcement(api_base.FunctionalTest):
 

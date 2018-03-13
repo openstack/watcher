@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from operator import attrgetter
+
 import jsonpatch
 from oslo_config import cfg
 from oslo_utils import reflection
@@ -54,6 +56,13 @@ def validate_sort_dir(sort_dir):
                                          "'asc' or 'desc'") % sort_dir)
 
 
+def validate_sort_key(sort_key, allowed_fields):
+    # Very lightweight validation for now
+    if sort_key not in allowed_fields:
+        raise wsme.exc.ClientSideError(
+            _("Invalid sort key: %s") % sort_key)
+
+
 def validate_search_filters(filters, allowed_fields):
     # Very lightweight validation for now
     # todo: improve this (e.g. https://www.parse.com/docs/rest/guide/#queries)
@@ -61,6 +70,19 @@ def validate_search_filters(filters, allowed_fields):
         if filter_name not in allowed_fields:
             raise wsme.exc.ClientSideError(
                 _("Invalid filter: %s") % filter_name)
+
+
+def check_need_api_sort(sort_key, additional_fields):
+    return sort_key in additional_fields
+
+
+def make_api_sort(sorting_list, sort_key, sort_dir):
+    # First sort by uuid field, than sort by sort_key
+    # sort() ensures stable sorting, so we could
+    # make lexicographical sort
+    reverse_direction = (sort_dir == 'desc')
+    sorting_list.sort(key=attrgetter('uuid'), reverse=reverse_direction)
+    sorting_list.sort(key=attrgetter(sort_key), reverse=reverse_direction)
 
 
 def apply_jsonpatch(doc, patch):

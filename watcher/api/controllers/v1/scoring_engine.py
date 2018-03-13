@@ -123,17 +123,6 @@ class ScoringEngineCollection(collection.Collection):
         collection = ScoringEngineCollection()
         collection.scoring_engines = [ScoringEngine.convert_with_links(
             se, expand) for se in scoring_engines]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'name':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                collection.goals = sorted(
-                    collection.scoring_engines,
-                    key=lambda se: se.name,
-                    reverse=reverse)
-
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -160,7 +149,8 @@ class ScoringEngineController(rest.RestController):
     def _get_scoring_engines_collection(self, marker, limit,
                                         sort_key, sort_dir, expand=False,
                                         resource_url=None):
-
+        api_utils.validate_sort_key(
+            sort_key, list(objects.ScoringEngine.fields))
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -171,7 +161,8 @@ class ScoringEngineController(rest.RestController):
 
         filters = {}
 
-        sort_db_key = sort_key
+        sort_db_key = (sort_key if sort_key in objects.ScoringEngine.fields
+                       else None)
 
         scoring_engines = objects.ScoringEngine.list(
             context=pecan.request.context,

@@ -154,17 +154,6 @@ class ServiceCollection(collection.Collection):
         service_collection = ServiceCollection()
         service_collection.services = [
             Service.convert_with_links(g, expand) for g in services]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'service':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                service_collection.services = sorted(
-                    service_collection.services,
-                    key=lambda service: service.id,
-                    reverse=reverse)
-
         service_collection.next = service_collection.get_next(
             limit, url=url, marker_field='id', **kwargs)
         return service_collection
@@ -191,16 +180,18 @@ class ServicesController(rest.RestController):
 
     def _get_services_collection(self, marker, limit, sort_key, sort_dir,
                                  expand=False, resource_url=None):
+        api_utils.validate_sort_key(
+            sort_key, list(objects.Service.fields))
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
-
-        sort_db_key = (sort_key if sort_key in objects.Service.fields
-                       else None)
 
         marker_obj = None
         if marker:
             marker_obj = objects.Service.get(
                 pecan.request.context, marker)
+
+        sort_db_key = (sort_key if sort_key in objects.Service.fields
+                       else None)
 
         services = objects.Service.list(
             pecan.request.context, limit, marker_obj,

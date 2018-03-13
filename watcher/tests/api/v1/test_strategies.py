@@ -221,6 +221,27 @@ class TestListStrategy(api_base.FunctionalTest):
         for strategy in strategies:
             self.assertEqual(goal1['uuid'], strategy['goal_uuid'])
 
+    def test_many_with_sort_key_goal_uuid(self):
+        goals_uuid_list = []
+        for idx in range(1, 6):
+            strategy = obj_utils.create_test_strategy(
+                self.context, id=idx,
+                uuid=utils.generate_uuid(),
+                name='STRATEGY_{0}'.format(idx))
+            goals_uuid_list.append(strategy.goal.uuid)
+
+        response = self.get_json('/strategies/?sort_key=goal_uuid')
+
+        self.assertEqual(5, len(response['strategies']))
+        goal_uuids = [s['goal_uuid'] for s in response['strategies']]
+        self.assertEqual(sorted(goals_uuid_list), goal_uuids)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/strategies?sort_key=%s' % 'bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
 
 class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
 

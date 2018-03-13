@@ -11,6 +11,7 @@
 #    limitations under the License.
 
 import datetime
+import itertools
 import mock
 
 from oslo_config import cfg
@@ -265,6 +266,67 @@ class TestListAction(api_base.FunctionalTest):
         url = '/actions?action_plan_uuid=%s&audit_uuid=%s' % (
             action_plan.uuid, self.audit.uuid)
         response = self.get_json(url, expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
+    def test_many_with_sort_key_uuid(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context,
+            uuid=utils.generate_uuid(),
+            audit_id=self.audit.id)
+
+        actions_list = []
+        for id_ in range(1, 3):
+            action = obj_utils.create_test_action(
+                self.context, id=id_,
+                action_plan_id=action_plan.id,
+                uuid=utils.generate_uuid())
+            actions_list.append(action)
+
+        response = self.get_json('/actions?sort_key=%s' % 'uuid')
+        names = [s['uuid'] for s in response['actions']]
+
+        self.assertEqual(
+            sorted([a.uuid for a in actions_list]),
+            names)
+
+    def test_many_with_sort_key_action_plan_uuid(self):
+        action_plan_1 = obj_utils.create_test_action_plan(
+            self.context,
+            uuid=utils.generate_uuid(),
+            audit_id=self.audit.id)
+
+        action_plan_2 = obj_utils.create_test_action_plan(
+            self.context,
+            uuid=utils.generate_uuid(),
+            audit_id=self.audit.id)
+
+        action_plans_uuid_list = []
+        for id_, action_plan_id in enumerate(itertools.chain.from_iterable([
+                itertools.repeat(action_plan_1.id, 3),
+                itertools.repeat(action_plan_2.id, 2)]), 1):
+            action = obj_utils.create_test_action(
+                self.context, id=id_,
+                action_plan_id=action_plan_id,
+                uuid=utils.generate_uuid())
+            action_plans_uuid_list.append(action.action_plan.uuid)
+
+        for direction in ['asc', 'desc']:
+            response = self.get_json(
+                '/actions?sort_key={0}&sort_dir={1}'
+                .format('action_plan_uuid', direction))
+
+            action_plan_uuids = \
+                [s['action_plan_uuid'] for s in response['actions']]
+
+            self.assertEqual(
+                sorted(action_plans_uuid_list, reverse=(direction == 'desc')),
+                action_plan_uuids,
+                message='Failed on %s direction' % direction)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/actions?sort_key=%s' % 'bad_name',
+            expect_errors=True)
         self.assertEqual(400, response.status_int)
 
     def test_many_with_soft_deleted_action_plan_uuid(self):

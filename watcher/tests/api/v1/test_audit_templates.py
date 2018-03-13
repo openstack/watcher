@@ -294,6 +294,50 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
             '/audit_templates?strategy=%s' % self.fake_strategy2.name)
         self.assertEqual(2, len(response['audit_templates']))
 
+    def test_many_with_sort_key_name(self):
+        audit_template_list = []
+        for id_ in range(1, 6):
+            audit_template = obj_utils.create_test_audit_template(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='My Audit Template {0}'.format(id_))
+            audit_template_list.append(audit_template)
+
+        response = self.get_json('/audit_templates?sort_key=%s' % 'name')
+
+        names = [s['name'] for s in response['audit_templates']]
+
+        self.assertEqual(
+            sorted([at.name for at in audit_template_list]),
+            names)
+
+    def test_many_with_sort_key_goal_name(self):
+        goal_names_list = []
+        for id_, goal_id in enumerate(itertools.chain.from_iterable([
+                itertools.repeat(self.fake_goal1.id, 3),
+                itertools.repeat(self.fake_goal2.id, 2)]), 1):
+            audit_template = obj_utils.create_test_audit_template(
+                self.context, id=id_, uuid=utils.generate_uuid(),
+                name='My Audit Template {0}'.format(id_),
+                goal_id=goal_id)
+            goal_names_list.append(audit_template.goal.name)
+
+        for direction in ['asc', 'desc']:
+            response = self.get_json(
+                '/audit_templates?sort_key={0}&sort_dir={1}'
+                .format('goal_name', direction))
+
+            goal_names = [s['goal_name'] for s in response['audit_templates']]
+
+            self.assertEqual(
+                sorted(goal_names_list, reverse=(direction == 'desc')),
+                goal_names)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/audit_templates?sort_key=%s' % 'goal_bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
 
 class TestPatch(FunctionalTestWithSetup):
 

@@ -389,17 +389,6 @@ class AuditCollection(collection.Collection):
         collection = AuditCollection()
         collection.audits = [Audit.convert_with_links(p, expand)
                              for p in rpc_audits]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'goal_uuid':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                collection.audits = sorted(
-                    collection.audits,
-                    key=lambda audit: audit.goal_uuid,
-                    reverse=reverse)
-
         collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
@@ -427,8 +416,14 @@ class AuditsController(rest.RestController):
                                sort_key, sort_dir, expand=False,
                                resource_url=None, goal=None,
                                strategy=None):
+        additional_fields = ["goal_uuid", "goal_name", "strategy_uuid",
+                             "strategy_name"]
+
+        api_utils.validate_sort_key(
+            sort_key, list(objects.Audit.fields) + additional_fields)
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
+
         marker_obj = None
         if marker:
             marker_obj = objects.Audit.get_by_uuid(pecan.request.context,
@@ -449,23 +444,25 @@ class AuditsController(rest.RestController):
                 # TODO(michaelgugino): add method to get goal by name.
                 filters['strategy_name'] = strategy
 
-        if sort_key == 'goal_uuid':
-            sort_db_key = 'goal_id'
-        elif sort_key == 'strategy_uuid':
-            sort_db_key = 'strategy_id'
-        else:
-            sort_db_key = sort_key
+        need_api_sort = api_utils.check_need_api_sort(sort_key,
+                                                      additional_fields)
+        sort_db_key = (sort_key if not need_api_sort
+                       else None)
 
         audits = objects.Audit.list(pecan.request.context,
                                     limit,
                                     marker_obj, sort_key=sort_db_key,
                                     sort_dir=sort_dir, filters=filters)
 
-        return AuditCollection.convert_with_links(audits, limit,
-                                                  url=resource_url,
-                                                  expand=expand,
-                                                  sort_key=sort_key,
-                                                  sort_dir=sort_dir)
+        audits_collection = AuditCollection.convert_with_links(
+            audits, limit, url=resource_url, expand=expand,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+        if need_api_sort:
+            api_utils.make_api_sort(audits_collection.audits, sort_key,
+                                    sort_dir)
+
+        return audits_collection
 
     @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
                          wtypes.text, wtypes.text, wtypes.text, int)
