@@ -217,7 +217,7 @@ so that the watcher service is configured for your needs.
     # The SQLAlchemy connection string used to connect to the
     # database (string value)
     #connection=<None>
-    connection = mysql://watcher:WATCHER_DBPASSWORD@DB_IP/watcher?charset=utf8
+    connection = mysql+pymysql://watcher:WATCHER_DBPASSWORD@DB_IP/watcher?charset=utf8
 
 #. Configure the Watcher Service to use the RabbitMQ message broker by
    setting one or more of these options. Replace RABBIT_HOST with the
