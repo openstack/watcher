@@ -7,9 +7,7 @@ Service for the Watcher Decision Engine
 ---------------------------------------
 
 :Author: openstack@lists.launchpad.net
-:Date:
 :Copyright: OpenStack Foundation
-:Version:
 :Manual section: 1
 :Manual group: cloud computing
 
