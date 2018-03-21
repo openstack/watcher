@@ -38,8 +38,6 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
     """
 
     def decider(self, history):
-        # FIXME(jed) not possible with the current Watcher Planner
-        #
         # decider – A callback function that will be expected to
         # decide at runtime whether v should be allowed to execute
         # (or whether the execution of v should be ignored,
@@ -48,7 +46,11 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
         # all u decidable links that have v as a target. It is expected
         # to return a single boolean
         # (True to allow v execution or False to not).
-        return True
+        LOG.info("decider history: %s", history)
+        if history and self.execution_rule == 'ANY':
+            return not list(history.values())[0]
+        else:
+            return True
 
     @classmethod
     def get_config_opts(cls):
@@ -59,8 +61,26 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                 min=1,
                 required=True,
                 help='Number of workers for taskflow engine '
-                     'to execute actions.')
+                     'to execute actions.'),
+            cfg.DictOpt(
+                'action_execution_rule',
+                default={},
+                help='The execution rule for linked actions,'
+                     'the key is strategy name and '
+                     'value ALWAYS means all actions will be executed,'
+                     'value ANY means if previous action executes '
+                     'success, the next action will be ignored.'
+                     'None means ALWAYS.')
             ]
+
+    def get_execution_rule(self, actions):
+        if actions:
+            actionplan_object = objects.ActionPlan.get_by_id(
+                self.context, actions[0].action_plan_id)
+            strategy_object = objects.Strategy.get_by_id(
+                self.context, actionplan_object.strategy_id)
+            return self.config.action_execution_rule.get(
+                strategy_object.name)
 
     def execute(self, actions):
         try:
@@ -72,6 +92,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
             # the users to change it.
             # The current implementation uses graph with linked actions.
             # todo(jed) add olso conf for retry and name
+            self.execution_rule = self.get_execution_rule(actions)
             flow = gf.Flow("watcher_flow")
             actions_uuid = {}
             for a in actions:

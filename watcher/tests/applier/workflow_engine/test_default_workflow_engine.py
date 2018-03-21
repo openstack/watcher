@@ -66,9 +66,11 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
             applier_manager=mock.MagicMock())
         self.engine.config.max_workers = 2
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
+    @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch('taskflow.engines.load')
     @mock.patch('taskflow.patterns.graph_flow.Flow.link')
-    def test_execute(self, graph_flow, engines):
+    def test_execute(self, graph_flow, engines, m_actionplan, m_strategy):
         actions = mock.MagicMock()
         try:
             self.engine.execute(actions)
@@ -111,14 +113,17 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_with_one_action(self, mock_send_update,
                                      mock_execution_notification,
-                                     m_get_actionplan):
+                                     m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = [self.create_action("nop", {'message': 'test'})]
         try:
             self.engine.execute(actions)
@@ -127,14 +132,17 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_nop_sleep(self, mock_send_update,
                                mock_execution_notification,
-                               m_get_actionplan):
+                               m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = []
         first_nop = self.create_action("nop", {'message': 'test'})
         second_nop = self.create_action("nop", {'message': 'second test'})
@@ -149,14 +157,17 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_with_parents(self, mock_send_update,
                                   mock_execution_notification,
-                                  m_get_actionplan):
+                                  m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = []
         first_nop = self.create_action(
             "nop", {'message': 'test'},
@@ -221,13 +232,16 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_with_two_actions(self, m_send_update, m_execution,
-                                      m_get_actionplan):
+                                      m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = []
         second = self.create_action("sleep", {'duration': 0.0})
         first = self.create_action("nop", {'message': 'test'})
@@ -242,13 +256,16 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_with_three_actions(self, m_send_update, m_execution,
-                                        m_get_actionplan):
+                                        m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = []
         third = self.create_action("nop", {'message': 'next'})
         second = self.create_action("sleep", {'duration': 0.0})
@@ -269,13 +286,16 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     def test_execute_with_exception(self, m_send_update, m_execution,
-                                    m_get_actionplan):
+                                    m_get_actionplan, m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = []
 
         third = self.create_action("no_exist", {'message': 'next'})
@@ -290,29 +310,28 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         actions.append(second)
         actions.append(third)
 
-        self.assertRaises(exception.WorkflowExecutionException,
-                          self.engine.execute, actions)
+        self.engine.execute(actions)
 
         self.check_action_state(first, objects.action.State.SUCCEEDED)
         self.check_action_state(second, objects.action.State.SUCCEEDED)
         self.check_action_state(third, objects.action.State.FAILED)
 
+    @mock.patch.object(objects.Strategy, "get_by_id")
     @mock.patch.object(objects.ActionPlan, "get_by_id")
     @mock.patch.object(notifications.action, 'send_execution_notification')
     @mock.patch.object(notifications.action, 'send_update')
     @mock.patch.object(factory.ActionFactory, "make_action")
-    def test_execute_with_action_exception(self, m_make_action, m_send_update,
-                                           m_send_execution, m_get_actionplan):
+    def test_execute_with_action_failed(self, m_make_action, m_send_update,
+                                        m_send_execution, m_get_actionplan,
+                                        m_get_strategy):
         m_get_actionplan.return_value = obj_utils.get_test_action_plan(
             self.context, id=0)
+        m_get_strategy.return_value = obj_utils.get_test_strategy(
+            self.context, id=1)
         actions = [self.create_action("fake_action", {})]
         m_make_action.return_value = FakeAction(mock.Mock())
 
-        exc = self.assertRaises(exception.WorkflowExecutionException,
-                                self.engine.execute, actions)
-
-        self.assertIsInstance(exc.kwargs['error'],
-                              exception.ActionExecutionFailure)
+        self.engine.execute(actions)
         self.check_action_state(actions[0], objects.action.State.FAILED)
 
     @mock.patch.object(objects.ActionPlan, "get_by_uuid")
@@ -353,3 +372,20 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         except Exception as exc:
             self.fail(exc)
+
+    def test_decider(self):
+        # execution_rule is ALWAYS
+        self.engine.execution_rule = 'ALWAYS'
+        history = {'action1': True}
+        self.assertTrue(self.engine.decider(history))
+
+        history = {'action1': False}
+        self.assertTrue(self.engine.decider(history))
+
+        # execution_rule is ANY
+        self.engine.execution_rule = 'ANY'
+        history = {'action1': True}
+        self.assertFalse(self.engine.decider(history))
+
+        history = {'action1': False}
+        self.assertTrue(self.engine.decider(history))
