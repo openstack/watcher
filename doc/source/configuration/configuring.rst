@@ -235,21 +235,8 @@ so that the watcher service is configured for your needs.
     # option. (string value)
     control_exchange = watcher
 
-    ...
-
-    [oslo_messaging_rabbit]
-
-    # The username used by the message broker (string value)
-    rabbit_userid = RABBITMQ_USER
-
-    # The password of user used by the message broker (string value)
-    rabbit_password = RABBITMQ_PASSWORD
-
-    # The host where the message brokeris installed (string value)
-    rabbit_host = RABBIT_HOST
-
-    # The port used bythe message broker (string value)
-    #rabbit_port = 5672
+    # ...
+    transport_url = rabbit://RABBITMQ_USER:RABBITMQ_PASSWORD@RABBIT_HOST
 
 
 #. Watcher API shall validate the token provided by every incoming request,
