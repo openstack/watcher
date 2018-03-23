@@ -50,6 +50,12 @@ class Migrate(base.BaseAction):
     source and the destination compute hostname (list of available compute
     hosts is returned by this command: ``nova service-list --binary
     nova-compute``).
+
+    .. note::
+
+        Nova API version must be 2.56 or above if `destination_node` parameter
+        is given.
+
     """
 
     # input parameters constants
