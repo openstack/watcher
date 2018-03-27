@@ -11,6 +11,7 @@
 #    limitations under the License.
 
 import datetime
+from dateutil import tz
 import itertools
 import mock
 
@@ -882,6 +883,41 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(201, response.status_int)
         self.assertNotEqual(long_name, response.json['name'])
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_continuous_audit_with_start_end_time(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        start_time = datetime.datetime(2018, 3, 1, 0, 0)
+        end_time = datetime.datetime(2018, 4, 1, 0, 0)
+
+        audit_dict = post_get_test_audit(
+            params_to_exclude=['uuid', 'state', 'scope',
+                               'next_run_time', 'hostname', 'goal']
+        )
+        audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
+        audit_dict['interval'] = '1200'
+        audit_dict['start_time'] = str(start_time)
+        audit_dict['end_time'] = str(end_time)
+
+        response = self.post_json('/audits', audit_dict)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertEqual(objects.audit.State.PENDING,
+                         response.json['state'])
+        self.assertEqual(audit_dict['interval'], response.json['interval'])
+        self.assertTrue(utils.is_uuid_like(response.json['uuid']))
+        return_start_time = timeutils.parse_isotime(
+            response.json['start_time'])
+        return_end_time = timeutils.parse_isotime(
+            response.json['end_time'])
+        iso_start_time = start_time.replace(
+            tzinfo=tz.tzlocal()).astimezone(tz.tzutc())
+        iso_end_time = end_time.replace(
+            tzinfo=tz.tzlocal()).astimezone(tz.tzutc())
+
+        self.assertEqual(iso_start_time, return_start_time)
+        self.assertEqual(iso_end_time, return_end_time)
 
 
 class TestDelete(api_base.FunctionalTest):

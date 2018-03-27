@@ -58,9 +58,10 @@ class ContinuousAuditHandler(base.AuditHandler):
 
     def _is_audit_inactive(self, audit):
         audit = objects.Audit.get_by_uuid(
-            self.context_show_deleted, audit.uuid)
+            self.context_show_deleted, audit.uuid, eager=True)
         if (objects.audit.AuditStateTransitionManager().is_inactive(audit) or
-                audit.hostname != CONF.host):
+                (audit.hostname != CONF.host) or
+                (self.check_audit_expired(audit))):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
             jobs = [job for job in self.scheduler.get_jobs()
@@ -119,13 +120,26 @@ class ContinuousAuditHandler(base.AuditHandler):
                                name='execute_audit',
                                **trigger_args)
 
+    def check_audit_expired(self, audit):
+        current = datetime.datetime.utcnow()
+        # Note: if audit still didn't get into the timeframe,
+        #       skip it
+        if audit.start_time and audit.start_time > current:
+            return True
+        if audit.end_time and audit.end_time < current:
+            if audit.state != objects.audit.State.SUCCEEDED:
+                audit.state = objects.audit.State.SUCCEEDED
+                audit.save()
+            return True
+
+        return False
+
     def launch_audits_periodically(self):
         audit_context = context.RequestContext(is_admin=True)
         audit_filters = {
             'audit_type': objects.audit.AuditType.CONTINUOUS.value,
             'state__in': (objects.audit.State.PENDING,
-                          objects.audit.State.ONGOING,
-                          objects.audit.State.SUCCEEDED),
+                          objects.audit.State.ONGOING),
         }
         audit_filters['hostname'] = None
         unscheduled_audits = objects.Audit.list(
@@ -152,6 +166,8 @@ class ContinuousAuditHandler(base.AuditHandler):
         audits = objects.Audit.list(
             audit_context, filters=audit_filters, eager=True)
         for audit in audits:
+            if self.check_audit_expired(audit):
+                continue
             existing_job = scheduler_jobs.get(audit.uuid, None)
             # if audit is not presented in scheduled audits yet,
             # just add a new audit job.
