@@ -39,6 +39,22 @@ named ``watcher``, or by using the `OpenStack CLI`_ ``openstack``.
 If you want to deploy Watcher in Horizon, please refer to the `Watcher Horizon
 plugin installation guide`_.
 
+.. note::
+
+   Notice, that in this guide we'll use `OpenStack CLI`_ as major interface.
+   Nevertheless, you can use `Watcher CLI`_ in the same way. It can be
+   achieved by replacing
+
+   .. code:: bash
+
+     $ openstack optimize ...
+
+   with
+
+   .. code:: bash
+
+     $ watcher ...
+
 .. _`installation guide`: https://docs.openstack.org/python-watcherclient/latest
 .. _`Watcher Horizon plugin installation guide`: https://docs.openstack.org/watcher-dashboard/latest/install/installation.html
 .. _`OpenStack CLI`: https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
@@ -51,10 +67,6 @@ watcher binary without options.
 
 .. code:: bash
 
-  $ watcher help
-
-or::
-
   $ openstack help optimize
 
 How do I run an audit of my cluster ?
@@ -63,10 +75,6 @@ How do I run an audit of my cluster ?
 First, you need to find the :ref:`goal <goal_definition>` you want to achieve:
 
 .. code:: bash
-
-  $ watcher goal list
-
-or::
 
   $ openstack optimize goal list
 
@@ -81,10 +89,6 @@ An :ref:`audit template <audit_template_definition>` defines an optimization
 
 .. code:: bash
 
-  $ watcher audittemplate create my_first_audit_template <your_goal>
-
-or::
-
   $ openstack optimize audittemplate create my_first_audit_template <your_goal>
 
 Although optional, you may want to actually set a specific strategy for your
@@ -93,10 +97,6 @@ following command:
 
 .. code:: bash
 
-  $ watcher strategy list --goal <your_goal_uuid_or_name>
-
-or::
-
   $ openstack optimize strategy list --goal <your_goal_uuid_or_name>
 
 You can use the following command to check strategy details including which
@@ -104,20 +104,11 @@ parameters of which format it supports:
 
 .. code:: bash
 
-  $ watcher strategy show <your_strategy>
-
-or::
-
   $ openstack optimize strategy show <your_strategy>
 
 The command to create your audit template would then be:
 
 .. code:: bash
-
-  $ watcher audittemplate create my_first_audit_template <your_goal> \
-    --strategy <your_strategy>
-
-or::
 
   $ openstack optimize audittemplate create my_first_audit_template <your_goal> \
     --strategy <your_strategy>
@@ -133,20 +124,12 @@ audit) that you want to use.
 
 .. code:: bash
 
-  $ watcher audittemplate list
-
-or::
-
   $ openstack optimize audittemplate list
 
 - Start an audit based on this :ref:`audit template
   <audit_template_definition>` settings:
 
 .. code:: bash
-
-  $ watcher audit create -a <your_audit_template>
-
-or::
 
   $ openstack optimize audit create -a <your_audit_template>
 
@@ -155,11 +138,6 @@ defines some parameters (command `watcher strategy show` to check parameters
 format), your can append `-p` to input required parameters:
 
 .. code:: bash
-
-  $ watcher audit create -a <your_audit_template> \
-    -p <your_strategy_para1>=5.5 -p <your_strategy_para2>=hi
-
-or::
 
   $ openstack optimize audit create -a <your_audit_template> \
     -p <your_strategy_para1>=5.5 -p <your_strategy_para2>=hi
@@ -173,18 +151,12 @@ Input parameter could cause audit creation failure, when:
 Watcher service will compute an :ref:`Action Plan <action_plan_definition>`
 composed of a list of potential optimization :ref:`actions <action_definition>`
 (instance migration, disabling of a compute node, ...) according to the
-:ref:`goal <goal_definition>` to achieve. You can see all of the goals
-available in section ``[watcher_strategies]`` of the Watcher service
-configuration file.
+:ref:`goal <goal_definition>` to achieve.
 
 - Wait until the Watcher audit has produced a new :ref:`action plan
   <action_plan_definition>`, and get it:
 
 .. code:: bash
-
-  $ watcher actionplan list --audit <the_audit_uuid>
-
-or::
 
   $ openstack optimize actionplan list --audit <the_audit_uuid>
 
@@ -192,10 +164,6 @@ or::
   contained in this new :ref:`action plan <action_plan_definition>`:
 
 .. code:: bash
-
-  $ watcher action list --action-plan <the_action_plan_uuid>
-
-or::
 
   $ openstack optimize action list --action-plan <the_action_plan_uuid>
 
@@ -207,10 +175,6 @@ cluster:
 
 .. code:: bash
 
-  $ watcher actionplan start <the_action_plan_uuid>
-
-or::
-
   $ openstack optimize actionplan start <the_action_plan_uuid>
 
 You can follow the states of the :ref:`actions <action_definition>` by
@@ -218,19 +182,11 @@ periodically calling:
 
 .. code:: bash
 
-  $ watcher action list
-
-or::
-
   $ openstack optimize action list
 
 You can also obtain more detailed information about a specific action:
 
 .. code:: bash
-
-  $ watcher action show <the_action_uuid>
-
-or::
 
   $ openstack optimize action show <the_action_uuid>
 
