@@ -11,13 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-*Zone migration using instance and volume migration*
-
-This is zone migration strategy to migrate many instances and volumes
-efficiently with minimum downtime for hardware maintenance.
-
-"""
 
 from dateutil.parser import parse
 import six
@@ -48,7 +41,11 @@ IN_USE = "in-use"
 
 
 class ZoneMigration(base.ZoneMigrationBaseStrategy):
-    """Zone migration using instance and volume migration"""
+    """Zone migration using instance and volume migration
+
+    This is zone migration strategy to migrate many instances and volumes
+    efficiently with minimum downtime for hardware maintenance.
+    """
 
     def __init__(self, config, osc=None):
 

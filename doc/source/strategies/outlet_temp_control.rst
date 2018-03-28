@@ -9,11 +9,7 @@ Synopsis
 
 **goal**: ``thermal_optimization``
 
-Outlet (Exhaust Air) temperature is a new thermal telemetry which can be
-used to measure the host's thermal/workload status. This strategy makes
-decisions to migrate workloads to the hosts with good thermal condition
-(lowest outlet temperature) when the outlet temperature of source hosts
-reach a configurable threshold.
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.outlet_temp_control
 
 Requirements
 ------------

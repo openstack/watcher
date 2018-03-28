@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``airflow_optimization``
 
-.. watcher-term:: watcher.decision_engine.strategy.strategies.uniform_airflow
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.uniform_airflow.UniformAirflow
 
 Requirements
 ------------

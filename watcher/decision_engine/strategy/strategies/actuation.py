@@ -14,16 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-*Actuator*
-
-This strategy allows anyone to create an action plan with a predefined set of
-actions. This strategy can be used for 2 different purposes:
-
-- Test actions
-- Use this strategy based on an event trigger to perform some explicit task
-
-"""
 
 from oslo_log import log
 
@@ -34,7 +24,17 @@ LOG = log.getLogger(__name__)
 
 
 class Actuator(base.UnclassifiedStrategy):
-    """Actuator that simply executes the actions given as parameter"""
+    """Actuator
+
+    Actuator that simply executes the actions given as parameter
+
+    This strategy allows anyone to create an action plan with a predefined
+    set of actions. This strategy can be used for 2 different purposes:
+
+    - Test actions
+    - Use this strategy based on an event trigger to perform some explicit task
+
+    """
 
     @classmethod
     def get_name(cls):

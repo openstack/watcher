@@ -16,18 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-*Workload Stabilization control using live migration*
-
-This is workload stabilization strategy based on standard deviation
-algorithm. The goal is to determine if there is an overload in a cluster
-and respond to it by migrating VMs to stabilize the cluster.
-
-This strategy has been tested in a small (32 nodes) cluster.
-
-It assumes that live migrations are possible in your cluster.
-
-"""
 
 import copy
 import itertools
@@ -59,7 +47,16 @@ def _set_memoize(conf):
 
 
 class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
-    """Workload Stabilization control using live migration"""
+    """Workload Stabilization control using live migration
+
+    This is workload stabilization strategy based on standard deviation
+    algorithm. The goal is to determine if there is an overload in a cluster
+    and respond to it by migrating VMs to stabilize the cluster.
+
+    This strategy has been tested in a small (32 nodes) cluster.
+
+    It assumes that live migrations are possible in your cluster.
+    """
 
     MIGRATION = "migrate"
     MEMOIZE = _set_memoize(CONF)

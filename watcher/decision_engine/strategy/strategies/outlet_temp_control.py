@@ -18,7 +18,7 @@
 #
 
 """
-*Good Thermal Strategy*:
+*Good Thermal Strategy*
 
 Towards to software defined infrastructure, the power and thermal
 intelligences is being adopted to optimize workload, which can help
@@ -26,6 +26,10 @@ improve efficiency, reduce power, as well as to improve datacenter PUE
 and lower down operation cost in data center.
 Outlet (Exhaust Air) Temperature is one of the important thermal
 telemetries to measure thermal/workload status of server.
+
+This strategy makes decisions to migrate workloads to the hosts with good
+thermal condition (lowest outlet temperature) when the outlet temperature
+of source hosts reach a configurable threshold.
 """
 
 from oslo_config import cfg

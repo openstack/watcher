@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``server_consolidation``
 
-    .. watcher-term:: watcher.decision_engine.strategy.strategies.basic_consolidation
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.basic_consolidation.BasicConsolidation
 
 Requirements
 ------------

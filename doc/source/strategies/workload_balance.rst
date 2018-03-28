@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``workload_balancing``
 
-.. watcher-term:: watcher.decision_engine.strategy.strategies.workload_balance
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.workload_balance.WorkloadBalance
 
 Requirements
 ------------
