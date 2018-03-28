@@ -177,6 +177,8 @@ function create_watcher_conf {
     iniset $WATCHER_CONF DEFAULT debug "$ENABLE_DEBUG_LOG_LEVEL"
     iniset $WATCHER_CONF DEFAULT control_exchange watcher
 
+    iniset_rpc_backend watcher $WATCHER_CONF
+
     iniset $WATCHER_CONF database connection $(database_connection_url watcher)
     iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
 
@@ -188,10 +190,6 @@ function create_watcher_conf {
     fi
 
     iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
-
-    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_userid $RABBIT_USERID
-    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_password $RABBIT_PASSWORD
-    iniset $WATCHER_CONF oslo_messaging_rabbit rabbit_host $RABBIT_HOST
 
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
 
