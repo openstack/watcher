@@ -137,6 +137,7 @@
       - openstack/watcher
       - openstack/tempest
     vars:
+      tempest_concurrency: 1
       devstack_localrc:
         WATCHER_USE_MOD_WSGI: False
         TEMPEST_PLUGINS: '/opt/stack/python-watcherclient'
