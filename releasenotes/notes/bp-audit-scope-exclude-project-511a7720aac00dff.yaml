@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Feature to exclude instances from audit scope based on project_id is added.
+    Now instances from particular project in OpenStack can be excluded from audit
+    defining scope in audit templates.

@@ -87,6 +87,7 @@ class ComputeScope(base.BaseScope):
         instances_to_exclude = kwargs.get('instances')
         nodes_to_exclude = kwargs.get('nodes')
         instance_metadata = kwargs.get('instance_metadata')
+        projects_to_exclude = kwargs.get('projects')
 
         for resource in resources:
             if 'instances' in resource:
@@ -105,6 +106,9 @@ class ComputeScope(base.BaseScope):
             elif 'instance_metadata' in resource:
                 instance_metadata.extend(
                     [metadata for metadata in resource['instance_metadata']])
+            elif 'projects' in resource:
+                projects_to_exclude.extend(
+                    [project['uuid'] for project in resource['projects']])
 
     def remove_nodes_from_model(self, nodes_to_remove, cluster_model):
         for node_uuid in nodes_to_remove:
@@ -144,6 +148,13 @@ class ComputeScope(base.BaseScope):
                     if str(value).lower() == str(metadata.get(key)).lower():
                         instances_to_remove.add(uuid)
 
+    def exclude_instances_with_given_project(
+            self, projects_to_exclude, cluster_model, instances_to_exclude):
+        all_instances = cluster_model.get_all_instances()
+        for uuid, instance in all_instances.items():
+            if instance.project_id in projects_to_exclude:
+                instances_to_exclude.add(uuid)
+
     def get_scoped_model(self, cluster_model):
         """Leave only nodes and instances proposed in the audit scope"""
         if not cluster_model:
@@ -154,6 +165,7 @@ class ComputeScope(base.BaseScope):
         nodes_to_remove = set()
         instances_to_exclude = []
         instance_metadata = []
+        projects_to_exclude = []
         compute_scope = []
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
@@ -177,7 +189,8 @@ class ComputeScope(base.BaseScope):
                 self.exclude_resources(
                     rule['exclude'], instances=instances_to_exclude,
                     nodes=nodes_to_exclude,
-                    instance_metadata=instance_metadata)
+                    instance_metadata=instance_metadata,
+                    projects=projects_to_exclude)
 
         instances_to_exclude = set(instances_to_exclude)
         if allowed_nodes:
@@ -189,6 +202,10 @@ class ComputeScope(base.BaseScope):
         if instance_metadata and self.config.check_optimize_metadata:
             self.exclude_instances_with_given_metadata(
                 instance_metadata, cluster_model, instances_to_exclude)
+
+        if projects_to_exclude:
+            self.exclude_instances_with_given_project(
+                projects_to_exclude, cluster_model, instances_to_exclude)
 
         self.update_exclude_instance_in_model(instances_to_exclude,
                                               cluster_model)
