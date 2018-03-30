@@ -173,17 +173,6 @@ class StrategyCollection(collection.Collection):
         strategy_collection = StrategyCollection()
         strategy_collection.strategies = [
             Strategy.convert_with_links(g, expand) for g in strategies]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'strategy':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                strategy_collection.strategies = sorted(
-                    strategy_collection.strategies,
-                    key=lambda strategy: strategy.uuid,
-                    reverse=reverse)
-
         strategy_collection.next = strategy_collection.get_next(
             limit, url=url, **kwargs)
         return strategy_collection
@@ -211,27 +200,38 @@ class StrategiesController(rest.RestController):
 
     def _get_strategies_collection(self, filters, marker, limit, sort_key,
                                    sort_dir, expand=False, resource_url=None):
+        additional_fields = ["goal_uuid", "goal_name"]
+
+        api_utils.validate_sort_key(
+            sort_key, list(objects.Strategy.fields) + additional_fields)
         api_utils.validate_search_filters(
-            filters, list(objects.strategy.Strategy.fields) +
-            ["goal_uuid", "goal_name"])
+            filters, list(objects.Strategy.fields) + additional_fields)
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
-
-        sort_db_key = (sort_key if sort_key in objects.Strategy.fields
-                       else None)
 
         marker_obj = None
         if marker:
             marker_obj = objects.Strategy.get_by_uuid(
                 pecan.request.context, marker)
 
+        need_api_sort = api_utils.check_need_api_sort(sort_key,
+                                                      additional_fields)
+        sort_db_key = (sort_key if not need_api_sort
+                       else None)
+
         strategies = objects.Strategy.list(
             pecan.request.context, limit, marker_obj, filters=filters,
             sort_key=sort_db_key, sort_dir=sort_dir)
 
-        return StrategyCollection.convert_with_links(
+        strategies_collection = StrategyCollection.convert_with_links(
             strategies, limit, url=resource_url, expand=expand,
             sort_key=sort_key, sort_dir=sort_dir)
+
+        if need_api_sort:
+            api_utils.make_api_sort(strategies_collection.strategies,
+                                    sort_key, sort_dir)
+
+        return strategies_collection
 
     @wsme_pecan.wsexpose(StrategyCollection, wtypes.text, wtypes.text,
                          int, wtypes.text, wtypes.text)

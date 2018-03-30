@@ -205,7 +205,7 @@ class ActionCollection(collection.Collection):
         collection = ActionCollection()
         collection.actions = [Action.convert_with_links(p, expand)
                               for p in actions]
-
+        collection.next = collection.get_next(limit, url=url, **kwargs)
         return collection
 
     @classmethod
@@ -232,6 +232,10 @@ class ActionsController(rest.RestController):
                                 sort_key, sort_dir, expand=False,
                                 resource_url=None,
                                 action_plan_uuid=None, audit_uuid=None):
+        additional_fields = ['action_plan_uuid']
+
+        api_utils.validate_sort_key(sort_key, list(objects.Action.fields) +
+                                    additional_fields)
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -247,7 +251,10 @@ class ActionsController(rest.RestController):
         if audit_uuid:
             filters['audit_uuid'] = audit_uuid
 
-        sort_db_key = sort_key
+        need_api_sort = api_utils.check_need_api_sort(sort_key,
+                                                      additional_fields)
+        sort_db_key = (sort_key if not need_api_sort
+                       else None)
 
         actions = objects.Action.list(pecan.request.context,
                                       limit,
@@ -255,11 +262,15 @@ class ActionsController(rest.RestController):
                                       sort_dir=sort_dir,
                                       filters=filters)
 
-        return ActionCollection.convert_with_links(actions, limit,
-                                                   url=resource_url,
-                                                   expand=expand,
-                                                   sort_key=sort_key,
-                                                   sort_dir=sort_dir)
+        actions_collection = ActionCollection.convert_with_links(
+            actions, limit, url=resource_url, expand=expand,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+        if need_api_sort:
+            api_utils.make_api_sort(actions_collection.actions,
+                                    sort_key, sort_dir)
+
+        return actions_collection
 
     @wsme_pecan.wsexpose(ActionCollection, types.uuid, int,
                          wtypes.text, wtypes.text, types.uuid,

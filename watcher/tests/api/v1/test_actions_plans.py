@@ -256,6 +256,12 @@ class TestListActionPlan(api_base.FunctionalTest):
         uuids = [s['audit_uuid'] for s in response['action_plans']]
         self.assertEqual(sorted(audit_list), uuids)
 
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/action_plans?sort_key=%s' % 'bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
     def test_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_action_plan(self.context, id=1, uuid=uuid)

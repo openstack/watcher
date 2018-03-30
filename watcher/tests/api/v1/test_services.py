@@ -131,6 +131,26 @@ class TestListService(api_base.FunctionalTest):
         response = self.get_json('/services')
         self.assertEqual(3, len(response['services']))
 
+    def test_many_with_sort_key_name(self):
+        service_list = []
+        for id_ in range(1, 4):
+            service = obj_utils.create_test_service(
+                self.context, id=id_, host='CONTROLLER',
+                name='SERVICE_{0}'.format(id_))
+            service_list.append(service.name)
+
+        response = self.get_json('/services/?sort_key=name')
+
+        self.assertEqual(3, len(response['services']))
+        names = [s['name'] for s in response['services']]
+        self.assertEqual(sorted(service_list), names)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/services?sort_key=%s' % 'bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
 
 class TestServicePolicyEnforcement(api_base.FunctionalTest):
 

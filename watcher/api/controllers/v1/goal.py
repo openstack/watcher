@@ -130,17 +130,6 @@ class GoalCollection(collection.Collection):
         goal_collection = GoalCollection()
         goal_collection.goals = [
             Goal.convert_with_links(g, expand) for g in goals]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'strategy':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                goal_collection.goals = sorted(
-                    goal_collection.goals,
-                    key=lambda goal: goal.uuid,
-                    reverse=reverse)
-
         goal_collection.next = goal_collection.get_next(
             limit, url=url, **kwargs)
         return goal_collection
@@ -167,16 +156,18 @@ class GoalsController(rest.RestController):
 
     def _get_goals_collection(self, marker, limit, sort_key, sort_dir,
                               expand=False, resource_url=None):
+        api_utils.validate_sort_key(
+            sort_key, list(objects.Goal.fields))
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
-
-        sort_db_key = (sort_key if sort_key in objects.Goal.fields
-                       else None)
 
         marker_obj = None
         if marker:
             marker_obj = objects.Goal.get_by_uuid(
                 pecan.request.context, marker)
+
+        sort_db_key = (sort_key if sort_key in objects.Goal.fields
+                       else None)
 
         goals = objects.Goal.list(pecan.request.context, limit, marker_obj,
                                   sort_key=sort_db_key, sort_dir=sort_dir)

@@ -305,17 +305,6 @@ class ActionPlanCollection(collection.Collection):
         ap_collection = ActionPlanCollection()
         ap_collection.action_plans = [ActionPlan.convert_with_links(
             p, expand) for p in rpc_action_plans]
-
-        if 'sort_key' in kwargs:
-            reverse = False
-            if kwargs['sort_key'] == 'audit_uuid':
-                if 'sort_dir' in kwargs:
-                    reverse = True if kwargs['sort_dir'] == 'desc' else False
-                ap_collection.action_plans = sorted(
-                    ap_collection.action_plans,
-                    key=lambda action_plan: action_plan.audit_uuid,
-                    reverse=reverse)
-
         ap_collection.next = ap_collection.get_next(limit, url=url, **kwargs)
         return ap_collection
 
@@ -344,7 +333,10 @@ class ActionPlansController(rest.RestController):
                                      sort_key, sort_dir, expand=False,
                                      resource_url=None, audit_uuid=None,
                                      strategy=None):
+        additional_fields = ['audit_uuid', 'strategy_uuid', 'strategy_name']
 
+        api_utils.validate_sort_key(
+            sort_key, list(objects.ActionPlan.fields) + additional_fields)
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -363,10 +355,10 @@ class ActionPlansController(rest.RestController):
             else:
                 filters['strategy_name'] = strategy
 
-        if sort_key == 'audit_uuid':
-            sort_db_key = None
-        else:
-            sort_db_key = sort_key
+        need_api_sort = api_utils.check_need_api_sort(sort_key,
+                                                      additional_fields)
+        sort_db_key = (sort_key if not need_api_sort
+                       else None)
 
         action_plans = objects.ActionPlan.list(
             pecan.request.context,
@@ -374,12 +366,15 @@ class ActionPlansController(rest.RestController):
             marker_obj, sort_key=sort_db_key,
             sort_dir=sort_dir, filters=filters)
 
-        return ActionPlanCollection.convert_with_links(
-            action_plans, limit,
-            url=resource_url,
-            expand=expand,
-            sort_key=sort_key,
-            sort_dir=sort_dir)
+        action_plans_collection = ActionPlanCollection.convert_with_links(
+            action_plans, limit, url=resource_url, expand=expand,
+            sort_key=sort_key, sort_dir=sort_dir)
+
+        if need_api_sort:
+            api_utils.make_api_sort(action_plans_collection.action_plans,
+                                    sort_key, sort_dir)
+
+        return action_plans_collection
 
     @wsme_pecan.wsexpose(ActionPlanCollection, types.uuid, int, wtypes.text,
                          wtypes.text, types.uuid, wtypes.text)

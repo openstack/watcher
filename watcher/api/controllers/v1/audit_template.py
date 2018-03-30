@@ -474,9 +474,13 @@ class AuditTemplatesController(rest.RestController):
     def _get_audit_templates_collection(self, filters, marker, limit,
                                         sort_key, sort_dir, expand=False,
                                         resource_url=None):
+        additional_fields = ["goal_uuid", "goal_name", "strategy_uuid",
+                             "strategy_name"]
+
+        api_utils.validate_sort_key(
+            sort_key, list(objects.AuditTemplate.fields) + additional_fields)
         api_utils.validate_search_filters(
-            filters, list(objects.audit_template.AuditTemplate.fields) +
-            ["goal_uuid", "goal_name", "strategy_uuid", "strategy_name"])
+            filters, list(objects.AuditTemplate.fields) + additional_fields)
         limit = api_utils.validate_limit(limit)
         api_utils.validate_sort_dir(sort_dir)
 
@@ -486,19 +490,26 @@ class AuditTemplatesController(rest.RestController):
                 pecan.request.context,
                 marker)
 
-        audit_templates = objects.AuditTemplate.list(
-            pecan.request.context,
-            filters,
-            limit,
-            marker_obj, sort_key=sort_key,
-            sort_dir=sort_dir)
+        need_api_sort = api_utils.check_need_api_sort(sort_key,
+                                                      additional_fields)
+        sort_db_key = (sort_key if not need_api_sort
+                       else None)
 
-        return AuditTemplateCollection.convert_with_links(audit_templates,
-                                                          limit,
-                                                          url=resource_url,
-                                                          expand=expand,
-                                                          sort_key=sort_key,
-                                                          sort_dir=sort_dir)
+        audit_templates = objects.AuditTemplate.list(
+            pecan.request.context, filters, limit, marker_obj,
+            sort_key=sort_db_key, sort_dir=sort_dir)
+
+        audit_templates_collection = \
+            AuditTemplateCollection.convert_with_links(
+                audit_templates, limit, url=resource_url, expand=expand,
+                sort_key=sort_key, sort_dir=sort_dir)
+
+        if need_api_sort:
+            api_utils.make_api_sort(
+                audit_templates_collection.audit_templates, sort_key,
+                sort_dir)
+
+        return audit_templates_collection
 
     @wsme_pecan.wsexpose(AuditTemplateCollection, wtypes.text, wtypes.text,
                          types.uuid, int, wtypes.text, wtypes.text)

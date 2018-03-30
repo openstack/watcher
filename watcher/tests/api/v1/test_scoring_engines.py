@@ -113,6 +113,26 @@ class TestListScoringEngine(api_base.FunctionalTest):
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
 
+    def test_many_with_sort_key_uuid(self):
+        scoring_engine_list = []
+        for idx in range(1, 6):
+            scoring_engine = obj_utils.create_test_scoring_engine(
+                self.context, id=idx, uuid=utils.generate_uuid(),
+                name=str(idx), description='SE_{0}'.format(idx))
+            scoring_engine_list.append(scoring_engine.uuid)
+
+        response = self.get_json('/scoring_engines/?sort_key=uuid')
+
+        self.assertEqual(5, len(response['scoring_engines']))
+        uuids = [s['uuid'] for s in response['scoring_engines']]
+        self.assertEqual(sorted(scoring_engine_list), uuids)
+
+    def test_sort_key_validation(self):
+        response = self.get_json(
+            '/goals?sort_key=%s' % 'bad_name',
+            expect_errors=True)
+        self.assertEqual(400, response.status_int)
+
 
 class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
 
