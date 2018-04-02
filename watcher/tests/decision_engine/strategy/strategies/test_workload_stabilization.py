@@ -195,6 +195,15 @@ class TestWorkloadStabilization(base.TestCase):
             10,
             len(self.strategy.simulate_migrations(self.hosts_load_assert)))
 
+    def test_simulate_migrations_with_all_instances_exclude(self):
+        model = \
+            self.fake_cluster.generate_scenario_1_with_all_instances_exclude()
+        self.m_model.return_value = model
+        self.strategy.host_choice = 'fullsearch'
+        self.assertEqual(
+            0,
+            len(self.strategy.simulate_migrations(self.hosts_load_assert)))
+
     def test_check_threshold(self):
         self.m_model.return_value = self.fake_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}

@@ -16,6 +16,7 @@
 Openstack implementation of the cluster graph.
 """
 
+import ast
 from lxml import etree
 import networkx as nx
 from oslo_concurrency import lockutils
@@ -225,6 +226,8 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         for inst in root.findall('.//Instance'):
             instance = element.Instance(**inst.attrib)
+            instance.watcher_exclude = ast.literal_eval(
+                inst.attrib["watcher_exclude"])
             model.add_instance(instance)
 
             parent = inst.getparent()
