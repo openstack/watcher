@@ -19,11 +19,17 @@ optimize your IaaS platform. The Watcher service may, depending upon
 configuration, interact with several other OpenStack services. This includes:
 
 - the OpenStack Identity service (`keystone`_) for request authentication and
-  to locate other OpenStack services
-- the OpenStack Telemetry service (`ceilometer`_) for consuming the resources
-  metrics
+  to locate other OpenStack services.
+- the OpenStack Telemetry service (`ceilometer`_) for collecting the resources
+  metrics.
+- the time series database (`gnocchi`_) for consuming the resources
+  metrics.
 - the OpenStack Compute service (`nova`_) works with the Watcher service and
   acts as a user-facing API for instance migration.
+- the OpenStack Bare Metal service (`ironic`_) works with the Watcher service
+  and allows to manage power state of nodes.
+- the OpenStack Block Storage service (`cinder`_) works with the Watcher
+  service and as an API for volume node migration.
 
 The Watcher service includes the following components:
 
@@ -53,6 +59,9 @@ additional functionality:
 .. _`keystone`: https://github.com/openstack/keystone
 .. _`ceilometer`: https://github.com/openstack/ceilometer
 .. _`nova`: https://github.com/openstack/nova
+.. _`gnocchi`: https://github.com/gnocchixyz/gnocchi
+.. _`ironic`: https://github.com/openstack/ironic
+.. _`cinder`: https://github.com/openstack/cinder
 .. _`python-watcherclient`: https://github.com/openstack/python-watcherclient
 .. _`watcher-dashboard`: https://github.com/openstack/watcher-dashboard
 .. _`watcher metering`: https://github.com/b-com/watcher-metering

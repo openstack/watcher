@@ -54,36 +54,12 @@ Getting Started
 
   contributor/index
 
-API References
---------------
-
-.. toctree::
-  :maxdepth: 1
-
-  api/index
-
-Plugins
--------
-
-.. toctree::
-  :maxdepth: 1
-
-  contributor/plugin/index
-
 Installation
 ============
 .. toctree::
   :maxdepth: 2
 
   install/index
-
-Watcher Configuration Options
-=============================
-
-.. toctree::
-  :maxdepth: 2
-
-  configuration/index
 
 Admin Guide
 ===========
@@ -100,6 +76,30 @@ User Guide
   :maxdepth: 2
 
   user/index
+
+API References
+--------------
+
+.. toctree::
+  :maxdepth: 1
+
+  api/index
+
+Plugins
+-------
+
+.. toctree::
+  :maxdepth: 1
+
+  contributor/plugin/index
+
+Watcher Configuration Options
+=============================
+
+.. toctree::
+  :maxdepth: 2
+
+  configuration/index
 
 Watcher Manual Pages
 ====================

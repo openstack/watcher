@@ -1,0 +1,55 @@
+{
+    "goals": [
+        {
+            "efficacy_specification": [],
+            "uuid": "e1a5a45b-f251-47cf-9c5f-fa1e66e1286a",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/goals/e1a5a45b-f251-47cf-9c5f-fa1e66e1286a"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/goals/e1a5a45b-f251-47cf-9c5f-fa1e66e1286a"
+                }
+            ],
+            "name": "workload_balancing",
+            "display_name": "Workload Balancing"
+        },
+        {
+            "efficacy_specification": [
+                {
+                    "description": "The total number of enabled compute nodes.",
+                    "schema": "Range(min=0, max=None, min_included=True, max_included=True, msg=None)",
+                    "name": "compute_nodes_count",
+                    "unit": null
+                },
+                {
+                    "description": "The number of compute nodes to be released.",
+                    "schema": "Range(min=0, max=None, min_included=True, max_included=True, msg=None)",
+                    "name": "released_compute_nodes_count",
+                    "unit": null
+                },
+                {
+                    "description": "The number of VM migrations to be performed.",
+                    "schema": "Range(min=0, max=None, min_included=True, max_included=True, msg=None)",
+                    "name": "instance_migrations_count",
+                    "unit": null
+                }
+            ],
+            "uuid": "cb9afa5e-aec7-4a8c-9261-c15c33f2262b",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/goals/cb9afa5e-aec7-4a8c-9261-c15c33f2262b"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/goals/cb9afa5e-aec7-4a8c-9261-c15c33f2262b"
+                }
+            ],
+            "name": "server_consolidation",
+            "display_name": "Server Consolidation"
+        }
+    ]
+}

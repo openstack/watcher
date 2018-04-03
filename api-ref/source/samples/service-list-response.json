@@ -1,0 +1,36 @@
+{
+    "services": [
+        {
+            "id": 1,
+            "status": "ACTIVE",
+            "name": "watcher-applier",
+            "host": "controller",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/services/1"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/services/1"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "status": "ACTIVE",
+            "name": "watcher-decision-engine",
+            "host": "controller",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/services/2"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/services/2"
+                }
+            ]
+        }
+    ]
+}

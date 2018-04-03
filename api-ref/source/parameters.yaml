@@ -1,0 +1,411 @@
+# Path
+action_ident:
+  description: |
+    The UUID of the Action.
+  in: path
+  required: true
+  type: string
+actionplan_ident:
+  description: |
+    The UUID of the Action Plan.
+  in: path
+  required: true
+  type: string
+audit_ident:
+  description: |
+    The UUID or name of the Audit.
+  in: path
+  required: true
+  type: string
+audittemplate_ident:
+  description: |
+    The UUID or name of the Audit Template.
+  in: path
+  required: true
+  type: string
+goal_ident:
+  description: |
+    The UUID or name of the Goal.
+  in: path
+  required: true
+  type: string
+scoring_engine_ident:
+  description: |
+    The UUID or name of the Scoring Engine.
+  in: path
+  required: true
+  type: string
+service_ident:
+  description: |
+    The ID or name of the Service.
+  in: path
+  required: true
+  type: string
+strategy_ident:
+  description: |
+    The UUID or name of the Strategy.
+  in: path
+  required: true
+  type: string
+
+# Query body
+limit:
+  description: |
+    Requests a page size of items. Returns a number of items up to a ``limit``
+    value. Use the limit parameter to make an initial limited request and use
+    the ID of the last-seen item from the response as the ``marker`` parameter
+    value in a subsequent limited request. 
+  in: query
+  required: false
+  type: integer
+marker:
+  description: |
+    The ID of the last-seen item. Use the ``limit`` parameter to make an
+    initial limited request and use the ID of the last-seen item from the
+    response as the ``marker`` parameter value in a subsequent limited request.
+  in: query
+  required: false
+  type: string
+r_action_plan:
+  description: |
+    UUID of the action plan used for filtering.
+  in: query
+  required: false
+  type: string
+r_audit:
+  description: |
+    Optional UUID of an audit, to get only actions for that audit.
+  in: query
+  required: false
+  type: string
+r_goal:
+  description: |
+    The UUID or name of the Goal.
+  in: query
+  required: false
+  type: string
+r_strategy:
+  description: |
+    The UUID or name of the Strategy.
+  in: query
+  required: false
+  type: string
+sort_dir:
+  description: |
+    Sorts the response by the requested sort direction.
+    A valid value is ``asc`` (ascending) or ``desc`` (descending).
+    Default is ``asc``.
+  in: query
+  required: false
+  type: string
+sort_key:
+  description: |
+    Sorts the response by the this attribute value. Default is ``id``.
+  in: query
+  required: false
+  type: string
+
+# variables in the API response body
+
+# Action
+action_action_plan_uuid:
+  description: |
+    The action plan this action belongs to.
+  in: body
+  required: true
+  type: string
+action_description:
+  description: |
+    Action description.
+  in: body
+  required: true
+  type: string
+action_input_parameters:
+  description: |
+    Input parameters which are used by appropriate action type. For example,
+    ``migration`` action takes into account such parameters as
+    ``migration_type``, ``destination_node``, ``resource_id`` and
+    ``source_node``. To see a list of supported action types and their input
+    parameters visit `Action plugins page <https://docs.openstack.org/watcher/latest/contributor/plugin/plugins.html#actions>`_.
+  in: body
+  required: true
+  type: JSON
+action_parents:
+  description: |
+    UUIDs of parent actions.
+  in: body
+  required: true
+  type: array
+action_state:
+  description: |
+    State of Action.
+  in: body
+  required: true
+  type: string
+action_type:
+  description: |
+    Action type based on specific API action. Actions in Watcher are
+    pluggable, to see a list of supported action types visit
+    `Action plugins page <https://docs.openstack.org/watcher/latest/contributor/plugin/plugins.html#actions>`_.
+  in: body
+  required: true
+  type: string
+
+# Action Plan
+actionplan_audit_uuid:
+  description: |
+    The UUID of the audit this acton plan belongs to.
+  in: body
+  required: false
+  type: string
+actionplan_efficacy_indicators:
+  description: |
+    The list of efficacy indicators associated to this action plan.
+  in: body
+  required: false
+  type: array
+actionplan_global_efficacy:
+  description: |
+    The global efficacy of this action plan.
+  in: body
+  required: false
+  type: array
+actionplan_state:
+  description: |
+    State of this action plan. To get more information about states and
+    action plan's lifecycle, visit `Action Plan State Machine page <https://docs.openstack.org/watcher/latest/architecture.html#action-plan-state-machine>`_.
+  in: body
+  required: false
+  type: string
+
+# Audit
+audit_autotrigger:
+  description: |
+    Autoexecute action plan once audit is succeeded.
+  in: body
+  required: false
+  type: boolean
+audit_goal:
+  description: |
+    The UUID or name of the Goal.
+  in: body
+  required: false
+  type: string
+audit_interval:
+  description: |
+    Time interval between audit's execution.
+    Can be set either in seconds or cron syntax.
+    Should be defined only for CONTINUOUS audits.
+  in: body
+  required: false
+  type: string
+audit_name:
+  description: |
+    Name of this audit.
+  in: body
+  required: false
+  type: string
+audit_next_run_time:
+  description: |
+    The next time audit launch. Defined only for CONTINUOUS audits.
+  in: body
+  required: false
+  type: string
+audit_parameters:
+  description: |
+    The strategy parameters for this audit.
+  in: body
+  required: false
+  type: JSON
+audit_state:
+  description: |
+    State of this audit. To get more information about states and
+    audit's lifecycle, visit `Audit State Machine page <https://docs.openstack.org/watcher/latest/architecture.html#audit-state-machine>`_.
+  in: body
+  required: true
+  type: string
+audit_strategy:
+  description: |
+    The UUID or name of the Strategy.
+  in: body
+  required: false
+  type: string
+audit_type:
+  description: |
+    Type of this audit. Can be either ONESHOT or CONTINUOUS.
+  in: body
+  required: true
+  type: string
+
+# Audit Template
+audittemplate_description:
+  description: |
+    Short description of the Audit Template.
+  in: body
+  required: false
+  type: string
+audittemplate_goal:
+  description: |
+    The UUID or name of the Goal.
+  in: body
+  required: true
+  type: string
+audittemplate_name:
+  description: |
+    The name of the Audit template.
+  in: body
+  required: true
+  type: string
+audittemplate_scope:
+  description: |
+    Audit Scope.
+  in: body
+  required: false
+  type: JSON
+audittemplate_strategy:
+  description: |
+    The UUID or name of the Strategy.
+  in: body
+  required: false
+  type: string
+
+# Goal
+goal_display_name:
+  description: |
+    Localized name of the goal.
+  in: body
+  required: true
+  type: string
+goal_efficacy_specification:
+  description: |
+    Efficacy specifications as result of stategy's execution.
+  in: body
+  required: true
+  type: array
+goal_name:
+  description: |
+    Name of the goal.
+  in: body
+  required: true
+  type: string
+goal_uuid:
+  description: |
+    Unique UUID for this goal.
+  in: body
+  required: true
+  type: string
+
+links:
+  description: |
+    A list of relative links. Includes the self and bookmark links.
+  in: body
+  required: true
+  type: array
+
+# Scoring Engine
+scoring_engine_description:
+  description: |
+    A human readable description of the Scoring Engine.
+  in: body
+  required: true
+  type: string
+scoring_engine_metainfo:
+  description: |
+    A metadata associated with the scoring engine
+  in: body
+  required: true
+  type: string
+scoring_engine_name:
+  description: |
+    The name of the scoring engine.
+  in: body
+  required: true
+  type: string
+# Service
+service_host:
+  description: |
+    Name of host where service is placed on.
+  in: body
+  required: true
+  type: string
+service_id:
+  description: |
+    ID of service.
+  in: body
+  required: true
+  type: integer
+service_last_seen_up:
+  description: |
+    Time when Watcher service sent latest heartbeat.
+  in: body
+  required: true
+  type: string
+service_name:
+  description: |
+    Name of service like ``watcher-applier``.
+  in: body
+  required: true
+  type: string
+service_status:
+  description: |
+    State of service. It can be either in ACTIVE or FAILED state.
+  in: body
+  required: true
+  type: string
+
+# Strategy
+strategy_check_comment:
+  description: |
+    Requirement comment.
+  in: body
+  required: true
+  type: string
+strategy_check_mandatory:
+  description: |
+    Whether this requirement mandatory or not.
+  in: body
+  required: true
+  type: boolean
+strategy_check_state:
+  description: |
+    State of requirement for Strategy.
+  in: body
+  required: true
+  type: string or JSON
+strategy_check_type:
+  description: |
+    Type of requirement for Strategy.
+  in: body
+  required: true
+  type: string
+strategy_display_name:
+  description: |
+    Localized name of the strategy.
+  in: body
+  required: true
+  type: string
+strategy_name:
+  description: |
+    Name of the strategy.
+  in: body
+  required: true
+  type: string
+strategy_parameters_spec:
+  description: |
+    Parameters specifications for this strategy.
+  in: body
+  required: true
+  type: JSON
+strategy_uuid:
+  description: |
+    Unique UUID for this strategy.
+  in: body
+  required: true
+  type: string
+
+uuid:
+  description: |
+    The UUID for the resource.
+  in: body
+  required: true
+  type: string

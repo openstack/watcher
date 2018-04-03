@@ -1,0 +1,7 @@
+[
+    {
+        "op": "replace",
+        "value": "CANCELLED",
+        "path": "/state"
+    }
+]

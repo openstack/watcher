@@ -292,7 +292,7 @@ class StrategiesController(rest.RestController):
 
     @wsme_pecan.wsexpose(wtypes.text, wtypes.text)
     def state(self, strategy):
-        """Retrieve a inforamation about strategy requirements.
+        """Retrieve an information about strategy requirements.
 
         :param strategy: name of the strategy.
         """

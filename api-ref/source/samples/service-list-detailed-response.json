@@ -1,0 +1,24 @@
+{
+    "services": [
+        {
+            "status": "ACTIVE",
+            "name": "watcher-applier",
+            "host": "controller",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/services/1"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/services/1"
+                }
+            ],
+            "id": 1,
+            "deleted_at": null,
+            "updated_at": "2018-04-26T08:52:37.652895+00:00",
+            "last_seen_up": "2018-04-26T08:52:37.648572",
+            "created_at": "2018-03-26T11:55:24.075093+00:00"
+        }
+    ]
+}
