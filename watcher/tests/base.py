@@ -60,7 +60,8 @@ class TestCase(BaseTestCase):
 
         cfg.CONF.set_override("auth_type", "admin_token",
                               group='keystone_authtoken')
-        cfg.CONF.set_override("auth_uri", "http://127.0.0.1/identity",
+        cfg.CONF.set_override("www_authenticate_uri",
+                              "http://127.0.0.1/identity",
                               group='keystone_authtoken')
 
         app_config_path = os.path.join(os.path.dirname(__file__), 'config.py')
