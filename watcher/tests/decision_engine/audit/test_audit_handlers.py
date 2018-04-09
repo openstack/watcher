@@ -224,6 +224,11 @@ class TestContinuousAuditHandler(base.DbTestCase):
 
     def setUp(self):
         super(TestContinuousAuditHandler, self).setUp()
+        p_audit_notifications = mock.patch.object(
+            notifications, 'audit', autospec=True)
+        self.m_audit_notifications = p_audit_notifications.start()
+        self.addCleanup(p_audit_notifications.stop)
+
         self.goal = obj_utils.create_test_goal(
             self.context, id=1, name=dummy_strategy.DummyStrategy.get_name())
         audit_template = obj_utils.create_test_audit_template(
@@ -417,3 +422,27 @@ class TestContinuousAuditHandler(base.DbTestCase):
 
         audit_handler.launch_audits_periodically()
         m_remove_job.assert_called()
+
+    @mock.patch.object(continuous.ContinuousAuditHandler, 'planner')
+    def test_execute_audit(self, m_planner):
+        audit_handler = continuous.ContinuousAuditHandler()
+        audit = self.audits[0]
+        audit_handler.execute_audit(audit, self.context)
+
+        expected_calls = [
+            mock.call(self.context, audit,
+                      action=objects.fields.NotificationAction.STRATEGY,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, audit,
+                      action=objects.fields.NotificationAction.STRATEGY,
+                      phase=objects.fields.NotificationPhase.END),
+            mock.call(self.context, audit,
+                      action=objects.fields.NotificationAction.PLANNER,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, audit,
+                      action=objects.fields.NotificationAction.PLANNER,
+                      phase=objects.fields.NotificationPhase.END)]
+
+        self.assertEqual(
+            expected_calls,
+            self.m_audit_notifications.send_action_notification.call_args_list)
