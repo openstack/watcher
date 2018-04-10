@@ -336,6 +336,10 @@ class DeleteError(Invalid):
     msg_fmt = _("Couldn't delete when state is '%(state)s'.")
 
 
+class StartError(Invalid):
+    msg_fmt = _("Couldn't start when state is '%(state)s'.")
+
+
 # decision engine
 
 class WorkflowExecutionException(WatcherException):

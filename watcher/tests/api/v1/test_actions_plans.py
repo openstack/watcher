@@ -357,6 +357,53 @@ class TestDelete(api_base.FunctionalTest):
         self.assertTrue(response.json['error_message'])
 
 
+class TestStart(api_base.FunctionalTest):
+
+    def setUp(self):
+        super(TestStart, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
+        self.action_plan = obj_utils.create_test_action_plan(
+            self.context, state=objects.action_plan.State.RECOMMENDED)
+        p = mock.patch.object(db_api.BaseConnection, 'update_action_plan')
+        self.mock_action_plan_update = p.start()
+        self.mock_action_plan_update.side_effect = \
+            self._simulate_rpc_action_plan_update
+        self.addCleanup(p.stop)
+
+    def _simulate_rpc_action_plan_update(self, action_plan):
+        action_plan.save()
+        return action_plan
+
+    @mock.patch('watcher.common.policy.enforce')
+    def test_start_action_plan_not_found(self, mock_policy):
+        mock_policy.return_value = True
+        uuid = utils.generate_uuid()
+        response = self.post('/v1/action_plans/%s/%s' %
+                             (uuid, 'start'), expect_errors=True)
+        self.assertEqual(404, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+    @mock.patch('watcher.common.policy.enforce')
+    def test_start_action_plan(self, mock_policy):
+        mock_policy.return_value = True
+        action = obj_utils.create_test_action(
+            self.context, id=1)
+        self.action_plan.state = objects.action_plan.State.SUCCEEDED
+        response = self.post('/v1/action_plans/%s/%s/'
+                             % (self.action_plan.uuid, 'start'),
+                             expect_errors=True)
+        self.assertEqual(200, response.status_int)
+        act_response = self.get_json(
+            '/actions/%s' % action.uuid,
+            expect_errors=True)
+        self.assertEqual(200, act_response.status_int)
+        self.assertEqual('PENDING', act_response.json['state'])
+        self.assertEqual('application/json', act_response.content_type)
+
+
 class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
@@ -562,7 +609,6 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
             '/action_plans/%s' % action_plan.uuid,
             [{'path': '/state', 'value': self.new_state, 'op': 'replace'}])
         updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
-
         self.assertNotEqual(self.new_state, initial_ap['state'])
         self.assertEqual(self.new_state, updated_ap['state'])
         self.assertEqual('application/json', response.content_type)
@@ -636,4 +682,5 @@ class TestActionPlanPolicyEnforcementWithAdminContext(TestListActionPlan,
             "action_plan:detail": "rule:default",
             "action_plan:get": "rule:default",
             "action_plan:get_all": "rule:default",
-            "action_plan:update": "rule:default"})
+            "action_plan:update": "rule:default",
+            "action_plan:start": "rule:default"})

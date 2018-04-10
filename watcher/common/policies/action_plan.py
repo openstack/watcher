@@ -71,6 +71,17 @@ rules = [
                 'method': 'PATCH'
             }
         ]
+    ),
+    policy.DocumentedRuleDefault(
+        name=ACTION_PLAN % 'start',
+        check_str=base.RULE_ADMIN_API,
+        description='Start an action plans.',
+        operations=[
+            {
+                'path': '/v1/action_plans/{action_plan_uuid}/action',
+                'method': 'POST'
+            }
+        ]
     )
 ]
 

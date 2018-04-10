@@ -137,6 +137,12 @@ class FunctionalTest(base.DbTestCase):
                                   headers=headers, extra_environ=extra_environ,
                                   status=status, method="put")
 
+    def post(self, *args, **kwargs):
+        headers = kwargs.pop('headers', {})
+        headers.setdefault('Accept', 'application/json')
+        kwargs['headers'] = headers
+        return self.app.post(*args, **kwargs)
+
     def post_json(self, path, params, expect_errors=False, headers=None,
                   extra_environ=None, status=None):
         """Sends simulated HTTP POST request to Pecan test app.
