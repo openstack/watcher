@@ -14,24 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""
-*Workload balance using cinder volume migration*
-
-*Description*
-
-This strategy migrates volumes based on the workload of the
-cinder pools.
-It makes decision to migrate a volume whenever a pool's used
-utilization % is higher than the specified threshold. The volume
-to be moved should make the pool close to average workload of all
-cinder pools.
-
-*Requirements*
-
-* You must have at least 2 cinder volume pools to run
-  this strategy.
-
-"""
 
 from oslo_config import cfg
 from oslo_log import log

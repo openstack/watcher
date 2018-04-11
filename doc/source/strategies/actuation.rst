@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``unclassified``
 
-    .. watcher-term:: watcher.decision_engine.strategy.strategies.actuation
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.actuation.Actuator
 
 Requirements
 ------------

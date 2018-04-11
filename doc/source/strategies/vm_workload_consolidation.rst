@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``vm_consolidation``
 
-    .. watcher-term:: watcher.decision_engine.strategy.strategies.vm_workload_consolidation
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.vm_workload_consolidation.VMWorkloadConsolidation
 
 Requirements
 ------------

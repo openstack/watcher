@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``hardware_maintenance``
 
-    .. watcher-term:: watcher.decision_engine.strategy.strategies.zone_migration
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.zone_migration.ZoneMigration
 
 Requirements
 ------------

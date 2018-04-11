@@ -9,7 +9,7 @@ Synopsis
 
 **goal**: ``saving_energy``
 
-    .. watcher-term:: watcher.decision_engine.strategy.strategies.saving_energy
+    .. watcher-term:: watcher.decision_engine.strategy.strategies.saving_energy.SavingEnergy
 
 Requirements
 ------------
