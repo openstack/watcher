@@ -67,13 +67,13 @@ parameter              type   default          description
 Efficacy Indicator
 ------------------
 
-Energy saving strategy efficacy indicator is unclassified.
-https://github.com/openstack/watcher/blob/master/watcher/decision_engine/goal/goals.py#L215-L218
+None
 
 Algorithm
 ---------
 
-For more information on the Energy Saving Strategy please refer to:http://specs.openstack.org/openstack/watcher-specs/specs/pike/implemented/energy-saving-strategy.html
+For more information on the Energy Saving Strategy please refer to:
+http://specs.openstack.org/openstack/watcher-specs/specs/pike/implemented/energy-saving-strategy.html
 
 How to use it ?
 ---------------
@@ -91,10 +91,10 @@ step 2: Create audit to do optimization
     $ openstack optimize audittemplate create \
       at1 saving_energy --strategy saving_energy
 
-    $ openstack optimize audit create -a at1
+    $ openstack optimize audit create -a at1 \
+      -p free_used_percent=20.0
 
 External Links
 --------------
 
-*Spec URL*
-http://specs.openstack.org/openstack/watcher-specs/specs/pike/implemented/energy-saving-strategy.html
+None
