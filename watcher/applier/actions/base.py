@@ -126,7 +126,7 @@ class BaseAction(loadable.Loadable):
 
         :returns: A schema declaring the input parameters this action should be
                   provided along with their respective constraints
-        :rtype: :py:class:`voluptuous.Schema` instance
+        :rtype: :py:class:`jsonschema.Schema` instance
         """
         raise NotImplementedError()
 

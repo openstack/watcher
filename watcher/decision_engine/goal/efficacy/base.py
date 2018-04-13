@@ -24,10 +24,10 @@ calculating its :ref:`global efficacy <efficacy_definition>`.
 """
 
 import abc
+import jsonschema
 from oslo_serialization import jsonutils
 
 import six
-import voluptuous
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -65,17 +65,21 @@ class EfficacySpecification(object):
     @property
     def schema(self):
         """Combined schema from the schema of the indicators"""
-        schema = voluptuous.Schema({}, required=True)
+        schema = {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
         for indicator in self.indicators_specs:
-            key_constraint = (voluptuous.Required
-                              if indicator.required else voluptuous.Optional)
-            schema = schema.extend(
-                {key_constraint(indicator.name): indicator.schema.schema})
-
+            schema["properties"][indicator.name] = indicator.schema
+            schema["required"].append(indicator.name)
         return schema
 
     def validate_efficacy_indicators(self, indicators_map):
-        return self.schema(indicators_map)
+        if indicators_map:
+            jsonschema.validate(indicators_map, self.schema)
+        else:
+            True
 
     def get_indicators_specs_dicts(self):
         return [indicator.to_dict()

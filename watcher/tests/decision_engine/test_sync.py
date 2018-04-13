@@ -16,6 +16,8 @@
 
 import mock
 
+from oslo_serialization import jsonutils
+
 from watcher.common import context
 from watcher.common import utils
 from watcher.decision_engine.loading import default
@@ -451,8 +453,7 @@ class TestSyncer(base.DbTestCase):
 
         dummy_1_spec = [
             {'description': 'Dummy indicator', 'name': 'dummy',
-             'schema': 'Range(min=0, max=100, min_included=True, '
-                       'max_included=True, msg=None)',
+             'schema': jsonutils.dumps({'minimum': 0, 'type': 'integer'}),
              'unit': '%'}]
         dummy_2_spec = []
         self.assertEqual(

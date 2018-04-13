@@ -15,10 +15,13 @@
 # limitations under the License.
 
 import abc
+import jsonschema
+from jsonschema import SchemaError
+from jsonschema import ValidationError
 import six
 
 from oslo_log import log
-import voluptuous
+from oslo_serialization import jsonutils
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -37,10 +40,9 @@ class IndicatorSpecification(object):
 
     @abc.abstractproperty
     def schema(self):
-        """Schema used to validate the indicator value
+        """JsonSchema used to validate the indicator value
 
-        :return: A Voplutuous Schema
-        :rtype: :py:class:`.voluptuous.Schema` instance
+        :return: A Schema
         """
         raise NotImplementedError()
 
@@ -54,7 +56,10 @@ class IndicatorSpecification(object):
         value = None
         try:
             value = getattr(solution, indicator.name)
-            indicator.schema(value)
+            jsonschema.validate(value, cls.schema)
+        except (SchemaError, ValidationError) as exc:
+            LOG.exception(exc)
+            raise exc
         except Exception as exc:
             LOG.exception(exc)
             raise exception.InvalidIndicatorValue(
@@ -65,7 +70,7 @@ class IndicatorSpecification(object):
             "name": self.name,
             "description": self.description,
             "unit": self.unit,
-            "schema": str(self.schema.schema) if self.schema else None,
+            "schema": jsonutils.dumps(self.schema) if self.schema else None,
         }
 
     def __str__(self):
@@ -82,8 +87,10 @@ class ComputeNodesCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class ReleasedComputeNodesCount(IndicatorSpecification):
@@ -96,8 +103,10 @@ class ReleasedComputeNodesCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class InstanceMigrationsCount(IndicatorSpecification):
@@ -110,8 +119,10 @@ class InstanceMigrationsCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class LiveInstanceMigrateCount(IndicatorSpecification):
@@ -124,8 +135,10 @@ class LiveInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
@@ -138,8 +151,10 @@ class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class ColdInstanceMigrateCount(IndicatorSpecification):
@@ -152,8 +167,10 @@ class ColdInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class PlannedColdInstanceMigrateCount(IndicatorSpecification):
@@ -166,8 +183,10 @@ class PlannedColdInstanceMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class VolumeMigrateCount(IndicatorSpecification):
@@ -180,8 +199,10 @@ class VolumeMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class PlannedVolumeMigrateCount(IndicatorSpecification):
@@ -195,8 +216,10 @@ class PlannedVolumeMigrateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class VolumeUpdateCount(IndicatorSpecification):
@@ -210,8 +233,10 @@ class VolumeUpdateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class PlannedVolumeUpdateCount(IndicatorSpecification):
@@ -225,5 +250,7 @@ class PlannedVolumeUpdateCount(IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
