@@ -63,7 +63,7 @@ class ContextHook(hooks.PecanHook):
         auth_url = headers.get('X-Auth-Url')
         if auth_url is None:
             importutils.import_module('keystonemiddleware.auth_token')
-            auth_url = cfg.CONF.keystone_authtoken.auth_uri
+            auth_url = cfg.CONF.keystone_authtoken.www_authenticate_uri
 
         state.request.context = context.make_context(
             auth_token=auth_token,
