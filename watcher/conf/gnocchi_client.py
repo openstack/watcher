@@ -32,9 +32,11 @@ GNOCCHI_CLIENT_OPTS = [
                     'The default is public.'),
     cfg.IntOpt('query_max_retries',
                default=10,
+               mutable=True,
                help='How many times Watcher is trying to query again'),
     cfg.IntOpt('query_timeout',
                default=1,
+               mutable=True,
                help='How many seconds Watcher should wait to do query again')]
 
 

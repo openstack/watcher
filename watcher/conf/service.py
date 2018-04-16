@@ -25,6 +25,7 @@ from watcher._i18n import _
 SERVICE_OPTS = [
     cfg.IntOpt('periodic_interval',
                default=60,
+               mutable=True,
                help=_('Seconds between running periodic tasks.')),
     cfg.HostAddressOpt('host',
                        default=socket.gethostname(),

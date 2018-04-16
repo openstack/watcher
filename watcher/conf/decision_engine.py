@@ -44,18 +44,21 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     'execute strategies'),
     cfg.IntOpt('action_plan_expiry',
                default=24,
+               mutable=True,
                help='An expiry timespan(hours). Watcher invalidates any '
                     'action plan for which its creation time '
                     '-whose number of hours has been offset by this value-'
                     ' is older that the current time.'),
     cfg.IntOpt('check_periodic_interval',
                default=30 * 60,
+               mutable=True,
                help='Interval (in seconds) for checking action plan expiry.')
 ]
 
 WATCHER_CONTINUOUS_OPTS = [
     cfg.IntOpt('continuous_audit_interval',
                default=10,
+               mutable=True,
                help='Interval (in seconds) for checking newly created '
                     'continuous audits.')
 ]

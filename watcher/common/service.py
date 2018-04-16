@@ -289,7 +289,7 @@ class Service(service.ServiceBase):
         return api_manager_version
 
 
-def launch(conf, service_, workers=1, restart_method='reload'):
+def launch(conf, service_, workers=1, restart_method='mutate'):
     return service.launch(conf, service_, workers, restart_method)
 
 
