@@ -688,8 +688,8 @@ class AuditTemplatesController(rest.RestController):
         context = pecan.request.context
         audit_template_to_delete = api_utils.get_resource('AuditTemplate',
                                                           audit_template)
-        policy.enforce(context, 'audit_template:update',
+        policy.enforce(context, 'audit_template:delete',
                        audit_template_to_delete,
-                       action='audit_template:update')
+                       action='audit_template:delete')
 
         audit_template_to_delete.soft_delete()

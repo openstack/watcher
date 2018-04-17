@@ -639,8 +639,8 @@ class AuditsController(rest.RestController):
         context = pecan.request.context
         audit_to_delete = api_utils.get_resource(
             'Audit', audit, eager=True)
-        policy.enforce(context, 'audit:update', audit_to_delete,
-                       action='audit:update')
+        policy.enforce(context, 'audit:delete', audit_to_delete,
+                       action='audit:delete')
 
         initial_state = audit_to_delete.state
         new_state = objects.audit.State.DELETED
