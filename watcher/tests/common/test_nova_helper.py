@@ -211,57 +211,6 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_watcher_non_live_migrate_instance_volume(
-            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        nova_servers = nova_util.nova.servers
-        instance = self.fake_server(self.instance_uuid)
-        setattr(instance, 'OS-EXT-SRV-ATTR:host',
-                          self.source_node)
-        setattr(instance, 'OS-EXT-STS:vm_state', "stopped")
-        attached_volumes = [{'id': str(utils.generate_uuid())}]
-        setattr(instance, "os-extended-volumes:volumes_attached",
-                attached_volumes)
-        self.fake_nova_find_list(nova_util, find=instance, list=instance)
-        nova_servers.create_image.return_value = utils.generate_uuid()
-        nova_util.glance.images.get.return_value = mock.MagicMock(
-            status='active')
-        nova_util.cinder.volumes.get.return_value = mock.MagicMock(
-            status='available')
-
-        is_success = nova_util.watcher_non_live_migrate_instance(
-            self.instance_uuid,
-            self.destination_node)
-        self.assertTrue(is_success)
-
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_watcher_non_live_migrate_keep_image(
-            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        nova_servers = nova_util.nova.servers
-        instance = self.fake_server(self.instance_uuid)
-        setattr(instance, 'OS-EXT-SRV-ATTR:host',
-                self.source_node)
-        setattr(instance, 'OS-EXT-STS:vm_state', "stopped")
-        addresses = mock.MagicMock()
-        network_type = mock.MagicMock()
-        networks = []
-        networks.append(("lan", network_type))
-        addresses.items.return_value = networks
-        attached_volumes = mock.MagicMock()
-        setattr(instance, 'addresses', addresses)
-        setattr(instance, "os-extended-volumes:volumes_attached",
-                attached_volumes)
-        self.fake_nova_find_list(nova_util, find=instance, list=instance)
-        nova_servers.create_image.return_value = utils.generate_uuid()
-        nova_util.glance.images.get.return_value = mock.MagicMock(
-            status='active')
-        is_success = nova_util.watcher_non_live_migrate_instance(
-            self.instance_uuid,
-            self.destination_node, keep_original_image_name=False)
-        self.assertTrue(is_success)
-
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_abort_live_migrate_instance(self, mock_glance, mock_cinder,
                                          mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()

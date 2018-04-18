@@ -17,9 +17,9 @@
 # limitations under the License.
 #
 
-import random
 import time
 
+from novaclient import api_versions
 from oslo_log import log
 
 import cinderclient.exceptions as ciexceptions
@@ -133,31 +133,24 @@ class NovaHelper(object):
         return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
-                                          keep_original_image_name=True,
                                           retry=120):
         """This method migrates a given instance
 
-        using an image of this instance and creating a new instance
-        from this image. It saves some configuration information
-        about the original instance : security group, list of networks,
-        list of attached volumes, floating IP, ...
-        in order to apply the same settings to the new instance.
-        At the end of the process the original instance is deleted.
+        This method uses the Nova built-in migrate()
+        action to do a migration of a given instance.
+        For migrating a given dest_hostname, Nova API version
+        must be 2.56 or higher.
+
         It returns True if the migration was successful,
         False otherwise.
 
-        if destination hostname not given, this method calls nova api
-        to migrate the instance.
-
         :param instance_id: the unique id of the instance to migrate.
-        :param keep_original_image_name: flag indicating whether the
-            image name from which the original instance was built must be
-            used as the name of the intermediate image used for migration.
-            If this flag is False, a temporary image name is built
+        :param dest_hostname: the name of the destination compute node, if
+                              destination_node is None, nova scheduler choose
+                              the destination host
         """
-        new_image_name = ""
         LOG.debug(
-            "Trying a non-live migrate of instance '%s' ", instance_id)
+            "Trying a cold migrate of instance '%s' ", instance_id)
 
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
@@ -165,214 +158,42 @@ class NovaHelper(object):
             LOG.debug("Instance %s not found !", instance_id)
             return False
         else:
-            # NOTE: If destination node is None call Nova API to migrate
-            # instance
             host_name = getattr(instance, "OS-EXT-SRV-ATTR:host")
             LOG.debug(
                 "Instance %(instance)s found on host '%(host)s'.",
                 {'instance': instance_id, 'host': host_name})
 
-            if dest_hostname is None:
-                previous_status = getattr(instance, 'status')
+            previous_status = getattr(instance, 'status')
 
-                instance.migrate()
-                instance = self.nova.servers.get(instance_id)
-                while (getattr(instance, 'status') not in
-                       ["VERIFY_RESIZE", "ERROR"] and retry):
-                    instance = self.nova.servers.get(instance.id)
-                    time.sleep(2)
-                    retry -= 1
-                new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            if (dest_hostname and
+                    not self._check_nova_api_version(self.nova, "2.56")):
+                LOG.error("For migrating a given dest_hostname,"
+                          "Nova API version must be 2.56 or higher")
+                return False
 
-                if (host_name != new_hostname and
-                   instance.status == 'VERIFY_RESIZE'):
-                    if not self.confirm_resize(instance, previous_status):
-                        return False
-                    LOG.debug(
-                        "cold migration succeeded : "
-                        "instance %s is now on host '%s'.", (
-                            instance_id, new_hostname))
-                    return True
-                else:
-                    LOG.debug(
-                        "cold migration for instance %s failed", instance_id)
+            instance.migrate(host=dest_hostname)
+            instance = self.nova.servers.get(instance_id)
+
+            while (getattr(instance, 'status') not in
+                   ["VERIFY_RESIZE", "ERROR"] and retry):
+                instance = self.nova.servers.get(instance.id)
+                time.sleep(2)
+                retry -= 1
+            new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+
+            if (host_name != new_hostname and
+                    instance.status == 'VERIFY_RESIZE'):
+                if not self.confirm_resize(instance, previous_status):
                     return False
-
-            if not keep_original_image_name:
-                # randrange gives you an integral value
-                irand = random.randint(0, 1000)
-
-                # Building the temporary image name
-                # which will be used for the migration
-                new_image_name = "tmp-migrate-%s-%s" % (instance_id, irand)
+                LOG.debug(
+                    "cold migration succeeded : "
+                    "instance %(instance)s is now on host '%(host)s'.",
+                    {'instance': instance_id, 'host': new_hostname})
+                return True
             else:
-                # Get the image name of the current instance.
-                # We'll use the same name for the new instance.
-                imagedict = getattr(instance, "image")
-                image_id = imagedict["id"]
-                image = self.glance.images.get(image_id)
-                new_image_name = getattr(image, "name")
-
-            instance_name = getattr(instance, "name")
-            flavor_name = instance.flavor.get('original_name')
-            keypair_name = getattr(instance, "key_name")
-
-            addresses = getattr(instance, "addresses")
-
-            floating_ip = ""
-            network_names_list = []
-
-            for network_name, network_conf_obj in addresses.items():
                 LOG.debug(
-                    "Extracting network configuration for network '%s'",
-                    network_name)
-
-                network_names_list.append(network_name)
-
-                for net_conf_item in network_conf_obj:
-                    if net_conf_item['OS-EXT-IPS:type'] == "floating":
-                        floating_ip = net_conf_item['addr']
-                        break
-
-            sec_groups_list = getattr(instance, "security_groups")
-            sec_groups = []
-
-            for sec_group_dict in sec_groups_list:
-                sec_groups.append(sec_group_dict['name'])
-
-            # Stopping the old instance properly so
-            # that no new data is sent to it and to its attached volumes
-            stopped_ok = self.stop_instance(instance_id)
-
-            if not stopped_ok:
-                LOG.debug("Could not stop instance: %s", instance_id)
+                    "cold migration for instance %s failed", instance_id)
                 return False
-
-            # Building the temporary image which will be used
-            # to re-build the same instance on another target host
-            image_uuid = self.create_image_from_instance(instance_id,
-                                                         new_image_name)
-
-            if not image_uuid:
-                LOG.debug(
-                    "Could not build temporary image of instance: %s",
-                    instance_id)
-                return False
-
-            #
-            # We need to get the list of attached volumes and detach
-            # them from the instance in order to attache them later
-            # to the new instance
-            #
-            blocks = []
-
-            # Looks like this :
-            # os-extended-volumes:volumes_attached |
-            # [{u'id': u'c5c3245f-dd59-4d4f-8d3a-89d80135859a'}]
-            attached_volumes = getattr(instance,
-                                       "os-extended-volumes:volumes_attached")
-
-            for attached_volume in attached_volumes:
-                volume_id = attached_volume['id']
-
-                try:
-                    volume = self.cinder.volumes.get(volume_id)
-
-                    attachments_list = getattr(volume, "attachments")
-
-                    device_name = attachments_list[0]['device']
-                    # When a volume is attached to an instance
-                    # it contains the following property :
-                    # attachments = [{u'device': u'/dev/vdb',
-                    # u'server_id': u'742cc508-a2f2-4769-a794-bcdad777e814',
-                    # u'id': u'f6d62785-04b8-400d-9626-88640610f65e',
-                    # u'host_name': None, u'volume_id':
-                    # u'f6d62785-04b8-400d-9626-88640610f65e'}]
-
-                    # boot_index indicates a number
-                    # designating the boot order of the device.
-                    # Use -1 for the boot volume,
-                    # choose 0 for an attached volume.
-                    block_device_mapping_v2_item = {"device_name": device_name,
-                                                    "source_type": "volume",
-                                                    "destination_type":
-                                                        "volume",
-                                                    "uuid": volume_id,
-                                                    "boot_index": "0"}
-
-                    blocks.append(
-                        block_device_mapping_v2_item)
-
-                    LOG.debug(
-                        "Detaching volume %(volume)s from "
-                        "instance: %(instance)s",
-                        {'volume': volume_id, 'instance': instance_id})
-                    # volume.detach()
-                    self.nova.volumes.delete_server_volume(instance_id,
-                                                           volume_id)
-
-                    if not self.wait_for_volume_status(volume, "available", 5,
-                                                       10):
-                        LOG.debug(
-                            "Could not detach volume %(volume)s "
-                            "from instance: %(instance)s",
-                            {'volume': volume_id, 'instance': instance_id})
-                        return False
-                except ciexceptions.NotFound:
-                    LOG.debug("Volume '%s' not found ", image_id)
-                    return False
-
-            # We create the new instance from
-            # the intermediate image of the original instance
-            new_instance = self. \
-                create_instance(dest_hostname,
-                                instance_name,
-                                image_uuid,
-                                flavor_name,
-                                sec_groups,
-                                network_names_list=network_names_list,
-                                keypair_name=keypair_name,
-                                create_new_floating_ip=False,
-                                block_device_mapping_v2=blocks)
-
-            if not new_instance:
-                LOG.debug(
-                    "Could not create new instance "
-                    "for non-live migration of instance %s", instance_id)
-                return False
-
-            try:
-                LOG.debug(
-                    "Detaching floating ip '%(floating_ip)s' "
-                    "from instance %(instance)s",
-                    {'floating_ip': floating_ip, 'instance': instance_id})
-                # We detach the floating ip from the current instance
-                instance.remove_floating_ip(floating_ip)
-
-                LOG.debug(
-                    "Attaching floating ip '%(ip)s' to the new "
-                    "instance %(id)s",
-                    {'ip': floating_ip, 'id': new_instance.id})
-
-                # We attach the same floating ip to the new instance
-                new_instance.add_floating_ip(floating_ip)
-            except Exception as e:
-                LOG.debug(e)
-
-            new_host_name = getattr(new_instance, "OS-EXT-SRV-ATTR:host")
-
-            # Deleting the old instance (because no more useful)
-            delete_ok = self.delete_instance(instance_id)
-            if not delete_ok:
-                LOG.debug("Could not delete instance: %s", instance_id)
-                return False
-
-            LOG.debug(
-                "Instance %s has been successfully migrated "
-                "to new host '%s' and its new id is %s.", (
-                    instance_id, new_host_name, new_instance.id))
-
-            return True
 
     def resize_instance(self, instance_id, flavor, retry=120):
         """This method resizes given instance with specified flavor.
@@ -936,3 +757,12 @@ class NovaHelper(object):
             "Volume %s is now on host '%s'.",
             (new_volume.id, host_name))
         return True
+
+    def _check_nova_api_version(self, client, version):
+        api_version = api_versions.APIVersion(version_str=version)
+        try:
+            api_versions.discover_version(client, api_version)
+            return True
+        except nvexceptions.UnsupportedVersion as e:
+            LOG.exception(e)
+            return False

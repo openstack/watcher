@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    Instance cold migration logic is now replaced with using Nova migrate
+    Server(migrate Action) API which has host option since v2.56.
+upgrade:
+  - |
+    Nova API version is now set to 2.56 by default. This needs the migrate
+    action of migration type cold with destination_node parameter to work.
+fixes:
+  - |
+    The migrate action of migration type cold with destination_node parameter
+    was fixed. Before fixing, it booted an instance in the service project
+    as a migrated instance.
