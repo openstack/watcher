@@ -438,7 +438,35 @@ class Connection(api.BaseConnection):
             query=query, model=models.EfficacyIndicator, filters=filters,
             plain_fields=plain_fields, join_fieldmap=join_fieldmap)
 
-    # NOTE(erakli): other _add_*_filters functions should be moved here
+    def _add_scoring_engine_filters(self, query, filters):
+        if filters is None:
+            filters = {}
+
+        plain_fields = ['id', 'description']
+
+        return self._add_filters(
+            query=query, model=models.ScoringEngine, filters=filters,
+            plain_fields=plain_fields)
+
+    def _add_action_descriptions_filters(self, query, filters):
+        if not filters:
+            filters = {}
+
+        plain_fields = ['id', 'action_type']
+
+        return self._add_filters(
+            query=query, model=models.ActionDescription, filters=filters,
+            plain_fields=plain_fields)
+
+    def _add_services_filters(self, query, filters):
+        if not filters:
+            filters = {}
+
+        plain_fields = ['id', 'name', 'host']
+
+        return self._add_filters(
+            query=query, model=models.Service, filters=filters,
+            plain_fields=plain_fields)
 
     # ### GOALS ### #
 
@@ -956,16 +984,6 @@ class Connection(api.BaseConnection):
 
     # ### SCORING ENGINES ### #
 
-    def _add_scoring_engine_filters(self, query, filters):
-        if filters is None:
-            filters = {}
-
-        plain_fields = ['id', 'description']
-
-        return self._add_filters(
-            query=query, model=models.ScoringEngine, filters=filters,
-            plain_fields=plain_fields)
-
     def get_scoring_engine_list(self, *args, **kwargs):
         return self._get_model_list(models.ScoringEngine,
                                     self._add_scoring_engine_filters,
@@ -1034,16 +1052,6 @@ class Connection(api.BaseConnection):
 
     # ### SERVICES ### #
 
-    def _add_services_filters(self, query, filters):
-        if not filters:
-            filters = {}
-
-        plain_fields = ['id', 'name', 'host']
-
-        return self._add_filters(
-            query=query, model=models.Service, filters=filters,
-            plain_fields=plain_fields)
-
     def get_service_list(self, *args, **kwargs):
         return self._get_model_list(models.Service,
                                     self._add_services_filters,
@@ -1091,16 +1099,6 @@ class Connection(api.BaseConnection):
             raise exception.ServiceNotFound(service=service_id)
 
     # ### ACTION_DESCRIPTIONS ### #
-
-    def _add_action_descriptions_filters(self, query, filters):
-        if not filters:
-            filters = {}
-
-        plain_fields = ['id', 'action_type']
-
-        return self._add_filters(
-            query=query, model=models.ActionDescription, filters=filters,
-            plain_fields=plain_fields)
 
     def get_action_description_list(self, *args, **kwargs):
         return self._get_model_list(models.ActionDescription,
