@@ -239,11 +239,6 @@ class TestDbStrategyFilters(base.DbTestCase):
 
 class DbStrategyTestCase(base.DbTestCase):
 
-    def _create_test_strategy(self, **kwargs):
-        strategy = utils.get_test_strategy(**kwargs)
-        self.dbapi.create_strategy(strategy)
-        return strategy
-
     def test_get_strategy_list(self):
         uuids = []
         for i in range(1, 4):
@@ -278,13 +273,13 @@ class DbStrategyTestCase(base.DbTestCase):
         self.assertEqual(goal.as_dict(), eager_strategy.goal.as_dict())
 
     def test_get_strategy_list_with_filters(self):
-        strategy1 = self._create_test_strategy(
+        strategy1 = utils.create_test_strategy(
             id=1,
             uuid=w_utils.generate_uuid(),
             name="STRATEGY_ID_1",
             display_name='Strategy 1',
         )
-        strategy2 = self._create_test_strategy(
+        strategy2 = utils.create_test_strategy(
             id=2,
             uuid=w_utils.generate_uuid(),
             name="STRATEGY_ID_2",
@@ -311,13 +306,13 @@ class DbStrategyTestCase(base.DbTestCase):
         self.assertEqual([strategy2['uuid']], [r.uuid for r in res])
 
     def test_get_strategy_by_uuid(self):
-        created_strategy = self._create_test_strategy()
+        created_strategy = utils.create_test_strategy()
         strategy = self.dbapi.get_strategy_by_uuid(
             self.context, created_strategy['uuid'])
         self.assertEqual(strategy.uuid, created_strategy['uuid'])
 
     def test_get_strategy_by_name(self):
-        created_strategy = self._create_test_strategy()
+        created_strategy = utils.create_test_strategy()
         strategy = self.dbapi.get_strategy_by_name(
             self.context, created_strategy['name'])
         self.assertEqual(strategy.name, created_strategy['name'])
@@ -328,13 +323,13 @@ class DbStrategyTestCase(base.DbTestCase):
                           self.context, 404)
 
     def test_update_strategy(self):
-        strategy = self._create_test_strategy()
+        strategy = utils.create_test_strategy()
         res = self.dbapi.update_strategy(
             strategy['uuid'], {'display_name': 'updated-model'})
         self.assertEqual('updated-model', res.display_name)
 
     def test_update_goal_id(self):
-        strategy = self._create_test_strategy()
+        strategy = utils.create_test_strategy()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_strategy, strategy['uuid'],
                           {'uuid': 'new_strategy_id'})
@@ -346,7 +341,7 @@ class DbStrategyTestCase(base.DbTestCase):
                           {'display_name': ''})
 
     def test_destroy_strategy(self):
-        strategy = self._create_test_strategy()
+        strategy = utils.create_test_strategy()
         self.dbapi.destroy_strategy(strategy['uuid'])
         self.assertRaises(exception.StrategyNotFound,
                           self.dbapi.get_strategy_by_id,
@@ -358,7 +353,7 @@ class DbStrategyTestCase(base.DbTestCase):
 
     def test_create_strategy_already_exists(self):
         strategy_id = "STRATEGY_ID"
-        self._create_test_strategy(name=strategy_id)
+        utils.create_test_strategy(name=strategy_id)
         self.assertRaises(exception.StrategyAlreadyExists,
-                          self._create_test_strategy,
+                          utils.create_test_strategy,
                           name=strategy_id)

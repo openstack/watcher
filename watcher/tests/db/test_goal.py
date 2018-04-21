@@ -223,11 +223,6 @@ class TestDbGoalFilters(base.DbTestCase):
 
 class DbGoalTestCase(base.DbTestCase):
 
-    def _create_test_goal(self, **kwargs):
-        goal = utils.get_test_goal(**kwargs)
-        self.dbapi.create_goal(goal)
-        return goal
-
     def test_get_goal_list(self):
         uuids = []
         for i in range(1, 4):
@@ -242,13 +237,13 @@ class DbGoalTestCase(base.DbTestCase):
         self.assertEqual(sorted(uuids), sorted(goal_uuids))
 
     def test_get_goal_list_with_filters(self):
-        goal1 = self._create_test_goal(
+        goal1 = utils.create_test_goal(
             id=1,
             uuid=w_utils.generate_uuid(),
             name="GOAL_1",
             display_name='Goal 1',
         )
-        goal2 = self._create_test_goal(
+        goal2 = utils.create_test_goal(
             id=2,
             uuid=w_utils.generate_uuid(),
             name="GOAL_2",
@@ -277,7 +272,7 @@ class DbGoalTestCase(base.DbTestCase):
                           "schema": "Range(min=0, max=100, min_included=True, "
                                     "max_included=True, msg=None)",
                           "description": "Dummy indicator"}]
-        created_goal = self._create_test_goal(
+        created_goal = utils.create_test_goal(
             efficacy_specification=efficacy_spec)
         goal = self.dbapi.get_goal_by_uuid(self.context, created_goal['uuid'])
         self.assertEqual(goal.uuid, created_goal['uuid'])
@@ -289,13 +284,13 @@ class DbGoalTestCase(base.DbTestCase):
                           self.context, random_uuid)
 
     def test_update_goal(self):
-        goal = self._create_test_goal()
+        goal = utils.create_test_goal()
         res = self.dbapi.update_goal(goal['uuid'],
                                      {'display_name': 'updated-model'})
         self.assertEqual('updated-model', res.display_name)
 
     def test_update_goal_id(self):
-        goal = self._create_test_goal()
+        goal = utils.create_test_goal()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_goal, goal['uuid'],
                           {'uuid': 'NEW_GOAL'})
@@ -308,7 +303,7 @@ class DbGoalTestCase(base.DbTestCase):
                           {'display_name': ''})
 
     def test_destroy_goal(self):
-        goal = self._create_test_goal()
+        goal = utils.create_test_goal()
         self.dbapi.destroy_goal(goal['uuid'])
         self.assertRaises(exception.GoalNotFound,
                           self.dbapi.get_goal_by_uuid,
@@ -321,7 +316,7 @@ class DbGoalTestCase(base.DbTestCase):
 
     def test_create_goal_already_exists(self):
         goal_uuid = w_utils.generate_uuid()
-        self._create_test_goal(uuid=goal_uuid)
+        utils.create_test_goal(uuid=goal_uuid)
         self.assertRaises(exception.GoalAlreadyExists,
-                          self._create_test_goal,
+                          utils.create_test_goal,
                           uuid=goal_uuid)

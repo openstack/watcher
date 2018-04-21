@@ -265,11 +265,6 @@ class TestDbAuditFilters(base.DbTestCase):
 
 class DbAuditTestCase(base.DbTestCase):
 
-    def _create_test_audit(self, **kwargs):
-        audit = utils.get_test_audit(**kwargs)
-        self.dbapi.create_audit(audit)
-        return audit
-
     def test_get_audit_list(self):
         uuids = []
         for id_ in range(1, 4):
@@ -304,13 +299,13 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual(strategy.as_dict(), eager_audit.strategy.as_dict())
 
     def test_get_audit_list_with_filters(self):
-        audit1 = self._create_test_audit(
+        audit1 = utils.create_test_audit(
             id=1,
             audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
             name='My Audit {0}'.format(1),
             state=objects.audit.State.ONGOING)
-        audit2 = self._create_test_audit(
+        audit2 = utils.create_test_audit(
             id=2,
             audit_type='CONTINUOUS',
             uuid=w_utils.generate_uuid(),
@@ -336,7 +331,7 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual([audit2['id']], [r.id for r in res])
 
     def test_get_audit_list_with_filter_by_uuid(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         res = self.dbapi.get_audit_list(
             self.context, filters={'uuid': audit["uuid"]})
 
@@ -344,12 +339,12 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual(audit['uuid'], res[0].uuid)
 
     def test_get_audit_by_id(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         audit = self.dbapi.get_audit_by_id(self.context, audit['id'])
         self.assertEqual(audit['uuid'], audit.uuid)
 
     def test_get_audit_by_uuid(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         audit = self.dbapi.get_audit_by_uuid(self.context, audit['uuid'])
         self.assertEqual(audit['id'], audit.id)
 
@@ -358,7 +353,7 @@ class DbAuditTestCase(base.DbTestCase):
                           self.dbapi.get_audit_by_id, self.context, 1234)
 
     def test_update_audit(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         res = self.dbapi.update_audit(audit['id'], {'name': 'updated-model'})
         self.assertEqual('updated-model', res.name)
 
@@ -367,20 +362,20 @@ class DbAuditTestCase(base.DbTestCase):
                           self.dbapi.update_audit, 1234, {'name': ''})
 
     def test_update_audit_uuid(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_audit, audit['id'],
                           {'uuid': 'hello'})
 
     def test_destroy_audit(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         self.dbapi.destroy_audit(audit['id'])
         self.assertRaises(exception.AuditNotFound,
                           self.dbapi.get_audit_by_id,
                           self.context, audit['id'])
 
     def test_destroy_audit_by_uuid(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         self.assertIsNotNone(self.dbapi.get_audit_by_uuid(self.context,
                                                           audit['uuid']))
         self.dbapi.destroy_audit(audit['uuid'])
@@ -393,7 +388,7 @@ class DbAuditTestCase(base.DbTestCase):
                           self.dbapi.destroy_audit, 1234)
 
     def test_destroy_audit_that_referenced_by_action_plans(self):
-        audit = self._create_test_audit()
+        audit = utils.create_test_audit()
         action_plan = utils.create_test_action_plan(audit_id=audit['id'])
         self.assertEqual(audit['id'], action_plan.audit_id)
         self.assertRaises(exception.AuditReferenced,
@@ -401,9 +396,9 @@ class DbAuditTestCase(base.DbTestCase):
 
     def test_create_audit_already_exists(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_audit(id=1, uuid=uuid)
+        utils.create_test_audit(id=1, uuid=uuid)
         self.assertRaises(exception.AuditAlreadyExists,
-                          self._create_test_audit,
+                          utils.create_test_audit,
                           id=2, uuid=uuid)
 
     def test_create_same_name_audit(self):

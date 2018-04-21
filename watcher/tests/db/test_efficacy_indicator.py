@@ -242,20 +242,9 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
 
 class DbEfficacyIndicatorTestCase(base.DbTestCase):
 
-    def _create_test_efficacy_indicator(self, **kwargs):
-        efficacy_indicator_dict = utils.get_test_efficacy_indicator(**kwargs)
-        efficacy_indicator = self.dbapi.create_efficacy_indicator(
-            efficacy_indicator_dict)
-        return efficacy_indicator
-
-    def _create_test_action_plan(self, **kwargs):
-        action_plan_dict = utils.get_test_action_plan(**kwargs)
-        action_plan = self.dbapi.create_action_plan(action_plan_dict)
-        return action_plan
-
     def test_get_efficacy_indicator_list(self):
         uuids = []
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         for id_ in range(1, 4):
             efficacy_indicator = utils.create_test_efficacy_indicator(
                 action_plan_id=action_plan.id, id=id_, uuid=None,
@@ -290,27 +279,27 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
 
     def test_get_efficacy_indicator_list_with_filters(self):
         audit = utils.create_test_audit(uuid=w_utils.generate_uuid())
-        action_plan = self._create_test_action_plan(
+        action_plan = utils.create_test_action_plan(
             id=1,
             uuid=w_utils.generate_uuid(),
             audit_id=audit.id,
             first_efficacy_indicator_id=None,
             state=objects.action_plan.State.RECOMMENDED)
-        efficacy_indicator1 = self._create_test_efficacy_indicator(
+        efficacy_indicator1 = utils.create_test_efficacy_indicator(
             id=1,
             name='indicator_1',
             uuid=w_utils.generate_uuid(),
             action_plan_id=1,
             description='Description efficacy indicator 1',
             unit='%')
-        efficacy_indicator2 = self._create_test_efficacy_indicator(
+        efficacy_indicator2 = utils.create_test_efficacy_indicator(
             id=2,
             name='indicator_2',
             uuid=w_utils.generate_uuid(),
             action_plan_id=2,
             description='Description efficacy indicator 2',
             unit='%')
-        efficacy_indicator3 = self._create_test_efficacy_indicator(
+        efficacy_indicator3 = utils.create_test_efficacy_indicator(
             id=3,
             name='indicator_3',
             uuid=w_utils.generate_uuid(),
@@ -338,7 +327,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             sorted([r.id for r in res]))
 
     def test_get_efficacy_indicator_list_with_filter_by_uuid(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         res = self.dbapi.get_efficacy_indicator_list(
             self.context, filters={'uuid': efficacy_indicator.uuid})
 
@@ -346,13 +335,13 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
         self.assertEqual(efficacy_indicator.uuid, res[0].uuid)
 
     def test_get_efficacy_indicator_by_id(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
             self.context, efficacy_indicator.id)
         self.assertEqual(efficacy_indicator.uuid, efficacy_indicator.uuid)
 
     def test_get_efficacy_indicator_by_uuid(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         efficacy_indicator = self.dbapi.get_efficacy_indicator_by_uuid(
             self.context, efficacy_indicator.uuid)
         self.assertEqual(efficacy_indicator['id'], efficacy_indicator.id)
@@ -363,7 +352,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             self.dbapi.get_efficacy_indicator_by_id, self.context, 1234)
 
     def test_update_efficacy_indicator(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         res = self.dbapi.update_efficacy_indicator(
             efficacy_indicator.id,
             {'state': objects.action_plan.State.CANCELLED})
@@ -375,14 +364,14 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             self.dbapi.update_efficacy_indicator, 1234, {'state': ''})
 
     def test_update_efficacy_indicator_uuid(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         self.assertRaises(
             exception.Invalid,
             self.dbapi.update_efficacy_indicator, efficacy_indicator.id,
             {'uuid': 'hello'})
 
     def test_destroy_efficacy_indicator(self):
-        efficacy_indicator = self._create_test_efficacy_indicator()
+        efficacy_indicator = utils.create_test_efficacy_indicator()
         self.dbapi.destroy_efficacy_indicator(efficacy_indicator['id'])
         self.assertRaises(exception.EfficacyIndicatorNotFound,
                           self.dbapi.get_efficacy_indicator_by_id,
@@ -390,7 +379,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
 
     def test_destroy_efficacy_indicator_by_uuid(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_efficacy_indicator(uuid=uuid)
+        utils.create_test_efficacy_indicator(uuid=uuid)
         self.assertIsNotNone(self.dbapi.get_efficacy_indicator_by_uuid(
             self.context, uuid))
         self.dbapi.destroy_efficacy_indicator(uuid)
@@ -404,7 +393,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
 
     def test_create_efficacy_indicator_already_exists(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_efficacy_indicator(id=1, uuid=uuid)
+        utils.create_test_efficacy_indicator(id=1, uuid=uuid)
         self.assertRaises(exception.EfficacyIndicatorAlreadyExists,
-                          self._create_test_efficacy_indicator,
+                          utils.create_test_efficacy_indicator,
                           id=2, uuid=uuid)
