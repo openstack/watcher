@@ -285,11 +285,12 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             audit_id=audit.id,
             first_efficacy_indicator_id=None,
             state=objects.action_plan.State.RECOMMENDED)
+
         efficacy_indicator1 = utils.create_test_efficacy_indicator(
             id=1,
             name='indicator_1',
             uuid=w_utils.generate_uuid(),
-            action_plan_id=1,
+            action_plan_id=action_plan['id'],
             description='Description efficacy indicator 1',
             unit='%')
         efficacy_indicator2 = utils.create_test_efficacy_indicator(
@@ -303,15 +304,27 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             id=3,
             name='indicator_3',
             uuid=w_utils.generate_uuid(),
-            action_plan_id=1,
+            action_plan_id=action_plan['id'],
             description='Description efficacy indicator 3',
             unit='%')
+        efficacy_indicator4 = utils.create_test_efficacy_indicator(
+            id=4,
+            name='indicator_4',
+            uuid=w_utils.generate_uuid(),
+            action_plan_id=action_plan['id'],
+            description='Description efficacy indicator 4',
+            unit='%')
+
+        self.dbapi.soft_delete_efficacy_indicator(efficacy_indicator4['uuid'])
+
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'name': 'indicator_3'})
+            self.context,
+            filters={'name': 'indicator_3'})
         self.assertEqual([efficacy_indicator3['id']], [r.id for r in res])
 
         res = self.dbapi.get_efficacy_indicator_list(
-            self.context, filters={'unit': 'kWh'})
+            self.context,
+            filters={'unit': 'kWh'})
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_efficacy_indicator_list(

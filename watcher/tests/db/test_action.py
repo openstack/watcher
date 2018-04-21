@@ -273,7 +273,7 @@ class DbActionTestCase(base.DbTestCase):
 
         action1 = utils.create_test_action(
             id=1,
-            action_plan_id=1,
+            action_plan_id=action_plan['id'],
             description='description action 1',
             uuid=w_utils.generate_uuid(),
             parents=None,
@@ -287,11 +287,20 @@ class DbActionTestCase(base.DbTestCase):
             state=objects.action_plan.State.PENDING)
         action3 = utils.create_test_action(
             id=3,
-            action_plan_id=1,
+            action_plan_id=action_plan['id'],
             description='description action 3',
             uuid=w_utils.generate_uuid(),
             parents=[action2['uuid']],
             state=objects.action_plan.State.ONGOING)
+        action4 = utils.create_test_action(
+            id=4,
+            action_plan_id=action_plan['id'],
+            description='description action 4',
+            uuid=w_utils.generate_uuid(),
+            parents=None,
+            state=objects.action_plan.State.ONGOING)
+
+        self.dbapi.soft_delete_action(action4['uuid'])
 
         res = self.dbapi.get_action_list(
             self.context,
@@ -312,6 +321,15 @@ class DbActionTestCase(base.DbTestCase):
             filters={'action_plan_uuid': action_plan['uuid']})
         self.assertEqual(
             sorted([action1['id'], action3['id']]),
+            sorted([r.id for r in res]))
+
+        temp_context = self.context
+        temp_context.show_deleted = True
+        res = self.dbapi.get_action_list(
+            temp_context,
+            filters={'action_plan_uuid': action_plan['uuid']})
+        self.assertEqual(
+            sorted([action1['id'], action3['id'], action4['id']]),
             sorted([r.id for r in res]))
 
         res = self.dbapi.get_action_list(

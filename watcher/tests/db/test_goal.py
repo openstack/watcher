@@ -249,13 +249,21 @@ class DbGoalTestCase(base.DbTestCase):
             name="GOAL_2",
             display_name='Goal 2',
         )
+        goal3 = utils.create_test_goal(
+            id=3,
+            uuid=w_utils.generate_uuid(),
+            name="GOAL_3",
+            display_name='Goal 3',
+        )
 
-        res = self.dbapi.get_goal_list(self.context,
-                                       filters={'display_name': 'Goal 1'})
+        self.dbapi.soft_delete_goal(goal3['uuid'])
+
+        res = self.dbapi.get_goal_list(
+            self.context, filters={'display_name': 'Goal 1'})
         self.assertEqual([goal1['uuid']], [r.uuid for r in res])
 
-        res = self.dbapi.get_goal_list(self.context,
-                                       filters={'display_name': 'Goal 3'})
+        res = self.dbapi.get_goal_list(
+            self.context, filters={'display_name': 'Goal 3'})
         self.assertEqual([], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
@@ -263,9 +271,12 @@ class DbGoalTestCase(base.DbTestCase):
         self.assertEqual([goal1['uuid']], [r.uuid for r in res])
 
         res = self.dbapi.get_goal_list(
-            self.context,
-            filters={'display_name': 'Goal 2'})
+            self.context, filters={'display_name': 'Goal 2'})
         self.assertEqual([goal2['uuid']], [r.uuid for r in res])
+
+        res = self.dbapi.get_goal_list(
+            self.context, filters={'uuid': goal3['uuid']})
+        self.assertEqual([], [r.uuid for r in res])
 
     def test_get_goal_by_uuid(self):
         efficacy_spec = [{"unit": "%", "name": "dummy",
