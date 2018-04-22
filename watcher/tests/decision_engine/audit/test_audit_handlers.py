@@ -439,7 +439,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.launch_audits_periodically()
         m_remove_job.assert_called()
 
-    @mock.patch.object(continuous.ContinuousAuditHandler, 'planner',
+    @mock.patch.object(continuous.ContinuousAuditHandler, 'get_planner',
                        mock.Mock())
     @mock.patch.object(base_strategy.BaseStrategy, "compute_model",
                        mock.Mock(stale=False))

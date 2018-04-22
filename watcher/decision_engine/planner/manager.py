@@ -19,10 +19,7 @@ from oslo_log import log
 
 from watcher.decision_engine.loading import default as loader
 
-from watcher import conf
-
 LOG = log.getLogger(__name__)
-CONF = conf.CONF
 
 
 class PlannerManager(object):
@@ -33,7 +30,6 @@ class PlannerManager(object):
     def loader(self):
         return self._loader
 
-    def load(self):
-        selected_planner = CONF.watcher_planner.planner
-        LOG.debug("Loading %s", selected_planner)
-        return self.loader.load(name=selected_planner)
+    def load(self, planner_name):
+        LOG.debug("Loading %s", planner_name)
+        return self.loader.load(name=planner_name)

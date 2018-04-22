@@ -94,7 +94,8 @@ class ContinuousAuditHandler(base.AuditHandler):
                 plan.save()
         return solution
 
-    def _next_cron_time(self, audit):
+    @staticmethod
+    def _next_cron_time(audit):
         if utils.is_cron_like(audit.interval):
             return croniter(audit.interval, datetime.datetime.utcnow()
                             ).get_next(datetime.datetime)
