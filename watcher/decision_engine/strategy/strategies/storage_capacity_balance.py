@@ -110,7 +110,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         return filtered_pools
 
     def get_volumes(self, cinder):
-        """Get all volumes with staus in available or in-use and no snapshot.
+        """Get all volumes with status in available or in-use and no snapshot.
 
         :param cinder: cinder client
         :return: all volumes
