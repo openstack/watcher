@@ -336,7 +336,7 @@ so that the watcher service is configured for your needs.
     [nova_client]
 
     # Version of Nova API to use in novaclient. (string value)
-    #api_version = 2.53
+    #api_version = 2.56
     api_version = 2.1
 
 #. Create the Watcher Service database tables::
