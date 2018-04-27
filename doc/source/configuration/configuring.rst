@@ -129,10 +129,14 @@ Configure the Identity service for the Watcher service
 
     .. code-block:: bash
 
-      $ openstack endpoint create --region YOUR_REGION watcher \
-        --publicurl http://WATCHER_API_PUBLIC_IP:9322 \
-        --internalurl http://WATCHER_API_INTERNAL_IP:9322 \
-        --adminurl http://WATCHER_API_ADMIN_IP:9322
+      $ openstack endpoint create --region YOUR_REGION
+        watcher public http://WATCHER_API_PUBLIC_IP:9322
+
+      $ openstack endpoint create --region YOUR_REGION
+        watcher internal http://WATCHER_API_INTERNAL_IP:9322
+
+      $ openstack endpoint create --region YOUR_REGION
+        watcher admin http://WATCHER_API_ADMIN_IP:9322
 
 .. _watcher-db_configuration:
 
