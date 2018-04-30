@@ -168,51 +168,21 @@ class AirflowOptimization(base.Goal):
         return specs.Unclassified()
 
 
-class NoisyNeighborOptimization(base.Goal):
-    """NoisyNeighborOptimization
-
-    This goal is used to identify and migrate a Noisy Neighbor -
-    a low priority VM that negatively affects peformance of a high priority VM
-    in terms of IPC by over utilizing Last Level Cache.
-    """
+class JobAllocation(base.Goal):
 
     @classmethod
     def get_name(cls):
-        return "noisy_neighbor"
+        return "job_allocation"
 
     @classmethod
     def get_display_name(cls):
-        return _("Noisy Neighbor")
+        return _("Job Allocation")
 
     @classmethod
     def get_translatable_display_name(cls):
-        return "Noisy Neighbor"
+        return "Job Allocation"
 
     @classmethod
     def get_efficacy_specification(cls):
-        """The efficacy spec for the current goal"""
-        return specs.Unclassified()
+	return specs.Unclassified()
 
-
-class SavingEnergy(base.Goal):
-    """SavingEnergy
-
-    This goal is used to reduce power consumption within a data center.
-    """
-
-    @classmethod
-    def get_name(cls):
-        return "saving_energy"
-
-    @classmethod
-    def get_display_name(cls):
-        return _("Saving Energy")
-
-    @classmethod
-    def get_translatable_display_name(cls):
-        return "Saving Energy"
-
-    @classmethod
-    def get_efficacy_specification(cls):
-        """The efficacy spec for the current goal"""
-        return specs.Unclassified()

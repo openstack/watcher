@@ -1,0 +1,11 @@
+[Unit]
+Description=Watcher Decision Engine
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=watcher
+ExecStart=/usr/bin/watcher-decision-engine
+
+[Install]
+WantedBy=multi-user.target

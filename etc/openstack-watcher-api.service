@@ -1,0 +1,11 @@
+[Unit]
+Description=Watcher API
+After=syslog.target network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/watcher-api
+User=watcher
+
+[Install]
+WantedBy=multi-user.target

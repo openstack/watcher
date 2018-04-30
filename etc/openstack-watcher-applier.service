@@ -1,0 +1,11 @@
+[Unit]
+Description=Watcher Applier
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=watcher
+ExecStart=/usr/bin/watcher-applier
+
+[Install]
+WantedBy=multi-user.target

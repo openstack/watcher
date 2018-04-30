@@ -39,8 +39,6 @@ which are dynamically loaded by Watcher at launch time.
 import abc
 import six
 
-from oslo_utils import strutils
-
 from watcher.common import clients
 from watcher.common import context
 from watcher.common import exception
@@ -82,7 +80,6 @@ class BaseStrategy(loadable.Loadable):
         self._osc = osc
         self._collector_manager = None
         self._compute_model = None
-        self._storage_model = None
         self._input_parameters = utils.Struct()
         self._audit_scope = None
         self._audit_scope_handler = None
@@ -193,27 +190,6 @@ class BaseStrategy(loadable.Loadable):
 
         return self._compute_model
 
-    @property
-    def storage_model(self):
-        """Cluster data model
-
-        :returns: Cluster data model the strategy is executed on
-        :rtype model: :py:class:`~.ModelRoot` instance
-        """
-        if self._storage_model is None:
-            collector = self.collector_manager.get_cluster_model_collector(
-                'storage', osc=self.osc)
-            self._storage_model = self.audit_scope_handler.get_scoped_model(
-                collector.get_latest_cluster_data_model())
-
-        if not self._storage_model:
-            raise exception.ClusterStateNotDefined()
-
-        if self._storage_model.stale:
-            raise exception.ClusterStateStale()
-
-        return self._storage_model
-
     @classmethod
     def get_schema(cls):
         """Defines a Schema that the input parameters shall comply to
@@ -257,7 +233,7 @@ class BaseStrategy(loadable.Loadable):
     def audit_scope_handler(self):
         if not self._audit_scope_handler:
             self._audit_scope_handler = default_scope.DefaultScope(
-                self.audit_scope, self.config)
+                self.audit_scope)
         return self._audit_scope_handler
 
     @property
@@ -288,22 +264,6 @@ class BaseStrategy(loadable.Loadable):
     def state_collector(self, s):
         self._cluster_state_collector = s
 
-    def filter_instances_by_audit_tag(self, instances):
-        if not self.config.check_optimize_metadata:
-            return instances
-        instances_to_migrate = []
-        for instance in instances:
-            optimize = True
-            if instance.metadata:
-                try:
-                    optimize = strutils.bool_from_string(
-                        instance.metadata.get('optimize'))
-                except ValueError:
-                    optimize = False
-            if optimize:
-                instances_to_migrate.append(instance)
-        return instances_to_migrate
-
 
 @six.add_metaclass(abc.ABCMeta)
 class DummyBaseStrategy(BaseStrategy):
@@ -319,7 +279,7 @@ class UnclassifiedStrategy(BaseStrategy):
 
     The goal defined within this strategy can be used to simplify the
     documentation explaining how to implement a new strategy plugin by
-    omitting the need for the strategy developer to define a goal straight
+    ommitting the need for the strategy developer to define a goal straight
     away.
     """
 
@@ -353,16 +313,8 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy):
 
 
 @six.add_metaclass(abc.ABCMeta)
-class NoisyNeighborBaseStrategy(BaseStrategy):
+class CloudUtilizationBaseStrategy(BaseStrategy):
 
     @classmethod
     def get_goal_name(cls):
-        return "noisy_neighbor"
-
-
-@six.add_metaclass(abc.ABCMeta)
-class SavingEnergyBaseStrategy(BaseStrategy):
-
-    @classmethod
-    def get_goal_name(cls):
-        return "saving_energy"
+	return "job_allocation"
