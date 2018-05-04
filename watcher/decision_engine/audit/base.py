@@ -74,6 +74,13 @@ class AuditHandler(BaseAuditHandler):
     def strategy_context(self):
         return self._strategy_context
 
+    def do_execute(self, audit, request_context):
+        # execute the strategy
+        solution = self.strategy_context.execute_strategy(
+            audit, request_context)
+
+        return solution
+
     def do_schedule(self, request_context, audit, solution):
         try:
             notifications.audit.send_action_notification(

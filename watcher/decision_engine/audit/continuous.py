@@ -71,9 +71,8 @@ class ContinuousAuditHandler(base.AuditHandler):
         return False
 
     def do_execute(self, audit, request_context):
-        # execute the strategy
-        solution = self.strategy_context.execute_strategy(
-            audit, request_context)
+        solution = super(ContinuousAuditHandler, self)\
+            .do_execute(audit, request_context)
 
         if audit.audit_type == objects.audit.AuditType.CONTINUOUS.value:
             a_plan_filters = {'audit_uuid': audit.uuid,
