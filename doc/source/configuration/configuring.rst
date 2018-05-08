@@ -264,7 +264,7 @@ so that the watcher service is configured for your needs.
 
         # Authentication URL (unknown value)
         #auth_url = <None>
-        auth_url = http://IDENTITY_IP:35357
+        auth_url = http://IDENTITY_IP:5000
 
         # Username (unknown value)
         # Deprecated group/name - [DEFAULT]/username
@@ -310,7 +310,7 @@ so that the watcher service is configured for your needs.
 
         # Authentication URL (unknown value)
         #auth_url = <None>
-        auth_url = http://IDENTITY_IP:35357
+        auth_url = http://IDENTITY_IP:5000
 
         # Username (unknown value)
         # Deprecated group/name - [DEFAULT]/username
