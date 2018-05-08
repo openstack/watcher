@@ -60,6 +60,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             human_id='fake_instance',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
             metadata={'hi': 'hello'},
+            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
         setattr(fake_instance, 'OS-EXT-SRV-ATTR:host', 'test_hostname')

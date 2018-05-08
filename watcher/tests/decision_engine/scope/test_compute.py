@@ -198,14 +198,18 @@ class TestComputeScope(base.TestCase):
                                 {'compute_nodes': [{'name': 'Node_2'},
                                                    {'name': 'Node_3'}]},
                                 {'instance_metadata': [{'optimize': True},
-                                                       {'optimize1': False}]}]
+                                                       {'optimize1': False}]},
+                                {'projects': [{'uuid': 'PROJECT_1'},
+                                              {'uuid': 'PROJECT_2'}]}]
         instances_to_exclude = []
         nodes_to_exclude = []
         instance_metadata = []
+        projects_to_exclude = []
         compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).exclude_resources(
             resources_to_exclude, instances=instances_to_exclude,
-            nodes=nodes_to_exclude, instance_metadata=instance_metadata)
+            nodes=nodes_to_exclude, instance_metadata=instance_metadata,
+            projects=projects_to_exclude)
 
         self.assertEqual(['Node_0', 'Node_1', 'Node_2', 'Node_3'],
                          sorted(nodes_to_exclude))
@@ -213,6 +217,8 @@ class TestComputeScope(base.TestCase):
                          sorted(instances_to_exclude))
         self.assertEqual([{'optimize': True}, {'optimize1': False}],
                          instance_metadata)
+        self.assertEqual(['PROJECT_1', 'PROJECT_2'],
+                         sorted(projects_to_exclude))
 
     def test_exclude_instances_with_given_metadata(self):
         cluster = self.fake_cluster.generate_scenario_1()
@@ -232,6 +238,17 @@ class TestComputeScope(base.TestCase):
             osc=mock.Mock()).exclude_instances_with_given_metadata(
                 instance_metadata, cluster, instances_to_remove)
         self.assertEqual(set(), instances_to_remove)
+
+    def test_exclude_instances_with_given_project(self):
+        cluster = self.fake_cluster.generate_scenario_1()
+        instances_to_exclude = set()
+        projects_to_exclude = ['project_1', 'project_2']
+        compute.ComputeScope(
+            [], mock.Mock(),
+            osc=mock.Mock()).exclude_instances_with_given_project(
+                projects_to_exclude, cluster, instances_to_exclude)
+        self.assertEqual(['INSTANCE_1', 'INSTANCE_2'],
+                         sorted(instances_to_exclude))
 
     def test_remove_nodes_from_model(self):
         model = self.fake_cluster.generate_scenario_1()

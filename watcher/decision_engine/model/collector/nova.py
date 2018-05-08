@@ -104,6 +104,18 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                                 "items": {
                                     "type": "object"
                                 }
+                            },
+                            "projects": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "uuid": {
+                                            "type": "string"
+                                        }
+                                    },
+                                    "additionalProperties": False
+                                }
                             }
                         },
                         "additionalProperties": False
@@ -348,7 +360,8 @@ class ModelBuilder(object):
             "disk_capacity": flavor["disk"],
             "vcpus": flavor["vcpus"],
             "state": getattr(instance, "OS-EXT-STS:vm_state"),
-            "metadata": instance.metadata}
+            "metadata": instance.metadata,
+            "project_id": instance.tenant_id}
 
         # node_attributes = dict()
         # node_attributes["layer"] = "virtual"

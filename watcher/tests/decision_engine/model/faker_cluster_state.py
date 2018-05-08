@@ -83,6 +83,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, instance_count):
             instance_uuid = "INSTANCE_{0}".format(i)
+            project_id = "project_{0}".format(i)
             instance_attributes = {
                 "uuid": instance_uuid,
                 "memory": 2,
@@ -90,7 +91,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "disk_capacity": 20,
                 "vcpus": 10,
                 "metadata":
-                    '{"optimize": true,"top": "floor","nested": {"x": "y"}}'
+                    '{"optimize": true,"top": "floor","nested": {"x": "y"}}',
+                "project_id": project_id
             }
 
             instance = element.Instance(**instance_attributes)
