@@ -264,6 +264,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
     def test_get_audit_template_list_with_filters(self):
         goal = utils.create_test_goal(name='DUMMY')
+
         audit_template1 = utils.create_test_audit_template(
             id=1,
             uuid=w_utils.generate_uuid(),
@@ -276,20 +277,41 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             name='My Audit Template 2',
             description='Description of my audit template 2',
             goal_id=goal['id'])
+        audit_template3 = utils.create_test_audit_template(
+            id=3,
+            uuid=w_utils.generate_uuid(),
+            name='My Audit Template 3',
+            description='Description of my audit template 3',
+            goal_id=goal['id'])
+
+        self.dbapi.soft_delete_audit_template(audit_template3['uuid'])
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'name': 'My Audit Template 1'})
+            self.context,
+            filters={'name': 'My Audit Template 1'})
         self.assertEqual([audit_template1['id']], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
-            self.context, filters={'name': 'Does not exist'})
+            self.context,
+            filters={'name': 'Does not exist'})
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_audit_template_list(
             self.context,
-            filters={'goal': 'DUMMY'})
-        self.assertEqual([audit_template1['id'], audit_template2['id']],
-                         [r.id for r in res])
+            filters={'goal_name': 'DUMMY'})
+        self.assertEqual(
+            sorted([audit_template1['id'], audit_template2['id']]),
+            sorted([r.id for r in res]))
+
+        temp_context = self.context
+        temp_context.show_deleted = True
+        res = self.dbapi.get_audit_template_list(
+            temp_context,
+            filters={'goal_name': 'DUMMY'})
+        self.assertEqual(
+            sorted([audit_template1['id'], audit_template2['id'],
+                    audit_template3['id']]),
+            sorted([r.id for r in res]))
 
         res = self.dbapi.get_audit_template_list(
             self.context,

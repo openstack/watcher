@@ -257,6 +257,15 @@ class DbScoringEngineTestCase(base.DbTestCase):
             description='ScoringEngine 2',
             metainfo="a2=b2",
         )
+        scoring_engine3 = utils.create_test_scoring_engine(
+            id=3,
+            uuid=w_utils.generate_uuid(),
+            name="SE_ID_3",
+            description='ScoringEngine 3',
+            metainfo="a3=b3",
+        )
+
+        self.dbapi.soft_delete_scoring_engine(scoring_engine3['uuid'])
 
         res = self.dbapi.get_scoring_engine_list(
             self.context, filters={'description': 'ScoringEngine 1'})
@@ -267,8 +276,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
         self.assertEqual([], [r.name for r in res])
 
         res = self.dbapi.get_scoring_engine_list(
-            self.context,
-            filters={'description': 'ScoringEngine 2'})
+            self.context, filters={'description': 'ScoringEngine 2'})
         self.assertEqual([scoring_engine2['name']], [r.name for r in res])
 
     def test_get_scoring_engine_by_id(self):

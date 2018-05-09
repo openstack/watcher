@@ -252,6 +252,13 @@ class DbServiceTestCase(base.DbTestCase):
             name="SERVICE_ID_2",
             host="controller_2",
         )
+        service3 = utils.create_test_service(
+            id=3,
+            name="SERVICE_ID_3",
+            host="controller_3",
+        )
+
+        self.dbapi.soft_delete_service(service3['id'])
 
         res = self.dbapi.get_service_list(
             self.context, filters={'host': 'controller_1'})
@@ -262,8 +269,7 @@ class DbServiceTestCase(base.DbTestCase):
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_service_list(
-            self.context,
-            filters={'host': 'controller_2'})
+            self.context, filters={'host': 'controller_2'})
         self.assertEqual([service2['id']], [r.id for r in res])
 
     def test_get_service_by_name(self):

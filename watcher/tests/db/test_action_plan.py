@@ -269,6 +269,7 @@ class DbActionPlanTestCase(base.DbTestCase):
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             state=ap_objects.State.ONGOING)
+
         action_plan1 = utils.create_test_action_plan(
             id=1,
             uuid=w_utils.generate_uuid(),
@@ -279,6 +280,14 @@ class DbActionPlanTestCase(base.DbTestCase):
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
             state=ap_objects.State.ONGOING)
+        action_plan3 = utils.create_test_action_plan(
+            id=3,
+            uuid=w_utils.generate_uuid(),
+            audit_id=audit['id'],
+            state=ap_objects.State.RECOMMENDED)
+
+        # check on bug 1761956
+        self.dbapi.soft_delete_action_plan(action_plan3['uuid'])
 
         res = self.dbapi.get_action_plan_list(
             self.context,
@@ -293,7 +302,9 @@ class DbActionPlanTestCase(base.DbTestCase):
         res = self.dbapi.get_action_plan_list(
             self.context,
             filters={'audit_uuid': audit['uuid']})
-
+        self.assertEqual(
+            sorted([action_plan1['id'], action_plan2['id']]),
+            sorted([r.id for r in res]))
         for r in res:
             self.assertEqual(audit['id'], r.audit_id)
 

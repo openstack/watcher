@@ -299,25 +299,40 @@ class DbAuditTestCase(base.DbTestCase):
         self.assertEqual(strategy.as_dict(), eager_audit.strategy.as_dict())
 
     def test_get_audit_list_with_filters(self):
+        goal = utils.create_test_goal(name='DUMMY')
+
         audit1 = utils.create_test_audit(
             id=1,
             audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
             name='My Audit {0}'.format(1),
-            state=objects.audit.State.ONGOING)
+            state=objects.audit.State.ONGOING,
+            goal_id=goal['id'])
         audit2 = utils.create_test_audit(
             id=2,
-            audit_type='CONTINUOUS',
+            audit_type=objects.audit.AuditType.CONTINUOUS.value,
             uuid=w_utils.generate_uuid(),
-            state=objects.audit.State.PENDING)
+            name='My Audit {0}'.format(2),
+            state=objects.audit.State.PENDING,
+            goal_id=goal['id'])
+        audit3 = utils.create_test_audit(
+            id=3,
+            audit_type=objects.audit.AuditType.CONTINUOUS.value,
+            uuid=w_utils.generate_uuid(),
+            name='My Audit {0}'.format(3),
+            state=objects.audit.State.ONGOING,
+            goal_id=goal['id'])
+
+        self.dbapi.soft_delete_audit(audit3['uuid'])
 
         res = self.dbapi.get_audit_list(
             self.context,
             filters={'audit_type': objects.audit.AuditType.ONESHOT.value})
         self.assertEqual([audit1['id']], [r.id for r in res])
 
-        res = self.dbapi.get_audit_list(self.context,
-                                        filters={'audit_type': 'bad-type'})
+        res = self.dbapi.get_audit_list(
+            self.context,
+            filters={'audit_type': 'bad-type'})
         self.assertEqual([], [r.id for r in res])
 
         res = self.dbapi.get_audit_list(
@@ -329,6 +344,20 @@ class DbAuditTestCase(base.DbTestCase):
             self.context,
             filters={'state': objects.audit.State.PENDING})
         self.assertEqual([audit2['id']], [r.id for r in res])
+
+        res = self.dbapi.get_audit_list(
+            self.context,
+            filters={'goal_name': 'DUMMY'})
+        self.assertEqual(sorted([audit1['id'], audit2['id']]),
+                         sorted([r.id for r in res]))
+
+        temp_context = self.context
+        temp_context.show_deleted = True
+        res = self.dbapi.get_audit_list(
+            temp_context,
+            filters={'goal_name': 'DUMMY'})
+        self.assertEqual(sorted([audit1['id'], audit2['id'], audit3['id']]),
+                         sorted([r.id for r in res]))
 
     def test_get_audit_list_with_filter_by_uuid(self):
         audit = utils.create_test_audit()

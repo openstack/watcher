@@ -273,6 +273,9 @@ class DbStrategyTestCase(base.DbTestCase):
         self.assertEqual(goal.as_dict(), eager_strategy.goal.as_dict())
 
     def test_get_strategy_list_with_filters(self):
+        # NOTE(erakli): we don't create goal in database but links to
+        # goal_id = 1. There is no error in dbapi.create_strategy() method.
+        # Is it right behaviour?
         strategy1 = utils.create_test_strategy(
             id=1,
             uuid=w_utils.generate_uuid(),
@@ -285,6 +288,14 @@ class DbStrategyTestCase(base.DbTestCase):
             name="STRATEGY_ID_2",
             display_name='Strategy 2',
         )
+        strategy3 = utils.create_test_strategy(
+            id=3,
+            uuid=w_utils.generate_uuid(),
+            name="STRATEGY_ID_3",
+            display_name='Strategy 3',
+        )
+
+        self.dbapi.soft_delete_strategy(strategy3['uuid'])
 
         res = self.dbapi.get_strategy_list(
             self.context, filters={'display_name': 'Strategy 1'})
@@ -295,14 +306,12 @@ class DbStrategyTestCase(base.DbTestCase):
         self.assertEqual([], [r.uuid for r in res])
 
         res = self.dbapi.get_strategy_list(
-            self.context,
-            filters={'goal_id': 1})
+            self.context, filters={'goal_id': 1})
         self.assertEqual([strategy1['uuid'], strategy2['uuid']],
                          [r.uuid for r in res])
 
         res = self.dbapi.get_strategy_list(
-            self.context,
-            filters={'display_name': 'Strategy 2'})
+            self.context, filters={'display_name': 'Strategy 2'})
         self.assertEqual([strategy2['uuid']], [r.uuid for r in res])
 
     def test_get_strategy_by_uuid(self):

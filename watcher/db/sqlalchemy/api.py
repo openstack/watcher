@@ -326,6 +326,9 @@ class Connection(api.BaseConnection):
         return _paginate_query(model, limit, marker,
                                sort_key, sort_dir, query)
 
+    # NOTE(erakli): _add_..._filters methods should be refactored to have same
+    # content. join_fieldmap should be filled with JoinMap instead of dict
+
     def _add_goals_filters(self, query, filters):
         if filters is None:
             filters = {}
