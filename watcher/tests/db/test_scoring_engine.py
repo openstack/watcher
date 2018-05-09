@@ -228,11 +228,6 @@ class TestDbScoringEngineFilters(base.DbTestCase):
 
 class DbScoringEngineTestCase(base.DbTestCase):
 
-    def _create_test_scoring_engine(self, **kwargs):
-        scoring_engine = utils.get_test_scoring_engine(**kwargs)
-        self.dbapi.create_scoring_engine(scoring_engine)
-        return scoring_engine
-
     def test_get_scoring_engine_list(self):
         names = []
         for i in range(1, 4):
@@ -248,14 +243,14 @@ class DbScoringEngineTestCase(base.DbTestCase):
         self.assertEqual(sorted(names), sorted(scoring_engines_names))
 
     def test_get_scoring_engine_list_with_filters(self):
-        scoring_engine1 = self._create_test_scoring_engine(
+        scoring_engine1 = utils.create_test_scoring_engine(
             id=1,
             uuid=w_utils.generate_uuid(),
             name="SE_ID_1",
             description='ScoringEngine 1',
             metainfo="a1=b1",
         )
-        scoring_engine2 = self._create_test_scoring_engine(
+        scoring_engine2 = utils.create_test_scoring_engine(
             id=2,
             uuid=w_utils.generate_uuid(),
             name="SE_ID_2",
@@ -277,19 +272,19 @@ class DbScoringEngineTestCase(base.DbTestCase):
         self.assertEqual([scoring_engine2['name']], [r.name for r in res])
 
     def test_get_scoring_engine_by_id(self):
-        created_scoring_engine = self._create_test_scoring_engine()
+        created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_id(
             self.context, created_scoring_engine['id'])
         self.assertEqual(scoring_engine.id, created_scoring_engine['id'])
 
     def test_get_scoring_engine_by_uuid(self):
-        created_scoring_engine = self._create_test_scoring_engine()
+        created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_uuid(
             self.context, created_scoring_engine['uuid'])
         self.assertEqual(scoring_engine.uuid, created_scoring_engine['uuid'])
 
     def test_get_scoring_engine_by_name(self):
-        created_scoring_engine = self._create_test_scoring_engine()
+        created_scoring_engine = utils.create_test_scoring_engine()
         scoring_engine = self.dbapi.get_scoring_engine_by_name(
             self.context, created_scoring_engine['name'])
         self.assertEqual(scoring_engine.name, created_scoring_engine['name'])
@@ -300,13 +295,13 @@ class DbScoringEngineTestCase(base.DbTestCase):
                           self.context, 404)
 
     def test_update_scoring_engine(self):
-        scoring_engine = self._create_test_scoring_engine()
+        scoring_engine = utils.create_test_scoring_engine()
         res = self.dbapi.update_scoring_engine(
             scoring_engine['id'], {'description': 'updated-model'})
         self.assertEqual('updated-model', res.description)
 
     def test_update_scoring_engine_id(self):
-        scoring_engine = self._create_test_scoring_engine()
+        scoring_engine = utils.create_test_scoring_engine()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_scoring_engine,
                           scoring_engine['id'],
@@ -319,7 +314,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
                           {'description': ''})
 
     def test_destroy_scoring_engine(self):
-        scoring_engine = self._create_test_scoring_engine()
+        scoring_engine = utils.create_test_scoring_engine()
         self.dbapi.destroy_scoring_engine(scoring_engine['id'])
         self.assertRaises(exception.ScoringEngineNotFound,
                           self.dbapi.get_scoring_engine_by_id,
@@ -331,7 +326,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
 
     def test_create_scoring_engine_already_exists(self):
         scoring_engine_id = "SE_ID"
-        self._create_test_scoring_engine(name=scoring_engine_id)
+        utils.create_test_scoring_engine(name=scoring_engine_id)
         self.assertRaises(exception.ScoringEngineAlreadyExists,
-                          self._create_test_scoring_engine,
+                          utils.create_test_scoring_engine,
                           name=scoring_engine_id)

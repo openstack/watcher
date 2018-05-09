@@ -229,11 +229,6 @@ class TestDbServiceFilters(base.DbTestCase):
 
 class DbServiceTestCase(base.DbTestCase):
 
-    def _create_test_service(self, **kwargs):
-        service = utils.get_test_service(**kwargs)
-        self.dbapi.create_service(service)
-        return service
-
     def test_get_service_list(self):
         ids = []
         for i in range(1, 4):
@@ -247,12 +242,12 @@ class DbServiceTestCase(base.DbTestCase):
         self.assertEqual(sorted(ids), sorted(service_ids))
 
     def test_get_service_list_with_filters(self):
-        service1 = self._create_test_service(
+        service1 = utils.create_test_service(
             id=1,
             name="SERVICE_ID_1",
             host="controller_1",
         )
-        service2 = self._create_test_service(
+        service2 = utils.create_test_service(
             id=2,
             name="SERVICE_ID_2",
             host="controller_2",
@@ -272,7 +267,7 @@ class DbServiceTestCase(base.DbTestCase):
         self.assertEqual([service2['id']], [r.id for r in res])
 
     def test_get_service_by_name(self):
-        created_service = self._create_test_service()
+        created_service = utils.create_test_service()
         service = self.dbapi.get_service_by_name(
             self.context, created_service['name'])
         self.assertEqual(service.name, created_service['name'])
@@ -283,7 +278,7 @@ class DbServiceTestCase(base.DbTestCase):
                           self.context, 404)
 
     def test_update_service(self):
-        service = self._create_test_service()
+        service = utils.create_test_service()
         res = self.dbapi.update_service(
             service['id'], {'host': 'controller_test'})
         self.assertEqual('controller_test', res.host)
@@ -296,7 +291,7 @@ class DbServiceTestCase(base.DbTestCase):
 
     def test_create_service_already_exists(self):
         service_id = "STRATEGY_ID"
-        self._create_test_service(name=service_id)
+        utils.create_test_service(name=service_id)
         self.assertRaises(exception.ServiceAlreadyExists,
-                          self._create_test_service,
+                          utils.create_test_service,
                           name=service_id)

@@ -232,11 +232,6 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
 
 class DbActionDescriptionTestCase(base.DbTestCase):
 
-    def _create_test_action_desc(self, **kwargs):
-        action_desc = utils.get_test_action_desc(**kwargs)
-        self.dbapi.create_action_description(action_desc)
-        return action_desc
-
     def test_get_action_desc_list(self):
         ids = []
         for i in range(1, 4):
@@ -250,12 +245,12 @@ class DbActionDescriptionTestCase(base.DbTestCase):
         self.assertEqual(sorted(ids), sorted(action_desc_ids))
 
     def test_get_action_desc_list_with_filters(self):
-        action_desc1 = self._create_test_action_desc(
+        action_desc1 = utils.create_test_action_desc(
             id=1,
             action_type="action_1",
             description="description_1",
         )
-        action_desc2 = self._create_test_action_desc(
+        action_desc2 = utils.create_test_action_desc(
             id=2,
             action_type="action_2",
             description="description_2",
@@ -275,7 +270,7 @@ class DbActionDescriptionTestCase(base.DbTestCase):
         self.assertEqual([action_desc2['id']], [r.id for r in res])
 
     def test_get_action_desc_by_type(self):
-        created_action_desc = self._create_test_action_desc()
+        created_action_desc = utils.create_test_action_desc()
         action_desc = self.dbapi.get_action_description_by_type(
             self.context, created_action_desc['action_type'])
         self.assertEqual(action_desc.action_type,
@@ -287,7 +282,7 @@ class DbActionDescriptionTestCase(base.DbTestCase):
                           self.context, 404)
 
     def test_update_action_desc(self):
-        action_desc = self._create_test_action_desc()
+        action_desc = utils.create_test_action_desc()
         res = self.dbapi.update_action_description(
             action_desc['id'], {'description': 'description_test'})
         self.assertEqual('description_test', res.description)

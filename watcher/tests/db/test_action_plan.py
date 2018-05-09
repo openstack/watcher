@@ -230,16 +230,6 @@ class TestDbActionPlanFilters(base.DbTestCase):
 
 class DbActionPlanTestCase(base.DbTestCase):
 
-    def _create_test_audit(self, **kwargs):
-        audit = utils.get_test_audit(**kwargs)
-        self.dbapi.create_audit(audit)
-        return audit
-
-    def _create_test_action_plan(self, **kwargs):
-        action_plan = utils.get_test_action_plan(**kwargs)
-        self.dbapi.create_action_plan(action_plan)
-        return action_plan
-
     def test_get_action_plan_list(self):
         uuids = []
         for _ in range(1, 4):
@@ -274,17 +264,17 @@ class DbActionPlanTestCase(base.DbTestCase):
         self.assertEqual(audit.as_dict(), eager_action_plan.audit.as_dict())
 
     def test_get_action_plan_list_with_filters(self):
-        audit = self._create_test_audit(
+        audit = utils.create_test_audit(
             id=2,
             audit_type='ONESHOT',
             uuid=w_utils.generate_uuid(),
             state=ap_objects.State.ONGOING)
-        action_plan1 = self._create_test_action_plan(
+        action_plan1 = utils.create_test_action_plan(
             id=1,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
             state=ap_objects.State.RECOMMENDED)
-        action_plan2 = self._create_test_action_plan(
+        action_plan2 = utils.create_test_action_plan(
             id=2,
             uuid=w_utils.generate_uuid(),
             audit_id=audit['id'],
@@ -316,7 +306,7 @@ class DbActionPlanTestCase(base.DbTestCase):
         self.assertNotEqual([action_plan1['id']], [r.id for r in res])
 
     def test_get_action_plan_list_with_filter_by_uuid(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         res = self.dbapi.get_action_plan_list(
             self.context, filters={'uuid': action_plan["uuid"]})
 
@@ -324,13 +314,13 @@ class DbActionPlanTestCase(base.DbTestCase):
         self.assertEqual(action_plan['uuid'], res[0].uuid)
 
     def test_get_action_plan_by_id(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         action_plan = self.dbapi.get_action_plan_by_id(
             self.context, action_plan['id'])
         self.assertEqual(action_plan['uuid'], action_plan.uuid)
 
     def test_get_action_plan_by_uuid(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         action_plan = self.dbapi.get_action_plan_by_uuid(
             self.context, action_plan['uuid'])
         self.assertEqual(action_plan['id'], action_plan.id)
@@ -340,7 +330,7 @@ class DbActionPlanTestCase(base.DbTestCase):
                           self.dbapi.get_action_plan_by_id, self.context, 1234)
 
     def test_update_action_plan(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         res = self.dbapi.update_action_plan(
             action_plan['id'], {'name': 'updated-model'})
         self.assertEqual('updated-model', res.name)
@@ -350,13 +340,13 @@ class DbActionPlanTestCase(base.DbTestCase):
                           self.dbapi.update_action_plan, 1234, {'name': ''})
 
     def test_update_action_plan_uuid(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_action_plan, action_plan['id'],
                           {'uuid': 'hello'})
 
     def test_destroy_action_plan(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         self.dbapi.destroy_action_plan(action_plan['id'])
         self.assertRaises(exception.ActionPlanNotFound,
                           self.dbapi.get_action_plan_by_id,
@@ -364,7 +354,7 @@ class DbActionPlanTestCase(base.DbTestCase):
 
     def test_destroy_action_plan_by_uuid(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_action_plan(uuid=uuid)
+        utils.create_test_action_plan(uuid=uuid)
         self.assertIsNotNone(self.dbapi.get_action_plan_by_uuid(
             self.context, uuid))
         self.dbapi.destroy_action_plan(uuid)
@@ -377,7 +367,7 @@ class DbActionPlanTestCase(base.DbTestCase):
                           self.dbapi.destroy_action_plan, 1234)
 
     def test_destroy_action_plan_that_referenced_by_actions(self):
-        action_plan = self._create_test_action_plan()
+        action_plan = utils.create_test_action_plan()
         action = utils.create_test_action(action_plan_id=action_plan['id'])
         self.assertEqual(action_plan['id'], action.action_plan_id)
         self.assertRaises(exception.ActionPlanReferenced,
@@ -385,7 +375,7 @@ class DbActionPlanTestCase(base.DbTestCase):
 
     def test_create_action_plan_already_exists(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_action_plan(id=1, uuid=uuid)
+        utils.create_test_action_plan(id=1, uuid=uuid)
         self.assertRaises(exception.ActionPlanAlreadyExists,
-                          self._create_test_action_plan,
+                          utils.create_test_action_plan,
                           id=2, uuid=uuid)

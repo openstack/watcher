@@ -225,16 +225,6 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
 
 class DbAuditTemplateTestCase(base.DbTestCase):
 
-    def _create_test_goal(self, **kwargs):
-        goal = utils.get_test_goal(**kwargs)
-        self.dbapi.create_goal(goal)
-        return goal
-
-    def _create_test_audit_template(self, **kwargs):
-        audit_template = utils.get_test_audit_template(**kwargs)
-        self.dbapi.create_audit_template(audit_template)
-        return audit_template
-
     def test_get_audit_template_list(self):
         uuids = []
         for i in range(1, 4):
@@ -273,14 +263,14 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             strategy.as_dict(), eager_audit_template.strategy.as_dict())
 
     def test_get_audit_template_list_with_filters(self):
-        goal = self._create_test_goal(name='DUMMY')
-        audit_template1 = self._create_test_audit_template(
+        goal = utils.create_test_goal(name='DUMMY')
+        audit_template1 = utils.create_test_audit_template(
             id=1,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 1',
             description='Description of my audit template 1',
             goal_id=goal['id'])
-        audit_template2 = self._create_test_audit_template(
+        audit_template2 = utils.create_test_audit_template(
             id=2,
             uuid=w_utils.generate_uuid(),
             name='My Audit Template 2',
@@ -307,7 +297,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         self.assertEqual([audit_template2['id']], [r.id for r in res])
 
     def test_get_audit_template_list_with_filter_by_uuid(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         res = self.dbapi.get_audit_template_list(
             self.context, filters={'uuid': audit_template["uuid"]})
 
@@ -315,13 +305,13 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         self.assertEqual(audit_template['uuid'], res[0].uuid)
 
     def test_get_audit_template_by_id(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         audit_template = self.dbapi.get_audit_template_by_id(
             self.context, audit_template['id'])
         self.assertEqual(audit_template['uuid'], audit_template.uuid)
 
     def test_get_audit_template_by_uuid(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         audit_template = self.dbapi.get_audit_template_by_uuid(
             self.context, audit_template['uuid'])
         self.assertEqual(audit_template['id'], audit_template.id)
@@ -332,7 +322,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
                           self.context, 1234)
 
     def test_update_audit_template(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         res = self.dbapi.update_audit_template(audit_template['id'],
                                                {'name': 'updated-model'})
         self.assertEqual('updated-model', res.name)
@@ -342,14 +332,14 @@ class DbAuditTemplateTestCase(base.DbTestCase):
                           self.dbapi.update_audit_template, 1234, {'name': ''})
 
     def test_update_audit_template_uuid(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         self.assertRaises(exception.Invalid,
                           self.dbapi.update_audit_template,
                           audit_template['id'],
                           {'uuid': 'hello'})
 
     def test_destroy_audit_template(self):
-        audit_template = self._create_test_audit_template()
+        audit_template = utils.create_test_audit_template()
         self.dbapi.destroy_audit_template(audit_template['id'])
         self.assertRaises(exception.AuditTemplateNotFound,
                           self.dbapi.get_audit_template_by_id,
@@ -357,7 +347,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
     def test_destroy_audit_template_by_uuid(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_audit_template(uuid=uuid)
+        utils.create_test_audit_template(uuid=uuid)
         self.assertIsNotNone(self.dbapi.get_audit_template_by_uuid(
             self.context, uuid))
         self.dbapi.destroy_audit_template(uuid)
@@ -371,9 +361,9 @@ class DbAuditTemplateTestCase(base.DbTestCase):
 
     def test_create_audit_template_already_exists(self):
         uuid = w_utils.generate_uuid()
-        self._create_test_audit_template(id=1, uuid=uuid)
+        utils.create_test_audit_template(id=1, uuid=uuid)
         self.assertRaises(exception.AuditTemplateAlreadyExists,
-                          self._create_test_audit_template,
+                          utils.create_test_audit_template,
                           id=2, uuid=uuid)
 
     def test_audit_template_create_same_name(self):
