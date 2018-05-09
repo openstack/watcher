@@ -326,7 +326,8 @@ class ActionPlansController(rest.RestController):
     from the top-level resource ActionPlan."""
 
     _custom_actions = {
-        'detail': ['GET'],
+        'start': ['POST'],
+        'detail': ['GET']
     }
 
     def _get_action_plans_collection(self, marker, limit,
@@ -535,7 +536,7 @@ class ActionPlansController(rest.RestController):
             if action_plan_to_update[field] != patch_val:
                 action_plan_to_update[field] = patch_val
 
-            if (field == 'state'and
+            if (field == 'state' and
                     patch_val == objects.action_plan.State.PENDING):
                 launch_action_plan = True
 
@@ -560,3 +561,33 @@ class ActionPlansController(rest.RestController):
             pecan.request.context,
             action_plan_uuid)
         return ActionPlan.convert_with_links(action_plan_to_update)
+
+    @wsme_pecan.wsexpose(ActionPlan, types.uuid)
+    def start(self, action_plan_uuid, **kwargs):
+        """Start an action_plan
+
+        :param action_plan_uuid: UUID of an action_plan.
+        """
+
+        action_plan_to_start = api_utils.get_resource(
+            'ActionPlan', action_plan_uuid, eager=True)
+        context = pecan.request.context
+
+        policy.enforce(context, 'action_plan:start', action_plan_to_start,
+                       action='action_plan:start')
+
+        if action_plan_to_start['state'] != \
+                objects.action_plan.State.RECOMMENDED:
+            raise Exception.StartError(
+                state=action_plan_to_start.state)
+
+        action_plan_to_start['state'] = objects.action_plan.State.PENDING
+        action_plan_to_start.save()
+
+        applier_client = rpcapi.ApplierAPI()
+        applier_client.launch_action_plan(pecan.request.context,
+                                          action_plan_uuid)
+        action_plan_to_start = objects.ActionPlan.get_by_uuid(
+            pecan.request.context, action_plan_uuid)
+
+        return ActionPlan.convert_with_links(action_plan_to_start)
