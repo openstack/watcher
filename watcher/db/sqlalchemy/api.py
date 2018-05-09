@@ -314,6 +314,18 @@ class Connection(api.BaseConnection):
 
             query.delete()
 
+    def _get_model_list(self, model, add_filters_func, context, filters=None,
+                        limit=None, marker=None, sort_key=None, sort_dir=None,
+                        eager=False):
+        query = model_query(model)
+        if eager:
+            query = self._set_eager_options(model, query)
+        query = add_filters_func(query, filters)
+        if not context.show_deleted:
+            query = query.filter(model.deleted_at.is_(None))
+        return _paginate_query(model, limit, marker,
+                               sort_key, sort_dir, query)
+
     def _add_goals_filters(self, query, filters):
         if filters is None:
             filters = {}
@@ -426,18 +438,14 @@ class Connection(api.BaseConnection):
             query=query, model=models.EfficacyIndicator, filters=filters,
             plain_fields=plain_fields, join_fieldmap=join_fieldmap)
 
+    # NOTE(erakli): other _add_*_filters functions should be moved here
+
     # ### GOALS ### #
 
-    def get_goal_list(self, context, filters=None, limit=None, marker=None,
-                      sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.Goal)
-        if eager:
-            query = self._set_eager_options(models.Goal, query)
-        query = self._add_goals_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.Goal, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_goal_list(self, *args, **kwargs):
+        return self._get_model_list(models.Goal,
+                                    self._add_goals_filters,
+                                    *args, **kwargs)
 
     def create_goal(self, values):
         # ensure defaults are present for new goals
@@ -493,17 +501,10 @@ class Connection(api.BaseConnection):
 
     # ### STRATEGIES ### #
 
-    def get_strategy_list(self, context, filters=None, limit=None,
-                          marker=None, sort_key=None, sort_dir=None,
-                          eager=True):
-        query = model_query(models.Strategy)
-        if eager:
-            query = self._set_eager_options(models.Strategy, query)
-        query = self._add_strategies_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.Strategy, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_strategy_list(self, *args, **kwargs):
+        return self._get_model_list(models.Strategy,
+                                    self._add_strategies_filters,
+                                    *args, **kwargs)
 
     def create_strategy(self, values):
         # ensure defaults are present for new strategies
@@ -559,18 +560,10 @@ class Connection(api.BaseConnection):
 
     # ### AUDIT TEMPLATES ### #
 
-    def get_audit_template_list(self, context, filters=None, limit=None,
-                                marker=None, sort_key=None, sort_dir=None,
-                                eager=False):
-
-        query = model_query(models.AuditTemplate)
-        if eager:
-            query = self._set_eager_options(models.AuditTemplate, query)
-        query = self._add_audit_templates_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.AuditTemplate, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_audit_template_list(self, *args, **kwargs):
+        return self._get_model_list(models.AuditTemplate,
+                                    self._add_audit_templates_filters,
+                                    *args, **kwargs)
 
     def create_audit_template(self, values):
         # ensure defaults are present for new audit_templates
@@ -642,17 +635,10 @@ class Connection(api.BaseConnection):
 
     # ### AUDITS ### #
 
-    def get_audit_list(self, context, filters=None, limit=None, marker=None,
-                       sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.Audit)
-        if eager:
-            query = self._set_eager_options(models.Audit, query)
-        query = self._add_audits_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-
-        return _paginate_query(models.Audit, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_audit_list(self, *args, **kwargs):
+        return self._get_model_list(models.Audit,
+                                    self._add_audits_filters,
+                                    *args, **kwargs)
 
     def create_audit(self, values):
         # ensure defaults are present for new audits
@@ -740,16 +726,10 @@ class Connection(api.BaseConnection):
 
     # ### ACTIONS ### #
 
-    def get_action_list(self, context, filters=None, limit=None, marker=None,
-                        sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.Action)
-        if eager:
-            query = self._set_eager_options(models.Action, query)
-        query = self._add_actions_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.Action, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_action_list(self, *args, **kwargs):
+        return self._get_model_list(models.Action,
+                                    self._add_actions_filters,
+                                    *args, **kwargs)
 
     def create_action(self, values):
         # ensure defaults are present for new actions
@@ -819,18 +799,10 @@ class Connection(api.BaseConnection):
 
     # ### ACTION PLANS ### #
 
-    def get_action_plan_list(
-            self, context, filters=None, limit=None, marker=None,
-            sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.ActionPlan)
-        if eager:
-            query = self._set_eager_options(models.ActionPlan, query)
-        query = self._add_action_plans_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter(models.ActionPlan.deleted_at.is_(None))
-
-        return _paginate_query(models.ActionPlan, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_action_plan_list(self, *args, **kwargs):
+        return self._get_model_list(models.ActionPlan,
+                                    self._add_action_plans_filters,
+                                    *args, **kwargs)
 
     def create_action_plan(self, values):
         # ensure defaults are present for new audits
@@ -912,18 +884,10 @@ class Connection(api.BaseConnection):
 
     # ### EFFICACY INDICATORS ### #
 
-    def get_efficacy_indicator_list(self, context, filters=None, limit=None,
-                                    marker=None, sort_key=None, sort_dir=None,
-                                    eager=False):
-
-        query = model_query(models.EfficacyIndicator)
-        if eager:
-            query = self._set_eager_options(models.EfficacyIndicator, query)
-        query = self._add_efficacy_indicators_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.EfficacyIndicator, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_efficacy_indicator_list(self, *args, **kwargs):
+        return self._get_model_list(models.EfficacyIndicator,
+                                    self._add_efficacy_indicators_filters,
+                                    *args, **kwargs)
 
     def create_efficacy_indicator(self, values):
         # ensure defaults are present for new efficacy indicators
@@ -1002,18 +966,10 @@ class Connection(api.BaseConnection):
             query=query, model=models.ScoringEngine, filters=filters,
             plain_fields=plain_fields)
 
-    def get_scoring_engine_list(
-            self, context, columns=None, filters=None, limit=None,
-            marker=None, sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.ScoringEngine)
-        if eager:
-            query = self._set_eager_options(models.ScoringEngine, query)
-        query = self._add_scoring_engine_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-
-        return _paginate_query(models.ScoringEngine, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_scoring_engine_list(self, *args, **kwargs):
+        return self._get_model_list(models.ScoringEngine,
+                                    self._add_scoring_engine_filters,
+                                    *args, **kwargs)
 
     def create_scoring_engine(self, values):
         # ensure defaults are present for new scoring engines
@@ -1088,16 +1044,10 @@ class Connection(api.BaseConnection):
             query=query, model=models.Service, filters=filters,
             plain_fields=plain_fields)
 
-    def get_service_list(self, context, filters=None, limit=None, marker=None,
-                         sort_key=None, sort_dir=None, eager=False):
-        query = model_query(models.Service)
-        if eager:
-            query = self._set_eager_options(models.Service, query)
-        query = self._add_services_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.Service, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_service_list(self, *args, **kwargs):
+        return self._get_model_list(models.Service,
+                                    self._add_services_filters,
+                                    *args, **kwargs)
 
     def create_service(self, values):
         try:
@@ -1152,17 +1102,10 @@ class Connection(api.BaseConnection):
             query=query, model=models.ActionDescription, filters=filters,
             plain_fields=plain_fields)
 
-    def get_action_description_list(self, context, filters=None, limit=None,
-                                    marker=None, sort_key=None,
-                                    sort_dir=None, eager=False):
-        query = model_query(models.ActionDescription)
-        if eager:
-            query = self._set_eager_options(models.ActionDescription, query)
-        query = self._add_action_descriptions_filters(query, filters)
-        if not context.show_deleted:
-            query = query.filter_by(deleted_at=None)
-        return _paginate_query(models.ActionDescription, limit, marker,
-                               sort_key, sort_dir, query)
+    def get_action_description_list(self, *args, **kwargs):
+        return self._get_model_list(models.ActionDescription,
+                                    self._add_action_descriptions_filters,
+                                    *args, **kwargs)
 
     def create_action_description(self, values):
         try:
