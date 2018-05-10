@@ -63,6 +63,7 @@ class AuditHandler(BaseAuditHandler):
         self._strategy_context = default_context.DefaultStrategyContext()
         self._planner_manager = planner_manager.PlannerManager()
         self._planner = None
+        self.applier_client = rpcapi.ApplierAPI()
 
     @property
     def planner(self):
@@ -125,9 +126,8 @@ class AuditHandler(BaseAuditHandler):
     def post_execute(self, audit, solution, request_context):
         action_plan = self.do_schedule(request_context, audit, solution)
         if audit.auto_trigger:
-            applier_client = rpcapi.ApplierAPI()
-            applier_client.launch_action_plan(request_context,
-                                              action_plan.uuid)
+            self.applier_client.launch_action_plan(request_context,
+                                                   action_plan.uuid)
 
     def execute(self, audit, request_context):
         try:

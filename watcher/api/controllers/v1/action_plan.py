@@ -320,6 +320,7 @@ class ActionPlansController(rest.RestController):
 
     def __init__(self):
         super(ActionPlansController, self).__init__()
+        self.applier_client = rpcapi.ApplierAPI()
 
     from_actionsPlans = False
     """A flag to indicate if the requests to this controller are coming
@@ -553,9 +554,8 @@ class ActionPlansController(rest.RestController):
                 a.save()
 
         if launch_action_plan:
-            applier_client = rpcapi.ApplierAPI()
-            applier_client.launch_action_plan(pecan.request.context,
-                                              action_plan.uuid)
+            self.applier_client.launch_action_plan(pecan.request.context,
+                                                   action_plan.uuid)
 
         action_plan_to_update = objects.ActionPlan.get_by_uuid(
             pecan.request.context,
@@ -584,9 +584,8 @@ class ActionPlansController(rest.RestController):
         action_plan_to_start['state'] = objects.action_plan.State.PENDING
         action_plan_to_start.save()
 
-        applier_client = rpcapi.ApplierAPI()
-        applier_client.launch_action_plan(pecan.request.context,
-                                          action_plan_uuid)
+        self.applier_client.launch_action_plan(pecan.request.context,
+                                               action_plan_uuid)
         action_plan_to_start = objects.ActionPlan.get_by_uuid(
             pecan.request.context, action_plan_uuid)
 

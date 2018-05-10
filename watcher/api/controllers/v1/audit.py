@@ -403,6 +403,7 @@ class AuditsController(rest.RestController):
     """REST controller for Audits."""
     def __init__(self):
         super(AuditsController, self).__init__()
+        self.dc_client = rpcapi.DecisionEngineAPI()
 
     from_audits = False
     """A flag to indicate if the requests to this controller are coming
@@ -575,8 +576,7 @@ class AuditsController(rest.RestController):
 
         # trigger decision-engine to run the audit
         if new_audit.audit_type == objects.audit.AuditType.ONESHOT.value:
-            dc_client = rpcapi.DecisionEngineAPI()
-            dc_client.trigger_audit(context, new_audit.uuid)
+            self.dc_client.trigger_audit(context, new_audit.uuid)
 
         return Audit.convert_with_links(new_audit)
 
