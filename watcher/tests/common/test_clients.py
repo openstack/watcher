@@ -45,7 +45,7 @@ class TestClients(base.TestCase):
         # ka_loading.load_auth_from_conf_options(CONF, _AUTH_CONF_GROUP)
         # ka_loading.load_session_from_conf_options(CONF, _AUTH_CONF_GROUP)
         # CONF.set_override(
-        #     'auth-url', 'http://server.ip:35357', group=_AUTH_CONF_GROUP)
+        #     'auth-url', 'http://server.ip:5000', group=_AUTH_CONF_GROUP)
 
         # If we don't clean up the _AUTH_CONF_GROUP conf options, then other
         # tests that run after this one will fail, complaining about required
@@ -68,7 +68,7 @@ class TestClients(base.TestCase):
 
         expected = {'username': 'foousername',
                     'password': 'foopassword',
-                    'auth_url': 'http://server.ip:35357',
+                    'auth_url': 'http://server.ip:5000',
                     'cafile': None,
                     'certfile': None,
                     'keyfile': None,
@@ -99,7 +99,7 @@ class TestClients(base.TestCase):
 
         expected = {'username': 'foousername',
                     'password': 'foopassword',
-                    'auth_url': 'http://server.ip:35357',
+                    'auth_url': 'http://server.ip:5000',
                     'user_domain_id': 'foouserdomainid',
                     'project_domain_id': 'fooprojdomainid'}
 
@@ -360,7 +360,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.monasca_client.api_version,
             'test_endpoint',
-            auth_url='http://server.ip:35357', cert_file=None, insecure=False,
+            auth_url='http://server.ip:5000', cert_file=None, insecure=False,
             key_file=None, keystone_timeout=None, os_cacert=None,
             password='foopassword', service_type='monitoring',
             token='test_token', username='foousername')
