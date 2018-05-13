@@ -79,7 +79,7 @@ requirements.txt file::
 
 .. _cookiecutter: https://github.com/audreyr/cookiecutter
 .. _OpenStack cookiecutter: https://github.com/openstack-dev/cookiecutter
-.. _python-watcher: https://pypi.python.org/pypi/python-watcher
+.. _python-watcher: https://pypi.org/project/python-watcher
 
 Implementing a plugin for Watcher
 =================================
