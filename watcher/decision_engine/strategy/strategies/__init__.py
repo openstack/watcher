@@ -18,6 +18,7 @@ from watcher.decision_engine.strategy.strategies import actuation
 from watcher.decision_engine.strategy.strategies import basic_consolidation
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import dummy_with_scorer
+from watcher.decision_engine.strategy.strategies import host_maintenance
 from watcher.decision_engine.strategy.strategies import noisy_neighbor
 from watcher.decision_engine.strategy.strategies import outlet_temp_control
 from watcher.decision_engine.strategy.strategies import saving_energy
@@ -44,9 +45,10 @@ WorkloadStabilization = workload_stabilization.WorkloadStabilization
 UniformAirflow = uniform_airflow.UniformAirflow
 NoisyNeighbor = noisy_neighbor.NoisyNeighbor
 ZoneMigration = zone_migration.ZoneMigration
+HostMaintenance = host_maintenance.HostMaintenance
 
 __all__ = ("Actuator", "BasicConsolidation", "OutletTempControl",
            "DummyStrategy", "DummyWithScorer", "VMWorkloadConsolidation",
            "WorkloadBalance", "WorkloadStabilization", "UniformAirflow",
            "NoisyNeighbor", "SavingEnergy", "StorageCapacityBalance",
-           "ZoneMigration")
+           "ZoneMigration", "HostMaintenance")
