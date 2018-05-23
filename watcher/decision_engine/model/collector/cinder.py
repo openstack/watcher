@@ -222,8 +222,21 @@ class ModelBuilder(object):
 
         :param pool: A storage pool
         :type pool: :py:class:`~cinderlient.v2.capabilities.Capabilities`
+        :raises: exception.InvalidPoolAttributeValue
         """
         # build up the storage pool.
+
+        attrs = ["total_volumes", "total_capacity_gb",
+                 "free_capacity_gb", "provisioned_capacity_gb",
+                 "allocated_capacity_gb"]
+
+        for attr in attrs:
+            try:
+                int(getattr(pool, attr))
+            except ValueError:
+                raise exception.InvalidPoolAttributeValue(
+                    name=pool.name, attribute=attr)
+
         node_attributes = {
             "name": pool.name,
             "total_volumes": pool.total_volumes,
