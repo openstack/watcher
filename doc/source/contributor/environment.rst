@@ -37,7 +37,7 @@ different version of the above, please document your configuration here!
 
 .. _Python: https://www.python.org/
 .. _git: https://git-scm.com/
-.. _setuptools: https://pypi.python.org/pypi/setuptools
+.. _setuptools: https://pypi.org/project/setuptools
 .. _virtualenvwrapper: https://virtualenvwrapper.readthedocs.io/en/latest/install.html
 
 Getting the latest code
@@ -69,8 +69,8 @@ itself.
 
 These dependencies can be installed from PyPi_ using the Python tool pip_.
 
-.. _PyPi: https://pypi.python.org/
-.. _pip: https://pypi.python.org/pypi/pip
+.. _PyPi: https://pypi.org/
+.. _pip: https://pypi.org/project/pip
 
 However, your system *may* need additional dependencies that `pip` (and by
 extension, PyPi) cannot satisfy. These dependencies should be installed
@@ -126,7 +126,7 @@ You can re-activate this virtualenv for your current shell using:
 For more information on virtual environments, see virtualenv_ and
 virtualenvwrapper_.
 
-.. _virtualenv: https://pypi.python.org/pypi/virtualenv/
+.. _virtualenv: https://pypi.org/project/virtualenv/
 
 
 
