@@ -19,7 +19,7 @@ The source install instructions specifically avoid using platform specific
 packages, instead using the source for the code and the Python Package Index
 (PyPi_).
 
-.. _PyPi: https://pypi.python.org/pypi
+.. _PyPi: https://pypi.org/
 
 It's expected that your system already has python2.7_, latest version of pip_,
 and git_ available.
