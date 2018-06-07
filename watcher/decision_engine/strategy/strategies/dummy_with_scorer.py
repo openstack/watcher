@@ -69,7 +69,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
         self._avg_scorer = (scoring_factory
                             .get_scoring_engine('dummy_avg_scorer'))
 
-        # Get metainfo from Workload Scorer for result intepretation
+        # Get metainfo from Workload Scorer for result interpretation
         metainfo = jsonutils.loads(self._workload_scorer.get_metainfo())
         self._workloads = {index: workload
                            for index, workload in enumerate(
