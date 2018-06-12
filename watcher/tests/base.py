@@ -56,7 +56,7 @@ class TestCase(BaseTestCase):
         self.useFixture(conf_fixture.ConfReloadFixture())
         self.policy = self.useFixture(policy_fixture.PolicyFixture())
         self.messaging_conf = self.useFixture(conffixture.ConfFixture(CONF))
-        self.messaging_conf.transport_driver = 'fake'
+        self.messaging_conf.transport_url = 'fake:/'
 
         cfg.CONF.set_override("auth_type", "admin_token",
                               group='keystone_authtoken')
