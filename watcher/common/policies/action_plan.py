@@ -78,7 +78,7 @@ rules = [
         description='Start an action plans.',
         operations=[
             {
-                'path': '/v1/action_plans/{action_plan_uuid}/action',
+                'path': '/v1/action_plans/{action_plan_uuid}/start',
                 'method': 'POST'
             }
         ]
