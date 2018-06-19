@@ -1,0 +1,7 @@
+{
+    "name": "at2",
+    "goal": "dummy",
+    "strategy": "dummy",
+    "description": "the second audit template",
+    "scope": []
+}

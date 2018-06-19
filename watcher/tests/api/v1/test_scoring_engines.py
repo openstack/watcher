@@ -21,7 +21,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestListScoringEngine(api_base.FunctionalTest):
 
     def _assert_scoring_engine_fields(self, scoring_engine):
-        scoring_engine_fields = ['uuid', 'name', 'description', 'metainfo']
+        scoring_engine_fields = ['uuid', 'name', 'description']
         for field in scoring_engine_fields:
             self.assertIn(field, scoring_engine)
 

@@ -83,7 +83,7 @@ class ScoringEngine(base.APIBase):
     def _convert_with_links(se, url, expand=True):
         if not expand:
             se.unset_fields_except(
-                ['uuid', 'name', 'description', 'metainfo'])
+                ['uuid', 'name', 'description'])
 
         se.links = [link.Link.make_link('self', url,
                                         'scoring_engines', se.uuid),

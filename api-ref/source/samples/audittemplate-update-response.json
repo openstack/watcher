@@ -1,0 +1,23 @@
+{
+    "description": "test 1",
+    "strategy_uuid": null,
+    "goal_uuid": "4690f8ba-18ff-45c1-99e9-159556d23810",
+    "name": "at11",
+    "uuid": "0d100c27-14af-4962-86fb-f6079287c9c6",
+    "goal_name": "dummy",
+    "scope": [],
+    "created_at": "2018-04-04T07:48:36.175472+00:00",
+    "deleted_at": null,
+    "links": [
+        {
+            "rel": "self",
+            "href": "http://controller:9322/v1/audit_templates/0d100c27-14af-4962-86fb-f6079287c9c6"
+        },
+        {
+            "rel": "bookmark",
+            "href": "http://controller:9322/audit_templates/0d100c27-14af-4962-86fb-f6079287c9c6"
+        }
+    ],
+    "strategy_name": null,
+    "updated_at": "2018-04-05T07:57:42.139127+00:00"
+}

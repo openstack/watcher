@@ -1,0 +1,49 @@
+[
+    {
+        "state": "gnocchi: available",
+        "comment": "",
+        "mandatory": true,
+        "type": "Datasource"
+    },
+    {
+        "state": [
+            {
+                "compute.node.cpu.percent": "available"
+            },
+            {
+                "cpu_util": "available"
+            },
+            {
+                "memory.resident": "available"
+            },
+            {
+                "hardware.memory.used": "available"
+            }
+        ],
+        "comment": "",
+        "mandatory": false,
+        "type": "Metrics"
+    },
+    {
+        "state": [
+            {
+                "compute_model": "available"
+            },
+            {
+                "storage_model": "not available"
+            },
+            {
+                "baremetal_model": "not available"
+            }
+        ],
+        "comment": "",
+        "mandatory": true,
+        "type": "CDM"
+    },
+    {
+        "state": "workload_stabilization",
+        "mandatory": "",
+        "comment": "",
+        "type": "Name"
+    }
+]

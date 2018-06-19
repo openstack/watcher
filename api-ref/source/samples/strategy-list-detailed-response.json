@@ -1,0 +1,35 @@
+{
+    "strategies": [
+        {
+            "goal_uuid": "cb9afa5e-aec7-4a8c-9261-c15c33f2262b",
+            "name": "vm_workload_consolidation",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/strategies/6382b2d7-259e-487d-88db-78c852ffea54"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/strategies/6382b2d7-259e-487d-88db-78c852ffea54"
+                }
+            ],
+            "parameters_spec": {
+                "properties": {
+                    "granularity": {
+                        "default": 300,
+                        "type": "number",
+                        "description": "The time between two measures in an aggregated timeseries of a metric."
+                    },
+                    "period": {
+                        "default": 3600,
+                        "type": "number",
+                        "description": "The time interval in seconds for getting statistic aggregation"
+                    }
+                }
+            },
+            "uuid": "6382b2d7-259e-487d-88db-78c852ffea54",
+            "goal_name": "server_consolidation",
+            "display_name": "VM Workload Consolidation Strategy"
+        }
+    ]
+}

@@ -193,6 +193,8 @@ still need to configure the following sections:
   :ref:`Identity service <identity-service_configuration>` i.e. Keystone
 - The ``[watcher_messaging]`` section to configure the OpenStack AMQP-based
   message bus
+- The ``watcher_clients_auth`` section to configure Keystone client to access
+  related OpenStack projects
 
 So if you need some more details on how to configure one or more of these
 sections, please do have a look at :doc:`../configuration/configuring` before

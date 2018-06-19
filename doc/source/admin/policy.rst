@@ -131,6 +131,16 @@ The actions that may have a rule enforced on them are:
   * ``GET /v1/actions/<ACTION_UUID>``
 
 
+* ``service:get_all``, ``service:detail`` - List available Watcher services
+
+  * ``GET /v1/services``
+  * ``GET /v1/services/detail``
+
+* ``service:get`` - Retrieve a specific Watcher service entity
+
+  * ``GET /v1/services/<SERVICE_ID>``
+
+
 
 To limit an action to a particular role or roles, you list the roles like so ::
 

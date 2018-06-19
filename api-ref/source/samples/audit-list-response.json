@@ -1,0 +1,28 @@
+{
+    "audits": [
+        {
+            "interval": null,
+            "strategy_uuid": "e311727b-b9b3-43ef-a5f7-8bd7ea80df25",
+            "goal_uuid": "4690f8ba-18ff-45c1-99e9-159556d23810",
+            "name": "dummy-2018-03-26T11:56:07.950400",
+            "auto_trigger": false,
+            "uuid": "ccc69a5f-114e-46f4-b15e-a77eaa337b01",
+            "goal_name": "dummy",
+            "scope": [],
+            "state": "SUCCEEDED",
+            "audit_type": "ONESHOT",
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "http://controller:9322/v1/audits/ccc69a5f-114e-46f4-b15e-a77eaa337b01"
+                },
+                {
+                    "rel": "bookmark",
+                    "href": "http://controller:9322/audits/ccc69a5f-114e-46f4-b15e-a77eaa337b01"
+                }
+            ],
+            "strategy_name": "dummy",
+            "next_run_time": null
+        }
+    ]
+}
