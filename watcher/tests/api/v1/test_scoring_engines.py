@@ -140,7 +140,7 @@ class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",
-            rule: "rule:defaut"})
+            rule: "rule:default"})
         response = func(*arg, **kwarg)
         self.assertEqual(403, response.status_int)
         self.assertEqual('application/json', response.content_type)
