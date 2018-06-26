@@ -1,7 +1,8 @@
 - project:
     check:
       jobs:
-        - watcher-tempest-functional
+        - watcher-tempest-functional:
+            voting: false
         - watcher-tempest-dummy_optim
         - watcher-tempest-actuator
         - watcher-tempest-basic_optim
@@ -11,7 +12,7 @@
         - openstack-tox-lower-constraints
     gate:
       jobs:
-        - watcher-tempest-functional
+        # - watcher-tempest-functional
         - openstack-tox-lower-constraints
 
 - job:

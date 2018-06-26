@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher.applier.action_plan import base
@@ -25,6 +26,7 @@ from watcher import notifications
 from watcher import objects
 from watcher.objects import fields
 
+CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
@@ -43,6 +45,7 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             if action_plan.state == objects.action_plan.State.CANCELLED:
                 self._update_action_from_pending_to_cancelled()
                 return
+            action_plan.hostname = CONF.host
             action_plan.state = objects.action_plan.State.ONGOING
             action_plan.save()
             notifications.action_plan.send_action_notification(

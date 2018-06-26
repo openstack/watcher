@@ -77,6 +77,8 @@ class AuditPostType(wtypes.Base):
 
     auto_trigger = wtypes.wsattr(bool, mandatory=False)
 
+    hostname = wtypes.wsattr(wtypes.text, readonly=True, mandatory=False)
+
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
@@ -304,6 +306,9 @@ class Audit(base.APIBase):
 
     next_run_time = wsme.wsattr(datetime.datetime, mandatory=False)
     """The next time audit launch"""
+
+    hostname = wsme.wsattr(wtypes.text, mandatory=False)
+    """Hostname the audit is running on"""
 
     def __init__(self, **kwargs):
         self.fields = []

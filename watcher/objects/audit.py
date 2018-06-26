@@ -87,7 +87,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     # Version 1.3: Added 'next_run_time' DateTime field,
     #              'interval' type has been changed from Integer to String
     # Version 1.4: Added 'name' string field
-    VERSION = '1.4'
+    # Version 1.5: Added 'hostname' field
+    VERSION = '1.5'
 
     dbapi = db_api.get_instance()
 
@@ -105,6 +106,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'auto_trigger': wfields.BooleanField(),
         'next_run_time': wfields.DateTimeField(nullable=True,
                                                tzinfo_aware=False),
+        'hostname': wfields.StringField(nullable=True),
 
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
