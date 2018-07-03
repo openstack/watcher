@@ -7,7 +7,6 @@
         - watcher-tempest-basic_optim
         - watcher-tempest-workload_balancing
         - watcherclient-tempest-functional
-        - legacy-rally-dsvm-watcher-rally
         - openstack-tox-lower-constraints
     gate:
       jobs:
@@ -17,7 +16,6 @@
         - watcher-tempest-basic_optim
         - watcher-tempest-workload_balancing
         - watcherclient-tempest-functional
-        - legacy-rally-dsvm-watcher-rally
         - openstack-tox-lower-constraints
 
 - job:
