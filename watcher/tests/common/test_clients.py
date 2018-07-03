@@ -403,7 +403,7 @@ class TestClients(base.TestCase):
         osc.ironic()
         mock_call.assert_called_once_with(
             CONF.ironic_client.api_version,
-            ironic_url,
+            endpoint_override=ironic_url,
             max_retries=None,
             os_ironic_api_version=None,
             retry_interval=None,
