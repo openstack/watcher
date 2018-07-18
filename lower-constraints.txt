@@ -114,7 +114,7 @@ python-glanceclient==2.9.1
 python-ironicclient==2.3.0
 python-keystoneclient==3.15.0
 python-mimeparse==1.6.0
-python-monascaclient==1.10.0
+python-monascaclient==1.12.0
 python-neutronclient==6.7.0
 python-novaclient==10.1.0
 python-openstackclient==3.14.0
