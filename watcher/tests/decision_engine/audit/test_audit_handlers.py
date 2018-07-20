@@ -379,8 +379,27 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.audits[0].next_run_time = (datetime.datetime.now() -
                                         datetime.timedelta(seconds=1800))
         m_is_inactive.return_value = True
-        m_get_jobs.return_value = None
+        m_get_jobs.return_value = []
 
         audit_handler.execute_audit(self.audits[0], self.context)
-        m_execute.assert_called_once_with(self.audits[0], self.context)
         self.assertIsNotNone(self.audits[0].next_run_time)
+
+    @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
+    def test_is_audit_inactive(self, mock_jobs):
+        audit_handler = continuous.ContinuousAuditHandler()
+        mock_jobs.return_value = mock.MagicMock()
+        audit_handler._scheduler = mock.MagicMock()
+
+        ap_jobs = [job.Job(mock.MagicMock(), name='execute_audit',
+                           func=audit_handler.execute_audit,
+                           args=(self.audits[0], mock.MagicMock()),
+                           kwargs={}),
+                   ]
+
+        audit_handler.update_audit_state(self.audits[1],
+                                         objects.audit.State.CANCELLED)
+        mock_jobs.return_value = ap_jobs
+        is_inactive = audit_handler._is_audit_inactive(self.audits[1])
+        self.assertTrue(is_inactive)
+        is_inactive = audit_handler._is_audit_inactive(self.audits[0])
+        self.assertFalse(is_inactive)
