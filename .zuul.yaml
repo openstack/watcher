@@ -119,6 +119,7 @@
 - job:
     name: watcher-tempest-functional
     parent: devstack-tempest
+    voting: false
     timeout: 7200
     required-projects:
       - openstack/ceilometer
