@@ -41,6 +41,8 @@ Default Watcher's actions:
          - description
        * - ``migration``
          - .. watcher-term:: watcher.applier.actions.migration.Migrate
+       * - ``change_nova_service_state``
+         - .. watcher-term:: watcher.applier.actions.change_nova_service_state.ChangeNovaServiceState
 
 Planner
 *******
