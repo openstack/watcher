@@ -67,7 +67,7 @@ None
 Algorithm
 ---------
 
-For more information on the zone migration strategy please refer to:
+For more information on the storage capacity balance strategy please refer to:
 http://specs.openstack.org/openstack/watcher-specs/specs/queens/implemented/storage-capacity-balance.html
 
 How to use it ?
