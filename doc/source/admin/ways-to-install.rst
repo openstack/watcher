@@ -30,7 +30,7 @@ and git_ available.
 
 Your system shall also have some additional system libraries:
 
-  On Ubuntu (tested on 14.04LTS):
+  On Ubuntu (tested on 16.04LTS):
 
   .. code-block:: bash
 
