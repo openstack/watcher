@@ -80,7 +80,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
         context = watcher_context.make_context(is_admin=True)
         self.add_job(self.get_services_status, name='service_status',
                      trigger='interval', jobstore='default', args=[context],
-                     next_run_time=datetime.datetime.now(), seconds=60)
+                     next_run_time=datetime.datetime.now(),
+                     seconds=CONF.periodic_interval)
         super(APISchedulingService, self).start()
 
     def stop(self):
