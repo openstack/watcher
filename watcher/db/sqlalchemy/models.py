@@ -23,8 +23,10 @@ from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
+from sqlalchemy import LargeBinary
 from sqlalchemy import Numeric
 from sqlalchemy import orm
 from sqlalchemy import String
@@ -294,3 +296,23 @@ class ActionDescription(Base):
     id = Column(Integer, primary_key=True)
     action_type = Column(String(255), nullable=False)
     description = Column(String(255), nullable=False)
+
+
+class APScheulerJob(Base):
+    """Represents apscheduler jobs"""
+
+    __tablename__ = 'apscheduler_jobs'
+    __table_args__ = (
+        UniqueConstraint('id',
+                         name="uniq_apscheduler_jobs0id"),
+        table_args()
+    )
+    id = Column(String(191), nullable=False, primary_key=True)
+    next_run_time = Column(Float(25), index=True)
+    job_state = Column(LargeBinary, nullable=False)
+    tag = Column(JSONEncodedDict(), nullable=True)
+    service_id = Column(Integer, ForeignKey('services.id'),
+                        nullable=False)
+
+    service = orm.relationship(
+        Service, foreign_keys=service_id, lazy=None)
