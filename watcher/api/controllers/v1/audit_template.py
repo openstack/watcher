@@ -51,8 +51,6 @@ import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-from oslo_log import log
-
 from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
@@ -65,8 +63,6 @@ from watcher.common import policy
 from watcher.common import utils as common_utils
 from watcher.decision_engine.loading import default as default_loading
 from watcher import objects
-
-LOG = log.getLogger(__name__)
 
 
 class AuditTemplatePostType(wtypes.Base):
