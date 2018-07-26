@@ -30,9 +30,12 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     'control events, this topic '
                     'used for RPC calls'),
     cfg.ListOpt('notification_topics',
-                default=['versioned_notifications', 'watcher_notifications'],
-                help='The topic names from which notification events '
-                     'will be listened to'),
+                default=['nova.versioned_notifications',
+                         'watcher.watcher_notifications'],
+                help='The exchange and topic names from which '
+                     'notification events will be listened to. '
+                     'The exchange should be specified to get '
+                     'an ability to use pools.'),
     cfg.StrOpt('publisher_id',
                default='watcher.decision.api',
                help='The identifier used by the Watcher '
