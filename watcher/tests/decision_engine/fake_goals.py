@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import voluptuous
-
 from watcher.decision_engine.goal import base as base_goal
 from watcher.decision_engine.goal.efficacy import base as efficacy_base
 from watcher.decision_engine.goal.efficacy import indicators
@@ -55,8 +53,10 @@ class DummyIndicator(indicators.IndicatorSpecification):
 
     @property
     def schema(self):
-        return voluptuous.Schema(
-            voluptuous.Range(min=0, max=100), required=True)
+        return {
+            "type": "integer",
+            "minimum": 0
+            }
 
 
 class DummySpec1(efficacy_base.EfficacySpecification):
