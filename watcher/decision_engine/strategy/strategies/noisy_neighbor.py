@@ -28,6 +28,27 @@ CONF = cfg.CONF
 
 
 class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
+    """Noisy Neighbor strategy using live migration
+
+    *Description*
+
+    This strategy can identify and migrate a Noisy Neighbor -
+    a low priority VM that negatively affects performance of
+    a high priority VM in terms of IPC by over utilizing
+    Last Level Cache.
+
+    *Requirements*
+
+    To enable LLC metric, latest Intel server with CMT support is required.
+
+    *Limitations*
+
+    This is a proof of concept that is not meant to be used in production
+
+    *Spec URL*
+
+    http://specs.openstack.org/openstack/watcher-specs/specs/pike/implemented/noisy_neighbor_strategy.html
+    """
 
     MIGRATION = "migrate"
 
@@ -38,14 +59,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     DEFAULT_WATCHER_PRIORITY = 5
 
     def __init__(self, config, osc=None):
-        """Noisy Neighbor strategy using live migration
-
-        :param config: A mapping containing the configuration of this strategy
-        :type config: dict
-        :param osc: an OpenStackClients object, defaults to None
-        :type osc: :py:class:`~.OpenStackClients` instance, optional
-        """
-
         super(NoisyNeighbor, self).__init__(config, osc)
 
         self.meter_name = self.METER_NAME_L3
