@@ -269,6 +269,21 @@ audittemplate_strategy:
   required: false
   type: string
 
+created_at:
+  description: |
+    The date and time when the resource was created. The date and time
+    stamp format is `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_
+  in: body
+  required: true
+  type: string
+deleted_at:
+  description: |
+    The date and time when the resource was deleted. The date and time
+    stamp format is `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_
+  in: body
+  required: true
+  type: string
+
 # Goal
 goal_display_name:
   description: |
@@ -403,6 +418,13 @@ strategy_uuid:
   required: true
   type: string
 
+updated_at:
+  description: |
+    The date and time when the resource was updated. The date and time
+    stamp format is `ISO 8601 <https://en.wikipedia.org/wiki/ISO_8601>`_
+  in: body
+  required: true
+  type: string
 uuid:
   description: |
     The UUID for the resource.

@@ -98,6 +98,51 @@ Response
 .. literalinclude:: samples/actionplan-list-response.json
    :language: javascript
 
+List Action Plan detailed
+=========================
+
+.. rest_method::  GET /v1/action_plans/detail
+
+Returns a list of Action Plan resources with complete details.
+
+Normal response codes: 200
+
+Error codes: 400,401
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - audit_uuid: r_audit
+   - strategy: r_strategy
+   - limit: limit
+   - marker: marker
+   - sort_dir: sort_dir
+   - sort_key: sort_key
+
+Response
+--------
+
+.. rest_parameters:: parameters.yaml
+
+    - deleted_at: deleted_at
+    - updated_at: updated_at
+    - created_at: created_at
+    - uuid: uuid
+    - state: actionplan_state
+    - audit_uuid: actionplan_audit_uuid
+    - strategy_uuid: strategy_uuid
+    - strategy_name: strategy_name
+    - efficacy_indicators: actionplan_efficacy_indicators
+    - global_efficacy: actionplan_global_efficacy
+    - links: links
+
+**Example JSON representation of an Action Plan:**
+
+.. literalinclude:: samples/actionplan-list-detailed-response.json
+   :language: javascript
+
 Show Action Plan
 ================
 
