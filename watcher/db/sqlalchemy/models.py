@@ -181,6 +181,7 @@ class Audit(Base):
     scope = Column(JSONEncodedList, nullable=True)
     auto_trigger = Column(Boolean, nullable=False)
     next_run_time = Column(DateTime, nullable=True)
+    hostname = Column(String(255), nullable=True)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
@@ -200,6 +201,7 @@ class ActionPlan(Base):
     strategy_id = Column(Integer, ForeignKey('strategies.id'), nullable=False)
     state = Column(String(20), nullable=True)
     global_efficacy = Column(JSONEncodedList, nullable=True)
+    hostname = Column(String(255), nullable=True)
 
     audit = orm.relationship(Audit, foreign_keys=audit_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)

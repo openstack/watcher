@@ -230,6 +230,9 @@ class ActionPlan(base.APIBase):
     links = wsme.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
 
+    hostname = wsme.wsattr(wtypes.text, mandatory=False)
+    """Hostname the actionplan is running on"""
+
     def __init__(self, **kwargs):
         super(ActionPlan, self).__init__()
         self.fields = []

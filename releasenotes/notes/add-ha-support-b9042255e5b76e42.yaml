@@ -1,0 +1,6 @@
+---
+features:
+  - Watcher services can be launched in HA mode. From now on Watcher Decision
+    Engine and Watcher Applier services may be deployed on different nodes to
+    run in active-active or active-passive mode. Any ONGOING Audits or Action Plans
+    will be CANCELLED if service they are executed on is restarted.

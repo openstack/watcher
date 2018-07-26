@@ -124,10 +124,20 @@ class ContinuousAuditHandler(base.AuditHandler):
             'audit_type': objects.audit.AuditType.CONTINUOUS.value,
             'state__in': (objects.audit.State.PENDING,
                           objects.audit.State.ONGOING,
-                          objects.audit.State.SUCCEEDED)
+                          objects.audit.State.SUCCEEDED),
+            'hostname__in': (None, CONF.host)
         }
         audits = objects.Audit.list(
             audit_context, filters=audit_filters, eager=True)
+        for audit in audits:
+            # If continuous audit doesn't have a hostname yet,
+            # Watcher will set current CONF.host value.
+            if audit.hostname is None:
+                audit.hostname = CONF.host
+                audit.save()
+                # Let's remove this audit from current execution
+                # and execute it as usual Audit with hostname later.
+                audits.remove(audit)
         scheduler_job_args = [
             (job.args[0].uuid, job) for job
             in self.scheduler.get_jobs()
@@ -173,6 +183,7 @@ class ContinuousAuditHandler(base.AuditHandler):
                     audit.next_run_time = self._next_cron_time(audit)
                     self._add_job('date', audit, audit_context,
                                   run_date=audit.next_run_time)
+                audit.hostname = CONF.host
                 audit.save()
 
     def start(self):

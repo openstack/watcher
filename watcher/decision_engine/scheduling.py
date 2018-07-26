@@ -88,10 +88,31 @@ class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
                          seconds=interval,
                          next_run_time=datetime.datetime.now())
 
+    def cancel_ongoing_audits(self):
+        audit_filters = {
+            'audit_type': objects.audit.AuditType.ONESHOT.value,
+            'state': objects.audit.State.ONGOING,
+            'hostname': CONF.host
+        }
+        local_context = context.make_context()
+        ongoing_audits = objects.Audit.list(
+            local_context,
+            filters=audit_filters)
+        for audit in ongoing_audits:
+            audit.state = objects.audit.State.CANCELLED
+            audit.save()
+            LOG.info("Audit %(uuid)s has been cancelled because it was in "
+                     "%(state)s state when Decision Engine had been stopped "
+                     "on %(hostname)s host.",
+                     {'uuid': audit.uuid,
+                      'state': objects.audit.State.ONGOING,
+                      'hostname': audit.hostname})
+
     def start(self):
         """Start service."""
         self.add_sync_jobs()
         self.add_checkstate_job()
+        self.cancel_ongoing_audits()
         super(DecisionEngineSchedulingService, self).start()
 
     def stop(self):

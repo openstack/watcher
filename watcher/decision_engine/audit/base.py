@@ -20,6 +20,7 @@
 import abc
 import six
 
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher.applier import rpcapi
@@ -31,6 +32,7 @@ from watcher import notifications
 from watcher import objects
 from watcher.objects import fields
 
+CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
@@ -120,6 +122,8 @@ class AuditHandler(BaseAuditHandler):
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
         self.check_ongoing_action_plans(request_context)
+        # Write hostname that will execute this audit.
+        audit.hostname = CONF.host
         # change state of the audit to ONGOING
         self.update_audit_state(audit, objects.audit.State.ONGOING)
 

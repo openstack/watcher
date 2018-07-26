@@ -497,6 +497,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -540,6 +541,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
             '01234567-8910-1112-1314-151617181920')
@@ -563,6 +565,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         with mock.patch.object(self.dbapi, 'create_audit',
                                wraps=self.dbapi.create_audit) as cn_mock:
             response = self.post_json('/audits', audit_dict)
@@ -581,6 +584,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -598,6 +602,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['state']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
 
@@ -619,6 +624,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['state']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '* * * * *'
 
@@ -640,6 +646,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['state']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = 'zxc'
 
@@ -662,6 +669,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(400, response.status_int)
@@ -681,6 +689,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict['audit_type'] = objects.audit.AuditType.ONESHOT.value
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(400, response.status_int)
@@ -698,6 +707,7 @@ class TestPost(api_base.FunctionalTest):
             del audit_dict['interval']
             del audit_dict['scope']
             del audit_dict['next_run_time']
+            del audit_dict['hostname']
             response = self.post_json('/audits', audit_dict)
             de_mock.assert_called_once_with(mock.ANY, response.json['uuid'])
 
@@ -722,6 +732,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -744,6 +755,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -766,7 +778,7 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict['audit_template_uuid'] = audit_template['uuid']
         del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
-                    'scope', 'next_run_time']
+                    'scope', 'next_run_time', 'hostname']
         for k in del_keys:
             del audit_dict[k]
 
@@ -822,12 +834,13 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit()
         normal_name = 'this audit name is just for test'
         # long_name length exceeds 63 characters
-        long_name = normal_name+audit_dict['uuid']
+        long_name = normal_name + audit_dict['uuid']
         del audit_dict['uuid']
         del audit_dict['state']
         del audit_dict['interval']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
 
         audit_dict['name'] = normal_name
         response = self.post_json('/audits', audit_dict)
@@ -954,6 +967,7 @@ class TestAuditPolicyEnforcement(api_base.FunctionalTest):
         del audit_dict['state']
         del audit_dict['scope']
         del audit_dict['next_run_time']
+        del audit_dict['hostname']
         self._common_policy_check(
             "audit:create", self.post_json, '/audits', audit_dict,
             expect_errors=True)

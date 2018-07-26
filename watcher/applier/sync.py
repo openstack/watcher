@@ -15,10 +15,17 @@
 # limitations under the License.
 #
 
+from oslo_config import cfg
+from oslo_log import log
+
 from watcher.applier.loading import default
 from watcher.common import context
 from watcher.common import exception
 from watcher import objects
+
+
+CONF = cfg.CONF
+LOG = log.getLogger(__name__)
 
 
 class Syncer(object):
@@ -42,3 +49,27 @@ class Syncer(object):
                 obj_action_desc.action_type = action_type
                 obj_action_desc.description = load_description
                 obj_action_desc.create()
+        self._cancel_ongoing_actionplans(ctx)
+
+    def _cancel_ongoing_actionplans(self, context):
+        actions_plans = objects.ActionPlan.list(
+            context,
+            filters={'state': objects.action_plan.State.ONGOING,
+                     'hostname': CONF.host},
+            eager=True)
+        for ap in actions_plans:
+            ap.state = objects.action_plan.State.CANCELLED
+            ap.save()
+            filters = {'action_plan_uuid': ap.uuid,
+                       'state__in': (objects.action.State.PENDING,
+                                     objects.action.State.ONGOING)}
+            actions = objects.Action.list(context, filters=filters, eager=True)
+            for a in actions:
+                a.state = objects.action.State.CANCELLED
+                a.save()
+            LOG.info("Action Plan %(uuid)s along with appropriate Actions "
+                     "has been cancelled because it was in %(state)s state "
+                     "when Applier had been stopped on %(hostname)s host.",
+                     {'uuid': ap.uuid,
+                      'state': objects.action_plan.State.ONGOING,
+                      'hostname': ap.hostname})

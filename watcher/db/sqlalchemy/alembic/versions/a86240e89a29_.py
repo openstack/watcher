@@ -19,9 +19,15 @@ def upgrade():
     connection = op.get_bind()
     session = sessionmaker()
     s = session(bind=connection)
-    for audit in s.query(models.Audit).filter(models.Audit.name is None).all():
-        strategy_name = s.query(models.Strategy).filter_by(id=audit.strategy_id).one().name
-        audit.update({'name': strategy_name + '-' + str(audit.created_at)})
+    audits = s.query(
+        models.Audit.strategy_id.label('strategy_id'),
+        models.Audit.created_at.label('created_at')).filter(
+        models.Audit.name is None).all()
+    for audit in audits:
+        strategy_name = s.query(models.Strategy).filter_by(
+            id=audit.strategy_id).one().name
+        s.query().filter(models.Audit.name is None).update(
+            {'name': strategy_name + '-' + str(audit.created_at)})
     s.commit()
 
 
@@ -29,6 +35,11 @@ def downgrade():
     connection = op.get_bind()
     session = sessionmaker()
     s = session(bind=connection)
-    for audit in s.query(models.Audit).filter(models.Audit.name is not None).all():
-        audit.update({'name': None})
+    audits = s.query(
+        models.Audit.strategy_id.label('strategy_id'),
+        models.Audit.created_at.label('created_at')).filter(
+        models.Audit.name is not None).all()
+    for audit in audits:
+        s.query().filter(models.Audit.name is not None).update(
+            {'name': None})
     s.commit()
