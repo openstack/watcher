@@ -11,14 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_log import log
 from watcher.common import cinder_helper
 from watcher.common import exception
 
 from watcher.decision_engine.scope import base
-
-
-LOG = log.getLogger(__name__)
 
 
 class StorageScope(base.BaseScope):

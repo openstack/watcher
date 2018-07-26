@@ -13,15 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_log import log
-
 from watcher.common import exception
 from watcher.datasource import base
 from watcher.datasource import ceilometer as ceil
 from watcher.datasource import gnocchi as gnoc
 from watcher.datasource import monasca as mon
-
-LOG = log.getLogger(__name__)
 
 
 class DataSourceManager(object):
