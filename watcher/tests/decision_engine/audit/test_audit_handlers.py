@@ -17,6 +17,7 @@
 import datetime
 
 import mock
+from oslo_config import cfg
 from oslo_utils import uuidutils
 
 from apscheduler import job
@@ -242,8 +243,10 @@ class TestContinuousAuditHandler(base.DbTestCase):
                 audit_template_id=audit_template.id,
                 goal_id=self.goal.id,
                 audit_type=objects.audit.AuditType.CONTINUOUS.value,
-                goal=self.goal)
+                goal=self.goal,
+                hostname='hostname1')
             for id_ in range(2, 4)]
+        cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.service.Service, 'list')
     @mock.patch.object(sq_api, 'get_engine')

@@ -375,7 +375,7 @@ class Connection(api.BaseConnection):
             filters = {}
 
         plain_fields = ['uuid', 'audit_type', 'state', 'goal_id',
-                        'strategy_id']
+                        'strategy_id', 'hostname']
         join_fieldmap = {
             'goal_uuid': ("uuid", models.Goal),
             'goal_name': ("name", models.Goal),

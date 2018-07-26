@@ -66,7 +66,7 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
             self.context,
             action_plan_id=1,
             state=objects.action.State.PENDING)
-        cfg.CONF.set_override('host', 'hostname1')
+        cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.action.Action, 'save')
     @mock.patch.object(objects.action_plan.ActionPlan, 'save')

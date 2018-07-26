@@ -62,7 +62,7 @@ class TestCancelOngoingAudits(db_base.DbTestCase):
             goal=self.goal,
             hostname='hostname1',
             state=objects.audit.State.ONGOING)
-        cfg.CONF.set_override('host', 'hostname1')
+        cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.audit.Audit, 'save')
     @mock.patch.object(objects.audit.Audit, 'list')

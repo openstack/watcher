@@ -59,7 +59,8 @@ class ContinuousAuditHandler(base.AuditHandler):
     def _is_audit_inactive(self, audit):
         audit = objects.Audit.get_by_uuid(
             self.context_show_deleted, audit.uuid)
-        if objects.audit.AuditStateTransitionManager().is_inactive(audit):
+        if (objects.audit.AuditStateTransitionManager().is_inactive(audit) or
+                audit.hostname != CONF.host):
             # if audit isn't in active states, audit's job must be removed to
             # prevent using of inactive audit in future.
             if self.scheduler.get_jobs():
@@ -124,28 +125,31 @@ class ContinuousAuditHandler(base.AuditHandler):
             'state__in': (objects.audit.State.PENDING,
                           objects.audit.State.ONGOING,
                           objects.audit.State.SUCCEEDED),
-            'hostname__in': (None, CONF.host)
         }
-        audits = objects.Audit.list(
+        audit_filters['hostname'] = None
+        unscheduled_audits = objects.Audit.list(
             audit_context, filters=audit_filters, eager=True)
-        for audit in audits:
+        for audit in unscheduled_audits:
             # If continuous audit doesn't have a hostname yet,
             # Watcher will set current CONF.host value.
-            if audit.hostname is None:
-                audit.hostname = CONF.host
-                audit.save()
-                # Let's remove this audit from current execution
-                # and execute it as usual Audit with hostname later.
-                audits.remove(audit)
+            # TODO(alexchadin): Add scheduling of new continuous audits.
+            audit.hostname = CONF.host
+            audit.save()
         scheduler_job_args = [
             (job.args[0].uuid, job) for job
             in self.scheduler.get_jobs()
             if job.name == 'execute_audit']
         scheduler_jobs = dict(scheduler_job_args)
         # if audit isn't in active states, audit's job should be removed
+        jobs_to_remove = []
         for job in scheduler_jobs.values():
             if self._is_audit_inactive(job.args[0]):
-                scheduler_jobs.pop(job.args[0].uuid)
+                jobs_to_remove.append(job.args[0].uuid)
+        for audit_uuid in jobs_to_remove:
+            scheduler_jobs.pop(audit_uuid)
+        audit_filters['hostname'] = CONF.host
+        audits = objects.Audit.list(
+            audit_context, filters=audit_filters, eager=True)
         for audit in audits:
             existing_job = scheduler_jobs.get(audit.uuid, None)
             # if audit is not presented in scheduled audits yet,

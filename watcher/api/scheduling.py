@@ -16,6 +16,7 @@
 
 
 import datetime
+import itertools
 from oslo_config import cfg
 from oslo_log import log
 from oslo_utils import timeutils
@@ -40,6 +41,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
 
     def get_services_status(self, context):
         services = objects.service.Service.list(context)
+        active_s = objects.service.ServiceStatus.ACTIVE
+        failed_s = objects.service.ServiceStatus.FAILED
         for service in services:
             result = self.get_service_status(context, service.id)
             if service.id not in self.services_status:
@@ -49,6 +52,32 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
                 self.services_status[service.id] = result
                 notifications.service.send_service_update(context, service,
                                                           state=result)
+                if result == failed_s:
+                    audit_filters = {
+                        'audit_type': objects.audit.AuditType.CONTINUOUS.value,
+                        'state': objects.audit.State.ONGOING,
+                        'hostname': service.host
+                    }
+                    ongoing_audits = objects.Audit.list(
+                        context,
+                        filters=audit_filters,
+                        eager=True)
+                    alive_services = [
+                        s.host for s in services
+                        if (self.services_status[s.id] == active_s and
+                            s.name == 'watcher-decision-engine')]
+
+                    round_robin = itertools.cycle(alive_services)
+                    for audit in ongoing_audits:
+                        audit.hostname = round_robin.__next__()
+                        audit.save()
+                        LOG.info('Audit %(audit)s has been migrated to '
+                                 '%(host)s since %(failed_host)s is in'
+                                 ' %(state)s',
+                                 {'audit': audit.uuid,
+                                  'host': audit.hostname,
+                                  'failed_host': service.host,
+                                  'state': failed_s})
 
     def get_service_status(self, context, service_id):
         service = objects.Service.get(context, service_id)
