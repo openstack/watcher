@@ -241,10 +241,9 @@ purge
   The maximum number of database objects we expect to be deleted. If exceeded,
   this will prevent any deletion.
 
-.. option:: -t, --audit-template
+.. option:: -t, --goal
 
-  Either the UUID or name of the soft deleted audit template to purge. This
-  will also include any related objects with it.
+  Either the UUID or name of the goal to purge.
 
 .. option:: -e, --exclude-orphans
 
