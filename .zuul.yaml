@@ -1,18 +1,17 @@
 - project:
     check:
       jobs:
-        - watcher-tempest-functional:
-            voting: false
+        - watcher-tempest-functional
         - watcher-tempest-dummy_optim
         - watcher-tempest-actuator
         - watcher-tempest-basic_optim
         - watcher-tempest-workload_balancing
-        - watcherclient-tempest-functional:
-            voting: false
+        - watcherclient-tempest-functional
+        - watcher-tempest-zone_migration
         - openstack-tox-lower-constraints
     gate:
       jobs:
-        # - watcher-tempest-functional
+        - watcher-tempest-functional
         - openstack-tox-lower-constraints
 
 - job:
@@ -44,6 +43,13 @@
       tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing'
 
 - job:
+    name: watcher-tempest-zone_migration
+    parent: watcher-tempest-multinode
+    voting: false
+    vars:
+      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_zone_migration'
+
+- job:
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
     nodeset: openstack-two-node
@@ -58,6 +64,13 @@
             $NOVA_CONF:
               libvirt:
                 live_migration_uri: 'qemu+ssh://root@%s/system'
+            $WATCHER_CONF:
+              watcher_cluster_data_model_collectors.compute:
+                period: 120
+              watcher_cluster_data_model_collectors.baremetal:
+                period: 120
+              watcher_cluster_data_model_collectors.storage:
+                period: 120
         devstack_services:
           watcher-api: false
           watcher-decision-engine: true
@@ -79,6 +92,13 @@
           $NOVA_CONF:
             libvirt:
               live_migration_uri: 'qemu+ssh://root@%s/system'
+          $WATCHER_CONF:
+              watcher_cluster_data_model_collectors.compute:
+                period: 120
+              watcher_cluster_data_model_collectors.baremetal:
+                period: 120
+              watcher_cluster_data_model_collectors.storage:
+                period: 120
         test-config:
           $TEMPEST_CONFIG:
             compute:
