@@ -22,7 +22,6 @@ import time
 from novaclient import api_versions
 from oslo_log import log
 
-import cinderclient.exceptions as ciexceptions
 import glanceclient.exc as glexceptions
 import novaclient.exceptions as nvexceptions
 
@@ -710,25 +709,6 @@ class NovaHelper(object):
 
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))
-
-    def get_flavor_instance(self, instance, cache):
-        fid = instance.flavor['id']
-        if fid in cache:
-            flavor = cache.get(fid)
-        else:
-            try:
-                flavor = self.nova.flavors.get(fid)
-            except ciexceptions.NotFound:
-                flavor = None
-            cache[fid] = flavor
-        attr_defaults = [('name', 'unknown-id-%s' % fid),
-                         ('vcpus', 0), ('ram', 0), ('disk', 0),
-                         ('ephemeral', 0), ('extra_specs', {})]
-        for attr, default in attr_defaults:
-            if not flavor:
-                instance.flavor[attr] = default
-                continue
-            instance.flavor[attr] = getattr(flavor, attr, default)
 
     def get_running_migration(self, instance_id):
         return self.nova.server_migrations.list(server=instance_id)

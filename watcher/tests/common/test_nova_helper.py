@@ -321,19 +321,6 @@ class TestNovaHelper(base.TestCase):
         instance = nova_util.create_instance(self.source_node)
         self.assertIsNotNone(instance)
 
-    def test_get_flavor_instance(self, mock_glance, mock_cinder,
-                                 mock_neutron, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        flavor = {'id': 1, 'name': 'm1.tiny', 'ram': 512, 'vcpus': 1,
-                  'disk': 0, 'ephemeral': 0}
-        instance.flavor = flavor
-        nova_util.nova.flavors.get.return_value = flavor
-        cache = flavor
-
-        nova_util.get_flavor_instance(instance, cache)
-        self.assertEqual(instance.flavor['name'], cache['name'])
-
     @staticmethod
     def fake_volume(**kwargs):
         volume = mock.MagicMock()
