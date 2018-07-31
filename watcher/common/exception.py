@@ -150,7 +150,7 @@ class ResourceNotFound(ObjectNotFound):
 
 
 class InvalidParameter(Invalid):
-        msg_fmt = _("%(parameter)s has to be of type %(parameter_type)s")
+    msg_fmt = _("%(parameter)s has to be of type %(parameter_type)s")
 
 
 class InvalidIdentity(Invalid):
@@ -514,9 +514,9 @@ class NegativeLimitError(WatcherException):
 
 
 class NotificationPayloadError(WatcherException):
-    _msg_fmt = _("Payload not populated when trying to send notification "
-                 "\"%(class_name)s\"")
+    msg_fmt = _("Payload not populated when trying to send notification "
+                "\"%(class_name)s\"")
 
 
 class InvalidPoolAttributeValue(Invalid):
-        msg_fmt = _("The %(name)s pool %(attribute)s is not integer")
+    msg_fmt = _("The %(name)s pool %(attribute)s is not integer")
