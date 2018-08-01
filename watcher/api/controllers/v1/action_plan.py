@@ -581,7 +581,7 @@ class ActionPlansController(rest.RestController):
 
         if action_plan_to_start['state'] != \
                 objects.action_plan.State.RECOMMENDED:
-            raise Exception.StartError(
+            raise exception.StartError(
                 state=action_plan_to_start.state)
 
         action_plan_to_start['state'] = objects.action_plan.State.PENDING
