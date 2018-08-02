@@ -451,11 +451,10 @@ class TestSyncer(base.DbTestCase):
              self._find_created_modified_unmodified_ids(
                  before_action_plans, after_action_plans))
 
-        dummy_1_spec = [
-            {'description': 'Dummy indicator', 'name': 'dummy',
-             'schema': jsonutils.dumps({'minimum': 0, 'type': 'integer'}),
-             'unit': '%'}]
-        dummy_2_spec = []
+        dummy_1_spec = jsonutils.loads(
+            self.goal1_spec.serialize_indicators_specs())
+        dummy_2_spec = jsonutils.loads(
+            self.goal2_spec.serialize_indicators_specs())
         self.assertEqual(
             [dummy_1_spec, dummy_2_spec],
             [g.efficacy_specification for g in after_goals])
