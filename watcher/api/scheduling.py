@@ -52,7 +52,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
                 self.services_status[service.id] = result
                 notifications.service.send_service_update(context, service,
                                                           state=result)
-                if result == failed_s:
+                if (result == failed_s) and (
+                        service.name == 'watcher-decision-engine'):
                     audit_filters = {
                         'audit_type': objects.audit.AuditType.CONTINUOUS.value,
                         'state': objects.audit.State.ONGOING,
