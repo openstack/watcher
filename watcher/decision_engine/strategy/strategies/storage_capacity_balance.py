@@ -41,6 +41,15 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
 
     * You must have at least 2 cinder volume pools to run
       this strategy.
+
+    *Limitations*
+
+    * Volume migration depends on the storage device.
+      It may take a long time.
+
+    *Spec URL*
+
+    http://specs.openstack.org/openstack/watcher-specs/specs/queens/implemented/storage-capacity-balance.html
     """
 
     def __init__(self, config, osc=None):
