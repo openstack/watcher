@@ -31,6 +31,8 @@ LOG = log.getLogger(__name__)
 class SavingEnergy(base.SavingEnergyBaseStrategy):
     """Saving Energy Strategy
 
+    *Description*
+
     Saving Energy Strategy together with VM Workload Consolidation Strategy
     can perform the Dynamic Power Management (DPM) functionality, which tries
     to save power by dynamically consolidating workloads even further during
@@ -51,19 +53,29 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
     the given number and there are spare unused nodes(in poweroff state),
     randomly select some nodes(unused,poweroff) and power on them.
 
+    *Requirements*
+
     In this policy, in order to calculate the min_free_hosts_num,
     users must provide two parameters:
 
-      * One parameter("min_free_hosts_num") is a constant int number.
-        This number should be int type and larger than zero.
+    * One parameter("min_free_hosts_num") is a constant int number.
+      This number should be int type and larger than zero.
 
-      * The other parameter("free_used_percent") is a percentage number, which
-        describes the quotient of min_free_hosts_num/nodes_with_VMs_num,
-        where nodes_with_VMs_num is the number of nodes with VMs running on it.
-        This parameter is used to calculate a dynamic min_free_hosts_num.
-        The nodes with VMs refer to those nodes with VMs running on it.
+    * The other parameter("free_used_percent") is a percentage number, which
+      describes the quotient of min_free_hosts_num/nodes_with_VMs_num,
+      where nodes_with_VMs_num is the number of nodes with VMs running on it.
+      This parameter is used to calculate a dynamic min_free_hosts_num.
+      The nodes with VMs refer to those nodes with VMs running on it.
 
     Then choose the larger one as the final min_free_hosts_num.
+
+    *Limitations*
+
+    * at least 2 physical compute hosts
+
+    *Spec URL*
+
+    http://specs.openstack.org/openstack/watcher-specs/specs/pike/implemented/energy-saving-strategy.html
     """
 
     def __init__(self, config, osc=None):
@@ -113,16 +125,16 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             "properties": {
                 "free_used_percent": {
                     "description": ("a rational number, which describes the"
-                                    "quotient of"
+                                    " quotient of"
                                     " min_free_hosts_num/nodes_with_VMs_num"
-                                    "where nodes_with_VMs_num is the number"
-                                    "of nodes with VMs"),
+                                    " where nodes_with_VMs_num is the number"
+                                    " of nodes with VMs"),
                     "type": "number",
                     "default": 10.0
                 },
                 "min_free_hosts_num": {
                     "description": ("minimum number of hosts without VMs"
-                                    "but still powered on"),
+                                    " but still powered on"),
                     "type": "number",
                     "default": 1
                 },
