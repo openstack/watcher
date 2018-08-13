@@ -49,7 +49,8 @@
             ],
             "strategy_name": "workload_stabilization",
             "next_run_time": "2018-04-06T09:46:00",
-            "updated_at": "2018-04-06T09:44:01.604146+00:00"
+            "updated_at": "2018-04-06T09:44:01.604146+00:00",
+            "hostname": "controller"
         }
     ]
 }

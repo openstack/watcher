@@ -170,6 +170,12 @@ actionplan_global_efficacy:
   in: body
   required: false
   type: array
+actionplan_hostname:
+  description: |
+    Hostname the actionplan is running on
+  in: body
+  required: false
+  type: string
 actionplan_state:
   description: |
     State of this action plan. To get more information about states and
@@ -188,6 +194,12 @@ audit_autotrigger:
 audit_goal:
   description: |
     The UUID or name of the Goal.
+  in: body
+  required: false
+  type: string
+audit_hostname:
+  description: |
+    Hostname the audit is running on
   in: body
   required: false
   type: string

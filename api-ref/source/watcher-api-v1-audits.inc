@@ -83,6 +83,7 @@ version 1:
     - state: audit_state
     - scope: audittemplate_scope
     - links: links
+    - hostname: audit_hostname
 
 **Example JSON representation of an Audit:**
 
@@ -178,6 +179,7 @@ Response
     - state: audit_state
     - scope: audittemplate_scope
     - links: links
+    - hostname: audit_hostname
 
 **Example JSON representation of an Audit:**
 
@@ -221,6 +223,7 @@ Response
     - state: audit_state
     - scope: audittemplate_scope
     - links: links
+    - hostname: audit_hostname
 
 **Example JSON representation of an Audit:**
 
@@ -272,6 +275,7 @@ version 1:
     - state: audit_state
     - scope: audittemplate_scope
     - links: links
+    - hostname: audit_hostname
 
 **Example JSON representation of an Audit:**
 
@@ -323,6 +327,7 @@ Response
     - state: audit_state
     - scope: audittemplate_scope
     - links: links
+    - hostname: audit_hostname
 
 **Example JSON representation of an Audit:**
 

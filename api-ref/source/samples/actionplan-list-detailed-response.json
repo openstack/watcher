@@ -20,7 +20,8 @@
             "deleted_at": null,
             "uuid": "4cbc4ede-0d25-481b-b86e-998dbbd4f8bf",
             "audit_uuid": "7d100b05-0a86-491f-98a7-f93da19b272a",
-            "created_at": "2018-04-10T11:59:52.640067+00:00"
+            "created_at": "2018-04-10T11:59:52.640067+00:00",
+            "hostname": "controller"
         }
     ]
 }
