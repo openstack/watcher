@@ -1,8 +1,16 @@
 - project:
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - publish-openstack-sphinx-docs
+      - check-requirements
+      - release-notes-jobs
     check:
       jobs:
         - watcher-tempest-multinode
 
+    gate:
+      queue: watcher
 - job:
     name: watcher-tempest-base-multinode
     parent: legacy-dsvm-base-multinode
