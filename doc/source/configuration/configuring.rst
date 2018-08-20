@@ -159,7 +159,7 @@ MySQL database that is used by other OpenStack services.
    ``watcher`` user. Replace WATCHER_DBPASSWORD
    with the actual password::
 
-    $ mysql -u root -p
+    # mysql
 
     mysql> CREATE DATABASE watcher CHARACTER SET utf8;
     mysql> GRANT ALL PRIVILEGES ON watcher.* TO 'watcher'@'localhost' \
