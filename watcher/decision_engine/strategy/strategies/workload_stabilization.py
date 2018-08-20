@@ -254,7 +254,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :param instance: instance for which statistic is gathered.
         :return: dict
         """
-        LOG.debug('get_instance_load started')
+        LOG.debug('Getting load for %s', instance.uuid)
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
             avg_meter = self.datasource_backend.statistic_aggregation(
@@ -269,6 +269,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 return
             if meter == 'cpu_util':
                 avg_meter /= float(100)
+            LOG.debug('Load of %(metric)s for %(instance)s is %(value)s',
+                      {'metric': meter,
+                       'instance': instance.uuid,
+                       'value': avg_meter})
             instance_load[meter] = avg_meter
         return instance_load
 
@@ -293,6 +297,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         for node_id, node in self.get_available_nodes().items():
             hosts_load[node_id] = {}
             hosts_load[node_id]['vcpus'] = node.vcpus
+            LOG.debug('Getting load for %s', node_id)
             for metric in self.metrics:
                 resource_id = ''
                 avg_meter = None
@@ -315,6 +320,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         avg_meter /= oslo_utils.units.Ki
                     if meter_name == 'compute.node.cpu.percent':
                         avg_meter /= 100
+                LOG.debug('Load of %(metric)s for %(node)s is %(value)s',
+                          {'metric': metric,
+                           'node': node_id,
+                           'value': avg_meter})
                 hosts_load[node_id][metric] = avg_meter
         return hosts_load
 
@@ -442,12 +451,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         normalized_load = self.normalize_hosts_load(hosts_load)
         for metric in self.metrics:
             metric_sd = self.get_sd(normalized_load, metric)
-            LOG.info("Standard deviation for %s is %s.",
-                     (metric, metric_sd))
+            LOG.info("Standard deviation for %(metric)s is %(sd)s.",
+                     {'metric': metric, 'sd': metric_sd})
             if metric_sd > float(self.thresholds[metric]):
-                LOG.info("Standard deviation of %s exceeds"
-                         " appropriate threshold %s.",
-                         (metric, metric_sd))
+                LOG.info("Standard deviation of %(metric)s exceeds"
+                         " appropriate threshold %(threshold)s by %(sd)s.",
+                         {'metric': metric,
+                          'threshold': float(self.thresholds[metric]),
+                          'sd': metric_sd})
+                LOG.info("Launching workload optimization...")
                 return self.simulate_migrations(hosts_load)
 
     def add_migration(self,
@@ -523,12 +535,23 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 if weighted_sd < min_sd:
                     min_sd = weighted_sd
                     hosts_load = instance_load[-1]
+                    LOG.info("Migration of %(instance_uuid)s from %(s_host)s "
+                             "to %(host)s reduces standard deviation to "
+                             "%(min_sd)s.",
+                             {'instance_uuid': instance_host['instance'],
+                              's_host': instance_host['s_host'],
+                              'host': instance_host['host'],
+                              'min_sd': min_sd})
                     self.migrate(instance_host['instance'],
                                  instance_host['s_host'],
                                  instance_host['host'])
 
                 for metric, value in zip(self.metrics, instance_load[:-1]):
                     if value < float(self.thresholds[metric]):
+                        LOG.info("At least one of metrics' values fell "
+                                 "below the threshold values. "
+                                 "Workload Stabilization has successfully "
+                                 "completed optimization process.")
                         balanced = True
                         break
                 if balanced:
