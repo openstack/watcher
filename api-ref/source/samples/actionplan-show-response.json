@@ -16,5 +16,6 @@
     "updated_at": "2018-04-10T11:59:52.640067+00:00",
     "strategy_name": "dummy_with_resize",
     "uuid": "4cbc4ede-0d25-481b-b86e-998dbbd4f8bf",
-    "audit_uuid": "7d100b05-0a86-491f-98a7-f93da19b272a"
+    "audit_uuid": "7d100b05-0a86-491f-98a7-f93da19b272a",
+    "hostname": "controller"
 }

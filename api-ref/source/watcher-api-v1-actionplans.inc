@@ -50,6 +50,7 @@ version 1:
     - efficacy_indicators: actionplan_efficacy_indicators
     - global_efficacy: actionplan_global_efficacy
     - links: links
+    - hostname: actionplan_hostname
 
 **Example JSON representation of an Action Plan:**
 
@@ -137,6 +138,7 @@ Response
     - efficacy_indicators: actionplan_efficacy_indicators
     - global_efficacy: actionplan_global_efficacy
     - links: links
+    - hostname: actionplan_hostname
 
 **Example JSON representation of an Action Plan:**
 
@@ -174,6 +176,7 @@ Response
     - efficacy_indicators: actionplan_efficacy_indicators
     - global_efficacy: actionplan_global_efficacy
     - links: links
+    - hostname: actionplan_hostname
 
 **Example JSON representation of an Audit:**
 
@@ -229,6 +232,7 @@ version 1:
     - efficacy_indicators: actionplan_efficacy_indicators
     - global_efficacy: actionplan_global_efficacy
     - links: links
+    - hostname: actionplan_hostname
 
 **Example JSON representation of an Action Plan:**
 
