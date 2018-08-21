@@ -117,7 +117,7 @@ Watcher Manual Pages
 .. toctree::
    :hidden:
 
-   api/autoindex
+   api/modules
 
 
 Indices and tables
