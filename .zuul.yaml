@@ -1,4 +1,10 @@
 - project:
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - publish-openstack-sphinx-docs
+      - check-requirements
+      - release-notes-jobs
     check:
       jobs:
         - watcher-tempest-functional
@@ -10,6 +16,7 @@
         - watcher-tempest-zone_migration
         - openstack-tox-lower-constraints
     gate:
+      queue: watcher
       jobs:
         - watcher-tempest-functional
         - openstack-tox-lower-constraints
@@ -19,35 +26,35 @@
     parent: watcher-tempest-multinode
     voting: false
     vars:
-      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim'
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim
 
 - job:
     name: watcher-tempest-actuator
     parent: watcher-tempest-multinode
     voting: false
     vars:
-      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_actuator'
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_actuator
 
 - job:
     name: watcher-tempest-basic_optim
     parent: watcher-tempest-multinode
     voting: false
     vars:
-      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_basic_optim'
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_basic_optim
 
 - job:
     name: watcher-tempest-workload_balancing
     parent: watcher-tempest-multinode
     voting: false
     vars:
-      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing'
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing
 
 - job:
     name: watcher-tempest-zone_migration
     parent: watcher-tempest-multinode
     voting: false
     vars:
-      tempest_test_regex: 'watcher_tempest_plugin.tests.scenario.test_execute_zone_migration'
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
 
 - job:
     name: watcher-tempest-multinode
@@ -63,7 +70,7 @@
           post-config:
             $NOVA_CONF:
               libvirt:
-                live_migration_uri: 'qemu+ssh://root@%s/system'
+                live_migration_uri: qemu+ssh://root@%s/system
             $WATCHER_CONF:
               watcher_cluster_data_model_collectors.compute:
                 period: 120
@@ -91,14 +98,14 @@
         post-config:
           $NOVA_CONF:
             libvirt:
-              live_migration_uri: 'qemu+ssh://root@%s/system'
+              live_migration_uri: qemu+ssh://root@%s/system
           $WATCHER_CONF:
-              watcher_cluster_data_model_collectors.compute:
-                period: 120
-              watcher_cluster_data_model_collectors.baremetal:
-                period: 120
-              watcher_cluster_data_model_collectors.storage:
-                period: 120
+            watcher_cluster_data_model_collectors.compute:
+              period: 120
+            watcher_cluster_data_model_collectors.baremetal:
+              period: 120
+            watcher_cluster_data_model_collectors.storage:
+              period: 120
         test-config:
           $TEMPEST_CONFIG:
             compute:
@@ -135,8 +142,8 @@
         s-object: false
         s-proxy: false
       devstack_localrc:
-        TEMPEST_PLUGINS: '/opt/stack/watcher-tempest-plugin'
-      tempest_test_regex: 'watcher_tempest_plugin.tests.api'
+        TEMPEST_PLUGINS: /opt/stack/watcher-tempest-plugin
+      tempest_test_regex: watcher_tempest_plugin.tests.api
       tox_envlist: all
       tox_environment:
         # Do we really need to set this? It's cargo culted
@@ -152,5 +159,5 @@
     vars:
       tempest_concurrency: 1
       devstack_localrc:
-        TEMPEST_PLUGINS: '/opt/stack/python-watcherclient'
-      tempest_test_regex: 'watcherclient.tests.functional'
+        TEMPEST_PLUGINS: /opt/stack/python-watcherclient
+      tempest_test_regex: watcherclient.tests.functional
