@@ -167,6 +167,7 @@ class ComputeScope(base.BaseScope):
         instance_metadata = []
         projects_to_exclude = []
         compute_scope = []
+        found_nothing_flag = False
         model_hosts = list(cluster_model.get_all_compute_nodes().keys())
 
         if not self.scope:
@@ -182,9 +183,13 @@ class ComputeScope(base.BaseScope):
             if 'host_aggregates' in rule:
                 self._collect_aggregates(rule['host_aggregates'],
                                          allowed_nodes)
+                if not allowed_nodes:
+                    found_nothing_flag = True
             elif 'availability_zones' in rule:
                 self._collect_zones(rule['availability_zones'],
                                     allowed_nodes)
+                if not allowed_nodes:
+                    found_nothing_flag = True
             elif 'exclude' in rule:
                 self.exclude_resources(
                     rule['exclude'], instances=instances_to_exclude,
@@ -195,6 +200,10 @@ class ComputeScope(base.BaseScope):
         instances_to_exclude = set(instances_to_exclude)
         if allowed_nodes:
             nodes_to_remove = set(model_hosts) - set(allowed_nodes)
+        # This branch means user set host_aggregates and/or availability_zones
+        # but can't find any nodes, so we should remove all nodes.
+        elif found_nothing_flag:
+            nodes_to_remove = set(model_hosts)
         nodes_to_remove.update(nodes_to_exclude)
 
         self.remove_nodes_from_model(nodes_to_remove, cluster_model)
