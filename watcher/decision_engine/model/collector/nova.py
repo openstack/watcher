@@ -193,6 +193,7 @@ class ModelBuilder(object):
     re-scheduled for Pike. In the meantime, all the associated code has been
     commented out.
     """
+
     def __init__(self, osc):
         self.osc = osc
         self.model = model_root.ModelRoot()

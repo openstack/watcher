@@ -21,6 +21,7 @@ from watcher.common import ironic_helper
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.scope import baremetal as baremetal_scope
 
 LOG = log.getLogger(__name__)
 
@@ -45,7 +46,9 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
         return None
 
     def get_audit_scope_handler(self, audit_scope):
-        return None
+        self._audit_scope_handler = baremetal_scope.BaremetalScope(
+            audit_scope, self.config)
+        return self._audit_scope_handler
 
     def execute(self):
         """Build the baremetal cluster data model"""

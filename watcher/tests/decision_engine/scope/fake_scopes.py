@@ -57,3 +57,17 @@ fake_scope_3 = [{'compute': [{'host_aggregates': [{'id': '1'}]},
                               }]
                  }
                 ]
+
+baremetal_scope = [
+    {'baremetal': [
+        {'exclude': [
+            {'ironic_nodes': [
+                {'uuid': 'c5941348-5a87-4016-94d4-4f9e0ce2b87a'},
+                {'uuid': 'c5941348-5a87-4016-94d4-4f9e0ce2b87c'}
+                ]
+             }
+            ]
+         }
+        ]
+     }
+]
