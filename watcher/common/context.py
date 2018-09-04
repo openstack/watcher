@@ -38,11 +38,11 @@ class RequestContext(context.RequestContext):
         tenant = kwargs.pop('tenant', None)
         super(RequestContext, self).__init__(
             auth_token=auth_token,
-            user=user_id or user,
-            tenant=project_id or tenant,
-            domain=kwargs.pop('domain', None) or domain_name or domain_id,
-            user_domain=kwargs.pop('user_domain', None),
-            project_domain=kwargs.pop('project_domain', None),
+            user_id=user_id or user,
+            project_id=project_id or tenant,
+            domain_id=kwargs.pop('domain', None) or domain_name or domain_id,
+            user_domain_id=kwargs.pop('user_domain', None),
+            project_domain_id=kwargs.pop('project_domain', None),
             is_admin=is_admin,
             read_only=kwargs.pop('read_only', False),
             show_deleted=kwargs.pop('show_deleted', False),
@@ -50,22 +50,14 @@ class RequestContext(context.RequestContext):
             resource_uuid=kwargs.pop('resource_uuid', None),
             is_admin_project=kwargs.pop('is_admin_project', True),
             overwrite=overwrite,
-            roles=roles)
+            roles=roles,
+            global_request_id=kwargs.pop('global_request_id', None),
+            system_scope=kwargs.pop('system_scope', None))
 
         self.remote_address = kwargs.pop('remote_address', None)
-        self.instance_lock_checked = kwargs.pop('instance_lock_checked', None)
         self.read_deleted = kwargs.pop('read_deleted', None)
         self.service_catalog = kwargs.pop('service_catalog', None)
         self.quota_class = kwargs.pop('quota_class', None)
-
-        # oslo_context's RequestContext.to_dict() generates this field, we can
-        # safely ignore this as we don't use it.
-        kwargs.pop('user_identity', None)
-        kwargs.pop('global_request_id', None)
-        kwargs.pop('project', None)
-        if kwargs:
-            LOG.warning('Arguments dropped when creating context: %s',
-                        str(kwargs))
 
         # FIXME(dims): user_id and project_id duplicate information that is
         # already present in the oslo_context's RequestContext. We need to
