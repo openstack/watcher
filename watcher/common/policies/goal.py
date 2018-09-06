@@ -24,7 +24,7 @@ rules = [
         operations=[
             {
                 'path': '/v1/goals/detail',
-                'method': 'DELETE'
+                'method': 'GET'
             }
         ]
     ),
