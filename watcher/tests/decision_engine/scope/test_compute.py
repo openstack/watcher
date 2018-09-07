@@ -281,3 +281,16 @@ class TestComputeScope(base.TestCase):
             model.get_instance_by_uuid('INSTANCE_0').watcher_exclude)
         self.assertTrue(
             model.get_instance_by_uuid('INSTANCE_1').watcher_exclude)
+
+    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
+    def test_get_scoped_model_with_hostaggregate_null(
+            self, mock_list, mock_detail):
+        cluster = self.fake_cluster.generate_scenario_1()
+        audit_scope = fake_scopes.fake_scope_3
+        mock_list.return_value = [mock.Mock(id=i,
+                                            name="HA_{0}".format(i))
+                                  for i in range(2)]
+        model = compute.ComputeScope(audit_scope, mock.Mock(),
+                                     osc=mock.Mock()).get_scoped_model(cluster)
+        self.assertEqual(0, len(model.edges()))

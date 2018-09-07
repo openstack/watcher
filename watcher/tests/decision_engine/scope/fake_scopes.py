@@ -47,3 +47,9 @@ fake_scope_2 = [{'storage': [{'availability_zones': [{'name': 'zone_0'}]},
                              ]}]
                  }
                 ]
+
+fake_scope_3 = [{'compute': [{'host_aggregates': [{'id': '1'}]},
+                             {'exclude': []
+                              }]
+                 }
+                ]
