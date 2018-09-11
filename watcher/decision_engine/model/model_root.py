@@ -87,10 +87,11 @@ class ModelRoot(nx.DiGraph, base.Model):
     def map_instance(self, instance, node):
         """Map a newly created instance to a node
 
-        :param instance: :py:class:`~.Instance` object or instance UUID
-        :type instance: str or :py:class:`~.Instance`
-        :param node: :py:class:`~.ComputeNode` object or node UUID
-        :type node: str or :py:class:`~.Instance`
+        :param instance: :py:class:`~.instance.Instance` object or instance
+           UUID
+        :type instance: str or :py:class:`~.instance.Instance`
+        :param node: :py:class:`~.node.ComputeNode` object or node UUID
+        :type node: str or :py:class:`~.instance.Instance`
         """
         if isinstance(instance, six.string_types):
             instance = self.get_instance_by_uuid(instance)
@@ -309,8 +310,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def map_pool(self, pool, node):
         """Map a newly created pool to a node
 
-        :param pool: :py:class:`~.Pool` object or pool name
-        :param node: :py:class:`~.StorageNode` object or node host
+        :param pool: :py:class:`~.node.Pool` object or pool name
+        :param node: :py:class:`~.node.StorageNode` object or node host
         """
         if isinstance(pool, six.string_types):
             pool = self.get_pool_by_pool_name(pool)
@@ -325,8 +326,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def unmap_pool(self, pool, node):
         """Unmap a pool from a node
 
-        :param pool: :py:class:`~.Pool` object or pool name
-        :param node: :py:class:`~.StorageNode` object or node name
+        :param pool: :py:class:`~.node.Pool` object or pool name
+        :param node: :py:class:`~.node.StorageNode` object or node name
         """
         if isinstance(pool, six.string_types):
             pool = self.get_pool_by_pool_name(pool)
@@ -353,8 +354,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def map_volume(self, volume, pool):
         """Map a newly created volume to a pool
 
-        :param volume: :py:class:`~.Volume` object or volume UUID
-        :param pool: :py:class:`~.Pool` object or pool name
+        :param volume: :py:class:`~.volume.Volume` object or volume UUID
+        :param pool: :py:class:`~.node.Pool` object or pool name
         """
         if isinstance(volume, six.string_types):
             volume = self.get_volume_by_uuid(volume)
@@ -369,8 +370,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def unmap_volume(self, volume, pool):
         """Unmap a volume from a pool
 
-        :param volume: :py:class:`~.Volume` object or volume UUID
-        :param pool: :py:class:`~.Pool` object or pool name
+        :param volume: :py:class:`~.volume.Volume` object or volume UUID
+        :param pool: :py:class:`~.node.Pool` object or pool name
         """
         if isinstance(volume, six.string_types):
             volume = self.get_volume_by_uuid(volume)
@@ -392,7 +393,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def get_node_by_name(self, name):
         """Get a node by node name
 
-        :param node: :py:class:`~.StorageNode` object or node name
+        :param node: :py:class:`~.node.StorageNode` object or node name
         """
         try:
             return self._get_by_name(name.split("#")[0])

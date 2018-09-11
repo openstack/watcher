@@ -21,7 +21,7 @@ import pecan
 
 from watcher.api import acl
 from watcher.api import config as api_config
-from watcher.api import middleware
+from watcher.api.middleware import parsable_error
 from watcher import conf
 
 CONF = conf.CONF
@@ -42,7 +42,7 @@ def setup_app(config=None):
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
         debug=CONF.debug,
-        wrap_app=middleware.ParsableErrorMiddleware,
+        wrap_app=parsable_error.ParsableErrorMiddleware,
         **app_conf
     )
 

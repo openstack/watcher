@@ -21,7 +21,7 @@ ServerConsolidation = goals.ServerConsolidation
 ThermalOptimization = goals.ThermalOptimization
 Unclassified = goals.Unclassified
 WorkloadBalancing = goals.WorkloadBalancing
-NoisyNeighbor = goals.NoisyNeighborOptimization
+NoisyNeighborOptimization = goals.NoisyNeighborOptimization
 SavingEnergy = goals.SavingEnergy
 HardwareMaintenance = goals.HardwareMaintenance
 

@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath('./'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = [
     'oslo_config.sphinxext',
-    'sphinx.ext.autodoc',
+    'sphinxcontrib.apidoc',
     'sphinx.ext.viewcode',
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
@@ -54,6 +54,18 @@ sample_config_basename = 'watcher'
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
 # execute "export SPHINX_DEBUG=1" in your terminal to disable
+
+# sphinxcontrib.apidoc options
+apidoc_module_dir = '../../watcher'
+apidoc_output_dir = 'api'
+apidoc_excluded_paths = [
+    'tests/*',
+    'db',
+    'decision_engine',
+    'doc',
+    'objects',
+]
+apidoc_separate_modules = True
 
 # The suffix of source filenames.
 source_suffix = '.rst'
