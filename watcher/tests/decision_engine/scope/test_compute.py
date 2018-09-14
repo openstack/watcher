@@ -294,3 +294,22 @@ class TestComputeScope(base.TestCase):
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
         self.assertEqual(0, len(model.edges()))
+
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
+    def test_get_scoped_model_with_multi_scopes(self, mock_zone_list):
+        cluster = self.fake_cluster.generate_scenario_1()
+        # includes compute and storage scope
+        audit_scope = []
+        audit_scope.extend(fake_scopes.fake_scope_1)
+        audit_scope.extend(fake_scopes.fake_scope_2)
+        mock_zone_list.return_value = [
+            mock.Mock(zone='AZ{0}'.format(i),
+                      host={'Node_{0}'.format(i): {}})
+            for i in range(4)]
+        model = compute.ComputeScope(audit_scope, mock.Mock(),
+                                     osc=mock.Mock()).get_scoped_model(cluster)
+
+        # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
+        # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
+        expected_edges = [('INSTANCE_2', 'Node_1'), (u'INSTANCE_6', u'Node_3')]
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))

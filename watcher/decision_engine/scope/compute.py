@@ -175,6 +175,8 @@ class ComputeScope(base.BaseScope):
 
         for scope in self.scope:
             compute_scope = scope.get('compute')
+            if compute_scope:
+                break
 
         if not compute_scope:
             return cluster_model

@@ -133,6 +133,8 @@ class StorageScope(base.BaseScope):
 
         for scope in self.scope:
             storage_scope = scope.get('storage')
+            if storage_scope:
+                break
 
         if not storage_scope:
             return cluster_model
