@@ -31,6 +31,8 @@ class BaremetalScope(base.BaseScope):
 
         for scope in self.scope:
             baremetal_scope = scope.get('baremetal')
+            if baremetal_scope:
+                break
 
         if not baremetal_scope:
             return cluster_model

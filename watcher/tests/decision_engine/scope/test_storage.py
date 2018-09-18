@@ -192,3 +192,20 @@ class TestStorageScope(base.TestCase):
             nodes_to_remove, cluster)
         self.assertEqual(['host_1@backend_1'],
                          list(cluster.get_all_storage_nodes()))
+
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_storage_node_list')
+    def test_get_scoped_model_with_multi_scopes(self, mock_zone_list):
+        cluster = self.fake_cluster.generate_scenario_1()
+        # includes storage and compute scope
+        audit_scope = []
+        audit_scope.extend(fake_scopes.fake_scope_2)
+        audit_scope.extend(fake_scopes.fake_scope_1)
+        mock_zone_list.return_value = [
+            mock.Mock(zone='zone_{0}'.format(i),
+                      host='host_{0}@backend_{1}'.format(i, i))
+            for i in range(2)]
+        model = storage.StorageScope(audit_scope, mock.Mock(),
+                                     osc=mock.Mock()).get_scoped_model(cluster)
+        expected_edges = [('VOLUME_0', 'host_0@backend_0#pool_0'),
+                          ('host_0@backend_0#pool_0', 'host_0@backend_0')]
+        self.assertEqual(sorted(expected_edges), sorted(model.edges()))
