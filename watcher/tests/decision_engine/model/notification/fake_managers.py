@@ -60,11 +60,6 @@ class FakeManager(service_manager.ServiceManager):
             novanotification.InstanceCreated(self.fake_cdmc),
             novanotification.InstanceUpdated(self.fake_cdmc),
             novanotification.InstanceDeletedEnd(self.fake_cdmc),
-
-            novanotification.LegacyInstanceCreatedEnd(self.fake_cdmc),
-            novanotification.LegacyInstanceUpdated(self.fake_cdmc),
-            novanotification.LegacyLiveMigratedEnd(self.fake_cdmc),
-            novanotification.LegacyInstanceDeletedEnd(self.fake_cdmc),
         ]
 
 
