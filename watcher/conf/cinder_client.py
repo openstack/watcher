@@ -29,7 +29,10 @@ CINDER_CLIENT_OPTS = [
                default='publicURL',
                help='Type of endpoint to use in cinderclient.'
                     'Supported values: internalURL, publicURL, adminURL'
-                    'The default is publicURL.')]
+                    'The default is publicURL.'),
+    cfg.StrOpt('region_name',
+               help='Region in Identity service catalog to use for '
+                    'communication with the OpenStack service.')]
 
 
 def register_opts(conf):

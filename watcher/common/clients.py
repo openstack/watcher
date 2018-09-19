@@ -83,8 +83,10 @@ class OpenStackClients(object):
 
         novaclient_version = self._get_client_option('nova', 'api_version')
         nova_endpoint_type = self._get_client_option('nova', 'endpoint_type')
+        nova_region_name = self._get_client_option('nova', 'region_name')
         self._nova = nvclient.Client(novaclient_version,
                                      endpoint_type=nova_endpoint_type,
+                                     region_name=nova_region_name,
                                      session=self.session)
         return self._nova
 
@@ -96,8 +98,10 @@ class OpenStackClients(object):
         glanceclient_version = self._get_client_option('glance', 'api_version')
         glance_endpoint_type = self._get_client_option('glance',
                                                        'endpoint_type')
+        glance_region_name = self._get_client_option('glance', 'region_name')
         self._glance = glclient.Client(glanceclient_version,
                                        interface=glance_endpoint_type,
+                                       region_name=glance_region_name,
                                        session=self.session)
         return self._glance
 
@@ -110,8 +114,11 @@ class OpenStackClients(object):
                                                         'api_version')
         gnocchiclient_interface = self._get_client_option('gnocchi',
                                                           'endpoint_type')
+        gnocchiclient_region_name = self._get_client_option('gnocchi',
+                                                            'region_name')
         adapter_options = {
-            "interface": gnocchiclient_interface
+            "interface": gnocchiclient_interface,
+            "region_name": gnocchiclient_region_name
         }
 
         self._gnocchi = gnclient.Client(gnocchiclient_version,
@@ -127,8 +134,10 @@ class OpenStackClients(object):
         cinderclient_version = self._get_client_option('cinder', 'api_version')
         cinder_endpoint_type = self._get_client_option('cinder',
                                                        'endpoint_type')
+        cinder_region_name = self._get_client_option('cinder', 'region_name')
         self._cinder = ciclient.Client(cinderclient_version,
                                        endpoint_type=cinder_endpoint_type,
+                                       region_name=cinder_region_name,
                                        session=self.session)
         return self._cinder
 
@@ -141,9 +150,12 @@ class OpenStackClients(object):
                                                            'api_version')
         ceilometer_endpoint_type = self._get_client_option('ceilometer',
                                                            'endpoint_type')
+        ceilometer_region_name = self._get_client_option('ceilometer',
+                                                         'region_name')
         self._ceilometer = ceclient.get_client(
             ceilometerclient_version,
             endpoint_type=ceilometer_endpoint_type,
+            region_name=ceilometer_region_name,
             session=self.session)
         return self._ceilometer
 
@@ -156,6 +168,8 @@ class OpenStackClients(object):
             'monasca', 'api_version')
         monascaclient_interface = self._get_client_option(
             'monasca', 'interface')
+        monascaclient_region = self._get_client_option(
+            'monasca', 'region_name')
         token = self.session.get_token()
         watcher_clients_auth_config = CONF.get(_CLIENTS_AUTH_GROUP)
         service_type = 'monitoring'
@@ -172,7 +186,8 @@ class OpenStackClients(object):
             'password': watcher_clients_auth_config.password,
         }
         endpoint = self.session.get_endpoint(service_type=service_type,
-                                             interface=monascaclient_interface)
+                                             interface=monascaclient_interface,
+                                             region_name=monascaclient_region)
 
         self._monasca = monclient.Client(
             monascaclient_version, endpoint, **monasca_kwargs)
@@ -188,9 +203,11 @@ class OpenStackClients(object):
                                                         'api_version')
         neutron_endpoint_type = self._get_client_option('neutron',
                                                         'endpoint_type')
+        neutron_region_name = self._get_client_option('neutron', 'region_name')
 
         self._neutron = netclient.Client(neutronclient_version,
                                          endpoint_type=neutron_endpoint_type,
+                                         region_name=neutron_region_name,
                                          session=self.session)
         self._neutron.format = 'json'
         return self._neutron
@@ -202,7 +219,9 @@ class OpenStackClients(object):
 
         ironicclient_version = self._get_client_option('ironic', 'api_version')
         endpoint_type = self._get_client_option('ironic', 'endpoint_type')
+        ironic_region_name = self._get_client_option('ironic', 'region_name')
         self._ironic = irclient.get_client(ironicclient_version,
                                            os_endpoint_type=endpoint_type,
+                                           region_name=ironic_region_name,
                                            session=self.session)
         return self._ironic
