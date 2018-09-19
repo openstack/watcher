@@ -30,6 +30,9 @@ GNOCCHI_CLIENT_OPTS = [
                help='Type of endpoint to use in gnocchi client.'
                     'Supported values: internal, public, admin'
                     'The default is public.'),
+    cfg.StrOpt('region_name',
+               help='Region in Identity service catalog to use for '
+                    'communication with the OpenStack service.'),
     cfg.IntOpt('query_max_retries',
                default=10,
                mutable=True,

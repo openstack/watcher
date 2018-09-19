@@ -29,7 +29,10 @@ MONASCA_CLIENT_OPTS = [
                default='internal',
                help='Type of interface used for monasca endpoint.'
                     'Supported values: internal, public, admin'
-                    'The default is internal.')]
+                    'The default is internal.'),
+    cfg.StrOpt('region_name',
+               help='Region in Identity service catalog to use for '
+                    'communication with the OpenStack service.')]
 
 
 def register_opts(conf):

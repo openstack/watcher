@@ -120,6 +120,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.nova_client.api_version,
             endpoint_type=CONF.nova_client.endpoint_type,
+            region_name=CONF.nova_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -155,6 +156,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.glance_client.api_version,
             interface=CONF.glance_client.endpoint_type,
+            region_name=CONF.glance_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -191,7 +193,8 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.gnocchi_client.api_version,
             adapter_options={
-                "interface": CONF.gnocchi_client.endpoint_type},
+                "interface": CONF.gnocchi_client.endpoint_type,
+                "region_name": CONF.gnocchi_client.region_name},
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -229,6 +232,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.cinder_client.api_version,
             endpoint_type=CONF.cinder_client.endpoint_type,
+            region_name=CONF.cinder_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -266,6 +270,7 @@ class TestClients(base.TestCase):
             CONF.ceilometer_client.api_version,
             None,
             endpoint_type=CONF.ceilometer_client.endpoint_type,
+            region_name=CONF.ceilometer_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
@@ -314,6 +319,7 @@ class TestClients(base.TestCase):
         mock_call.assert_called_once_with(
             CONF.neutron_client.api_version,
             endpoint_type=CONF.neutron_client.endpoint_type,
+            region_name=CONF.neutron_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
