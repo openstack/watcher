@@ -461,4 +461,4 @@ change to a new value:
 
 
 
-.. _Watcher API: webapi/v1.html
+.. _Watcher API: https://developer.openstack.org/api-ref/resource-optimization/
