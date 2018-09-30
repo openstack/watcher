@@ -159,11 +159,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         :rtype: List of :py:class:`~.EventsNotificationEndpoint` instances
         """
         return [
-            nova.ServiceUpdated(self),
-
-            nova.InstanceCreated(self),
-            nova.InstanceUpdated(self),
-            nova.InstanceDeletedEnd(self),
+            nova.VersionedNotification(self),
         ]
 
     def get_audit_scope_handler(self, audit_scope):
@@ -354,7 +350,8 @@ class ModelBuilder(object):
             "vcpus": flavor["vcpus"],
             "state": getattr(instance, "OS-EXT-STS:vm_state"),
             "metadata": instance.metadata,
-            "project_id": instance.tenant_id}
+            "project_id": instance.tenant_id,
+            "locked": instance.locked}
 
         # node_attributes = dict()
         # node_attributes["layer"] = "virtual"

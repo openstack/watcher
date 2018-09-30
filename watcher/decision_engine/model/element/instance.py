@@ -30,6 +30,7 @@ class InstanceState(enum.Enum):
     RESCUED = 'rescued'  # A rescue image is running with the original image
     # attached.
     RESIZED = 'resized'  # an Instance with the new size is active.
+    SHELVED = 'shelved'
 
     SOFT_DELETED = 'soft-delete'
     # still available to restore.
@@ -53,6 +54,7 @@ class Instance(compute_resource.ComputeResource):
         "vcpus": wfields.NonNegativeIntegerField(),
         "metadata": wfields.JsonField(),
         "project_id": wfields.UUIDField(),
+        "locked": wfields.BooleanField(default=False),
     }
 
     def accept(self, visitor):

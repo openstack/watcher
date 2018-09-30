@@ -59,6 +59,7 @@ class NovaNotification(base.NotificationEndpoint):
         return instance
 
     def update_instance(self, instance, data):
+        n_version = float(data['nova_object.version'])
         instance_data = data['nova_object.data']
         instance_flavor_data = instance_data['flavor']['nova_object.data']
 
@@ -78,6 +79,9 @@ class NovaNotification(base.NotificationEndpoint):
             'metadata': instance_metadata,
             'project_id': instance_data['tenant_id']
         })
+        # locked was added in nova notification payload version 1.1
+        if n_version > 1.0:
+            instance.update({'locked': instance_data['locked']})
 
         try:
             node = self.get_or_create_node(instance_data['host'])
@@ -181,30 +185,17 @@ class NovaNotification(base.NotificationEndpoint):
         except Exception:
             LOG.info("Instance %s already deleted", instance.uuid)
 
+    def delete_node(self, node):
+        try:
+            self.cluster_data_model.remove_node(node)
+        except Exception:
+            LOG.info("Node %s already deleted", node.uuid)
 
-class VersionedNotificationEndpoint(NovaNotification):
-    publisher_id_regex = r'^nova-compute.*'
 
+class VersionedNotification(NovaNotification):
+    publisher_id_regex = r'^nova-.*'
 
-class ServiceUpdated(VersionedNotificationEndpoint):
-
-    @property
-    def filter_rule(self):
-        """Nova service.update notification filter"""
-        return filtering.NotificationFilter(
-            publisher_id=self.publisher_id_regex,
-            event_type='service.update',
-        )
-
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
-        ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
-        LOG.debug(payload)
+    def service_updated(self, payload):
         node_data = payload['nova_object.data']
         node_uuid = node_data['host']
         try:
@@ -213,44 +204,16 @@ class ServiceUpdated(VersionedNotificationEndpoint):
         except exception.ComputeNodeNotFound as exc:
             LOG.exception(exc)
 
+    def service_deleted(self, payload):
+        node_data = payload['nova_object.data']
+        node_uuid = node_data['host']
+        try:
+            node = self.get_or_create_node(node_uuid)
+            self.delete_node(node)
+        except exception.ComputeNodeNotFound as exc:
+            LOG.exception(exc)
 
-class InstanceCreated(VersionedNotificationEndpoint):
-
-    @property
-    def filter_rule(self):
-        """Nova instance.update notification filter"""
-        return filtering.NotificationFilter(
-            publisher_id=self.publisher_id_regex,
-            event_type='instance.update',
-            # To be "fully" created, an instance transitions
-            # from the 'building' state to the 'active' one.
-            # See https://docs.openstack.org/nova/latest/reference/
-            # vm-states.html
-
-            payload={
-                'nova_object.data': {
-                    'state': element.InstanceState.ACTIVE.value,
-                    'state_update': {
-                        'nova_object.data': {
-                            'old_state': element.InstanceState.BUILDING.value,
-                            'state': element.InstanceState.ACTIVE.value,
-                        },
-                        'nova_object.name': 'InstanceStateUpdatePayload',
-                        'nova_object.namespace': 'nova',
-                    },
-                }
-            }
-        )
-
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
-        ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
-        LOG.debug(payload)
+    def instance_updated(self, payload):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
         node_uuid = instance_data.get('host')
@@ -258,62 +221,7 @@ class InstanceCreated(VersionedNotificationEndpoint):
 
         self.update_instance(instance, payload)
 
-
-class InstanceUpdated(VersionedNotificationEndpoint):
-
-    @staticmethod
-    def _match_not_new_instance_state(data):
-        is_new_instance = (
-            data['old_state'] == element.InstanceState.BUILDING.value and
-            data['state'] == element.InstanceState.ACTIVE.value)
-
-        return not is_new_instance
-
-    @property
-    def filter_rule(self):
-        """Nova instance.update notification filter"""
-        return filtering.NotificationFilter(
-            publisher_id=self.publisher_id_regex,
-            event_type='instance.update',
-        )
-
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
-        ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
-        LOG.debug(payload)
-        instance_data = payload['nova_object.data']
-        instance_uuid = instance_data['uuid']
-        node_uuid = instance_data.get('host')
-        instance = self.get_or_create_instance(instance_uuid, node_uuid)
-
-        self.update_instance(instance, payload)
-
-
-class InstanceDeletedEnd(VersionedNotificationEndpoint):
-
-    @property
-    def filter_rule(self):
-        """Nova service.update notification filter"""
-        return filtering.NotificationFilter(
-            publisher_id=self.publisher_id_regex,
-            event_type='instance.delete.end',
-        )
-
-    def info(self, ctxt, publisher_id, event_type, payload, metadata):
-        ctxt.request_id = metadata['message_id']
-        ctxt.project_domain = event_type
-        LOG.info("Event '%(event)s' received from %(publisher)s "
-                 "with metadata %(metadata)s",
-                 dict(event=event_type,
-                      publisher=publisher_id,
-                      metadata=metadata))
-        LOG.debug(payload)
-
+    def instance_deleted(self, payload):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
         node_uuid = instance_data.get('host')
@@ -327,3 +235,49 @@ class InstanceDeletedEnd(VersionedNotificationEndpoint):
             node = None
 
         self.delete_instance(instance, node)
+
+    notification_mapping = {
+        'instance.create.end': instance_updated,
+        'instance.lock': instance_updated,
+        'instance.unlock': instance_updated,
+        'instance.pause.end': instance_updated,
+        'instance.power_off.end': instance_updated,
+        'instance.power_on.end': instance_updated,
+        'instance.resize_confirm.end': instance_updated,
+        'instance.restore.end': instance_updated,
+        'instance.resume.end': instance_updated,
+        'instance.shelve.end': instance_updated,
+        'instance.shutdown.end': instance_updated,
+        'instance.suspend.end': instance_updated,
+        'instance.unpause.end': instance_updated,
+        'instance.unrescue.end': instance_updated,
+        'instance.unshelve.end': instance_updated,
+        'instance.rebuild.end': instance_updated,
+        'instance.rescue.end': instance_updated,
+        'instance.update': instance_updated,
+        'instance.live_migration_force_complete.end': instance_updated,
+        'instance.live_migration_post_dest.end': instance_updated,
+        'instance.delete.end': instance_deleted,
+        'instance.soft_delete.end': instance_deleted,
+        'service.create': service_updated,
+        'service.delete': service_deleted,
+        'service.update': service_updated,
+        }
+
+    @property
+    def filter_rule(self):
+        """Nova notification filter"""
+        return filtering.NotificationFilter(
+            publisher_id=self.publisher_id_regex,
+        )
+
+    def info(self, ctxt, publisher_id, event_type, payload, metadata):
+        LOG.info("Event '%(event)s' received from %(publisher)s "
+                 "with metadata %(metadata)s",
+                 dict(event=event_type,
+                      publisher=publisher_id,
+                      metadata=metadata))
+        func = self.notification_mapping.get(event_type)
+        if func:
+            LOG.debug(payload)
+            func(self, payload)

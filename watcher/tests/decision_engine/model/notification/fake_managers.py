@@ -55,11 +55,7 @@ class FakeManager(service_manager.ServiceManager):
     @property
     def notification_endpoints(self):
         return [
-            novanotification.ServiceUpdated(self.fake_cdmc),
-
-            novanotification.InstanceCreated(self.fake_cdmc),
-            novanotification.InstanceUpdated(self.fake_cdmc),
-            novanotification.InstanceDeletedEnd(self.fake_cdmc),
+            novanotification.VersionedNotification(self.fake_cdmc),
         ]
 
 
