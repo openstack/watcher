@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    Watcher removes the support to Nova legacy notifications because of Nova
+    will deprecate them.
