@@ -16,7 +16,6 @@
 
 
 from oslo_config import cfg
-from oslo_utils import importutils
 from pecan import hooks
 from six.moves import http_client
 
@@ -60,14 +59,8 @@ class ContextHook(hooks.PecanHook):
         roles = (headers.get('X-Roles', None) and
                  headers.get('X-Roles').split(','))
 
-        auth_url = headers.get('X-Auth-Url')
-        if auth_url is None:
-            importutils.import_module('keystonemiddleware.auth_token')
-            auth_url = cfg.CONF.keystone_authtoken.www_authenticate_uri
-
         state.request.context = context.make_context(
             auth_token=auth_token,
-            auth_url=auth_url,
             auth_token_info=auth_token_info,
             user=user,
             user_id=user_id,

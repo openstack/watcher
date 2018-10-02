@@ -23,9 +23,9 @@ class RequestContext(context.RequestContext):
 
     def __init__(self, user_id=None, project_id=None, is_admin=None,
                  roles=None, timestamp=None, request_id=None, auth_token=None,
-                 auth_url=None, overwrite=True, user_name=None,
-                 project_name=None, domain_name=None, domain_id=None,
-                 auth_token_info=None, **kwargs):
+                 overwrite=True, user_name=None, project_name=None,
+                 domain_name=None, domain_id=None, auth_token_info=None,
+                 **kwargs):
         """Stores several additional request parameters:
 
         :param domain_id: The ID of the domain.
@@ -62,7 +62,6 @@ class RequestContext(context.RequestContext):
         # FIXME(dims): user_id and project_id duplicate information that is
         # already present in the oslo_context's RequestContext. We need to
         # get rid of them.
-        self.auth_url = auth_url
         self.domain_name = domain_name
         self.domain_id = domain_id
         self.auth_token_info = auth_token_info
