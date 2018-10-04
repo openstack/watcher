@@ -8,5 +8,7 @@
         ]
     },
     "audit_type": "CONTINUOUS",
-    "interval": "*/2 * * * *"
+    "interval": "*/2 * * * *",
+    "start_time":"2018-04-02 20:30:00",
+    "end_time": "2018-04-04 20:30:00"
 }

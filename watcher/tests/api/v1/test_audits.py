@@ -900,7 +900,10 @@ class TestPost(api_base.FunctionalTest):
         audit_dict['start_time'] = str(start_time)
         audit_dict['end_time'] = str(end_time)
 
-        response = self.post_json('/audits', audit_dict)
+        response = self.post_json(
+            '/audits',
+            audit_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.1'})
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(201, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
@@ -918,6 +921,34 @@ class TestPost(api_base.FunctionalTest):
 
         self.assertEqual(iso_start_time, return_start_time)
         self.assertEqual(iso_end_time, return_end_time)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_continuous_audit_with_start_end_time_incompatible_version(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        start_time = datetime.datetime(2018, 3, 1, 0, 0)
+        end_time = datetime.datetime(2018, 4, 1, 0, 0)
+
+        audit_dict = post_get_test_audit(
+            params_to_exclude=['uuid', 'state', 'scope',
+                               'next_run_time', 'hostname', 'goal']
+        )
+        audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
+        audit_dict['interval'] = '1200'
+        audit_dict['start_time'] = str(start_time)
+        audit_dict['end_time'] = str(end_time)
+
+        response = self.post_json(
+            '/audits',
+            audit_dict,
+            headers={'X-OpenStack-Watcher-API-Version': '1.0'},
+            expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(406, response.status_int)
+        expected_error_msg = 'Request not acceptable.'
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
 
 
 class TestDelete(api_base.FunctionalTest):

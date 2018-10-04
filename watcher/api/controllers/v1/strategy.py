@@ -45,6 +45,16 @@ from watcher.decision_engine import rpcapi
 from watcher import objects
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class Strategy(base.APIBase):
     """API representation of a strategy.
 
@@ -146,6 +156,7 @@ class Strategy(base.APIBase):
     @classmethod
     def convert_with_links(cls, strategy, expand=True):
         strategy = Strategy(**strategy.as_dict())
+        hide_fields_in_newer_versions(strategy)
         return cls._convert_with_links(
             strategy, pecan.request.host_url, expand)
 

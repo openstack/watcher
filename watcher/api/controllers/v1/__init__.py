@@ -24,10 +24,12 @@ import datetime
 
 import pecan
 from pecan import rest
+from webob import exc
 import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import action
 from watcher.api.controllers.v1 import action_plan
@@ -37,6 +39,21 @@ from watcher.api.controllers.v1 import goal
 from watcher.api.controllers.v1 import scoring_engine
 from watcher.api.controllers.v1 import service
 from watcher.api.controllers.v1 import strategy
+from watcher.api.controllers.v1 import versions
+
+
+def min_version():
+    return base.Version(
+        {base.Version.string: ' '.join([versions.service_type_string(),
+                                        versions.min_version_string()])},
+        versions.min_version_string(), versions.max_version_string())
+
+
+def max_version():
+    return base.Version(
+        {base.Version.string: ' '.join([versions.service_type_string(),
+                                        versions.max_version_string()])},
+        versions.min_version_string(), versions.max_version_string())
 
 
 class APIBase(wtypes.Base):
@@ -192,6 +209,51 @@ class Controller(rest.RestController):
         #       request is because we need to get the host url from
         #       the request object to make the links.
         return V1.convert()
+
+    def _check_version(self, version, headers=None):
+        if headers is None:
+            headers = {}
+        # ensure that major version in the URL matches the header
+        if version.major != versions.BASE_VERSION:
+            raise exc.HTTPNotAcceptable(
+                "Mutually exclusive versions requested. Version %(ver)s "
+                "requested but not supported by this service. The supported "
+                "version range is: [%(min)s, %(max)s]." %
+                {'ver': version, 'min': versions.min_version_string(),
+                 'max': versions.max_version_string()},
+                headers=headers)
+        # ensure the minor version is within the supported range
+        if version < min_version() or version > max_version():
+            raise exc.HTTPNotAcceptable(
+                "Version %(ver)s was requested but the minor version is not "
+                "supported by this service. The supported version range is: "
+                "[%(min)s, %(max)s]." %
+                {'ver': version, 'min': versions.min_version_string(),
+                 'max': versions.max_version_string()},
+                headers=headers)
+
+    @pecan.expose()
+    def _route(self, args, request=None):
+        v = base.Version(pecan.request.headers, versions.min_version_string(),
+                         versions.max_version_string())
+
+        # The Vary header is used as a hint to caching proxies and user agents
+        # that the response is also dependent on the OpenStack-API-Version and
+        # not just the body and query parameters. See RFC 7231 for details.
+        pecan.response.headers['Vary'] = base.Version.string
+
+        # Always set the min and max headers
+        pecan.response.headers[base.Version.min_string] = (
+            versions.min_version_string())
+        pecan.response.headers[base.Version.max_string] = (
+            versions.max_version_string())
+
+        # assert that requested version is supported
+        self._check_version(v, pecan.response.headers)
+        pecan.response.headers[base.Version.string] = str(v)
+        pecan.request.version = v
+
+        return super(Controller, self)._route(args, request)
 
 
 __all__ = ("Controller", )

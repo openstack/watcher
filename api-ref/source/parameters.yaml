@@ -191,6 +191,13 @@ audit_autotrigger:
   in: body
   required: false
   type: boolean
+audit_endtime:
+  description: |
+    The time after which audit can't be executed.
+  in: body
+  required: false
+  type: string
+  min_version: 1.1
 audit_goal:
   description: |
     The UUID or name of the Goal.
@@ -229,6 +236,13 @@ audit_parameters:
   in: body
   required: false
   type: JSON
+audit_starttime:
+  description: |
+    The time after which audit can be executed in accordance with interval.
+  in: body
+  required: false
+  type: string
+  min_version: 1.1
 audit_state:
   description: |
     State of this audit. To get more information about states and

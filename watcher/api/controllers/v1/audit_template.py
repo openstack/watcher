@@ -65,6 +65,16 @@ from watcher.decision_engine.loading import default as default_loading
 from watcher import objects
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class AuditTemplatePostType(wtypes.Base):
     _ctx = context_utils.make_context()
 
@@ -410,6 +420,7 @@ class AuditTemplate(base.APIBase):
     @classmethod
     def convert_with_links(cls, rpc_audit_template, expand=True):
         audit_template = AuditTemplate(**rpc_audit_template.as_dict())
+        hide_fields_in_newer_versions(audit_template)
         return cls._convert_with_links(audit_template, pecan.request.host_url,
                                        expand)
 

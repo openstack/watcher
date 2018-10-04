@@ -80,6 +80,16 @@ from watcher.objects import action_plan as ap_objects
 LOG = log.getLogger(__name__)
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class ActionPlanPatchType(types.JsonPatchType):
 
     @staticmethod
@@ -273,6 +283,7 @@ class ActionPlan(base.APIBase):
     @classmethod
     def convert_with_links(cls, rpc_action_plan, expand=True):
         action_plan = ActionPlan(**rpc_action_plan.as_dict())
+        hide_fields_in_newer_versions(action_plan)
         return cls._convert_with_links(action_plan, pecan.request.host_url,
                                        expand)
 

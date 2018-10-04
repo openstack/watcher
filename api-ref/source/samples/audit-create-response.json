@@ -48,5 +48,7 @@
     "strategy_name": "workload_stabilization",
     "next_run_time": null,
     "updated_at": null,
-    "hostname": null
+    "hostname": null,
+    "start_time": null,
+    "end_time": null
 }
