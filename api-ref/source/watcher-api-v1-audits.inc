@@ -28,10 +28,6 @@ itself. In the first case, there also should be supplied
 ``audit_template_uuid``. If ``Audit`` is created without ``Audit Template``,
 ``goal`` should be provided.
 
-.. warning::
-    **Only ``audit_template_uuid`` can be used to create audit so far.**
-    It should be fixed during the ``Rocky`` cycle.
-
 Normal response codes: 201
 
 Error codes: 400,404

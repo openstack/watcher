@@ -54,6 +54,13 @@ from watcher import objects
 LOG = log.getLogger(__name__)
 
 
+def _get_object_by_value(context, class_name, value):
+    if utils.is_uuid_like(value) or utils.is_int_like(value):
+        return class_name.get(context, value)
+    else:
+        return class_name.get_by_name(context, value)
+
+
 class AuditPostType(wtypes.Base):
 
     name = wtypes.wsattr(wtypes.text, mandatory=False)
@@ -93,6 +100,10 @@ class AuditPostType(wtypes.Base):
             raise exception.AuditIntervalNotSpecified(
                 audit_type=self.audit_type)
 
+        if self.audit_template_uuid and self.goal:
+            raise exception.Invalid('Either audit_template_uuid '
+                                    'or goal should be provided.')
+
         # If audit_template_uuid was provided, we will provide any
         # variables not included in the request, but not override
         # those variables that were included.
@@ -123,7 +134,8 @@ class AuditPostType(wtypes.Base):
         # Note: If audit name was not provided, used a default name
         if not self.name:
             if self.strategy:
-                strategy = objects.Strategy.get(context, self.strategy)
+                strategy = _get_object_by_value(context, objects.Strategy,
+                                                self.strategy)
                 self.name = "%s-%s" % (strategy.name,
                                        datetime.datetime.utcnow().isoformat())
             elif self.audit_template_uuid:
@@ -132,7 +144,7 @@ class AuditPostType(wtypes.Base):
                 self.name = "%s-%s" % (audit_template.name,
                                        datetime.datetime.utcnow().isoformat())
             else:
-                goal = objects.Goal.get(context, self.goal)
+                goal = _get_object_by_value(context, objects.Goal, self.goal)
                 self.name = "%s-%s" % (goal.name,
                                        datetime.datetime.utcnow().isoformat())
         # No more than 63 characters
