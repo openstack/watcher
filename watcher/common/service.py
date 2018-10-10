@@ -265,8 +265,7 @@ class Service(service.ServiceBase):
             allow_requeue=False, pool=CONF.host)
 
     def start(self):
-        LOG.debug("Connecting to '%s' (%s)",
-                  CONF.transport_url, CONF.rpc_backend)
+        LOG.debug("Connecting to '%s'", CONF.transport_url)
         if self.conductor_topic_handler:
             self.conductor_topic_handler.start()
         if self.notification_handler:
@@ -275,8 +274,7 @@ class Service(service.ServiceBase):
             self.heartbeat.start()
 
     def stop(self):
-        LOG.debug("Disconnecting from '%s' (%s)",
-                  CONF.transport_url, CONF.rpc_backend)
+        LOG.debug("Disconnecting from '%s'", CONF.transport_url)
         if self.conductor_topic_handler:
             self.conductor_topic_handler.stop()
         if self.notification_handler:
