@@ -76,7 +76,7 @@ class NovaNotification(base.NotificationEndpoint):
             'disk': disk_gb,
             'disk_capacity': disk_gb,
             'metadata': instance_metadata,
-            'tenant_id': instance_data['tenant_id']
+            'project_id': instance_data['tenant_id']
         })
 
         try:
