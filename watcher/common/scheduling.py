@@ -17,14 +17,41 @@
 # limitations under the License.
 
 from apscheduler import events
+from apscheduler.executors.pool import BasePoolExecutor
 from apscheduler.schedulers import background
+import futurist
 from oslo_service import service
 
 job_events = events
 
 
+class GreenThreadPoolExecutor(BasePoolExecutor):
+    """Green thread pool
+
+    An executor that runs jobs in a green thread pool.
+    Plugin alias: ``threadpool``
+    :param max_workers: the maximum number of spawned threads.
+    """
+
+    def __init__(self, max_workers=10):
+        pool = futurist.GreenThreadPoolExecutor(int(max_workers))
+        super(GreenThreadPoolExecutor, self).__init__(pool)
+
+executors = {
+    'default': GreenThreadPoolExecutor(),
+}
+
+
 class BackgroundSchedulerService(service.ServiceBase,
                                  background.BackgroundScheduler):
+    def __init__(self, gconfig={}, **options):
+        if options is None:
+            options = {'executors': executors}
+        else:
+            if 'executors' not in options.keys():
+                options['executors'] = executors
+        super(BackgroundSchedulerService, self).__init__(
+            gconfig, **options)
 
     def start(self):
         """Start service."""
