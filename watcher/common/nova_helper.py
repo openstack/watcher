@@ -72,7 +72,8 @@ class NovaHelper(object):
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
     def get_instance_list(self):
-        return self.nova.servers.list(search_opts={'all_tenants': True})
+        return self.nova.servers.list(search_opts={'all_tenants': True},
+                                      limit=-1)
 
     def get_flavor_list(self):
         return self.nova.flavors.list(**{'is_public': None})
@@ -871,7 +872,8 @@ class NovaHelper(object):
 
     def get_instances_by_node(self, host):
         return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True})
+                self.nova.servers.list(search_opts={"all_tenants": True},
+                                       limit=-1)
                 if self.get_hostname(instance) == host]
 
     def get_hostname(self, instance):
