@@ -63,7 +63,8 @@ class TestCinderClusterDataModelCollector(base.TestCase):
             bootable='false'
         )
         setattr(fake_volume, 'name', 'name')
-        setattr(fake_volume, 'os-vol-tenant-attr:tenant_id', 'project_id')
+        setattr(fake_volume, 'os-vol-tenant-attr:tenant_id',
+                '0c003652-0cb1-4210-9005-fd5b92b1faa2')
         setattr(fake_volume, 'os-vol-host-attr:host', 'host@backend#pool')
 
         # storage node list

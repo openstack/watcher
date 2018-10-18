@@ -4,13 +4,13 @@
   "event_type": "volume.create.end",
   "payload": {
     "host": "host_0@backend_0#pool_0",
-    "volume_id": "VOLUME_00",
+    "volume_id": "990a723f-6c19-4f83-8526-6383c9e9389f",
     "display_name": "name_00",
     "size": "40",
     "status": "available",
     "volume_attachment": [{"server_id": "server", "attachment_id": "attachment"}],
     "snapshot_id": "",
-    "tenant_id": "project_00",
+    "tenant_id": "52044438-21f2-4a48-add4-d48bab20f7e1",
     "metadata": {"readonly": false, "attached_mode": "rw"},
     "glance_metadata": {}
   }

@@ -41,7 +41,8 @@ class TestStorageScope(base.TestCase):
             for i in range(2)]
         model = storage.StorageScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
-        expected_edges = [('VOLUME_0', 'host_0@backend_0#pool_0'),
+        expected_edges = [(faker_cluster_state.volume_uuid_mapping['volume_0'],
+                           'host_0@backend_0#pool_0'),
                           ('host_0@backend_0#pool_0', 'host_0@backend_0')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
@@ -152,7 +153,9 @@ class TestStorageScope(base.TestCase):
 
     def test_exclude_volumes(self):
         cluster = self.fake_cluster.generate_scenario_1()
-        exclude = ['VOLUME_0', 'VOLUME_3']
+        exclude = [faker_cluster_state.volume_uuid_mapping['volume_0'],
+                   faker_cluster_state.volume_uuid_mapping['volume_3'],
+                   ]
         storage.StorageScope([], mock.Mock(),
                              osc=mock.Mock()).exclude_volumes(exclude,
                                                               cluster)
@@ -206,6 +209,7 @@ class TestStorageScope(base.TestCase):
             for i in range(2)]
         model = storage.StorageScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
-        expected_edges = [('VOLUME_0', 'host_0@backend_0#pool_0'),
+        expected_edges = [(faker_cluster_state.volume_uuid_mapping['volume_0'],
+                           'host_0@backend_0#pool_0'),
                           ('host_0@backend_0#pool_0', 'host_0@backend_0')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))

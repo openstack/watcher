@@ -79,7 +79,6 @@ class FunctionalTest(base.DbTestCase):
                     hooks.ContextHook(),
                     hooks.NoExceptionTracebackHook()
                 ],
-                'static_root': '%s/public' % root_dir,
                 'template_path': '%s/api/templates' % root_dir,
                 'enable_acl': enable_acl,
                 'acl_public_routes': ['/', '/v1'],

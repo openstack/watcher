@@ -242,7 +242,8 @@ class TestComputeScope(base.TestCase):
     def test_exclude_instances_with_given_project(self):
         cluster = self.fake_cluster.generate_scenario_1()
         instances_to_exclude = set()
-        projects_to_exclude = ['project_1', 'project_2']
+        projects_to_exclude = ['26F03131-32CB-4697-9D61-9123F87A8147',
+                               '109F7909-0607-4712-B32C-5CC6D49D2F15']
         compute.ComputeScope(
             [], mock.Mock(),
             osc=mock.Mock()).exclude_instances_with_given_project(
