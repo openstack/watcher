@@ -6,3 +6,4 @@
    watcher-applier
    watcher-db-manage
    watcher-decision-engine
+   watcher-status
