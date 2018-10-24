@@ -15,6 +15,7 @@
         - watcher-tempest-workload_balancing
         - watcherclient-tempest-functional
         - watcher-tempest-zone_migration
+        - watcher-tls-test
         - openstack-tox-lower-constraints
     gate:
       queue: watcher
@@ -56,6 +57,17 @@
     voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
+
+- job:
+    name: watcher-tls-test
+    parent: watcher-tempest-multinode
+    group-vars:
+      subnode:
+          devstack_services:
+            tls-proxy: true
+    vars:
+      devstack_services:
+        tls-proxy: true
 
 - job:
     name: watcher-tempest-multinode
