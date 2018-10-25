@@ -115,19 +115,6 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.stop_instance(instance_id)
         self.assertFalse(result)
 
-    def test_set_host_offline(self, mock_glance, mock_cinder, mock_neutron,
-                              mock_nova):
-        host = mock.MagicMock()
-        nova_util = nova_helper.NovaHelper()
-        nova_util.nova.hosts = mock.MagicMock()
-        nova_util.nova.hosts.get.return_value = host
-        result = nova_util.set_host_offline("rennes")
-        self.assertTrue(result)
-
-        nova_util.nova.hosts.get.return_value = None
-        result = nova_util.set_host_offline("rennes")
-        self.assertFalse(result)
-
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_resize_instance(self, mock_glance, mock_cinder,
                              mock_neutron, mock_nova):
