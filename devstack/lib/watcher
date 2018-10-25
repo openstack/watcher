@@ -47,9 +47,6 @@ WATCHER_POLICY_YAML=$WATCHER_CONF_DIR/policy.yaml.sample
 WATCHER_DEVSTACK_DIR=$WATCHER_DIR/devstack
 WATCHER_DEVSTACK_FILES_DIR=$WATCHER_DEVSTACK_DIR/files
 
-NOVA_CONF_DIR=/etc/nova
-NOVA_CONF=$NOVA_CONF_DIR/nova.conf
-
 if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
     WATCHER_SERVICE_PROTOCOL="https"
 fi
@@ -192,9 +189,6 @@ function create_watcher_conf {
     iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
 
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
-
-    iniset $NOVA_CONF oslo_messaging_notifications topics "notifications,watcher_notifications"
-    iniset $NOVA_CONF notifications notify_on_state_change "vm_and_task_state"
 
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
     configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"

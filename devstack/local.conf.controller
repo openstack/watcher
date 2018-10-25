@@ -48,6 +48,3 @@ LOGDAYS=2
 [[post-config|$NOVA_CONF]]
 [DEFAULT]
 compute_monitors=cpu.virt_driver
-notify_on_state_change = vm_and_task_state
-[notifications]
-notify_on_state_change = vm_and_task_state
