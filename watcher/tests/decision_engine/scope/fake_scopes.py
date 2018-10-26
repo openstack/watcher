@@ -14,6 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from watcher.tests.decision_engine.model import faker_cluster_state
+
+vum = faker_cluster_state.volume_uuid_mapping
+
 fake_scope_1 = [{'compute': [{'availability_zones': [{'name': 'AZ1'},
                                                      {'name': 'AZ3'}]},
                              {'exclude': [
@@ -40,7 +44,7 @@ compute_scope = [{'compute': [{'host_aggregates': [{'id': '*'}]},
 fake_scope_2 = [{'storage': [{'availability_zones': [{'name': 'zone_0'}]},
                              {'exclude': [
                                  {'volumes': [
-                                     {'uuid': 'VOLUME_1'}]},
+                                     {'uuid': vum['volume_1']}]},
 
                                  {'storage_pools': [
                                      {'name': 'host_0@backend_0#pool_1'}]}

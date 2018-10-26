@@ -33,7 +33,14 @@ NonNegativeIntegerField = fields.NonNegativeIntegerField
 ObjectField = fields.ObjectField
 StringField = fields.StringField
 UnspecifiedDefault = fields.UnspecifiedDefault
-UUIDField = fields.UUIDField
+
+
+class UUIDField(fields.UUIDField):
+    def coerce(self, obj, attr, value):
+        if value is None or value == "":
+            return self._null(obj, attr)
+        else:
+            return self._type.coerce(obj, attr, value)
 
 
 class Numeric(fields.FieldType):

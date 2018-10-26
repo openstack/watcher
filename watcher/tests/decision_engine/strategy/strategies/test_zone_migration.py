@@ -27,6 +27,9 @@ from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_state
 
 
+volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
+
+
 class TestZoneMigration(base.TestCase):
 
     def setUp(self):
@@ -218,11 +221,11 @@ class TestZoneMigration(base.TestCase):
 
     def test_get_volumes(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1")
+                                          id=volume_uuid_mapping["volume_1"])
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id="VOLUME_2")
+                                          id=volume_uuid_mapping["volume_2"])
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id="VOLUME_3")
+                                          id=volume_uuid_mapping["volume_3"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -276,7 +279,7 @@ class TestZoneMigration(base.TestCase):
 
     def test_execute_migrate_volume(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1")
+                                          id=volume_uuid_mapping["volume_1"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
         ]
@@ -294,7 +297,7 @@ class TestZoneMigration(base.TestCase):
 
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id="VOLUME_2")
+                                          id=volume_uuid_mapping["volume_2"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src2,
         ]
@@ -312,7 +315,7 @@ class TestZoneMigration(base.TestCase):
 
     def test_execute_swap_volume(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1")
+                                          id=volume_uuid_mapping["volume_1"])
         volume_on_src1.status = "in-use"
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
@@ -371,9 +374,9 @@ class TestZoneMigration(base.TestCase):
 
     def test_execute_migrate_volume_parallel(self):
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_1")
+                                            id=volume_uuid_mapping["volume_1"])
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_2")
+                                            id=volume_uuid_mapping["volume_2"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -394,9 +397,9 @@ class TestZoneMigration(base.TestCase):
         self.m_parallel_per_pool.return_value = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_1")
+                                            id=volume_uuid_mapping["volume_1"])
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_2")
+                                            id=volume_uuid_mapping["volume_2"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -418,11 +421,11 @@ class TestZoneMigration(base.TestCase):
         self.m_parallel_per_pool.return_value = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_1")
+                                            id=volume_uuid_mapping["volume_1"])
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id="VOLUME_2")
+                                            id=volume_uuid_mapping["volume_2"])
         volume_on_src2_1 = self.fake_volume(host="src2@back1#pool1",
-                                            id="VOLUME_3")
+                                            id=volume_uuid_mapping["volume_3"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -482,11 +485,11 @@ class TestZoneMigration(base.TestCase):
 
     def test_filtered_targets_storage_pools(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1")
+                                          id=volume_uuid_mapping["volume_1"])
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id="VOLUME_2")
+                                          id=volume_uuid_mapping["volume_2"])
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id="VOLUME_3")
+                                          id=volume_uuid_mapping["volume_3"])
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -521,11 +524,14 @@ class TestZoneMigration(base.TestCase):
         self.m_c_helper.get_volume_list.return_value = []
 
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1", project_id="pj2")
+                                          id=volume_uuid_mapping["volume_1"],
+                                          project_id="pj2")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id="VOLUME_2", project_id="pj1")
+                                          id=volume_uuid_mapping["volume_2"],
+                                          project_id="pj1")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id="VOLUME_3", project_id="pj3")
+                                          id=volume_uuid_mapping["volume_3"],
+                                          project_id="pj3")
 
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
@@ -670,12 +676,18 @@ class TestZoneMigration(base.TestCase):
     # StorageSpecSortFilter #
 
     def test_filtered_targets_storage_size(self):
-        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          size="1", id="VOLUME_1")
-        volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          size="2", id="VOLUME_2")
-        volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          size="3", id="VOLUME_3")
+        volume_on_src1 = self.fake_volume(
+            host="src1@back1#pool1",
+            size="1",
+            id=volume_uuid_mapping["volume_1"])
+        volume_on_src2 = self.fake_volume(
+            host="src2@back1#pool1",
+            size="2",
+            id=volume_uuid_mapping["volume_2"])
+        volume_on_src3 = self.fake_volume(
+            host="src3@back2#pool1",
+            size="3",
+            id=volume_uuid_mapping["volume_3"],)
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -694,13 +706,13 @@ class TestZoneMigration(base.TestCase):
 
     def test_filtered_targets_storage_created_at(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id="VOLUME_1",
+                                          id=volume_uuid_mapping["volume_1"],
                                           created_at="2017-10-30T00:00:00")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id="VOLUME_2",
+                                          id=volume_uuid_mapping["volume_2"],
                                           created_at="1977-03-29T03:03:03")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id="VOLUME_3",
+                                          id=volume_uuid_mapping["volume_3"],
                                           created_at="1977-03-29T03:03:03")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,

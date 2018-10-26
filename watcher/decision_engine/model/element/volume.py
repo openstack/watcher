@@ -46,7 +46,7 @@ class Volume(storage_resource.StorageResource):
         "attachments": wfields.FlexibleListOfDictField(),
         "name": wfields.StringField(),
         "multiattach": wfields.BooleanField(),
-        "snapshot_id": wfields.UUIDField(),
+        "snapshot_id": wfields.UUIDField(nullable=True),
         "project_id": wfields.UUIDField(),
         "metadata": wfields.JsonField(),
         "bootable": wfields.BooleanField()

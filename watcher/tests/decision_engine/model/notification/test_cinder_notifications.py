@@ -358,7 +358,7 @@ class TestCinderNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         # check that volume00 was added to the model
-        volume_00_name = 'VOLUME_00'
+        volume_00_name = '990a723f-6c19-4f83-8526-6383c9e9389f'
         volume_00 = storage_model.get_volume_by_uuid(volume_00_name)
         self.assertEqual(volume_00_name, volume_00.uuid)
         self.assertFalse(volume_00.bootable)
@@ -405,7 +405,7 @@ class TestCinderNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         # check that volume00 was added to the model
-        volume_00_name = 'VOLUME_00'
+        volume_00_name = '990a723f-6c19-4f83-8526-6383c9e9389f'
         volume_00 = storage_model.get_volume_by_uuid(volume_00_name)
         self.assertEqual(volume_00_name, volume_00.uuid)
         self.assertTrue(volume_00.bootable)
@@ -469,7 +469,7 @@ class TestCinderNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         # check that volume00 was added to the model
-        volume_00_name = 'VOLUME_00'
+        volume_00_name = '990a723f-6c19-4f83-8526-6383c9e9389f'
         volume_00 = storage_model.get_volume_by_uuid(volume_00_name)
         self.assertEqual(volume_00_name, volume_00.uuid)
         # check that capacity was updated
@@ -509,7 +509,7 @@ class TestCinderNotifications(NotificationTestCase):
         # we do not call get_storage_pool_by_name
         m_get_storage_pool_by_name.assert_not_called()
         # check that volume00 was added to the model
-        volume_00_name = 'VOLUME_00'
+        volume_00_name = '990a723f-6c19-4f83-8526-6383c9e9389f'
         volume_00 = storage_model.get_volume_by_uuid(volume_00_name)
         self.assertEqual(volume_00_name, volume_00.uuid)
 
@@ -521,7 +521,7 @@ class TestCinderNotifications(NotificationTestCase):
         self.fake_cdmc.cluster_data_model = storage_model
         handler = cnotification.VolumeUpdateEnd(self.fake_cdmc)
 
-        volume_0_name = 'VOLUME_0'
+        volume_0_name = faker_cluster_state.volume_uuid_mapping['volume_0']
         volume_0 = storage_model.get_volume_by_uuid(volume_0_name)
         self.assertEqual('name_0', volume_0.name)
 
@@ -578,7 +578,7 @@ class TestCinderNotifications(NotificationTestCase):
         handler = cnotification.VolumeDeleteEnd(self.fake_cdmc)
 
         # volume exists before consuming
-        volume_0_uuid = 'VOLUME_0'
+        volume_0_uuid = faker_cluster_state.volume_uuid_mapping['volume_0']
         volume_0 = storage_model.get_volume_by_uuid(volume_0_uuid)
         self.assertEqual(volume_0_uuid, volume_0.uuid)
 

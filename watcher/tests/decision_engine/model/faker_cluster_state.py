@@ -26,6 +26,14 @@ from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root as modelroot
 
 
+volume_uuid_mapping = {
+    "volume_0": "5028b1eb-8749-48ae-a42c-5bdd1323976f",
+    "volume_1": "74454247-a064-4b34-8f43-89337987720e",
+    "volume_2": "a16c811e-2521-4fd3-8779-6a94ccb3be73",
+    "volume_3": "37856b95-5be4-4864-8a49-c83f55c66780",
+}
+
+
 class FakerModelCollector(base.BaseClusterDataModelCollector):
 
     def __init__(self, config=None, osc=None, audit_scope=None):
@@ -83,7 +91,12 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, instance_count):
             instance_uuid = "INSTANCE_{0}".format(i)
-            project_id = "project_{0}".format(i)
+            if instance_uuid == "INSTANCE_1":
+                project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
+            elif instance_uuid == "INSTANCE_2":
+                project_id = "109F7909-0607-4712-B32C-5CC6D49D2F15"
+            else:
+                project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
             instance_attributes = {
                 "uuid": instance_uuid,
                 "memory": 2,
@@ -229,10 +242,21 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
                 model.get_node_by_name(node_name),
             )
 
+        volume_uuid_mapping = [
+            "5028b1eb-8749-48ae-a42c-5bdd1323976f",
+            "74454247-a064-4b34-8f43-89337987720e",
+            "a16c811e-2521-4fd3-8779-6a94ccb3be73",
+            "37856b95-5be4-4864-8a49-c83f55c66780",
+            "694f8fb1-df96-46be-b67d-49f2c14a495e",
+            "66b094b0-8fc3-4a94-913f-a5f9312b11a5",
+            "e9013810-4b4c-4b94-a056-4c36702d51a3",
+            "07976191-6a57-4c35-9f3c-55b3b5ecd6d5",
+            "4d1c952d-95d0-4aac-82aa-c3cb509af9f3",
+        ]
+
         for k in range(volume_count):
-            uuid = "VOLUME_{0}".format(k)
+            uuid = volume_uuid_mapping[k]
             name = "name_{0}".format(k)
-            project_id = "project_{0}".format(k)
             volume_attributes = {
                 "size": 40,
                 "status": "in-use",
@@ -242,7 +266,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
                 "name": name,
                 "multiattach": 'True',
                 "snapshot_id": uuid,
-                "project_id": project_id,
+                "project_id": "91FFFE30-78A0-4152-ACD2-8310FF274DC9",
                 "metadata": '{"readonly": false,"attached_mode": "rw"}',
                 "bootable": 'False'
             }
@@ -250,14 +274,14 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
             model.add_volume(volume)
 
         mappings = [
-            ("VOLUME_0", "host_0@backend_0#pool_0"),
-            ("VOLUME_1", "host_0@backend_0#pool_0"),
-            ("VOLUME_2", "host_0@backend_0#pool_1"),
-            ("VOLUME_3", "host_0@backend_0#pool_1"),
-            ("VOLUME_4", "host_1@backend_1#pool_0"),
-            ("VOLUME_5", "host_1@backend_1#pool_0"),
-            ("VOLUME_6", "host_1@backend_1#pool_1"),
-            ("VOLUME_7", "host_1@backend_1#pool_1"),
+            (volume_uuid_mapping[0], "host_0@backend_0#pool_0"),
+            (volume_uuid_mapping[1], "host_0@backend_0#pool_0"),
+            (volume_uuid_mapping[2], "host_0@backend_0#pool_1"),
+            (volume_uuid_mapping[3], "host_0@backend_0#pool_1"),
+            (volume_uuid_mapping[4], "host_1@backend_1#pool_0"),
+            (volume_uuid_mapping[5], "host_1@backend_1#pool_0"),
+            (volume_uuid_mapping[6], "host_1@backend_1#pool_1"),
+            (volume_uuid_mapping[7], "host_1@backend_1#pool_1"),
         ]
 
         for volume_uuid, pool_name in mappings:

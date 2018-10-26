@@ -444,7 +444,7 @@ class TestListAction(api_base.FunctionalTest):
             action = obj_utils.create_test_action(self.context, id=id_,
                                                   uuid=utils.generate_uuid(),
                                                   parents=parents)
-            parents = [action.id]
+            parents = [action.uuid]
         response = self.get_json('/actions/?limit=3')
         self.assertEqual(3, len(response['actions']))
 
