@@ -81,6 +81,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # the migration plan will be triggered when the CPU or RAM
         # utilization % reaches threshold
         self._meter = None
+        self.instance_migrations_count = 0
 
     @classmethod
     def get_name(cls):
@@ -377,6 +378,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             self.solution.add_action(action_type=self.MIGRATION,
                                      resource_id=instance_src.uuid,
                                      input_parameters=parameters)
+            self.instance_migrations_count += 1
 
     def post_execute(self):
         """Post-execution phase
@@ -384,5 +386,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         This can be used to compute the global efficacy
         """
         self.solution.model = self.compute_model
+        self.solution.set_efficacy_indicators(
+            instance_migrations_count=self.instance_migrations_count,
+            instances_count=len(self.compute_model.get_all_instances())
+        )
 
         LOG.debug(self.compute_model.to_string())

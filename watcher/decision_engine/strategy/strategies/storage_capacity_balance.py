@@ -399,4 +399,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         """Post-execution phase
 
         """
-        pass
+        self.solution.set_efficacy_indicators(
+            instance_migrations_count=0,
+            instances_count=0,
+        )

@@ -243,6 +243,7 @@ class TestWorkloadStabilization(base.TestCase):
         self.strategy.thresholds = {'cpu_util': 0.042,
                                     'memory.resident': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(return_value=False)
+        self.strategy.instance_migrations_count = 0
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
             self.strategy.execute()
             mock_migrate.assert_not_called()

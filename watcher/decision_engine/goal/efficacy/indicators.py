@@ -90,7 +90,7 @@ class ComputeNodesCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class ReleasedComputeNodesCount(IndicatorSpecification):
@@ -106,7 +106,25 @@ class ReleasedComputeNodesCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
+
+
+class InstancesCount(IndicatorSpecification):
+    def __init__(self):
+        super(InstancesCount, self).__init__(
+            name="instances_count",
+            description=_("The total number of audited instances in "
+                          "strategy."),
+            unit=None,
+            required=False,
+        )
+
+    @property
+    def schema(self):
+        return {
+            "type": "integer",
+            "minimum": 0
+        }
 
 
 class InstanceMigrationsCount(IndicatorSpecification):
@@ -122,7 +140,7 @@ class InstanceMigrationsCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class LiveInstanceMigrateCount(IndicatorSpecification):
@@ -138,7 +156,7 @@ class LiveInstanceMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
@@ -154,7 +172,7 @@ class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class ColdInstanceMigrateCount(IndicatorSpecification):
@@ -170,7 +188,7 @@ class ColdInstanceMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class PlannedColdInstanceMigrateCount(IndicatorSpecification):
@@ -186,7 +204,7 @@ class PlannedColdInstanceMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class VolumeMigrateCount(IndicatorSpecification):
@@ -202,7 +220,7 @@ class VolumeMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class PlannedVolumeMigrateCount(IndicatorSpecification):
@@ -219,7 +237,7 @@ class PlannedVolumeMigrateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class VolumeUpdateCount(IndicatorSpecification):
@@ -236,7 +254,7 @@ class VolumeUpdateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
 
 
 class PlannedVolumeUpdateCount(IndicatorSpecification):
@@ -253,4 +271,38 @@ class PlannedVolumeUpdateCount(IndicatorSpecification):
         return {
             "type": "integer",
             "minimum": 0
-            }
+        }
+
+
+class StandardDeviationValue(IndicatorSpecification):
+    def __init__(self):
+        super(StandardDeviationValue, self).__init__(
+            name="standard_deviation_after_audit",
+            description=_("The value of resulted standard deviation."),
+            unit=None,
+            required=False,
+        )
+
+    @property
+    def schema(self):
+        return {
+            "type": "number",
+            "minimum": 0
+        }
+
+
+class OriginalStandardDeviationValue(IndicatorSpecification):
+    def __init__(self):
+        super(OriginalStandardDeviationValue, self).__init__(
+            name="standard_deviation_before_audit",
+            description=_("The value of original standard deviation."),
+            unit=None,
+            required=False,
+        )
+
+    @property
+    def schema(self):
+        return {
+            "type": "number",
+            "minimum": 0
+        }
