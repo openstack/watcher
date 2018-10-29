@@ -406,38 +406,6 @@ class NovaHelper(object):
 
         return status
 
-    def set_host_offline(self, hostname):
-        # See API on https://developer.openstack.org/api-ref/compute/
-        # especially the PUT request
-        # regarding this resource : /v2.1/os-hosts/​{host_name}​
-        #
-        # The following body should be sent :
-        # {
-        # "host": {
-        # "host": "65c5d5b7e3bd44308e67fc50f362aee6",
-        # "maintenance_mode": "off_maintenance",
-        # "status": "enabled"
-        # }
-        # }
-
-        # Voir ici
-        # https://github.com/openstack/nova/
-        # blob/master/nova/virt/xenapi/host.py
-        # set_host_enabled(self, enabled):
-        # Sets the compute host's ability to accept new instances.
-        # host_maintenance_mode(self, host, mode):
-        # Start/Stop host maintenance window.
-        # On start, it triggers guest instances evacuation.
-        host = self.nova.hosts.get(hostname)
-
-        if not host:
-            LOG.debug("host not found: %s", hostname)
-            return False
-        else:
-            host[0].update(
-                {"maintenance_mode": "disable", "status": "disable"})
-            return True
-
     def create_image_from_instance(self, instance_id, image_name,
                                    metadata={"reason": "instance_migrate"}):
         """This method creates a new image from a given instance.
