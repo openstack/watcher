@@ -43,6 +43,16 @@ from watcher.common import policy
 from watcher import objects
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class ScoringEngine(base.APIBase):
     """API representation of a scoring engine.
 
@@ -95,6 +105,7 @@ class ScoringEngine(base.APIBase):
     @classmethod
     def convert_with_links(cls, scoring_engine, expand=True):
         scoring_engine = ScoringEngine(**scoring_engine.as_dict())
+        hide_fields_in_newer_versions(scoring_engine)
         return cls._convert_with_links(
             scoring_engine, pecan.request.host_url, expand)
 

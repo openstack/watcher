@@ -14,6 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import importlib
+
 import pecan
 from pecan import rest
 from wsme import types as wtypes
@@ -24,19 +26,39 @@ from watcher.api.controllers import link
 from watcher.api.controllers import v1
 
 
+class APIStatus(object):
+    CURRENT = "CURRENT"
+    SUPPORTED = "SUPPORTED"
+    DEPRECATED = "DEPRECATED"
+    EXPERIMENTAL = "EXPERIMENTAL"
+
+
 class Version(base.APIBase):
     """An API version representation."""
 
     id = wtypes.text
     """The ID of the version, also acts as the release number"""
 
+    status = wtypes.text
+    """The state of this API version"""
+
+    max_version = wtypes.text
+    """The maximum version supported"""
+
+    min_version = wtypes.text
+    """The minimum version supported"""
+
     links = [link.Link]
     """A Link that point to a specific version of the API"""
 
     @staticmethod
-    def convert(id):
+    def convert(id, status=APIStatus.CURRENT):
+        v = importlib.import_module('watcher.api.controllers.%s.versions' % id)
         version = Version()
         version.id = id
+        version.status = status
+        version.max_version = v.max_version_string()
+        version.min_version = v.min_version_string()
         version.links = [link.Link.make_link('self', pecan.request.host_url,
                                              id, '', bookmark=True)]
         return version

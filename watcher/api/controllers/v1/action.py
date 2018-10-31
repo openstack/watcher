@@ -74,6 +74,16 @@ from watcher.common import policy
 from watcher import objects
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class ActionPatchType(types.JsonPatchType):
 
     @staticmethod
@@ -173,6 +183,8 @@ class Action(base.APIBase):
         except exception.ActionDescriptionNotFound:
             description = ""
         setattr(action, 'description', description)
+
+        hide_fields_in_newer_versions(action)
 
         return cls._convert_with_links(action, pecan.request.host_url, expand)
 

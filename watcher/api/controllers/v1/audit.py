@@ -63,6 +63,18 @@ def _get_object_by_value(context, class_name, value):
         return class_name.get_by_name(context, value)
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    if not api_utils.allow_start_end_audit_time():
+        obj.start_time = wsme.Unset
+        obj.end_time = wsme.Unset
+
+
 class AuditPostType(wtypes.Base):
 
     name = wtypes.wsattr(wtypes.text, mandatory=False)
@@ -115,6 +127,11 @@ class AuditPostType(wtypes.Base):
                     or self.end_time not in (wtypes.Unset, None))):
             raise exception.AuditStartEndTimeNotAllowed(
                 audit_type=self.audit_type)
+
+        if not api_utils.allow_start_end_audit_time():
+            for field in ('start_time', 'end_time'):
+                if getattr(self, field) not in (wsme.Unset, None):
+                    raise exception.NotAcceptable()
 
         # If audit_template_uuid was provided, we will provide any
         # variables not included in the request, but not override
@@ -388,6 +405,7 @@ class Audit(base.APIBase):
     @classmethod
     def convert_with_links(cls, rpc_audit, expand=True):
         audit = Audit(**rpc_audit.as_dict())
+        hide_fields_in_newer_versions(audit)
         return cls._convert_with_links(audit, pecan.request.host_url, expand)
 
     @classmethod

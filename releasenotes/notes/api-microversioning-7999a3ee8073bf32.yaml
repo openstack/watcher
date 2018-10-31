@@ -1,0 +1,8 @@
+---
+features:
+    Watcher starts to support API microversions since Stein cycle. From now
+    onwards all API changes should be made with saving backward compatibility.
+    To specify API version operator should use OpenStack-API-Version
+    HTTP header. If operator wants to know the mininum and maximum supported
+    versions by API, he/she can access /v1 resource and Watcher API will
+    return appropriate headers in response.

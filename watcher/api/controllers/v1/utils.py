@@ -23,6 +23,7 @@ import pecan
 import wsme
 
 from watcher._i18n import _
+from watcher.api.controllers.v1 import versions
 from watcher.common import utils
 from watcher import objects
 
@@ -155,3 +156,12 @@ def get_resource(resource, resource_id, eager=False):
         return _get(pecan.request.context, resource_id, eager=eager)
 
     return _get(pecan.request.context, resource_id)
+
+
+def allow_start_end_audit_time():
+    """Check if we should support optional start/end attributes for Audit.
+
+    Version 1.1 of the API added support for start and end time of continuous
+    audits.
+    """
+    return pecan.request.version.minor >= versions.MINOR_1_START_END_TIMING

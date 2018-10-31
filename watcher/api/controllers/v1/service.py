@@ -44,6 +44,16 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
+def hide_fields_in_newer_versions(obj):
+    """This method hides fields that were added in newer API versions.
+
+    Certain node fields were introduced at certain API versions.
+    These fields are only made available when the request's API version
+    matches or exceeds the versions when these fields were introduced.
+    """
+    pass
+
+
 class Service(base.APIBase):
     """API representation of a service.
 
@@ -126,6 +136,7 @@ class Service(base.APIBase):
     @classmethod
     def convert_with_links(cls, service, expand=True):
         service = Service(**service.as_dict())
+        hide_fields_in_newer_versions(service)
         return cls._convert_with_links(
             service, pecan.request.host_url, expand)
 

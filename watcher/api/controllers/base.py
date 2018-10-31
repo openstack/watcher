@@ -14,7 +14,10 @@
 # limitations under the License.
 
 import datetime
+import functools
 
+import microversion_parse
+from webob import exc
 import wsme
 from wsme import types as wtypes
 
@@ -49,3 +52,84 @@ class APIBase(wtypes.Base):
         for k in self.as_dict():
             if k not in except_list:
                 setattr(self, k, wsme.Unset)
+
+
+@functools.total_ordering
+class Version(object):
+    """API Version object."""
+
+    string = 'OpenStack-API-Version'
+    """HTTP Header string carrying the requested version"""
+
+    min_string = 'OpenStack-API-Minimum-Version'
+    """HTTP response header"""
+
+    max_string = 'OpenStack-API-Maximum-Version'
+    """HTTP response header"""
+
+    def __init__(self, headers, default_version, latest_version):
+        """Create an API Version object from the supplied headers.
+
+        :param headers: webob headers
+        :param default_version: version to use if not specified in headers
+        :param latest_version: version to use if latest is requested
+        :raises: webob.HTTPNotAcceptable
+
+        """
+        (self.major, self.minor) = Version.parse_headers(
+            headers, default_version, latest_version)
+
+    def __repr__(self):
+        return '%s.%s' % (self.major, self.minor)
+
+    @staticmethod
+    def parse_headers(headers, default_version, latest_version):
+        """Determine the API version requested based on the headers supplied.
+
+        :param headers: webob headers
+        :param default_version: version to use if not specified in headers
+        :param latest_version: version to use if latest is requested
+        :returns: a tuple of (major, minor) version numbers
+        :raises: webob.HTTPNotAcceptable
+
+        """
+        version_str = microversion_parse.get_version(
+            headers,
+            service_type='infra-optim')
+
+        minimal_version = (1, 0)
+
+        if version_str is None:
+            # If requested header is wrong, Watcher answers with the minimal
+            # supported version.
+            return minimal_version
+
+        if version_str.lower() == 'latest':
+            parse_str = latest_version
+        else:
+            parse_str = version_str
+
+        try:
+            version = tuple(int(i) for i in parse_str.split('.'))
+        except ValueError:
+            version = minimal_version
+
+        # NOTE (alexchadin): Old python-watcherclient sends requests with
+        # value of version header is "1". It should be transformed to 1.0 as
+        # it was supposed to be.
+        if len(version) == 1 and version[0] == 1:
+            version = minimal_version
+
+        if len(version) != 2:
+            raise exc.HTTPNotAcceptable(
+                "Invalid value for %s header" % Version.string)
+        return version
+
+    def __gt__(self, other):
+        return (self.major, self.minor) > (other.major, other.minor)
+
+    def __eq__(self, other):
+        return (self.major, self.minor) == (other.major, other.minor)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)

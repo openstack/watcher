@@ -122,6 +122,11 @@ class NotAuthorized(WatcherException):
     code = 403
 
 
+class NotAcceptable(WatcherException):
+    msg_fmt = _("Request not acceptable.")
+    code = 406
+
+
 class PolicyNotAuthorized(NotAuthorized):
     msg_fmt = _("Policy doesn't allow %(action)s to be performed.")
 
