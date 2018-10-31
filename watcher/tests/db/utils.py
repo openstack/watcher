@@ -97,6 +97,9 @@ def get_test_audit(**kwargs):
         'auto_trigger': kwargs.get('auto_trigger', False),
         'next_run_time': kwargs.get('next_run_time'),
         'hostname': kwargs.get('hostname', 'host_1'),
+        'start_time': kwargs.get('start_time'),
+        'end_time': kwargs.get('end_time')
+
     }
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.

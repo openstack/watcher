@@ -101,6 +101,18 @@ def get_patch_value(patch, key):
             return p['value']
 
 
+def set_patch_value(patch, key, value):
+    for p in patch:
+        if p['op'] == 'replace' and p['path'] == '/%s' % key:
+            p['value'] = value
+
+
+def get_patch_key(patch, key):
+    for p in patch:
+        if p['op'] == 'replace' and key in p.keys():
+            return p[key][1:]
+
+
 def check_audit_state_transition(patch, initial):
     is_transition_valid = True
     state_value = get_patch_value(patch, "state")

@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Add start_time and end_time fields in audits table. User can set the start
+    time and/or end time when creating CONTINUOUS audit.

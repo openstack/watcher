@@ -88,7 +88,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     #              'interval' type has been changed from Integer to String
     # Version 1.4: Added 'name' string field
     # Version 1.5: Added 'hostname' field
-    VERSION = '1.5'
+    # Version 1.6: Added 'start_time' and 'end_time' DateTime fields
+    VERSION = '1.6'
 
     dbapi = db_api.get_instance()
 
@@ -107,6 +108,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         'next_run_time': wfields.DateTimeField(nullable=True,
                                                tzinfo_aware=False),
         'hostname': wfields.StringField(nullable=True),
+        'start_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
+        'end_time': wfields.DateTimeField(nullable=True, tzinfo_aware=False),
 
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),

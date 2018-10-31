@@ -468,3 +468,31 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertTrue(is_inactive)
         is_inactive = audit_handler._is_audit_inactive(self.audits[0])
         self.assertFalse(is_inactive)
+
+    def test_check_audit_expired(self):
+        current = datetime.datetime.utcnow()
+
+        # start_time and end_time are None
+        audit_handler = continuous.ContinuousAuditHandler()
+        result = audit_handler.check_audit_expired(self.audits[0])
+        self.assertFalse(result)
+        self.assertIsNone(self.audits[0].start_time)
+        self.assertIsNone(self.audits[0].end_time)
+
+        # current time < start_time and end_time is None
+        self.audits[0].start_time = current+datetime.timedelta(days=1)
+        result = audit_handler.check_audit_expired(self.audits[0])
+        self.assertTrue(result)
+        self.assertIsNone(self.audits[0].end_time)
+
+        # current time is between start_time and end_time
+        self.audits[0].start_time = current-datetime.timedelta(days=1)
+        self.audits[0].end_time = current+datetime.timedelta(days=1)
+        result = audit_handler.check_audit_expired(self.audits[0])
+        self.assertFalse(result)
+
+        # current time > end_time
+        self.audits[0].end_time = current-datetime.timedelta(days=1)
+        result = audit_handler.check_audit_expired(self.audits[0])
+        self.assertTrue(result)
+        self.assertEqual(objects.audit.State.SUCCEEDED, self.audits[0].state)

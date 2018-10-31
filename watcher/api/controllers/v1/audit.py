@@ -30,11 +30,13 @@ states, visit :ref:`the Audit State machine <audit_state_machine>`.
 """
 
 import datetime
+from dateutil import tz
 
 import pecan
 from pecan import rest
 import wsme
 from wsme import types as wtypes
+from wsme import utils as wutils
 import wsmeext.pecan as wsme_pecan
 
 from oslo_log import log
@@ -86,6 +88,10 @@ class AuditPostType(wtypes.Base):
 
     hostname = wtypes.wsattr(wtypes.text, readonly=True, mandatory=False)
 
+    start_time = wsme.wsattr(datetime.datetime, mandatory=False)
+
+    end_time = wsme.wsattr(datetime.datetime, mandatory=False)
+
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
@@ -103,6 +109,12 @@ class AuditPostType(wtypes.Base):
         if self.audit_template_uuid and self.goal:
             raise exception.Invalid('Either audit_template_uuid '
                                     'or goal should be provided.')
+
+        if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
+                (self.start_time not in (wtypes.Unset, None)
+                    or self.end_time not in (wtypes.Unset, None))):
+            raise exception.AuditStartEndTimeNotAllowed(
+                audit_type=self.audit_type)
 
         # If audit_template_uuid was provided, we will provide any
         # variables not included in the request, but not override
@@ -161,7 +173,9 @@ class AuditPostType(wtypes.Base):
             strategy_id=self.strategy,
             interval=self.interval,
             scope=self.scope,
-            auto_trigger=self.auto_trigger)
+            auto_trigger=self.auto_trigger,
+            start_time=self.start_time,
+            end_time=self.end_time)
 
 
 class AuditPatchType(types.JsonPatchType):
@@ -322,6 +336,12 @@ class Audit(base.APIBase):
     hostname = wsme.wsattr(wtypes.text, mandatory=False)
     """Hostname the audit is running on"""
 
+    start_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    """The start time for continuous audit launch"""
+
+    end_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    """The end time that stopping continuous audit"""
+
     def __init__(self, **kwargs):
         self.fields = []
         fields = list(objects.Audit.fields)
@@ -382,7 +402,9 @@ class Audit(base.APIBase):
                      interval='7200',
                      scope=[],
                      auto_trigger=False,
-                     next_run_time=datetime.datetime.utcnow())
+                     next_run_time=datetime.datetime.utcnow(),
+                     start_time=datetime.datetime.utcnow(),
+                     end_time=datetime.datetime.utcnow())
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'
@@ -584,6 +606,17 @@ class AuditsController(rest.RestController):
                                       'parameter spec in predefined strategy'))
 
         audit_dict = audit.as_dict()
+        # convert local time to UTC time
+        start_time_value = audit_dict.get('start_time')
+        end_time_value = audit_dict.get('end_time')
+        if start_time_value:
+            audit_dict['start_time'] = start_time_value.replace(
+                tzinfo=tz.tzlocal()).astimezone(
+                    tz.tzutc()).replace(tzinfo=None)
+        if end_time_value:
+            audit_dict['end_time'] = end_time_value.replace(
+                tzinfo=tz.tzlocal()).astimezone(
+                    tz.tzutc()).replace(tzinfo=None)
 
         new_audit = objects.Audit(context, **audit_dict)
         new_audit.create()
@@ -627,6 +660,16 @@ class AuditsController(rest.RestController):
                     patch=patch,
                     reason=error_message % dict(
                         initial_state=initial_state, new_state=new_state))
+
+            patch_path = api_utils.get_patch_key(patch, 'path')
+            if patch_path in ('start_time', 'end_time'):
+                patch_value = api_utils.get_patch_value(patch, patch_path)
+                # convert string format to UTC time
+                new_patch_value = wutils.parse_isodatetime(
+                    patch_value).replace(
+                        tzinfo=tz.tzlocal()).astimezone(
+                            tz.tzutc()).replace(tzinfo=None)
+                api_utils.set_patch_value(patch, patch_path, new_patch_value)
 
             audit = Audit(**api_utils.apply_jsonpatch(audit_dict, patch))
         except api_utils.JSONPATCH_EXCEPTIONS as e:
