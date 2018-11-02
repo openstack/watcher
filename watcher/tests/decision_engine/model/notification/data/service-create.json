@@ -1,0 +1,24 @@
+{
+    "event_type": "service.create",
+    "payload": {
+        "nova_object.data": {
+            "availability_zone": null,
+            "binary": "nova-compute",
+            "disabled": false,
+            "disabled_reason": null,
+            "forced_down": false,
+            "host": "host2",
+            "last_seen_up": null,
+            "report_count": 0,
+            "topic": "compute",
+            "uuid": "fa69c544-906b-4a6a-a9c6-c1f7a8078c73",
+            "version": 23
+        },
+        "nova_object.name": "ServiceStatusPayload",
+        "nova_object.namespace": "nova",
+        "nova_object.version": "1.1"
+    },
+    "priority": "INFO",
+    "publisher_id": "nova-compute:host2"
+}
+

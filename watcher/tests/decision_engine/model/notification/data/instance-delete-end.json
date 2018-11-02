@@ -38,7 +38,7 @@
                 "nova_object.namespace": "nova"
             },
             "user_id":"fake",
-            "uuid":"178b0921-8f85-4257-88b6-2e743b5a975c"
+            "uuid":"73b09e16-35b7-4922-804e-e8f5d9b740fc"
         },
         "nova_object.name":"InstanceActionPayload",
         "nova_object.namespace":"nova",

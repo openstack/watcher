@@ -28,7 +28,7 @@
             "progress": 0,
             "ramdisk_id": "",
             "reservation_id": "r-sd3ygfjj",
-            "state": "active",
+            "state": "paused",
             "task_state": "scheduling",
             "power_state": "pending",
             "ip_addresses": [],
@@ -56,7 +56,7 @@
                 "nova_object.namespace": "nova"
             },
             "user_id": "fake",
-            "uuid": "c03c0bf9-f46e-4e4f-93f1-817568567ee2"},
+            "uuid": "73b09e16-35b7-4922-804e-e8f5d9b740fc"},
         "nova_object.name": "InstanceUpdatePayload",
         "nova_object.namespace": "nova",
         "nova_object.version": "1.0"},

@@ -1,0 +1,60 @@
+---
+features:
+  - |
+    Watcher consumes Nova notifications to update its internal
+    Compute CDM(Cluster Data Model).
+    All the notifications as below
+
+    pre-existing:
+
+    * service.update
+
+    * instance.update
+
+    * instance.delete.end
+
+    new:
+
+    * instance.lock
+
+    * instance.unlock
+
+    * instance.pause.end
+
+    * instance.power_off.end
+
+    * instance.power_on.end
+
+    * instance.resize_confirm.end
+
+    * instance.restore.end
+
+    * instance.resume.end
+
+    * instance.shelve.end
+
+    * instance.shutdown.end
+
+    * instance.suspend.end
+
+    * instance.unpause.end
+
+    * instance.unrescue.end
+
+    * instance.unshelve.end
+
+    * instance.rebuild.end
+
+    * instance.rescue.end
+
+    * instance.create.end
+
+    * instance.live_migration_force_complete.end
+
+    * instance.live_migration_post_dest.end
+
+    * instance.soft_delete.end
+
+    * service.create
+
+    * service.delete
