@@ -705,9 +705,9 @@ class NovaHelper(object):
 
     def get_instances_by_node(self, host):
         return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True},
-                                       limit=-1)
-                if self.get_hostname(instance) == host]
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "host": host},
+                                       limit=-1)]
 
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))
