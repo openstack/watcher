@@ -221,7 +221,7 @@ class ModelBuilder(object):
         """Build a storage pool from a Cinder storage pool
 
         :param pool: A storage pool
-        :type pool: :py:class:`~cinderlient.v2.capabilities.Capabilities`
+        :type pool: :py:class:`~cinderclient.v2.pools.Pool`
         :raises: exception.InvalidPoolAttributeValue
         """
         # build up the storage pool.
