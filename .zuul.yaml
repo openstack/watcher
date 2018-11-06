@@ -156,6 +156,7 @@
     # This job is used in python-watcherclient repo
     name: watcherclient-tempest-functional
     parent: watcher-tempest-functional
+    voting: false
     timeout: 4200
     vars:
       tempest_concurrency: 1
