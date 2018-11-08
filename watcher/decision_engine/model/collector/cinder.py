@@ -230,20 +230,16 @@ class ModelBuilder(object):
                  "free_capacity_gb", "provisioned_capacity_gb",
                  "allocated_capacity_gb"]
 
+        node_attributes = {"name": pool.name}
         for attr in attrs:
             try:
-                int(getattr(pool, attr))
+                node_attributes[attr] = int(getattr(pool, attr))
+            except AttributeError:
+                LOG.debug("Attribute %s for pool %s is not provided",
+                          attr, pool.name)
             except ValueError:
                 raise exception.InvalidPoolAttributeValue(
                     name=pool.name, attribute=attr)
-
-        node_attributes = {
-            "name": pool.name,
-            "total_volumes": pool.total_volumes,
-            "total_capacity_gb": pool.total_capacity_gb,
-            "free_capacity_gb": pool.free_capacity_gb,
-            "provisioned_capacity_gb": pool.provisioned_capacity_gb,
-            "allocated_capacity_gb": pool.allocated_capacity_gb}
 
         storage_pool = element.Pool(**node_attributes)
         return storage_pool
