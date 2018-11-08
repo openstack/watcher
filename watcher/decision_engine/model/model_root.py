@@ -391,10 +391,6 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("storage_model")
     def get_node_by_name(self, name):
-        """Get a node by node name
-
-        :param node: :py:class:`~.node.StorageNode` object or node name
-        """
         try:
             return self._get_by_name(name.split("#")[0])
         except exception.StorageResourceNotFound:
