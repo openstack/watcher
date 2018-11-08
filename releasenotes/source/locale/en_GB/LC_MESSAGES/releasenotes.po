@@ -4,11 +4,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-09-07 10:26+0000\n"
+"POT-Creation-Date: 2018-11-08 01:22+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-09-09 01:19+0000\n"
+"PO-Revision-Date: 2018-11-07 06:15+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
@@ -78,6 +78,13 @@ msgstr "Add notifications related to Audit object."
 
 msgid "Add notifications related to Service object."
 msgstr "Add notifications related to Service object."
+
+msgid ""
+"Add start_time and end_time fields in audits table. User can set the start "
+"time and/or end time when creating CONTINUOUS audit."
+msgstr ""
+"Add start_time and end_time fields in audits table. User can set the start "
+"time and/or end time when creating CONTINUOUS audit."
 
 msgid ""
 "Add superseded state for an action plan if the cluster data model has "
@@ -216,6 +223,9 @@ msgstr ""
 "Added Gnocchi support as data source for metrics. Administrator can change "
 "data source for each strategy using config file."
 
+msgid "Added new tool ``watcher-status upgrade check``."
+msgstr "Added new tool ``watcher-status upgrade check``."
+
 msgid ""
 "Added notifications about cancelling of action plan. Now event based plugins "
 "know when action plan cancel started and completed."
@@ -309,6 +319,9 @@ msgstr ""
 msgid "Current Series Release Notes"
 msgstr "Current Series Release Notes"
 
+msgid "Deprecation Notes"
+msgstr "Deprecation Notes"
+
 msgid ""
 "Each CDM collector can have its own CDM scoper now. This changed Scope JSON "
 "schema definition for the audit template POST data. Please see audit "
@@ -357,6 +370,15 @@ msgstr ""
 msgid "New Features"
 msgstr "New Features"
 
+msgid ""
+"New framework for ``watcher-status upgrade check`` command is added. This "
+"framework allows adding various checks which can be run before a Watcher "
+"upgrade to ensure if the upgrade can be performed safely."
+msgstr ""
+"New framework for ``watcher-status upgrade check`` command is added. This "
+"framework allows adding various checks which can be run before a Watcher "
+"upgrade to ensure if the upgrade can be performed safely."
+
 msgid "Newton Series Release Notes"
 msgstr "Newton Series Release Notes"
 
@@ -370,8 +392,18 @@ msgstr ""
 msgid "Ocata Series Release Notes"
 msgstr "Ocata Series Release Notes"
 
+msgid ""
+"Operator can now use new CLI tool ``watcher-status upgrade check`` to check "
+"if Watcher deployment can be safely upgraded from N-1 to N release."
+msgstr ""
+"Operator can now use new CLI tool ``watcher-status upgrade check`` to check "
+"if Watcher deployment can be safely upgraded from N-1 to N release."
+
 msgid "Pike Series Release Notes"
 msgstr "Pike Series Release Notes"
+
+msgid "Prelude"
+msgstr "Prelude"
 
 msgid ""
 "Provide a notification mechanism into Watcher that supports versioning. "
@@ -455,6 +487,13 @@ msgstr ""
 "Watcher can now run specific actions in parallel improving the performance "
 "dramatically when executing an action plan."
 
+msgid ""
+"Watcher consumes Nova notifications to update its internal Compute "
+"CDM(Cluster Data Model). All the notifications as below"
+msgstr ""
+"Watcher consumes Nova notifications to update its internal Compute "
+"CDM(Cluster Data Model). All the notifications as below"
+
 msgid "Watcher database can now be upgraded thanks to Alembic."
 msgstr "Watcher database can now be upgraded thanks to Alembic."
 
@@ -479,6 +518,13 @@ msgstr ""
 "the audit."
 
 msgid ""
+"Watcher removes the support to Nova legacy notifications because of Nova "
+"will deprecate them."
+msgstr ""
+"Watcher removes the support to Nova legacy notifications because of Nova "
+"will deprecate them."
+
+msgid ""
 "Watcher services can be launched in HA mode. From now on Watcher Decision "
 "Engine and Watcher Applier services may be deployed on different nodes to "
 "run in active-active or active-passive mode. Any ONGOING Audits or Action "
@@ -488,6 +534,21 @@ msgstr ""
 "Engine and Watcher Applier services may be deployed on different nodes to "
 "run in active-active or active-passive mode. Any ONGOING Audits or Action "
 "Plans will be CANCELLED if service they are executed on is restarted."
+
+msgid ""
+"Watcher starts to support API microversions since Stein cycle. From now "
+"onwards all API changes should be made with saving backward compatibility. "
+"To specify API version operator should use OpenStack-API-Version HTTP "
+"header. If operator wants to know the mininum and maximum supported versions "
+"by API, he/she can access /v1 resource and Watcher API will return "
+"appropriate headers in response."
+msgstr ""
+"Watcher starts to support API microversions since the Stein cycle. From now "
+"onwards all API changes should be made with saving backward compatibility. "
+"To specify API version operator should use OpenStack-API-Version HTTP "
+"header. If operator wants to know the minimum and maximum supported versions "
+"by API, he/she can access /v1 resource and Watcher API will return "
+"appropriate headers in response."
 
 msgid ""
 "Watcher supports multiple metrics backend and relies on Ceilometer and "
@@ -507,3 +568,84 @@ msgstr ""
 "all Watcher objects have been refactored to support OVO (oslo."
 "versionedobjects) which was a prerequisite step in order to implement "
 "versioned notifications."
+
+msgid "instance.create.end"
+msgstr "instance.create.end"
+
+msgid "instance.delete.end"
+msgstr "instance.delete.end"
+
+msgid "instance.live_migration_force_complete.end"
+msgstr "instance.live_migration_force_complete.end"
+
+msgid "instance.live_migration_post_dest.end"
+msgstr "instance.live_migration_post_dest.end"
+
+msgid "instance.lock"
+msgstr "instance.lock"
+
+msgid "instance.pause.end"
+msgstr "instance.pause.end"
+
+msgid "instance.power_off.end"
+msgstr "instance.power_off.end"
+
+msgid "instance.power_on.end"
+msgstr "instance.power_on.end"
+
+msgid "instance.rebuild.end"
+msgstr "instance.rebuild.end"
+
+msgid "instance.rescue.end"
+msgstr "instance.rescue.end"
+
+msgid "instance.resize_confirm.end"
+msgstr "instance.resize_confirm.end"
+
+msgid "instance.restore.end"
+msgstr "instance.restore.end"
+
+msgid "instance.resume.end"
+msgstr "instance.resume.end"
+
+msgid "instance.shelve.end"
+msgstr "instance.shelve.end"
+
+msgid "instance.shutdown.end"
+msgstr "instance.shutdown.end"
+
+msgid "instance.soft_delete.end"
+msgstr "instance.soft_delete.end"
+
+msgid "instance.suspend.end"
+msgstr "instance.suspend.end"
+
+msgid "instance.unlock"
+msgstr "instance.unlock"
+
+msgid "instance.unpause.end"
+msgstr "instance.unpause.end"
+
+msgid "instance.unrescue.end"
+msgstr "instance.unrescue.end"
+
+msgid "instance.unshelve.end"
+msgstr "instance.unshelve.end"
+
+msgid "instance.update"
+msgstr "instance.update"
+
+msgid "new:"
+msgstr "new:"
+
+msgid "pre-existing:"
+msgstr "pre-existing:"
+
+msgid "service.create"
+msgstr "service.create"
+
+msgid "service.delete"
+msgstr "service.delete"
+
+msgid "service.update"
+msgstr "service.update"

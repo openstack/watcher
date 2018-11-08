@@ -4,11 +4,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: watcher VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2018-09-07 10:26+0000\n"
+"POT-Creation-Date: 2018-11-08 01:22+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-09-09 01:18+0000\n"
+"PO-Revision-Date: 2018-11-07 06:14+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
@@ -554,12 +554,18 @@ msgid ""
 msgstr ""
 "Ratio of actual live migrated instances to planned live migrate instances."
 
+msgid "Ratio of migrated virtual machines to audited virtual machines"
+msgstr "Ratio of migrated virtual machines to audited virtual machines"
+
 msgid ""
 "Ratio of released compute nodes divided by the total number of enabled "
 "compute nodes."
 msgstr ""
 "Ratio of released compute nodes divided by the total number of enabled "
 "compute nodes."
+
+msgid "Request not acceptable."
+msgstr "Request not acceptable."
 
 #, python-format
 msgid "Role name seems ambiguous: %s"
@@ -568,6 +574,9 @@ msgstr "Role name seems ambiguous: %s"
 #, python-format
 msgid "Role not Found: %s"
 msgstr "Role not Found: %s"
+
+msgid "Sample Check"
+msgstr "Sample Check"
 
 msgid "Saving Energy"
 msgstr "Saving Energy"
@@ -604,6 +613,10 @@ msgid ""
 msgstr ""
 "Specify parameters but no predefined strategy for audit, or no parameter "
 "spec in predefined strategy"
+
+#, python-format
+msgid "Start or End time of audit must not be set for %(audit_type)s."
+msgstr "Start or End time of audit must not be set for %(audit_type)s."
 
 #, python-format
 msgid "State transition not allowed: (%(initial_state)s -> %(new_state)s)"
@@ -762,8 +775,17 @@ msgstr "The storage resource '%(name)s' could not be found"
 msgid "The target state is not defined"
 msgstr "The target state is not defined"
 
+msgid "The total number of audited instances in strategy."
+msgstr "The total number of audited instances in strategy."
+
 msgid "The total number of enabled compute nodes."
 msgstr "The total number of enabled compute nodes."
+
+msgid "The value of original standard deviation."
+msgstr "The value of original standard deviation."
+
+msgid "The value of resulted standard deviation."
+msgstr "The value of resulted standard deviation."
 
 #, python-format
 msgid "The volume '%(name)s' could not be found"
