@@ -250,7 +250,8 @@ class Controller(rest.RestController):
 
         # assert that requested version is supported
         self._check_version(v, pecan.response.headers)
-        pecan.response.headers[base.Version.string] = str(v)
+        pecan.response.headers[base.Version.string] = (
+            ' '.join([versions.service_type_string(), str(v)]))
         pecan.request.version = v
 
         return super(Controller, self)._route(args, request)
