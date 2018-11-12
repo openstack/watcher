@@ -219,9 +219,11 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.source_node, self.destination_node))
 
         setattr(server, 'status', 'ERROR')
-        self.assertRaises(Exception, nova_util.abort_live_migrate,
-                          (self.instance_uuid, self.source_node,
-                           self.destination_node))
+        self.assertRaises(Exception,
+                          nova_util.abort_live_migrate,
+                          self.instance_uuid,
+                          self.source_node,
+                          self.destination_node)
 
     def test_non_live_migrate_instance_no_destination_node(
             self, mock_glance, mock_cinder, mock_neutron, mock_nova):
