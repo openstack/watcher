@@ -218,7 +218,7 @@ class NovaHelper(object):
         flavor_id = None
 
         try:
-            flavor_id = self.nova.flavors.get(flavor)
+            flavor_id = self.nova.flavors.get(flavor).id
         except nvexceptions.NotFound:
             flavor_id = [f.id for f in self.nova.flavors.list() if
                          f.name == flavor][0]
