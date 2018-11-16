@@ -52,7 +52,8 @@ class TestMicroversions(api_base.FunctionalTest):
             return_json=False)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER], MIN_VER)
+        self.assertEqual(response.headers[H_RESP_VER],
+                         ' '.join([SERVICE_TYPE, MIN_VER]))
         self.assertTrue(all(x in response.json.keys() for x in
                             self.controller_list_response))
 
@@ -60,7 +61,8 @@ class TestMicroversions(api_base.FunctionalTest):
         response = self.get_json('/', return_json=False)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER], MIN_VER)
+        self.assertEqual(response.headers[H_RESP_VER],
+                         ' '.join([SERVICE_TYPE, MIN_VER]))
         self.assertTrue(all(x in response.json.keys() for x in
                             self.controller_list_response))
 
@@ -72,7 +74,8 @@ class TestMicroversions(api_base.FunctionalTest):
             return_json=False)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER], '1.1')
+        self.assertEqual(response.headers[H_RESP_VER],
+                         ' '.join([SERVICE_TYPE, '1.1']))
         self.assertTrue(all(x in response.json.keys() for x in
                             self.controller_list_response))
 
@@ -84,7 +87,8 @@ class TestMicroversions(api_base.FunctionalTest):
             return_json=False)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
-        self.assertEqual(response.headers[H_RESP_VER], MAX_VER)
+        self.assertEqual(response.headers[H_RESP_VER],
+                         ' '.join([SERVICE_TYPE, MAX_VER]))
         self.assertTrue(all(x in response.json.keys() for x in
                             self.controller_list_response))
 
