@@ -1,0 +1,16 @@
+---
+features:
+  - |
+    Added a new config option 'action_execution_rule' which is a dict type.
+    Its key field is strategy name and the value is 'ALWAYS' or 'ANY'.
+    'ALWAYS' means the callback function returns True as usual.
+    'ANY' means the return depends on the result of previous action execution.
+    The callback returns True if previous action gets failed, and the engine
+    continues to run the next action. If previous action executes success,
+    the callback returns False then the next action will be ignored.
+    For strategies that aren't in 'action_execution_rule', the callback always
+    returns True.
+    Please add the next section in the watcher.conf file
+    if your strategy needs this feature.
+    [watcher_workflow_engines.taskflow]
+    action_execution_rule = {'your strategy name': 'ANY'}

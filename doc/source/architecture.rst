@@ -76,6 +76,7 @@ Watcher Applier
 This component is in charge of executing the
 :ref:`Action Plan <action_plan_definition>` built by the
 :ref:`Watcher Decision Engine <watcher_decision_engine_definition>`.
+Taskflow is the default workflow engine for Watcher.
 
 It connects to the :ref:`message bus <amqp_bus_definition>` and launches the
 :ref:`Action Plan <action_plan_definition>` whenever a triggering message is
@@ -109,6 +110,23 @@ If the :ref:`Action <action_definition>` fails, the
 :ref:`Watcher Applier <watcher_applier_definition>` tries to rollback to the
 previous state of the :ref:`Managed resource <managed_resource_definition>`
 (i.e. before the command was sent to the underlying OpenStack service).
+
+In Stein, added a new config option 'action_execution_rule' which is a
+dict type. Its key field is strategy name and the value is 'ALWAYS' or 'ANY'.
+'ALWAYS' means the callback function returns True as usual.
+'ANY' means the return depends on the result of previous action execution.
+The callback returns True if previous action gets failed, and the engine
+continues to run the next action. If previous action executes success,
+the callback returns False then the next action will be ignored.
+For strategies that aren't in 'action_execution_rule', the callback always
+returns True.
+Please add the next section in the watcher.conf file
+if your strategy needs this feature.
+
+::
+
+    [watcher_workflow_engines.taskflow]
+    action_execution_rule = {'your strategy name': 'ANY'}
 
 .. _archi_watcher_cli_definition:
 

@@ -58,6 +58,7 @@ class BaseWorkFlowEngine(loadable.Loadable):
         self._action_factory = factory.ActionFactory()
         self._osc = None
         self._is_notified = False
+        self.execution_rule = None
 
     @classmethod
     def get_config_opts(cls):
@@ -206,11 +207,14 @@ class BaseTaskFlowActionContainer(flow_task.Task):
         et = eventlet.spawn(_do_execute_action, *args, **kwargs)
         # NOTE: check for the state of action plan periodically,so that if
         # action is finished or action plan is cancelled we can exit from here.
+        result = False
         while True:
             action_object = objects.Action.get_by_uuid(
                 self.engine.context, self._db_action.uuid, eager=True)
             action_plan_object = objects.ActionPlan.get_by_id(
                 self.engine.context, action_object.action_plan_id)
+            if action_object.state == objects.action.State.SUCCEEDED:
+                result = True
             if (action_object.state in [objects.action.State.SUCCEEDED,
                objects.action.State.FAILED] or
                action_plan_object.state in CANCEL_STATE):
@@ -226,6 +230,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             if (action_plan_object.state in CANCEL_STATE and abort):
                 et.kill()
             et.wait()
+            return result
 
             # NOTE: catch the greenlet exit exception due to thread kill,
             # taskflow will call revert for the action,
@@ -236,7 +241,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
 
         except Exception as e:
             LOG.exception(e)
-            raise
+            # return False instead of raising an exception
+            return False
 
     def post_execute(self):
         try:
