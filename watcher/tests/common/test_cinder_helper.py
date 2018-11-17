@@ -16,9 +16,12 @@
 import mock
 import time
 
+from cinderclient import exceptions as cinder_exception
+
 from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import exception
+from watcher.common import utils
 from watcher.tests import base
 
 
@@ -212,4 +215,214 @@ class TestCinderHelper(base.TestCase):
         cinder_util.cinder.volumes.get.return_value = volume
 
         result = cinder_util.retype(volume, 'notfake_type')
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_create_volume_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.cinder.volumes.create.return_value = volume
+        new_vloume = cinder_util.create_volume(
+            cinder_util.cinder, volume, 'fake_type')
+        self.assertEqual(new_vloume, volume)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_create_volume_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'status', 'fake_status')
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.cinder.volumes.create.return_value = volume
+
+        self.assertRaisesRegex(
+            Exception,
+            "Failed to create volume",
+            cinder_util.create_volume, cinder_util.cinder, volume,
+            'fake_type', retry=2, retry_interval=1)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_delete_volume_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.cinder.volumes.create.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=True)
+        result = cinder_util.delete_volume(volume)
+        self.assertIsNone(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_delete_volume_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'status', 'fake_status')
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.cinder.volumes.create.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=False)
+
+        self.assertRaisesRegex(
+            Exception,
+            "Failed to delete volume",
+            cinder_util.delete_volume,
+            volume)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_can_get_volume_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.get_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util._can_get_volume(volume.id)
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_can_get_volume_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.get_volume = mock.MagicMock()
+        cinder_util.get_volume.side_effect = cinder_exception.NotFound(404)
+        result = cinder_util._can_get_volume(volume.id)
+        self.assertFalse(result)
+
+        cinder_util.get_volume = mock.MagicMock(return_value=None)
+        self.assertRaises(
+            Exception,
+            cinder_util._can_get_volume,
+            volume.id)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_has_snapshot_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        volume.snapshot_id = utils.generate_uuid()
+        cinder_util.get_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util._has_snapshot(volume)
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_has_snapshot_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        volume.snapshot_id = None
+        cinder_util.get_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util._has_snapshot(volume)
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_get_volume_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.get_volume(volume)
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_get_volume_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        side_effect = cinder_exception.NotFound(404)
+        cinder_util.cinder.volumes.get.side_effect = side_effect
+        cinder_util.cinder.volumes.find.return_value = False
+        result = cinder_util.get_volume(volume)
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_check_volume_deleted_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util._can_get_volume = mock.MagicMock(return_value=None)
+        result = cinder_util.check_volume_deleted(
+            volume, retry=2, retry_interval=1)
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_check_volume_deleted_fail(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util._can_get_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util.check_volume_deleted(
+            volume, retry=2, retry_interval=1)
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_check_migrated_success(self, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume()
+        setattr(volume, 'migration_status', 'success')
+        setattr(volume, 'os-vol-host-attr:host', 'host@backend#pool')
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=True)
+        result = cinder_util.check_migrated(volume)
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_check_migrated_fail(self, mock_cinder):
+
+        def side_effect(volume):
+            if isinstance(volume, str):
+                volume = self.fake_volume()
+                setattr(volume, 'migration_status', 'error')
+            elif volume.id is None:
+                setattr(volume, 'migration_status', 'fake_status')
+                setattr(volume, 'id', utils.generate_uuid())
+            return volume
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        # verify that the method check_migrated will return False when the
+        # status of migration_status is error.
+        volume = self.fake_volume()
+        setattr(volume, 'migration_status', 'error')
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.check_migrated(volume, retry_interval=1)
+        self.assertFalse(result)
+
+        # verify that the method check_migrated will return False when the
+        # status of migration_status is in other cases.
+        volume = self.fake_volume()
+        setattr(volume, 'migration_status', 'success')
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        setattr(volume, 'id', None)
+        cinder_util.get_volume = mock.MagicMock()
+        cinder_util.get_volume.side_effect = side_effect
+        result = cinder_util.check_migrated(volume, retry_interval=1)
+        self.assertFalse(result)
+
+        # verify that the method check_migrated will return False when the
+        # return_value of method check_volume_deleted is False.
+        volume = self.fake_volume()
+        setattr(volume, 'migration_status', 'success')
+        setattr(volume, 'os-vol-host-attr:host', 'source_node')
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=False)
+        cinder_util.get_deleting_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util.check_migrated(volume, retry_interval=1)
         self.assertFalse(result)
