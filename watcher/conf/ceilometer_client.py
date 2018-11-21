@@ -28,8 +28,8 @@ CEILOMETER_CLIENT_OPTS = [
                     'ceilometerclient.'),
     cfg.StrOpt('endpoint_type',
                default='internalURL',
-               help='Type of endpoint to use in ceilometerclient.'
-                    'Supported values: internalURL, publicURL, adminURL'
+               help='Type of endpoint to use in ceilometerclient. '
+                    'Supported values: internalURL, publicURL, adminURL. '
                     'The default is internalURL.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '

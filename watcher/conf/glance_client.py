@@ -27,8 +27,8 @@ GLANCE_CLIENT_OPTS = [
                help='Version of Glance API to use in glanceclient.'),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
-               help='Type of endpoint to use in glanceclient.'
-                    'Supported values: internalURL, publicURL, adminURL'
+               help='Type of endpoint to use in glanceclient. '
+                    'Supported values: internalURL, publicURL, adminURL. '
                     'The default is publicURL.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '

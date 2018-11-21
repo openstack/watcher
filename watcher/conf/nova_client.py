@@ -27,8 +27,8 @@ NOVA_CLIENT_OPTS = [
                help='Version of Nova API to use in novaclient.'),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
-               help='Type of endpoint to use in novaclient.'
-                    'Supported values: internalURL, publicURL, adminURL'
+               help='Type of endpoint to use in novaclient. '
+                    'Supported values: internalURL, publicURL, adminURL. '
                     'The default is publicURL.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '
