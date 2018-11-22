@@ -294,6 +294,12 @@ audittemplate_strategy:
   in: body
   required: false
   type: string
+audittemplate_uuid:
+  description: |
+    The UUID of the Audit template.
+  in: body
+  required: true
+  type: string
 
 created_at:
   description: |
