@@ -50,7 +50,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
        - It migrates all instances from one host to other hosts. It's better to
          execute such strategy when load is not heavy, and use this algorithm
          with `ONESHOT` audit.
-       - It assume that cold and live migrations are possible
+       - It assumes that cold and live migrations are possible.
     """
 
     INSTANCE_MIGRATION = "migrate"
@@ -243,16 +243,16 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """safe maintain one compute node
 
         Migrate all instances of the maintenance_node intensively to the
-        backup host. If users didn't give the backup host, it will select
-        one unused node to backup the maintaining node.
+        backup host. If the user didn't give the backup host, it will
+        select one unused node to backup the maintaining node.
 
         It calculate the resource both of the backup node and maintaining
         node to evaluate the migrations from maintaining node to backup node.
         If all instances of the maintaining node can migrated to
         the backup node, it will set the maintaining node in
-        'watcher_maintaining' status., and add the migrations to solution.
+        'watcher_maintaining' status, and add the migrations to solution.
         """
-        # If user gives a backup node with required capacity, then migrate
+        # If the user gives a backup node with required capacity, then migrates
         # all instances from the maintaining node to the backup node.
         if backup_node:
             if self.host_fits(maintenance_node, backup_node):
@@ -261,8 +261,8 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                 self.host_migration(maintenance_node, backup_node)
                 return True
 
-        # If uses didn't give the backup host, select one unused node
-        # with required capacity, then migrate all instances
+        # If the user didn't give the backup host, select one unused
+        # node with required capacity, then migrates all instances
         # from maintaining node to it.
         nodes = sorted(
             self.get_disabled_compute_nodes().values(),
