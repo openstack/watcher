@@ -89,7 +89,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                                 "type": "string"
                             },
                             "dst_node": {
-                                "description": "Compute node to which"
+                                "description": "Compute node to which "
                                                "instances migrate",
                                 "type": "string"
                             }

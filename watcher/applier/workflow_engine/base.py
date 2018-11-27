@@ -192,7 +192,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                     fields.NotificationPhase.END)
             except Exception as e:
                 LOG.exception(e)
-                LOG.error('The workflow engine has failed'
+                LOG.error('The workflow engine has failed '
                           'to execute the action: %s', self.name)
                 db_action = self.engine.notify(self._db_action,
                                                objects.action.State.FAILED)

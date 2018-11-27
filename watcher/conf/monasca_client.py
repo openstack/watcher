@@ -27,8 +27,8 @@ MONASCA_CLIENT_OPTS = [
                help='Version of Monasca API to use in monascaclient.'),
     cfg.StrOpt('interface',
                default='internal',
-               help='Type of interface used for monasca endpoint.'
-                    'Supported values: internal, public, admin'
+               help='Type of interface used for monasca endpoint. '
+                    'Supported values: internal, public, admin. '
                     'The default is internal.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '

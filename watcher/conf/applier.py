@@ -19,7 +19,7 @@
 from oslo_config import cfg
 
 watcher_applier = cfg.OptGroup(name='watcher_applier',
-                               title='Options for the Applier messaging'
+                               title='Options for the Applier messaging '
                                'core')
 
 APPLIER_MANAGER_OPTS = [
@@ -30,7 +30,7 @@ APPLIER_MANAGER_OPTS = [
                help='Number of workers for applier, default value is 1.'),
     cfg.StrOpt('conductor_topic',
                default='watcher.applier.control',
-               help='The topic name used for'
+               help='The topic name used for '
                     'control events, this topic '
                     'used for rpc call '),
     cfg.StrOpt('publisher_id',

@@ -27,8 +27,8 @@ GNOCCHI_CLIENT_OPTS = [
                help='Version of Gnocchi API to use in gnocchiclient.'),
     cfg.StrOpt('endpoint_type',
                default='public',
-               help='Type of endpoint to use in gnocchi client.'
-                    'Supported values: internal, public, admin'
+               help='Type of endpoint to use in gnocchi client. '
+                    'Supported values: internal, public, admin. '
                     'The default is public.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '
