@@ -23,6 +23,7 @@ import mock
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
+from watcher.decision_engine.solution.base import BaseSolution
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_and_metrics
@@ -277,13 +278,19 @@ class TestVMWorkloadConsolidation(base.TestCase):
         model = self.fake_cluster.generate_scenario_2()
         self.m_model.return_value = model
         self.fake_metrics.model = model
+
+        result = self.strategy.pre_execute()
+        self.assertIsNone(result)
+
         n1 = model.get_node_by_uuid('Node_0')
-        cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
-        self.strategy.offload_phase(cc)
-        self.strategy.consolidation_phase(cc)
-        self.strategy.optimize_solution()
+        self.strategy.get_relative_cluster_utilization = mock.MagicMock()
+        self.strategy.do_execute()
         n2 = self.strategy.solution.actions[0][
             'input_parameters']['destination_node']
+        n3 = self.strategy.solution.actions[2][
+            'input_parameters']['resource_id']
+        n4 = self.strategy.solution.actions[3][
+            'input_parameters']['resource_id']
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2,
                                           'source_node': n1.uuid,
@@ -293,9 +300,31 @@ class TestVMWorkloadConsolidation(base.TestCase):
                      'input_parameters': {'destination_node': n2,
                                           'source_node': n1.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': 'INSTANCE_1'}}]
-
+                                          'resource_id': 'INSTANCE_1'}},
+                    {'action_type': 'change_nova_service_state',
+                     'input_parameters': {'state': 'disabled',
+                                          'disabled_reason':
+                                          'watcher_disabled',
+                                          'resource_id': n3}},
+                    {'action_type': 'change_nova_service_state',
+                     'input_parameters': {'state': 'disabled',
+                                          'disabled_reason':
+                                          'watcher_disabled',
+                                          'resource_id': n4}}]
         self.assertEqual(expected, self.strategy.solution.actions)
+
+        compute_nodes_count = len(self.strategy.get_available_compute_nodes())
+        number_of_released_nodes = self.strategy.number_of_released_nodes
+        number_of_migrations = self.strategy.number_of_migrations
+        with mock.patch.object(
+            BaseSolution, 'set_efficacy_indicators'
+        ) as mock_set_efficacy_indicators:
+            result = self.strategy.post_execute()
+            mock_set_efficacy_indicators.assert_called_once_with(
+                compute_nodes_count=compute_nodes_count,
+                released_compute_nodes_count=number_of_released_nodes,
+                instance_migrations_count=number_of_migrations
+            )
 
     def test_strategy2(self):
         model = self.fake_cluster.generate_scenario_3()
