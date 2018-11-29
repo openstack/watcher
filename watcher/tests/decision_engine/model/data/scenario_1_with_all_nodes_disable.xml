@@ -1,0 +1,9 @@
+<ModelRoot>
+  <ComputeNode hostname="hostname_0" uuid="Node_0" id="0" state="up" human_id="" status="disabled" vcpus="40" disk="250" disk_capacity="250" disabled_reason='watcher_disabled' memory="64">
+    <Instance watcher_exclude="False" human_id="" state="active" uuid="INSTANCE_0" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+  <ComputeNode hostname="hostname_1" uuid="Node_1" id="1" state="up" human_id="" status="disabled" vcpus="40" disk="250" disk_capacity="250" disabled_reason='watcher_disabled' memory="64">
+    <Instance watcher_exclude="False" human_id="" state="active" uuid="INSTANCE_1" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+</ModelRoot>
+

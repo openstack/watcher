@@ -20,6 +20,7 @@
 import mock
 
 from watcher.common import exception
+from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -59,6 +60,36 @@ class TestHostMaintenance(base.TestCase):
         self.assertRaises(
             exception.ClusterStateNotDefined,
             self.strategy.execute)
+
+    def test_get_instance_state_str(self):
+        mock_instance = mock.MagicMock(state="active")
+        self.assertEqual("active",
+                         self.strategy.get_instance_state_str(mock_instance))
+
+        mock_instance.state = element.InstanceState("active")
+        self.assertEqual("active",
+                         self.strategy.get_instance_state_str(mock_instance))
+
+        mock_instance.state = None
+        self.assertRaises(
+            exception.WatcherException,
+            self.strategy.get_instance_state_str,
+            mock_instance)
+
+    def test_get_node_status_str(self):
+        mock_node = mock.MagicMock(status="enabled")
+        self.assertEqual("enabled",
+                         self.strategy.get_node_status_str(mock_node))
+
+        mock_node.status = element.ServiceState("enabled")
+        self.assertEqual("enabled",
+                         self.strategy.get_node_status_str(mock_node))
+
+        mock_node.status = None
+        self.assertRaises(
+            exception.WatcherException,
+            self.strategy.get_node_status_str,
+            mock_node)
 
     def test_get_node_capacity(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -172,6 +203,11 @@ class TestHostMaintenance(base.TestCase):
         self.assertFalse(self.strategy.safe_maintain(node_0))
         self.assertFalse(self.strategy.safe_maintain(node_1))
 
+        model = self.fake_cluster.generate_scenario_1_with_all_nodes_disable()
+        self.m_model.return_value = model
+        node_0 = model.get_node_by_uuid('Node_0')
+        self.assertTrue(self.strategy.safe_maintain(node_0))
+
     def test_try_maintain(self):
         model = self.fake_cluster.generate_scenario_1()
         self.m_model.return_value = model
@@ -186,8 +222,14 @@ class TestHostMaintenance(base.TestCase):
         node_2 = model.get_node_by_uuid('Node_2')
         node_3 = model.get_node_by_uuid('Node_3')
         instance_4 = model.get_instance_by_uuid("INSTANCE_4")
-        if not self.strategy.safe_maintain(node_2, node_3):
-            self.strategy.try_maintain(node_2)
+
+        result = self.strategy.pre_execute()
+        self.assertIsNone(result)
+
+        self.strategy.input_parameters = {"maintenance_node": 'Node_2',
+                                          "backup_node": 'Node_3'}
+        self.strategy.do_execute()
+
         expected = [{'action_type': 'change_nova_service_state',
                      'input_parameters': {
                          'resource_id': 'Node_3',
@@ -204,3 +246,6 @@ class TestHostMaintenance(base.TestCase):
                          'migration_type': 'live',
                          'resource_id': instance_4.uuid}}]
         self.assertEqual(expected, self.strategy.solution.actions)
+
+        result = self.strategy.post_execute()
+        self.assertIsNone(result)
