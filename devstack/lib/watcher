@@ -148,12 +148,17 @@ function create_watcher_accounts {
 function _config_watcher_apache_wsgi {
     local watcher_apache_conf
     if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        local service_port=$WATCHER_SERVICE_PORT
+        if is_service_enabled tls-proxy; then
+            service_port=$WATCHER_SERVICE_PORT_INT
+            service_protocol="http"
+        fi
         sudo mkdir -p $WATCHER_WSGI_DIR
         sudo cp $WATCHER_DIR/watcher/api/app.wsgi $WATCHER_WSGI_DIR/app.wsgi
         watcher_apache_conf=$(apache_site_config_for watcher-api)
         sudo cp $WATCHER_DEVSTACK_FILES_DIR/apache-watcher-api.template $watcher_apache_conf
         sudo sed -e "
-            s|%WATCHER_SERVICE_PORT%|$WATCHER_SERVICE_PORT|g;
+            s|%WATCHER_SERVICE_PORT%|$service_port|g;
             s|%WATCHER_WSGI_DIR%|$WATCHER_WSGI_DIR|g;
             s|%USER%|$STACK_USER|g;
             s|%APIWORKERS%|$API_WORKERS|g;
@@ -288,15 +293,17 @@ function start_watcher_api {
     else
         run_process watcher-api "$WATCHER_BIN_DIR/watcher-api --config-file $WATCHER_CONF"
     fi
-    echo "Waiting for watcher-api to start..."
-    if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$WATCHER_SERVICE_HOST:$service_port; then
-        die $LINENO "watcher-api did not start"
-    fi
 
     # Start proxies if enabled
     if is_service_enabled tls-proxy; then
         start_tls_proxy watcher '*' $WATCHER_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT
     fi
+
+    echo "Waiting for watcher-api to start..."
+    if ! wait_for_service $SERVICE_TIMEOUT $service_protocol://$WATCHER_SERVICE_HOST:$service_port; then
+        die $LINENO "watcher-api did not start"
+    fi
+
 }
 
 # start_watcher() - Start running processes, including screen
