@@ -1,0 +1,30 @@
+{
+  "default_version": {
+    "id": "v1",
+    "links": [
+      {
+        "href": "http://controller:9322/v1/",
+        "rel": "self"
+      }
+    ],
+    "min_version": "1.0",
+    "status": "CURRENT",
+    "max_version": "1.1"
+  },
+  "description": "Watcher is an OpenStack project which aims to improve physical resources usage through better VM placement.",
+  "name": "OpenStack Watcher API",
+  "versions": [
+    {
+      "id": "v1",
+      "links": [
+        {
+          "href": "http://controller:9322/v1/",
+          "rel": "self"
+        }
+      ],
+      "min_version": "1.0",
+      "status": "CURRENT",
+      "max_version": "1.1"
+    }
+  ]
+}

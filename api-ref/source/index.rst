@@ -6,6 +6,7 @@ Watcher API
 
 .. rest_expand_all::
 
+.. include:: watcher-api-versions.inc
 .. include:: watcher-api-v1-audittemplates.inc
 .. include:: watcher-api-v1-audits.inc
 .. include:: watcher-api-v1-actionplans.inc
