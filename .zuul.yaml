@@ -74,17 +74,12 @@
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
     nodeset: openstack-two-node
-    pre-run: playbooks/pre.yaml
-    run: playbooks/orchestrate-tempest.yaml
     roles:
       - zuul: openstack/tempest
     group-vars:
       subnode:
         devstack_local_conf:
           post-config:
-            $NOVA_CONF:
-              libvirt:
-                live_migration_uri: qemu+ssh://root@%s/system
             $WATCHER_CONF:
               watcher_cluster_data_model_collectors.compute:
                 period: 120
@@ -110,9 +105,6 @@
     vars:
       devstack_local_conf:
         post-config:
-          $NOVA_CONF:
-            libvirt:
-              live_migration_uri: qemu+ssh://root@%s/system
           $WATCHER_CONF:
             watcher_cluster_data_model_collectors.compute:
               period: 120
