@@ -4,7 +4,7 @@ Install and configure for Ubuntu
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 This section describes how to install and configure the Infrastructure
-Optimization service for Ubuntu 14.04 (LTS).
+Optimization service for Ubuntu 16.04 (LTS).
 
 .. include:: common_prerequisites.rst
 
@@ -25,10 +25,15 @@ Install and configure components
 Finalize installation
 ---------------------
 
-Restart the Infrastructure Optimization services:
+Start the Infrastructure Optimization services and configure them to start when
+the system boots:
 
 .. code-block:: console
 
-   # service watcher-api restart
-   # service watcher-decision-engine restart
-   # service watcher-applier restart
+   # systemctl enable watcher-api.service \
+     watcher-decision-engine.service \
+     watcher-applier.service
+
+   # systemctl start watcher-api.service \
+     watcher-decision-engine.service \
+     watcher-applier.service
