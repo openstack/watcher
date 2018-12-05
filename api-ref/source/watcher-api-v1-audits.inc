@@ -37,7 +37,7 @@ Request
 
 .. rest_parameters:: parameters.yaml
 
-   - audit_template_uuid: audittemplate_name
+   - audit_template_uuid: audittemplate_uuid
    - audit_type: audit_type
    - name: audit_name
    - goal: audit_goal
