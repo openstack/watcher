@@ -289,6 +289,7 @@ function start_watcher_api {
         service_protocol="http"
     fi
     if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
+        enable_apache_site watcher-api
         restart_apache_server
     else
         run_process watcher-api "$WATCHER_BIN_DIR/watcher-api --config-file $WATCHER_CONF"
@@ -318,7 +319,7 @@ function start_watcher {
 function stop_watcher {
     if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
         disable_apache_site watcher-api
-	restart_apache_server
+        restart_apache_server
     else
         stop_process watcher-api
     fi

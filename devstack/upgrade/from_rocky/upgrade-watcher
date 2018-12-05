@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# ``upgrade-watcher``
+
+function configure_watcher_upgrade {
+    XTRACE=$(set +o | grep xtrace)
+    set -o xtrace
+
+    # Copy release-specific files
+    sudo cp $TARGET_RELEASE_DIR/watcher/etc/watcher/watcher.conf $WATCHER_CONF_DIR/watcher.conf
+    sudo cp $TARGET_RELEASE_DIR/watcher/etc/watcher/policy.yaml.sample $WATCHER_CONF_DIR/policy.yaml.sample
+
+    # reset to previous state
+    $XTRACE
+}

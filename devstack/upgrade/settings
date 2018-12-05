@@ -1,0 +1,11 @@
+register_project_for_upgrade watcher
+register_db_to_save watcher
+
+devstack_localrc base enable_plugin watcher https://git.openstack.org/openstack/watcher stable/rocky
+devstack_localrc target enable_plugin watcher https://git.openstack.org/openstack/watcher
+
+devstack_localrc base enable_service watcher-api watcher-decision-engine watcher-applier
+devstack_localrc target enable_service watcher-api watcher-decision-engine watcher-applier
+
+BASE_RUN_SMOKE=False
+TARGET_RUN_SMOKE=False
