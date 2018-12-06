@@ -24,14 +24,32 @@ ceilometer_client = cfg.OptGroup(name='ceilometer_client',
 CEILOMETER_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2',
+               deprecated_for_removal=True,
+               deprecated_since="1.13.0",
+               deprecated_reason="""
+               Ceilometer API is deprecated since Ocata release.
+               Any related configuration options are deprecated too.
+               """,
                help='Version of Ceilometer API to use in '
                     'ceilometerclient.'),
     cfg.StrOpt('endpoint_type',
                default='internalURL',
+               deprecated_for_removal=True,
+               deprecated_since="1.13.0",
+               deprecated_reason="""
+               Ceilometer API is deprecated since Ocata release.
+               Any related configuration options are deprecated too.
+               """,
                help='Type of endpoint to use in ceilometerclient. '
                     'Supported values: internalURL, publicURL, adminURL. '
                     'The default is internalURL.'),
     cfg.StrOpt('region_name',
+               deprecated_for_removal=True,
+               deprecated_since="1.13.0",
+               deprecated_reason="""
+               Ceilometer API is deprecated since Ocata release.
+               Any related configuration options are deprecated too.
+               """,
                help='Region in Identity service catalog to use for '
                     'communication with the OpenStack service.')]
 
