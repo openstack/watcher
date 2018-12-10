@@ -314,6 +314,7 @@ function start_watcher {
 function stop_watcher {
     if [[ "$WATCHER_USE_MOD_WSGI" == "True" ]]; then
         disable_apache_site watcher-api
+	restart_apache_server
     else
         stop_process watcher-api
     fi
