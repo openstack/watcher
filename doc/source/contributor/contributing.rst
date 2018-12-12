@@ -49,7 +49,7 @@ Bug tracker
     https://launchpad.net/watcher
 
 Mailing list (prefix subjects with ``[watcher]`` for faster responses)
-    http://lists.openstack.org/pipermail/openstack-dev/
+    http://lists.openstack.org/pipermail/openstack-discuss/
 
 Wiki
     https://wiki.openstack.org/Watcher
