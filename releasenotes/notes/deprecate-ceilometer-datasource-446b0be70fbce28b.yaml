@@ -1,0 +1,7 @@
+---
+deprecations:
+  - |
+    Ceilometer Datasource has been deprecated since its API has been
+    deprecated in Ocata cycle. Watcher has supported Ceilometer for some
+    releases after Ocata to let users migrate to Gnocchi/Monasca datasources.
+    Since Train release, Ceilometer support will be removed.

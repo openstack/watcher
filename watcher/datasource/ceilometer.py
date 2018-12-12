@@ -19,12 +19,16 @@
 import datetime
 
 from ceilometerclient import exc
+from oslo_log import log
 from oslo_utils import timeutils
 
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception
 from watcher.datasource import base
+
+
+LOG = log.getLogger(__name__)
 
 
 class CeilometerHelper(base.DataSourceBase):
@@ -36,6 +40,9 @@ class CeilometerHelper(base.DataSourceBase):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
         self.ceilometer = self.osc.ceilometer()
+        LOG.warning("Ceilometer API is deprecated and Ceilometer Datasource "
+                    "module is no longer maintained. We recommend to use "
+                    "Gnocchi instead.")
 
     @staticmethod
     def format_query(user_id, tenant_id, resource_id,
