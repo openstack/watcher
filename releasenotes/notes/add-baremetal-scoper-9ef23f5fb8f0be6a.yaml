@@ -1,0 +1,3 @@
+---
+features:
+  - Baremetal Model gets Audit scoper with an ability to exclude Ironic nodes.
