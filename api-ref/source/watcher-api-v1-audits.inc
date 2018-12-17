@@ -44,7 +44,6 @@ Request
    - strategy: audit_strategy
    - parameters: audit_parameters
    - interval: audit_interval
-   - scope: audittemplate_scope
    - auto_trigger: audit_autotrigger
    - start_time: audit_starttime
    - end_time: audit_endtime
