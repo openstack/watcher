@@ -45,8 +45,8 @@ Request
    - parameters: audit_parameters
    - interval: audit_interval
    - auto_trigger: audit_autotrigger
-   - start_time: audit_starttime
-   - end_time: audit_endtime
+   - start_time: audit_starttime_req
+   - end_time: audit_endtime_req
 
 **Example ONESHOT Audit creation request:**
 
@@ -81,8 +81,8 @@ version 1:
     - scope: audittemplate_scope
     - links: links
     - hostname: audit_hostname
-    - start_time: audit_starttime
-    - end_time: audit_endtime
+    - start_time: audit_starttime_resp
+    - end_time: audit_endtime_resp
 
 **Example JSON representation of an Audit:**
 
@@ -179,8 +179,8 @@ Response
     - scope: audittemplate_scope
     - links: links
     - hostname: audit_hostname
-    - start_time: audit_starttime
-    - end_time: audit_endtime
+    - start_time: audit_starttime_resp
+    - end_time: audit_endtime_resp
 
 **Example JSON representation of an Audit:**
 
@@ -225,8 +225,8 @@ Response
     - scope: audittemplate_scope
     - links: links
     - hostname: audit_hostname
-    - start_time: audit_starttime
-    - end_time: audit_endtime
+    - start_time: audit_starttime_resp
+    - end_time: audit_endtime_resp
 
 **Example JSON representation of an Audit:**
 
@@ -279,8 +279,8 @@ version 1:
     - scope: audittemplate_scope
     - links: links
     - hostname: audit_hostname
-    - start_time: audit_starttime
-    - end_time: audit_endtime
+    - start_time: audit_starttime_resp
+    - end_time: audit_endtime_resp
 
 **Example JSON representation of an Audit:**
 
@@ -333,8 +333,8 @@ Response
     - scope: audittemplate_scope
     - links: links
     - hostname: audit_hostname
-    - start_time: audit_starttime
-    - end_time: audit_endtime
+    - start_time: audit_starttime_resp
+    - end_time: audit_endtime_resp
 
 **Example JSON representation of an Audit:**
 

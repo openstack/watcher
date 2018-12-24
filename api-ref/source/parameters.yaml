@@ -191,9 +191,17 @@ audit_autotrigger:
   in: body
   required: false
   type: boolean
-audit_endtime:
+audit_endtime_req:
   description: |
-    The time after which audit can't be executed.
+    The local time after which audit can't be executed.
+    It will be converted to UTC time by Watcher.
+  in: body
+  required: false
+  type: string
+  min_version: 1.1
+audit_endtime_resp:
+  description: |
+    The UTC time after which audit can't be executed.
   in: body
   required: false
   type: string
@@ -236,9 +244,17 @@ audit_parameters:
   in: body
   required: false
   type: JSON
-audit_starttime:
+audit_starttime_req:
   description: |
-    The time after which audit can be executed in accordance with interval.
+    The local time after which audit can be executed in accordance
+    with interval. It will be converted to UTC time by Watcher.
+  in: body
+  required: false
+  type: string
+  min_version: 1.1
+audit_starttime_resp:
+  description: |
+    The UTC time after which audit can be executed in accordance with interval.
   in: body
   required: false
   type: string
