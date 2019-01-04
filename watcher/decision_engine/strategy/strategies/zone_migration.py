@@ -535,8 +535,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             return None
 
         return [i for i in self.nova.get_instance_list()
-                if getattr(i, 'OS-EXT-SRV-ATTR:host') in src_node_list
-                and self.compute_model.get_instance_by_uuid(i.id)]
+                if getattr(i, 'OS-EXT-SRV-ATTR:host') in src_node_list and
+                self.compute_model.get_instance_by_uuid(i.id)]
 
     def get_volumes(self):
         """Get migrate target volumes
@@ -547,8 +547,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         src_pool_list = self.get_src_pool_list()
 
         return [i for i in self.cinder.get_volume_list()
-                if getattr(i, 'os-vol-host-attr:host') in src_pool_list
-                and self.storage_model.get_volume_by_uuid(i.id)]
+                if getattr(i, 'os-vol-host-attr:host') in src_pool_list and
+                self.storage_model.get_volume_by_uuid(i.id)]
 
     def filtered_targets(self):
         """Filter targets

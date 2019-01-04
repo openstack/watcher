@@ -144,8 +144,8 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
         # rare thing (happens due to wrong deserialization settings etc.)
         # we don't care about this garbage.
         expected_msg = ("Remote error: %s %s"
-                        % (test_exc_type, self.MSG_WITHOUT_TRACE)
-                        + ("\n[u'" if six.PY2 else "\n['"))
+                        % (test_exc_type, self.MSG_WITHOUT_TRACE) +
+                        ("\n[u'" if six.PY2 else "\n['"))
         actual_msg = jsonutils.loads(
             response.json['error_message'])['faultstring']
         self.assertEqual(expected_msg, actual_msg)

@@ -82,8 +82,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
 
     def get_service_status(self, context, service_id):
         service = objects.Service.get(context, service_id)
-        last_heartbeat = (service.last_seen_up or service.updated_at
-                          or service.created_at)
+        last_heartbeat = (service.last_seen_up or service.updated_at or
+                          service.created_at)
         if isinstance(last_heartbeat, six.string_types):
             # NOTE(russellb) If this service came in over rpc via
             # conductor, then the timestamp will be a string and needs to be
