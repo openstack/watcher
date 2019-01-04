@@ -16,6 +16,7 @@
         - watcher-tempest-workload_balancing
         - watcherclient-tempest-functional
         - watcher-tempest-zone_migration
+        - watcher-tempest-host_maintenance
         - watcher-tls-test
         - openstack-tox-lower-constraints
     gate:
@@ -58,6 +59,13 @@
     voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
+
+- job:
+    name: watcher-tempest-host_maintenance
+    parent: watcher-tempest-multinode
+    voting: false
+    vars:
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance
 
 - job:
     name: watcher-tls-test
