@@ -1,0 +1,80 @@
+{
+  "scoring_engines": [
+    {
+      "href": "http://controller:9322/v1/scoring_engines/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/scoring_engines/",
+      "rel": "bookmark"
+    }
+  ],
+  "media_types": [
+    {
+      "base": "application/json",
+      "type": "application/vnd.openstack.watcher.v1+json"
+    }
+  ],
+  "links": [
+    {
+      "href": "http://controller:9322/v1/",
+      "rel": "self"
+    },
+    {
+      "href": "http://docs.openstack.org/developer/watcher/dev/api-spec-v1.html",
+      "type": "text/html",
+      "rel": "describedby"
+    }
+  ],
+  "actions": [
+    {
+      "href": "http://controller:9322/v1/actions/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/actions/",
+      "rel": "bookmark"
+    }
+  ],
+  "audit_templates": [
+    {
+      "href": "http://controller:9322/v1/audit_templates/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/audit_templates/",
+      "rel": "bookmark"
+    }
+  ],
+  "action_plans": [
+    {
+      "href": "http://controller:9322/v1/action_plans/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/action_plans/",
+      "rel": "bookmark"
+    }
+  ],
+  "services": [
+    {
+      "href": "http://controller:9322/v1/services/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/services/",
+      "rel": "bookmark"
+    }
+  ],
+  "audits": [
+    {
+      "href": "http://controller:9322/v1/audits/",
+      "rel": "self"
+    },
+    {
+      "href": "http://controller:9322/audits/",
+      "rel": "bookmark"
+    }
+  ],
+  "id": "v1"
+}

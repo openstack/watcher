@@ -1,3 +1,42 @@
+# variables in header
+header_version:
+  description: |
+    Specific API microversion used to generate this response.
+  in: header
+  required: true
+  type: string
+openstack-api-max-version:
+  description: |
+    Maximum API microversion supported by this endpoint, eg. "1.1"
+  in: header
+  required: true
+  type: string
+openstack-api-min-version:
+  description: |
+    Minimum API microversion supported by this endpoint, eg. "1.0"
+  in: header
+  required: true
+  type: string
+openstack-api-version:
+  description: >
+    A request SHOULD include this header to indicate to the Watcher API service what
+    version the client supports. The server will transform the response object into
+    compliance with the requested version, if it is supported, or return a
+    406 Not Acceptable error.
+    If this header is not supplied, the server will response with server minimum
+    supported version.
+  in: header
+  required: true
+  type: string
+openstack-request-id:
+  description: >
+    An unique ID for tracking the request. The request ID associated with the request
+    appears in the log lines for that request. By default, the middleware configuration
+    ensures that the request ID appears in the log files.
+  in: header
+  required: false
+  type: string
+
 # Path
 action_ident:
   description: |
@@ -479,3 +518,29 @@ uuid:
   in: body
   required: true
   type: string
+
+# Version
+version:
+  description: |
+    Versioning of this API response, eg. "1.1".
+  in: body
+  required: true
+  type: string
+version_description:
+  description: |
+    Descriptive text about the Watcher service.
+  in: body
+  required: true
+  type: string
+version_id:
+  description: |
+    Major API version, eg, "v1"
+  in: body
+  required: true
+  type: string
+versions:
+  description: |
+    Array of information about currently supported versions.
+  in: body
+  required: true
+  type: array
