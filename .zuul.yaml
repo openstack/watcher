@@ -11,6 +11,7 @@
     check:
       jobs:
         - watcher-tempest-functional
+        - watcher-grenade
         - watcher-tempest-dummy_optim
         - watcher-tempest-actuator
         - watcher-tempest-basic_optim
@@ -163,6 +164,30 @@
         PYTHONUNBUFFERED: 'true'
       zuul_copy_output:
         /etc/hosts: logs
+
+- job:
+    name: watcher-grenade
+    parent: legacy-dsvm-base
+    timeout: 10800
+    run: playbooks/legacy/grenade-devstack-watcher/run.yaml
+    post-run: playbooks/legacy/grenade-devstack-watcher/post.yaml
+    irrelevant-files:
+      - ^(test-|)requirements.txt$
+      - ^.*\.rst$
+      - ^api-ref/.*$
+      - ^doc/.*$
+      - ^watcher/hacking/.*$
+      - ^watcher/tests/.*$
+      - ^releasenotes/.*$
+      - ^setup.cfg$
+      - ^tools/.*$
+      - ^tox.ini$
+    required-projects:
+      - openstack-dev/grenade
+      - openstack-infra/devstack-gate
+      - openstack/watcher
+      - openstack/python-watcherclient
+      - openstack/watcher-tempest-plugin
 
 - job:
     # This job is used in python-watcherclient repo
