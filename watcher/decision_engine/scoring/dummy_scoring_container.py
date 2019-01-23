@@ -37,7 +37,7 @@ class DummyScoringContainer(base.ScoringEngineContainer):
     """
 
     @classmethod
-    def get_scoring_engine_list(self):
+    def get_scoring_engine_list(cls):
         return [
             SimpleFunctionScorer(
                 'dummy_min_scorer',
