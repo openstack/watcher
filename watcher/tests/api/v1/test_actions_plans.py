@@ -550,10 +550,10 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         # because we cannot retrieve them with a GET (soft_deleted state).
         # This is the reason why they are not listed here but they have a
         # special test to cover it
-        if original_state != objects.action_plan.State.DELETED
-        and original_state != new_state
-        and {"original_state": original_state,
-             "new_state": new_state} not in ALLOWED_TRANSITIONS
+        if original_state != objects.action_plan.State.DELETED and
+        original_state != new_state and
+        {"original_state": original_state,
+         "new_state": new_state} not in ALLOWED_TRANSITIONS
     ]
 
     def setUp(self):

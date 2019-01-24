@@ -123,8 +123,8 @@ class AuditPostType(wtypes.Base):
                                     'or goal should be provided.')
 
         if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
-                (self.start_time not in (wtypes.Unset, None)
-                    or self.end_time not in (wtypes.Unset, None))):
+                (self.start_time not in (wtypes.Unset, None) or
+                    self.end_time not in (wtypes.Unset, None))):
             raise exception.AuditStartEndTimeNotAllowed(
                 audit_type=self.audit_type)
 

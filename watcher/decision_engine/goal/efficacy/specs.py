@@ -100,9 +100,9 @@ class HardwareMaintenance(base.EfficacySpecification):
         if (indicators_map and
                 indicators_map.planned_live_migrate_instance_count > 0):
             li_value = (
-                float(indicators_map.planned_live_migrate_instance_count)
-                / float(indicators_map.live_migrate_instance_count)
-                * 100
+                float(indicators_map.planned_live_migrate_instance_count) /
+                float(indicators_map.live_migrate_instance_count) *
+                100
                 )
 
         li_indicator = efficacy.Indicator(
@@ -116,9 +116,9 @@ class HardwareMaintenance(base.EfficacySpecification):
         if (indicators_map and
                 indicators_map.planned_cold_migrate_instance_count > 0):
             ci_value = (
-                float(indicators_map.planned_cold_migrate_instance_count)
-                / float(indicators_map.cold_migrate_instance_count)
-                * 100
+                float(indicators_map.planned_cold_migrate_instance_count) /
+                float(indicators_map.cold_migrate_instance_count) *
+                100
                 )
 
         ci_indicator = efficacy.Indicator(
@@ -133,8 +133,8 @@ class HardwareMaintenance(base.EfficacySpecification):
                 indicators_map.planned_volume_migrate_count > 0):
             dv_value = (float(indicators_map.planned_volume_migrate_count) /
                         float(indicators_map.
-                              volume_migrate_count)
-                        * 100)
+                              volume_migrate_count) *
+                        100)
 
         dv_indicator = efficacy.Indicator(
             name="volume_migrate_ratio",
@@ -148,8 +148,8 @@ class HardwareMaintenance(base.EfficacySpecification):
                 indicators_map.planned_volume_update_count > 0):
             av_value = (float(indicators_map.planned_volume_update_count) /
                         float(indicators_map.
-                              volume_update_count)
-                        * 100)
+                              volume_update_count) *
+                        100)
 
         av_indicator = efficacy.Indicator(
             name="volume_update_ratio",

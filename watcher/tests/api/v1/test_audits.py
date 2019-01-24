@@ -384,9 +384,9 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         )
         for original_state, new_state
         in list(itertools.product(STATES, STATES))
-        if original_state != new_state
-        and {"original_state": original_state,
-             "new_state": new_state} not in ALLOWED_TRANSITIONS
+        if original_state != new_state and
+        {"original_state": original_state,
+         "new_state": new_state} not in ALLOWED_TRANSITIONS
     ]
 
     def setUp(self):
