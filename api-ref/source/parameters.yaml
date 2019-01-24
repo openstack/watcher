@@ -226,7 +226,7 @@ actionplan_state:
 # Audit
 audit_autotrigger:
   description: |
-    Autoexecute action plan once audit is succeeded.
+    Auto execute action plan once audit is succeeded.
   in: body
   required: false
   type: boolean
@@ -313,7 +313,7 @@ audit_strategy:
   type: string
 audit_type:
   description: |
-    Type of this audit. Can be either ONESHOT or CONTINUOUS.
+    Type of this audit. Can only be either ONESHOT or CONTINUOUS.
   in: body
   required: true
   type: string
