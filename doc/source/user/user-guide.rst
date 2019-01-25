@@ -182,7 +182,7 @@ periodically calling:
 
 .. code:: bash
 
-  $ openstack optimize action list
+  $ openstack optimize action list --action-plan <the_action_plan_uuid>
 
 You can also obtain more detailed information about a specific action:
 
