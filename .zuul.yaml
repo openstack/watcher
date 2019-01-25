@@ -19,6 +19,7 @@
         - watcherclient-tempest-functional
         - watcher-tempest-zone_migration
         - watcher-tempest-host_maintenance
+        - watcher-tempest-storage_balance
         - watcher-tls-test
     gate:
       queue: watcher
@@ -73,6 +74,13 @@
     voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_storage_balance
+      devstack_local_conf:
+        test-config:
+          $TEMPEST_CONFIG:
+            volume:
+              backend_names: ['BACKEND_1', 'BACKEND_2']
+            volume-feature-enabled:
+              multi_backend: true
 
 - job:
     name: watcher-tls-test
