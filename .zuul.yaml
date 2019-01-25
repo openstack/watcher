@@ -68,6 +68,13 @@
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance
 
 - job:
+    name: watcher-tempest-storage_balance
+    parent: watcher-tempest-multinode
+    voting: false
+    vars:
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_storage_balance
+
+- job:
     name: watcher-tls-test
     parent: watcher-tempest-multinode
     group-vars:
