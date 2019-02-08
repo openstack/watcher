@@ -334,14 +334,17 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def get_sd(self, hosts, meter_name):
         """Get standard deviation among hosts by specified meter"""
         mean = 0
-        variaton = 0
+        variation = 0
+        num_hosts = len(hosts)
+        if num_hosts == 0:
+            return 0
         for host_id in hosts:
             mean += hosts[host_id][meter_name]
-        mean /= len(hosts)
+        mean /= num_hosts
         for host_id in hosts:
-            variaton += (hosts[host_id][meter_name] - mean) ** 2
-        variaton /= len(hosts)
-        sd = math.sqrt(variaton)
+            variation += (hosts[host_id][meter_name] - mean) ** 2
+        variation /= num_hosts
+        sd = math.sqrt(variation)
         return sd
 
     def calculate_weighted_sd(self, sd_case):
