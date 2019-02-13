@@ -14,7 +14,6 @@
 # limitations under the License.
 
 from watcher.common import exception
-from watcher.datasource import base
 from watcher.datasource import ceilometer as ceil
 from watcher.datasource import gnocchi as gnoc
 from watcher.datasource import monasca as mon
@@ -28,7 +27,11 @@ class DataSourceManager(object):
         self._ceilometer = None
         self._monasca = None
         self._gnocchi = None
-        self.metric_map = base.DataSourceBase.METRIC_MAP
+        self.metric_map = {
+            mon.MonascaHelper.NAME: mon.MonascaHelper.METRIC_MAP,
+            gnoc.GnocchiHelper.NAME: gnoc.GnocchiHelper.METRIC_MAP,
+            ceil.CeilometerHelper.NAME: ceil.CeilometerHelper.METRIC_MAP
+        }
         self.datasources = self.config.datasources
 
     @property

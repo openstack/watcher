@@ -17,22 +17,27 @@
 import mock
 
 from watcher.common import exception
-from watcher.datasource import gnocchi as gnoc
 from watcher.datasource import manager as ds_manager
 from watcher.tests import base
 
 
 class TestDataSourceManager(base.BaseTestCase):
 
-    @mock.patch.object(gnoc, 'GnocchiHelper')
-    def test_get_backend(self, mock_gnoc):
+    def test_get_backend(self):
         manager = ds_manager.DataSourceManager(
             config=mock.MagicMock(
                 datasources=['gnocchi', 'ceilometer', 'monasca']),
             osc=mock.MagicMock())
-        backend = manager.get_backend(['host_cpu_usage',
-                                       'instance_cpu_usage'])
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
         self.assertEqual(backend, manager.gnocchi)
+
+    def test_get_backend_order(self):
+        manager = ds_manager.DataSourceManager(
+            config=mock.MagicMock(
+                datasources=['monasca', 'ceilometer', 'gnocchi']),
+            osc=mock.MagicMock())
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
+        self.assertEqual(backend, manager.monasca)
 
     def test_get_backend_wrong_metric(self):
         manager = ds_manager.DataSourceManager(

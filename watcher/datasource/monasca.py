@@ -28,7 +28,18 @@ from watcher.datasource import base
 class MonascaHelper(base.DataSourceBase):
 
     NAME = 'monasca'
-    METRIC_MAP = base.DataSourceBase.METRIC_MAP['monasca']
+    METRIC_MAP = dict(host_cpu_usage='cpu.percent',
+                      instance_cpu_usage='vm.cpu.utilization_perc',
+                      instance_l3_cache_usage=None,
+                      host_outlet_temp=None,
+                      host_airflow=None,
+                      host_inlet_temp=None,
+                      host_power=None,
+                      instance_ram_usage=None,
+                      instance_ram_allocated=None,
+                      instance_root_disk_size=None,
+                      host_memory_usage=None,
+                      )
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""

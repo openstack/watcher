@@ -18,44 +18,18 @@ import abc
 
 class DataSourceBase(object):
 
-    METRIC_MAP = dict(
-        ceilometer=dict(host_cpu_usage='compute.node.cpu.percent',
-                        instance_cpu_usage='cpu_util',
-                        instance_l3_cache_usage='cpu_l3_cache',
-                        host_outlet_temp=(
-                            'hardware.ipmi.node.outlet_temperature'),
-                        host_airflow='hardware.ipmi.node.airflow',
-                        host_inlet_temp='hardware.ipmi.node.temperature',
-                        host_power='hardware.ipmi.node.power',
-                        instance_ram_usage='memory.resident',
-                        instance_ram_allocated='memory',
-                        instance_root_disk_size='disk.root.size',
-                        host_memory_usage='hardware.memory.used', ),
-        gnocchi=dict(host_cpu_usage='compute.node.cpu.percent',
-                     instance_cpu_usage='cpu_util',
-                     instance_l3_cache_usage='cpu_l3_cache',
-                     host_outlet_temp='hardware.ipmi.node.outlet_temperature',
-                     host_airflow='hardware.ipmi.node.airflow',
-                     host_inlet_temp='hardware.ipmi.node.temperature',
-                     host_power='hardware.ipmi.node.power',
-                     instance_ram_usage='memory.resident',
-                     instance_ram_allocated='memory',
-                     instance_root_disk_size='disk.root.size',
-                     host_memory_usage='hardware.memory.used'
-                     ),
-        monasca=dict(host_cpu_usage='cpu.percent',
-                     instance_cpu_usage='vm.cpu.utilization_perc',
-                     instance_l3_cache_usage=None,
-                     host_outlet_temp=None,
-                     host_airflow=None,
-                     host_inlet_temp=None,
-                     host_power=None,
-                     instance_ram_usage=None,
-                     instance_ram_allocated=None,
-                     instance_root_disk_size=None,
-                     host_memory_usage=None
-                     ),
-    )
+    METRIC_MAP = dict(host_cpu_usage=None,
+                      instance_cpu_usage=None,
+                      instance_l3_cache_usage=None,
+                      host_outlet_temp=None,
+                      host_airflow=None,
+                      host_inlet_temp=None,
+                      host_power=None,
+                      instance_ram_usage=None,
+                      instance_ram_allocated=None,
+                      instance_root_disk_size=None,
+                      host_memory_usage=None
+                      )
 
     @abc.abstractmethod
     def statistic_aggregation(self, resource_id=None, meter_name=None,

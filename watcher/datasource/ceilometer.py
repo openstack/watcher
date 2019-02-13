@@ -34,7 +34,18 @@ LOG = log.getLogger(__name__)
 class CeilometerHelper(base.DataSourceBase):
 
     NAME = 'ceilometer'
-    METRIC_MAP = base.DataSourceBase.METRIC_MAP['ceilometer']
+    METRIC_MAP = dict(host_cpu_usage='compute.node.cpu.percent',
+                      instance_cpu_usage='cpu_util',
+                      instance_l3_cache_usage='cpu_l3_cache',
+                      host_outlet_temp='hardware.ipmi.node.outlet_temperature',
+                      host_airflow='hardware.ipmi.node.airflow',
+                      host_inlet_temp='hardware.ipmi.node.temperature',
+                      host_power='hardware.ipmi.node.power',
+                      instance_ram_usage='memory.resident',
+                      instance_ram_allocated='memory',
+                      instance_root_disk_size='disk.root.size',
+                      host_memory_usage='hardware.memory.used',
+                      )
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
