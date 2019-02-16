@@ -68,6 +68,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
     HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
     INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
+    AGGREGATION = 'mean'
 
     DATASOURCE_METRICS = ['instance_ram_allocated', 'instance_cpu_usage',
                           'instance_ram_usage', 'instance_root_disk_size']
@@ -140,11 +141,14 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "gnocchi"])
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca'])
         ]
 
     def get_available_compute_nodes(self):
@@ -281,36 +285,29 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         if instance.uuid in self.datasource_instance_data_cache.keys():
             return self.datasource_instance_data_cache.get(instance.uuid)
 
-        cpu_util_metric = self.METRIC_NAMES[
-            self.config.datasource]['cpu_util_metric']
-        ram_util_metric = self.METRIC_NAMES[
-            self.config.datasource]['ram_util_metric']
-        ram_alloc_metric = self.METRIC_NAMES[
-            self.config.datasource]['ram_alloc_metric']
-        disk_alloc_metric = self.METRIC_NAMES[
-            self.config.datasource]['disk_alloc_metric']
-
-        instance_cpu_util = self.datasource_backend.statistic_aggregation(
-            resource_id=instance.uuid,
-            meter_name=cpu_util_metric,
-            period=self.period,
+        instance_cpu_util = self.datasource_backend.get_instance_cpu_usage(
+            instance.uuid,
+            self.period,
+            self.AGGREGATION,
             granularity=self.granularity)
-        instance_ram_util = self.datasource_backend.statistic_aggregation(
-            resource_id=instance.uuid,
-            meter_name=ram_util_metric,
-            period=self.period,
+        instance_ram_util = self.datasource_backend.get_instance_memory_usage(
+            instance.uuid,
+            self.period,
+            self.AGGREGATION,
             granularity=self.granularity)
         if not instance_ram_util:
-            instance_ram_util = self.datasource_backend.statistic_aggregation(
-                resource_id=instance.uuid,
-                meter_name=ram_alloc_metric,
-                period=self.period,
-                granularity=self.granularity)
-        instance_disk_util = self.datasource_backend.statistic_aggregation(
-            resource_id=instance.uuid,
-            meter_name=disk_alloc_metric,
-            period=self.period,
-            granularity=self.granularity)
+            instance_ram_util = (
+                self.datasource_backend.get_instance_ram_allocated(
+                    instance.uuid,
+                    self.period,
+                    self.AGGREGATION,
+                    granularity=self.granularity))
+        instance_disk_util = (
+            self.datasource_backend.get_instance_root_disk_allocated(
+                instance.uuid,
+                self.period,
+                self.AGGREGATION,
+                granularity=self.granularity))
 
         if instance_cpu_util:
             total_cpu_utilization = (
