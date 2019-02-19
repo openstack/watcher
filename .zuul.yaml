@@ -15,6 +15,7 @@
         - watcher-tempest-dummy_optim
         - watcher-tempest-actuator
         - watcher-tempest-basic_optim
+        - watcher-tempest-vm_workload_consolidation
         - watcher-tempest-workload_balancing
         - watcherclient-tempest-functional
         - watcher-tempest-zone_migration
@@ -46,6 +47,18 @@
     voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_basic_optim
+
+- job:
+    name: watcher-tempest-vm_workload_consolidation
+    parent: watcher-tempest-multinode
+    voting: false
+    vars:
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation
+      devstack_local_conf:
+        test-config:
+          $WATCHER_CONFIG:
+            watcher_strategies.vm_workload_consolidation:
+              datasource: ceilometer
 
 - job:
     name: watcher-tempest-workload_balancing
