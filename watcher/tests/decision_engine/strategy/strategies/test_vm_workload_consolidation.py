@@ -75,9 +75,15 @@ class TestVMWorkloadConsolidation(base.TestCase):
 
         self.m_model.return_value = model_root.ModelRoot()
         self.m_datasource.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+            get_instance_cpu_usage=(
+                self.fake_metrics.get_instance_cpu_util),
+            get_instance_memory_usage=(
+                self.fake_metrics.get_instance_ram_util),
+            get_instance_root_disk_allocated=(
+                self.fake_metrics.get_instance_disk_root_size),
+            )
         self.strategy = strategies.VMWorkloadConsolidation(
-            config=mock.Mock(datasource=self.datasource))
+            config=mock.Mock(datasources=self.datasource))
 
     def test_exception_stale_cdm(self):
         self.fake_cluster.set_cluster_data_model_as_stale()

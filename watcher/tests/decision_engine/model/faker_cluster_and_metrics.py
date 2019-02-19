@@ -88,15 +88,19 @@ class FakeCeilometerMetrics(object):
                             period=300, granularity=300, dimensions=None,
                             aggregation='avg', group_by='*'):
         if meter_name == "compute.node.cpu.percent":
-            return self.get_node_cpu_util(resource_id)
+            return self.get_node_cpu_util(resource_id, period,
+                                          aggregation, granularity)
         elif meter_name == "cpu_util":
-            return self.get_instance_cpu_util(resource_id)
+            return self.get_instance_cpu_util(resource_id, period,
+                                              aggregation, granularity)
         elif meter_name == "memory.resident":
-            return self.get_instance_ram_util(resource_id)
+            return self.get_instance_ram_util(resource_id, period,
+                                              aggregation, granularity)
         elif meter_name == "disk.root.size":
-            return self.get_instance_disk_root_size(resource_id)
+            return self.get_instance_disk_root_size(resource_id, period,
+                                                    aggregation, granularity)
 
-    def get_node_cpu_util(self, r_id):
+    def get_node_cpu_util(self, r_id, period, aggregation, granularity):
         """Calculates node utilization dynamicaly.
 
         node CPU utilization should consider
@@ -118,7 +122,7 @@ class FakeCeilometerMetrics(object):
         return util_sum * 100.0
 
     @staticmethod
-    def get_instance_cpu_util(r_id):
+    def get_instance_cpu_util(r_id, period, aggregation, granularity):
         instance_cpu_util = dict()
         instance_cpu_util['INSTANCE_0'] = 10
         instance_cpu_util['INSTANCE_1'] = 30
@@ -133,7 +137,7 @@ class FakeCeilometerMetrics(object):
         return instance_cpu_util[str(r_id)]
 
     @staticmethod
-    def get_instance_ram_util(r_id):
+    def get_instance_ram_util(r_id, period, aggregation, granularity):
         instance_ram_util = dict()
         instance_ram_util['INSTANCE_0'] = 1
         instance_ram_util['INSTANCE_1'] = 2
@@ -148,7 +152,7 @@ class FakeCeilometerMetrics(object):
         return instance_ram_util[str(r_id)]
 
     @staticmethod
-    def get_instance_disk_root_size(r_id):
+    def get_instance_disk_root_size(r_id, period, aggregation, granularity):
         instance_disk_util = dict()
         instance_disk_util['INSTANCE_0'] = 10
         instance_disk_util['INSTANCE_1'] = 15
@@ -171,15 +175,19 @@ class FakeGnocchiMetrics(object):
                             period=300, granularity=300, dimensions=None,
                             aggregation='avg', group_by='*'):
         if meter_name == "compute.node.cpu.percent":
-            return self.get_node_cpu_util(resource_id)
+            return self.get_node_cpu_util(resource_id, period,
+                                          aggregation, granularity)
         elif meter_name == "cpu_util":
-            return self.get_instance_cpu_util(resource_id)
+            return self.get_instance_cpu_util(resource_id, period,
+                                              aggregation, granularity)
         elif meter_name == "memory.resident":
-            return self.get_instance_ram_util(resource_id)
+            return self.get_instance_ram_util(resource_id, period,
+                                              aggregation, granularity)
         elif meter_name == "disk.root.size":
-            return self.get_instance_disk_root_size(resource_id)
+            return self.get_instance_disk_root_size(resource_id, period,
+                                                    aggregation, granularity)
 
-    def get_node_cpu_util(self, r_id):
+    def get_node_cpu_util(self, r_id, period, aggregation, granularity):
         """Calculates node utilization dynamicaly.
 
         node CPU utilization should consider
@@ -202,7 +210,7 @@ class FakeGnocchiMetrics(object):
         return util_sum * 100.0
 
     @staticmethod
-    def get_instance_cpu_util(r_id):
+    def get_instance_cpu_util(r_id, period, aggregation, granularity):
         instance_cpu_util = dict()
         instance_cpu_util['INSTANCE_0'] = 10
         instance_cpu_util['INSTANCE_1'] = 30
@@ -217,7 +225,7 @@ class FakeGnocchiMetrics(object):
         return instance_cpu_util[str(r_id)]
 
     @staticmethod
-    def get_instance_ram_util(r_id):
+    def get_instance_ram_util(r_id, period, aggregation, granularity):
         instance_ram_util = dict()
         instance_ram_util['INSTANCE_0'] = 1
         instance_ram_util['INSTANCE_1'] = 2
@@ -232,7 +240,7 @@ class FakeGnocchiMetrics(object):
         return instance_ram_util[str(r_id)]
 
     @staticmethod
-    def get_instance_disk_root_size(r_id):
+    def get_instance_disk_root_size(r_id, period, aggregation, granularity):
         instance_disk_util = dict()
         instance_disk_util['INSTANCE_0'] = 10
         instance_disk_util['INSTANCE_1'] = 15
