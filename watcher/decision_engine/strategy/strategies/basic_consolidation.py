@@ -308,7 +308,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "for %(metric_name)s", dict(
                     resource_id=resource_id,
                     metric_name=self.METRIC_NAMES[
-                        self.config.datasource]['host_cpu_usage']))
+                        self.datasource_backend.NAME]['host_cpu_usage']))
             host_avg_cpu_util = 100
 
         total_cores_used = node.vcpus * (host_avg_cpu_util / 100.0)
@@ -328,7 +328,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "for %(metric_name)s", dict(
                     resource_id=instance.uuid,
                     metric_name=self.METRIC_NAMES[
-                        self.config.datasource]['instance_cpu_usage']))
+                        self.datasource_backend.NAME]['instance_cpu_usage']))
             instance_cpu_utilization = 100
 
         total_cores_used = instance.vcpus * (instance_cpu_utilization / 100.0)

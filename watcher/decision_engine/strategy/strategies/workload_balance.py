@@ -273,7 +273,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 except Exception as exc:
                     LOG.exception(exc)
                     LOG.error("Can not get %s from %s", self._meter,
-                              self.config.datasource)
+                              self.datasource_backend.NAME)
                     continue
                 if util is None:
                     LOG.debug("Instance (%s): %s is None",
