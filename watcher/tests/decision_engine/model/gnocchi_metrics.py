@@ -15,6 +15,8 @@ import oslo_utils
 
 
 class FakeGnocchiMetrics(object):
+    NAME = 'gnocchi'
+
     def __init__(self):
         self.emptytype = ""
 

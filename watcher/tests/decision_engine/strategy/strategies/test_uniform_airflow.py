@@ -71,7 +71,8 @@ class TestUniformAirflow(base.TestCase):
 
         self.m_model.return_value = model_root.ModelRoot()
         self.m_datasource.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics,
+            NAME=self.fake_metrics.NAME)
         self.strategy = strategies.UniformAirflow(
             config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
@@ -83,6 +84,7 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.threshold_inlet_t = 28
         self.strategy.threshold_power = 350
         self._period = 300
+        self.strategy.pre_execute()
 
     def test_calc_used_resource(self):
         model = self.fake_cluster.generate_scenario_7_with_2_nodes()
