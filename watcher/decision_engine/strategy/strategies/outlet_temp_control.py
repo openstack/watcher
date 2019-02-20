@@ -144,11 +144,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "gnocchi"])
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca']),
         ]
 
     def get_available_compute_nodes(self):
@@ -181,7 +184,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         hosts_need_release = []
         hosts_target = []
         metric_name = self.METRIC_NAMES[
-            self.config.datasource]['host_outlet_temp']
+            self.datasource_backend.NAME]['host_outlet_temp']
         for node in nodes.values():
             resource_id = node.uuid
             outlet_temp = None
