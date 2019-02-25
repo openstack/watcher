@@ -106,7 +106,8 @@ class GnocchiHelper(base.DataSourceBase):
                 f=self.gnocchi.resource.search, **kwargs)
 
             if not resources:
-                raise exception.ResourceNotFound(name=resource_id)
+                raise exception.ResourceNotFound(name='gnocchi',
+                                                 id=resource_id)
 
             resource_id = resources[0]['id']
 
