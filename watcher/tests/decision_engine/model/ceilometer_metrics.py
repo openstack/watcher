@@ -20,6 +20,8 @@ import oslo_utils
 
 
 class FakeCeilometerMetrics(object):
+    NAME = 'ceilometer'
+
     def __init__(self):
         self.emptytype = ""
 

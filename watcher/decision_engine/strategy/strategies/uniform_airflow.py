@@ -90,12 +90,6 @@ class UniformAirflow(base.BaseStrategy):
         super(UniformAirflow, self).__init__(config, osc)
         # The migration plan will be triggered when the airflow reaches
         # threshold
-        self.meter_name_airflow = self.METRIC_NAMES[
-            self.config.datasource]['host_airflow']
-        self.meter_name_inlet_t = self.METRIC_NAMES[
-            self.config.datasource]['host_inlet_temp']
-        self.meter_name_power = self.METRIC_NAMES[
-            self.config.datasource]['host_power']
         self._period = self.PERIOD
 
     @classmethod
@@ -158,11 +152,14 @@ class UniformAirflow(base.BaseStrategy):
     @classmethod
     def get_config_opts(cls):
         return [
-            cfg.StrOpt(
-                "datasource",
-                help="Data source to use in order to query the needed metrics",
-                default="gnocchi",
-                choices=["ceilometer", "gnocchi"])
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " If one of strategy metric isn't available in the first"
+                     " datasource, the next datasource will be chosen.",
+                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
+                                                    'monasca']),
+                default=['gnocchi', 'ceilometer', 'monasca']),
         ]
 
     def get_available_compute_nodes(self):
@@ -316,6 +313,13 @@ class UniformAirflow(base.BaseStrategy):
 
         if self.compute_model.stale:
             raise wexc.ClusterStateStale()
+
+        self.meter_name_airflow = self.METRIC_NAMES[
+            self.datasource_backend.NAME]['host_airflow']
+        self.meter_name_inlet_t = self.METRIC_NAMES[
+            self.datasource_backend.NAME]['host_inlet_temp']
+        self.meter_name_power = self.METRIC_NAMES[
+            self.datasource_backend.NAME]['host_power']
 
         LOG.debug(self.compute_model.to_string())
 
