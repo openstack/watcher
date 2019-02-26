@@ -72,7 +72,8 @@ class TestOutletTempControl(base.TestCase):
 
         self.m_model.return_value = model_root.ModelRoot()
         self.m_datasource.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
+            statistic_aggregation=self.fake_metrics.mock_get_statistics,
+            NAME=self.fake_metrics.NAME)
         self.strategy = strategies.OutletTempControl(
             config=mock.Mock(datasource=self.datasource))
 
