@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -276,8 +275,6 @@ class UniformAirflow(base.BaseStrategy):
         """Group hosts based on airflow meters"""
 
         nodes = self.get_available_compute_nodes()
-        if not nodes:
-            raise wexc.ClusterEmpty()
         overload_hosts = []
         nonoverload_hosts = []
         for node_id in nodes:
@@ -306,14 +303,7 @@ class UniformAirflow(base.BaseStrategy):
         return overload_hosts, nonoverload_hosts
 
     def pre_execute(self):
-        LOG.debug("Initializing Uniform Airflow Strategy")
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
-
+        self._pre_execute()
         self.meter_name_airflow = self.METRIC_NAMES[
             self.datasource_backend.NAME]['host_airflow']
         self.meter_name_inlet_t = self.METRIC_NAMES[
@@ -321,13 +311,12 @@ class UniformAirflow(base.BaseStrategy):
         self.meter_name_power = self.METRIC_NAMES[
             self.datasource_backend.NAME]['host_power']
 
-        LOG.debug(self.compute_model.to_string())
-
-    def do_execute(self):
         self.threshold_airflow = self.input_parameters.threshold_airflow
         self.threshold_inlet_t = self.input_parameters.threshold_inlet_t
         self.threshold_power = self.input_parameters.threshold_power
         self._period = self.input_parameters.period
+
+    def do_execute(self):
         source_nodes, target_nodes = self.group_hosts_by_airflow()
 
         if not source_nodes:

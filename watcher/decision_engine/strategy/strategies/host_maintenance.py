@@ -21,7 +21,7 @@ from oslo_log import log
 import six
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
+from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -112,7 +112,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                       'state=%(state)s, state_type=%(st)s.',
                       dict(state=instance.state,
                            st=type(instance.state)))
-            raise wexc.WatcherException
+            raise exception.WatcherException
 
     def get_node_status_str(self, node):
         """Get node status in string format"""
@@ -125,7 +125,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                       'status=%(status)s, status_type=%(st)s.',
                       dict(status=node.status,
                            st=type(node.status)))
-            raise wexc.WatcherException
+            raise exception.WatcherException
 
     def get_node_capacity(self, node):
         """Collect cpu, ram and disk capacity of a node.
@@ -292,13 +292,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             self.instance_migration(instance, maintenance_node)
 
     def pre_execute(self):
-        LOG.debug(self.compute_model.to_string())
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
+        self._pre_execute()
 
     def do_execute(self):
         LOG.info(_('Executing Host Maintenance Migration Strategy'))

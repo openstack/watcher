@@ -22,7 +22,7 @@ import random
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
+from watcher.common import exception
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
@@ -179,7 +179,7 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             host_uuid = compute_service.get('host')
             try:
                 self.compute_model.get_node_by_uuid(host_uuid)
-            except wexc.ComputeNodeNotFound:
+            except exception.ComputeNodeNotFound:
                 continue
 
             if not (hypervisor_node.get('state') == 'up'):
@@ -214,28 +214,15 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
                 LOG.debug("power on %s", node)
 
     def pre_execute(self):
-        """Pre-execution phase
-
-        This can be used to fetch some pre-requisites or data.
-        """
-        LOG.info("Initializing Saving Energy Strategy")
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
+        self.free_used_percent = self.input_parameters.free_used_percent
+        self.min_free_hosts_num = self.input_parameters.min_free_hosts_num
 
     def do_execute(self):
         """Strategy execution phase
 
         This phase is where you should put the main logic of your strategy.
         """
-        self.free_used_percent = self.input_parameters.free_used_percent
-        self.min_free_hosts_num = self.input_parameters.min_free_hosts_num
-
         self.get_hosts_pool()
         self.save_energy()
 

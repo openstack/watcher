@@ -23,6 +23,7 @@ from watcher.decision_engine.strategy.context import default as d_strategy_ctx
 from watcher.decision_engine.strategy.selection import default as d_selector
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.db import base
+from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.objects import utils as obj_utils
 
 
@@ -35,14 +36,20 @@ class TestStrategyContext(base.DbTestCase):
             self.context, uuid=utils.generate_uuid())
         self.audit = obj_utils.create_test_audit(
             self.context, audit_template_id=audit_template.id)
+        self.fake_cluster = faker_cluster_state.FakerModelCollector()
+
+        p_model = mock.patch.object(
+            strategies.DummyStrategy, "compute_model",
+            new_callable=mock.PropertyMock)
+        self.m_model = p_model.start()
+        self.addCleanup(p_model.stop)
+
+        self.m_model.return_value = self.fake_cluster.build_scenario_1()
 
     strategy_context = d_strategy_ctx.DefaultStrategyContext()
 
-    @mock.patch.object(strategies.DummyStrategy, 'compute_model',
-                       new_callable=mock.PropertyMock)
     @mock.patch.object(d_selector.DefaultStrategySelector, 'select')
-    def test_execute_strategy(self, mock_call, m_model):
-        m_model.return_value = mock.Mock()
+    def test_execute_strategy(self, mock_call):
         mock_call.return_value = strategies.DummyStrategy(
             config=mock.Mock())
         solution = self.strategy_context.execute_strategy(

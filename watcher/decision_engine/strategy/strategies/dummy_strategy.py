@@ -49,7 +49,7 @@ class DummyStrategy(base.DummyBaseStrategy):
     SLEEP = "sleep"
 
     def pre_execute(self):
-        pass
+        self._pre_execute()
 
     def do_execute(self):
         para1 = self.input_parameters.para1

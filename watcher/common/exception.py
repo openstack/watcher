@@ -376,18 +376,6 @@ class KeystoneFailure(WatcherException):
     msg_fmt = _("Keystone API endpoint is missing")
 
 
-class ClusterEmpty(WatcherException):
-    msg_fmt = _("The list of compute node(s) in the cluster is empty")
-
-
-class ComputeClusterEmpty(WatcherException):
-    msg_fmt = _("The list of compute node(s) in the cluster is empty")
-
-
-class StorageClusterEmpty(WatcherException):
-    msg_fmt = _("The list of storage node(s) in the cluster is empty")
-
-
 class MetricCollectorNotDefined(WatcherException):
     msg_fmt = _("The metrics resource collector is not defined")
 

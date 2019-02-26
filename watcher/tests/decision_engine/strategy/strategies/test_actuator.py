@@ -18,14 +18,14 @@ import mock
 
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestActuator(base.TestCase):
+class TestActuator(TestBaseStrategy):
 
     def setUp(self):
         super(TestActuator, self).setUp()
-        # fake cluster
         self.strategy = strategies.Actuator(config=mock.Mock())
 
     def test_actuator_strategy(self):

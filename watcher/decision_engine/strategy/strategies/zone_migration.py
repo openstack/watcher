@@ -21,7 +21,6 @@ from cinderclient.v2.volumes import Volume
 from novaclient.v2.servers import Server
 from watcher._i18n import _
 from watcher.common import cinder_helper
-from watcher.common import exception as wexc
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
@@ -267,19 +266,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 cn.status in default_node_scope}
 
     def pre_execute(self):
-        """Pre-execution phase
-
-        This can be used to fetch some pre-requisites or data.
-        """
-        LOG.info("Initializing zone migration Strategy")
-
-        if len(self.get_available_compute_nodes()) == 0:
-            raise wexc.ComputeClusterEmpty()
-
-        if len(self.get_available_storage_nodes()) == 0:
-            raise wexc.StorageClusterEmpty()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
         LOG.debug(self.storage_model.to_string())
 
     def do_execute(self):

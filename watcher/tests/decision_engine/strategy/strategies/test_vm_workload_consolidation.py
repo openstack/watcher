@@ -20,16 +20,15 @@
 
 import mock
 
-from watcher.common import exception
 from watcher.decision_engine.model import element
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.solution.base import BaseSolution
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_and_metrics
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestVMWorkloadConsolidation(base.TestCase):
+class TestVMWorkloadConsolidation(TestBaseStrategy):
 
     scenarios = [
         ("Ceilometer",
@@ -46,13 +45,7 @@ class TestVMWorkloadConsolidation(base.TestCase):
         super(TestVMWorkloadConsolidation, self).setUp()
 
         # fake cluster
-        self.fake_cluster = faker_cluster_and_metrics.FakerModelCollector()
-
-        p_model = mock.patch.object(
-            strategies.VMWorkloadConsolidation, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
+        self.fake_c_cluster = faker_cluster_and_metrics.FakerModelCollector()
 
         p_datasource = mock.patch.object(
             strategies.VMWorkloadConsolidation, 'datasource_backend',
@@ -60,20 +53,10 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
-        p_audit_scope = mock.patch.object(
-            strategies.VMWorkloadConsolidation, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
-        self.m_audit_scope.return_value = mock.Mock()
-
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls(
-            self.m_model.return_value)
+            self.m_c_model.return_value)
 
-        self.m_model.return_value = model_root.ModelRoot()
         self.m_datasource.return_value = mock.Mock(
             get_instance_cpu_usage=(
                 self.fake_metrics.get_instance_cpu_util),
@@ -85,17 +68,9 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.strategy = strategies.VMWorkloadConsolidation(
             config=mock.Mock(datasources=self.datasource))
 
-    def test_exception_stale_cdm(self):
-        self.fake_cluster.set_cluster_data_model_as_stale()
-        self.m_model.return_value = self.fake_cluster.cluster_data_model
-
-        self.assertRaises(
-            exception.ClusterStateNotDefined,
-            self.strategy.execute)
-
     def test_get_instance_utilization(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         instance_0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_util = dict(cpu=1.0, ram=1, disk=10)
@@ -104,8 +79,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
             self.strategy.get_instance_utilization(instance_0))
 
     def test_get_node_utilization(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         node_0 = model.get_node_by_uuid("Node_0")
         node_util = dict(cpu=1.0, ram=1, disk=10)
@@ -114,16 +89,16 @@ class TestVMWorkloadConsolidation(base.TestCase):
             self.strategy.get_node_utilization(node_0))
 
     def test_get_node_capacity(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         node_0 = model.get_node_by_uuid("Node_0")
         node_util = dict(cpu=40, ram=64, disk=250)
         self.assertEqual(node_util, self.strategy.get_node_capacity(node_0))
 
     def test_get_relative_node_utilization(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         node = model.get_node_by_uuid('Node_0')
         rhu = self.strategy.get_relative_node_utilization(node)
@@ -131,16 +106,16 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected_rhu, rhu)
 
     def test_get_relative_cluster_utilization(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         cru = self.strategy.get_relative_cluster_utilization()
         expected_cru = {'cpu': 0.05, 'disk': 0.05, 'ram': 0.0234375}
         self.assertEqual(expected_cru, cru)
 
     def test_add_migration_with_active_state(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
@@ -156,8 +131,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions[0])
 
     def test_add_migration_with_paused_state(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
@@ -178,8 +153,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions[0])
 
     def test_is_overloaded(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
@@ -195,8 +170,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertTrue(res)
 
     def test_instance_fits(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n = model.get_node_by_uuid('Node_1')
         instance0 = model.get_instance_by_uuid('INSTANCE_0')
@@ -209,8 +184,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertFalse(res)
 
     def test_add_action_enable_compute_node(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n = model.get_node_by_uuid('Node_0')
         self.strategy.add_action_enable_compute_node(n)
@@ -220,8 +195,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_add_action_disable_node(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n = model.get_node_by_uuid('Node_0')
         self.strategy.add_action_disable_node(n)
@@ -233,8 +208,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_disable_unused_nodes(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
@@ -256,8 +231,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions[1])
 
     def test_offload_phase(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         self.strategy.offload_phase(cc)
@@ -265,8 +240,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_consolidation_phase(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
@@ -281,8 +256,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_strategy(self):
-        model = self.fake_cluster.generate_scenario_2()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_2()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
 
         result = self.strategy.pre_execute()
@@ -333,8 +308,8 @@ class TestVMWorkloadConsolidation(base.TestCase):
             )
 
     def test_strategy2(self):
-        model = self.fake_cluster.generate_scenario_3()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_3()
+        self.m_c_model.return_value = model
         self.fake_metrics.model = model
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')

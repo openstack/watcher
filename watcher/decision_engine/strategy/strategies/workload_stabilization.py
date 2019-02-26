@@ -290,8 +290,8 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         return normalized_hosts
 
     def get_available_nodes(self):
-        return {node_uuid: node for node_uuid, node in
-                self.compute_model.get_all_compute_nodes().items()
+        nodes = self.compute_model.get_all_compute_nodes().items()
+        return {node_uuid: node for node_uuid, node in nodes
                 if node.state == element.ServiceState.ONLINE.value and
                 node.status == element.ServiceState.ENABLED.value}
 
@@ -506,14 +506,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         return self.solution
 
     def pre_execute(self):
-        LOG.info("Initializing Workload Stabilization")
-
-        if not self.compute_model:
-            raise exception.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise exception.ClusterStateStale()
-
+        self._pre_execute()
         self.weights = self.input_parameters.weights
         self.metrics = self.input_parameters.metrics
         self.thresholds = self.input_parameters.thresholds

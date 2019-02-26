@@ -15,6 +15,7 @@
 # limitations under the License.
 
 from watcher.decision_engine.strategy.strategies import actuation
+from watcher.decision_engine.strategy.strategies import base
 from watcher.decision_engine.strategy.strategies import basic_consolidation
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher.decision_engine.strategy.strategies import dummy_with_scorer
@@ -33,6 +34,7 @@ from watcher.decision_engine.strategy.strategies import zone_migration
 
 
 Actuator = actuation.Actuator
+BaseStrategy = base.BaseStrategy
 BasicConsolidation = basic_consolidation.BasicConsolidation
 OutletTempControl = outlet_temp_control.OutletTempControl
 DummyStrategy = dummy_strategy.DummyStrategy
@@ -47,8 +49,9 @@ NoisyNeighbor = noisy_neighbor.NoisyNeighbor
 ZoneMigration = zone_migration.ZoneMigration
 HostMaintenance = host_maintenance.HostMaintenance
 
-__all__ = ("Actuator", "BasicConsolidation", "OutletTempControl",
-           "DummyStrategy", "DummyWithScorer", "VMWorkloadConsolidation",
-           "WorkloadBalance", "WorkloadStabilization", "UniformAirflow",
-           "NoisyNeighbor", "SavingEnergy", "StorageCapacityBalance",
-           "ZoneMigration", "HostMaintenance")
+__all__ = ("Actuator", "BaseStrategy", "BasicConsolidation",
+           "OutletTempControl", "DummyStrategy", "DummyWithScorer",
+           "VMWorkloadConsolidation", "WorkloadBalance",
+           "WorkloadStabilization", "UniformAirflow", "NoisyNeighbor",
+           "SavingEnergy", "StorageCapacityBalance", "ZoneMigration",
+           "HostMaintenance")
