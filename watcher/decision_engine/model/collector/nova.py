@@ -165,14 +165,24 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = compute_scope.ComputeScope(
             audit_scope, self.config)
+        if self._data_model_scope is None or (
+            len(self._data_model_scope) > 0 and (
+                self._data_model_scope != audit_scope)):
+            self._data_model_scope = audit_scope
+            self._cluster_data_model = None
+        LOG.debug("audit scope %s", audit_scope)
         return self._audit_scope_handler
 
     def execute(self):
         """Build the compute cluster data model"""
         LOG.debug("Building latest Nova cluster data model")
 
+        if self._audit_scope_handler is None:
+            LOG.debug("No audit, Don't Build compute data model")
+            return
+
         builder = ModelBuilder(self.osc)
-        return builder.execute()
+        return builder.execute(self._data_model_scope)
 
 
 class ModelBuilder(object):
@@ -196,11 +206,38 @@ class ModelBuilder(object):
 
     def __init__(self, osc):
         self.osc = osc
-        self.model = model_root.ModelRoot()
+        self.model = None
+        self.model_scope = dict()
         self.nova = osc.nova()
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
         # self.neutron = osc.neutron()
         # self.cinder = osc.cinder()
+
+    def _collect_aggregates(self, host_aggregates, _nodes):
+        aggregate_list = self.nova_helper.get_aggregate_list()
+        aggregate_ids = [aggregate['id'] for aggregate
+                         in host_aggregates if 'id' in aggregate]
+        aggregate_names = [aggregate['name'] for aggregate
+                           in host_aggregates if 'name' in aggregate]
+        include_all_nodes = any('*' in field
+                                for field in (aggregate_ids, aggregate_names))
+
+        for aggregate in aggregate_list:
+            if (aggregate.id in aggregate_ids or
+                aggregate.name in aggregate_names or
+                    include_all_nodes):
+                _nodes.update(aggregate.hosts)
+
+    def _collect_zones(self, availability_zones, _nodes):
+        service_list = self.nova_helper.get_service_list()
+        zone_names = [zone['name'] for zone
+                      in availability_zones]
+        include_all_nodes = False
+        if '*' in zone_names:
+            include_all_nodes = True
+        for service in service_list:
+            if service.zone in zone_names or include_all_nodes:
+                _nodes.update(service.host)
 
     def _add_physical_layer(self):
         """Add the physical layer of the graph.
@@ -208,12 +245,31 @@ class ModelBuilder(object):
         This includes components which represent actual infrastructure
         hardware.
         """
-        for cnode in self.nova_helper.get_compute_node_list():
-            self.add_compute_node(cnode)
+        compute_nodes = set()
+        host_aggregates = self.model_scope.get("host_aggregates")
+        availability_zones = self.model_scope.get("availability_zones")
+        if host_aggregates:
+            self._collect_aggregates(host_aggregates, compute_nodes)
+        if availability_zones:
+            self._collect_zones(availability_zones, compute_nodes)
+
+        if not compute_nodes:
+            all_nodes = self.nova_helper.get_compute_node_list()
+            compute_nodes = set(
+                [node.hypervisor_hostname for node in all_nodes])
+        LOG.debug("compute nodes: %s", compute_nodes)
+        for node_name in compute_nodes:
+            cnode = self.nova_helper.get_compute_node_by_name(node_name,
+                                                              servers=True)
+            if cnode:
+                self.add_compute_node(cnode[0])
+                self.add_instance_node(cnode[0])
 
     def add_compute_node(self, node):
         # Build and add base node.
-        compute_node = self.build_compute_node(node)
+        node_info = self.nova_helper.get_compute_node_by_id(node.id)
+        LOG.debug("node info: %s", node_info)
+        compute_node = self.build_compute_node(node_info)
         self.model.add_node(compute_node)
 
         # NOTE(v-francoise): we can encapsulate capabilities of the node
@@ -242,10 +298,9 @@ class ModelBuilder(object):
         :type node: :py:class:`~novaclient.v2.hypervisors.Hypervisor`
         """
         # build up the compute node.
-        compute_service = self.nova_helper.get_service(node.service["id"])
         node_attributes = {
             "id": node.id,
-            "uuid": compute_service.host,
+            "uuid": node.service["host"],
             "hostname": node.hypervisor_hostname,
             "memory": node.memory_mb,
             "disk": node.free_disk_gb,
@@ -253,7 +308,7 @@ class ModelBuilder(object):
             "vcpus": node.vcpus,
             "state": node.state,
             "status": node.status,
-            "disabled_reason": compute_service.disabled_reason}
+            "disabled_reason": node.service["disabled_reason"]}
 
         compute_node = element.ComputeNode(**node_attributes)
         # compute_node = self._build_node("physical", "compute", "hypervisor",
@@ -332,6 +387,29 @@ class ModelBuilder(object):
                 self.model.map_instance(instance, compute_node)
             except exception.ComputeNodeNotFound:
                 continue
+
+    def add_instance_node(self, node):
+        # node.servers is a list of server objects
+        # New in nova version 2.53
+        instances = getattr(node, "servers", None)
+        if instances is None:
+            # no instances on this node
+            return
+        instance_uuids = [s['uuid'] for s in instances]
+        for uuid in instance_uuids:
+            try:
+                inst = self.nova_helper.find_instance(uuid)
+            except Exception as exc:
+                LOG.exception(exc)
+                continue
+            # Add Node
+            instance = self._build_instance_node(inst)
+            self.model.add_instance(instance)
+            cnode_uuid = getattr(inst, "OS-EXT-SRV-ATTR:host")
+            compute_node = self.model.get_node_by_uuid(
+                cnode_uuid)
+            # Connect the instance to its compute node
+            self.model.map_instance(instance, compute_node)
 
     def _build_instance_node(self, instance):
         """Build an instance node
@@ -475,12 +553,53 @@ class ModelBuilder(object):
     #     node = self._build_node('virtual', 'network', 'network', network)
     #     return network['id'], node
 
-    def execute(self):
+    def _merge_compute_scope(self, compute_scope):
+        model_keys = self.model_scope.keys()
+        update_flag = False
+
+        role_keys = ("host_aggregates", "availability_zones")
+        for role in compute_scope:
+            role_key = role.keys()[0]
+            if role_key not in role_keys:
+                continue
+            role_values = role.values()[0]
+            if role_key in model_keys:
+                for value in role_values:
+                    if value not in self.model_scope[role_key]:
+                        self.model_scope[role_key].sppend(value)
+                        update_flag = True
+            else:
+                self.self.model_scope[role_key] = role_values
+                update_flag = True
+        return update_flag
+
+    def _check_model_scope(self, model_scope):
+        compute_scope = []
+        update_flag = False
+        for _scope in model_scope:
+            if 'compute' in _scope:
+                compute_scope = _scope['compute']
+                break
+
+        if self.model_scope:
+            if model_scope:
+                if compute_scope:
+                    update_flag = self._merge_compute_scope(compute_scope)
+            else:
+                self.model_scope = dict()
+                update_flag = True
+
+        return update_flag
+
+    def execute(self, model_scope):
         """Instantiates the graph with the openstack cluster data.
 
         The graph is populated along 2 layers: virtual and physical. As each
         new layer is built connections are made back to previous layers.
         """
-        self._add_physical_layer()
-        self._add_virtual_layer()
+        updata_model_flag = self._check_model_scope(model_scope)
+        if self.model is None or updata_model_flag:
+            self.model = self.model or model_root.ModelRoot()
+            self._add_physical_layer()
+
         return self.model

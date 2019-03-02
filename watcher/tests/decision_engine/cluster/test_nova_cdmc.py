@@ -46,7 +46,8 @@ class TestNovaClusterDataModelCollector(base.TestCase):
 
         fake_compute_node = mock.Mock(
             id=1337,
-            service={'id': 123},
+            service={'id': 123, 'host': 'test_hostname',
+                     'disabled_reason': ''},
             hypervisor_hostname='test_hostname',
             memory_mb=333,
             free_disk_gb=222,
@@ -54,6 +55,10 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             vcpus=4,
             state='TEST_STATE',
             status='TEST_STATUS',
+            servers=[
+                {'name': 'fake_instance',
+                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
+                ]
         )
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
@@ -65,8 +70,10 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
         setattr(fake_instance, 'OS-EXT-SRV-ATTR:host', 'test_hostname')
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
-        # m_nova_helper.get_instances_by_node.return_value = [fake_instance]
-        m_nova_helper.get_instance_list.return_value = [fake_instance]
+        m_nova_helper.get_compute_node_by_name.return_value = [
+            fake_compute_node]
+        m_nova_helper.get_compute_node_by_id.return_value = fake_compute_node
+        m_nova_helper.find_instance.return_value = fake_instance
 
         m_config = mock.Mock()
         m_osc = mock.Mock()
@@ -74,6 +81,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         nova_cdmc = nova.NovaClusterDataModelCollector(
             config=m_config, osc=m_osc)
 
+        nova_cdmc.get_audit_scope_handler([])
         model = nova_cdmc.execute()
 
         compute_nodes = model.get_all_compute_nodes()

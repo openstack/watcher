@@ -53,6 +53,9 @@ class NovaHelper(object):
         # We need to pass an object with an 'id' attribute to make it work
         return self.nova.hypervisors.get(utils.Struct(id=node_id))
 
+    def get_compute_node_by_name(self, node_name, servers=False):
+        return self.nova.hypervisors.search(node_name, servers)
+
     def get_compute_node_by_hostname(self, node_hostname):
         """Get compute node by hostname"""
         try:
