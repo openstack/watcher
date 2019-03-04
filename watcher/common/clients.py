@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from ceilometerclient import client as ceclient
+
 from cinderclient import client as ciclient
 from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
@@ -24,6 +24,12 @@ from novaclient import client as nvclient
 from watcher.common import exception
 
 from watcher import conf
+
+try:
+    from ceilometerclient import client as ceclient
+    HAS_CEILCLIENT = True
+except ImportError:
+    HAS_CEILCLIENT = False
 
 CONF = conf.CONF
 
