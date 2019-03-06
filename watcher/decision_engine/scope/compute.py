@@ -61,12 +61,10 @@ class ComputeScope(base.BaseScope):
                                 for field in (aggregate_ids, aggregate_names))
 
         for aggregate in aggregate_list:
-            detailed_aggregate = self.wrapper.get_aggregate_detail(
-                aggregate.id)
-            if (detailed_aggregate.id in aggregate_ids or
-                detailed_aggregate.name in aggregate_names or
+            if (aggregate.id in aggregate_ids or
+                aggregate.name in aggregate_names or
                     include_all_nodes):
-                compute_nodes.extend(detailed_aggregate.hosts)
+                compute_nodes.extend(aggregate.hosts)
 
     def _collect_zones(self, availability_zones, allowed_nodes):
         service_list = self.wrapper.get_service_list()

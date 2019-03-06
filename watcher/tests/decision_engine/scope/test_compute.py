@@ -71,25 +71,20 @@ class TestComputeScope(base.TestCase):
         ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
-    def test_collect_aggregates(self, mock_aggregate, mock_detailed_aggregate):
+    def test_collect_aggregates(self, mock_aggregate):
         allowed_nodes = []
-        mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
-        mock_detailed_aggregate.side_effect = [
+        mock_aggregate.return_value = [
             mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': 1}, {'id': 2}], allowed_nodes)
         self.assertEqual(['Node_1'], allowed_nodes)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
-    def test_aggregates_wildcard_is_used(self, mock_aggregate,
-                                         mock_detailed_aggregate):
+    def test_aggregates_wildcard_is_used(self, mock_aggregate):
         allowed_nodes = []
-        mock_aggregate.return_value = [mock.Mock(id=i) for i in range(2)]
-        mock_detailed_aggregate.side_effect = [
+        mock_aggregate.return_value = [
             mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': '*'}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
@@ -108,20 +103,15 @@ class TestComputeScope(base.TestCase):
                           [{'id': '*'}, {'id': 1}],
                           allowed_nodes)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
-    def test_aggregates_with_names_and_ids(self, mock_aggregate,
-                                           mock_detailed_aggregate):
+    def test_aggregates_with_names_and_ids(self, mock_aggregate):
         allowed_nodes = []
-        mock_aggregate.return_value = [mock.Mock(id=i,
-                                                 name="HA_{0}".format(i))
-                                       for i in range(2)]
         mock_collection = [mock.Mock(id=i, hosts=['Node_{0}'.format(i)])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
 
-        mock_detailed_aggregate.side_effect = mock_collection
+        mock_aggregate.return_value = mock_collection
 
         compute.ComputeScope([{'host_aggregates': [{'name': 'HA_1'},
                                                    {'id': 0}]}],
@@ -178,18 +168,13 @@ class TestComputeScope(base.TestCase):
             audit_template.AuditTemplatePostType._build_schema()
             ).validate(test_scope)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
-    def test_exclude_resource(
-            self, mock_aggregate, mock_detailed_aggregate):
-        mock_aggregate.return_value = [mock.Mock(id=i,
-                                                 name="HA_{0}".format(i))
-                                       for i in range(2)]
+    def test_exclude_resource(self, mock_aggregate):
         mock_collection = [mock.Mock(id=i, hosts=['Node_{0}'.format(i)])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
-        mock_detailed_aggregate.side_effect = mock_collection
+        mock_aggregate.return_value = mock_collection
 
         resources_to_exclude = [{'host_aggregates': [{'name': 'HA_1'},
                                                      {'id': 0}]},
