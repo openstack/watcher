@@ -2,7 +2,7 @@
 
 [*] --> PENDING: Audit requested by Administrator
 PENDING --> ONGOING: Audit request is received\nby the Watcher Decision Engine
-ONGOING --> FAILED: Audit fails\n(no solution found, technical error, ...)
+ONGOING --> FAILED: Audit fails\n(Exception occurred)
 ONGOING --> SUCCEEDED: The Watcher Decision Engine\ncould find at least one Solution
 ONGOING --> SUSPENDED: Administrator wants to\nsuspend the Audit
 SUSPENDED --> ONGOING: Administrator wants to\nresume the Audit
