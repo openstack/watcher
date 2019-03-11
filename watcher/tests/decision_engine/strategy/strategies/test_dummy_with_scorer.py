@@ -18,26 +18,15 @@ import mock
 
 from watcher.applier.loading import default
 from watcher.common import utils
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
-from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestDummyWithScorer(base.TestCase):
+class TestDummyWithScorer(TestBaseStrategy):
 
     def setUp(self):
         super(TestDummyWithScorer, self).setUp()
-        # fake cluster
-        self.fake_cluster = faker_cluster_state.FakerModelCollector()
-
-        p_model = mock.patch.object(
-            strategies.DummyWithScorer, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
-
-        self.m_model.return_value = model_root.ModelRoot()
         self.strategy = strategies.DummyWithScorer(config=mock.Mock())
 
     def test_dummy_with_scorer(self):
@@ -48,8 +37,8 @@ class TestDummyWithScorer(base.TestCase):
         self.assertEqual(4, len(solution.actions))
 
     def test_check_parameters(self):
-        model = self.fake_cluster.generate_scenario_3_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update({'param1': 4.0, 'param2': 'Hi'})
         solution = self.strategy.execute()

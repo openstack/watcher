@@ -76,7 +76,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
                                metainfo['workloads'])}
 
     def pre_execute(self):
-        pass
+        self._pre_execute()
 
     def do_execute(self):
         # Simple "hello world" from strategy

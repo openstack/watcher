@@ -18,33 +18,23 @@ import cinderclient
 import novaclient
 from watcher.common import cinder_helper
 from watcher.common import clients
-from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_state
-
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
 
 
-class TestZoneMigration(base.TestCase):
+class TestZoneMigration(TestBaseStrategy):
 
     def setUp(self):
         super(TestZoneMigration, self).setUp()
-        # fake compute cluster
-        self.fake_c_cluster = faker_cluster_state.FakerModelCollector()
 
         # fake storage cluster
         self.fake_s_cluster = faker_cluster_state.FakerStorageModelCollector()
-
-        p_c_model = mock.patch.object(
-            strategies.ZoneMigration, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_c_model = p_c_model.start()
-        self.addCleanup(p_c_model.stop)
 
         p_s_model = mock.patch.object(
             strategies.ZoneMigration, "storage_model",
@@ -82,13 +72,6 @@ class TestZoneMigration(base.TestCase):
         self.m_parallel_per_pool = p_parallel_per_pool.start()
         self.addCleanup(p_parallel_per_pool.stop)
 
-        p_audit_scope = mock.patch.object(
-            strategies.ZoneMigration, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
         p_priority = mock.patch.object(
             strategies.ZoneMigration, "priority",
             new_callable=mock.PropertyMock
@@ -116,7 +99,6 @@ class TestZoneMigration(base.TestCase):
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
              "src_type": "type2", "dst_type": "type3"}
         ]
-        self.m_audit_scope.return_value = mock.Mock()
 
         self.strategy = strategies.ZoneMigration(
             config=mock.Mock())
@@ -144,19 +126,6 @@ class TestZoneMigration(base.TestCase):
             cinder_helper, "CinderHelper", self.m_c_helper_cls)
         m_cinder_helper.start()
         self.addCleanup(m_cinder_helper.stop)
-
-    def test_exception_empty_compute_model(self):
-        model = model_root.ModelRoot()
-        self.m_c_model.return_value = model
-        self.assertRaises(exception.ComputeClusterEmpty, self.strategy.execute)
-
-    def test_exception_empty_storage_model(self):
-        c_model = self.fake_c_cluster.generate_scenario_1()
-        self.m_c_model.return_value = c_model
-
-        s_model = model_root.StorageModelRoot()
-        self.m_s_model.return_value = s_model
-        self.assertRaises(exception.StorageClusterEmpty, self.strategy.execute)
 
     @staticmethod
     def fake_instance(**kwargs):

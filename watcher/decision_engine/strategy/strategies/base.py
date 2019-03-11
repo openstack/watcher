@@ -39,6 +39,8 @@ which are dynamically loaded by Watcher at launch time.
 import abc
 import six
 
+from oslo_config import cfg
+from oslo_log import log
 from oslo_utils import strutils
 
 from watcher.common import clients
@@ -51,6 +53,9 @@ from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
 from watcher.decision_engine.strategy.common import level
+
+LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class StrategyEndpoint(object):
@@ -217,6 +222,23 @@ class BaseStrategy(loadable.Loadable):
         This can be used to compute the global efficacy
         """
         raise NotImplementedError()
+
+    def _pre_execute(self):
+        """Base Pre-execution phase
+
+         This will perform basic pre execution operations most strategies
+         should perform.
+        """
+
+        LOG.info("Initializing " + self.get_display_name() + " Strategy")
+
+        if not self.compute_model:
+            raise exception.ClusterStateNotDefined()
+
+        if self.compute_model.stale:
+            raise exception.ClusterStateStale()
+
+        LOG.debug(self.compute_model.to_string())
 
     def execute(self):
         """Execute a strategy

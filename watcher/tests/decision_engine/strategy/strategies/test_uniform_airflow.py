@@ -20,17 +20,15 @@ import collections
 import mock
 
 from watcher.applier.loading import default
-from watcher.common import exception
 from watcher.common import utils
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
-from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.decision_engine.model import gnocchi_metrics
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestUniformAirflow(base.TestCase):
+class TestUniformAirflow(TestBaseStrategy):
 
     scenarios = [
         ("Ceilometer",
@@ -45,14 +43,6 @@ class TestUniformAirflow(base.TestCase):
         super(TestUniformAirflow, self).setUp()
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
-        # fake cluster
-        self.fake_cluster = faker_cluster_state.FakerModelCollector()
-
-        p_model = mock.patch.object(
-            strategies.UniformAirflow, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
 
         p_datasource = mock.patch.object(
             strategies.UniformAirflow, 'datasource_backend',
@@ -60,16 +50,6 @@ class TestUniformAirflow(base.TestCase):
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
-        p_audit_scope = mock.patch.object(
-            strategies.UniformAirflow, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
-        self.m_audit_scope.return_value = mock.Mock()
-
-        self.m_model.return_value = model_root.ModelRoot()
         self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics,
             NAME=self.fake_metrics.NAME)
@@ -87,16 +67,16 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.pre_execute()
 
     def test_calc_used_resource(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         node = model.get_node_by_uuid('Node_0')
         cores_used, mem_used, disk_used = (
             self.strategy.calculate_used_resource(node))
         self.assertEqual((cores_used, mem_used, disk_used), (25, 4, 40))
 
     def test_group_hosts_by_airflow(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.threshold_airflow = 300
         n1, n2 = self.strategy.group_hosts_by_airflow()
         # print n1, n2, avg, w_map
@@ -104,8 +84,8 @@ class TestUniformAirflow(base.TestCase):
         self.assertEqual(n2[0]['node'].uuid, 'Node_1')
 
     def test_choose_instance_to_migrate(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 22
         n1, n2 = self.strategy.group_hosts_by_airflow()
@@ -118,8 +98,8 @@ class TestUniformAirflow(base.TestCase):
                        '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
 
     def test_choose_instance_to_migrate_all(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 25
         n1, n2 = self.strategy.group_hosts_by_airflow()
@@ -132,8 +112,8 @@ class TestUniformAirflow(base.TestCase):
                          {inst.uuid for inst in instance_to_mig[1]})
 
     def test_choose_instance_notfound(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 22
         n1, n2 = self.strategy.group_hosts_by_airflow()
@@ -143,8 +123,8 @@ class TestUniformAirflow(base.TestCase):
         self.assertIsNone(instance_to_mig)
 
     def test_filter_destination_hosts(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 22
         n1, n2 = self.strategy.group_hosts_by_airflow()
@@ -158,35 +138,13 @@ class TestUniformAirflow(base.TestCase):
                       {'cae81432-1631-4d4e-b29c-6f3acdcde906',
                        '73b09e16-35b7-4922-804e-e8f5d9b740fc'})
 
-    def test_exception_model(self):
-        self.m_model.return_value = None
-        self.assertRaises(
-            exception.ClusterStateNotDefined, self.strategy.execute)
-
-    def test_exception_cluster_empty(self):
-        model = model_root.ModelRoot()
-        self.m_model.return_value = model
-        self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
-
-    def test_exception_stale_cdm(self):
-        self.fake_cluster.set_cluster_data_model_as_stale()
-        self.m_model.return_value = self.fake_cluster.cluster_data_model
-
-        self.assertRaises(
-            exception.ClusterStateNotDefined,
-            self.strategy.execute)
-
-    def test_execute_cluster_empty(self):
-        model = model_root.ModelRoot()
-        self.m_model.return_value = model
-        self.assertRaises(exception.ClusterEmpty, self.strategy.execute)
-
     def test_execute_no_workload(self):
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 25
         self.strategy.threshold_power = 300
-        model = self.fake_cluster.generate_scenario_4_with_1_node_no_instance()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.\
+            generate_scenario_4_with_1_node_no_instance()
+        self.m_c_model.return_value = model
         solution = self.strategy.execute()
         self.assertEqual([], solution.actions)
 
@@ -194,8 +152,8 @@ class TestUniformAirflow(base.TestCase):
         self.strategy.threshold_airflow = 300
         self.strategy.threshold_inlet_t = 25
         self.strategy.threshold_power = 300
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         solution = self.strategy.execute()
         actions_counter = collections.Counter(
             [action.get('action_type') for action in solution.actions])
@@ -204,8 +162,8 @@ class TestUniformAirflow(base.TestCase):
         self.assertEqual(num_migrations, 2)
 
     def test_check_parameters(self):
-        model = self.fake_cluster.generate_scenario_7_with_2_nodes()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_7_with_2_nodes()
+        self.m_c_model.return_value = model
         solution = self.strategy.execute()
         loader = default.DefaultActionLoader()
         for action in solution.actions:

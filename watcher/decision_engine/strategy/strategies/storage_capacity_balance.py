@@ -349,11 +349,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         return retype_dicts, migrate_dicts
 
     def pre_execute(self):
-        """Pre-execution phase
-
-        This can be used to fetch some pre-requisites or data.
-        """
-        LOG.info("Initializing Storage Capacity Balance Strategy")
+        LOG.info("Initializing " + self.get_display_name() + " Strategy")
         self.volume_threshold = self.input_parameters.volume_threshold
 
     def do_execute(self, audit=None):

@@ -21,15 +21,14 @@ import mock
 
 from watcher.common import clients
 from watcher.common import utils
-from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
 from watcher.tests.decision_engine.model import ceilometer_metrics
-from watcher.tests.decision_engine.model import faker_cluster_state
 from watcher.tests.decision_engine.model import gnocchi_metrics
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestWorkloadStabilization(base.TestCase):
+class TestWorkloadStabilization(TestBaseStrategy):
 
     scenarios = [
         ("Ceilometer",
@@ -46,9 +45,6 @@ class TestWorkloadStabilization(base.TestCase):
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 
-        # fake cluster
-        self.fake_cluster = faker_cluster_state.FakerModelCollector()
-
         self.hosts_load_assert = {
             'Node_0': {'cpu_util': 0.07, 'memory.resident': 7.0, 'vcpus': 40},
             'Node_1': {'cpu_util': 0.07, 'memory.resident': 5, 'vcpus': 40},
@@ -61,27 +57,12 @@ class TestWorkloadStabilization(base.TestCase):
         self.m_osc = p_osc.start()
         self.addCleanup(p_osc.stop)
 
-        p_model = mock.patch.object(
-            strategies.WorkloadStabilization, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
-
         p_datasource = mock.patch.object(
             strategies.WorkloadStabilization, "datasource_backend",
             new_callable=mock.PropertyMock)
         self.m_datasource = p_datasource.start()
         self.addCleanup(p_datasource.stop)
 
-        p_audit_scope = mock.patch.object(
-            strategies.WorkloadStabilization, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
-        self.m_model.return_value = model_root.ModelRoot()
-        self.m_audit_scope.return_value = mock.Mock()
         self.m_datasource.return_value = mock.Mock(
             statistic_aggregation=self.fake_metrics.mock_get_statistics)
 
@@ -113,8 +94,8 @@ class TestWorkloadStabilization(base.TestCase):
         self.strategy.aggregation_method = {"instance": "mean", "node": "mean"}
 
     def test_get_instance_load(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         instance0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_0_dict = {
             'uuid': 'INSTANCE_0', 'vcpus': 10,
@@ -123,13 +104,14 @@ class TestWorkloadStabilization(base.TestCase):
             instance_0_dict, self.strategy.get_instance_load(instance0))
 
     def test_get_instance_load_with_no_metrics(self):
-        model = self.fake_cluster.generate_scenario_1_with_1_node_unavailable()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.\
+            generate_scenario_1_with_1_node_unavailable()
+        self.m_c_model.return_value = model
         lost_instance = model.get_instance_by_uuid("LOST_INSTANCE")
         self.assertIsNone(self.strategy.get_instance_load(lost_instance))
 
     def test_normalize_hosts_load(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
         fake_hosts = {'Node_0': {'cpu_util': 0.07, 'memory.resident': 7},
                       'Node_1': {'cpu_util': 0.05, 'memory.resident': 5}}
         normalized_hosts = {'Node_0':
@@ -143,18 +125,20 @@ class TestWorkloadStabilization(base.TestCase):
             self.strategy.normalize_hosts_load(fake_hosts))
 
     def test_get_available_nodes(self):
-        self.m_model.return_value = self.fake_cluster. \
+        self.m_c_model.return_value = self.fake_c_cluster. \
             generate_scenario_9_with_3_active_plus_1_disabled_nodes()
         self.assertEqual(3, len(self.strategy.get_available_nodes()))
 
     def test_get_hosts_load(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.\
+            generate_scenario_1()
         self.assertEqual(self.strategy.get_hosts_load(),
                          self.hosts_load_assert)
 
     def test_get_hosts_load_with_node_missing(self):
-        self.m_model.return_value = \
-            self.fake_cluster.generate_scenario_1_with_1_node_unavailable()
+        self.m_c_model.return_value = \
+            self.fake_c_cluster.\
+            generate_scenario_1_with_1_node_unavailable()
         self.assertEqual(self.hosts_load_assert,
                          self.strategy.get_hosts_load())
 
@@ -175,8 +159,8 @@ class TestWorkloadStabilization(base.TestCase):
         self.assertEqual(self.strategy.calculate_weighted_sd(sd_case), 1.25)
 
     def test_calculate_migration_case(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         instance = model.get_instance_by_uuid("INSTANCE_5")
         src_node = model.get_node_by_uuid("Node_2")
         dst_node = model.get_node_by_uuid("Node_1")
@@ -188,8 +172,8 @@ class TestWorkloadStabilization(base.TestCase):
                                   'vcpus': 40})
 
     def test_simulate_migrations(self):
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
         self.strategy.host_choice = 'fullsearch'
         self.assertEqual(
             10,
@@ -197,21 +181,22 @@ class TestWorkloadStabilization(base.TestCase):
 
     def test_simulate_migrations_with_all_instances_exclude(self):
         model = \
-            self.fake_cluster.generate_scenario_1_with_all_instances_exclude()
-        self.m_model.return_value = model
+            self.fake_c_cluster.\
+            generate_scenario_1_with_all_instances_exclude()
+        self.m_c_model.return_value = model
         self.strategy.host_choice = 'fullsearch'
         self.assertEqual(
             0,
             len(self.strategy.simulate_migrations(self.hosts_load_assert)))
 
     def test_check_threshold(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
         self.strategy.simulate_migrations = mock.Mock(return_value=True)
         self.assertTrue(self.strategy.check_threshold())
 
     def test_execute_one_migration(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
         self.strategy.simulate_migrations = mock.Mock(
             return_value=[
@@ -224,7 +209,7 @@ class TestWorkloadStabilization(base.TestCase):
                 'INSTANCE_4', 'Node_2', 'Node_1')
 
     def test_execute_multiply_migrations(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.00001,
                                     'memory.resident': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(
@@ -239,7 +224,7 @@ class TestWorkloadStabilization(base.TestCase):
             self.assertEqual(mock_migrate.call_count, 2)
 
     def test_execute_nothing_to_migrate(self):
-        self.m_model.return_value = self.fake_cluster.generate_scenario_1()
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
         self.strategy.thresholds = {'cpu_util': 0.042,
                                     'memory.resident': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(return_value=False)

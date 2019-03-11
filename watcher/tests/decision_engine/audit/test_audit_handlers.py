@@ -29,6 +29,7 @@ from watcher.db.sqlalchemy import api as sq_api
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine.audit import oneshot
 from watcher.decision_engine.model.collector import manager
+from watcher.decision_engine.strategy.strategies import base as base_strategy
 from watcher.decision_engine.strategy.strategies import dummy_strategy
 from watcher import notifications
 from watcher import objects
@@ -62,6 +63,8 @@ class TestOneShotAuditHandler(base.DbTestCase):
             goal=self.goal)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
+    @mock.patch.object(base_strategy.BaseStrategy, "compute_model",
+                       mock.Mock(stale=False))
     def test_trigger_audit_without_errors(self, m_collector):
         m_collector.return_value = faker.FakerModelCollector()
         audit_handler = oneshot.OneShotAuditHandler()
@@ -85,7 +88,7 @@ class TestOneShotAuditHandler(base.DbTestCase):
             expected_calls,
             self.m_audit_notifications.send_action_notification.call_args_list)
 
-    @mock.patch.object(dummy_strategy.DummyStrategy, "do_execute")
+    @mock.patch.object(base_strategy.BaseStrategy, "do_execute")
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
     def test_trigger_audit_with_error(self, m_collector, m_do_execute):
         m_collector.return_value = faker.FakerModelCollector()
@@ -107,6 +110,8 @@ class TestOneShotAuditHandler(base.DbTestCase):
             self.m_audit_notifications.send_action_notification.call_args_list)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
+    @mock.patch.object(base_strategy.BaseStrategy, "compute_model",
+                       mock.Mock(stale=False))
     def test_trigger_audit_state_succeeded(self, m_collector):
         m_collector.return_value = faker.FakerModelCollector()
         audit_handler = oneshot.OneShotAuditHandler()
@@ -133,6 +138,8 @@ class TestOneShotAuditHandler(base.DbTestCase):
             self.m_audit_notifications.send_action_notification.call_args_list)
 
     @mock.patch.object(manager.CollectorManager, "get_cluster_model_collector")
+    @mock.patch.object(base_strategy.BaseStrategy, "compute_model",
+                       mock.Mock(stale=False))
     def test_trigger_audit_send_notification(self, m_collector):
         m_collector.return_value = faker.FakerModelCollector()
         audit_handler = oneshot.OneShotAuditHandler()
@@ -425,23 +432,25 @@ class TestContinuousAuditHandler(base.DbTestCase):
         audit_handler.launch_audits_periodically()
         m_remove_job.assert_called()
 
-    @mock.patch.object(continuous.ContinuousAuditHandler, 'planner')
-    def test_execute_audit(self, m_planner):
+    @mock.patch.object(continuous.ContinuousAuditHandler, 'planner',
+                       mock.Mock())
+    @mock.patch.object(base_strategy.BaseStrategy, "compute_model",
+                       mock.Mock(stale=False))
+    def test_execute_audit(self):
         audit_handler = continuous.ContinuousAuditHandler()
-        audit = self.audits[0]
-        audit_handler.execute_audit(audit, self.context)
+        audit_handler.execute_audit(self.audits[0], self.context)
 
         expected_calls = [
-            mock.call(self.context, audit,
+            mock.call(self.context, self.audits[0],
                       action=objects.fields.NotificationAction.STRATEGY,
                       phase=objects.fields.NotificationPhase.START),
-            mock.call(self.context, audit,
+            mock.call(self.context, self.audits[0],
                       action=objects.fields.NotificationAction.STRATEGY,
                       phase=objects.fields.NotificationPhase.END),
-            mock.call(self.context, audit,
+            mock.call(self.context, self.audits[0],
                       action=objects.fields.NotificationAction.PLANNER,
                       phase=objects.fields.NotificationPhase.START),
-            mock.call(self.context, audit,
+            mock.call(self.context, self.audits[0],
                       action=objects.fields.NotificationAction.PLANNER,
                       phase=objects.fields.NotificationPhase.END)]
 

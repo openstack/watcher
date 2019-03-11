@@ -36,7 +36,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
+from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -177,10 +177,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def group_hosts_by_outlet_temp(self):
         """Group hosts based on outlet temp meters"""
         nodes = self.get_available_compute_nodes()
-        size_cluster = len(nodes)
-        if size_cluster == 0:
-            raise wexc.ClusterEmpty()
-
         hosts_need_release = []
         hosts_target = []
         metric_name = self.METRIC_NAMES[
@@ -231,7 +227,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                                  instance.uuid)
                         continue
                     return mig_source_node, instance
-                except wexc.InstanceNotFound as e:
+                except exception.InstanceNotFound as e:
                     LOG.exception(e)
                     LOG.info("Instance not found")
 
@@ -260,22 +256,14 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         return dest_servers
 
     def pre_execute(self):
-        LOG.debug("Initializing Outlet temperature strategy")
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
-
-    def do_execute(self):
+        self._pre_execute()
         # the migration plan will be triggered when the outlet temperature
         # reaches threshold
         self.threshold = self.input_parameters.threshold
-        LOG.debug("Initializing Outlet temperature strategy with threshold=%d",
-                  self.threshold)
+        LOG.info("Outlet temperature strategy threshold=%d",
+                 self.threshold)
+
+    def do_execute(self):
         hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp()
 
         if len(hosts_need_release) == 0:

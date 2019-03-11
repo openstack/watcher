@@ -23,7 +23,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
+from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -196,7 +196,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         if 0 <= current_delta < min_delta:
                             min_delta = current_delta
                             instance_id = instance.uuid
-                    except wexc.InstanceNotFound:
+                    except exception.InstanceNotFound:
                         LOG.error("Instance not found; error: %s",
                                   instance_id)
                 if instance_id:
@@ -251,8 +251,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
         nodes = self.get_available_compute_nodes()
         cluster_size = len(nodes)
-        if not nodes:
-            raise wexc.ClusterEmpty()
         overload_hosts = []
         nonoverload_hosts = []
         # total workload of cluster
@@ -303,34 +301,24 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             else:
                 nonoverload_hosts.append(instance_data)
 
-        avg_workload = cluster_workload / cluster_size
+        avg_workload = 0
+        if cluster_size != 0:
+            avg_workload = cluster_workload / cluster_size
 
         return overload_hosts, nonoverload_hosts, avg_workload, workload_cache
 
     def pre_execute(self):
-        """Pre-execution phase
-
-        This can be used to fetch some pre-requisites or data.
-        """
-        LOG.info("Initializing Workload Balance Strategy")
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
+        self.threshold = self.input_parameters.threshold
+        self._period = self.input_parameters.period
+        self._meter = self.input_parameters.metrics
+        self._granularity = self.input_parameters.granularity
 
     def do_execute(self):
         """Strategy execution phase
 
         This phase is where you should put the main logic of your strategy.
         """
-        self.threshold = self.input_parameters.threshold
-        self._period = self.input_parameters.period
-        self._meter = self.input_parameters.metrics
-        self._granularity = self.input_parameters.granularity
         source_nodes, target_nodes, avg_workload, workload_cache = (
             self.group_hosts_by_cpu_or_ram_util())
 

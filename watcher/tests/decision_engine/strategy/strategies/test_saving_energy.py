@@ -20,11 +20,11 @@ import mock
 from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
-from watcher.tests.decision_engine.model import faker_cluster_and_metrics
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestSavingEnergy(base.TestCase):
+class TestSavingEnergy(TestBaseStrategy):
 
     def setUp(self):
         super(TestSavingEnergy, self).setUp()
@@ -37,15 +37,6 @@ class TestSavingEnergy(base.TestCase):
             'uuid': '922d4762-0bc5-4b30-9cb9-48ab644dd862'}
         self.fake_nodes = [mock_node1, mock_node2]
 
-        # fake cluster
-        self.fake_cluster = faker_cluster_and_metrics.FakerModelCollector()
-
-        p_model = mock.patch.object(
-            strategies.SavingEnergy, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
-
         p_ironic = mock.patch.object(
             clients.OpenStackClients, 'ironic')
         self.m_ironic = p_ironic.start()
@@ -56,21 +47,9 @@ class TestSavingEnergy(base.TestCase):
         self.m_nova = p_nova.start()
         self.addCleanup(p_nova.stop)
 
-        p_model = mock.patch.object(
-            strategies.SavingEnergy, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
-
-        p_audit_scope = mock.patch.object(
-            strategies.SavingEnergy, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
-        self.m_audit_scope.return_value = mock.Mock()
         self.m_ironic.node.list.return_value = self.fake_nodes
+
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
 
         self.strategy = strategies.SavingEnergy(
             config=mock.Mock())
@@ -102,8 +81,6 @@ class TestSavingEnergy(base.TestCase):
             'running_vms': 2, 'service': {'host': 'Node_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
         self.strategy.get_hosts_pool()
 
         self.assertEqual(len(self.strategy.with_vms_node_pool), 2)
@@ -129,8 +106,6 @@ class TestSavingEnergy(base.TestCase):
             'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
         self.strategy.get_hosts_pool()
 
         self.assertEqual(len(self.strategy.with_vms_node_pool), 0)
@@ -156,8 +131,6 @@ class TestSavingEnergy(base.TestCase):
             'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
         self.strategy.get_hosts_pool()
 
         self.assertEqual(len(self.strategy.with_vms_node_pool), 0)
@@ -183,8 +156,6 @@ class TestSavingEnergy(base.TestCase):
             'running_vms': 0, 'service': {'host': 'Node_10'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
         self.strategy.get_hosts_pool()
 
         self.assertEqual(len(self.strategy.with_vms_node_pool), 0)
@@ -230,8 +201,8 @@ class TestSavingEnergy(base.TestCase):
             'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
-        model = self.fake_cluster.generate_scenario_1()
-        self.m_model.return_value = model
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
 
         solution = self.strategy.execute()
         self.assertEqual(len(solution.actions), 1)

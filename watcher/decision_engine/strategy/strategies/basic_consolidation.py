@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
 
@@ -429,18 +428,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             return unsuccessful_migration + 1
 
     def pre_execute(self):
-        LOG.info("Initializing Server Consolidation")
-
-        if not self.compute_model:
-            raise exception.ClusterStateNotDefined()
-
-        if len(self.get_available_compute_nodes()) == 0:
-            raise exception.ClusterEmpty()
-
-        if self.compute_model.stale:
-            raise exception.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
 
     def do_execute(self):
         unsuccessful_migration = 0

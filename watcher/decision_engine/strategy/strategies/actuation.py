@@ -15,12 +15,8 @@
 # limitations under the License.
 #
 
-from oslo_log import log
-
 from watcher._i18n import _
 from watcher.decision_engine.strategy.strategies import base
-
-LOG = log.getLogger(__name__)
 
 
 class Actuator(base.UnclassifiedStrategy):
@@ -89,7 +85,7 @@ class Actuator(base.UnclassifiedStrategy):
         return self.input_parameters.get('actions', [])
 
     def pre_execute(self):
-        LOG.info("Preparing Actuator strategy...")
+        self._pre_execute()
 
     def do_execute(self):
         for action in self.actions:

@@ -20,7 +20,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
-from watcher.common import exception as wexc
 from watcher.decision_engine.strategy.strategies import base
 
 LOG = log.getLogger(__name__)
@@ -156,12 +155,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             return None
 
     def group_hosts(self):
-
         nodes = self.compute_model.get_all_compute_nodes()
-        size_cluster = len(nodes)
-        if size_cluster == 0:
-            raise wexc.ClusterEmpty()
-
         hosts_need_release = {}
         hosts_target = []
 
@@ -259,15 +253,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
         return dest_servers
 
     def pre_execute(self):
-        LOG.debug("Initializing Noisy Neighbor strategy")
-
-        if not self.compute_model:
-            raise wexc.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise wexc.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
 
     def do_execute(self):
         self.cache_threshold = self.input_parameters.cache_threshold

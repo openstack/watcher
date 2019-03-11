@@ -154,8 +154,9 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def get_available_compute_nodes(self):
         default_node_scope = [element.ServiceState.ENABLED.value,
                               element.ServiceState.DISABLED.value]
+        nodes = self.compute_model.get_all_compute_nodes().items()
         return {uuid: cn for uuid, cn in
-                self.compute_model.get_all_compute_nodes().items()
+                nodes
                 if cn.state == element.ServiceState.ONLINE.value and
                 cn.status in default_node_scope}
 
@@ -554,13 +555,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             asc += 1
 
     def pre_execute(self):
-        if not self.compute_model:
-            raise exception.ClusterStateNotDefined()
-
-        if self.compute_model.stale:
-            raise exception.ClusterStateStale()
-
-        LOG.debug(self.compute_model.to_string())
+        self._pre_execute()
 
     def do_execute(self):
         """Execute strategy.

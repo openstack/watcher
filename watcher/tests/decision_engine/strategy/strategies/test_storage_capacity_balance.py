@@ -24,10 +24,12 @@ from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
-from watcher.tests import base
+from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.strategy.strategies.test_base \
+    import TestBaseStrategy
 
 
-class TestStorageCapacityBalance(base.TestCase):
+class TestStorageCapacityBalance(TestBaseStrategy):
 
     def setUp(self):
         super(TestStorageCapacityBalance, self).setUp()
@@ -115,6 +117,8 @@ class TestStorageCapacityBalance(base.TestCase):
             'type2', {'volume_backend_name': 'pool2'})
             ]
 
+        self.fake_c_cluster = faker_cluster_state.FakerStorageModelCollector()
+
         osc = clients.OpenStackClients()
 
         p_cinder = mock.patch.object(osc, 'cinder')
@@ -122,20 +126,6 @@ class TestStorageCapacityBalance(base.TestCase):
         self.addCleanup(p_cinder.stop)
         self.m_cinder = cinder_helper.CinderHelper(osc=osc)
 
-        p_model = mock.patch.object(
-            strategies.StorageCapacityBalance, "compute_model",
-            new_callable=mock.PropertyMock)
-        self.m_model = p_model.start()
-        self.addCleanup(p_model.stop)
-
-        p_audit_scope = mock.patch.object(
-            strategies.StorageCapacityBalance, "audit_scope",
-            new_callable=mock.PropertyMock
-        )
-        self.m_audit_scope = p_audit_scope.start()
-        self.addCleanup(p_audit_scope.stop)
-
-        self.m_audit_scope.return_value = mock.Mock()
         self.m_cinder.get_storage_pool_list = mock.Mock(
             return_value=self.fake_pools)
         self.m_cinder.get_volume_list = mock.Mock(
@@ -144,6 +134,10 @@ class TestStorageCapacityBalance(base.TestCase):
             return_value=self.fake_snap)
         self.m_cinder.get_volume_type_list = mock.Mock(
             return_value=self.fake_types)
+
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+
         self.strategy = strategies.StorageCapacityBalance(
             config=mock.Mock(), osc=osc)
         self.strategy._cinder = self.m_cinder
@@ -241,5 +235,6 @@ class TestStorageCapacityBalance(base.TestCase):
         setattr(self.fake_pool1, 'free_capacity_gb', '60')
         self.strategy.input_parameters.update(
             {'volume_threshold': 60.0})
+
         solution = self.strategy.execute()
         self.assertEqual(len(solution.actions), 3)
