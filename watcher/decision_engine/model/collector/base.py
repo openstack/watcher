@@ -129,6 +129,7 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
         self._cluster_data_model = None
         self.lock = threading.RLock()
         self._audit_scope_handler = None
+        self._data_model_scope = None
 
     @property
     def cluster_data_model(self):
