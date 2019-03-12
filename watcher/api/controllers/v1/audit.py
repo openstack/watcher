@@ -523,7 +523,7 @@ class AuditsController(rest.RestController):
         return audits_collection
 
     @wsme_pecan.wsexpose(AuditCollection, types.uuid, int, wtypes.text,
-                         wtypes.text, wtypes.text, wtypes.text, int)
+                         wtypes.text, wtypes.text, wtypes.text)
     def get_all(self, marker=None, limit=None, sort_key='id', sort_dir='asc',
                 goal=None, strategy=None):
         """Retrieve a list of audits.
