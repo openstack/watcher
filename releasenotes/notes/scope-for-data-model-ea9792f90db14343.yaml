@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    For a large cloud infrastructure, retrieving data from Nova may take
+    a long time. To avoid getting too much data from Nova, building the
+    compute data model according to the scope of audit.
