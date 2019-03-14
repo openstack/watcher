@@ -225,6 +225,4 @@
     timeout: 4200
     vars:
       tempest_concurrency: 1
-      devstack_localrc:
-        TEMPEST_PLUGINS: /opt/stack/python-watcherclient
-      tempest_test_regex: watcherclient.tests.functional
+      tempest_test_regex: watcher_tempest_plugin.tests.client_functional
