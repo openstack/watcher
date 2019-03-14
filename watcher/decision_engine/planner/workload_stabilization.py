@@ -279,7 +279,7 @@ class ChangeNovaServiceStateActionValidator(BaseActionValidator):
 
     def validate_parents(self, resource_action_map, action):
         host_name = action['input_parameters']['resource_id']
-        self._mapping(resource_action_map, host_name, action.uuid,
+        self._mapping(resource_action_map, host_name, action['uuid'],
                       'change_nova_service_state')
         return []
 
