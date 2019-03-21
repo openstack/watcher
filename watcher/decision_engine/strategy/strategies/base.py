@@ -48,7 +48,7 @@ from watcher.common import context
 from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
-from watcher.datasource import manager as ds_manager
+from watcher.datasources import manager as ds_manager
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
@@ -130,6 +130,8 @@ class BaseStrategy(loadable.Loadable):
     """
 
     DATASOURCE_METRICS = []
+    """Contains all metrics the strategy requires from a datasource to properly
+    execute"""
 
     def __init__(self, config, osc=None):
         """Constructor: the signature should be identical within the subclasses
@@ -197,7 +199,18 @@ class BaseStrategy(loadable.Loadable):
         :return: A list of configuration options relative to this Loadable
         :rtype: list of :class:`oslo_config.cfg.Opt` instances
         """
-        return []
+
+        datasources_ops = list(ds_manager.DataSourceManager.metric_map.keys())
+
+        return [
+            cfg.ListOpt(
+                "datasources",
+                help="Datasources to use in order to query the needed metrics."
+                     " This option overrides the global preference."
+                     " options: {0}".format(datasources_ops),
+                item_type=cfg.types.String(choices=datasources_ops),
+                default=None)
+        ]
 
     @abc.abstractmethod
     def pre_execute(self):
@@ -341,8 +354,15 @@ class BaseStrategy(loadable.Loadable):
     @property
     def datasource_backend(self):
         if not self._datasource_backend:
+
+            # Load the global preferred datasources order but override it
+            # if the strategy has a specific datasources config
+            datasources = CONF.watcher_datasources
+            if self.config.datasources:
+                datasources = self.config
+
             self._datasource_backend = ds_manager.DataSourceManager(
-                config=self.config,
+                config=datasources,
                 osc=self.osc
             ).get_backend(self.DATASOURCE_METRICS)
         return self._datasource_backend
@@ -429,6 +449,12 @@ class DummyBaseStrategy(BaseStrategy):
     def get_goal_name(cls):
         return "dummy"
 
+    @classmethod
+    def get_config_opts(cls):
+        """Override base class config options as do not use datasource """
+
+        return []
+
 
 @six.add_metaclass(abc.ABCMeta)
 class UnclassifiedStrategy(BaseStrategy):
@@ -486,6 +512,12 @@ class SavingEnergyBaseStrategy(BaseStrategy):
     def get_goal_name(cls):
         return "saving_energy"
 
+    @classmethod
+    def get_config_opts(cls):
+        """Override base class config options as do not use datasource """
+
+        return []
+
 
 @six.add_metaclass(abc.ABCMeta)
 class ZoneMigrationBaseStrategy(BaseStrategy):
@@ -493,6 +525,12 @@ class ZoneMigrationBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "hardware_maintenance"
+
+    @classmethod
+    def get_config_opts(cls):
+        """Override base class config options as do not use datasource """
+
+        return []
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -503,3 +541,9 @@ class HostMaintenanceBaseStrategy(BaseStrategy):
     @classmethod
     def get_goal_name(cls):
         return "cluster_maintaining"
+
+    @classmethod
+    def get_config_opts(cls):
+        """Override base class config options as do not use datasource """
+
+        return []

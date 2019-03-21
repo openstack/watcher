@@ -10,6 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from oslo_config import cfg
 
 from cinderclient import client as ciclient
 from glanceclient import client as glclient
@@ -23,15 +24,13 @@ from novaclient import client as nvclient
 
 from watcher.common import exception
 
-from watcher import conf
-
 try:
     from ceilometerclient import client as ceclient
     HAS_CEILCLIENT = True
 except ImportError:
     HAS_CEILCLIENT = False
 
-CONF = conf.CONF
+CONF = cfg.CONF
 
 _CLIENTS_AUTH_GROUP = 'watcher_clients_auth'
 

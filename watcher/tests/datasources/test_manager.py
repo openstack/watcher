@@ -17,7 +17,8 @@
 import mock
 
 from watcher.common import exception
-from watcher.datasource import manager as ds_manager
+from watcher.datasources import gnocchi
+from watcher.datasources import manager as ds_manager
 from watcher.tests import base
 
 
@@ -46,3 +47,13 @@ class TestDataSourceManager(base.BaseTestCase):
             osc=mock.MagicMock())
         self.assertRaises(exception.NoSuchMetric, manager.get_backend,
                           ['host_cpu', 'instance_cpu_usage'])
+
+    @mock.patch.object(gnocchi, 'GnocchiHelper')
+    def test_get_backend_error_datasource(self, m_gnocchi):
+        m_gnocchi.side_effect = exception.DataSourceNotAvailable
+        manager = ds_manager.DataSourceManager(
+            config=mock.MagicMock(
+                datasources=['gnocchi', 'ceilometer', 'monasca']),
+            osc=mock.MagicMock())
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
+        self.assertEqual(backend, manager.ceilometer)

@@ -99,7 +99,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
 
     @classmethod
     def get_config_opts(cls):
-        return [
+        return super(StorageCapacityBalance, cls).get_config_opts() + [
             cfg.ListOpt(
                 "ex_pools",
                 help="exclude pools",

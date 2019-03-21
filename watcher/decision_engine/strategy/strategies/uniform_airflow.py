@@ -17,7 +17,6 @@
 # limitations under the License.
 #
 
-from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
@@ -147,19 +146,6 @@ class UniformAirflow(base.BaseStrategy):
                 },
             },
         }
-
-    @classmethod
-    def get_config_opts(cls):
-        return [
-            cfg.ListOpt(
-                "datasources",
-                help="Datasources to use in order to query the needed metrics."
-                     " If one of strategy metric isn't available in the first"
-                     " datasource, the next datasource will be chosen.",
-                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
-                                                    'monasca']),
-                default=['gnocchi', 'ceilometer', 'monasca']),
-        ]
 
     def get_available_compute_nodes(self):
         default_node_scope = [element.ServiceState.ENABLED.value]

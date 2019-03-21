@@ -24,6 +24,7 @@ import string
 from croniter import croniter
 
 from jsonschema import validators
+from oslo_config import cfg
 from oslo_log import log
 from oslo_utils import strutils
 from oslo_utils import uuidutils
@@ -31,9 +32,7 @@ import six
 
 from watcher.common import exception
 
-from watcher import conf
-
-CONF = conf.CONF
+CONF = cfg.CONF
 
 LOG = log.getLogger(__name__)
 

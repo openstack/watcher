@@ -17,6 +17,7 @@
 import mock
 
 from watcher.common import exception
+from watcher.datasources import manager
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
@@ -47,6 +48,67 @@ class TestBaseStrategy(base.TestCase):
 
         self.m_c_model.return_value = model_root.ModelRoot()
         self.strategy = strategies.DummyStrategy(config=mock.Mock())
+
+
+class TestBaseStrategyDatasource(TestBaseStrategy):
+
+    def setUp(self):
+        super(TestBaseStrategyDatasource, self).setUp()
+        self.strategy = strategies.DummyStrategy(
+            config=mock.Mock(datasources=None))
+
+    @mock.patch.object(strategies.BaseStrategy, 'osc', None)
+    @mock.patch.object(manager, 'DataSourceManager')
+    @mock.patch.object(strategies.base, 'CONF')
+    def test_global_preference(self, m_conf, m_manager):
+        """Test if the global preference is used"""
+
+        m_conf.watcher_datasources.datasources = \
+            ['gnocchi', 'monasca', 'ceilometer']
+
+        # Access the property so that the configuration is read in order to
+        # get the correct datasource
+        self.strategy.datasource_backend()
+
+        m_manager.assert_called_once_with(
+            config=m_conf.watcher_datasources, osc=None)
+
+    @mock.patch.object(strategies.BaseStrategy, 'osc', None)
+    @mock.patch.object(manager, 'DataSourceManager')
+    @mock.patch.object(strategies.base, 'CONF')
+    def test_global_preference_reverse(self, m_conf, m_manager):
+        """Test if the global preference is used with another order"""
+
+        m_conf.watcher_datasources.datasources = \
+            ['ceilometer', 'monasca', 'gnocchi']
+
+        # Access the property so that the configuration is read in order to
+        # get the correct datasource
+        self.strategy.datasource_backend()
+
+        m_manager.assert_called_once_with(
+            config=m_conf.watcher_datasources, osc=None)
+
+    @mock.patch.object(strategies.BaseStrategy, 'osc', None)
+    @mock.patch.object(manager, 'DataSourceManager')
+    @mock.patch.object(strategies.base, 'CONF')
+    def test_strategy_preference_override(self, m_conf, m_manager):
+        """Test if the global preference can be overridden"""
+
+        datasources = mock.Mock(datasources=['ceilometer'])
+
+        self.strategy = strategies.DummyStrategy(
+            config=datasources)
+
+        m_conf.watcher_datasources.datasources = \
+            ['ceilometer', 'monasca', 'gnocchi']
+
+        # Access the property so that the configuration is read in order to
+        # get the correct datasource
+        self.strategy.datasource_backend()
+
+        m_manager.assert_called_once_with(
+            config=datasources, osc=None)
 
 
 class TestBaseStrategyException(TestBaseStrategy):

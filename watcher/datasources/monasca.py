@@ -22,7 +22,7 @@ from monascaclient import exc
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.datasource import base
+from watcher.datasources import base
 
 
 class MonascaHelper(base.DataSourceBase):

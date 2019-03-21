@@ -29,8 +29,8 @@ class TestListOpts(base.TestCase):
         super(TestListOpts, self).setUp()
         self.base_sections = [
             'DEFAULT', 'api', 'database', 'watcher_decision_engine',
-            'watcher_applier', 'watcher_planner', 'nova_client',
-            'glance_client', 'gnocchi_client', 'cinder_client',
+            'watcher_applier', 'watcher_datasources', 'watcher_planner',
+            'nova_client', 'glance_client', 'gnocchi_client', 'cinder_client',
             'ceilometer_client', 'monasca_client', 'ironic_client',
             'neutron_client', 'watcher_clients_auth', 'collector']
         self.opt_sections = list(dict(opts.list_opts()).keys())

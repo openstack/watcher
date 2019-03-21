@@ -172,19 +172,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     @classmethod
     def get_config_opts(cls):
-        return [
-            cfg.ListOpt(
-                "datasources",
-                help="Datasources to use in order to query the needed metrics."
-                     " If one of strategy metric isn't available in the first"
-                     " datasource, the next datasource will be chosen.",
-                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
-                                                    'monasca']),
-                default=['gnocchi', 'ceilometer', 'monasca']),
+        return super(BasicConsolidation, cls).get_config_opts() + [
             cfg.BoolOpt(
-                "check_optimize_metadata",
-                help="Check optimize metadata field in instance before "
-                     "migration",
+                'check_optimize_metadata',
+                help='Check optimize metadata field in instance before'
+                     ' migration',
                 default=False),
         ]
 
