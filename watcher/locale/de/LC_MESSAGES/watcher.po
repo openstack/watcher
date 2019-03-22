@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: watcher VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2018-08-13 08:45+0000\n"
+"POT-Creation-Date: 2019-03-22 02:21+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -689,12 +689,6 @@ msgstr "Die Instanz '%(name)s' konnte nicht gefunden werden"
 #, python-format
 msgid "The ironic node %(uuid)s could not be found"
 msgstr "Der Ironic Knoten %(uuid)s konnte nicht gefunden werden"
-
-msgid "The list of compute node(s) in the cluster is empty"
-msgstr "Die Liste der Compute-Knoten im Cluster ist leer"
-
-msgid "The list of storage node(s) in the cluster is empty"
-msgstr "Die Liste der Speicherknoten im Cluster ist leer"
 
 msgid "The metrics resource collector is not defined"
 msgstr "Der Metrikressourcen-Collector ist nicht definiert"

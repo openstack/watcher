@@ -1,0 +1,33 @@
+# Gérald LONLAS <g.lonlas@gmail.com>, 2016. #zanata
+msgid ""
+msgstr ""
+"Project-Id-Version: python-watcher\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-03-22 02:21+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2016-10-22 06:44+0000\n"
+"Last-Translator: Gérald LONLAS <g.lonlas@gmail.com>\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"X-Generator: Zanata 4.3.3\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
+
+msgid "0.29.0"
+msgstr "0.29.0"
+
+msgid "Contents:"
+msgstr "Contenu :"
+
+msgid "Current Series Release Notes"
+msgstr "Note de la release actuelle"
+
+msgid "New Features"
+msgstr "Nouvelles fonctionnalités"
+
+msgid "Newton Series Release Notes"
+msgstr "Note de release pour Newton"
+
+msgid "Welcome to watcher's Release Notes documentation!"
+msgstr "Bienvenue dans la documentation de la note de Release de Watcher"
