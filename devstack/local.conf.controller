@@ -25,13 +25,13 @@ MULTI_HOST=1
 disable_service n-cpu
 
 # Enable the Watcher Dashboard plugin
-enable_plugin watcher-dashboard git://git.openstack.org/openstack/watcher-dashboard
+enable_plugin watcher-dashboard https://git.openstack.org/openstack/watcher-dashboard
 
 # Enable the Watcher plugin
-enable_plugin watcher git://git.openstack.org/openstack/watcher
+enable_plugin watcher https://git.openstack.org/openstack/watcher
 
 # Enable the Ceilometer plugin
-enable_plugin ceilometer git://git.openstack.org/openstack/ceilometer
+enable_plugin ceilometer https://git.openstack.org/openstack/ceilometer
 
 # This is the controller node, so disable the ceilometer compute agent
 disable_service ceilometer-acompute
