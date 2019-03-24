@@ -19,7 +19,7 @@ model. To enable the Watcher plugin with DevStack, add the following to the
 `[[local|localrc]]` section of your controller's `local.conf` to enable the
 Watcher plugin::
 
-    enable_plugin watcher git://git.openstack.org/openstack/watcher
+    enable_plugin watcher https://git.openstack.org/openstack/watcher
 
 For more detailed instructions, see `Detailed DevStack Instructions`_. Check
 out the `DevStack documentation`_ for more information regarding DevStack.
