@@ -75,8 +75,8 @@ class TestGnocchiHelper(base.BaseTestCase):
     @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
     def test_get_instance_memory_usage(self, mock_aggregation, mock_gnocchi):
         helper = gnocchi_helper.GnocchiHelper()
-        helper.get_instance_memory_usage('compute1', 600, 'mean',
-                                         granularity=300)
+        helper.get_instance_ram_usage('compute1', 600, 'mean',
+                                      granularity=300)
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['instance_ram_usage'], 600, 300,
             aggregation='mean')
@@ -94,8 +94,8 @@ class TestGnocchiHelper(base.BaseTestCase):
     def test_get_instance_root_disk_allocated(self, mock_aggregation,
                                               mock_gnocchi):
         helper = gnocchi_helper.GnocchiHelper()
-        helper.get_instance_root_disk_allocated('compute1', 600, 'mean',
-                                                granularity=300)
+        helper.get_instance_root_disk_size('compute1', 600, 'mean',
+                                           granularity=300)
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['instance_root_disk_size'], 600,
             300, aggregation='mean')
@@ -103,8 +103,8 @@ class TestGnocchiHelper(base.BaseTestCase):
     @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
     def test_get_host_outlet_temperature(self, mock_aggregation, mock_gnocchi):
         helper = gnocchi_helper.GnocchiHelper()
-        helper.get_host_outlet_temperature('compute1', 600, 'mean',
-                                           granularity=300)
+        helper.get_host_outlet_temp('compute1', 600, 'mean',
+                                    granularity=300)
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_outlet_temp'], 600, 300,
             aggregation='mean')
@@ -112,8 +112,8 @@ class TestGnocchiHelper(base.BaseTestCase):
     @mock.patch.object(gnocchi_helper.GnocchiHelper, 'statistic_aggregation')
     def test_get_host_inlet_temperature(self, mock_aggregation, mock_gnocchi):
         helper = gnocchi_helper.GnocchiHelper()
-        helper.get_host_inlet_temperature('compute1', 600, 'mean',
-                                          granularity=300)
+        helper.get_host_inlet_temp('compute1', 600, 'mean',
+                                   granularity=300)
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_inlet_temp'], 600, 300,
             aggregation='mean')
