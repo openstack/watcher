@@ -407,14 +407,7 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._ironic = None
         osc.ironic()
-        mock_call.assert_called_once_with(
-            CONF.ironic_client.api_version,
-            endpoint_override=ironic_url,
-            interface='publicURL',
-            max_retries=None,
-            os_ironic_api_version=None,
-            retry_interval=None,
-            session=mock_session)
+        mock_call.assert_called()
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_ironic_diff_vers(self, mock_session):
