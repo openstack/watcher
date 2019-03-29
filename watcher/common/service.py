@@ -17,7 +17,6 @@
 import datetime
 import socket
 
-import eventlet
 from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import _options
@@ -42,12 +41,6 @@ from watcher.objects import base
 from watcher.objects import fields as wfields
 from watcher import version
 
-# NOTE:
-# Ubuntu 14.04 forces librabbitmq when kombu is used
-# Unfortunately it forces a version that has a crash
-# bug.  Calling eventlet.monkey_patch() tells kombu
-# to use libamqp instead.
-eventlet.monkey_patch()
 
 NOTIFICATION_OPTS = [
     cfg.StrOpt('notification_level',
