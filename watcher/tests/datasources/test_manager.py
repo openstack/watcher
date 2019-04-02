@@ -15,12 +15,12 @@
 # limitations under the License.
 
 import mock
-import six
 
 from mock import MagicMock
 
 from watcher.common import exception
 from watcher.datasources import gnocchi
+from watcher.datasources import grafana
 from watcher.datasources import manager as ds_manager
 from watcher.datasources import monasca
 from watcher.tests import base
@@ -57,6 +57,31 @@ class TestDataSourceManager(base.BaseTestCase):
             backend = manager.get_backend(['host_airflow'])
             self.assertEqual("host_fnspid", backend.METRIC_MAP['host_airflow'])
 
+    @mock.patch.object(grafana, 'CONF')
+    def test_metric_file_metric_override_grafana(self, m_config):
+        """Grafana requires a different structure in the metric map"""
+
+        m_config.grafana_client.token = \
+            "eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk=="
+        m_config.grafana_client.base_url = "https://grafana.proxy/api/"
+
+        path = 'watcher.datasources.manager.DataSourceManager.load_metric_map'
+        metric_map = {
+            'db': 'production_cloud',
+            'project': '7485',
+            'attribute': 'hostname',
+            'translator': 'influxdb',
+            'query': 'SHOW SERIES'
+        }
+        retval = {
+            grafana.GrafanaHelper.NAME: {"host_airflow": metric_map}
+        }
+        with mock.patch(path, return_value=retval):
+            dsmcfg = self._dsm_config(datasources=['grafana'])
+            manager = self._dsm(config=dsmcfg)
+            backend = manager.get_backend(['host_airflow'])
+            self.assertEqual(metric_map, backend.METRIC_MAP['host_airflow'])
+
     def test_metric_file_invalid_ds(self):
         with mock.patch('yaml.safe_load') as mo:
             mo.return_value = {"newds": {"metric_one": "i_am_metric_one"}}
@@ -77,10 +102,8 @@ class TestDataSourceManager(base.BaseTestCase):
 
     def test_get_backend_wrong_metric(self):
         manager = self._dsm()
-        ex = self.assertRaises(
-            exception.MetricNotAvailable, manager.get_backend,
-            ['host_cpu', 'instance_cpu_usage'])
-        self.assertIn('Metric: host_cpu not available', six.text_type(ex))
+        self.assertRaises(exception.MetricNotAvailable, manager.get_backend,
+                          ['host_cpu', 'instance_cpu_usage'])
 
     @mock.patch.object(gnocchi, 'GnocchiHelper')
     def test_get_backend_error_datasource(self, m_gnocchi):
@@ -88,6 +111,33 @@ class TestDataSourceManager(base.BaseTestCase):
         manager = self._dsm()
         backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
         self.assertEqual(backend, manager.ceilometer)
+
+    @mock.patch.object(grafana.GrafanaHelper, 'METRIC_MAP',
+                       {'host_cpu_usage': 'test'})
+    def test_get_backend_grafana(self):
+        dss = ['grafana', 'ceilometer', 'gnocchi']
+        dsmcfg = self._dsm_config(datasources=dss)
+        manager = self._dsm(config=dsmcfg)
+        backend = manager.get_backend(['host_cpu_usage'])
+        self.assertEqual(backend, manager.grafana)
+
+    @mock.patch.object(grafana, 'CONF')
+    def test_dynamic_metric_map_grafana(self, m_config):
+        m_config.grafana_client.token = \
+            "eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk=="
+        m_config.grafana_client.base_url = "https://grafana.proxy/api/"
+        m_config.grafana_client.project_id_map = {'host_cpu_usage': 7221}
+        m_config.grafana_client.attribute_map = {'host_cpu_usage': 'hostname'}
+        m_config.grafana_client.database_map = {'host_cpu_usage': 'mock_db'}
+        m_config.grafana_client.translator_map = {'host_cpu_usage': 'influxdb'}
+        m_config.grafana_client.query_map = {
+            'host_cpu_usage': 'SHOW SERIES'
+        }
+        dss = ['grafana', 'ceilometer', 'gnocchi']
+        dsmcfg = self._dsm_config(datasources=dss)
+        manager = self._dsm(config=dsmcfg)
+        backend = manager.get_backend(['host_cpu_usage'])
+        self.assertEqual(backend, manager.grafana)
 
     def test_get_backend_no_datasources(self):
         dsmcfg = self._dsm_config(datasources=[])

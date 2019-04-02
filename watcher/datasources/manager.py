@@ -23,6 +23,7 @@ from oslo_log import log
 from watcher.common import exception
 from watcher.datasources import ceilometer as ceil
 from watcher.datasources import gnocchi as gnoc
+from watcher.datasources import grafana as graf
 from watcher.datasources import monasca as mon
 
 LOG = log.getLogger(__name__)
@@ -34,6 +35,7 @@ class DataSourceManager(object):
         (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
         (ceil.CeilometerHelper.NAME, ceil.CeilometerHelper.METRIC_MAP),
         (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
+        (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
     ])
     """Dictionary with all possible datasources, dictionary order is the default
     order for attempting to use datasources
@@ -45,6 +47,11 @@ class DataSourceManager(object):
         self._ceilometer = None
         self._monasca = None
         self._gnocchi = None
+        self._grafana = None
+
+        # Dynamically update grafana metric map, only available at runtime
+        # The metric map can still be overridden by a yaml config file
+        self.metric_map[graf.GrafanaHelper.NAME] = self.grafana.METRIC_MAP
 
         metric_map_path = cfg.CONF.watcher_decision_engine.metric_map_path
         metrics_from_file = self.load_metric_map(metric_map_path)
@@ -54,6 +61,7 @@ class DataSourceManager(object):
             except KeyError:
                 msgargs = (ds, self.metric_map.keys())
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
+
         self.datasources = self.config.datasources
 
     @property
@@ -85,6 +93,16 @@ class DataSourceManager(object):
     @gnocchi.setter
     def gnocchi(self, gnocchi):
         self._gnocchi = gnocchi
+
+    @property
+    def grafana(self):
+        if self._grafana is None:
+            self._grafana = graf.GrafanaHelper(osc=self.osc)
+        return self._grafana
+
+    @grafana.setter
+    def grafana(self, grafana):
+        self._grafana = grafana
 
     def get_backend(self, metrics):
         """Determine the datasource to use from the configuration
