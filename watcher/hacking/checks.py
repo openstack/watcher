@@ -91,6 +91,7 @@ def no_translate_debug_logs(logical_line, filename):
     we shouldn't translate debug level logs.
 
     * This check assumes that 'LOG' is a logger.
+
     N319
     """
     for hint in _all_hints:
