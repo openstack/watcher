@@ -271,6 +271,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "for %(metric_name)s", dict(
                         resource_id=instance.uuid, metric_name=meter))
                 return
+            # cpu_util has been deprecated since Stein.
             if meter == 'cpu_util':
                 avg_meter /= float(100)
             LOG.debug('Load of %(metric)s for %(instance)s is %(value)s',
@@ -323,6 +324,9 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     if meter_name == 'hardware.memory.used':
                         avg_meter /= oslo_utils.units.Ki
                     if meter_name == 'compute.node.cpu.percent':
+                        avg_meter /= 100
+                    # hardware.cpu.util has been deprecated since Stein.
+                    if meter_name == 'hardware.cpu.util':
                         avg_meter /= 100
                 LOG.debug('Load of %(metric)s for %(node)s is %(value)s',
                           {'metric': metric,
