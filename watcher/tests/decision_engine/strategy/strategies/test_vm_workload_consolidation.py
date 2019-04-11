@@ -60,9 +60,9 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         self.m_datasource.return_value = mock.Mock(
             get_instance_cpu_usage=(
                 self.fake_metrics.get_instance_cpu_util),
-            get_instance_memory_usage=(
+            get_instance_ram_usage=(
                 self.fake_metrics.get_instance_ram_util),
-            get_instance_root_disk_allocated=(
+            get_instance_root_disk_size=(
                 self.fake_metrics.get_instance_disk_root_size),
             )
         self.strategy = strategies.VMWorkloadConsolidation(

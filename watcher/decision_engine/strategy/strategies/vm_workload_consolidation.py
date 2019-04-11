@@ -291,7 +291,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             self.period,
             self.AGGREGATION,
             granularity=self.granularity)
-        instance_ram_util = self.datasource_backend.get_instance_memory_usage(
+        instance_ram_util = self.datasource_backend.get_instance_ram_usage(
             instance.uuid,
             self.period,
             self.AGGREGATION,
@@ -304,7 +304,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     self.AGGREGATION,
                     granularity=self.granularity))
         instance_disk_util = (
-            self.datasource_backend.get_instance_root_disk_allocated(
+            self.datasource_backend.get_instance_root_disk_size(
                 instance.uuid,
                 self.period,
                 self.AGGREGATION,

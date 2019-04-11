@@ -148,8 +148,8 @@ class GnocchiHelper(base.DataSourceBase):
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)
 
-    def get_instance_memory_usage(self, resource_id, period, aggregate,
-                                  granularity=300):
+    def get_instance_ram_usage(self, resource_id, period, aggregate,
+                               granularity=300):
         meter_name = self.METRIC_MAP.get('instance_ram_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)
@@ -166,20 +166,20 @@ class GnocchiHelper(base.DataSourceBase):
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)
 
-    def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
-                                         granularity=300):
+    def get_instance_root_disk_size(self, resource_id, period, aggregate,
+                                    granularity=300):
         meter_name = self.METRIC_MAP.get('instance_root_disk_size')
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)
 
-    def get_host_outlet_temperature(self, resource_id, period, aggregate,
-                                    granularity=300):
+    def get_host_outlet_temp(self, resource_id, period, aggregate,
+                             granularity=300):
         meter_name = self.METRIC_MAP.get('host_outlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)
 
-    def get_host_inlet_temperature(self, resource_id, period, aggregate,
-                                   granularity=300):
+    def get_host_inlet_temp(self, resource_id, period, aggregate,
+                            granularity=300):
         meter_name = self.METRIC_MAP.get('host_inlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
                                           granularity, aggregation=aggregate)

@@ -188,8 +188,8 @@ class MonascaHelper(base.DataSourceBase):
                               granularity=None):
         raise NotImplementedError
 
-    def get_instance_memory_usage(self, resource_id, period, aggregate,
-                                  granularity=None):
+    def get_instance_ram_usage(self, resource_id, period, aggregate,
+                               granularity=None):
         raise NotImplementedError
 
     def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
@@ -200,16 +200,16 @@ class MonascaHelper(base.DataSourceBase):
                                    granularity=None):
         raise NotImplementedError
 
-    def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
-                                         granularity=None):
-        raise NotImplementedError
-
-    def get_host_outlet_temperature(self, resource_id, period, aggregate,
+    def get_instance_root_disk_size(self, resource_id, period, aggregate,
                                     granularity=None):
         raise NotImplementedError
 
-    def get_host_inlet_temperature(self, resource_id, period, aggregate,
-                                   granularity=None):
+    def get_host_outlet_temp(self, resource_id, period, aggregate,
+                             granularity=None):
+        raise NotImplementedError
+
+    def get_host_inlet_temp(self, resource_id, period, aggregate,
+                            granularity=None):
         raise NotImplementedError
 
     def get_host_airflow(self, resource_id, period, aggregate,

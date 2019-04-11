@@ -19,16 +19,16 @@ import abc
 class DataSourceBase(object):
 
     METRIC_MAP = dict(host_cpu_usage=None,
-                      instance_cpu_usage=None,
-                      instance_l3_cache_usage=None,
+                      host_memory_usage=None,
                       host_outlet_temp=None,
-                      host_airflow=None,
                       host_inlet_temp=None,
+                      host_airflow=None,
                       host_power=None,
+                      instance_cpu_usage=None,
                       instance_ram_usage=None,
                       instance_ram_allocated=None,
+                      instance_l3_cache_usage=None,
                       instance_root_disk_size=None,
-                      host_memory_usage=None
                       )
 
     @abc.abstractmethod
@@ -51,43 +51,18 @@ class DataSourceBase(object):
         pass
 
     @abc.abstractmethod
-    def get_instance_cpu_usage(self, resource_id, period, aggregate,
-                               granularity=None):
-        pass
-
-    @abc.abstractmethod
     def get_host_memory_usage(self, resource_id, period, aggregate,
                               granularity=None):
         pass
 
     @abc.abstractmethod
-    def get_instance_memory_usage(self, resource_id, period, aggregate,
-                                  granularity=None):
+    def get_host_outlet_temp(self, resource_id, period, aggregate,
+                             granularity=None):
         pass
 
     @abc.abstractmethod
-    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
-                                    granularity=None):
-        pass
-
-    @abc.abstractmethod
-    def get_instance_ram_allocated(self, resource_id, period, aggregate,
-                                   granularity=None):
-        pass
-
-    @abc.abstractmethod
-    def get_instance_root_disk_allocated(self, resource_id, period, aggregate,
-                                         granularity=None):
-        pass
-
-    @abc.abstractmethod
-    def get_host_outlet_temperature(self, resource_id, period, aggregate,
-                                    granularity=None):
-        pass
-
-    @abc.abstractmethod
-    def get_host_inlet_temperature(self, resource_id, period, aggregate,
-                                   granularity=None):
+    def get_host_inlet_temp(self, resource_id, period, aggregate,
+                            granularity=None):
         pass
 
     @abc.abstractmethod
@@ -97,4 +72,29 @@ class DataSourceBase(object):
 
     @abc.abstractmethod
     def get_host_power(self, resource_id, period, aggregate, granularity=None):
+        pass
+
+    @abc.abstractmethod
+    def get_instance_cpu_usage(self, resource_id, period, aggregate,
+                               granularity=None):
+        pass
+
+    @abc.abstractmethod
+    def get_instance_ram_usage(self, resource_id, period, aggregate,
+                               granularity=None):
+        pass
+
+    @abc.abstractmethod
+    def get_instance_ram_allocated(self, resource_id, period, aggregate,
+                                   granularity=None):
+        pass
+
+    @abc.abstractmethod
+    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
+                                    granularity=None):
+        pass
+
+    @abc.abstractmethod
+    def get_instance_root_disk_size(self, resource_id, period, aggregate,
+                                    granularity=None):
         pass

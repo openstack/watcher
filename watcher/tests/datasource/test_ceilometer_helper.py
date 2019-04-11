@@ -127,7 +127,7 @@ class TestCeilometerHelper(base.BaseTestCase):
     def test_get_instance_memory_usage(self, mock_aggregation,
                                        mock_ceilometer):
         helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_memory_usage('compute1', 600, 'mean')
+        helper.get_instance_ram_usage('compute1', 600, 'mean')
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['instance_ram_usage'], 600, None,
             aggregate='mean')
@@ -157,7 +157,7 @@ class TestCeilometerHelper(base.BaseTestCase):
     def test_get_instance_root_disk_allocated(self, mock_aggregation,
                                               mock_ceilometer):
         helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_root_disk_allocated('compute1', 600, 'mean')
+        helper.get_instance_root_disk_size('compute1', 600, 'mean')
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['instance_root_disk_size'], 600,
             None, aggregate='mean')
@@ -167,7 +167,7 @@ class TestCeilometerHelper(base.BaseTestCase):
     def test_get_host_outlet_temperature(self, mock_aggregation,
                                          mock_ceilometer):
         helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_outlet_temperature('compute1', 600, 'mean')
+        helper.get_host_outlet_temp('compute1', 600, 'mean')
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_outlet_temp'], 600, None,
             aggregate='mean')
@@ -177,7 +177,7 @@ class TestCeilometerHelper(base.BaseTestCase):
     def test_get_host_inlet_temperature(self, mock_aggregation,
                                         mock_ceilometer):
         helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_inlet_temperature('compute1', 600, 'mean')
+        helper.get_host_inlet_temp('compute1', 600, 'mean')
         mock_aggregation.assert_called_once_with(
             'compute1', helper.METRIC_MAP['host_inlet_temp'], 600, None,
             aggregate='mean')
