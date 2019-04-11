@@ -333,11 +333,11 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
         return self.calculate_weight(instance, total_cores_used, 0, 0)
 
-    def add_action_disable_node(self, resource_id):
+    def add_action_disable_node(self, node):
         parameters = {'state': element.ServiceState.DISABLED.value,
                       'disabled_reason': self.REASON_FOR_DISABLE}
         self.solution.add_action(action_type=self.CHANGE_NOVA_SERVICE_STATE,
-                                 resource_id=resource_id,
+                                 resource_id=node.uuid,
                                  input_parameters=parameters)
 
     def compute_score_of_nodes(self):
@@ -379,7 +379,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                     mig_destination_node)
 
         if len(self.compute_model.get_node_instances(mig_source_node)) == 0:
-            self.add_action_disable_node(mig_source_node.uuid)
+            self.add_action_disable_node(mig_source_node)
             self.number_of_released_nodes += 1
 
     def calculate_num_migrations(self, sorted_instances, node_to_release,
