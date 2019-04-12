@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from concurrent import futures
+import futurist
 
 from oslo_config import cfg
 from oslo_log import log
@@ -31,7 +31,7 @@ class TriggerActionPlan(object):
     def __init__(self, applier_manager):
         self.applier_manager = applier_manager
         workers = CONF.watcher_applier.workers
-        self.executor = futures.ThreadPoolExecutor(max_workers=workers)
+        self.executor = futurist.GreenThreadPoolExecutor(max_workers=workers)
 
     def do_launch_action_plan(self, context, action_plan_uuid):
         try:

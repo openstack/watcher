@@ -106,7 +106,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                               decider=self.decider)
 
             e = engines.load(
-                flow, engine='parallel',
+                flow, executor='greenthreaded', engine='parallel',
                 max_workers=self.config.max_workers)
             e.run()
 

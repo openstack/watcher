@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-from concurrent import futures
+import futurist
 
 from oslo_config import cfg
 from oslo_log import log
@@ -34,7 +34,7 @@ class AuditEndpoint(object):
 
     def __init__(self, messaging):
         self._messaging = messaging
-        self._executor = futures.ThreadPoolExecutor(
+        self._executor = futurist.GreenThreadPoolExecutor(
             max_workers=CONF.watcher_decision_engine.max_workers)
         self._oneshot_handler = o_handler.OneShotAuditHandler()
         self._continuous_handler = c_handler.ContinuousAuditHandler().start()
