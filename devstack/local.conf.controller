@@ -10,6 +10,7 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 SERVICE_TOKEN=azertytoken
 
 HOST_IP=192.168.42.1 # Change this to your controller node IP address
+#HOST_IPV6=2001:db8::7
 FLAT_INTERFACE=eth0
 
 FIXED_RANGE=10.254.1.0/24 # Change this to whatever your network is
