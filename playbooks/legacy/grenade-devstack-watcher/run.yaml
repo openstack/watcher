@@ -13,12 +13,12 @@
           set -x
           cat > clonemap.yaml << EOF
           clonemap:
-            - name: openstack-infra/devstack-gate
+            - name: openstack/devstack-gate
               dest: devstack-gate
           EOF
           /usr/zuul-env/bin/zuul-cloner -m clonemap.yaml --cache-dir /opt/git \
-              https://git.openstack.org \
-              openstack-infra/devstack-gate
+              https://opendev.org \
+              openstack/devstack-gate
         executable: /bin/bash
         chdir: '{{ ansible_user_dir }}/workspace'
       environment: '{{ zuul | zuul_legacy_vars }}'
@@ -29,13 +29,13 @@
           set -x
           export PYTHONUNBUFFERED=true
 
-          export PROJECTS="openstack-dev/grenade $PROJECTS"
+          export PROJECTS="openstack/grenade $PROJECTS"
           export PROJECTS="openstack/watcher $PROJECTS"
           export PROJECTS="openstack/watcher-tempest-plugin $PROJECTS"
           export PROJECTS="openstack/python-watcherclient $PROJECTS"
           export DEVSTACK_PROJECT_FROM_GIT="python-watcherclient $DEVSTACK_PROJECT_FROM_GIT"
 
-          export GRENADE_PLUGINRC="enable_grenade_plugin watcher https://git.openstack.org/openstack/watcher"
+          export GRENADE_PLUGINRC="enable_grenade_plugin watcher https://opendev.org/openstack/watcher"
           export DEVSTACK_LOCAL_CONFIG+=$'\n'"export TEMPEST_PLUGINS='/opt/stack/new/watcher-tempest-plugin'"
 
           export DEVSTACK_GATE_TEMPEST_NOTESTS=1
