@@ -156,7 +156,7 @@
               live_migration: true
               block_migration_for_live_migration: true
       devstack_plugins:
-        ceilometer: https://git.openstack.org/openstack/ceilometer
+        ceilometer: https://opendev.org/openstack/ceilometer
 
 - job:
     name: watcher-tempest-functional
@@ -164,7 +164,7 @@
     timeout: 7200
     required-projects:
       - openstack/ceilometer
-      - openstack-infra/devstack-gate
+      - openstack/devstack-gate
       - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
@@ -172,7 +172,7 @@
       - openstack/tempest
     vars:
       devstack_plugins:
-        watcher: https://git.openstack.org/openstack/watcher
+        watcher: https://opendev.org/openstack/watcher
       devstack_services:
         tls-proxy: false
         watcher-api: true
@@ -211,8 +211,8 @@
       - ^tools/.*$
       - ^tox.ini$
     required-projects:
-      - openstack-dev/grenade
-      - openstack-infra/devstack-gate
+      - openstack/grenade
+      - openstack/devstack-gate
       - openstack/watcher
       - openstack/python-watcherclient
       - openstack/watcher-tempest-plugin
