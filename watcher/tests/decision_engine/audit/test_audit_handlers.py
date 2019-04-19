@@ -462,7 +462,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
     def test_is_audit_inactive(self, mock_jobs):
         audit_handler = continuous.ContinuousAuditHandler()
         mock_jobs.return_value = mock.MagicMock()
-        audit_handler._scheduler = mock.MagicMock()
+        audit_handler._audit_scheduler = mock.MagicMock()
 
         ap_jobs = [job.Job(mock.MagicMock(), name='execute_audit',
                            func=audit_handler.execute_audit,

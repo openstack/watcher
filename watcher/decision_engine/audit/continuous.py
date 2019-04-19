@@ -21,7 +21,6 @@
 import datetime
 from dateutil import tz
 
-from apscheduler.jobstores import memory
 from croniter import croniter
 
 from watcher.common import context
@@ -40,21 +39,29 @@ CONF = conf.CONF
 class ContinuousAuditHandler(base.AuditHandler):
     def __init__(self):
         super(ContinuousAuditHandler, self).__init__()
-        self._scheduler = None
+        # scheduler for executing audits
+        self._audit_scheduler = None
+        # scheduler for a periodic task to launch audit
+        self._period_scheduler = None
         self.context_show_deleted = context.RequestContext(is_admin=True,
                                                            show_deleted=True)
 
     @property
     def scheduler(self):
-        if self._scheduler is None:
-            self._scheduler = scheduling.BackgroundSchedulerService(
+        if self._audit_scheduler is None:
+            self._audit_scheduler = scheduling.BackgroundSchedulerService(
                 jobstores={
                     'default': job_store.WatcherJobStore(
                         engine=sq_api.get_engine()),
-                    'memory': memory.MemoryJobStore()
                 }
             )
-        return self._scheduler
+        return self._audit_scheduler
+
+    @property
+    def period_scheduler(self):
+        if self._period_scheduler is None:
+            self._period_scheduler = scheduling.BackgroundSchedulerService()
+        return self._period_scheduler
 
     def _is_audit_inactive(self, audit):
         audit = objects.Audit.get_by_uuid(
@@ -135,6 +142,10 @@ class ContinuousAuditHandler(base.AuditHandler):
         return False
 
     def launch_audits_periodically(self):
+        # if audit scheduler stop, restart it
+        if not self.scheduler.running:
+            self.scheduler.start()
+
         audit_context = context.RequestContext(is_admin=True)
         audit_filters = {
             'audit_type': objects.audit.AuditType.CONTINUOUS.value,
@@ -207,10 +218,11 @@ class ContinuousAuditHandler(base.AuditHandler):
                 audit.save()
 
     def start(self):
-        self.scheduler.add_job(
+        self.period_scheduler.add_job(
             self.launch_audits_periodically,
             'interval',
             seconds=CONF.watcher_decision_engine.continuous_audit_interval,
-            next_run_time=datetime.datetime.now(),
-            jobstore='memory')
+            next_run_time=datetime.datetime.now())
+        self.period_scheduler.start()
+        # audit scheduler start
         self.scheduler.start()
