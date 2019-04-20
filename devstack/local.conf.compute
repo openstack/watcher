@@ -10,6 +10,7 @@ SERVICE_PASSWORD=$ADMIN_PASSWORD
 SERVICE_TOKEN=azertytoken
 
 HOST_IP=192.168.42.2 # Change this to this compute node's IP address
+#HOST_IPV6=2001:db8::7
 FLAT_INTERFACE=eth0
 
 FIXED_RANGE=10.254.1.0/24 # Change this to whatever your network is
@@ -30,7 +31,7 @@ ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt,placement-client
 NOVA_VNC_ENABLED=True
 NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_auto.html"
 VNCSERVER_LISTEN=0.0.0.0
-VNCSERVER_PROXYCLIENT_ADDRESS=$HOST_IP
+VNCSERVER_PROXYCLIENT_ADDRESS=$HOST_IP # or HOST_IPV6
 
 NOVA_INSTANCES_PATH=/opt/stack/data/instances
 
