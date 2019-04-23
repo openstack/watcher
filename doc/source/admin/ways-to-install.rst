@@ -92,7 +92,7 @@ these commands:
 By default, this will show logging on the console from which it was started.
 Once started, you can use the `Watcher Client`_ to play with Watcher service.
 
-.. _`Watcher Client`: https://git.openstack.org/cgit/openstack/python-watcherclient
+.. _`Watcher Client`: https://opendev.org/openstack/python-watcherclient
 
 Installing from packages: PyPI
 --------------------------------

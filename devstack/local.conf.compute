@@ -36,7 +36,7 @@ VNCSERVER_PROXYCLIENT_ADDRESS=$HOST_IP # or HOST_IPV6
 NOVA_INSTANCES_PATH=/opt/stack/data/instances
 
 # Enable the Ceilometer plugin for the compute agent
-enable_plugin ceilometer https://git.openstack.org/openstack/ceilometer
+enable_plugin ceilometer https://opendev.org/openstack/ceilometer
 disable_service ceilometer-acentral,ceilometer-collector,ceilometer-api
 
 LOGFILE=$DEST/logs/stack.sh.log

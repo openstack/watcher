@@ -28,9 +28,9 @@ The documentation provided here is continually kept up-to-date based
 on the latest code, and may not represent the state of the project at any
 specific prior release.
 
-.. _watcher: https://git.openstack.org/cgit/openstack/watcher/
-.. _python-watcherclient: https://git.openstack.org/cgit/openstack/python-watcherclient/
-.. _watcher-dashboard: https://git.openstack.org/cgit/openstack/watcher-dashboard/
+.. _watcher: https://opendev.org/openstack/watcher/
+.. _python-watcherclient: https://opendev.org/openstack/python-watcherclient/
+.. _watcher-dashboard: https://opendev.org/openstack/watcher-dashboard/
 
 Developer Guide
 ===============

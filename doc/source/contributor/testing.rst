@@ -31,7 +31,7 @@ the following::
     $ tox -e pep8
 
 .. _tox: https://tox.readthedocs.org/
-.. _watcher: https://git.openstack.org/cgit/openstack/watcher
+.. _watcher: https://opendev.org/openstack/watcher
 .. _Gerrit: https://review.openstack.org/
 
 If you only want to run specific unit test code and don't like to waste time
@@ -48,4 +48,4 @@ Tempest tests
 Tempest tests for Watcher has been migrated to the external repo
 `watcher-tempest-plugin`_.
 
-.. _watcher-tempest-plugin: https://git.openstack.org/cgit/openstack/watcher-tempest-plugin
+.. _watcher-tempest-plugin: https://opendev.org/openstack/watcher-tempest-plugin
