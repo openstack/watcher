@@ -51,7 +51,7 @@ Clone the Watcher repository:
 
 .. code-block:: bash
 
-    $ git clone https://git.openstack.org/openstack/watcher.git
+    $ git clone https://opendev.org/openstack/watcher.git
     $ cd watcher
 
 Install the Watcher modules:

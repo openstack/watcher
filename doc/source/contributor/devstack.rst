@@ -19,7 +19,7 @@ model. To enable the Watcher plugin with DevStack, add the following to the
 `[[local|localrc]]` section of your controller's `local.conf` to enable the
 Watcher plugin::
 
-    enable_plugin watcher https://git.openstack.org/openstack/watcher
+    enable_plugin watcher https://opendev.org/openstack/watcher
 
 For more detailed instructions, see `Detailed DevStack Instructions`_. Check
 out the `DevStack documentation`_ for more information regarding DevStack.
@@ -44,7 +44,7 @@ Detailed DevStack Instructions
 
        sudo apt-get update
        sudo apt-get install git
-       git clone https://git.openstack.org/openstack-dev/devstack
+       git clone https://opendev.org/openstack/devstack.git
        sudo ./devstack/tools/create-stack-user.sh
 
    Now you have a stack user that is used to run the DevStack processes. You
@@ -56,7 +56,7 @@ Detailed DevStack Instructions
 
        sudo su stack
        cd ~
-       git clone https://git.openstack.org/openstack-dev/devstack
+       git clone https://opendev.org/openstack/devstack.git
 
 #. For each compute node, copy the provided `local.conf.compute`_ example file
    to the compute node's system at ~/devstack/local.conf. Make sure the

@@ -178,7 +178,7 @@ You can easily generate and update a sample configuration file
 named :ref:`watcher.conf.sample <watcher_sample_configuration_files>` by using
 these following commands::
 
-    $ git clone https://git.openstack.org/openstack/watcher
+    $ git clone https://opendev.org/openstack/watcher.git
     $ cd watcher/
     $ tox -e genconfig
     $ vi etc/watcher/watcher.conf.sample

@@ -58,7 +58,7 @@ Code Hosting
     https://opendev.org/openstack/watcher
 
 Code Review
-    https://review.openstack.org/#/q/status:open+project:openstack/watcher,n,z
+    https://review.opendev.org/#/q/status:open+project:openstack/watcher,n,z
 
 IRC Channel
     ``#openstack-watcher`` (changelog_)

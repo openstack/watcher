@@ -47,7 +47,7 @@ Make a clone of the code from our `Git repository`:
 
 .. code-block:: bash
 
-    $ git clone https://git.openstack.org/openstack/watcher.git
+    $ git clone https://opendev.org/openstack/watcher.git
 
 When that is complete, you can:
 
@@ -99,7 +99,7 @@ useful to keep a clean environment for working on Watcher.
 .. code-block:: bash
 
     $ mkvirtualenv watcher
-    $ git clone https://git.openstack.org/openstack/watcher
+    $ git clone https://opendev.org/openstack/watcher.git
 
     # Use 'python setup.py' to link Watcher into Python's site-packages
     $ cd watcher && python setup.py install

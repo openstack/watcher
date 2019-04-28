@@ -197,7 +197,7 @@ class ModelBuilder(object):
     NOTE(v-francoise): This model builder is meant to be extended in the future
     to also include both storage and network information respectively coming
     from Cinder and Neutron. Some prelimary work has been done in this
-    direction in https://review.openstack.org/#/c/362730 but since we cannot
+    direction in https://review.opendev.org/#/c/362730 but since we cannot
     guarantee a sufficient level of consistency for neither the storage nor the
     network part before the end of the Ocata cycle, this work has been
     re-scheduled for Pike. In the meantime, all the associated code has been

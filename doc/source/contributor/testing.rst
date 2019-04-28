@@ -18,7 +18,7 @@ should download the latest `watcher`_ from the github. To run the same unit
 tests that are executing onto `Gerrit`_ which includes ``py35``, ``py27`` and
 ``pep8``, you can issue the following command::
 
-    $ git clone https://git.openstack.org/openstack/watcher
+    $ git clone https://opendev.org/openstack/watcher
     $ cd watcher
     $ pip install tox
     $ tox
@@ -32,7 +32,7 @@ the following::
 
 .. _tox: https://tox.readthedocs.org/
 .. _watcher: https://opendev.org/openstack/watcher
-.. _Gerrit: https://review.openstack.org/
+.. _Gerrit: https://review.opendev.org/
 
 If you only want to run specific unit test code and don't like to waste time
 waiting for all unit tests to execute, you can add parameters ``--`` followed
