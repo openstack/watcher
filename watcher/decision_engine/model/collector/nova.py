@@ -208,10 +208,9 @@ class ModelBuilder(object):
         self.osc = osc
         self.model = None
         self.model_scope = dict()
+        self.no_model_scope_flag = False
         self.nova = osc.nova()
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
-        # self.neutron = osc.neutron()
-        # self.cinder = osc.cinder()
 
     def _collect_aggregates(self, host_aggregates, _nodes):
         aggregate_list = self.nova_helper.get_aggregate_list()
@@ -237,7 +236,7 @@ class ModelBuilder(object):
             include_all_nodes = True
         for service in service_list:
             if service.zone in zone_names or include_all_nodes:
-                _nodes.update(service.host)
+                _nodes.add(service.host)
 
     def _add_physical_layer(self):
         """Add the physical layer of the graph.
@@ -254,6 +253,7 @@ class ModelBuilder(object):
             self._collect_zones(availability_zones, compute_nodes)
 
         if not compute_nodes:
+            self.no_model_scope_flag = True
             all_nodes = self.nova_helper.get_compute_node_list()
             compute_nodes = set(
                 [node.hypervisor_hostname for node in all_nodes])
@@ -314,47 +314,6 @@ class ModelBuilder(object):
         # compute_node = self._build_node("physical", "compute", "hypervisor",
         #                                 node_attributes)
         return compute_node
-
-    # def _build_network_compute_node(self, base_node):
-    #     attributes = {}
-    #     net_node = self._build_node("physical", "network", "NIC", attributes)
-    #     net_id = "{}_network".format(base_node)
-    #     return net_id, net_node
-
-    # def build_disk_compute_node(self, base_node, compute):
-    #     # Build disk node attributes.
-    #     disk_attributes = {
-    #         "size_gb": compute.local_gb,
-    #         "used_gb": compute.local_gb_used,
-    #         "available_gb": compute.free_disk_gb}
-    #     disk_node = self._build_node("physical", "storage", "disk",
-    #                                  disk_attributes)
-    #     disk_id = "{}_disk".format(base_node)
-    #     return disk_id, disk_node
-
-    # def build_memory_compute_node(self, base_node, compute):
-    #     # Build memory node attributes.
-    #     memory_attrs = {"size_mb": compute.memory_mb,
-    #                     "used_mb": compute.memory_mb_used,
-    #                     "available_mb": compute.free_ram_mb}
-    #     memory_node = self._build_node("physical", "memory", "memory",
-    #                                    memory_attrs)
-    #     memory_id = "{}_memory".format(base_node)
-    #     return memory_id, memory_node
-
-    # def build_cpu_compute_node(self, base_node, compute):
-    #     # Build memory node attributes.
-    #     cpu_attributes = {"vcpus": compute.vcpus,
-    #                       "vcpus_used": compute.vcpus_used,
-    #                       "info": jsonutils.loads(compute.cpu_info)}
-    #     cpu_node = self._build_node("physical", "cpu", "cpu", cpu_attributes)
-    #     cpu_id = "{}_cpu".format(base_node)
-    #     return cpu_id, cpu_node
-
-    # @staticmethod
-    # def _build_node(layer, category, node_type, attributes):
-    #     return {"layer": layer, "category": category, "type": node_type,
-    #             "attributes": attributes}
 
     def _add_virtual_layer(self):
         """Add the virtual layer to the graph.
@@ -439,137 +398,23 @@ class ModelBuilder(object):
         # node_attributes["attributes"] = instance_attributes
         return element.Instance(**instance_attributes)
 
-    # def _add_virtual_storage(self):
-    #     try:
-    #         volumes = self.cinder.volumes.list()
-    #     except Exception:
-    #         return
-    #     for volume in volumes:
-    #         volume_id, volume_node = self._build_storage_node(volume)
-    #         self.add_node(volume_id, volume_node)
-    #         host = self._get_volume_host_id(volume_node)
-    #         self.add_edge(volume_id, host)
-    #         # Add connections to an instance.
-    #         if volume_node['attributes']['attachments']:
-    #             for attachment in volume_node['attributes']['attachments']:
-    #                 self.add_edge(volume_id, attachment['server_id'],
-    #                               label='ATTACHED_TO')
-    #             volume_node['attributes'].pop('attachments')
-
-    # def _add_virtual_network(self):
-    #     try:
-    #         routers = self.neutron.list_routers()
-    #     except Exception:
-    #         return
-
-    #     for network in self.neutron.list_networks()['networks']:
-    #         self.add_node(*self._build_network(network))
-
-    #     for router in routers['routers']:
-    #         self.add_node(*self._build_router(router))
-
-    #     router_interfaces, _, compute_ports = self._group_ports()
-    #     for router_interface in router_interfaces:
-    #         interface = self._build_router_interface(router_interface)
-    #         router_interface_id = interface[0]
-    #         router_interface_node = interface[1]
-    #         router_id = interface[2]
-    #         self.add_node(router_interface_id, router_interface_node)
-    #         self.add_edge(router_id, router_interface_id)
-    #         network_id = router_interface_node['attributes']['network_id']
-    #         self.add_edge(router_interface_id, network_id)
-
-    #     for compute_port in compute_ports:
-    #         cp_id, cp_node, instance_id = self._build_compute_port_node(
-    #             compute_port)
-    #         self.add_node(cp_id, cp_node)
-    #         self.add_edge(cp_id, vm_id)
-    #         net_id = cp_node['attributes']['network_id']
-    #         self.add_edge(net_id, cp_id)
-    #         # Connect port to physical node
-    #         phys_net_node = "{}_network".format(cp_node['attributes']
-    #                                             ['binding:host_id'])
-    #         self.add_edge(cp_id, phys_net_node)
-
-    # def _get_volume_host_id(self, volume_node):
-    #     host = volume_node['attributes']['os-vol-host-attr:host']
-    #     if host.find('@') != -1:
-    #         host = host.split('@')[0]
-    #     elif host.find('#') != -1:
-    #         host = host.split('#')[0]
-    #     return "{}_disk".format(host)
-
-    # def _build_storage_node(self, volume_obj):
-    #     volume = volume_obj.__dict__
-    #     volume["name"] = volume["id"]
-    #     volume.pop("id")
-    #     volume.pop("manager")
-    #     node = self._build_node("virtual", "storage", 'volume', volume)
-    #     return volume["name"], node
-
-    # def _build_compute_port_node(self, compute_port):
-    #     compute_port["name"] = compute_port["id"]
-    #     compute_port.pop("id")
-    #     nde_type = "{}_port".format(
-    #         compute_port["device_owner"].split(":")[0])
-    #     compute_port.pop("device_owner")
-    #     device_id = compute_port["device_id"]
-    #     compute_port.pop("device_id")
-    #     node = self._build_node("virtual", "network", nde_type, compute_port)
-    #     return compute_port["name"], node, device_id
-
-    # def _group_ports(self):
-    #     router_interfaces = []
-    #     floating_ips = []
-    #     compute_ports = []
-    #     interface_types = ["network:router_interface",
-    #                        'network:router_gateway']
-
-    #     for port in self.neutron.list_ports()['ports']:
-    #         if port['device_owner'] in interface_types:
-    #             router_interfaces.append(port)
-    #         elif port['device_owner'].startswith('compute:'):
-    #             compute_ports.append(port)
-    #         elif port['device_owner'] == 'network:floatingip':
-    #             floating_ips.append(port)
-
-    #     return router_interfaces, floating_ips, compute_ports
-
-    # def _build_router_interface(self, interface):
-    #     interface["name"] = interface["id"]
-    #     interface.pop("id")
-    #     node_type = interface["device_owner"].split(":")[1]
-    #     node = self._build_node("virtual", "network", node_type, interface)
-    #     return interface["name"], node, interface["device_id"]
-
-    # def _build_router(self, router):
-    #     router_attrs = {"uuid": router['id'],
-    #                     "name": router['name'],
-    #                     "state": router['status']}
-    #     node = self._build_node('virtual', 'network', 'router', router_attrs)
-    #     return str(router['id']), node
-
-    # def _build_network(self, network):
-    #     node = self._build_node('virtual', 'network', 'network', network)
-    #     return network['id'], node
-
     def _merge_compute_scope(self, compute_scope):
         model_keys = self.model_scope.keys()
         update_flag = False
 
         role_keys = ("host_aggregates", "availability_zones")
         for role in compute_scope:
-            role_key = role.keys()[0]
+            role_key = list(role.keys())[0]
             if role_key not in role_keys:
                 continue
-            role_values = role.values()[0]
+            role_values = list(role.values())[0]
             if role_key in model_keys:
                 for value in role_values:
                     if value not in self.model_scope[role_key]:
-                        self.model_scope[role_key].sppend(value)
+                        self.model_scope[role_key].append(value)
                         update_flag = True
             else:
-                self.self.model_scope[role_key] = role_values
+                self.model_scope[role_key] = role_values
                 update_flag = True
         return update_flag
 
@@ -581,10 +426,9 @@ class ModelBuilder(object):
                 compute_scope = _scope['compute']
                 break
 
-        if self.model_scope:
-            if model_scope:
-                if compute_scope:
-                    update_flag = self._merge_compute_scope(compute_scope)
+        if self.no_model_scope_flag is False:
+            if compute_scope:
+                update_flag = self._merge_compute_scope(compute_scope)
             else:
                 self.model_scope = dict()
                 update_flag = True
