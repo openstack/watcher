@@ -57,25 +57,6 @@ class UniformAirflow(base.BaseStrategy):
 
     DATASOURCE_METRICS = ['host_airflow', 'host_inlet_temp', 'host_power']
 
-    METRIC_NAMES = dict(
-        ceilometer=dict(
-            # The meter to report Airflow of physical server in ceilometer
-            host_airflow='hardware.ipmi.node.airflow',
-            # The meter to report inlet temperature of physical server
-            # in ceilometer
-            host_inlet_temp='hardware.ipmi.node.temperature',
-            # The meter to report system power of physical server in ceilometer
-            host_power='hardware.ipmi.node.power'),
-        gnocchi=dict(
-            # The meter to report Airflow of physical server in gnocchi
-            host_airflow='hardware.ipmi.node.airflow',
-            # The meter to report inlet temperature of physical server
-            # in gnocchi
-            host_inlet_temp='hardware.ipmi.node.temperature',
-            # The meter to report system power of physical server in gnocchi
-            host_power='hardware.ipmi.node.power'),
-    )
-
     def __init__(self, config, osc=None):
         """Using live migration
 
@@ -176,18 +157,20 @@ class UniformAirflow(base.BaseStrategy):
             source_instances = self.compute_model.get_node_instances(
                 source_node)
             if source_instances:
-                inlet_t = self.datasource_backend.statistic_aggregation(
-                    resource_id=source_node.uuid,
-                    meter_name=self.meter_name_inlet_t,
+                inlet_temp = self.datasource_backend.statistic_aggregation(
+                    resource=source_node,
+                    resource_type='instance',
+                    meter_name='host_inlet_temp',
                     period=self._period,
                     granularity=self.granularity)
                 power = self.datasource_backend.statistic_aggregation(
-                    resource_id=source_node.uuid,
-                    meter_name=self.meter_name_power,
+                    resource=source_node,
+                    resource_type='instance',
+                    meter_name='host_power',
                     period=self._period,
                     granularity=self.granularity)
                 if (power < self.threshold_power and
-                        inlet_t < self.threshold_inlet_t):
+                        inlet_temp < self.threshold_inlet_t):
                     # hardware issue, migrate all instances from this node
                     for instance in source_instances:
                         instances_tobe_migrate.append(instance)
@@ -265,19 +248,19 @@ class UniformAirflow(base.BaseStrategy):
             airflow = None
             node = self.compute_model.get_node_by_uuid(
                 node_id)
-            resource_id = node.uuid
             airflow = self.datasource_backend.statistic_aggregation(
-                resource_id=resource_id,
-                meter_name=self.meter_name_airflow,
+                resource=node,
+                resource_type='compute_node',
+                meter_name='host_airflow',
                 period=self._period,
                 granularity=self.granularity)
             # some hosts may not have airflow meter, remove from target
             if airflow is None:
-                LOG.warning("%s: no airflow data", resource_id)
+                LOG.warning("%s: no airflow data", node.uuid)
                 continue
 
             LOG.debug("%(resource)s: airflow %(airflow)f",
-                      {'resource': resource_id, 'airflow': airflow})
+                      {'resource': node, 'airflow': airflow})
             nodemap = {'node': node, 'airflow': airflow}
             if airflow >= self.threshold_airflow:
                 # mark the node to release resources
@@ -288,12 +271,9 @@ class UniformAirflow(base.BaseStrategy):
 
     def pre_execute(self):
         self._pre_execute()
-        self.meter_name_airflow = self.METRIC_NAMES[
-            self.datasource_backend.NAME]['host_airflow']
-        self.meter_name_inlet_t = self.METRIC_NAMES[
-            self.datasource_backend.NAME]['host_inlet_temp']
-        self.meter_name_power = self.METRIC_NAMES[
-            self.datasource_backend.NAME]['host_power']
+        self.meter_name_airflow = 'host_airflow'
+        self.meter_name_inlet_t = 'host_inlet_temp'
+        self.meter_name_power = 'host_power'
 
         self.threshold_airflow = self.input_parameters.threshold_airflow
         self.threshold_inlet_t = self.input_parameters.threshold_inlet_t

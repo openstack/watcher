@@ -48,22 +48,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     that live migration is possible on your OpenStack cluster.
     """
 
-    HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
-    INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
-
     DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage']
-
-    METRIC_NAMES = dict(
-        ceilometer=dict(
-            host_cpu_usage='compute.node.cpu.percent',
-            instance_cpu_usage='cpu_util'),
-        monasca=dict(
-            host_cpu_usage='cpu.percent',
-            instance_cpu_usage='vm.cpu.utilization_perc'),
-        gnocchi=dict(
-            host_cpu_usage='compute.node.cpu.percent',
-            instance_cpu_usage='cpu_util'),
-    )
 
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
@@ -111,7 +96,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     def aggregation_method(self):
         return self.input_parameters.get(
             'aggregation_method',
-            {"instance": 'mean', "node": 'mean'})
+            {"instance": 'mean', "compute_node": 'mean'})
 
     @classmethod
     def get_display_name(cls):
@@ -159,12 +144,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                             "type": "string",
                             "default": 'mean'
                         },
-                        "node": {
+                        "compute_node": {
                             "type": "string",
                             "default": 'mean'
                         },
                     },
-                    "default": {"instance": 'mean', "node": 'mean'}
+                    "default": {"instance": 'mean', "compute_node": 'mean'}
                 },
             },
         }
@@ -271,16 +256,15 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         # TODO(jed): take in account weight
         return (score_cores + score_disk + score_memory) / 3
 
-    def get_node_cpu_usage(self, node):
-        resource_id = "%s_%s" % (node.uuid, node.hostname)
+    def get_compute_node_cpu_usage(self, compute_node):
         return self.datasource_backend.get_host_cpu_usage(
-            resource_id, self.period, self.aggregation_method['node'],
-            granularity=self.granularity)
+            compute_node, self.period, self.aggregation_method['compute_node'],
+            self.granularity)
 
     def get_instance_cpu_usage(self, instance):
         return self.datasource_backend.get_instance_cpu_usage(
-            instance.uuid, self.period, self.aggregation_method['instance'],
-            granularity=self.granularity)
+            instance, self.period, self.aggregation_method['instance'],
+            self.granularity)
 
     def calculate_score_node(self, node):
         """Calculate the score that represent the utilization level
@@ -289,7 +273,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :return: Score for the given compute node
         :rtype: float
         """
-        host_avg_cpu_util = self.get_node_cpu_usage(node)
+        host_avg_cpu_util = self.get_compute_node_cpu_usage(node)
 
         if host_avg_cpu_util is None:
             resource_id = "%s_%s" % (node.uuid, node.hostname)
@@ -297,8 +281,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "No values returned by %(resource_id)s "
                 "for %(metric_name)s", dict(
                     resource_id=resource_id,
-                    metric_name=self.METRIC_NAMES[
-                        self.datasource_backend.NAME]['host_cpu_usage']))
+                    metric_name='host_cpu_usage'))
             host_avg_cpu_util = 100
 
         total_cores_used = node.vcpus * (host_avg_cpu_util / 100.0)
@@ -317,8 +300,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                 "No values returned by %(resource_id)s "
                 "for %(metric_name)s", dict(
                     resource_id=instance.uuid,
-                    metric_name=self.METRIC_NAMES[
-                        self.datasource_backend.NAME]['instance_cpu_usage']))
+                    metric_name='instance_cpu_usage'))
             instance_cpu_utilization = 100
 
         total_cores_used = instance.vcpus * (instance_cpu_utilization / 100.0)

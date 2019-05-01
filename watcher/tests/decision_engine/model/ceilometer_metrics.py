@@ -28,64 +28,74 @@ class FakeCeilometerMetrics(object):
     def empty_one_metric(self, emptytype):
         self.emptytype = emptytype
 
-    def mock_get_statistics(self, resource_id=None, meter_name=None,
-                            period=None, granularity=None, dimensions=None,
-                            aggregation='avg', group_by='*'):
+    def mock_get_statistics(self, resource=None, resource_type=None,
+                            meter_name=None, period=None, aggregate='mean',
+                            granularity=None):
         result = 0
-        if meter_name == "hardware.cpu.util":
-            result = self.get_usage_node_cpu(resource_id)
-        elif meter_name == "compute.node.cpu.percent":
-            result = self.get_usage_node_cpu(resource_id)
-        elif meter_name == "hardware.memory.used":
-            result = self.get_usage_node_ram(resource_id)
-        elif meter_name == "cpu_util":
-            result = self.get_average_usage_instance_cpu(resource_id)
-        elif meter_name == "memory.resident":
-            result = self.get_average_usage_instance_memory(resource_id)
-        elif meter_name == "hardware.ipmi.node.outlet_temperature":
-            result = self.get_average_outlet_temperature(resource_id)
-        elif meter_name == "hardware.ipmi.node.airflow":
-            result = self.get_average_airflow(resource_id)
-        elif meter_name == "hardware.ipmi.node.temperature":
-            result = self.get_average_inlet_t(resource_id)
-        elif meter_name == "hardware.ipmi.node.power":
-            result = self.get_average_power(resource_id)
+        if meter_name == 'host_cpu_usage':
+            result = self.get_usage_compute_node_cpu(resource)
+        elif meter_name == 'host_ram_usage':
+            result = self.get_usage_compute_node_ram(resource)
+        elif meter_name == 'host_outlet_temp':
+            result = self.get_average_outlet_temp(resource)
+        elif meter_name == 'host_inlet_temp':
+            result = self.get_average_inlet_temp(resource)
+        elif meter_name == 'host_airflow':
+            result = self.get_average_airflow(resource)
+        elif meter_name == 'host_power':
+            result = self.get_average_power(resource)
+        elif meter_name == 'instance_cpu_usage':
+            result = self.get_average_usage_instance_cpu(resource)
+        elif meter_name == 'instance_ram_usage':
+            result = self.get_average_usage_instance_memory(resource)
         return result
 
-    def mock_get_statistics_wb(self, resource_id, meter_name, period,
-                               granularity, dimensions=None,
-                               aggregation='avg', group_by='*'):
-        result = 0.0
-        if meter_name == "cpu_util":
-            result = self.get_average_usage_instance_cpu_wb(resource_id)
-        elif meter_name == "memory.resident":
-            result = self.get_average_usage_instance_memory_wb(resource_id)
-        return result
+    def mock_get_statistics_nn(self, resource=None, meter_name=None,
+                               period=None, aggregate='mean', granularity=300):
+        """Statistics for noisy neighbor strategy
 
-    def mock_get_statistics_nn(self, resource_id, period,
-                               aggregation, granularity=300):
+        Signature should match DataSourceBase.get_instance_l3_cache_usage
+        """
+
         result = 0.0
         if period == 100:
-            result = self.get_average_l3_cache_current(resource_id)
+            result = self.get_average_l3_cache_current(resource)
         if period == 200:
-            result = self.get_average_l3_cache_previous(resource_id)
+            result = self.get_average_l3_cache_previous(resource)
+        return result
+
+    def mock_get_statistics_wb(self, resource=None, resource_type=None,
+                               meter_name=None, period=None, aggregate='mean',
+                               granularity=None):
+        """Statistics for workload balance strategy"""
+
+        result = 0.0
+        if meter_name == 'instance_cpu_usage':
+            result = self.get_average_usage_instance_cpu_wb(resource)
+        elif meter_name == 'instance_ram_usage':
+            result = self.get_average_usage_instance_memory_wb(resource)
         return result
 
     @staticmethod
-    def get_average_l3_cache_current(uuid):
+    def get_average_l3_cache_current(resource):
         """The average l3 cache used by instance"""
+
+        uuid = resource.uuid
+
         mock = {}
         mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 35 * oslo_utils.units.Ki
         mock['cae81432-1631-4d4e-b29c-6f3acdcde906'] = 30 * oslo_utils.units.Ki
         mock['INSTANCE_3'] = 40 * oslo_utils.units.Ki
         mock['INSTANCE_4'] = 35 * oslo_utils.units.Ki
-        if uuid not in mock.keys():
-            mock[uuid] = 25 * oslo_utils.units.Ki
+
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_l3_cache_previous(uuid):
+    def get_average_l3_cache_previous(resource):
         """The average l3 cache used by instance"""
+
+        uuid = resource.uuid
+
         mock = {}
         mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 34.5 * (
             oslo_utils.units.Ki)
@@ -93,13 +103,14 @@ class FakeCeilometerMetrics(object):
             oslo_utils.units.Ki)
         mock['INSTANCE_3'] = 60 * oslo_utils.units.Ki
         mock['INSTANCE_4'] = 22.5 * oslo_utils.units.Ki
-        if uuid not in mock.keys():
-            mock[uuid] = 25 * oslo_utils.units.Ki
+
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_outlet_temperature(uuid):
+    def get_average_outlet_temp(resource):
         """The average outlet temperature for host"""
+
+        uuid = resource.uuid
         mock = {}
         mock['Node_0'] = 30
         # use a big value to make sure it exceeds threshold
@@ -109,7 +120,9 @@ class FakeCeilometerMetrics(object):
         return float(mock[str(uuid)])
 
     @staticmethod
-    def get_usage_node_ram(uuid):
+    def get_usage_compute_node_ram(resource):
+
+        uuid = resource.uuid
         mock = {}
         # Ceilometer returns hardware.memory.used samples in KB.
         mock['Node_0'] = 7 * oslo_utils.units.Ki
@@ -125,8 +138,10 @@ class FakeCeilometerMetrics(object):
         return float(mock[str(uuid)])
 
     @staticmethod
-    def get_average_airflow(uuid):
+    def get_average_airflow(resource):
         """The average outlet temperature for host"""
+
+        uuid = resource.uuid
         mock = {}
         mock['Node_0'] = 400
         # use a big value to make sure it exceeds threshold
@@ -136,8 +151,10 @@ class FakeCeilometerMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_inlet_t(uuid):
+    def get_average_inlet_temp(resource):
         """The average outlet temperature for host"""
+
+        uuid = resource.uuid
         mock = {}
         mock['Node_0'] = 24
         mock['Node_1'] = 26
@@ -146,8 +163,10 @@ class FakeCeilometerMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_power(uuid):
+    def get_average_power(resource):
         """The average outlet temperature for host"""
+
+        uuid = resource.uuid
         mock = {}
         mock['Node_0'] = 260
         mock['Node_1'] = 240
@@ -156,64 +175,48 @@ class FakeCeilometerMetrics(object):
         return mock[str(uuid)]
 
     @staticmethod
-    def get_usage_node_cpu(*args, **kwargs):
+    def get_usage_compute_node_cpu(*args, **kwargs):
         """The last VM CPU usage values to average
 
         :param uuid:00
         :return:
         """
-        uuid = args[0]
-        # query influxdb stream
 
-        # compute in stream
+        resource = args[0]
+        uuid = "%s_%s" % (resource.uuid, resource.hostname)
 
-        # Normalize
-        mock = {}
+        measurements = {}
         # node 0
-        mock['Node_0_hostname_0'] = 7
-        mock['Node_1_hostname_1'] = 7
+        measurements['Node_0_hostname_0'] = 7
+        measurements['Node_1_hostname_1'] = 7
         # node 1
-        mock['Node_2_hostname_2'] = 80
+        measurements['Node_2_hostname_2'] = 80
         # node 2
-        mock['Node_3_hostname_3'] = 5
-        mock['Node_4_hostname_4'] = 5
-        mock['Node_5_hostname_5'] = 10
+        measurements['Node_3_hostname_3'] = 5
+        measurements['Node_4_hostname_4'] = 5
+        measurements['Node_5_hostname_5'] = 10
 
         # node 3
-        mock['Node_6_hostname_6'] = 8
+        measurements['Node_6_hostname_6'] = 8
         # This node doesn't send metrics
-        mock['LOST_NODE_hostname_7'] = None
-        mock['Node_19_hostname_19'] = 10
+        measurements['LOST_NODE_hostname_7'] = None
+        measurements['Node_19_hostname_19'] = 10
         # node 4
-        mock['INSTANCE_7_hostname_7'] = 4
+        measurements['INSTANCE_7_hostname_7'] = 4
 
-        mock['Node_0'] = 7
-        mock['Node_1'] = 5
-        mock['Node_2'] = 10
-        mock['Node_3'] = 4
-        mock['Node_4'] = 2
-
-        if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = 8
-
-        if mock[str(uuid)] is not None:
-            return float(mock[str(uuid)])
-        else:
-            return mock[str(uuid)]
+        result = measurements[uuid]
+        return float(result) if result is not None else None
 
     @staticmethod
-    def get_average_usage_instance_cpu_wb(uuid):
+    def get_average_usage_instance_cpu_wb(resource):
         """The last VM CPU usage values to average
 
-        :param uuid:00
+        :param resource:
         :return:
         """
-        # query influxdb stream
 
-        # compute in stream
+        uuid = resource.uuid
 
-        # Normalize
         mock = {}
         # node 0
         mock['INSTANCE_1'] = 80
@@ -221,19 +224,20 @@ class FakeCeilometerMetrics(object):
         # node 1
         mock['INSTANCE_3'] = 20
         mock['INSTANCE_4'] = 10
+
         return float(mock[str(uuid)])
 
     @staticmethod
-    def get_average_usage_instance_memory_wb(uuid):
+    def get_average_usage_instance_memory_wb(resource):
+        uuid = resource.uuid
+
         mock = {}
         # node 0
         mock['INSTANCE_1'] = 30
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 12
         # node 1
         mock['INSTANCE_3'] = 12
         mock['INSTANCE_4'] = 12
-        if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = 12
 
         return mock[str(uuid)]
 
@@ -244,12 +248,10 @@ class FakeCeilometerMetrics(object):
         :param uuid:00
         :return:
         """
-        uuid = args[0]
-        # query influxdb stream
 
-        # compute in stream
+        resource = args[0]
+        uuid = resource.uuid
 
-        # Normalize
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 7
@@ -260,22 +262,22 @@ class FakeCeilometerMetrics(object):
         mock['INSTANCE_3'] = 5
         mock['INSTANCE_4'] = 5
         mock['INSTANCE_5'] = 10
-
         # node 3
         mock['INSTANCE_6'] = 8
-
         # node 4
         mock['INSTANCE_7'] = 4
-
         mock['LOST_INSTANCE'] = None
+
+        # metrics might be missing in scenarios which do not do computations
         if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = 8
+            mock[uuid] = 0
 
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_usage_instance_memory(uuid):
+    def get_average_usage_instance_memory(resource):
+        uuid = resource.uuid
+
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 2
@@ -286,20 +288,17 @@ class FakeCeilometerMetrics(object):
         mock['INSTANCE_3'] = 8
         mock['INSTANCE_4'] = 5
         mock['INSTANCE_5'] = 16
-
         # node 3
         mock['INSTANCE_6'] = 8
-
         # node 4
         mock['INSTANCE_7'] = 4
-        if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = 10
 
         return mock[str(uuid)]
 
     @staticmethod
-    def get_average_usage_instance_disk(uuid):
+    def get_average_usage_instance_disk(resource):
+        uuid = resource.uuid
+
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 2
@@ -310,15 +309,9 @@ class FakeCeilometerMetrics(object):
         mock['INSTANCE_3'] = 10
         mock['INSTANCE_4'] = 15
         mock['INSTANCE_5'] = 20
-
         # node 3
         mock['INSTANCE_6'] = 8
-
         # node 4
         mock['INSTANCE_7'] = 4
-
-        if uuid not in mock.keys():
-            # mock[uuid] = random.randint(1, 4)
-            mock[uuid] = 4
 
         return mock[str(uuid)]

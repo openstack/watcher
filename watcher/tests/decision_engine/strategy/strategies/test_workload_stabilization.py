@@ -46,11 +46,16 @@ class TestWorkloadStabilization(TestBaseStrategy):
         self.fake_metrics = self.fake_datasource_cls()
 
         self.hosts_load_assert = {
-            'Node_0': {'cpu_util': 0.07, 'memory.resident': 7.0, 'vcpus': 40},
-            'Node_1': {'cpu_util': 0.07, 'memory.resident': 5, 'vcpus': 40},
-            'Node_2': {'cpu_util': 0.8, 'memory.resident': 29, 'vcpus': 40},
-            'Node_3': {'cpu_util': 0.05, 'memory.resident': 8, 'vcpus': 40},
-            'Node_4': {'cpu_util': 0.05, 'memory.resident': 4, 'vcpus': 40}}
+            'Node_0': {'instance_cpu_usage': 0.07,
+                       'instance_ram_usage': 7.0, 'vcpus': 40},
+            'Node_1': {'instance_cpu_usage': 0.07,
+                       'instance_ram_usage': 5, 'vcpus': 40},
+            'Node_2': {'instance_cpu_usage': 0.8,
+                       'instance_ram_usage': 29, 'vcpus': 40},
+            'Node_3': {'instance_cpu_usage': 0.05,
+                       'instance_ram_usage': 8, 'vcpus': 40},
+            'Node_4': {'instance_cpu_usage': 0.05,
+                       'instance_ram_usage': 4, 'vcpus': 40}}
 
         p_osc = mock.patch.object(
             clients, "OpenStackClients")
@@ -70,28 +75,32 @@ class TestWorkloadStabilization(TestBaseStrategy):
             config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
         self.strategy.input_parameters.update(
-            {'metrics': ["cpu_util", "memory.resident"],
-             'thresholds': {"cpu_util": 0.2, "memory.resident": 0.2},
-             'weights': {"cpu_util_weight": 1.0,
-                         "memory.resident_weight": 1.0},
+            {'metrics': ["instance_cpu_usage", "instance_ram_usage"],
+             'thresholds': {"instance_cpu_usage": 0.2,
+                            "instance_ram_usage": 0.2},
+             'weights': {"instance_cpu_usage_weight": 1.0,
+                         "instance_ram_usage_weight": 1.0},
              'instance_metrics':
-                 {"cpu_util": "compute.node.cpu.percent",
-                  "memory.resident": "hardware.memory.used"},
+                 {"instance_cpu_usage": "host_cpu_usage",
+                  "instance_ram_usage": "host_ram_usage"},
              'host_choice': 'retry',
              'retry_count': 1,
-             'periods': {"instance": 720, "node": 600},
-             'aggregation_method': {"instance": "mean", "node": "mean"}})
-        self.strategy.metrics = ["cpu_util", "memory.resident"]
-        self.strategy.thresholds = {"cpu_util": 0.2, "memory.resident": 0.2}
-        self.strategy.weights = {"cpu_util_weight": 1.0,
-                                 "memory.resident_weight": 1.0}
+             'periods': {"instance": 720, "compute_node": 600},
+             'aggregation_method': {"instance": "mean",
+                                    "compute_node": "mean"}})
+        self.strategy.metrics = ["instance_cpu_usage", "instance_ram_usage"]
+        self.strategy.thresholds = {"instance_cpu_usage": 0.2,
+                                    "instance_ram_usage": 0.2}
+        self.strategy.weights = {"instance_cpu_usage_weight": 1.0,
+                                 "instance_ram_usage_weight": 1.0}
         self.strategy.instance_metrics = {
-            "cpu_util": "compute.node.cpu.percent",
-            "memory.resident": "hardware.memory.used"}
+            "instance_cpu_usage": "host_cpu_usage",
+            "instance_ram_usage": "host_ram_usage"}
         self.strategy.host_choice = 'retry'
         self.strategy.retry_count = 1
-        self.strategy.periods = {"instance": 720, "node": 600}
-        self.strategy.aggregation_method = {"instance": "mean", "node": "mean"}
+        self.strategy.periods = {"instance": 720, "compute_node": 600}
+        self.strategy.aggregation_method = {"instance": "mean",
+                                            "compute_node": "mean"}
 
     def test_get_instance_load(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -99,7 +108,7 @@ class TestWorkloadStabilization(TestBaseStrategy):
         instance0 = model.get_instance_by_uuid("INSTANCE_0")
         instance_0_dict = {
             'uuid': 'INSTANCE_0', 'vcpus': 10,
-            'cpu_util': 0.07, 'memory.resident': 2}
+            'instance_cpu_usage': 0.07, 'instance_ram_usage': 2}
         self.assertEqual(
             instance_0_dict, self.strategy.get_instance_load(instance0))
 
@@ -112,14 +121,16 @@ class TestWorkloadStabilization(TestBaseStrategy):
 
     def test_normalize_hosts_load(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        fake_hosts = {'Node_0': {'cpu_util': 0.07, 'memory.resident': 7},
-                      'Node_1': {'cpu_util': 0.05, 'memory.resident': 5}}
+        fake_hosts = {'Node_0': {'instance_cpu_usage': 0.07,
+                                 'instance_ram_usage': 7},
+                      'Node_1': {'instance_cpu_usage': 0.05,
+                                 'instance_ram_usage': 5}}
         normalized_hosts = {'Node_0':
-                            {'cpu_util': 0.07,
-                             'memory.resident': 0.05303030303030303},
+                            {'instance_cpu_usage': 0.07,
+                             'instance_ram_usage': 0.05303030303030303},
                             'Node_1':
-                            {'cpu_util': 0.05,
-                             'memory.resident': 0.03787878787878788}}
+                            {'instance_cpu_usage': 0.05,
+                             'instance_ram_usage': 0.03787878787878788}}
         self.assertEqual(
             normalized_hosts,
             self.strategy.normalize_hosts_load(fake_hosts))
@@ -147,11 +158,11 @@ class TestWorkloadStabilization(TestBaseStrategy):
         test_ram_sd = 9.3
         self.assertEqual(
             round(self.strategy.get_sd(
-                self.hosts_load_assert, 'cpu_util'), 3),
+                self.hosts_load_assert, 'instance_cpu_usage'), 3),
             test_cpu_sd)
         self.assertEqual(
             round(self.strategy.get_sd(
-                self.hosts_load_assert, 'memory.resident'), 1),
+                self.hosts_load_assert, 'instance_ram_usage'), 1),
             test_ram_sd)
 
     def test_calculate_weighted_sd(self):
@@ -167,8 +178,9 @@ class TestWorkloadStabilization(TestBaseStrategy):
         result = self.strategy.calculate_migration_case(
             self.hosts_load_assert, instance,
             src_node, dst_node)[-1][dst_node.uuid]
-        result['cpu_util'] = round(result['cpu_util'], 3)
-        self.assertEqual(result, {'cpu_util': 0.095, 'memory.resident': 21.0,
+        result['instance_cpu_usage'] = round(result['instance_cpu_usage'], 3)
+        self.assertEqual(result, {'instance_cpu_usage': 0.095,
+                                  'instance_ram_usage': 21.0,
                                   'vcpus': 40})
 
     def test_simulate_migrations(self):
@@ -191,13 +203,15 @@ class TestWorkloadStabilization(TestBaseStrategy):
 
     def test_check_threshold(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
+        self.strategy.thresholds = {'instance_cpu_usage': 0.001,
+                                    'instance_ram_usage': 0.2}
         self.strategy.simulate_migrations = mock.Mock(return_value=True)
         self.assertTrue(self.strategy.check_threshold())
 
     def test_execute_one_migration(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        self.strategy.thresholds = {'cpu_util': 0.001, 'memory.resident': 0.2}
+        self.strategy.thresholds = {'instance_cpu_usage': 0.001,
+                                    'instance_ram_usage': 0.2}
         self.strategy.simulate_migrations = mock.Mock(
             return_value=[
                 {'instance': 'INSTANCE_4', 's_host': 'Node_2',
@@ -210,8 +224,8 @@ class TestWorkloadStabilization(TestBaseStrategy):
 
     def test_execute_multiply_migrations(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        self.strategy.thresholds = {'cpu_util': 0.00001,
-                                    'memory.resident': 0.0001}
+        self.strategy.thresholds = {'instance_cpu_usage': 0.00001,
+                                    'instance_ram_usage': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(
             return_value=[
                 {'instance': 'INSTANCE_4', 's_host': 'Node_2',
@@ -225,8 +239,8 @@ class TestWorkloadStabilization(TestBaseStrategy):
 
     def test_execute_nothing_to_migrate(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        self.strategy.thresholds = {'cpu_util': 0.042,
-                                    'memory.resident': 0.0001}
+        self.strategy.thresholds = {'instance_cpu_usage': 0.042,
+                                    'instance_ram_usage': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(return_value=False)
         self.strategy.instance_migrations_count = 0
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:

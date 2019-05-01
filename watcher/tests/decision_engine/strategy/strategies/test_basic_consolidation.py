@@ -62,7 +62,7 @@ class TestBasicConsolidation(TestBaseStrategy):
         self.addCleanup(p_datasource.stop)
 
         self.m_datasource.return_value = mock.Mock(
-            get_host_cpu_usage=self.fake_metrics.get_usage_node_cpu,
+            get_host_cpu_usage=self.fake_metrics.get_usage_compute_node_cpu,
             get_instance_cpu_usage=self.fake_metrics.
             get_average_usage_instance_cpu
         )
@@ -75,7 +75,7 @@ class TestBasicConsolidation(TestBaseStrategy):
         size_cluster_assert = 5
         self.assertEqual(size_cluster_assert, size_cluster)
 
-    def test_basic_consolidation_score_node(self):
+    def test_basic_consolidation_score_comute_node(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_1_score = 0.023333333333333317
@@ -96,7 +96,6 @@ class TestBasicConsolidation(TestBaseStrategy):
         self.assertEqual(
             instance_0_score,
             self.strategy.calculate_score_instance(instance_0))
-
         instance_1 = model.get_instance_by_uuid("INSTANCE_1")
         instance_1_score = 0.023333333333333317
         self.assertEqual(
@@ -236,69 +235,3 @@ class TestBasicConsolidation(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
-
-    """def test_periods(self):
-        model = self.fake_c_cluster.generate_scenario_1()
-        self.m_c_model.return_value = model
-        node_1 = model.get_node_by_uuid("Node_1")
-        p_ceilometer = mock.patch.object(
-            strategies.BasicConsolidation, "ceilometer")
-        m_ceilometer = p_ceilometer.start()
-        self.addCleanup(p_ceilometer.stop)
-        p_monasca = mock.patch.object(strategies.BasicConsolidation, "monasca")
-        m_monasca = p_monasca.start()
-        self.addCleanup(p_monasca.stop)
-        p_gnocchi = mock.patch.object(strategies.BasicConsolidation, "gnocchi")
-        m_gnocchi = p_gnocchi.start()
-        self.addCleanup(p_gnocchi.stop)
-        datetime_patcher = mock.patch.object(
-            datetime, 'datetime',
-            mock.Mock(wraps=datetime.datetime)
-        )
-        mocked_datetime = datetime_patcher.start()
-        mocked_datetime.utcnow.return_value = datetime.datetime(
-            2017, 3, 19, 18, 53, 11, 657417)
-        self.addCleanup(datetime_patcher.stop)
-        m_monasca.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        m_ceilometer.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        m_gnocchi.return_value = mock.Mock(
-            statistic_aggregation=self.fake_metrics.mock_get_statistics)
-        self.strategy.calculate_score_node(node_1)
-        resource_id = "%s_%s" % (node_1.uuid, node_1.hostname)
-        if self.strategy.config.datasource == "ceilometer":
-            m_ceilometer.statistic_aggregation.assert_called_with(
-                aggregate='avg', meter_name='compute.node.cpu.percent',
-                period=7200, resource_id=resource_id)
-        elif self.strategy.config.datasource == "monasca":
-            m_monasca.statistic_aggregation.assert_called_with(
-                aggregate='avg', meter_name='cpu.percent',
-                period=7200, dimensions={'hostname': 'Node_1'})
-        elif self.strategy.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int('7200'))
-            m_gnocchi.statistic_aggregation.assert_called_with(
-                resource_id=resource_id, metric='compute.node.cpu.percent',
-                granularity=300, start_time=start_time, stop_time=stop_time,
-                aggregation='mean')
-
-        self.strategy.input_parameters.update({"period": 600})
-        self.strategy.calculate_score_node(node_1)
-        if self.strategy.config.datasource == "ceilometer":
-            m_ceilometer.statistic_aggregation.assert_called_with(
-                aggregate='avg', meter_name='compute.node.cpu.percent',
-                period=600, resource_id=resource_id)
-        elif self.strategy.config.datasource == "monasca":
-            m_monasca.statistic_aggregation.assert_called_with(
-                aggregate='avg', meter_name='cpu.percent',
-                period=600, dimensions={'hostname': 'Node_1'})
-        elif self.strategy.config.datasource == "gnocchi":
-            stop_time = datetime.datetime.utcnow()
-            start_time = stop_time - datetime.timedelta(
-                seconds=int('600'))
-            m_gnocchi.statistic_aggregation.assert_called_with(
-                resource_id=resource_id, metric='compute.node.cpu.percent',
-                granularity=300, start_time=start_time, stop_time=stop_time,
-                aggregation='mean')"""

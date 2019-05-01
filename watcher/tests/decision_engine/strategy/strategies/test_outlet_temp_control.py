@@ -73,8 +73,8 @@ class TestOutletTempControl(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
         self.m_c_model.return_value = model
         n1, n2 = self.strategy.group_hosts_by_outlet_temp()
-        self.assertEqual('Node_1', n1[0]['node'].uuid)
-        self.assertEqual('Node_0', n2[0]['node'].uuid)
+        self.assertEqual('Node_1', n1[0]['compute_node'].uuid)
+        self.assertEqual('Node_0', n2[0]['compute_node'].uuid)
 
     def test_choose_instance_to_migrate(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
@@ -92,7 +92,7 @@ class TestOutletTempControl(TestBaseStrategy):
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
         dest_hosts = self.strategy.filter_dest_servers(n2, instance_to_mig[1])
         self.assertEqual(1, len(dest_hosts))
-        self.assertEqual('Node_0', dest_hosts[0]['node'].uuid)
+        self.assertEqual('Node_0', dest_hosts[0]['compute_node'].uuid)
 
     def test_execute_no_workload(self):
         model = self.fake_c_cluster.\

@@ -65,36 +65,17 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     an active compute node to any other active compute node.
     """
 
-    HOST_CPU_USAGE_METRIC_NAME = 'compute.node.cpu.percent'
-    INSTANCE_CPU_USAGE_METRIC_NAME = 'cpu_util'
-    AGGREGATION = 'mean'
-
+    AGGREGATE = 'mean'
     DATASOURCE_METRICS = ['instance_ram_allocated', 'instance_cpu_usage',
                           'instance_ram_usage', 'instance_root_disk_size']
-
-    METRIC_NAMES = dict(
-        ceilometer=dict(
-            cpu_util_metric='cpu_util',
-            ram_util_metric='memory.resident',
-            ram_alloc_metric='memory',
-            disk_alloc_metric='disk.root.size'),
-        gnocchi=dict(
-            cpu_util_metric='cpu_util',
-            ram_util_metric='memory.resident',
-            ram_alloc_metric='memory',
-            disk_alloc_metric='disk.root.size'),
-    )
 
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
     def __init__(self, config, osc=None):
         super(VMWorkloadConsolidation, self).__init__(config, osc)
-        self._ceilometer = None
-        self._gnocchi = None
         self.number_of_migrations = 0
         self.number_of_released_nodes = 0
-        # self.ceilometer_instance_data_cache = dict()
         self.datasource_instance_data_cache = dict()
 
     @classmethod
@@ -272,28 +253,20 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             return self.datasource_instance_data_cache.get(instance.uuid)
 
         instance_cpu_util = self.datasource_backend.get_instance_cpu_usage(
-            instance.uuid,
-            self.period,
-            self.AGGREGATION,
-            granularity=self.granularity)
+            resource=instance, period=self.period,
+            aggregate=self.AGGREGATE, granularity=self.granularity)
         instance_ram_util = self.datasource_backend.get_instance_ram_usage(
-            instance.uuid,
-            self.period,
-            self.AGGREGATION,
-            granularity=self.granularity)
+            resource=instance, period=self.period,
+            aggregate=self.AGGREGATE, granularity=self.granularity)
         if not instance_ram_util:
             instance_ram_util = (
                 self.datasource_backend.get_instance_ram_allocated(
-                    instance.uuid,
-                    self.period,
-                    self.AGGREGATION,
-                    granularity=self.granularity))
+                    resource=instance, period=self.period,
+                    aggregate=self.AGGREGATE, granularity=self.granularity))
         instance_disk_util = (
             self.datasource_backend.get_instance_root_disk_size(
-                instance.uuid,
-                self.period,
-                self.AGGREGATION,
-                granularity=self.granularity))
+                resource=instance, period=self.period,
+                aggregate=self.AGGREGATE, granularity=self.granularity))
 
         if instance_cpu_util:
             total_cpu_utilization = (

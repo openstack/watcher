@@ -29,16 +29,16 @@ class MonascaHelper(base.DataSourceBase):
 
     NAME = 'monasca'
     METRIC_MAP = dict(host_cpu_usage='cpu.percent',
-                      instance_cpu_usage='vm.cpu.utilization_perc',
-                      instance_l3_cache_usage=None,
+                      host_ram_usage=None,
                       host_outlet_temp=None,
-                      host_airflow=None,
                       host_inlet_temp=None,
+                      host_airflow=None,
                       host_power=None,
+                      instance_cpu_usage='vm.cpu.utilization_perc',
                       instance_ram_usage=None,
                       instance_ram_allocated=None,
+                      instance_l3_cache_usage=None,
                       instance_root_disk_size=None,
-                      host_memory_usage=None,
                       )
 
     def __init__(self, osc=None):
@@ -89,63 +89,27 @@ class MonascaHelper(base.DataSourceBase):
         # monasca API.
         pass
 
-    def statistics_list(self, meter_name, dimensions, start_time=None,
-                        end_time=None, period=None,):
-        """List of statistics."""
-        start_timestamp, end_timestamp, period = self._format_time_params(
-            start_time, end_time, period
-        )
-        raw_kwargs = dict(
-            name=meter_name,
-            start_time=start_timestamp,
-            end_time=end_timestamp,
-            dimensions=dimensions,
-        )
-
-        kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
-
-        statistics = self.query_retry(
-            f=self.monasca.metrics.list_measurements, **kwargs)
-
-        return statistics
-
-    def statistic_aggregation(self, resource_id=None, meter_name=None,
-                              period=300, granularity=300, dimensions=None,
-                              aggregation='avg', group_by='*'):
-        """Representing a statistic aggregate by operators
-
-        :param resource_id: id of resource to list statistics for.
-                            This param isn't used in Monasca datasource.
-        :param meter_name: meter names of which we want the statistics.
-        :param period: Sampling `period`: In seconds. If no period is given,
-                       only one aggregate statistic is returned. If given, a
-                       faceted result will be returned, divided into given
-                       periods. Periods with no data are ignored.
-        :param granularity: frequency of marking metric point, in seconds.
-                            This param isn't used in Ceilometer datasource.
-        :param dimensions: dimensions (dict).
-        :param aggregation: Should be either 'avg', 'count', 'min' or 'max'.
-        :param group_by: list of columns to group the metrics to be returned.
-        :return: A list of dict with each dict being a distinct result row
-        """
-
-        if dimensions is None:
-            raise exception.UnsupportedDataSource(datasource='Monasca')
-
+    def statistic_aggregation(self, resource=None, resource_type=None,
+                              meter_name=None, period=300, aggregate='mean',
+                              granularity=300):
         stop_time = datetime.datetime.utcnow()
         start_time = stop_time - datetime.timedelta(seconds=(int(period)))
 
-        if aggregation == 'mean':
-            aggregation = 'avg'
+        meter = self.METRIC_MAP.get(meter_name)
+        if meter is None:
+            raise exception.NoSuchMetric()
+
+        if aggregate == 'mean':
+            aggregate = 'avg'
 
         raw_kwargs = dict(
-            name=meter_name,
+            name=meter,
             start_time=start_time.isoformat(),
             end_time=stop_time.isoformat(),
-            dimensions=dimensions,
+            dimensions={'hostname': resource.uuid},
             period=period,
-            statistics=aggregation,
-            group_by=group_by,
+            statistics=aggregate,
+            group_by='*',
         )
 
         kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
@@ -155,67 +119,58 @@ class MonascaHelper(base.DataSourceBase):
 
         cpu_usage = None
         for stat in statistics:
-            avg_col_idx = stat['columns'].index(aggregation)
+            avg_col_idx = stat['columns'].index(aggregate)
             values = [r[avg_col_idx] for r in stat['statistics']]
             value = float(sum(values)) / len(values)
             cpu_usage = value
 
         return cpu_usage
 
-    def get_host_cpu_usage(self, resource_id, period, aggregate,
-                           granularity=None):
-        metric_name = self.METRIC_MAP.get('host_cpu_usage')
-        node_uuid = resource_id.split('_')[0]
+    def get_host_cpu_usage(self, resource, period,
+                           aggregate, granularity=None):
         return self.statistic_aggregation(
-            meter_name=metric_name,
-            dimensions=dict(hostname=node_uuid),
-            period=period,
-            aggregation=aggregate
-        )
+            resource, 'compute_node', 'host_cpu_usage', period, aggregate,
+            granularity)
 
-    def get_instance_cpu_usage(self, resource_id, period, aggregate,
-                               granularity=None):
-        metric_name = self.METRIC_MAP.get('instance_cpu_usage')
+    def get_host_ram_usage(self, resource, period,
+                           aggregate, granularity=None):
+        raise NotImplementedError
+
+    def get_host_outlet_temp(self, resource, period,
+                             aggregate, granularity=None):
+        raise NotImplementedError
+
+    def get_host_inlet_temp(self, resource, period,
+                            aggregate, granularity=None):
+        raise NotImplementedError
+
+    def get_host_airflow(self, resource, period,
+                         aggregate, granularity=None):
+        raise NotImplementedError
+
+    def get_host_power(self, resource, period,
+                       aggregate, granularity=None):
+        raise NotImplementedError
+
+    def get_instance_cpu_usage(self, resource, period,
+                               aggregate, granularity=None):
 
         return self.statistic_aggregation(
-            meter_name=metric_name,
-            dimensions=dict(resource_id=resource_id),
-            period=period,
-            aggregation=aggregate
-        )
+            resource, 'instance', 'instance_cpu_usage', period, aggregate,
+            granularity)
 
-    def get_host_memory_usage(self, resource_id, period, aggregate,
-                              granularity=None):
+    def get_instance_ram_usage(self, resource, period,
+                               aggregate, granularity=None):
         raise NotImplementedError
 
-    def get_instance_ram_usage(self, resource_id, period, aggregate,
-                               granularity=None):
+    def get_instance_ram_allocated(self, resource, period,
+                                   aggregate, granularity=None):
         raise NotImplementedError
 
-    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
-                                    granularity=None):
+    def get_instance_l3_cache_usage(self, resource, period,
+                                    aggregate, granularity=None):
         raise NotImplementedError
 
-    def get_instance_ram_allocated(self, resource_id, period, aggregate,
-                                   granularity=None):
-        raise NotImplementedError
-
-    def get_instance_root_disk_size(self, resource_id, period, aggregate,
-                                    granularity=None):
-        raise NotImplementedError
-
-    def get_host_outlet_temp(self, resource_id, period, aggregate,
-                             granularity=None):
-        raise NotImplementedError
-
-    def get_host_inlet_temp(self, resource_id, period, aggregate,
-                            granularity=None):
-        raise NotImplementedError
-
-    def get_host_airflow(self, resource_id, period, aggregate,
-                         granularity=None):
-        raise NotImplementedError
-
-    def get_host_power(self, resource_id, period, aggregate,
-                       granularity=None):
+    def get_instance_root_disk_size(self, resource, period,
+                                    aggregate, granularity=None):
         raise NotImplementedError

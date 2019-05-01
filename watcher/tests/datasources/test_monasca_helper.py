@@ -56,13 +56,12 @@ class TestMonascaHelper(base.BaseTestCase):
 
         helper = monasca_helper.MonascaHelper()
         result = helper.statistic_aggregation(
-            resource_id=None,
-            meter_name='cpu.percent',
+            resource=mock.Mock(id='NODE_UUID'),
+            resource_type='compute_node',
+            meter_name='host_cpu_usage',
             period=7200,
             granularity=300,
-            dimensions={'hostname': 'NODE_UUID'},
-            aggregation='avg',
-            group_by='*',
+            aggregate='mean',
         )
         self.assertEqual(0.6, result)
 
@@ -81,55 +80,14 @@ class TestMonascaHelper(base.BaseTestCase):
         helper = monasca_helper.MonascaHelper()
         self.assertEqual('not available', helper.check_availability())
 
-    def test_monasca_statistic_list(self, mock_monasca):
-        monasca = mock.MagicMock()
-        expected_result = [{
-            'columns': ['timestamp', 'value', 'value_meta'],
-            'dimensions': {
-                'hostname': 'rdev-indeedsrv001',
-                'service': 'monasca'},
-            'id': '0',
-            'measurements': [
-                ['2016-07-29T12:54:06.000Z', 0.9, {}],
-                ['2016-07-29T12:54:36.000Z', 0.9, {}],
-                ['2016-07-29T12:55:06.000Z', 0.9, {}],
-                ['2016-07-29T12:55:36.000Z', 0.8, {}]],
-            'name': 'cpu.percent'}]
-
-        monasca.metrics.list_measurements.return_value = expected_result
-        mock_monasca.return_value = monasca
-        helper = monasca_helper.MonascaHelper()
-        val = helper.statistics_list(meter_name="cpu.percent", dimensions={})
-        self.assertEqual(expected_result, val)
-
-    def test_monasca_statistic_list_query_retry(self, mock_monasca):
-        monasca = mock.MagicMock()
-        expected_result = [{
-            'columns': ['timestamp', 'value', 'value_meta'],
-            'dimensions': {
-                'hostname': 'rdev-indeedsrv001',
-                'service': 'monasca'},
-            'id': '0',
-            'measurements': [
-                ['2016-07-29T12:54:06.000Z', 0.9, {}],
-                ['2016-07-29T12:54:36.000Z', 0.9, {}],
-                ['2016-07-29T12:55:06.000Z', 0.9, {}],
-                ['2016-07-29T12:55:36.000Z', 0.8, {}]],
-            'name': 'cpu.percent'}]
-
-        monasca.metrics.list_measurements.side_effect = [expected_result]
-        mock_monasca.return_value = monasca
-        helper = monasca_helper.MonascaHelper()
-        val = helper.statistics_list(meter_name="cpu.percent", dimensions={})
-        self.assertEqual(expected_result, val)
-
     def test_get_host_cpu_usage(self, mock_monasca):
-        node = "compute1_compute1"
         self.mock_aggregation.return_value = 0.6
+        node = mock.Mock(id='compute1')
         cpu_usage = self.helper.get_host_cpu_usage(node, 600, 'mean')
         self.assertEqual(0.6, cpu_usage)
 
     def test_get_instance_cpu_usage(self, mock_monasca):
         self.mock_aggregation.return_value = 0.6
-        cpu_usage = self.helper.get_instance_cpu_usage('vm1', 600, 'mean')
+        node = mock.Mock(id='vm1')
+        cpu_usage = self.helper.get_instance_cpu_usage(node, 600, 'mean')
         self.assertEqual(0.6, cpu_usage)
