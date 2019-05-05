@@ -98,7 +98,8 @@ def get_test_audit(**kwargs):
         'next_run_time': kwargs.get('next_run_time'),
         'hostname': kwargs.get('hostname', 'host_1'),
         'start_time': kwargs.get('start_time'),
-        'end_time': kwargs.get('end_time')
+        'end_time': kwargs.get('end_time'),
+        'force': kwargs.get('force', False)
 
     }
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
