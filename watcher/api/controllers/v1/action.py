@@ -117,9 +117,9 @@ class Action(base.APIBase):
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action"""
 
-    action_plan_uuid = wsme.wsproperty(types.uuid, _get_action_plan_uuid,
-                                       _set_action_plan_uuid,
-                                       mandatory=True)
+    action_plan_uuid = wtypes.wsproperty(types.uuid, _get_action_plan_uuid,
+                                         _set_action_plan_uuid,
+                                         mandatory=True)
     """The action plan this action belongs to """
 
     state = wtypes.text
@@ -137,7 +137,7 @@ class Action(base.APIBase):
     parents = wtypes.wsattr(types.jsontype, readonly=True)
     """UUIDs of parent actions"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
 
     def __init__(self, **kwargs):

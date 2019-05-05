@@ -95,7 +95,7 @@ class ActionPlanPatchType(types.JsonPatchType):
     @staticmethod
     def _validate_state(patch):
         serialized_patch = {'path': patch.path, 'op': patch.op}
-        if patch.value is not wsme.Unset:
+        if patch.value is not wtypes.Unset:
             serialized_patch['value'] = patch.value
         # todo: use state machines to handle state transitions
         state_value = patch.value
@@ -214,19 +214,20 @@ class ActionPlan(base.APIBase):
     uuid = wtypes.wsattr(types.uuid, readonly=True)
     """Unique UUID for this action plan"""
 
-    audit_uuid = wsme.wsproperty(types.uuid, _get_audit_uuid, _set_audit_uuid,
-                                 mandatory=True)
+    audit_uuid = wtypes.wsproperty(types.uuid, _get_audit_uuid,
+                                   _set_audit_uuid,
+                                   mandatory=True)
     """The UUID of the audit this port belongs to"""
 
-    strategy_uuid = wsme.wsproperty(
+    strategy_uuid = wtypes.wsproperty(
         wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
     """Strategy UUID the action plan refers to"""
 
-    strategy_name = wsme.wsproperty(
+    strategy_name = wtypes.wsproperty(
         wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
     """The name of the strategy this action plan refers to"""
 
-    efficacy_indicators = wsme.wsproperty(
+    efficacy_indicators = wtypes.wsproperty(
         types.jsontype, _get_efficacy_indicators, _set_efficacy_indicators,
         mandatory=True)
     """The list of efficacy indicators associated to this action plan"""
@@ -237,10 +238,10 @@ class ActionPlan(base.APIBase):
     state = wtypes.text
     """This action plan state"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
 
-    hostname = wsme.wsattr(wtypes.text, mandatory=False)
+    hostname = wtypes.wsattr(wtypes.text, mandatory=False)
     """Hostname the actionplan is running on"""
 
     def __init__(self, **kwargs):

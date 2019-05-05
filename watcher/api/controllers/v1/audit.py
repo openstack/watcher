@@ -71,8 +71,8 @@ def hide_fields_in_newer_versions(obj):
     matches or exceeds the versions when these fields were introduced.
     """
     if not api_utils.allow_start_end_audit_time():
-        obj.start_time = wsme.Unset
-        obj.end_time = wsme.Unset
+        obj.start_time = wtypes.Unset
+        obj.end_time = wtypes.Unset
 
 
 class AuditPostType(wtypes.Base):
@@ -87,12 +87,12 @@ class AuditPostType(wtypes.Base):
 
     audit_type = wtypes.wsattr(wtypes.text, mandatory=True)
 
-    state = wsme.wsattr(wtypes.text, readonly=True,
-                        default=objects.audit.State.PENDING)
+    state = wtypes.wsattr(wtypes.text, readonly=True,
+                          default=objects.audit.State.PENDING)
 
     parameters = wtypes.wsattr({wtypes.text: types.jsontype}, mandatory=False,
                                default={})
-    interval = wsme.wsattr(types.interval_or_cron, mandatory=False)
+    interval = wtypes.wsattr(types.interval_or_cron, mandatory=False)
 
     scope = wtypes.wsattr(types.jsontype, readonly=True)
 
@@ -100,9 +100,9 @@ class AuditPostType(wtypes.Base):
 
     hostname = wtypes.wsattr(wtypes.text, readonly=True, mandatory=False)
 
-    start_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    start_time = wtypes.wsattr(datetime.datetime, mandatory=False)
 
-    end_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    end_time = wtypes.wsattr(datetime.datetime, mandatory=False)
 
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
@@ -130,7 +130,7 @@ class AuditPostType(wtypes.Base):
 
         if not api_utils.allow_start_end_audit_time():
             for field in ('start_time', 'end_time'):
-                if getattr(self, field) not in (wsme.Unset, None):
+                if getattr(self, field) not in (wtypes.Unset, None):
                     raise exception.NotAcceptable()
 
         # If audit_template_uuid was provided, we will provide any
@@ -316,47 +316,47 @@ class Audit(base.APIBase):
     state = wtypes.text
     """This audit state"""
 
-    goal_uuid = wsme.wsproperty(
+    goal_uuid = wtypes.wsproperty(
         wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
     """Goal UUID the audit refers to"""
 
-    goal_name = wsme.wsproperty(
+    goal_name = wtypes.wsproperty(
         wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
     """The name of the goal this audit refers to"""
 
-    strategy_uuid = wsme.wsproperty(
+    strategy_uuid = wtypes.wsproperty(
         wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
     """Strategy UUID the audit refers to"""
 
-    strategy_name = wsme.wsproperty(
+    strategy_name = wtypes.wsproperty(
         wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
     """The name of the strategy this audit refers to"""
 
     parameters = {wtypes.text: types.jsontype}
     """The strategy parameters for this audit"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit links"""
 
-    interval = wsme.wsattr(wtypes.text, mandatory=False)
+    interval = wtypes.wsattr(wtypes.text, mandatory=False)
     """Launch audit periodically (in seconds)"""
 
-    scope = wsme.wsattr(types.jsontype, mandatory=False)
+    scope = wtypes.wsattr(types.jsontype, mandatory=False)
     """Audit Scope"""
 
-    auto_trigger = wsme.wsattr(bool, mandatory=False, default=False)
+    auto_trigger = wtypes.wsattr(bool, mandatory=False, default=False)
     """Autoexecute action plan once audit is succeeded"""
 
-    next_run_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    next_run_time = wtypes.wsattr(datetime.datetime, mandatory=False)
     """The next time audit launch"""
 
-    hostname = wsme.wsattr(wtypes.text, mandatory=False)
+    hostname = wtypes.wsattr(wtypes.text, mandatory=False)
     """Hostname the audit is running on"""
 
-    start_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    start_time = wtypes.wsattr(datetime.datetime, mandatory=False)
     """The start time for continuous audit launch"""
 
-    end_time = wsme.wsattr(datetime.datetime, mandatory=False)
+    end_time = wtypes.wsattr(datetime.datetime, mandatory=False)
     """The end time that stopping continuous audit"""
 
     def __init__(self, **kwargs):
