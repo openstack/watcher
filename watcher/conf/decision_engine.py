@@ -55,8 +55,20 @@ WATCHER_DECISION_ENGINE_OPTS = [
     cfg.IntOpt('check_periodic_interval',
                default=30 * 60,
                mutable=True,
-               help='Interval (in seconds) for checking action plan expiry.')
-]
+               help='Interval (in seconds) for checking action plan expiry.'),
+    cfg.StrOpt('metric_map_path',
+               default='/etc/watcher/metric_map.yaml',
+               help='Path to metric map yaml formatted file. '
+                    ' '
+                    'The file contains a map per datasource whose keys '
+                    'are the metric names as recognized by watcher and the '
+                    'value is the real name of the metric in the datasource. '
+                    'For example:: \n\n'
+                    '  monasca:\n'
+                    '    instance_cpu_usage: VM_CPU\n'
+                    '  gnocchi:\n'
+                    '    instance_cpu_usage: cpu_vm_util\n\n'
+                    'This file is optional.')]
 
 WATCHER_CONTINUOUS_OPTS = [
     cfg.IntOpt('continuous_audit_interval',

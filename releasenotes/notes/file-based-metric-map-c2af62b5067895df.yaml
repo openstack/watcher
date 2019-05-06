@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Allow using file to override metric map. Override the metric map of
+    each datasource as soon as it is created by the manager. This override
+    comes from a file whose path is provided by a setting in config file.
+    The setting is `watcher_decision_engine/metric_map_path`.  The file
+    contains a map per datasource whose keys are the metric names as
+    recognized by watcher and the value is the real name of the metric
+    in the datasource. This setting defaults to `/etc/watcher/metric_map.yaml`,
+    and presence of this file is optional.
