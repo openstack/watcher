@@ -109,11 +109,8 @@ class VolumeMigrate(base.BaseAction):
         }
 
     def validate_parameters(self):
-        try:
-            jsonschema.validate(self.input_parameters, self.schema)
-            return True
-        except jsonschema.ValidationError as e:
-            raise e
+        jsonschema.validate(self.input_parameters, self.schema)
+        return True
 
     @property
     def volume_id(self):
