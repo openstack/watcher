@@ -131,6 +131,8 @@ class BaseStrategy(loadable.Loadable):
 
     DATASOURCE_METRICS = []
 
+    MIGRATION = "migrate"
+
     def __init__(self, config, osc=None):
         """Constructor: the signature should be identical within the subclasses
 
@@ -420,6 +422,18 @@ class BaseStrategy(loadable.Loadable):
             if optimize:
                 instances_to_migrate.append(instance)
         return instances_to_migrate
+
+    def add_action_migrate(self,
+                           instance,
+                           migration_type,
+                           source_node,
+                           destination_node):
+        parameters = {'migration_type': migration_type,
+                      'source_node': source_node.uuid,
+                      'destination_node': destination_node.uuid}
+        self.solution.add_action(action_type=self.MIGRATION,
+                                 resource_id=instance.uuid,
+                                 input_parameters=parameters)
 
 
 @six.add_metaclass(abc.ABCMeta)

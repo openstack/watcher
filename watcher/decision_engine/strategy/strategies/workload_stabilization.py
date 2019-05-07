@@ -58,7 +58,6 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     It assumes that live migrations are possible in your cluster.
     """
 
-    MIGRATION = "migrate"
     MEMOIZE = _set_memoize(CONF)
 
     DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage',
@@ -474,26 +473,14 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 self.sd_before_audit = metric_sd
                 return self.simulate_migrations(hosts_load)
 
-    def add_migration(self,
-                      resource_id,
-                      migration_type,
-                      source_node,
-                      destination_node):
-        parameters = {'migration_type': migration_type,
-                      'source_node': source_node,
-                      'destination_node': destination_node}
-        self.solution.add_action(action_type=self.MIGRATION,
-                                 resource_id=resource_id,
-                                 input_parameters=parameters)
-
     def create_migration_instance(self, mig_instance, mig_source_node,
                                   mig_destination_node):
         """Create migration VM"""
         if self.compute_model.migrate_instance(
                 mig_instance, mig_source_node, mig_destination_node):
-            self.add_migration(mig_instance.uuid, 'live',
-                               mig_source_node.uuid,
-                               mig_destination_node.uuid)
+            self.add_action_migrate(mig_instance, 'live',
+                                    mig_source_node,
+                                    mig_destination_node)
             self.instance_migrations_count += 1
 
     def migrate(self, instance_uuid, src_host, dst_host):

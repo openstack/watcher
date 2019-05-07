@@ -65,7 +65,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             instance_cpu_usage='cpu_util'),
     )
 
-    MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
     def __init__(self, config, osc=None):
@@ -341,18 +340,6 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                                  resource_id=resource_id,
                                  input_parameters=parameters)
 
-    def add_migration(self,
-                      resource_id,
-                      migration_type,
-                      source_node,
-                      destination_node):
-        parameters = {'migration_type': migration_type,
-                      'source_node': source_node,
-                      'destination_node': destination_node}
-        self.solution.add_action(action_type=self.MIGRATION,
-                                 resource_id=resource_id,
-                                 input_parameters=parameters)
-
     def compute_score_of_nodes(self):
         """Calculate score of nodes based on load by VMs"""
         score = []
@@ -387,9 +374,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         """Create migration VM"""
         if self.compute_model.migrate_instance(
                 mig_instance, mig_source_node, mig_destination_node):
-            self.add_migration(mig_instance.uuid, 'live',
-                               mig_source_node.uuid,
-                               mig_destination_node.uuid)
+            self.add_action_migrate(mig_instance, 'live',
+                                    mig_source_node,
+                                    mig_destination_node)
 
         if len(self.compute_model.get_node_instances(mig_source_node)) == 0:
             self.add_action_disable_node(mig_source_node.uuid)
