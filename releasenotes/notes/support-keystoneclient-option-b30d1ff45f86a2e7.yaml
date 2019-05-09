@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Add keystone_client Group for user to configure 'interface' and 'region_name'
+    by watcher.conf. The default value of 'interface' is 'admin'.
