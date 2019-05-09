@@ -950,6 +950,39 @@ class TestPost(api_base.FunctionalTest):
         self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_force_false(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit(
+            params_to_exclude=['uuid', 'state', 'interval', 'scope',
+                               'next_run_time', 'hostname', 'goal'])
+
+        response = self.post_json(
+            '/audits',
+            audit_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertFalse(response.json['force'])
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_force_true(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit(
+            params_to_exclude=['uuid', 'state', 'interval', 'scope',
+                               'next_run_time', 'hostname', 'goal'])
+
+        audit_dict['force'] = True
+        response = self.post_json(
+            '/audits',
+            audit_dict,
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        self.assertTrue(response.json['force'])
+
 
 class TestDelete(api_base.FunctionalTest):
 

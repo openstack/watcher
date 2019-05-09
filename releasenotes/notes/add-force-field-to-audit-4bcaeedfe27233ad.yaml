@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add force field to Audit. User can set --force to enable the new option when
+    launching audit. If force is True, audit will be executed despite of ongoing
+    actionplan. The new audit may create a wrong actionplan if they use the same
+    data model.

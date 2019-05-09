@@ -121,7 +121,10 @@ class AuditHandler(BaseAuditHandler):
 
     def pre_execute(self, audit, request_context):
         LOG.debug("Trigger audit %s", audit.uuid)
-        self.check_ongoing_action_plans(request_context)
+        # If audit.force is true, audit will be executed
+        # despite of ongoing actionplan
+        if not audit.force:
+            self.check_ongoing_action_plans(request_context)
         # Write hostname that will execute this audit.
         audit.hostname = CONF.host
         # change state of the audit to ONGOING
