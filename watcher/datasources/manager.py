@@ -87,12 +87,30 @@ class DataSourceManager(object):
         self._gnocchi = gnocchi
 
     def get_backend(self, metrics):
+        """Determine the datasource to use from the configuration
+
+        Iterates over the configured datasources in order to find the first
+        which can support all specified metrics. Upon a missing metric the next
+        datasource is attempted.
+        """
+
+        if not self.datasources or len(self.datasources) is 0:
+            raise exception.NoDatasourceAvailable
+
+        if not metrics or len(metrics) is 0:
+            LOG.critical("Can not retrieve datasource without specifying"
+                         "list of required metrics.")
+            raise exception.InvalidParameter(parameter='metrics',
+                                             parameter_type='none empty list')
+
         for datasource in self.datasources:
             no_metric = False
             for metric in metrics:
                 if (metric not in self.metric_map[datasource] or
                    self.metric_map[datasource].get(metric) is None):
                         no_metric = True
+                        LOG.warning("Datasource: {0} could not be used due to"
+                                    "metric: {1}".format(datasource, metric))
                         break
             if not no_metric:
                 # Try to use a specific datasource but attempt additional
@@ -103,7 +121,7 @@ class DataSourceManager(object):
                     return ds
                 except Exception:
                     pass
-        raise exception.NoSuchMetric()
+        raise exception.MetricNotAvailable(metric=metric)
 
     def load_metric_map(self, file_path):
         """Load metrics from the metric_map_path"""

@@ -354,10 +354,6 @@ class IllegalArgumentException(WatcherException):
     msg_fmt = _('Illegal argument')
 
 
-class NoSuchMetric(WatcherException):
-    msg_fmt = _('No such metric')
-
-
 class AuthorizationFailure(WatcherException):
     msg_fmt = _('%(client)s connection failed. Reason: %(reason)s')
 
@@ -395,6 +391,20 @@ class UnsupportedDataSource(UnsupportedError):
 
 class DataSourceNotAvailable(WatcherException):
     msg_fmt = _("Datasource %(datasource)s is not available.")
+
+
+class MetricNotAvailable(WatcherException):
+    """Indicate that a metric is not configured or does not exists"""
+    msg_fmt = _('Metric: %(metric)s not available')
+
+
+class NoDatasourceAvailable(WatcherException):
+    """No datasources have been configured"""
+    msg_fmt = _('No datasources available')
+
+
+class NoSuchMetricForHost(WatcherException):
+    msg_fmt = _("No %(metric)s metric for %(host)s found.")
 
 
 class ServiceAlreadyExists(Conflict):
