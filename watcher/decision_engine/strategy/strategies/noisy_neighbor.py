@@ -94,19 +94,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
             },
         }
 
-    @classmethod
-    def get_config_opts(cls):
-        return [
-            cfg.ListOpt(
-                "datasources",
-                help="Datasources to use in order to query the needed metrics."
-                     " If one of strategy metric isn't available in the first"
-                     " datasource, the next datasource will be chosen.",
-                item_type=cfg.types.String(choices=['gnocchi', 'ceilometer',
-                                                    'monasca']),
-                default=['gnocchi', 'ceilometer', 'monasca'])
-        ]
-
     def get_current_and_previous_cache(self, instance):
         try:
             curr_cache = self.datasource_backend.get_instance_l3_cache_usage(

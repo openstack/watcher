@@ -80,6 +80,12 @@ class Actuator(base.UnclassifiedStrategy):
             ]
         }
 
+    @classmethod
+    def get_config_opts(cls):
+        """Override base class config options as do not use datasource """
+
+        return []
+
     @property
     def actions(self):
         return self.input_parameters.get('actions', [])

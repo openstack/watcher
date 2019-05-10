@@ -26,16 +26,15 @@ import functools
 import sys
 
 from keystoneclient import exceptions as keystone_exceptions
+from oslo_config import cfg
 from oslo_log import log
 import six
 
 from watcher._i18n import _
 
-from watcher import conf
-
 LOG = log.getLogger(__name__)
 
-CONF = conf.CONF
+CONF = cfg.CONF
 
 
 def wrap_keystone_exception(func):

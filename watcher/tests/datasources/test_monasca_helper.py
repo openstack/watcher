@@ -18,7 +18,7 @@ import mock
 from oslo_config import cfg
 
 from watcher.common import clients
-from watcher.datasource import monasca as monasca_helper
+from watcher.datasources import monasca as monasca_helper
 from watcher.tests import base
 
 CONF = cfg.CONF

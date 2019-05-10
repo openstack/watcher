@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Watcher now supports configuring which datasource to use and in which
+    order. This configuration is done by specifying datasources in the
+    watcher_datasources section:
+
+    - ``[watcher_datasources] datasources = gnocchi,monasca,ceilometer``
+
+    Specific strategies can override this order and use datasources which
+    are not listed in the global preference.

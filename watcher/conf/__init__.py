@@ -25,6 +25,7 @@ from watcher.conf import ceilometer_client
 from watcher.conf import cinder_client
 from watcher.conf import clients_auth
 from watcher.conf import collector
+from watcher.conf import datasources
 from watcher.conf import db
 from watcher.conf import decision_engine
 from watcher.conf import exception
@@ -44,6 +45,7 @@ service.register_opts(CONF)
 api.register_opts(CONF)
 paths.register_opts(CONF)
 exception.register_opts(CONF)
+datasources.register_opts(CONF)
 db.register_opts(CONF)
 planner.register_opts(CONF)
 applier.register_opts(CONF)

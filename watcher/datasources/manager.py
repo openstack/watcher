@@ -13,13 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import OrderedDict
+
 from watcher.common import exception
-from watcher.datasource import ceilometer as ceil
-from watcher.datasource import gnocchi as gnoc
-from watcher.datasource import monasca as mon
+from watcher.datasources import ceilometer as ceil
+from watcher.datasources import gnocchi as gnoc
+from watcher.datasources import monasca as mon
 
 
 class DataSourceManager(object):
+
+    metric_map = OrderedDict([
+        (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
+        (ceil.CeilometerHelper.NAME, ceil.CeilometerHelper.METRIC_MAP),
+        (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
+    ])
+    """Dictionary with all possible datasources, dictionary order is the default
+    order for attempting to use datasources
+    """
 
     def __init__(self, config=None, osc=None):
         self.osc = osc
@@ -27,11 +38,6 @@ class DataSourceManager(object):
         self._ceilometer = None
         self._monasca = None
         self._gnocchi = None
-        self.metric_map = {
-            mon.MonascaHelper.NAME: mon.MonascaHelper.METRIC_MAP,
-            gnoc.GnocchiHelper.NAME: gnoc.GnocchiHelper.METRIC_MAP,
-            ceil.CeilometerHelper.NAME: ceil.CeilometerHelper.METRIC_MAP
-        }
         self.datasources = self.config.datasources
 
     @property
@@ -73,5 +79,10 @@ class DataSourceManager(object):
                         no_metric = True
                         break
             if not no_metric:
-                return getattr(self, datasource)
+                # Try to use a specific datasource but attempt additional
+                # datasources upon exceptions (if config has more datasources)
+                try:
+                    return getattr(self, datasource)
+                except Exception:
+                    pass
         raise exception.NoSuchMetric()

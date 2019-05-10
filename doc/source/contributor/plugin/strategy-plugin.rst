@@ -285,8 +285,15 @@ The following code snippet shows how datasource_backend is defined:
     @property
     def datasource_backend(self):
         if not self._datasource_backend:
+
+            # Load the global preferred datasources order but override it
+            # if the strategy has a specific datasources config
+            datasources = CONF.watcher_datasources
+            if self.config.datasources:
+                datasources = self.config
+
             self._datasource_backend = ds_manager.DataSourceManager(
-                config=self.config,
+                config=datasources,
                 osc=self.osc
             ).get_backend(self.DATASOURCE_METRICS)
         return self._datasource_backend
