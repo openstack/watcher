@@ -30,28 +30,24 @@
 - job:
     name: watcher-tempest-dummy_optim
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim
 
 - job:
     name: watcher-tempest-actuator
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_actuator
 
 - job:
     name: watcher-tempest-basic_optim
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_basic_optim
 
 - job:
     name: watcher-tempest-vm_workload_consolidation
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation
       devstack_local_conf:
@@ -63,28 +59,24 @@
 - job:
     name: watcher-tempest-workload_balancing
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing
 
 - job:
     name: watcher-tempest-zone_migration
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
 
 - job:
     name: watcher-tempest-host_maintenance
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance
 
 - job:
     name: watcher-tempest-storage_balance
     parent: watcher-tempest-multinode
-    voting: false
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_storage_balance
       devstack_local_conf:
@@ -221,7 +213,6 @@
     # This job is used in python-watcherclient repo
     name: watcherclient-tempest-functional
     parent: watcher-tempest-functional
-    voting: false
     timeout: 4200
     vars:
       tempest_concurrency: 1
