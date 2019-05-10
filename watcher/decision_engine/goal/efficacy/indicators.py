@@ -59,7 +59,7 @@ class IndicatorSpecification(object):
             jsonschema.validate(value, cls.schema)
         except (SchemaError, ValidationError) as exc:
             LOG.exception(exc)
-            raise exc
+            raise
         except Exception as exc:
             LOG.exception(exc)
             raise exception.InvalidIndicatorValue(
