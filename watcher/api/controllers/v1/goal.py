@@ -34,7 +34,6 @@ Here are some examples of :ref:`Goals <goal_definition>`:
 
 import pecan
 from pecan import rest
-import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -77,7 +76,7 @@ class Goal(base.APIBase):
     efficacy_specification = wtypes.wsattr(types.jsontype, readonly=True)
     """Efficacy specification for this goal"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit template links"""
 
     def __init__(self, **kwargs):

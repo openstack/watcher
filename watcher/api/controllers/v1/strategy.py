@@ -29,7 +29,6 @@ to find an optimal :ref:`Solution <solution_definition>`.
 
 import pecan
 from pecan import rest
-import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -109,15 +108,15 @@ class Strategy(base.APIBase):
     display_name = wtypes.text
     """Localized name of the strategy"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated goal links"""
 
-    goal_uuid = wsme.wsproperty(wtypes.text, _get_goal_uuid, _set_goal_uuid,
-                                mandatory=True)
+    goal_uuid = wtypes.wsproperty(wtypes.text, _get_goal_uuid, _set_goal_uuid,
+                                  mandatory=True)
     """The UUID of the goal this audit refers to"""
 
-    goal_name = wsme.wsproperty(wtypes.text, _get_goal_name, _set_goal_name,
-                                mandatory=False)
+    goal_name = wtypes.wsproperty(wtypes.text, _get_goal_name, _set_goal_name,
+                                  mandatory=False)
     """The name of the goal this audit refers to"""
 
     parameters_spec = {wtypes.text: types.jsontype}

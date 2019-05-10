@@ -29,7 +29,6 @@ be needed by the user of a given scoring engine.
 
 import pecan
 from pecan import rest
-import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -73,7 +72,7 @@ class ScoringEngine(base.APIBase):
     metainfo = wtypes.text
     """A metadata associated with the scoring engine"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
 
     def __init__(self, **kwargs):

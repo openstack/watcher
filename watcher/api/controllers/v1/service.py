@@ -26,7 +26,6 @@ from oslo_log import log
 from oslo_utils import timeutils
 import pecan
 from pecan import rest
-import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
@@ -93,7 +92,7 @@ class Service(base.APIBase):
         else:
             self._status = objects.service.ServiceStatus.ACTIVE
 
-    id = wsme.wsattr(int, readonly=True)
+    id = wtypes.wsattr(int, readonly=True)
     """ID for this service."""
 
     name = wtypes.text
@@ -102,13 +101,13 @@ class Service(base.APIBase):
     host = wtypes.text
     """Host where service is placed on."""
 
-    last_seen_up = wsme.wsattr(datetime.datetime, readonly=True)
+    last_seen_up = wtypes.wsattr(datetime.datetime, readonly=True)
     """Time when Watcher service sent latest heartbeat."""
 
-    status = wsme.wsproperty(wtypes.text, _get_status, _set_status,
-                             mandatory=True)
+    status = wtypes.wsproperty(wtypes.text, _get_status, _set_status,
+                               mandatory=True)
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link."""
 
     def __init__(self, **kwargs):

@@ -342,29 +342,29 @@ class AuditTemplate(base.APIBase):
     description = wtypes.wsattr(wtypes.text, mandatory=False)
     """Short description of this audit template"""
 
-    goal_uuid = wsme.wsproperty(
+    goal_uuid = wtypes.wsproperty(
         wtypes.text, _get_goal_uuid, _set_goal_uuid, mandatory=True)
     """Goal UUID the audit template refers to"""
 
-    goal_name = wsme.wsproperty(
+    goal_name = wtypes.wsproperty(
         wtypes.text, _get_goal_name, _set_goal_name, mandatory=False)
     """The name of the goal this audit template refers to"""
 
-    strategy_uuid = wsme.wsproperty(
+    strategy_uuid = wtypes.wsproperty(
         wtypes.text, _get_strategy_uuid, _set_strategy_uuid, mandatory=False)
     """Strategy UUID the audit template refers to"""
 
-    strategy_name = wsme.wsproperty(
+    strategy_name = wtypes.wsproperty(
         wtypes.text, _get_strategy_name, _set_strategy_name, mandatory=False)
     """The name of the strategy this audit template refers to"""
 
-    audits = wsme.wsattr([link.Link], readonly=True)
+    audits = wtypes.wsattr([link.Link], readonly=True)
     """Links to the collection of audits contained in this audit template"""
 
-    links = wsme.wsattr([link.Link], readonly=True)
+    links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated audit template links"""
 
-    scope = wsme.wsattr(types.jsontype, mandatory=False)
+    scope = wtypes.wsattr(types.jsontype, mandatory=False)
     """Audit Scope"""
 
     def __init__(self, **kwargs):
