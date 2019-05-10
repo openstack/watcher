@@ -1,5 +1,6 @@
 {
     "auto_trigger": false,
+    "force": false,
     "audit_template_uuid": "76fddfee-a9c4-40b0-8da0-c19ad6904f09",
     "name": "test_audit",
     "parameters": {
