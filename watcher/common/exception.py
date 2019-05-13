@@ -235,11 +235,6 @@ class AuditTemplateAlreadyExists(Conflict):
                 "already exists")
 
 
-class AuditTemplateReferenced(Invalid):
-    msg_fmt = _("AuditTemplate %(audit_template)s is referenced by one or "
-                "multiple audits")
-
-
 class AuditTypeNotFound(Invalid):
     msg_fmt = _("Audit type %(audit_type)s could not be found")
 
@@ -363,20 +358,8 @@ class NoSuchMetric(WatcherException):
     msg_fmt = _('No such metric')
 
 
-class NoDataFound(WatcherException):
-    msg_fmt = _('No rows were returned')
-
-
 class AuthorizationFailure(WatcherException):
     msg_fmt = _('%(client)s connection failed. Reason: %(reason)s')
-
-
-class KeystoneFailure(WatcherException):
-    msg_fmt = _("Keystone API endpoint is missing")
-
-
-class MetricCollectorNotDefined(WatcherException):
-    msg_fmt = _("The metrics resource collector is not defined")
 
 
 class ClusterStateStale(WatcherException):
@@ -389,10 +372,6 @@ class ClusterDataModelCollectionError(WatcherException):
 
 class ClusterStateNotDefined(WatcherException):
     msg_fmt = _("The cluster state is not defined")
-
-
-class CapacityNotDefined(WatcherException):
-    msg_fmt = _("The capacity %(capacity)s is not defined for '%(resource)s'")
 
 
 class NoAvailableStrategyForGoal(WatcherException):
@@ -409,10 +388,6 @@ class GlobalEfficacyComputationError(WatcherException):
                 "goal using the '%(strategy)s' strategy.")
 
 
-class NoMetricValuesForInstance(WatcherException):
-    msg_fmt = _("No values returned by %(resource_id)s for %(metric_name)s.")
-
-
 class UnsupportedDataSource(UnsupportedError):
     msg_fmt = _("Datasource %(datasource)s is not supported "
                 "by strategy %(strategy)s")
@@ -420,10 +395,6 @@ class UnsupportedDataSource(UnsupportedError):
 
 class DataSourceNotAvailable(WatcherException):
     msg_fmt = _("Datasource %(datasource)s is not available.")
-
-
-class NoSuchMetricForHost(WatcherException):
-    msg_fmt = _("No %(metric)s metric for %(host)s found.")
 
 
 class ServiceAlreadyExists(Conflict):
