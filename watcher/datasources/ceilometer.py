@@ -18,7 +18,6 @@
 
 import datetime
 
-from ceilometerclient import exc
 from oslo_log import log
 from oslo_utils import timeutils
 
@@ -29,6 +28,13 @@ from watcher.datasources import base
 
 
 LOG = log.getLogger(__name__)
+
+
+try:
+    from ceilometerclient import exc
+    HAS_CEILCLIENT = True
+except ImportError:
+    HAS_CEILCLIENT = False
 
 
 class CeilometerHelper(base.DataSourceBase):
