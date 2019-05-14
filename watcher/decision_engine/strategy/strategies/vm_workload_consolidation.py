@@ -239,12 +239,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         if self.compute_model.migrate_instance(
                 instance, source_node, destination_node):
-            params = {'migration_type': migration_type,
-                      'source_node': source_node.uuid,
-                      'destination_node': destination_node.uuid}
-            self.solution.add_action(action_type=self.MIGRATION,
-                                     resource_id=instance.uuid,
-                                     input_parameters=params)
+            self.add_action_migrate(
+                instance,
+                migration_type,
+                source_node,
+                destination_node)
             self.number_of_migrations += 1
 
     def disable_unused_nodes(self):
