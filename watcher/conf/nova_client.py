@@ -18,13 +18,24 @@
 
 from oslo_config import cfg
 
+from watcher.common import clients
+
 nova_client = cfg.OptGroup(name='nova_client',
                            title='Configuration Options for Nova')
 
 NOVA_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2.56',
-               help='Version of Nova API to use in novaclient.'),
+               help="""
+Version of Nova API to use in novaclient.
+
+Minimum required version: %s
+
+Certain Watcher features depend on a minimum version of the compute
+API being available which is enforced with this option. See
+https://docs.openstack.org/nova/latest/reference/api-microversion-history.html
+for the compute API microversion history.
+""" % clients.MIN_NOVA_API_VERSION),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
                help='Type of endpoint to use in novaclient. '

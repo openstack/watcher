@@ -20,6 +20,7 @@ from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
 from monascaclient import client as monclient
 from neutronclient.neutron import client as netclient
+from novaclient import api_versions as nova_api_versions
 from novaclient import client as nvclient
 
 from watcher.common import exception
@@ -33,6 +34,26 @@ except ImportError:
 CONF = cfg.CONF
 
 _CLIENTS_AUTH_GROUP = 'watcher_clients_auth'
+
+# NOTE(mriedem): This is the minimum required version of the nova API for
+# watcher features to work. If new features are added which require new
+# versions, they should perform version discovery and be backward compatible
+# for at least one release before raising the minimum required version.
+MIN_NOVA_API_VERSION = '2.56'
+
+
+def check_min_nova_api_version(config_version):
+    """Validates the minimum required nova API version.
+
+    :param config_version: The configured [nova_client]/api_version value
+    :raises: ValueError if the configured version is less than the required
+        minimum
+    """
+    min_required = nova_api_versions.APIVersion(MIN_NOVA_API_VERSION)
+    if nova_api_versions.APIVersion(config_version) < min_required:
+        raise ValueError('Invalid nova_client.api_version %s. %s or '
+                         'greater is required.' % (config_version,
+                                                   MIN_NOVA_API_VERSION))
 
 
 class OpenStackClients(object):
@@ -87,6 +108,9 @@ class OpenStackClients(object):
             return self._nova
 
         novaclient_version = self._get_client_option('nova', 'api_version')
+
+        check_min_nova_api_version(novaclient_version)
+
         nova_endpoint_type = self._get_client_option('nova', 'endpoint_type')
         nova_region_name = self._get_client_option('nova', 'region_name')
         self._nova = nvclient.Client(novaclient_version,
