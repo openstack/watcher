@@ -55,7 +55,7 @@ plugin installation guide`_.
 
      $ watcher ...
 
-.. _`installation guide`: https://docs.openstack.org/python-watcherclient/latest
+.. _`installation guide`: https://docs.openstack.org/watcher/latest/install/
 .. _`Watcher Horizon plugin installation guide`: https://docs.openstack.org/watcher-dashboard/latest/install/installation.html
 .. _`OpenStack CLI`: https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
 .. _`Watcher CLI`: https://docs.openstack.org/python-watcherclient/latest/cli/index.html
