@@ -25,3 +25,8 @@ was requested.
 Added the parameters ``start_time`` and ``end_time`` to
 create audit request. Supported for start and end time of continuous
 audits.
+
+1.2
+---
+Added ``force`` into create audit request. If ``force`` is true,
+audit will be executed despite of ongoing actionplan.
