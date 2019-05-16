@@ -941,7 +941,7 @@ class TestPost(api_base.FunctionalTest):
         response = self.post_json(
             '/audits',
             audit_dict,
-            headers={'X-OpenStack-Watcher-API-Version': '1.0'},
+            headers={'OpenStack-API-Version': 'infra-optim 1.0'},
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(406, response.status_int)
