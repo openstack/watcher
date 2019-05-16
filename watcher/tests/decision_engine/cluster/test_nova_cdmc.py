@@ -43,23 +43,30 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             state='up',
             disabled_reason='',
         )
-
-        fake_compute_node = mock.Mock(
+        minimal_node = dict(
             id=1337,
+            hypervisor_hostname='test_hostname',
+            state='TEST_STATE',
+            status='TEST_STATUS',
+        )
+        minimal_node_with_servers = dict(
+            servers=[
+                {'name': 'fake_instance',
+                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
+            ],
+            **minimal_node
+        )
+        fake_compute_node = mock.Mock(
             service={'id': 123, 'host': 'test_hostname',
                      'disabled_reason': ''},
-            hypervisor_hostname='test_hostname',
             memory_mb=333,
             free_disk_gb=222,
             local_gb=111,
             vcpus=4,
-            state='TEST_STATE',
-            status='TEST_STATUS',
-            servers=[
-                {'name': 'fake_instance',
-                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
-                ]
+            servers=None,  # Don't let the mock return a value for servers.
+            **minimal_node
         )
+        fake_compute_node_with_servers = mock.Mock(**minimal_node_with_servers)
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
             human_id='fake_instance',
@@ -68,12 +75,14 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
-        setattr(fake_instance, 'OS-EXT-SRV-ATTR:host', 'test_hostname')
+        # Returns the hypervisors with details (service) but no servers.
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
+        # Returns the hypervisor with servers but no details (service).
         m_nova_helper.get_compute_node_by_name.return_value = [
-            fake_compute_node]
+            fake_compute_node_with_servers]
+        # Returns the hypervisor with details (service) but no servers.
         m_nova_helper.get_compute_node_by_id.return_value = fake_compute_node
-        m_nova_helper.find_instance.return_value = fake_instance
+        m_nova_helper.get_instance_list.return_value = [fake_instance]
 
         m_config = mock.Mock()
         m_osc = mock.Mock()
@@ -95,3 +104,6 @@ class TestNovaClusterDataModelCollector(base.TestCase):
 
         self.assertEqual(node.uuid, 'test_hostname')
         self.assertEqual(instance.uuid, 'ef500f7e-dac8-470f-960c-169486fce71b')
+
+        m_nova_helper.get_instance_list.assert_called_once_with(
+            {'host': fake_compute_node.service['host']})
