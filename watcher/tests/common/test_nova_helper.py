@@ -146,6 +146,22 @@ class TestNovaHelper(base.TestCase):
             nova_util.get_compute_node_by_hostname,
             hypervisor_name)
 
+    def test_get_instance_list(self, *args):
+        nova_util = nova_helper.NovaHelper()
+        # Call it once with no filters.
+        with mock.patch.object(nova_util, 'nova') as nova_mock:
+            result = nova_util.get_instance_list()
+            nova_mock.servers.list.assert_called_once_with(
+                search_opts={'all_tenants': True}, limit=-1)
+            self.assertIs(result, nova_mock.servers.list.return_value)
+        # Call it again with filters.
+        with mock.patch.object(nova_util, 'nova') as nova_mock:
+            result = nova_util.get_instance_list(filters={'host': 'fake-host'})
+            nova_mock.servers.list.assert_called_once_with(
+                search_opts={'all_tenants': True, 'host': 'fake-host'},
+                limit=-1)
+            self.assertIs(result, nova_mock.servers.list.return_value)
+
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_stop_instance(self, mock_glance, mock_cinder, mock_neutron,
                            mock_nova):
