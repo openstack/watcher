@@ -6,7 +6,6 @@ APScheduler==3.5.1
 asn1crypto==0.24.0
 automaton==1.14.0
 Babel==2.5.3
-bandit==1.4.0
 beautifulsoup4==4.6.0
 cachetools==2.0.1
 certifi==2018.1.18
