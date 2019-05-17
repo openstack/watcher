@@ -27,6 +27,16 @@ from watcher.tests import base
 @mock.patch.object(clients.OpenStackClients, 'ceilometer')
 class TestCeilometerHelper(base.BaseTestCase):
 
+    def setUp(self):
+        super(TestCeilometerHelper, self).setUp()
+        self.osc_mock = mock.Mock()
+        self.helper = ceilometer_helper.CeilometerHelper(osc=self.osc_mock)
+        stat_agg_patcher = mock.patch.object(
+            self.helper, 'statistic_aggregation',
+            spec=ceilometer_helper.CeilometerHelper.statistic_aggregation)
+        self.mock_aggregation = stat_agg_patcher.start()
+        self.addCleanup(stat_agg_patcher.stop)
+
     def test_build_query(self, mock_ceilometer):
         mock_ceilometer.return_value = mock.MagicMock()
         cm = ceilometer_helper.CeilometerHelper()
@@ -95,110 +105,71 @@ class TestCeilometerHelper(base.BaseTestCase):
         val = cm.statistic_list(meter_name="cpu_util")
         self.assertEqual(expected_value, val)
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_cpu_usage(self, mock_aggregation, mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_cpu_usage('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_cpu_usage'], 600, None,
-            aggregate='mean')
+    def test_get_host_cpu_usage(self, mock_ceilometer):
+        self.helper.get_host_cpu_usage('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_cpu_usage'], 600, None,
+            aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_instance_cpu_usage(self, mock_aggregation, mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_cpu_usage('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['instance_cpu_usage'], 600, None,
-            aggregate='mean')
+    def test_get_instance_cpu_usage(self, mock_ceilometer):
+        self.helper.get_instance_cpu_usage('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['instance_cpu_usage'], 600,
+            None, aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_memory_usage(self, mock_aggregation, mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_memory_usage('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_memory_usage'], 600, None,
-            aggregate='mean')
+    def test_get_host_memory_usage(self, mock_ceilometer):
+        self.helper.get_host_memory_usage('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_memory_usage'], 600, None,
+            aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_instance_memory_usage(self, mock_aggregation,
-                                       mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_ram_usage('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['instance_ram_usage'], 600, None,
-            aggregate='mean')
+    def test_get_instance_memory_usage(self, mock_ceilometer):
+        self.helper.get_instance_ram_usage('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['instance_ram_usage'], 600,
+            None, aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_instance_l3_cache_usage(self, mock_aggregation,
-                                         mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_l3_cache_usage('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['instance_l3_cache_usage'], 600,
-            None, aggregate='mean')
+    def test_get_instance_l3_cache_usage(self, mock_ceilometer):
+        self.helper.get_instance_l3_cache_usage('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['instance_l3_cache_usage'], 600,
+            None, aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_instance_ram_allocated(self, mock_aggregation,
-                                        mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_ram_allocated('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['instance_ram_allocated'], 600, None,
-            aggregate='mean')
+    def test_get_instance_ram_allocated(self, mock_ceilometer):
+        self.helper.get_instance_ram_allocated('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['instance_ram_allocated'], 600,
+            None, aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_instance_root_disk_allocated(self, mock_aggregation,
-                                              mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_instance_root_disk_size('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['instance_root_disk_size'], 600,
-            None, aggregate='mean')
+    def test_get_instance_root_disk_allocated(self, mock_ceilometer):
+        self.helper.get_instance_root_disk_size('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['instance_root_disk_size'], 600,
+            None, aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_outlet_temperature(self, mock_aggregation,
-                                         mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_outlet_temp('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_outlet_temp'], 600, None,
-            aggregate='mean')
+    def test_get_host_outlet_temperature(self, mock_ceilometer):
+        self.helper.get_host_outlet_temp('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_outlet_temp'], 600, None,
+            aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_inlet_temperature(self, mock_aggregation,
-                                        mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_inlet_temp('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_inlet_temp'], 600, None,
-            aggregate='mean')
+    def test_get_host_inlet_temperature(self, mock_ceilometer):
+        self.helper.get_host_inlet_temp('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_inlet_temp'], 600, None,
+            aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_airflow(self, mock_aggregation, mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_airflow('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_airflow'], 600, None,
-            aggregate='mean')
+    def test_get_host_airflow(self, mock_ceilometer):
+        self.helper.get_host_airflow('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_airflow'], 600, None,
+            aggregation='mean')
 
-    @mock.patch.object(ceilometer_helper.CeilometerHelper,
-                       'statistic_aggregation')
-    def test_get_host_power(self, mock_aggregation, mock_ceilometer):
-        helper = ceilometer_helper.CeilometerHelper()
-        helper.get_host_power('compute1', 600, 'mean')
-        mock_aggregation.assert_called_once_with(
-            'compute1', helper.METRIC_MAP['host_power'], 600, None,
-            aggregate='mean')
+    def test_get_host_power(self, mock_ceilometer):
+        self.helper.get_host_power('compute1', 600, 'mean')
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', self.helper.METRIC_MAP['host_power'], 600, None,
+            aggregation='mean')
 
     def test_check_availability(self, mock_ceilometer):
         ceilometer = mock.MagicMock()
