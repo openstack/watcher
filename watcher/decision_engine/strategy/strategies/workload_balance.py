@@ -67,8 +67,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
     DATASOURCE_METRICS = ['instance_cpu_usage', 'instance_ram_usage']
 
-    MIGRATION = "migrate"
-
     def __init__(self, config, osc=None):
         """Workload balance using live migration
 
@@ -346,12 +344,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         # generate solution to migrate the instance to the dest server,
         if self.compute_model.migrate_instance(
                 instance_src, source_node, mig_destination_node):
-            parameters = {'migration_type': 'live',
-                          'source_node': source_node.uuid,
-                          'destination_node': mig_destination_node.uuid}
-            self.solution.add_action(action_type=self.MIGRATION,
-                                     resource_id=instance_src.uuid,
-                                     input_parameters=parameters)
+            self.add_action_migrate(
+                instance_src,
+                'live',
+                source_node,
+                mig_destination_node)
             self.instance_migrations_count += 1
 
     def post_execute(self):

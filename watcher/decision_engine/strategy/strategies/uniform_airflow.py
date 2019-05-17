@@ -76,8 +76,6 @@ class UniformAirflow(base.BaseStrategy):
             host_power='hardware.ipmi.node.power'),
     )
 
-    MIGRATION = "migrate"
-
     def __init__(self, config, osc=None):
         """Using live migration
 
@@ -340,12 +338,11 @@ class UniformAirflow(base.BaseStrategy):
             destination_node = info['node']
             if self.compute_model.migrate_instance(
                     instance, source_node, destination_node):
-                parameters = {'migration_type': 'live',
-                              'source_node': source_node.uuid,
-                              'destination_node': destination_node.uuid}
-                self.solution.add_action(action_type=self.MIGRATION,
-                                         resource_id=instance.uuid,
-                                         input_parameters=parameters)
+                self.add_action_migrate(
+                    instance,
+                    'live',
+                    source_node,
+                    destination_node)
 
     def post_execute(self):
         self.solution.model = self.compute_model
