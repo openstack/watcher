@@ -232,64 +232,64 @@ class CeilometerHelper(base.DataSourceBase):
                            granularity=None):
         meter_name = self.METRIC_MAP.get('host_cpu_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_instance_cpu_usage(self, resource_id, period, aggregate,
                                granularity=None):
         meter_name = self.METRIC_MAP.get('instance_cpu_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_host_memory_usage(self, resource_id, period, aggregate,
                               granularity=None):
         meter_name = self.METRIC_MAP.get('host_memory_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_instance_ram_usage(self, resource_id, period, aggregate,
                                granularity=None):
         meter_name = self.METRIC_MAP.get('instance_ram_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
                                     granularity=None):
         meter_name = self.METRIC_MAP.get('instance_l3_cache_usage')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_instance_ram_allocated(self, resource_id, period, aggregate,
                                    granularity=None):
         meter_name = self.METRIC_MAP.get('instance_ram_allocated')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_instance_root_disk_size(self, resource_id, period, aggregate,
                                     granularity=None):
         meter_name = self.METRIC_MAP.get('instance_root_disk_size')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_host_outlet_temp(self, resource_id, period, aggregate,
                              granularity=None):
         meter_name = self.METRIC_MAP.get('host_outlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_host_inlet_temp(self, resource_id, period, aggregate,
                             granularity=None):
         meter_name = self.METRIC_MAP.get('host_inlet_temp')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_host_airflow(self, resource_id, period, aggregate,
                          granularity=None):
         meter_name = self.METRIC_MAP.get('host_airflow')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
 
     def get_host_power(self, resource_id, period, aggregate,
                        granularity=None):
         meter_name = self.METRIC_MAP.get('host_power')
         return self.statistic_aggregation(resource_id, meter_name, period,
-                                          granularity, aggregate=aggregate)
+                                          granularity, aggregation=aggregate)
