@@ -27,6 +27,16 @@ CONF = cfg.CONF
 @mock.patch.object(clients.OpenStackClients, 'monasca')
 class TestMonascaHelper(base.BaseTestCase):
 
+    def setUp(self):
+        super(TestMonascaHelper, self).setUp()
+        self.osc_mock = mock.Mock()
+        self.helper = monasca_helper.MonascaHelper(osc=self.osc_mock)
+        stat_agg_patcher = mock.patch.object(
+            self.helper, 'statistic_aggregation',
+            spec=monasca_helper.MonascaHelper.statistic_aggregation)
+        self.mock_aggregation = stat_agg_patcher.start()
+        self.addCleanup(stat_agg_patcher.stop)
+
     def test_monasca_statistic_aggregation(self, mock_monasca):
         monasca = mock.MagicMock()
         expected_stat = [{
@@ -113,17 +123,13 @@ class TestMonascaHelper(base.BaseTestCase):
         val = helper.statistics_list(meter_name="cpu.percent", dimensions={})
         self.assertEqual(expected_result, val)
 
-    @mock.patch.object(monasca_helper.MonascaHelper, 'statistic_aggregation')
-    def test_get_host_cpu_usage(self, mock_aggregation, mock_monasca):
+    def test_get_host_cpu_usage(self, mock_monasca):
         node = "compute1_compute1"
-        mock_aggregation.return_value = 0.6
-        helper = monasca_helper.MonascaHelper()
-        cpu_usage = helper.get_host_cpu_usage(node, 600, 'mean')
+        self.mock_aggregation.return_value = 0.6
+        cpu_usage = self.helper.get_host_cpu_usage(node, 600, 'mean')
         self.assertEqual(0.6, cpu_usage)
 
-    @mock.patch.object(monasca_helper.MonascaHelper, 'statistic_aggregation')
-    def test_get_instance_cpu_usage(self, mock_aggregation, mock_monasca):
-        mock_aggregation.return_value = 0.6
-        helper = monasca_helper.MonascaHelper()
-        cpu_usage = helper.get_instance_cpu_usage('vm1', 600, 'mean')
+    def test_get_instance_cpu_usage(self, mock_monasca):
+        self.mock_aggregation.return_value = 0.6
+        cpu_usage = self.helper.get_instance_cpu_usage('vm1', 600, 'mean')
         self.assertEqual(0.6, cpu_usage)
