@@ -282,7 +282,8 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 instance_src, mig_source_node, mig_destination_node):
             parameters = {'migration_type': 'live',
                           'source_node': mig_source_node.uuid,
-                          'destination_node': mig_destination_node.uuid}
+                          'destination_node': mig_destination_node.uuid,
+                          'resource_name': instance_src.name}
             self.solution.add_action(action_type=self.MIGRATION,
                                      resource_id=instance_src.uuid,
                                      input_parameters=parameters)

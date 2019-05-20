@@ -185,7 +185,8 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     def add_action_enable_compute_node(self, node):
         """Add an action for node enabler into the solution."""
-        params = {'state': element.ServiceState.ENABLED.value}
+        params = {'state': element.ServiceState.ENABLED.value,
+                  'resource_name': node.hostname}
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
@@ -194,7 +195,8 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
     def add_action_maintain_compute_node(self, node):
         """Add an action for node maintenance into the solution."""
         params = {'state': element.ServiceState.DISABLED.value,
-                  'disabled_reason': self.REASON_FOR_MAINTAINING}
+                  'disabled_reason': self.REASON_FOR_MAINTAINING,
+                  'resource_name': node.hostname}
         self.solution.add_action(
             action_type=self.CHANGE_NOVA_SERVICE_STATE,
             resource_id=node.uuid,
@@ -221,7 +223,8 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             migration_type = 'cold'
 
         params = {'migration_type': migration_type,
-                  'source_node': src_node.uuid}
+                  'source_node': src_node.uuid,
+                  'resource_name': instance.name}
         if des_node:
             params['destination_node'] = des_node.uuid
         self.solution.add_action(action_type=self.INSTANCE_MIGRATION,

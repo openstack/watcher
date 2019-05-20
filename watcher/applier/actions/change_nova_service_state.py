@@ -60,6 +60,10 @@ class ChangeNovaServiceState(base.BaseAction):
                     'type': 'string',
                     "minlength": 1
                 },
+                'resource_name': {
+                    'type': 'string',
+                    "minlength": 1
+                },
                 'state': {
                     'type': 'string',
                     'enum': [element.ServiceState.ONLINE.value,

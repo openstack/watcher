@@ -46,6 +46,7 @@ class Instance(compute_resource.ComputeResource):
         # If the resource is excluded by the scope,
         # 'watcher_exclude' property will be set True.
         "watcher_exclude": wfields.BooleanField(default=False),
+        "name": wfields.StringField(),
         "state": wfields.StringField(default=InstanceState.ACTIVE.value),
         "memory": wfields.NonNegativeIntegerField(),
         "disk": wfields.IntegerField(),

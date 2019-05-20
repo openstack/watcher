@@ -101,7 +101,8 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'change_nova_service_state',
                      'input_parameters': {
                          'state': 'enabled',
-                         'resource_id': 'Node_0'}}]
+                         'resource_id': 'Node_0',
+                         'resource_name': 'hostname_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_add_action_maintain_compute_node(self):
@@ -113,7 +114,8 @@ class TestHostMaintenance(TestBaseStrategy):
                      'input_parameters': {
                          'state': 'disabled',
                          'disabled_reason': 'watcher_maintaining',
-                         'resource_id': 'Node_0'}}]
+                         'resource_id': 'Node_0',
+                         'resource_name': 'hostname_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_migration(self):
@@ -128,7 +130,9 @@ class TestHostMaintenance(TestBaseStrategy):
                      'input_parameters': {'destination_node': node_1.uuid,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': instance_0.uuid}}]
+                                          'resource_id': instance_0.uuid,
+                                          'resource_name': instance_0.name
+                                          }}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_instance_migration_without_dest_node(self):
@@ -141,7 +145,9 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'source_node': node_0.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': instance_0.uuid}}]
+                                          'resource_id': instance_0.uuid,
+                                          'resource_name': instance_0.name
+                                          }}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_host_migration(self):
@@ -157,12 +163,16 @@ class TestHostMaintenance(TestBaseStrategy):
                      'input_parameters': {'destination_node': node_1.uuid,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': instance_0.uuid}},
+                                          'resource_id': instance_0.uuid,
+                                          'resource_name': instance_0.name
+                                          }},
                     {'action_type': 'migrate',
                      'input_parameters': {'destination_node': node_1.uuid,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': instance_1.uuid}}]
+                                          'resource_id': instance_1.uuid,
+                                          'resource_name': instance_1.name
+                                          }}]
         self.assertIn(expected[0], self.strategy.solution.actions)
         self.assertIn(expected[1], self.strategy.solution.actions)
 
@@ -209,10 +219,12 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'change_nova_service_state',
                      'input_parameters': {
                          'resource_id': 'Node_3',
+                         'resource_name': 'hostname_3',
                          'state': 'enabled'}},
                     {'action_type': 'change_nova_service_state',
                      'input_parameters': {
                          'resource_id': 'Node_2',
+                         'resource_name': 'hostname_2',
                          'state': 'disabled',
                          'disabled_reason': 'watcher_maintaining'}},
                     {'action_type': 'migrate',
@@ -220,7 +232,8 @@ class TestHostMaintenance(TestBaseStrategy):
                          'destination_node': node_3.uuid,
                          'source_node': node_2.uuid,
                          'migration_type': 'live',
-                         'resource_id': instance_4.uuid}}]
+                         'resource_id': instance_4.uuid,
+                         'resource_name': instance_4.name}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
         result = self.strategy.post_execute()

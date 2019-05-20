@@ -83,6 +83,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
+        setattr(fake_instance, 'name', 'fake_instance')
         # Returns the hypervisors with details (service) but no servers.
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
         # Returns the hypervisor with servers and details (service).

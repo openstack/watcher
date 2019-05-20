@@ -323,7 +323,8 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def add_action_disable_node(self, node):
         parameters = {'state': element.ServiceState.DISABLED.value,
-                      'disabled_reason': self.REASON_FOR_DISABLE}
+                      'disabled_reason': self.REASON_FOR_DISABLE,
+                      'resource_name': node.hostname}
         self.solution.add_action(action_type=self.CHANGE_NOVA_SERVICE_STATE,
                                  resource_id=node.uuid,
                                  input_parameters=parameters)

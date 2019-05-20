@@ -450,7 +450,8 @@ class BaseStrategy(loadable.Loadable):
                            destination_node):
         parameters = {'migration_type': migration_type,
                       'source_node': source_node.uuid,
-                      'destination_node': destination_node.uuid}
+                      'destination_node': destination_node.uuid,
+                      'resource_name': instance.name}
         self.solution.add_action(action_type=self.MIGRATION,
                                  resource_id=instance.uuid,
                                  input_parameters=parameters)
