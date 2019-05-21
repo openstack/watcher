@@ -13,12 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import yaml
+
 from collections import OrderedDict
+from oslo_config import cfg
+from oslo_log import log
 
 from watcher.common import exception
 from watcher.datasources import ceilometer as ceil
 from watcher.datasources import gnocchi as gnoc
 from watcher.datasources import monasca as mon
+
+LOG = log.getLogger(__name__)
 
 
 class DataSourceManager(object):
@@ -38,6 +45,15 @@ class DataSourceManager(object):
         self._ceilometer = None
         self._monasca = None
         self._gnocchi = None
+
+        metric_map_path = cfg.CONF.watcher_decision_engine.metric_map_path
+        metrics_from_file = self.load_metric_map(metric_map_path)
+        for ds, mp in self.metric_map.items():
+            try:
+                self.metric_map[ds].update(metrics_from_file.get(ds, {}))
+            except KeyError:
+                msgargs = (ds, self.metric_map.keys())
+                LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
         self.datasources = self.config.datasources
 
     @property
@@ -82,7 +98,23 @@ class DataSourceManager(object):
                 # Try to use a specific datasource but attempt additional
                 # datasources upon exceptions (if config has more datasources)
                 try:
-                    return getattr(self, datasource)
+                    ds = getattr(self, datasource)
+                    ds.METRIC_MAP.update(self.metric_map[ds.NAME])
+                    return ds
                 except Exception:
                     pass
         raise exception.NoSuchMetric()
+
+    def load_metric_map(self, file_path):
+        """Load metrics from the metric_map_path"""
+        if file_path and os.path.exists(file_path):
+            with open(file_path, 'r') as f:
+                try:
+                    ret = yaml.safe_load(f.read())
+                    # return {} if the file is empty
+                    return ret if ret else {}
+                except yaml.YAMLError as e:
+                    LOG.warning('Could not load %s: %s', file_path, e)
+                return {}
+        else:
+            return {}
