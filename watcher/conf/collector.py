@@ -23,7 +23,18 @@ collector = cfg.OptGroup(name='collector',
 COLLECTOR_OPTS = [
     cfg.ListOpt('collector_plugins',
                 default=['compute'],
-                help='The cluster data model plugin names'),
+                help="""
+The cluster data model plugin names.
+
+Supported in-tree collectors include:
+
+* ``compute`` - data model collector for nova
+* ``storage`` - data model collector for cinder
+* ``baremetal`` - data model collector for ironic
+
+Custom data model collector plugins can be defined with the
+``watcher_cluster_data_model_collectors`` extension point.
+"""),
 ]
 
 
