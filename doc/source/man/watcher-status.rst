@@ -78,6 +78,6 @@ Upgrade
 
   **History of Checks**
 
-  **1.12.0 (Stein)**
+  **2.0.0 (Stein)**
 
   * Sample check to be filled in with checks as they are added in Stein.
