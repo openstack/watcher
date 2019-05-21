@@ -27,6 +27,36 @@ out the `DevStack documentation`_ for more information regarding DevStack.
 .. _PluginModelDocs: https://docs.openstack.org/devstack/latest/plugins.html
 .. _DevStack documentation: https://docs.openstack.org/devstack/latest
 
+Quick Devstack Instructions with Datasources
+============================================
+
+Watcher requires a datasource to collect metrics from compute nodes and
+instances in order to execute most strategies. To enable this a
+`[[local|localrc]]` to setup DevStack for some of the supported datasources
+is provided. These examples specify the minimal configuration parameters to
+get both Watcher and the datasource working but can be expanded is desired.
+
+Gnocchi
+-------
+
+With the Gnocchi datasource most of the metrics for compute nodes and
+instances will work with the provided configuration but metrics that
+require Ironic such as `host_airflow and` `host_power` will still be
+unavailable as well as `instance_l3_cpu_cache`::
+
+        [[local|localrc]]
+        enable_plugin watcher https://opendev.org/openstack/watcher
+
+        enable_plugin ceilometer https://opendev.org/openstack/ceilometer.git
+        CEILOMETER_BACKEND=gnocchi
+
+        enable_plugin aodh https://opendev.org/openstack/aodh
+        enable_plugin panko https://opendev.org/openstack/panko
+
+        [[post-config|$NOVA_CONF]]
+        [DEFAULT]
+        compute_monitors=cpu.virt_driver
+
 Detailed DevStack Instructions
 ==============================
 
