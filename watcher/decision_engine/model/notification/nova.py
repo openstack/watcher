@@ -71,7 +71,12 @@ class NovaNotification(base.NotificationEndpoint):
         instance.update({
             'state': instance_data['state'],
             'hostname': instance_data['host_name'],
+            # TODO(chenker) human_id is deprecated for removal. For the reason,
+            # please reference bug 1833665.
             'human_id': instance_data['display_name'],
+            # this is the user-provided display name of the server which is not
+            # guaranteed to be unique nor is it immutable.
+            'name': instance_data['display_name'],
             'memory': memory_mb,
             'vcpus': num_cores,
             'disk': disk_gb,
