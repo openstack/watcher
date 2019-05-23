@@ -123,7 +123,6 @@ class TestNovaHelper(base.TestCase):
         hypervisor = self.fake_hypervisor(hypervisor_id, hypervisor_name)
         self.fake_nova_hypervisor_list(
             nova_util,
-            fake_find=hypervisor,
             fake_list=[hypervisor])
         nova_util.nova.hypervisors.search.return_value = [hypervisor]
         # verify that the compute node can be obtained normally by name

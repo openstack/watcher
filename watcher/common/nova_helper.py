@@ -27,7 +27,6 @@ import novaclient.exceptions as nvexceptions
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.common import utils
 from watcher import conf
 
 LOG = log.getLogger(__name__)
@@ -48,30 +47,37 @@ class NovaHelper(object):
     def get_compute_node_list(self):
         return self.nova.hypervisors.list()
 
-    def get_compute_node_by_id(self, node_id):
-        """Get compute node by ID (*not* UUID)"""
-        # We need to pass an object with an 'id' attribute to make it work
-        return self.nova.hypervisors.get(utils.Struct(id=node_id))
+    def get_compute_node_by_name(self, node_name, servers=False,
+                                 detailed=False):
+        """Search for a hypervisor (compute node) by hypervisor_hostname
 
-    def get_compute_node_by_name(self, node_name, servers=False):
-        return self.nova.hypervisors.search(node_name, servers)
+        :param node_name: The hypervisor_hostname to search
+        :param servers: If true, include information about servers per
+            hypervisor
+        :param detailed: If true, include information about the compute service
+            per hypervisor (requires microversion 2.53)
+        """
+        return self.nova.hypervisors.search(node_name, servers=servers,
+                                            detailed=detailed)
 
     def get_compute_node_by_hostname(self, node_hostname):
         """Get compute node by hostname"""
+        # TODO(mriedem): This method could be optimized if
+        # GET /os-hypervisors/detail had a host filter parameter.
         try:
             hypervisors = [hv for hv in self.get_compute_node_list()
                            if hv.service['host'] == node_hostname]
             if len(hypervisors) != 1:
                 # TODO(hidekazu)
-                # this may occur if VMware vCenter driver is used
+                # this may occur if ironic driver is used
                 raise exception.ComputeNodeNotFound(name=node_hostname)
             else:
-                compute_nodes = self.nova.hypervisors.search(
-                    hypervisors[0].hypervisor_hostname)
+                compute_nodes = self.get_compute_node_by_name(
+                    hypervisors[0].hypervisor_hostname, detailed=True)
                 if len(compute_nodes) != 1:
                     raise exception.ComputeNodeNotFound(name=node_hostname)
 
-                return self.get_compute_node_by_id(compute_nodes[0].id)
+                return compute_nodes[0]
         except Exception as exc:
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
