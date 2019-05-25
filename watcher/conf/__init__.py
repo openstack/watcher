@@ -32,6 +32,7 @@ from watcher.conf import exception
 from watcher.conf import glance_client
 from watcher.conf import gnocchi_client
 from watcher.conf import ironic_client
+from watcher.conf import keystone_client
 from watcher.conf import monasca_client
 from watcher.conf import neutron_client
 from watcher.conf import nova_client
@@ -54,6 +55,7 @@ monasca_client.register_opts(CONF)
 nova_client.register_opts(CONF)
 glance_client.register_opts(CONF)
 gnocchi_client.register_opts(CONF)
+keystone_client.register_opts(CONF)
 cinder_client.register_opts(CONF)
 ceilometer_client.register_opts(CONF)
 neutron_client.register_opts(CONF)

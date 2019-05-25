@@ -76,8 +76,16 @@ class OpenStackClients(object):
 
     @exception.wrap_keystone_exception
     def keystone(self):
-        if not self._keystone:
-            self._keystone = keyclient.Client(session=self.session)
+        if self._keystone:
+            return self._keystone
+        keystone_interface = self._get_client_option('keystone',
+                                                     'interface')
+        keystone_region_name = self._get_client_option('keystone',
+                                                       'region_name')
+        self._keystone = keyclient.Client(
+            interface=keystone_interface,
+            region_name=keystone_region_name,
+            session=self.session)
 
         return self._keystone
 
