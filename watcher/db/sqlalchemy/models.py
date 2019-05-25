@@ -186,6 +186,7 @@ class Audit(Base):
     hostname = Column(String(255), nullable=True)
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
+    force = Column(Boolean, nullable=False)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)

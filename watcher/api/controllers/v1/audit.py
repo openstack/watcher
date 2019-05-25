@@ -104,6 +104,8 @@ class AuditPostType(wtypes.Base):
 
     end_time = wtypes.wsattr(datetime.datetime, mandatory=False)
 
+    force = wtypes.wsattr(bool, mandatory=False)
+
     def as_audit(self, context):
         audit_type_values = [val.value for val in objects.audit.AuditType]
         if self.audit_type not in audit_type_values:
@@ -358,6 +360,10 @@ class Audit(base.APIBase):
 
     end_time = wtypes.wsattr(datetime.datetime, mandatory=False)
     """The end time that stopping continuous audit"""
+
+    force = wsme.wsattr(bool, mandatory=False, default=False)
+    """Allow Action Plan of this Audit be executed in parallel
+       with other Action Plan"""
 
     def __init__(self, **kwargs):
         self.fields = []
