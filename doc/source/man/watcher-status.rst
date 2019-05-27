@@ -81,3 +81,7 @@ Upgrade
   **2.0.0 (Stein)**
 
   * Sample check to be filled in with checks as they are added in Stein.
+
+  **3.0.0 (Train)**
+
+  * A check was added to enforce the minimum required version of nova API used.

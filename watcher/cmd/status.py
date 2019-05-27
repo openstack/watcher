@@ -15,8 +15,10 @@
 import sys
 
 from oslo_upgradecheck import upgradecheck
+import six
 
 from watcher._i18n import _
+from watcher.common import clients
 from watcher import conf
 
 CONF = conf.CONF
@@ -30,17 +32,18 @@ class Checks(upgradecheck.UpgradeCommands):
     and added to _upgrade_checks tuple.
     """
 
-    def _sample_check(self):
-        """This is sample check added to test the upgrade check framework
-
-        It needs to be removed after adding any real upgrade check
-        """
-        return upgradecheck.Result(upgradecheck.Code.SUCCESS, 'Sample detail')
+    def _minimum_nova_api_version(self):
+        """Checks the minimum required version of nova_client.api_version"""
+        try:
+            clients.check_min_nova_api_version(CONF.nova_client.api_version)
+        except ValueError as e:
+            return upgradecheck.Result(
+                upgradecheck.Code.FAILURE, six.text_type(e))
+        return upgradecheck.Result(upgradecheck.Code.SUCCESS)
 
     _upgrade_checks = (
-        # Sample check added for now.
-        # Whereas in future real checks must be added here in tuple
-        (_('Sample Check'), _sample_check),
+        # Added in Train.
+        (_('Minimum Nova API Version'), _minimum_nova_api_version),
     )
 
 

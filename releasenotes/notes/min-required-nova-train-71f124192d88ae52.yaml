@@ -1,0 +1,8 @@
+---
+upgrade:
+  - |
+    The minimum required version of the ``[nova_client]/api_version`` value
+    is now enforced to be ``2.56`` which is available since the Queens version
+    of the nova compute service.
+
+    A ``watcher-status upgrade check`` has been added for this.

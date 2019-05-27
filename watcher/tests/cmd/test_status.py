@@ -15,7 +15,10 @@
 from oslo_upgradecheck.upgradecheck import Code
 
 from watcher.cmd import status
+from watcher import conf
 from watcher.tests import base
+
+CONF = conf.CONF
 
 
 class TestUpgradeChecks(base.TestCase):
@@ -24,7 +27,16 @@ class TestUpgradeChecks(base.TestCase):
         super(TestUpgradeChecks, self).setUp()
         self.cmd = status.Checks()
 
-    def test__sample_check(self):
-        check_result = self.cmd._sample_check()
-        self.assertEqual(
-            Code.SUCCESS, check_result.code)
+    def test_minimum_nova_api_version_ok(self):
+        # Tests that the default [nova_client]/api_version meets the minimum
+        # required version.
+        result = self.cmd._minimum_nova_api_version()
+        self.assertEqual(Code.SUCCESS, result.code)
+
+    def test_minimum_nova_api_version_fail(self):
+        # Tests the scenario that [nova_client]/api_version is less than the
+        # minimum required version.
+        CONF.set_override('api_version', '2.47', group='nova_client')
+        result = self.cmd._minimum_nova_api_version()
+        self.assertEqual(Code.FAILURE, result.code)
+        self.assertIn('Invalid nova_client.api_version 2.47.', result.details)
