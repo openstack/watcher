@@ -167,13 +167,6 @@ class NovaHelper(object):
                 {'instance': instance_id, 'host': host_name})
 
             previous_status = getattr(instance, 'status')
-
-            if (dest_hostname and
-                    not self._check_nova_api_version(self.nova, "2.56")):
-                LOG.error("For migrating a given dest_hostname,"
-                          "Nova API version must be 2.56 or higher")
-                return False
-
             instance.migrate(host=dest_hostname)
             instance = self.nova.servers.get(instance_id)
 
