@@ -55,13 +55,13 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.strategy = strategies.WorkloadBalance(
             config=mock.Mock(datasource=self.datasource))
         self.strategy.input_parameters = utils.Struct()
-        self.strategy.input_parameters.update({'metrics': 'cpu_util',
+        self.strategy.input_parameters.update({'metrics': 'instance_cpu_usage',
                                                'threshold': 25.0,
                                                'period': 300,
                                                'granularity': 300})
         self.strategy.threshold = 25.0
         self.strategy._period = 300
-        self.strategy._meter = "cpu_util"
+        self.strategy._meter = 'instance_cpu_usage'
         self.strategy._granularity = 300
 
     def test_calc_used_resource(self):
@@ -78,18 +78,18 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.m_c_model.return_value = model
         self.strategy.threshold = 30
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
-        self.assertEqual(n1[0]['node'].uuid, 'Node_0')
-        self.assertEqual(n2[0]['node'].uuid, 'Node_1')
+        self.assertEqual(n1[0]['compute_node'].uuid, 'Node_0')
+        self.assertEqual(n2[0]['compute_node'].uuid, 'Node_1')
         self.assertEqual(avg, 8.0)
 
     def test_group_hosts_by_ram_util(self):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
         self.m_c_model.return_value = model
-        self.strategy._meter = "memory.resident"
+        self.strategy._meter = 'instance_ram_usage'
         self.strategy.threshold = 30
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
-        self.assertEqual(n1[0]['node'].uuid, 'Node_0')
-        self.assertEqual(n2[0]['node'].uuid, 'Node_1')
+        self.assertEqual(n1[0]['compute_node'].uuid, 'Node_0')
+        self.assertEqual(n2[0]['compute_node'].uuid, 'Node_1')
         self.assertEqual(avg, 33.0)
 
     def test_choose_instance_to_migrate(self):
@@ -123,7 +123,7 @@ class TestWorkloadBalance(TestBaseStrategy):
         dest_hosts = self.strategy.filter_destination_hosts(
             n2, instance_to_mig[1], avg, w_map)
         self.assertEqual(len(dest_hosts), 1)
-        self.assertEqual(dest_hosts[0]['node'].uuid, 'Node_1')
+        self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
 
     def test_execute_no_workload(self):
         model = self.fake_c_cluster.\

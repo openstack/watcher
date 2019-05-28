@@ -53,14 +53,12 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
     DATASOURCE_METRICS = ['instance_l3_cache_usage']
 
-    # The meter to report L3 cache in ceilometer
-    METER_NAME_L3 = "cpu_l3_cache"
     DEFAULT_WATCHER_PRIORITY = 5
 
     def __init__(self, config, osc=None):
         super(NoisyNeighbor, self).__init__(config, osc)
 
-        self.meter_name = self.METER_NAME_L3
+        self.meter_name = 'instance_l3_cache_usage'
 
     @classmethod
     def get_name(cls):
@@ -97,10 +95,11 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     def get_current_and_previous_cache(self, instance):
         try:
             curr_cache = self.datasource_backend.get_instance_l3_cache_usage(
-                instance.uuid, self.period, 'mean', granularity=300)
+                instance, self.meter_name, self.period,
+                'mean', granularity=300)
             previous_cache = 2 * (
                 self.datasource_backend.get_instance_l3_cache_usage(
-                    instance.uuid, 2 * self.period,
+                    instance, self.meter_name, 2 * self.period,
                     'mean', granularity=300)) - curr_cache
 
         except Exception as exc:

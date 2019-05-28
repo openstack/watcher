@@ -17,9 +17,22 @@ import abc
 
 
 class DataSourceBase(object):
+    """Base Class for datasources in Watcher
 
+    This base class defines the abstract methods that datasources should
+    implement and contains details on the values expected for parameters as
+    well as what the values for return types should be.
+    """
+
+    """Possible options for the parameters named aggregate"""
+    AGGREGATES = ['mean', 'min', 'max', 'count']
+
+    """Possible options for the parameters named resource_type"""
+    RESOURCE_TYPES = ['compute_node', 'instance', 'bare_metal', 'storage']
+
+    """Possible metrics a datasource can support and their internal name"""
     METRIC_MAP = dict(host_cpu_usage=None,
-                      host_memory_usage=None,
+                      host_ram_usage=None,
                       host_outlet_temp=None,
                       host_inlet_temp=None,
                       host_airflow=None,
@@ -32,69 +45,155 @@ class DataSourceBase(object):
                       )
 
     @abc.abstractmethod
-    def statistic_aggregation(self, resource_id=None, meter_name=None,
-                              period=300, granularity=300, dimensions=None,
-                              aggregation='avg', group_by='*'):
+    def query_retry(self, f, *args, **kargs):
+        """Attempts to retrieve metrics from the external service
+
+        Attempts to access data from the external service and handles
+        exceptions upon exception the retrieval should be retried in accordance
+        to the value of query_max_retries
+        :param f: The method that performs the actual querying for metrics
+        :param args: Array of arguments supplied to the method
+        :param kargs: The amount of arguments supplied to the method
+        :return: The value as retrieved from the external service
+        """
         pass
 
     @abc.abstractmethod
     def list_metrics(self):
+        """Returns the supported metrics that the datasource can retrieve
+
+        :return: List of supported metrics containing keys from METRIC_MAP
+        """
         pass
 
     @abc.abstractmethod
     def check_availability(self):
+        """Tries to contact the datasource to see if it is available
+
+        :return: True or False with true meaning the datasource is available
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_cpu_usage(self, resource_id, period, aggregate,
+    def statistic_aggregation(self, resource=None, resource_type=None,
+                              meter_name=None, period=300, aggregate='mean',
+                              granularity=300):
+        """Retrieves and converts metrics based on the specified parameters
+
+        :param resource: Resource object as defined in watcher models such as
+                         ComputeNode and Instance
+        :param resource_type: Indicates which type of object is supplied
+                              to the resource parameter
+        :param meter_name: The desired metric to retrieve as key from
+                           METRIC_MAP
+        :param period: Time span to collect metrics from in seconds
+        :param granularity: Interval between samples in measurements in
+                            seconds
+        :param aggregate: Aggregation method to extract value from set of
+                          samples
+        :return: The gathered value for the metric the type of value depends on
+                 the meter_name
+        """
+
+        pass
+
+    @abc.abstractmethod
+    def get_host_cpu_usage(self, resource, period, aggregate,
                            granularity=None):
+        """Get the cpu usage for a host such as a compute_node
+
+        :return: cpu usage as float ranging between 0 and 100 representing the
+                 total cpu usage as percentage
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_memory_usage(self, resource_id, period, aggregate,
-                              granularity=None):
+    def get_host_ram_usage(self, resource, period, aggregate,
+                           granularity=None):
+        """Get the ram usage for a host such as a compute_node
+
+        :return: ram usage as float in megabytes
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_outlet_temp(self, resource_id, period, aggregate,
+    def get_host_outlet_temp(self, resource, period, aggregate,
                              granularity=None):
+        """Get the outlet temperature for a host such as compute_node
+
+        :return: outlet temperature as float in degrees celsius
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_inlet_temp(self, resource_id, period, aggregate,
+    def get_host_inlet_temp(self, resource, period, aggregate,
                             granularity=None):
+        """Get the inlet temperature for a host such as compute_node
+
+        :return: inlet temperature as float in degrees celsius
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_airflow(self, resource_id, period, aggregate,
+    def get_host_airflow(self, resource, period, aggregate,
                          granularity=None):
+        """Get the airflow for a host such as compute_node
+
+        :return: airflow as float in cfm
+        """
         pass
 
     @abc.abstractmethod
-    def get_host_power(self, resource_id, period, aggregate, granularity=None):
+    def get_host_power(self, resource, period, aggregate,
+                       granularity=None):
+        """Get the power for a host such as compute_node
+
+        :return: power as float in watts
+        """
         pass
 
     @abc.abstractmethod
-    def get_instance_cpu_usage(self, resource_id, period, aggregate,
-                               granularity=None):
+    def get_instance_cpu_usage(self, resource, period,
+                               aggregate, granularity=None):
+        """Get the cpu usage for an instance
+
+        :return: cpu usage as float ranging between 0 and 100 representing the
+                 total cpu usage as percentage
+        """
         pass
 
     @abc.abstractmethod
-    def get_instance_ram_usage(self, resource_id, period, aggregate,
-                               granularity=None):
+    def get_instance_ram_usage(self, resource, period,
+                               aggregate, granularity=None):
+        """Get the ram usage for an instance
+
+        :return: ram usage as float in megabytes
+        """
         pass
 
     @abc.abstractmethod
-    def get_instance_ram_allocated(self, resource_id, period, aggregate,
-                                   granularity=None):
+    def get_instance_ram_allocated(self, resource, period,
+                                   aggregate, granularity=None):
+        """Get the ram allocated for an instance
+
+        :return: total ram allocated as float in megabytes
+        """
         pass
 
     @abc.abstractmethod
-    def get_instance_l3_cache_usage(self, resource_id, period, aggregate,
-                                    granularity=None):
+    def get_instance_l3_cache_usage(self, resource, period,
+                                    aggregate, granularity=None):
+        """Get the l3 cache usage for an instance
+
+        :return: l3 cache usage as integer in bytes
+        """
         pass
 
     @abc.abstractmethod
-    def get_instance_root_disk_size(self, resource_id, period, aggregate,
-                                    granularity=None):
+    def get_instance_root_disk_size(self, resource, period,
+                                    aggregate, granularity=None):
+        """Get the size of the root disk for an instance
+
+        :return: root disk size as float in gigabytes
+        """
         pass

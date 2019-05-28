@@ -47,7 +47,6 @@ class Instance(compute_resource.ComputeResource):
         # 'watcher_exclude' property will be set True.
         "watcher_exclude": wfields.BooleanField(default=False),
         "state": wfields.StringField(default=InstanceState.ACTIVE.value),
-
         "memory": wfields.NonNegativeIntegerField(),
         "disk": wfields.IntegerField(),
         "disk_capacity": wfields.NonNegativeIntegerField(),

@@ -21,7 +21,6 @@ import copy
 import itertools
 import math
 import random
-import re
 
 import oslo_cache
 from oslo_config import cfg
@@ -61,7 +60,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     MEMOIZE = _set_memoize(CONF)
 
     DATASOURCE_METRICS = ['host_cpu_usage', 'instance_cpu_usage',
-                          'instance_ram_usage', 'host_memory_usage']
+                          'instance_ram_usage', 'host_ram_usage']
 
     def __init__(self, config, osc=None):
         """Workload Stabilization control using live migration
@@ -109,27 +108,28 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                     "type": "array",
                     "items": {
                         "type": "string",
-                        "enum": ["cpu_util", "memory.resident"]
+                        "enum": ["instance_cpu_usage", "instance_ram_usage"]
                     },
-                    "default": ["cpu_util"]
+                    "default": ["instance_cpu_usage"]
                 },
                 "thresholds": {
                     "description": "Dict where key is a metric and value "
                                    "is a trigger value.",
                     "type": "object",
                     "properties": {
-                        "cpu_util": {
+                        "instance_cpu_usage": {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
                         },
-                        "memory.resident": {
+                        "instance_ram_usage": {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
                         }
                     },
-                    "default": {"cpu_util": 0.1, "memory.resident": 0.1}
+                    "default": {"instance_cpu_usage": 0.1,
+                                "instance_ram_usage": 0.1}
                 },
                 "weights": {
                     "description": "These weights used to calculate "
@@ -137,26 +137,26 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                                    " contains meter name and _weight suffix.",
                     "type": "object",
                     "properties": {
-                        "cpu_util_weight": {
+                        "instance_cpu_usage_weight": {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
                         },
-                        "memory.resident_weight": {
+                        "instance_ram_usage_weight": {
                             "type": "number",
                             "minimum": 0,
                             "maximum": 1
                         }
                     },
-                    "default": {"cpu_util_weight": 1.0,
-                                "memory.resident_weight": 1.0}
+                    "default": {"instance_cpu_usage_weight": 1.0,
+                                "instance_ram_usage_weight": 1.0}
                 },
                 "instance_metrics": {
                     "description": "Mapping to get hardware statistics using"
                                    " instance metrics",
                     "type": "object",
-                    "default": {"cpu_util": "compute.node.cpu.percent",
-                                "memory.resident": "hardware.memory.used"}
+                    "default": {"instance_cpu_usage": "host_cpu_usage",
+                                "instance_ram_usage": "host_ram_usage"}
                 },
                 "host_choice": {
                     "description": "Method of host's choice. There are cycle,"
@@ -189,12 +189,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                             "type": "integer",
                             "minimum": 0
                         },
-                        "node": {
+                        "compute_node": {
                             "type": "integer",
                             "minimum": 0
                         },
                     },
-                    "default": {"instance": 720, "node": 600}
+                    "default": {"instance": 720, "compute_node": 600}
                 },
                 "aggregation_method": {
                     "description": "Function used to aggregate multiple "
@@ -209,12 +209,12 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                             "type": "string",
                             "default": 'mean'
                         },
-                        "node": {
+                        "compute_node": {
                             "type": "string",
                             "default": 'mean'
                         },
                     },
-                    "default": {"instance": 'mean', "node": 'mean'}
+                    "default": {"instance": 'mean', "compute_node": 'mean'}
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
@@ -234,7 +234,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :param host_vcpus: int
         :return: float value
         """
-        return (instance_load['cpu_util'] *
+        return (instance_load['instance_cpu_usage'] *
                 (instance_load['vcpus'] / float(host_vcpus)))
 
     @MEMOIZE
@@ -248,17 +248,15 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         instance_load = {'uuid': instance.uuid, 'vcpus': instance.vcpus}
         for meter in self.metrics:
             avg_meter = self.datasource_backend.statistic_aggregation(
-                instance.uuid, meter, self.periods['instance'],
-                self.granularity,
-                aggregation=self.aggregation_method['instance'])
+                instance, 'instance', meter, self.periods['instance'],
+                self.aggregation_method['instance'], self.granularity)
             if avg_meter is None:
                 LOG.warning(
                     "No values returned by %(resource_id)s "
                     "for %(metric_name)s", dict(
                         resource_id=instance.uuid, metric_name=meter))
                 return
-            # cpu_util has been deprecated since Stein.
-            if meter == 'cpu_util':
+            if meter == 'instance_cpu_usage':
                 avg_meter /= float(100)
             LOG.debug('Load of %(metric)s for %(instance)s is %(value)s',
                       {'metric': meter,
@@ -270,9 +268,10 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     def normalize_hosts_load(self, hosts):
         normalized_hosts = copy.deepcopy(hosts)
         for host in normalized_hosts:
-            if 'memory.resident' in normalized_hosts[host]:
+            if 'instance_ram_usage' in normalized_hosts[host]:
                 node = self.compute_model.get_node_by_uuid(host)
-                normalized_hosts[host]['memory.resident'] /= float(node.memory)
+                normalized_hosts[host]['instance_ram_usage'] \
+                    /= float(node.memory)
 
         return normalized_hosts
 
@@ -290,29 +289,21 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
             hosts_load[node_id]['vcpus'] = node.vcpus
             LOG.debug('Getting load for %s', node_id)
             for metric in self.metrics:
-                resource_id = ''
                 avg_meter = None
                 meter_name = self.instance_metrics[metric]
-                if re.match('^compute.node', meter_name) is not None:
-                    resource_id = "%s_%s" % (node.uuid, node.hostname)
-                else:
-                    resource_id = node_id
                 avg_meter = self.datasource_backend.statistic_aggregation(
-                    resource_id, self.instance_metrics[metric],
-                    self.periods['node'], self.granularity,
-                    aggregation=self.aggregation_method['node'])
+                    node, 'compute_node', self.instance_metrics[metric],
+                    self.periods['compute_node'],
+                    self.aggregation_method['compute_node'], self.granularity)
                 if avg_meter is None:
                     LOG.warning('No values returned by node %s for %s',
                                 node_id, meter_name)
                     del hosts_load[node_id]
                     break
                 else:
-                    if meter_name == 'hardware.memory.used':
+                    if meter_name == 'host_ram_usage':
                         avg_meter /= oslo_utils.units.Ki
-                    if meter_name == 'compute.node.cpu.percent':
-                        avg_meter /= 100
-                    # hardware.cpu.util has been deprecated since Stein.
-                    if meter_name == 'hardware.cpu.util':
+                    if meter_name == 'host_cpu_usage':
                         avg_meter /= 100
                 LOG.debug('Load of %(metric)s for %(node)s is %(value)s',
                           {'metric': metric,
@@ -369,7 +360,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         s_host_vcpus = new_hosts[src_node.uuid]['vcpus']
         d_host_vcpus = new_hosts[dst_node.uuid]['vcpus']
         for metric in self.metrics:
-            if metric == 'cpu_util':
+            if metric == 'instance_cpu_usage':
                 new_hosts[src_node.uuid][metric] -= (
                     self.transform_instance_cpu(instance_load, s_host_vcpus))
                 new_hosts[dst_node.uuid][metric] += (

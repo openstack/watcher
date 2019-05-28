@@ -48,85 +48,74 @@ class TestGnocchiHelper(base.BaseTestCase):
 
         helper = gnocchi_helper.GnocchiHelper()
         result = helper.statistic_aggregation(
-            resource_id='16a86790-327a-45f9-bc82-45839f062fdc',
-            meter_name='cpu_util',
+            resource=mock.Mock(id='16a86790-327a-45f9-bc82-45839f062fdc'),
+            resource_type='instance',
+            meter_name='instance_cpu_usage',
             period=300,
             granularity=360,
-            dimensions=None,
-            aggregation='mean',
-            group_by='*'
+            aggregate='mean',
         )
         self.assertEqual(expected_result, result)
 
     def test_get_host_cpu_usage(self, mock_gnocchi):
-        self.helper.get_host_cpu_usage('compute1', 600, 'mean',
-                                       granularity=300)
+        self.helper.get_host_cpu_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_cpu_usage'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_cpu_usage', 600, 'mean',
+            300)
 
-    def test_get_instance_cpu_usage(self, mock_gnocchi):
-        self.helper.get_instance_cpu_usage('compute1', 600, 'mean',
-                                           granularity=300)
+    def test_get_host_ram_usage(self, mock_gnocchi):
+        self.helper.get_host_ram_usage('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['instance_cpu_usage'], 600,
-            300, aggregation='mean')
-
-    def test_get_host_memory_usage(self, mock_gnocchi):
-        self.helper.get_host_memory_usage('compute1', 600, 'mean',
-                                          granularity=300)
-        self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_memory_usage'], 600,
-            300, aggregation='mean')
-
-    def test_get_instance_memory_usage(self, mock_gnocchi):
-        self.helper.get_instance_ram_usage('compute1', 600, 'mean',
-                                           granularity=300)
-        self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['instance_ram_usage'], 600,
-            300, aggregation='mean')
-
-    def test_get_instance_ram_allocated(self, mock_gnocchi):
-        self.helper.get_instance_ram_allocated('compute1', 600, 'mean',
-                                               granularity=300)
-        self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['instance_ram_allocated'], 600,
-            300, aggregation='mean')
-
-    def test_get_instance_root_disk_allocated(self, mock_gnocchi):
-        self.helper.get_instance_root_disk_size('compute1', 600, 'mean',
-                                                granularity=300)
-        self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['instance_root_disk_size'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_ram_usage', 600, 'mean',
+            300)
 
     def test_get_host_outlet_temperature(self, mock_gnocchi):
-        self.helper.get_host_outlet_temp('compute1', 600, 'mean',
-                                         granularity=300)
+        self.helper.get_host_outlet_temp('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_outlet_temp'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_outlet_temp', 600, 'mean',
+            300)
 
     def test_get_host_inlet_temperature(self, mock_gnocchi):
-        self.helper.get_host_inlet_temp('compute1', 600, 'mean',
-                                        granularity=300)
+        self.helper.get_host_inlet_temp('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_inlet_temp'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_inlet_temp', 600, 'mean',
+            300)
 
     def test_get_host_airflow(self, mock_gnocchi):
-        self.helper.get_host_airflow('compute1', 600, 'mean',
-                                     granularity=300)
+        self.helper.get_host_airflow('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_airflow'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_airflow', 600, 'mean',
+            300)
 
     def test_get_host_power(self, mock_gnocchi):
-        self.helper.get_host_power('compute1', 600, 'mean',
-                                   granularity=300)
+        self.helper.get_host_power('compute1', 600, 'mean', 300)
         self.mock_aggregation.assert_called_once_with(
-            'compute1', self.helper.METRIC_MAP['host_power'], 600,
-            300, aggregation='mean')
+            'compute1', 'compute_node', 'host_power', 600, 'mean',
+            300)
+
+    def test_get_instance_cpu_usage(self, mock_gnocchi):
+        self.helper.get_instance_cpu_usage('compute1', 600, 'mean', 300)
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', 'instance', 'instance_cpu_usage', 600, 'mean',
+            300)
+
+    def test_get_instance_memory_usage(self, mock_gnocchi):
+        self.helper.get_instance_ram_usage('compute1', 600, 'mean', 300)
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', 'instance', 'instance_ram_usage', 600, 'mean',
+            300)
+
+    def test_get_instance_ram_allocated(self, mock_gnocchi):
+        self.helper.get_instance_ram_allocated('compute1', 600, 'mean', 300)
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', 'instance', 'instance_ram_allocated', 600, 'mean',
+            300)
+
+    def test_get_instance_root_disk_allocated(self, mock_gnocchi):
+        self.helper.get_instance_root_disk_size('compute1', 600, 'mean', 300)
+        self.mock_aggregation.assert_called_once_with(
+            'compute1', 'instance', 'instance_root_disk_size', 600, 'mean',
+            300)
 
     def test_gnocchi_check_availability(self, mock_gnocchi):
         gnocchi = mock.MagicMock()

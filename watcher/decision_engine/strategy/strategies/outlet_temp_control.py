@@ -78,13 +78,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
     DATASOURCE_METRICS = ['host_outlet_temp']
 
-    METRIC_NAMES = dict(
-        ceilometer=dict(
-            host_outlet_temp='hardware.ipmi.node.outlet_temperature'),
-        gnocchi=dict(
-            host_outlet_temp='hardware.ipmi.node.outlet_temperature'),
-    )
-
     def __init__(self, config, osc=None):
         """Outlet temperature control using live migration
 
@@ -165,14 +158,13 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         nodes = self.get_available_compute_nodes()
         hosts_need_release = []
         hosts_target = []
-        metric_name = self.METRIC_NAMES[
-            self.datasource_backend.NAME]['host_outlet_temp']
+        metric_name = 'host_outlet_temp'
         for node in nodes.values():
-            resource_id = node.uuid
             outlet_temp = None
 
             outlet_temp = self.datasource_backend.statistic_aggregation(
-                resource_id=resource_id,
+                resource=node,
+                resource_type='compute_node',
                 meter_name=metric_name,
                 period=self.period,
                 granularity=self.granularity,
@@ -180,12 +172,12 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
             # some hosts may not have outlet temp meters, remove from target
             if outlet_temp is None:
-                LOG.warning("%s: no outlet temp data", resource_id)
+                LOG.warning("%s: no outlet temp data", node.uuid)
                 continue
 
             LOG.debug("%(resource)s: outlet temperature %(temp)f",
-                      {'resource': resource_id, 'temp': outlet_temp})
-            instance_data = {'node': node, 'outlet_temp': outlet_temp}
+                      {'resource': node.uuid, 'temp': outlet_temp})
+            instance_data = {'compute_node': node, 'outlet_temp': outlet_temp}
             if outlet_temp >= self.threshold:
                 # mark the node to release resources
                 hosts_need_release.append(instance_data)
@@ -196,7 +188,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
     def choose_instance_to_migrate(self, hosts):
         """Pick up an active instance to migrate from provided hosts"""
         for instance_data in hosts:
-            mig_source_node = instance_data['node']
+            mig_source_node = instance_data['compute_node']
             instances_of_src = self.compute_model.get_node_instances(
                 mig_source_node)
             for instance in instances_of_src:
@@ -228,7 +220,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         # filter nodes without enough resource
         dest_servers = []
         for instance_data in hosts:
-            host = instance_data['node']
+            host = instance_data['compute_node']
             # available
             cores_used, mem_used, disk_used = self.calc_used_resource(host)
             cores_available = host.vcpus - cores_used
@@ -284,7 +276,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
 
         dest_servers = sorted(dest_servers, key=lambda x: (x["outlet_temp"]))
         # always use the host with lowerest outlet temperature
-        mig_destination_node = dest_servers[0]['node']
+        mig_destination_node = dest_servers[0]['compute_node']
         # generate solution to migrate the instance to the dest server,
         if self.compute_model.migrate_instance(
                 instance_src, mig_source_node, mig_destination_node):

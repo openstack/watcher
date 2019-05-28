@@ -45,7 +45,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         * Hardware: compute node should use the same physical CPUs/RAMs
         * Software: Ceilometer component ceilometer-agent-compute running
           in each compute node, and Ceilometer API can report such telemetry
-          "cpu_util" and "memory.resident" successfully.
+          "instance_cpu_usage" and "instance_ram_usage" successfully.
         * You must have at least 2 physical compute nodes to run this strategy.
 
     *Limitations*
@@ -59,11 +59,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
     # The meter to report CPU utilization % of VM in ceilometer
     # Unit: %, value range is [0 , 100]
-    CPU_METER_NAME = "cpu_util"
 
     # The meter to report memory resident of VM in ceilometer
     # Unit: MB
-    MEM_METER_NAME = "memory.resident"
 
     DATASOURCE_METRICS = ['instance_cpu_usage', 'instance_ram_usage']
 
@@ -105,8 +103,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     "description": "Workload balance based on metrics: "
                                    "cpu or ram utilization",
                     "type": "string",
-                    "choice": ["cpu_util", "memory.resident"],
-                    "default": "cpu_util"
+                    "choice": ["instance_cpu_usage", "instance_ram_usage"],
+                    "default": "instance_cpu_usage"
                 },
                 "threshold": {
                     "description": "workload threshold for migration",
@@ -155,7 +153,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         :param workload_cache: the map contains instance to workload mapping
         """
         for instance_data in hosts:
-            source_node = instance_data['node']
+            source_node = instance_data['compute_node']
             source_instances = self.compute_model.get_node_instances(
                 source_node)
             if source_instances:
@@ -188,7 +186,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                             self.compute_model.get_instance_by_uuid(
                                 instance_id))
             else:
-                LOG.info("VM not found from node: %s",
+                LOG.info("VM not found from compute_node: %s",
                          source_node.uuid)
 
     def filter_destination_hosts(self, hosts, instance_to_migrate,
@@ -202,7 +200,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         destination_hosts = []
         src_instance_workload = workload_cache[instance_to_migrate.uuid]
         for instance_data in hosts:
-            host = instance_data['node']
+            host = instance_data['compute_node']
             workload = instance_data['workload']
             # calculate the available resources
             cores_used, mem_used, disk_used = self.calculate_used_resource(
@@ -213,11 +211,11 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             if (cores_available >= required_cores and
                     mem_available >= required_mem and
                     disk_available >= required_disk):
-                if (self._meter == self.CPU_METER_NAME and
+                if (self._meter == 'instance_cpu_usage' and
                     ((src_instance_workload + workload) <
                      self.threshold / 100 * host.vcpus)):
                     destination_hosts.append(instance_data)
-                if (self._meter == self.MEM_METER_NAME and
+                if (self._meter == 'instance_ram_usage' and
                     ((src_instance_workload + workload) <
                      self.threshold / 100 * host.memory)):
                     destination_hosts.append(instance_data)
@@ -225,7 +223,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         return destination_hosts
 
     def group_hosts_by_cpu_or_ram_util(self):
-        """Calculate the workloads of each node
+        """Calculate the workloads of each compute_node
 
         try to find out the nodes which have reached threshold
         and the nodes which are under threshold.
@@ -249,9 +247,8 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 util = None
                 try:
                     util = self.datasource_backend.statistic_aggregation(
-                        instance.uuid, self._meter, self._period,
-                        self._granularity, aggregation='mean',
-                        dimensions=dict(resource_id=instance.uuid))
+                        instance, 'instance', self._meter, self._period,
+                        'mean', self._granularity)
                 except Exception as exc:
                     LOG.exception(exc)
                     LOG.error("Can not get %s from %s", self._meter,
@@ -261,7 +258,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     LOG.debug("Instance (%s): %s is None",
                               instance.uuid, self._meter)
                     continue
-                if self._meter == self.CPU_METER_NAME:
+                if self._meter == 'instance_cpu_usage':
                     workload_cache[instance.uuid] = (util *
                                                      instance.vcpus / 100)
                 else:
@@ -271,13 +268,13 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                           util)
 
             cluster_workload += node_workload
-            if self._meter == self.CPU_METER_NAME:
+            if self._meter == 'instance_cpu_usage':
                 node_util = node_workload / node.vcpus * 100
             else:
                 node_util = node_workload / node.memory * 100
 
             instance_data = {
-                'node': node, self._meter: node_util,
+                'compute_node': node, self._meter: node_util,
                 'workload': node_workload}
             if node_util >= self.threshold:
                 # mark the node to release resources
@@ -340,7 +337,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         destination_hosts = sorted(destination_hosts,
                                    key=lambda x: (x[self._meter]))
         # always use the host with lowerest CPU utilization
-        mig_destination_node = destination_hosts[0]['node']
+        mig_destination_node = destination_hosts[0]['compute_node']
         # generate solution to migrate the instance to the dest server,
         if self.compute_model.migrate_instance(
                 instance_src, source_node, mig_destination_node):
