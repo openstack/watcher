@@ -47,6 +47,7 @@ Request
    - auto_trigger: audit_autotrigger
    - start_time: audit_starttime_req
    - end_time: audit_endtime_req
+   - force: audit_force
 
 **Example ONESHOT Audit creation request:**
 
@@ -83,6 +84,7 @@ version 1:
     - hostname: audit_hostname
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
+    - force: audit_force
 
 **Example JSON representation of an Audit:**
 
@@ -181,6 +183,7 @@ Response
     - hostname: audit_hostname
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
+    - force: audit_force
 
 **Example JSON representation of an Audit:**
 
@@ -227,6 +230,7 @@ Response
     - hostname: audit_hostname
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
+    - force: audit_force
 
 **Example JSON representation of an Audit:**
 
@@ -281,6 +285,7 @@ version 1:
     - hostname: audit_hostname
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
+    - force: audit_force
 
 **Example JSON representation of an Audit:**
 
@@ -335,6 +340,7 @@ Response
     - hostname: audit_hostname
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
+    - force: audit_force
 
 **Example JSON representation of an Audit:**
 

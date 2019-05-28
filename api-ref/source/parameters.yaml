@@ -245,6 +245,13 @@ audit_endtime_resp:
   required: false
   type: string
   min_version: 1.1
+audit_force:
+  description: |
+    Launch audit even if action plan is ongoing.
+  in: body
+  required: false
+  type: boolean
+  min_version: 1.2
 audit_goal:
   description: |
     The UUID or name of the Goal.

@@ -28,6 +28,7 @@
         }
     },
     "auto_trigger": false,
+    "force": false,
     "uuid": "65a5da84-5819-4aea-8278-a28d2b489028",
     "goal_name": "workload_balancing",
     "scope": [],
