@@ -743,3 +743,21 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(
             element.InstanceState.SUSPENDED.value, instance0.state)
+
+    def test_info_no_cdm(self):
+        # Tests that a notification is received before an audit has been
+        # performed which would create the nova CDM.
+        mock_collector = mock.Mock(cluster_data_model=None)
+        handler = novanotification.VersionedNotification(mock_collector)
+        payload = {
+            'nova_object.data': {
+                'uuid': '9966d6bd-a45c-4e1c-9d57-3054899a3ec7',
+                'host': None
+            }
+        }
+        with mock.patch.object(handler, 'update_instance') as update_instance:
+            handler.info(mock.sentinel.ctxt, 'publisher_id', 'instance.update',
+                         payload, metadata={})
+            # update_instance should not be called since we did not add an
+            # Instance object to the CDM since the CDM does not exist yet.
+            update_instance.assert_not_called()

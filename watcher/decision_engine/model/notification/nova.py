@@ -279,5 +279,10 @@ class VersionedNotification(NovaNotification):
                       metadata=metadata))
         func = self.notification_mapping.get(event_type)
         if func:
-            LOG.debug(payload)
-            func(self, payload)
+            # The nova CDM is not built until an audit is performed.
+            if self.cluster_data_model:
+                LOG.debug(payload)
+                func(self, payload)
+            else:
+                LOG.debug('Nova CDM has not yet been built; ignoring '
+                          'notifications until an audit is performed.')
