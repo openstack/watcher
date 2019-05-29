@@ -165,3 +165,12 @@ def allow_start_end_audit_time():
     audits.
     """
     return pecan.request.version.minor >= versions.MINOR_1_START_END_TIMING
+
+
+def allow_force():
+    """Check if we should support optional force attribute for Audit.
+
+    Version 1.2 of the API added support for forced audits that allows to
+    launch audit when other action plan is ongoing.
+    """
+    return pecan.request.version.minor >= versions.MINOR_2_FORCE

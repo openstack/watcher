@@ -22,11 +22,13 @@ BASE_VERSION = 1
 #
 # v1.0: corresponds to Rocky API
 # v1.1: Add start/end time for continuous audit
+# v1.2: Add force field to audit
 
 MINOR_0_ROCKY = 0
 MINOR_1_START_END_TIMING = 1
+MINOR_2_FORCE = 2
 
-MINOR_MAX_VERSION = MINOR_1_START_END_TIMING
+MINOR_MAX_VERSION = MINOR_2_FORCE
 
 # String representations of the minor and maximum versions
 _MIN_VERSION_STRING = '{}.{}'.format(BASE_VERSION, MINOR_0_ROCKY)

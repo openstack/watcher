@@ -73,6 +73,8 @@ def hide_fields_in_newer_versions(obj):
     if not api_utils.allow_start_end_audit_time():
         obj.start_time = wtypes.Unset
         obj.end_time = wtypes.Unset
+    if not api_utils.allow_force():
+        obj.force = wtypes.Unset
 
 
 class AuditPostType(wtypes.Base):
@@ -194,7 +196,8 @@ class AuditPostType(wtypes.Base):
             scope=self.scope,
             auto_trigger=self.auto_trigger,
             start_time=self.start_time,
-            end_time=self.end_time)
+            end_time=self.end_time,
+            force=self.force)
 
 
 class AuditPatchType(types.JsonPatchType):

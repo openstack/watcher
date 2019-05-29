@@ -227,6 +227,13 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
         mock_applier.assert_called_once_with(self.context,
                                              self.recommended_action_plan.uuid)
 
+    @mock.patch.object(oneshot.OneShotAuditHandler, 'do_execute')
+    def test_trigger_audit_with_force(self, mock_do_execute):
+        audit_handler = oneshot.OneShotAuditHandler()
+        self.audit.force = True
+        audit_handler.execute(self.audit, self.context)
+        self.assertTrue(mock_do_execute.called)
+
 
 class TestContinuousAuditHandler(base.DbTestCase):
 
