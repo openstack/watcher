@@ -77,7 +77,7 @@ class TestDataSourceManager(base.BaseTestCase):
         with mock.patch(path, return_value=retval):
             dsmcfg = self._dsm_config(datasources=['monasca'])
             manager = self._dsm(config=dsmcfg)
-            backend = manager.get_backend(['host_cpu_usage'])
+            backend = manager.get_backend(['host_airflow'])
             self.assertEqual("host_fnspid", backend.METRIC_MAP['host_airflow'])
 
     def test_metric_file_invalid_ds(self):
