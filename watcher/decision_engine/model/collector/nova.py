@@ -15,7 +15,6 @@
 
 from oslo_log import log
 
-from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
@@ -314,38 +313,6 @@ class ModelBuilder(object):
         # compute_node = self._build_node("physical", "compute", "hypervisor",
         #                                 node_attributes)
         return compute_node
-
-    def _add_virtual_layer(self):
-        """Add the virtual layer to the graph.
-
-        This layer is the virtual components of the infrastructure,
-        such as vms.
-        """
-        self._add_virtual_servers()
-        # self._add_virtual_network()
-        # self._add_virtual_storage()
-
-    def _add_virtual_servers(self):
-        all_instances = self.nova_helper.get_instance_list()
-        for inst in all_instances:
-            # Add Node
-            instance = self._build_instance_node(inst)
-            self.model.add_instance(instance)
-            # Get the cnode_name uuid.
-            cnode_uuid = getattr(inst, "OS-EXT-SRV-ATTR:host")
-            if cnode_uuid is None:
-                # The instance is not attached to any Compute node
-                continue
-            try:
-                # Nova compute node
-                # cnode = self.nova_helper.get_compute_node_by_hostname(
-                #     cnode_uuid)
-                compute_node = self.model.get_node_by_uuid(
-                    cnode_uuid)
-                # Connect the instance to its compute node
-                self.model.map_instance(instance, compute_node)
-            except exception.ComputeNodeNotFound:
-                continue
 
     def add_instance_node(self, node):
         # node.servers is a list of server objects
