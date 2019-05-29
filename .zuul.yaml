@@ -17,7 +17,6 @@
         - watcher-tempest-basic_optim
         - watcher-tempest-vm_workload_consolidation
         - watcher-tempest-workload_balancing
-        - watcherclient-tempest-functional
         - watcher-tempest-zone_migration
         - watcher-tempest-host_maintenance
         - watcher-tempest-storage_balance
