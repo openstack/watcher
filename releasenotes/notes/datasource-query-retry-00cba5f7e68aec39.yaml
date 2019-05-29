@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    All datasources can now be configured to retry retrieving a metric upon
+    encountering an error. Between each attempt will be a set amount of time
+    which can be adjusted from the configuration. These configuration
+    options can be found in the `[watcher_datasources]` group and are named
+    `query_max_retries` and `query_timeout`.
+upgrade:
+  - |
+    If Gnocchi was configured to have a custom amount of retries and or a
+    custom timeout then the configuration needs to moved into the
+    `[watcher_datasources]` group instead of the `[gnocchi_client]` group.
+deprecations:
+  - |
+    The configuration options for query retries in `[gnocchi_client]` are
+    deprecated and the option in `[watcher_datasources]` should now be used.

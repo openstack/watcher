@@ -127,7 +127,7 @@ class TestGnocchiHelper(base.BaseTestCase):
 
     def test_gnocchi_check_availability_with_failure(self, mock_gnocchi):
         cfg.CONF.set_override("query_max_retries", 1,
-                              group='gnocchi_client')
+                              group='watcher_datasources')
         gnocchi = mock.MagicMock()
         gnocchi.status.get.side_effect = Exception()
         mock_gnocchi.return_value = gnocchi
@@ -147,7 +147,7 @@ class TestGnocchiHelper(base.BaseTestCase):
 
     def test_gnocchi_list_metrics_with_failure(self, mock_gnocchi):
         cfg.CONF.set_override("query_max_retries", 1,
-                              group='gnocchi_client')
+                              group='watcher_datasources')
         gnocchi = mock.MagicMock()
         gnocchi.metric.list.side_effect = Exception()
         mock_gnocchi.return_value = gnocchi
