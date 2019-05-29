@@ -61,23 +61,23 @@ class NovaHelper(object):
                                             detailed=detailed)
 
     def get_compute_node_by_hostname(self, node_hostname):
-        """Get compute node by hostname"""
-        # TODO(mriedem): This method could be optimized if
-        # GET /os-hypervisors/detail had a host filter parameter.
-        try:
-            hypervisors = [hv for hv in self.get_compute_node_list()
-                           if hv.service['host'] == node_hostname]
-            if len(hypervisors) != 1:
-                # TODO(hidekazu)
-                # this may occur if ironic driver is used
-                raise exception.ComputeNodeNotFound(name=node_hostname)
-            else:
-                compute_nodes = self.get_compute_node_by_name(
-                    hypervisors[0].hypervisor_hostname, detailed=True)
-                if len(compute_nodes) != 1:
-                    raise exception.ComputeNodeNotFound(name=node_hostname)
+        """Get compute node by hostname
 
-                return compute_nodes[0]
+        :param node_hostname: Compute service hostname
+        :returns: novaclient.v2.hypervisors.Hypervisor object if found
+        :raises: ComputeNodeNotFound if no hypervisor is found for the compute
+            service hostname or there was an error communicating with nova
+        """
+        try:
+            # This is a fuzzy match on hypervisor_hostname so we could get back
+            # more than one compute node. If so, match on the compute service
+            # hostname.
+            compute_nodes = self.get_compute_node_by_name(
+                node_hostname, detailed=True)
+            for cn in compute_nodes:
+                if cn.service['host'] == node_hostname:
+                    return cn
+            raise exception.ComputeNodeNotFound(name=node_hostname)
         except Exception as exc:
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)

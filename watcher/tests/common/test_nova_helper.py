@@ -121,9 +121,6 @@ class TestNovaHelper(base.TestCase):
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
         hypervisor = self.fake_hypervisor(hypervisor_id, hypervisor_name)
-        self.fake_nova_hypervisor_list(
-            nova_util,
-            fake_list=[hypervisor])
         nova_util.nova.hypervisors.search.return_value = [hypervisor]
         # verify that the compute node can be obtained normally by name
         self.assertEqual(
@@ -144,6 +141,25 @@ class TestNovaHelper(base.TestCase):
             exception.ComputeNodeNotFound,
             nova_util.get_compute_node_by_hostname,
             hypervisor_name)
+
+    def test_get_compute_node_by_hostname_multiple_matches(self, *mocks):
+        # Tests a scenario where get_compute_node_by_name returns multiple
+        # hypervisors and we have to pick the exact match based on the given
+        # compute service hostname.
+        nova_util = nova_helper.NovaHelper()
+        nodes = []
+        # compute1 is a substring of compute10 to trigger the fuzzy match.
+        for hostname in ('compute1', 'compute10'):
+            node = mock.MagicMock()
+            node.id = utils.generate_uuid()
+            node.hypervisor_hostname = hostname
+            node.service = {'host': hostname}
+            nodes.append(node)
+        # We should get back exact matches based on the service host.
+        nova_util.nova.hypervisors.search.return_value = nodes
+        for index, name in enumerate(['compute1', 'compute10']):
+            result = nova_util.get_compute_node_by_hostname(name)
+            self.assertIs(nodes[index], result)
 
     def test_get_instance_list(self, *args):
         nova_util = nova_helper.NovaHelper()
