@@ -1,5 +1,5 @@
 {
-    "event_type": "instance.live_migration_post_dest.end",
+    "event_type": "instance.live_migration_post.end",
     "payload": {
         "nova_object.data": {
             "action_initiator_project": "6f70656e737461636b20342065766572",
