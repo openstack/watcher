@@ -76,8 +76,18 @@ class NovaHelper(object):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
-    def get_instance_list(self):
-        return self.nova.servers.list(search_opts={'all_tenants': True},
+    def get_instance_list(self, filters=None):
+        """List servers for all tenants with details.
+
+        This always gets servers with the all_tenants=True filter.
+
+        :param filters: dict of additional filters
+        :returns: list of novaclient Server objects
+        """
+        search_opts = {'all_tenants': True}
+        if filters:
+            search_opts.update(filters)
+        return self.nova.servers.list(search_opts=search_opts,
                                       limit=-1)
 
     def get_flavor_list(self):

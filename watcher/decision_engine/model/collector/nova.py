@@ -258,17 +258,25 @@ class ModelBuilder(object):
                 [node.hypervisor_hostname for node in all_nodes])
         LOG.debug("compute nodes: %s", compute_nodes)
         for node_name in compute_nodes:
+            # TODO(mriedem): Change this to list hypervisors with details
+            # so we don't have to call get_compute_node_by_id. It requires
+            # changes to python-novaclient.
             cnode = self.nova_helper.get_compute_node_by_name(node_name,
                                                               servers=True)
             if cnode:
-                self.add_compute_node(cnode[0])
-                self.add_instance_node(cnode[0])
+                # Get the node details (like the service.host).
+                node_info = self.nova_helper.get_compute_node_by_id(
+                    cnode[0].id)
+                self.add_compute_node(node_info)
+                # node.servers is a list of server objects
+                # New in nova version 2.53
+                instances = getattr(cnode[0], "servers", None)
+                self.add_instance_node(node_info, instances)
 
     def add_compute_node(self, node):
         # Build and add base node.
-        node_info = self.nova_helper.get_compute_node_by_id(node.id)
-        LOG.debug("node info: %s", node_info)
-        compute_node = self.build_compute_node(node_info)
+        LOG.debug("node info: %s", node)
+        compute_node = self.build_compute_node(node)
         self.model.add_node(compute_node)
 
         # NOTE(v-francoise): we can encapsulate capabilities of the node
@@ -314,26 +322,18 @@ class ModelBuilder(object):
         #                                 node_attributes)
         return compute_node
 
-    def add_instance_node(self, node):
-        # node.servers is a list of server objects
-        # New in nova version 2.53
-        instances = getattr(node, "servers", None)
+    def add_instance_node(self, node, instances):
         if instances is None:
             # no instances on this node
             return
-        instance_uuids = [s['uuid'] for s in instances]
-        for uuid in instance_uuids:
-            try:
-                inst = self.nova_helper.find_instance(uuid)
-            except Exception as exc:
-                LOG.exception(exc)
-                continue
+        host = node.service["host"]
+        compute_node = self.model.get_node_by_uuid(host)
+        # Get all servers on this compute host.
+        instances = self.nova_helper.get_instance_list({'host': host})
+        for inst in instances:
             # Add Node
             instance = self._build_instance_node(inst)
             self.model.add_instance(instance)
-            cnode_uuid = getattr(inst, "OS-EXT-SRV-ATTR:host")
-            compute_node = self.model.get_node_by_uuid(
-                cnode_uuid)
             # Connect the instance to its compute node
             self.model.map_instance(instance, compute_node)
 
