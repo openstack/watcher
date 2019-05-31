@@ -98,7 +98,7 @@ class DataSourceManager(object):
             raise exception.NoDatasourceAvailable
 
         if not metrics or len(metrics) is 0:
-            LOG.critical("Can not retrieve datasource without specifying"
+            LOG.critical("Can not retrieve datasource without specifying "
                          "list of required metrics.")
             raise exception.InvalidParameter(parameter='metrics',
                                              parameter_type='none empty list')
@@ -109,7 +109,7 @@ class DataSourceManager(object):
                 if (metric not in self.metric_map[datasource] or
                    self.metric_map[datasource].get(metric) is None):
                         no_metric = True
-                        LOG.warning("Datasource: {0} could not be used due to"
+                        LOG.warning("Datasource: {0} could not be used due to "
                                     "metric: {1}".format(datasource, metric))
                         break
             if not no_metric:
