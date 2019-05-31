@@ -15,6 +15,7 @@
 # limitations under the License.
 
 import mock
+import six
 
 from mock import MagicMock
 
@@ -37,30 +38,6 @@ class TestDataSourceManager(base.BaseTestCase):
         opts = dict(config=self._dsm_config(), osc=mock.MagicMock())
         opts.update(kwargs)
         return ds_manager.DataSourceManager(**opts)
-
-    def test_get_backend(self):
-        manager = self._dsm()
-        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
-        self.assertEqual(backend, manager.gnocchi)
-
-    def test_get_backend_order(self):
-        dss = ['monasca', 'ceilometer', 'gnocchi']
-        dsmcfg = self._dsm_config(datasources=dss)
-        manager = self._dsm(config=dsmcfg)
-        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
-        self.assertEqual(backend, manager.monasca)
-
-    def test_get_backend_wrong_metric(self):
-        manager = self._dsm()
-        self.assertRaises(exception.NoSuchMetric, manager.get_backend,
-                          ['host_cpu', 'instance_cpu_usage'])
-
-    @mock.patch.object(gnocchi, 'GnocchiHelper')
-    def test_get_backend_error_datasource(self, m_gnocchi):
-        m_gnocchi.side_effect = exception.DataSourceNotAvailable
-        manager = self._dsm()
-        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
-        self.assertEqual(backend, manager.ceilometer)
 
     def test_metric_file_path_not_exists(self):
         manager = self._dsm()
@@ -85,3 +62,45 @@ class TestDataSourceManager(base.BaseTestCase):
             mo.return_value = {"newds": {"metric_one": "i_am_metric_one"}}
             mgr = self._dsm()
             self.assertNotIn('newds', mgr.metric_map.keys())
+
+    def test_get_backend(self):
+        manager = self._dsm()
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
+        self.assertEqual(backend, manager.gnocchi)
+
+    def test_get_backend_order(self):
+        dss = ['monasca', 'ceilometer', 'gnocchi']
+        dsmcfg = self._dsm_config(datasources=dss)
+        manager = self._dsm(config=dsmcfg)
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
+        self.assertEqual(backend, manager.monasca)
+
+    def test_get_backend_wrong_metric(self):
+        manager = self._dsm()
+        ex = self.assertRaises(
+            exception.MetricNotAvailable, manager.get_backend,
+            ['host_cpu', 'instance_cpu_usage'])
+        self.assertIn('Metric: host_cpu not available', six.text_type(ex))
+
+    @mock.patch.object(gnocchi, 'GnocchiHelper')
+    def test_get_backend_error_datasource(self, m_gnocchi):
+        m_gnocchi.side_effect = exception.DataSourceNotAvailable
+        manager = self._dsm()
+        backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
+        self.assertEqual(backend, manager.ceilometer)
+
+    def test_get_backend_no_datasources(self):
+        dsmcfg = self._dsm_config(datasources=[])
+        manager = self._dsm(config=dsmcfg)
+        self.assertRaises(exception.NoDatasourceAvailable, manager.get_backend,
+                          ['host_cpu_usage', 'instance_cpu_usage'])
+        dsmcfg = self._dsm_config(datasources=None)
+        manager = self._dsm(config=dsmcfg)
+        self.assertRaises(exception.NoDatasourceAvailable, manager.get_backend,
+                          ['host_cpu_usage', 'instance_cpu_usage'])
+
+    def test_get_backend_no_metrics(self):
+        manager = self._dsm()
+        self.assertRaises(exception.InvalidParameter, manager.get_backend, [])
+        self.assertRaises(exception.InvalidParameter, manager.get_backend,
+                          None)
