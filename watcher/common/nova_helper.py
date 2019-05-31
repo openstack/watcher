@@ -90,6 +90,22 @@ class NovaHelper(object):
         return self.nova.servers.list(search_opts=search_opts,
                                       limit=-1)
 
+    def get_instance_by_uuid(self, instance_uuid):
+        return [instance for instance in
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "uuid": instance_uuid})]
+
+    def get_instance_by_name(self, instance_name):
+        return [instance for instance in
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "name": instance_name})]
+
+    def get_instances_by_node(self, host):
+        return [instance for instance in
+                self.nova.servers.list(search_opts={"all_tenants": True,
+                                                    "host": host},
+                                       limit=-1)]
+
     def get_flavor_list(self):
         return self.nova.flavors.list(**{'is_public': None})
 
@@ -666,22 +682,6 @@ class NovaHelper(object):
         network_id = networks['networks'][0]['id']
 
         return network_id
-
-    def get_instance_by_uuid(self, instance_uuid):
-        return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True,
-                                                    "uuid": instance_uuid})]
-
-    def get_instance_by_name(self, instance_name):
-        return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True,
-                                                    "name": instance_name})]
-
-    def get_instances_by_node(self, host):
-        return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True,
-                                                    "host": host},
-                                       limit=-1)]
 
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))
