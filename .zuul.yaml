@@ -88,6 +88,13 @@
               multi_backend: true
 
 - job:
+    name: watcher-tempest-strategies
+    parent: watcher-tempest-multinode
+    vars:
+      tempest_concurrency: 1
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
+
+- job:
     name: watcher-tls-test
     parent: watcher-tempest-multinode
     group-vars:
