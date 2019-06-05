@@ -1,0 +1,9 @@
+# Plug-in overrides
+# https://docs.openstack.org/devstack/latest/plugins.html#plugin-interface
+
+# Enable both versioned and unversioned notifications. Watcher only
+# uses versioned notifications but ceilometer uses unversioned. We
+# can change this to just versioned when ceilometer handles
+# versioned notifications from nova:
+# https://bugs.launchpad.net/ceilometer/+bug/1665449
+NOVA_NOTIFICATION_FORMAT=both
