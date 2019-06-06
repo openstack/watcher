@@ -245,6 +245,31 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
 
+    def test_nova_instance_state_building(self):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
+
+        message = self.load_message('instance-update.json')
+
+        message['payload']['nova_object.data']['state'] = 'building'
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        # Assert that the instance state in the model is unchanged
+        # since the 'building' state is ignored.
+        self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
+
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_nova_instance_update_notfound_still_creates(
             self, m_nova_helper_cls):

@@ -216,7 +216,12 @@ class VersionedNotification(NovaNotification):
     def instance_updated(self, payload):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
+        instance_state = instance_data['state']
         node_uuid = instance_data.get('host')
+        # if instance state is building, don't update data model
+        if instance_state == 'building':
+            return
+
         instance = self.get_or_create_instance(instance_uuid, node_uuid)
 
         self.update_instance(instance, payload)
