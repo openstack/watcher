@@ -66,9 +66,13 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         m_conf.watcher_datasources.datasources = \
             ['gnocchi', 'monasca', 'ceilometer']
 
+        # Make sure we access the property and not the underlying function.
+        m_manager.return_value.get_backend.return_value = \
+            mock.NonCallableMock()
+
         # Access the property so that the configuration is read in order to
         # get the correct datasource
-        self.strategy.datasource_backend()
+        self.strategy.datasource_backend
 
         m_manager.assert_called_once_with(
             config=m_conf.watcher_datasources, osc=None)
@@ -82,9 +86,13 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         m_conf.watcher_datasources.datasources = \
             ['ceilometer', 'monasca', 'gnocchi']
 
+        # Make sure we access the property and not the underlying function.
+        m_manager.return_value.get_backend.return_value = \
+            mock.NonCallableMock()
+
         # Access the property so that the configuration is read in order to
         # get the correct datasource
-        self.strategy.datasource_backend()
+        self.strategy.datasource_backend
 
         m_manager.assert_called_once_with(
             config=m_conf.watcher_datasources, osc=None)
@@ -105,7 +113,7 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
 
         # Access the property so that the configuration is read in order to
         # get the correct datasource
-        self.strategy.datasource_backend()
+        self.strategy.datasource_backend
 
         m_manager.assert_called_once_with(
             config=datasources, osc=None)
