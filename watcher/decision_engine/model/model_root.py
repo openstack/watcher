@@ -170,7 +170,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             node = self._get_by_uuid(node_uuid)
             if isinstance(node, element.ComputeNode):
                 return node
-        raise exception.ComputeNodeNotFound(name=instance_uuid)
+        raise exception.InstanceNotMapped(uuid=instance_uuid)
 
     @lockutils.synchronized("model_root")
     def get_all_instances(self):
@@ -211,7 +211,7 @@ class ModelRoot(nx.DiGraph, base.Model):
                                key=lambda inst: inst.uuid):
             try:
                 self.get_node_by_instance_uuid(instance.uuid)
-            except (exception.InstanceNotFound, exception.ComputeNodeNotFound):
+            except exception.ComputeResourceNotFound:
                 root.append(instance.as_xml_element())
 
         return etree.tostring(root, pretty_print=True).decode('utf-8')

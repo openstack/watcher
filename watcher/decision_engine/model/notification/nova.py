@@ -160,7 +160,7 @@ class NovaNotification(base.NotificationEndpoint):
                 current_node = (
                     self.cluster_data_model.get_node_by_instance_uuid(
                         instance.uuid))
-            except exception.ComputeNodeNotFound as exc:
+            except exception.ComputeResourceNotFound as exc:
                 LOG.exception(exc)
                 # If we can't create the node,
                 # we consider the instance as unmapped
