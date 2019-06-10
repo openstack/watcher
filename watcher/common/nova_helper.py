@@ -332,8 +332,8 @@ class NovaHelper(object):
                 if host_name != new_hostname and instance.status == 'ACTIVE':
                     LOG.debug(
                         "Live migration succeeded : "
-                        "instance %s is now on host '%s'.", (
-                            instance_id, new_hostname))
+                        "instance %(instance)s is now on host '%(host)s'.",
+                        {'instance': instance_id, 'host': new_hostname})
                     return True
                 else:
                     return False
