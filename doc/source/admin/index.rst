@@ -10,3 +10,4 @@ Administrator Guide
    policy
    ways-to-install
    ../strategies/index
+   ../datasources/index
