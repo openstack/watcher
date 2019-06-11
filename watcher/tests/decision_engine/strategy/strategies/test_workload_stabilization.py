@@ -85,9 +85,14 @@ class TestWorkloadStabilization(TestBaseStrategy):
                   "instance_ram_usage": "host_ram_usage"},
              'host_choice': 'retry',
              'retry_count': 1,
-             'periods': {"instance": 720, "compute_node": 600},
-             'aggregation_method': {"instance": "mean",
-                                    "compute_node": "mean"}})
+             'periods': {
+                 "instance": 720,
+                 "compute_node": 600,
+                 "node": 0},
+             'aggregation_method': {
+                 "instance": "mean",
+                 "compute_node": "mean",
+                 "node": ''}})
         self.strategy.metrics = ["instance_cpu_usage", "instance_ram_usage"]
         self.strategy.thresholds = {"instance_cpu_usage": 0.2,
                                     "instance_ram_usage": 0.2}
@@ -98,9 +103,18 @@ class TestWorkloadStabilization(TestBaseStrategy):
             "instance_ram_usage": "host_ram_usage"}
         self.strategy.host_choice = 'retry'
         self.strategy.retry_count = 1
-        self.strategy.periods = {"instance": 720, "compute_node": 600}
-        self.strategy.aggregation_method = {"instance": "mean",
-                                            "compute_node": "mean"}
+        self.strategy.periods = {
+            "instance": 720,
+            "compute_node": 600,
+            # node is deprecated
+            "node": 0,
+        }
+        self.strategy.aggregation_method = {
+            "instance": "mean",
+            "compute_node": "mean",
+            # node is deprecated
+            "node": '',
+        }
 
     def test_get_instance_load(self):
         model = self.fake_c_cluster.generate_scenario_1()
@@ -246,3 +260,24 @@ class TestWorkloadStabilization(TestBaseStrategy):
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:
             self.strategy.execute()
             mock_migrate.assert_not_called()
+
+    def test_parameter_backwards_compat(self):
+        # Set the deprecated node values to a none default value
+        self.strategy.input_parameters.update(
+            {'periods': {
+                "instance": 720,
+                "compute_node": 600,
+                "node": 500
+            }, 'aggregation_method': {
+                "instance": "mean",
+                "compute_node": "mean",
+                "node": 'min'}})
+
+        # Pre execute method handles backwards compatibility of parameters
+        self.strategy.pre_execute()
+
+        # assert that the compute_node values are updated to the those of node
+        self.assertEqual(
+            'min', self.strategy.aggregation_method['compute_node'])
+        self.assertEqual(
+            500, self.strategy.periods['compute_node'])

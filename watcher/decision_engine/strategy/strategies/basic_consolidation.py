@@ -95,8 +95,12 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
     @property
     def aggregation_method(self):
         return self.input_parameters.get(
-            'aggregation_method',
-            {"instance": 'mean', "compute_node": 'mean'})
+            'aggregation_method', {
+                "instance": 'mean',
+                "compute_node": 'mean',
+                "node": ''
+            }
+        )
 
     @classmethod
     def get_display_name(cls):
@@ -148,8 +152,18 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
                             "type": "string",
                             "default": 'mean'
                         },
+                        "node": {
+                            "type": "string",
+                            # node is deprecated
+                            "default": ''
+                        },
                     },
-                    "default": {"instance": 'mean', "compute_node": 'mean'}
+                    "default": {
+                        "instance": 'mean',
+                        "compute_node": 'mean',
+                        # node is deprecated
+                        "node": '',
+                    }
                 },
             },
         }
@@ -390,6 +404,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     def pre_execute(self):
         self._pre_execute()
+
+        # backwards compatibility for node parameter.
+        if self.aggregation_method['node'] is not '':
+            LOG.warning('Parameter node has been renamed to compute_node and '
+                        'will be removed in next release.')
+            self.aggregation_method['compute_node'] = \
+                self.aggregation_method['node']
 
     def do_execute(self):
         unsuccessful_migration = 0

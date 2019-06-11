@@ -193,8 +193,19 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                             "type": "integer",
                             "minimum": 0
                         },
+                        "node": {
+                            "type": "integer",
+                            # node is deprecated
+                            "minimum": 0,
+                            "default": 0
+                        },
                     },
-                    "default": {"instance": 720, "compute_node": 600}
+                    "default": {
+                        "instance": 720,
+                        "compute_node": 600,
+                        # node is deprecated
+                        "node": 0,
+                    }
                 },
                 "aggregation_method": {
                     "description": "Function used to aggregate multiple "
@@ -213,8 +224,18 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                             "type": "string",
                             "default": 'mean'
                         },
+                        # node is deprecated
+                        "node": {
+                            "type": "string",
+                            "default": ''
+                        },
                     },
-                    "default": {"instance": 'mean', "compute_node": 'mean'}
+                    "default": {
+                        "instance": 'mean',
+                        "compute_node": 'mean',
+                        # node is deprecated
+                        "node": '',
+                    }
                 },
                 "granularity": {
                     "description": "The time between two measures in an "
@@ -484,6 +505,19 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.retry_count = self.input_parameters.retry_count
         self.periods = self.input_parameters.periods
         self.aggregation_method = self.input_parameters.aggregation_method
+
+        # backwards compatibility for node parameter with aggregate.
+        if self.aggregation_method['node'] is not '':
+            LOG.warning('Parameter node has been renamed to compute_node and '
+                        'will be removed in next release.')
+            self.aggregation_method['compute_node'] = \
+                self.aggregation_method['node']
+
+        # backwards compatibility for node parameter with period.
+        if self.periods['node'] is not 0:
+            LOG.warning('Parameter node has been renamed to compute_node and '
+                        'will be removed in next release.')
+            self.periods['compute_node'] = self.periods['node']
 
     def do_execute(self):
         migration = self.check_threshold()
