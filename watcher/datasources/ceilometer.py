@@ -169,7 +169,7 @@ class CeilometerHelper(base.DataSourceBase):
 
         meter = self.METRIC_MAP.get(meter_name)
         if meter is None:
-            raise exception.NoSuchMetric()
+            raise exception.MetricNotAvailable(metric=meter_name)
 
         if aggregate == 'mean':
             aggregate = 'avg'
