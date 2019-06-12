@@ -14,22 +14,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import fixtures
 from oslo_config import cfg
+from oslo_config import fixture as conf_fixture
 
 from watcher.common import config
 
-CONF = cfg.CONF
-CONF.import_opt('host', 'watcher.conf.service')
-CONF.import_opt('connection', 'oslo_db.options', group='database')
-CONF.import_opt('sqlite_synchronous', 'oslo_db.options', group='database')
 
-
-class ConfFixture(fixtures.Fixture):
+class ConfFixture(conf_fixture.Config):
     """Fixture to manage conf settings."""
-
-    def __init__(self, conf=cfg.CONF):
-        self.conf = conf
 
     def setUp(self):
         super(ConfFixture, self).setUp()
@@ -37,7 +29,6 @@ class ConfFixture(fixtures.Fixture):
         self.conf.set_default('connection', "sqlite://", group='database')
         self.conf.set_default('sqlite_synchronous', False, group='database')
         config.parse_args([], default_config_files=[])
-        self.addCleanup(self.conf.reset)
 
 
 class ConfReloadFixture(ConfFixture):
