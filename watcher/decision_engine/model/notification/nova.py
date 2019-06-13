@@ -159,7 +159,7 @@ class NovaNotification(base.NotificationEndpoint):
             try:
                 current_node = (
                     self.cluster_data_model.get_node_by_instance_uuid(
-                        instance.uuid) or self.get_or_create_node(node.uuid))
+                        instance.uuid))
             except exception.ComputeNodeNotFound as exc:
                 LOG.exception(exc)
                 # If we can't create the node,
