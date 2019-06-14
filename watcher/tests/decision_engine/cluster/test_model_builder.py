@@ -168,8 +168,8 @@ class TestModelBuilder(base.BaseTestCase):
         t_nova_cluster = nova.ModelBuilder(mock.Mock())
         t_nova_cluster.execute(m_scope)
         m_nova.return_value.get_compute_node_by_name.assert_any_call(
-            'hostone', servers=True)
+            'hostone', servers=True, detailed=True)
         m_nova.return_value.get_compute_node_by_name.assert_any_call(
-            'hosttwo', servers=True)
+            'hosttwo', servers=True, detailed=True)
         self.assertEqual(
             m_nova.return_value.get_compute_node_by_name.call_count, 2)

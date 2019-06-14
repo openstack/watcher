@@ -258,19 +258,15 @@ class ModelBuilder(object):
                 [node.hypervisor_hostname for node in all_nodes])
         LOG.debug("compute nodes: %s", compute_nodes)
         for node_name in compute_nodes:
-            # TODO(mriedem): Change this to list hypervisors with details
-            # so we don't have to call get_compute_node_by_id. It requires
-            # changes to python-novaclient.
             cnode = self.nova_helper.get_compute_node_by_name(node_name,
-                                                              servers=True)
+                                                              servers=True,
+                                                              detailed=True)
             if cnode:
-                # Get the node details (like the service.host).
-                node_info = self.nova_helper.get_compute_node_by_id(
-                    cnode[0].id)
+                node_info = cnode[0]
                 self.add_compute_node(node_info)
                 # node.servers is a list of server objects
                 # New in nova version 2.53
-                instances = getattr(cnode[0], "servers", None)
+                instances = getattr(node_info, "servers", None)
                 self.add_instance_node(node_info, instances)
 
     def add_compute_node(self, node):
