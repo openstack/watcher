@@ -32,15 +32,8 @@ GNOCCHI_CLIENT_OPTS = [
                     'The default is public.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '
-                    'communication with the OpenStack service.'),
-    cfg.IntOpt('query_max_retries',
-               default=10,
-               mutable=True,
-               help='How many times Watcher is trying to query again'),
-    cfg.IntOpt('query_timeout',
-               default=1,
-               mutable=True,
-               help='How many seconds Watcher should wait to do query again')]
+                    'communication with the OpenStack service.')
+]
 
 
 def register_opts(conf):

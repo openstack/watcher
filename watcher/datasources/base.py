@@ -14,6 +14,15 @@
 # limitations under the License.
 
 import abc
+import time
+
+from oslo_config import cfg
+from oslo_log import log
+
+from watcher.common import exception
+
+CONF = cfg.CONF
+LOG = log.getLogger(__name__)
 
 
 class DataSourceBase(object):
@@ -30,6 +39,9 @@ class DataSourceBase(object):
     """Possible options for the parameters named resource_type"""
     RESOURCE_TYPES = ['compute_node', 'instance', 'bare_metal', 'storage']
 
+    """Each datasource should have a uniquely identifying name"""
+    NAME = ''
+
     """Possible metrics a datasource can support and their internal name"""
     METRIC_MAP = dict(host_cpu_usage=None,
                       host_ram_usage=None,
@@ -44,8 +56,7 @@ class DataSourceBase(object):
                       instance_root_disk_size=None,
                       )
 
-    @abc.abstractmethod
-    def query_retry(self, f, *args, **kargs):
+    def query_retry(self, f, *args, **kwargs):
         """Attempts to retrieve metrics from the external service
 
         Attempts to access data from the external service and handles
@@ -53,9 +64,26 @@ class DataSourceBase(object):
         to the value of query_max_retries
         :param f: The method that performs the actual querying for metrics
         :param args: Array of arguments supplied to the method
-        :param kargs: The amount of arguments supplied to the method
+        :param kwargs: The amount of arguments supplied to the method
         :return: The value as retrieved from the external service
         """
+
+        num_retries = CONF.watcher_datasources.query_max_retries
+        timeout = CONF.watcher_datasources.query_timeout
+        for i in range(num_retries):
+            try:
+                return f(*args, **kwargs)
+            except Exception as e:
+                LOG.exception(e)
+                self.query_retry_reset(e)
+                LOG.warning("Retry {0} of {1} while retrieving metrics retry "
+                            "in {2} seconds".format(i+1, num_retries, timeout))
+                time.sleep(timeout)
+        raise exception.DataSourceNotAvailable(datasource=self.NAME)
+
+    @abc.abstractmethod
+    def query_retry_reset(self, exception_instance):
+        """Abstract method to perform reset operations upon request failure"""
         pass
 
     @abc.abstractmethod

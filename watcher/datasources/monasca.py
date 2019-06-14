@@ -46,16 +46,6 @@ class MonascaHelper(base.DataSourceBase):
         self.osc = osc if osc else clients.OpenStackClients()
         self.monasca = self.osc.monasca()
 
-    def query_retry(self, f, *args, **kwargs):
-        try:
-            return f(*args, **kwargs)
-        except exc.Unauthorized:
-            self.osc.reset_clients()
-            self.monasca = self.osc.monasca()
-            return f(*args, **kwargs)
-        except Exception:
-            raise
-
     def _format_time_params(self, start_time, end_time, period):
         """Format time-related params to the correct Monasca format
 
@@ -76,6 +66,11 @@ class MonascaHelper(base.DataSourceBase):
         end_timestamp = None if not end_time else end_time.isoformat()
 
         return start_timestamp, end_timestamp, period
+
+    def query_retry_reset(self, exception_instance):
+        if isinstance(exception_instance, exc.Unauthorized):
+            self.osc.reset_clients()
+            self.monasca = self.osc.monasca()
 
     def check_availability(self):
         try:

@@ -129,15 +129,10 @@ class CeilometerHelper(base.DataSourceBase):
                           "value": end_timestamp})
         return query
 
-    def query_retry(self, f, *args, **kargs):
-        try:
-            return f(*args, **kargs)
-        except exc.HTTPUnauthorized:
+    def query_retry_reset(self, exception_instance):
+        if isinstance(exception_instance, exc.HTTPUnauthorized):
             self.osc.reset_clients()
             self.ceilometer = self.osc.ceilometer()
-            return f(*args, **kargs)
-        except Exception:
-            raise
 
     def list_metrics(self):
         """List the user's meters."""

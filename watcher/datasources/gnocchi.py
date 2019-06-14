@@ -18,7 +18,6 @@
 
 from datetime import datetime
 from datetime import timedelta
-import time
 
 from oslo_config import cfg
 from oslo_log import log
@@ -51,16 +50,6 @@ class GnocchiHelper(base.DataSourceBase):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
         self.gnocchi = self.osc.gnocchi()
-
-    def query_retry(self, f, *args, **kwargs):
-        # TODO(Dantali0n) move gnocchi query_max_retries into general config
-        for i in range(CONF.gnocchi_client.query_max_retries):
-            try:
-                return f(*args, **kwargs)
-            except Exception as e:
-                LOG.exception(e)
-                time.sleep(CONF.gnocchi_client.query_timeout)
-        raise exception.DataSourceNotAvailable(datasource='gnocchi')
 
     def check_availability(self):
         try:

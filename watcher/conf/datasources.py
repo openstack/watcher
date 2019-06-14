@@ -34,7 +34,19 @@ DATASOURCES_OPTS = [
                      " the default for all strategies unless a strategy has a"
                      " specific override.",
                 item_type=cfg.types.String(choices=possible_datasources),
-                default=possible_datasources)
+                default=possible_datasources),
+    cfg.IntOpt('query_max_retries',
+               min=1,
+               default=10,
+               mutable=True,
+               help='How many times Watcher is trying to query again',
+               deprecated_group="gnocchi_client"),
+    cfg.IntOpt('query_timeout',
+               min=0,
+               default=1,
+               mutable=True,
+               help='How many seconds Watcher should wait to do query again',
+               deprecated_group="gnocchi_client")
     ]
 
 
