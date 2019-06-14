@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    Improved interface for datasource baseclass that better defines expected
+    values and types for parameters and return types of all abstract methods.
+    This allows all strategies to work with every datasource provided the
+    metrics are configured for that given datasource.
+deprecations:
+  - |
+    The new strategy baseclass has significant changes in method parameters
+    and any out-of-tree strategies will have to be adopted.
+  - |
+    Several strategies have changed the `node` parameter to `compute_node` to
+    be better aligned with terminology. These strategies include
+    `basic_consolidation` and `workload_stabilzation`. The `node` parameter
+    will remain supported during Train release and will be removed in the
+    subsequent release.

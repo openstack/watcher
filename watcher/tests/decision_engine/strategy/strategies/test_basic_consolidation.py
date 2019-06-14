@@ -235,3 +235,18 @@ class TestBasicConsolidation(TestBaseStrategy):
             loaded_action = loader.load(action['action_type'])
             loaded_action.input_parameters = action['input_parameters']
             loaded_action.validate_parameters()
+
+    def test_parameter_backwards_compat(self):
+        # Set the deprecated node values to a none default value
+        self.strategy.input_parameters.update(
+            {'aggregation_method': {
+                "instance": "mean",
+                "compute_node": "mean",
+                "node": 'min'}})
+
+        # Pre execute method handles backwards compatibility of parameters
+        self.strategy.pre_execute()
+
+        # assert that the compute_node values are updated to the those of node
+        self.assertEqual(
+            'min', self.strategy.aggregation_method['compute_node'])
