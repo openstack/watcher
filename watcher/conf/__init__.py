@@ -37,6 +37,7 @@ from watcher.conf import monasca_client
 from watcher.conf import neutron_client
 from watcher.conf import nova_client
 from watcher.conf import paths
+from watcher.conf import placement_client
 from watcher.conf import planner
 from watcher.conf import service
 
@@ -62,3 +63,4 @@ neutron_client.register_opts(CONF)
 clients_auth.register_opts(CONF)
 ironic_client.register_opts(CONF)
 collector.register_opts(CONF)
+placement_client.register_opts(CONF)

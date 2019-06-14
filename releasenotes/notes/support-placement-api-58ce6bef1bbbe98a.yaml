@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Added Placement API helper to Watcher. Now Watcher can get information
+    about resource providers, it can be used for the data model and strategies.
+    Config group placement_client with options 'api_version', 'interface' and
+    'region_name' is also added. The default values for 'api_version' and
+    'interface' are 1.29 and 'public', respectively.

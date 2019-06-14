@@ -11,6 +11,7 @@
 # under the License.
 
 import mock
+import requests
 
 fakeAuthTokenHeaders = {'X-User-Id': u'773a902f022949619b5c2f32cd89d419',
                         'X-Roles': u'admin, ResellerAdmin, _member_',
@@ -88,3 +89,25 @@ class FakeAuthProtocol(mock.Mock):
         super(FakeAuthProtocol, self).__init__(**kwargs)
         self.app = FakeApp()
         self.config = ''
+
+
+class FakeResponse(requests.Response):
+    def __init__(self, status_code, content=None, headers=None):
+        """A requests.Response that can be used as a mock return_value.
+
+        A key feature is that the instance will evaluate to True or False like
+        a real Response, based on the status_code.
+        Properties like ok, status_code, text, and content, and methods like
+        json(), work as expected based on the inputs.
+        :param status_code: Integer HTTP response code (200, 404, etc.)
+        :param content: String supplying the payload content of the response.
+                        Using a json-encoded string will make the json() method
+                        behave as expected.
+        :param headers: Dict of HTTP header values to set.
+        """
+        super(FakeResponse, self).__init__()
+        self.status_code = status_code
+        if content:
+            self._content = content
+        if headers:
+            self.headers = headers
