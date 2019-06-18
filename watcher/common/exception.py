@@ -447,6 +447,11 @@ class InstanceNotFound(ComputeResourceNotFound):
     msg_fmt = _("The instance '%(name)s' could not be found")
 
 
+class InstanceNotMapped(ComputeResourceNotFound):
+    msg_fmt = _("The mapped compute node for instance '%(uuid)s' "
+                "could not be found.")
+
+
 class ComputeNodeNotFound(ComputeResourceNotFound):
     msg_fmt = _("The compute node %(name)s could not be found")
 
