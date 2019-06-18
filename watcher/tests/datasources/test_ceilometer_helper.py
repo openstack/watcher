@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import mock
 
 from watcher.common import clients
+from watcher.common import exception
 from watcher.datasources import ceilometer as ceilometer_helper
 from watcher.tests import base
 
@@ -69,6 +70,29 @@ class TestCeilometerHelper(base.BaseTestCase):
             granularity=None
         )
         self.assertEqual(expected_result, val)
+
+    def test_statistic_aggregation_metric_unavailable(self, mock_ceilometer):
+        helper = ceilometer_helper.CeilometerHelper()
+
+        # invalidate instance_cpu_usage in metric map
+        original_metric_value = helper.METRIC_MAP.get('instance_cpu_usage')
+        helper.METRIC_MAP.update(
+            instance_cpu_usage=None
+        )
+
+        self.assertRaises(
+            exception.MetricNotAvailable,
+            helper.statistic_aggregation, resource=mock.Mock(id="INSTANCE_ID"),
+            resource_type='instance', meter_name="instance_cpu_usage",
+            period="7300",
+            granularity=None
+        )
+
+        # restore the metric map as it is a static attribute that does not get
+        # restored between unit tests!
+        helper.METRIC_MAP.update(
+            instance_cpu_usage=original_metric_value
+        )
 
     def test_get_host_cpu_usage(self, mock_ceilometer):
         self.helper.get_host_cpu_usage('compute1', 600, 'mean')

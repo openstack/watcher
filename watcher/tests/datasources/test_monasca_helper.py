@@ -18,6 +18,7 @@ import mock
 from oslo_config import cfg
 
 from watcher.common import clients
+from watcher.common import exception
 from watcher.datasources import monasca as monasca_helper
 from watcher.tests import base
 
@@ -64,6 +65,28 @@ class TestMonascaHelper(base.BaseTestCase):
             aggregate='mean',
         )
         self.assertEqual(0.6, result)
+
+    def test_statistic_aggregation_metric_unavailable(self, mock_monasca):
+        helper = monasca_helper.MonascaHelper()
+
+        # invalidate host_cpu_usage in metric map
+        original_metric_value = helper.METRIC_MAP.get('host_cpu_usage')
+        helper.METRIC_MAP.update(
+            host_cpu_usage=None
+        )
+
+        self.assertRaises(
+            exception.MetricNotAvailable, helper.statistic_aggregation,
+            resource=mock.Mock(id='NODE_UUID'), resource_type='compute_node',
+            meter_name='host_cpu_usage', period=7200, granularity=300,
+            aggregate='mean',
+        )
+
+        # restore the metric map as it is a static attribute that does not get
+        # restored between unit tests!
+        helper.METRIC_MAP.update(
+            instance_cpu_usage=original_metric_value
+        )
 
     def test_check_availability(self, mock_monasca):
         monasca = mock.MagicMock()
