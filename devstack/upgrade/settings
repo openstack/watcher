@@ -1,7 +1,7 @@
 register_project_for_upgrade watcher
 register_db_to_save watcher
 
-devstack_localrc base enable_plugin watcher https://opendev.org/openstack/watcher stable/rocky
+devstack_localrc base enable_plugin watcher https://opendev.org/openstack/watcher $BASE_DEVSTACK_BRANCH
 devstack_localrc target enable_plugin watcher https://opendev.org/openstack/watcher
 
 devstack_localrc base enable_service watcher-api watcher-decision-engine watcher-applier
