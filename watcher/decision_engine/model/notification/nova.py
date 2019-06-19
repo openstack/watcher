@@ -40,8 +40,9 @@ class NovaNotification(base.NotificationEndpoint):
 
     def get_or_create_instance(self, instance_uuid, node_uuid=None):
         try:
+            node = None
             if node_uuid:
-                self.get_or_create_node(node_uuid)
+                node = self.get_or_create_node(node_uuid)
         except exception.ComputeNodeNotFound:
             LOG.warning("Could not find compute node %(node)s for "
                         "instance %(instance)s",
@@ -55,6 +56,8 @@ class NovaNotification(base.NotificationEndpoint):
             instance = element.Instance(uuid=instance_uuid)
 
             self.cluster_data_model.add_instance(instance)
+            if node:
+                self.cluster_data_model.map_instance(instance, node)
 
         return instance
 

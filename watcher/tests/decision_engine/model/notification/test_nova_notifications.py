@@ -332,7 +332,24 @@ class TestNovaNotifications(NotificationTestCase):
             exception.ComputeNodeNotFound,
             compute_model.get_node_by_uuid, 'Node_2')
 
-    def test_nova_instance_create(self):
+    @mock.patch.object(nova_helper, 'NovaHelper')
+    def test_nova_instance_create(self, m_nova_helper_cls):
+        m_get_compute_node_by_hostname = mock.Mock(
+            side_effect=lambda uuid: mock.Mock(
+                name='m_get_compute_node_by_hostname',
+                id=3,
+                hypervisor_hostname="compute",
+                state='up',
+                status='enabled',
+                uuid=uuid,
+                memory_mb=7777,
+                vcpus=42,
+                free_disk_gb=974,
+                local_gb=1337))
+        m_nova_helper_cls.return_value = mock.Mock(
+            get_compute_node_by_hostname=m_get_compute_node_by_hostname,
+            name='m_nova_helper')
+
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.VersionedNotification(self.fake_cdmc)
@@ -352,7 +369,14 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+        hostname = message['payload']['nova_object.data']['host']
+        node = self.fake_cdmc.cluster_data_model.get_node_by_instance_uuid(
+            instance0_uuid)
+        self.assertEqual(hostname, node.hostname)
+        m_get_compute_node_by_hostname.assert_called_once_with(hostname)
+
+        instance0 = self.fake_cdmc.cluster_data_model.get_instance_by_uuid(
+            instance0_uuid)
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
         self.assertEqual(1, instance0.vcpus)
