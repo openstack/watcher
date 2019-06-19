@@ -32,7 +32,7 @@ enable_plugin watcher-dashboard https://opendev.org/openstack/watcher-dashboard
 enable_plugin watcher https://opendev.org/openstack/watcher
 
 # Enable the Ceilometer plugin
-enable_plugin ceilometer https://opendev.org.org/openstack/ceilometer
+enable_plugin ceilometer https://opendev.org/openstack/ceilometer
 
 # This is the controller node, so disable the ceilometer compute agent
 disable_service ceilometer-acompute
