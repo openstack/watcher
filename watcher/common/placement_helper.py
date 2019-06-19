@@ -80,7 +80,7 @@ class PlacementHelper(object):
         if resp.status_code == 200:
             json = resp.json()
             return json['inventories']
-        msg = ("Failed to get resource provider %(rp_uuid) inventories. "
+        msg = ("Failed to get resource provider %(rp_uuid)s inventories. "
                "Got %(status_code)d: %(err_text)s.")
         args = {
             'rp_uuid': rp_uuid,
@@ -100,7 +100,7 @@ class PlacementHelper(object):
         if resp.status_code == 200:
             json = resp.json()
             return json['traits']
-        msg = ("Failed to get resource provider %(rp_uuid) traits. "
+        msg = ("Failed to get resource provider %(rp_uuid)s traits. "
                "Got %(status_code)d: %(err_text)s.")
         args = {
             'rp_uuid': rp_uuid,
@@ -142,7 +142,7 @@ class PlacementHelper(object):
         if resp.status_code == 200:
             json = resp.json()
             return json['usages']
-        msg = ("Failed to get resource provider %(rp_uuid) usages. "
+        msg = ("Failed to get resource provider %(rp_uuid)s usages. "
                "Got %(status_code)d: %(err_text)s.")
         args = {
             'rp_uuid': rp_uuid,
