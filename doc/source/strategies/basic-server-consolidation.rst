@@ -19,12 +19,16 @@ Metrics
 
 The *basic* strategy requires the following metrics:
 
-============================ ============ ======= =======
+============================ ============ ======= ===========================
 metric                       service name plugins comment
-============================ ============ ======= =======
-``compute.node.cpu.percent`` ceilometer_  none
-``cpu_util``                 ceilometer_  none
-============================ ============ ======= =======
+============================ ============ ======= ===========================
+``compute.node.cpu.percent`` ceilometer_  none    need to set the
+                                                  ``compute_monitors`` option
+                                                  to ``cpu.virt_driver`` in
+                                                  the nova.conf.
+``cpu_util``                 ceilometer_  none    cpu_util has been removed
+                                                  since Stein.
+============================ ============ ======= ===========================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
 

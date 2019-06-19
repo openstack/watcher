@@ -19,14 +19,15 @@ Metrics
 
 The *vm_workload_consolidation* strategy requires the following metrics:
 
-============================ ============ ======= =======
+============================ ============ ======= =========================
 metric                       service name plugins comment
-============================ ============ ======= =======
-``cpu_util``                 ceilometer_  none
+============================ ============ ======= =========================
+``cpu_util``                 ceilometer_  none    cpu_util has been removed
+                                                  since Stein.
 ``memory.resident``          ceilometer_  none
 ``memory``                   ceilometer_  none
 ``disk.root.size``           ceilometer_  none
-============================ ============ ======= =======
+============================ ============ ======= =========================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
 

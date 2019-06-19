@@ -19,17 +19,21 @@ Metrics
 
 The *workload_stabilization* strategy requires the following metrics:
 
-============================ ============ ======= =======
+============================ ============ ======= =============================
 metric                       service name plugins comment
-============================ ============ ======= =======
-``compute.node.cpu.percent`` ceilometer_  none
+============================ ============ ======= =============================
+``compute.node.cpu.percent`` ceilometer_  none    need to set the
+                                                  ``compute_monitors`` option
+                                                  to ``cpu.virt_driver`` in the
+                                                  nova.conf.
 ``hardware.memory.used``     ceilometer_  SNMP_
-``cpu_util``                 ceilometer_  none
+``cpu_util``                 ceilometer_  none    cpu_util has been removed
+                                                  since Stein.
 ``memory.resident``          ceilometer_  none
-============================ ============ ======= =======
+============================ ============ ======= =============================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
-.. _SNMP: http://docs.openstack.org/admin-guide/telemetry-measurements.html
+.. _SNMP: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#snmp-based-meters
 
 Cluster data model
 ******************
