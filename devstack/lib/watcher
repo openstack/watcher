@@ -165,8 +165,6 @@ function _config_watcher_apache_wsgi {
             s|%APACHE_NAME%|$APACHE_NAME|g;
         " -i $watcher_apache_conf
         enable_apache_site watcher-api
-        tail_log watcher-access /var/log/$APACHE_NAME/watcher-api-access.log
-        tail_log watcher-api /var/log/$APACHE_NAME/watcher-api.log
    fi
 
 }
