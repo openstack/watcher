@@ -40,6 +40,10 @@ set -o errexit
 source $TARGET_DEVSTACK_DIR/stackrc
 source $TARGET_DEVSTACK_DIR/lib/apache
 source $TARGET_DEVSTACK_DIR/lib/tls
+source $TARGET_DEVSTACK_DIR/lib/keystone
+
+source $TOP_DIR/openrc admin admin
+
 source $(dirname $(dirname $BASH_SOURCE))/settings
 source $(dirname $(dirname $BASH_SOURCE))/plugin.sh
 
@@ -55,6 +59,15 @@ install_watcher
 
 # calls upgrade-watcher for specific release
 upgrade_project watcher $RUN_DIR $BASE_DEVSTACK_BRANCH $TARGET_DEVSTACK_BRANCH
+
+if [[ ! -f "$WATCHER_UWSGI_CONF" ]] && [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]
+then write_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI" "/infra-optim"
+     endpoints=$(openstack endpoint list --service watcher -c ID -f value)
+     for id in $endpoints; do
+         openstack endpoint delete $id
+     done
+     create_watcher_accounts
+fi
 
 # Migrate the database
 watcher-db-manage upgrade || die $LINO "DB migration error"

@@ -16,24 +16,9 @@
 Use this file for deploying the API service under Apache2 mod_wsgi.
 """
 
-import sys
 
-from oslo_config import cfg
-import oslo_i18n as i18n
-from oslo_log import log
+# This script is deprecated and it will be removed in U release.
+# Please switch to automatically generated watcher-api-wsgi script instead.
+from watcher.api import wsgi
 
-from watcher.api import app
-from watcher.common import service
-
-
-CONF = cfg.CONF
-
-i18n.install('watcher')
-
-service.prepare_service(sys.argv)
-
-LOG = log.getLogger(__name__)
-LOG.debug("Configuration:")
-CONF.log_opt_values(LOG, log.DEBUG)
-
-application = app.VersionSelectorApplication()
+application = wsgi.initialize_wsgi_app(show_deprecated=True)
