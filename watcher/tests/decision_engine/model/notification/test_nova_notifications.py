@@ -785,3 +785,20 @@ class TestNovaNotifications(NotificationTestCase):
             # update_instance should not be called since we did not add an
             # Instance object to the CDM since the CDM does not exist yet.
             update_instance.assert_not_called()
+
+    def test_fake_instance_create(self):
+        self.fake_cdmc.cluster_data_model = mock.Mock()
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+        message = self.load_message('instance-create-end.json')
+
+        # get_instance_by_uuid should not be called when creating instance
+        with mock.patch.object(self.fake_cdmc.cluster_data_model,
+                               'get_instance_by_uuid') as mock_get:
+            handler.info(
+                ctxt=self.context,
+                publisher_id=message['publisher_id'],
+                event_type=message['event_type'],
+                payload=message['payload'],
+                metadata=self.FAKE_METADATA,
+            )
+            mock_get.assert_not_called()
