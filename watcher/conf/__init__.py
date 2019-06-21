@@ -31,6 +31,8 @@ from watcher.conf import decision_engine
 from watcher.conf import exception
 from watcher.conf import glance_client
 from watcher.conf import gnocchi_client
+from watcher.conf import grafana_client
+from watcher.conf import grafana_translators
 from watcher.conf import ironic_client
 from watcher.conf import keystone_client
 from watcher.conf import monasca_client
@@ -57,6 +59,8 @@ nova_client.register_opts(CONF)
 glance_client.register_opts(CONF)
 gnocchi_client.register_opts(CONF)
 keystone_client.register_opts(CONF)
+grafana_client.register_opts(CONF)
+grafana_translators.register_opts(CONF)
 cinder_client.register_opts(CONF)
 ceilometer_client.register_opts(CONF)
 neutron_client.register_opts(CONF)
