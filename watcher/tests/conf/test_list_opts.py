@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import mock
+from oslo_config import cfg
 from stevedore import extension
 
 from watcher.conf import opts
@@ -74,7 +75,10 @@ class TestListOpts(base.TestCase):
             result = opts.list_opts()
 
         self.assertIsNotNone(result)
-        for section_name, options in result:
+        for name_or_group, options in result:
+            section_name = name_or_group
+            if isinstance(name_or_group, cfg.OptGroup):
+                section_name = name_or_group.name
             self.assertIn(section_name, expected_sections)
             self.assertTrue(len(options))
 
@@ -106,7 +110,10 @@ class TestListOpts(base.TestCase):
             result = opts.list_opts()
 
         self.assertIsNotNone(result)
-        for section_name, options in result:
+        for name_or_group, options in result:
+            section_name = name_or_group
+            if isinstance(name_or_group, cfg.OptGroup):
+                section_name = name_or_group.name
             self.assertIn(section_name, expected_sections)
             self.assertTrue(len(options))
 
