@@ -38,4 +38,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [(placement_group.name, placement_opts)]
+    return [(placement_group, placement_opts)]
