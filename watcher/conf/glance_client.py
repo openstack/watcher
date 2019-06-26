@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('glance_client', GLANCE_CLIENT_OPTS)]
+    return [(glance_client, GLANCE_CLIENT_OPTS)]

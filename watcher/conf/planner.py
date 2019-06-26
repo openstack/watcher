@@ -38,4 +38,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('watcher_planner', WATCHER_PLANNER_OPTS)]
+    return [(watcher_planner, WATCHER_PLANNER_OPTS)]

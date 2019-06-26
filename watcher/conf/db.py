@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('database', SQL_OPTS)]
+    return [(database, SQL_OPTS)]

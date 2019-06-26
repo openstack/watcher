@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('ironic_client', IRONIC_CLIENT_OPTS)]
+    return [(ironic_client, IRONIC_CLIENT_OPTS)]

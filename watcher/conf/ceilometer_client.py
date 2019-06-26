@@ -60,4 +60,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('ceilometer_client', CEILOMETER_CLIENT_OPTS)]
+    return [(ceilometer_client, CEILOMETER_CLIENT_OPTS)]

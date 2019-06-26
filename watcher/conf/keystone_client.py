@@ -35,4 +35,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('keystone_client', KEYSTONE_CLIENT_OPTS)]
+    return [(keystone_client, KEYSTONE_CLIENT_OPTS)]

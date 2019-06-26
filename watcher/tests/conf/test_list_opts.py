@@ -28,6 +28,11 @@ from watcher.tests.decision_engine import fake_strategies
 class TestListOpts(base.TestCase):
     def setUp(self):
         super(TestListOpts, self).setUp()
+        # These option groups will be registered using strings instead of
+        # OptGroup objects this should be avoided if possible.
+        self.none_objects = ['DEFAULT', 'watcher_clients_auth',
+                             'watcher_strategies.strategy_1']
+
         self.base_sections = [
             'DEFAULT', 'api', 'database', 'watcher_decision_engine',
             'watcher_applier', 'watcher_datasources', 'watcher_planner',
@@ -37,6 +42,24 @@ class TestListOpts(base.TestCase):
             'neutron_client', 'watcher_clients_auth', 'collector',
             'placement_client']
         self.opt_sections = list(dict(opts.list_opts()).keys())
+
+    def _assert_name_or_group(self, actual_sections, expected_sections):
+        for name_or_group, options in actual_sections:
+            section_name = name_or_group
+            if isinstance(name_or_group, cfg.OptGroup):
+                section_name = name_or_group.name
+            elif section_name in self.none_objects:
+                pass
+            else:
+                # All option groups should be added to list_otps with an
+                # OptGroup object for some exceptions this is not possible but
+                # new groups should use OptGroup
+                raise Exception(
+                    "Invalid option group: {0} should be of type OptGroup not "
+                    "string.".format(section_name))
+
+        self.assertIn(section_name, expected_sections)
+        self.assertTrue(len(options))
 
     def test_run_list_opts(self):
         expected_sections = self.opt_sections
@@ -73,14 +96,9 @@ class TestListOpts(base.TestCase):
         with mock.patch.object(extension, "ExtensionManager") as m_ext_manager:
             m_ext_manager.side_effect = m_list_available
             result = opts.list_opts()
+            self._assert_name_or_group(result, expected_sections)
 
         self.assertIsNotNone(result)
-        for name_or_group, options in result:
-            section_name = name_or_group
-            if isinstance(name_or_group, cfg.OptGroup):
-                section_name = name_or_group.name
-            self.assertIn(section_name, expected_sections)
-            self.assertTrue(len(options))
 
     def test_list_opts_with_opts(self):
         expected_sections = self.base_sections + [
@@ -110,12 +128,7 @@ class TestListOpts(base.TestCase):
             result = opts.list_opts()
 
         self.assertIsNotNone(result)
-        for name_or_group, options in result:
-            section_name = name_or_group
-            if isinstance(name_or_group, cfg.OptGroup):
-                section_name = name_or_group.name
-            self.assertIn(section_name, expected_sections)
-            self.assertTrue(len(options))
+        self._assert_name_or_group(result, expected_sections)
 
         result_map = dict(result)
         strategy_opts = result_map['watcher_strategies.strategy_1']

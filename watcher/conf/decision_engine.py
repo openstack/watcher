@@ -68,24 +68,19 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     '    instance_cpu_usage: VM_CPU\n'
                     '  gnocchi:\n'
                     '    instance_cpu_usage: cpu_vm_util\n\n'
-                    'This file is optional.')]
-
-WATCHER_CONTINUOUS_OPTS = [
+                    'This file is optional.'),
     cfg.IntOpt('continuous_audit_interval',
                default=10,
                mutable=True,
                help='Interval (in seconds) for checking newly created '
-                    'continuous audits.')
-]
+                    'continuous audits.')]
 
 
 def register_opts(conf):
     conf.register_group(watcher_decision_engine)
     conf.register_opts(WATCHER_DECISION_ENGINE_OPTS,
                        group=watcher_decision_engine)
-    conf.register_opts(WATCHER_CONTINUOUS_OPTS, group=watcher_decision_engine)
 
 
 def list_opts():
-    return [('watcher_decision_engine', WATCHER_DECISION_ENGINE_OPTS),
-            ('watcher_decision_engine', WATCHER_CONTINUOUS_OPTS)]
+    return [(watcher_decision_engine, WATCHER_DECISION_ENGINE_OPTS)]

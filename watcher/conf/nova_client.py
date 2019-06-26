@@ -52,4 +52,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('nova_client', NOVA_CLIENT_OPTS)]
+    return [(nova_client, NOVA_CLIENT_OPTS)]

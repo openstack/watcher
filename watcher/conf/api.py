@@ -65,4 +65,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('api', API_SERVICE_OPTS), ('DEFAULT', AUTH_OPTS)]
+    return [(api, API_SERVICE_OPTS), ('DEFAULT', AUTH_OPTS)]

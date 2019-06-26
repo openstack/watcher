@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('monasca_client', MONASCA_CLIENT_OPTS)]
+    return [(monasca_client, MONASCA_CLIENT_OPTS)]

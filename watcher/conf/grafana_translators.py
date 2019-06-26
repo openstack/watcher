@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('grafana_translators', GRAFANA_TRANSLATOR_INFLUX_OPTS)]
+    return [(grafana_translators, GRAFANA_TRANSLATOR_INFLUX_OPTS)]
