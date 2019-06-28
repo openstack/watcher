@@ -328,8 +328,18 @@ class ModelBuilder(object):
             return
         host = node.service["host"]
         compute_node = self.model.get_node_by_uuid(host)
+        filters = {'host': host}
+        limit = len(instances) if len(instances) <= 1000 else -1
         # Get all servers on this compute host.
-        instances = self.nova_helper.get_instance_list({'host': host})
+        # Note that the advantage of passing the limit parameter is
+        # that it can speed up the call time of novaclient. 1000 is
+        # the default maximum number of return servers provided by
+        # compute API. If we need to request more than 1000 servers,
+        # we can set limit=-1. For details, please see:
+        # https://bugs.launchpad.net/watcher/+bug/1834679
+        instances = self.nova_helper.get_instance_list(
+            filters=filters,
+            limit=limit)
         for inst in instances:
             # Add Node
             instance = self._build_instance_node(inst)

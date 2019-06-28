@@ -76,19 +76,25 @@ class NovaHelper(object):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
-    def get_instance_list(self, filters=None):
+    def get_instance_list(self, filters=None, limit=-1):
         """List servers for all tenants with details.
 
         This always gets servers with the all_tenants=True filter.
 
-        :param filters: dict of additional filters
+        :param filters: dict of additional filters (optional).
+        :param limit: Maximum number of servers to return (optional).
+                      If limit == -1, all servers will be returned,
+                      note that limit == -1 will have a performance
+                      penalty. For details, please see:
+                      https://bugs.launchpad.net/watcher/+bug/1834679
         :returns: list of novaclient Server objects
         """
         search_opts = {'all_tenants': True}
         if filters:
             search_opts.update(filters)
+        # TODO(chenker) Add marker param to list Server objects.
         return self.nova.servers.list(search_opts=search_opts,
-                                      limit=-1)
+                                      limit=limit)
 
     def get_flavor_list(self):
         return self.nova.flavors.list(**{'is_public': None})
