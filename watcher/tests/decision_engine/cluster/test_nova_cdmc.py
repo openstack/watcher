@@ -114,4 +114,26 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         m_nova_helper.get_compute_node_by_name.assert_called_once_with(
             minimal_node['hypervisor_hostname'], servers=True, detailed=True)
         m_nova_helper.get_instance_list.assert_called_once_with(
-            {'host': fake_compute_node.service['host']})
+            filters={'host': fake_compute_node.service['host']}, limit=1)
+
+
+class TestModelBuilder(base.TestCase):
+
+    @mock.patch.object(nova_helper, 'NovaHelper', mock.MagicMock())
+    def test_add_instance_node(self):
+        model_builder = nova.ModelBuilder(osc=mock.MagicMock())
+        model_builder.model = mock.MagicMock()
+        mock_node = mock.MagicMock()
+        mock_host = mock_node.service["host"]
+        mock_instances = [mock.MagicMock()]
+        model_builder.add_instance_node(mock_node, mock_instances)
+        # verify that when len(instances) <= 1000, limit == len(instance).
+        model_builder.nova_helper.get_instance_list.assert_called_once_with(
+            filters={'host': mock_host}, limit=1)
+
+        # verify that when len(instances) > 1000, limit == -1.
+        mock_instance = mock.Mock()
+        mock_instances = [mock_instance] * 1001
+        model_builder.add_instance_node(mock_node, mock_instances)
+        model_builder.nova_helper.get_instance_list.assert_called_with(
+            filters={'host': mock_host}, limit=-1)
