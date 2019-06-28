@@ -49,3 +49,9 @@ LOGDAYS=2
 [[post-config|$NOVA_CONF]]
 [DEFAULT]
 compute_monitors=cpu.virt_driver
+[notifications]
+# Enable both versioned and unversioned notifications. Watcher only
+# uses versioned notifications but ceilometer uses unversioned. We
+# can change this to just versioned when ceilometer handles versioned
+# notifications from nova: https://bugs.launchpad.net/ceilometer/+bug/1665449
+notification_format=both
