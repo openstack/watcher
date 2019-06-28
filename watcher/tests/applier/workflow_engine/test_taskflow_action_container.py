@@ -43,7 +43,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action.State.ONGOING)
+            state=objects.action_plan.State.ONGOING)
 
         action = obj_utils.create_test_action(
             self.context, action_plan_id=action_plan.id,
@@ -55,7 +55,9 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             engine=self.engine)
         action_container.execute()
 
-        self.assertTrue(action.state, objects.action.State.SUCCEEDED)
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
     @mock.patch.object(clients.OpenStackClients, 'nova', mock.Mock())
     def test_execute_with_failed(self):
@@ -65,7 +67,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,
-            state=objects.action.State.ONGOING)
+            state=objects.action_plan.State.ONGOING)
 
         action = obj_utils.create_test_action(
             self.context, action_plan_id=action_plan.id,
@@ -83,7 +85,9 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         result = action_container.execute()
         self.assertFalse(result)
 
-        self.assertTrue(action.state, objects.action.State.FAILED)
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
 
     @mock.patch('eventlet.spawn')
     def test_execute_with_cancel_action_plan(self, mock_eventlet_spawn):
