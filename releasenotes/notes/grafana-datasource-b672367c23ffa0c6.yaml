@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Grafana has been added as datasource that can be used for collecting
+    metrics. The configuration options allow to specify what metrics and how
+    they are stored in grafana so that no matter how Grafana is configured it
+    can still be used. The configuration can be done via the typical
+    configuration file but it is recommended to configure most options in the
+    yaml file for metrics. For a complete walkthrough on configuring Grafana
+    see: https://docs.openstack.org/watcher/latest/datasources/grafana.html
