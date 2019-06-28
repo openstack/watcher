@@ -51,6 +51,7 @@ class TestElement(base.TestCase):
                 'state': 'state',
                 'hostname': 'hostname',
                 'human_id': 'human_id',
+                'name': 'name',
                 'memory': 111,
                 'vcpus': 222,
                 'disk': 333,
