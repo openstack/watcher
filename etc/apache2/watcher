@@ -16,7 +16,7 @@ Listen 9322
 
 <VirtualHost *:9322>
     WSGIDaemonProcess watcher-api user=stack group=stack processes=2 threads=2 display-name=%{GROUP}
-    WSGIScriptAlias / /opt/stack/watcher/watcher/api/app.wsgi
+    WSGIScriptAlias / /usr/local/bin/watcher-api-wsgi
     WSGIProcessGroup watcher-api
 
     ErrorLog /var/log/httpd/watcher_error.log
