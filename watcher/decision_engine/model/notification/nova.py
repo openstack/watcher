@@ -234,6 +234,19 @@ class VersionedNotification(NovaNotification):
 
         self.update_instance(instance, payload)
 
+    def instance_created(self, payload):
+        instance_data = payload['nova_object.data']
+        instance_uuid = instance_data['uuid']
+        instance = element.Instance(uuid=instance_uuid)
+        self.cluster_data_model.add_instance(instance)
+
+        node_uuid = instance_data.get('host')
+        if node_uuid:
+            node = self.get_or_create_node(node_uuid)
+            self.cluster_data_model.map_instance(instance, node)
+
+        self.update_instance(instance, payload)
+
     def instance_deleted(self, payload):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
@@ -250,7 +263,7 @@ class VersionedNotification(NovaNotification):
         self.delete_instance(instance, node)
 
     notification_mapping = {
-        'instance.create.end': instance_updated,
+        'instance.create.end': instance_created,
         'instance.lock': instance_updated,
         'instance.unlock': instance_updated,
         'instance.pause.end': instance_updated,
