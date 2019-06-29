@@ -77,6 +77,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
             human_id='fake_instance',
+            name='fake_instance',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
             metadata={'hi': 'hello'},
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
