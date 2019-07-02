@@ -13,9 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os_resource_classes as orc
 from oslo_log import log
 
 from watcher.common import nova_helper
+from watcher.common import placement_helper
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model import model_root
@@ -209,6 +211,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.no_model_scope_flag = False
         self.nova = osc.nova()
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
+        self.placement_helper = placement_helper.PlacementHelper(osc=self.osc)
 
     def _collect_aggregates(self, host_aggregates, _nodes):
         aggregate_list = self.call_retry(f=self.nova_helper.get_aggregate_list)
@@ -307,15 +310,61 @@ class NovaModelBuilder(base.BaseModelBuilder):
         :param node: A node hypervisor instance
         :type node: :py:class:`~novaclient.v2.hypervisors.Hypervisor`
         """
+        inventories = self.placement_helper.get_inventories(node.id)
+        if inventories:
+            vcpus = inventories[orc.VCPU].get('total', node.vcpus)
+            vcpu_reserved = inventories[orc.VCPU].get('reserved', 0)
+            vcpu_ratio = inventories[orc.VCPU].get('allocation_ratio', 1.0)
+            memory_mb = inventories[orc.MEMORY_MB].get(
+                'total', node.memory_mb)
+            memory_mb_reserved = inventories[orc.MEMORY_MB].get('reserved', 0)
+            memory_ratio = inventories[orc.MEMORY_MB].get(
+                'allocation_ratio', 1.0)
+            disk_capacity = inventories[orc.DISK_GB].get(
+                'total', node.local_gb)
+            disk_gb_reserved = inventories[orc.DISK_GB].get('reserved', 0)
+            disk_ratio = inventories[orc.DISK_GB].get(
+                'allocation_ratio', 1.0)
+        else:
+            vcpus = node.vcpus
+            vcpu_reserved = 0
+            vcpu_ratio = 1.0
+            memory_mb = node.memory_mb
+            memory_mb_reserved = 0
+            memory_ratio = 1.0
+            disk_capacity = node.local_gb
+            disk_gb_reserved = 0
+            disk_ratio = 1.0
+
+        usages = self.placement_helper.get_usages_for_resource_provider(
+            node.id)
+        if usages:
+            vcpus_used = usages.get(orc.VCPU, node.vcpus_used)
+            memory_used = usages.get(orc.MEMORY_MB, node.memory_mb_used)
+            disk_used = usages.get(orc.DISK_GB, node.local_gb_used)
+        else:
+            vcpus_used = node.vcpus_used
+            memory_used = node.memory_mb_used
+            disk_used = node.local_gb_used
+
         # build up the compute node.
         node_attributes = {
             "id": node.id,
             "uuid": node.service["host"],
             "hostname": node.hypervisor_hostname,
-            "memory": node.memory_mb,
+            "memory": memory_mb,
+            "memory_ratio": memory_ratio,
+            "memory_mb_reserved": memory_mb_reserved,
+            "memory_mb_used": memory_used,
             "disk": node.free_disk_gb,
-            "disk_capacity": node.local_gb,
-            "vcpus": node.vcpus,
+            "disk_capacity": disk_capacity,
+            "disk_gb_used": disk_used,
+            "disk_gb_reserved": disk_gb_reserved,
+            "disk_ratio": disk_ratio,
+            "vcpus": vcpus,
+            "vcpu_reserved": vcpu_reserved,
+            "vcpu_ratio": vcpu_ratio,
+            "vcpus_used": vcpus_used,
             "state": node.state,
             "status": node.status,
             "disabled_reason": node.service["disabled_reason"]}

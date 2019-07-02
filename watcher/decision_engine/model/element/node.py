@@ -40,13 +40,37 @@ class ComputeNode(compute_resource.ComputeResource):
         "disabled_reason": wfields.StringField(nullable=True),
         "state": wfields.StringField(default=ServiceState.ONLINE.value),
         "memory": wfields.NonNegativeIntegerField(),
+        "memory_mb_reserved": wfields.NonNegativeIntegerField(),
+        "memory_mb_used": wfields.NonNegativeIntegerField(),
         "disk": wfields.IntegerField(),
         "disk_capacity": wfields.NonNegativeIntegerField(),
+        "disk_gb_reserved": wfields.NonNegativeIntegerField(),
+        "disk_gb_used": wfields.NonNegativeIntegerField(),
         "vcpus": wfields.NonNegativeIntegerField(),
+        "vcpus_used": wfields.NonNegativeIntegerField(),
+        "vcpu_reserved": wfields.NonNegativeIntegerField(),
+        "memory_ratio": wfields.NonNegativeFloatField(),
+        "vcpu_ratio": wfields.NonNegativeFloatField(),
+        "disk_ratio": wfields.NonNegativeFloatField(),
     }
 
     def accept(self, visitor):
         raise NotImplementedError()
+
+    @property
+    def memory_mb_free(self):
+        total = (self.memory-self.memory_mb_reserved)*self.memory_ratio
+        return total-self.memory_mb_used
+
+    @property
+    def disk_gb_free(self):
+        total = (self.disk_capacity-self.disk_gb_reserved)*self.disk_ratio
+        return total-self.disk_gb_used
+
+    @property
+    def vcpus_free(self):
+        total = (self.vcpus-self.vcpu_reserved)*self.vcpu_ratio
+        return total-self.vcpus_used
 
 
 @base.WatcherObjectRegistry.register_if(False)
