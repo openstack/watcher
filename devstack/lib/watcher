@@ -246,10 +246,6 @@ function create_watcher_conf {
 
         iniset $WATCHER_CONF DEFAULT enabled_ssl_apis "$WATCHER_ENABLED_APIS"
     fi
-
-    if is_service_enabled ceilometer; then
-        iniset $WATCHER_CONF watcher_messaging notifier_driver "messaging"
-    fi
 }
 
 # create_watcher_cache_dir() - Part of the init_watcher() process
