@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('cinder_client', CINDER_CLIENT_OPTS)]
+    return [(cinder_client, CINDER_CLIENT_OPTS)]

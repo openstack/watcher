@@ -56,4 +56,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('watcher_datasources', DATASOURCES_OPTS)]
+    return [(datasources, DATASOURCES_OPTS)]

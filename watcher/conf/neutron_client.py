@@ -41,4 +41,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('neutron_client', NEUTRON_CLIENT_OPTS)]
+    return [(neutron_client, NEUTRON_CLIENT_OPTS)]

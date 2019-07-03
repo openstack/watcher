@@ -45,4 +45,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('collector', COLLECTOR_OPTS)]
+    return [(collector, COLLECTOR_OPTS)]

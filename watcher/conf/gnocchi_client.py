@@ -42,4 +42,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('gnocchi_client', GNOCCHI_CLIENT_OPTS)]
+    return [(gnocchi_client, GNOCCHI_CLIENT_OPTS)]

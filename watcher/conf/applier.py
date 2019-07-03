@@ -50,4 +50,4 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('watcher_applier', APPLIER_MANAGER_OPTS)]
+    return [(watcher_applier, APPLIER_MANAGER_OPTS)]

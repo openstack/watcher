@@ -27,5 +27,5 @@ def register_opts(conf):
 
 
 def list_opts():
-    return [('watcher_clients_auth', ka_loading.get_session_conf_options() +
+    return [(WATCHER_CLIENTS_AUTH, ka_loading.get_session_conf_options() +
             ka_loading.get_auth_common_conf_options())]
