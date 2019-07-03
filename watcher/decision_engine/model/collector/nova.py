@@ -268,6 +268,9 @@ class ModelBuilder(object):
                 # New in nova version 2.53
                 instances = getattr(node_info, "servers", None)
                 self.add_instance_node(node_info, instances)
+            else:
+                LOG.error("compute_node from aggregate / availability_zone "
+                          "could not be found: {0}".format(node_name))
 
     def add_compute_node(self, node):
         # Build and add base node.
@@ -320,7 +323,7 @@ class ModelBuilder(object):
 
     def add_instance_node(self, node, instances):
         if instances is None:
-            # no instances on this node
+            LOG.info("no instances on compute_node: {0}".format(node))
             return
         host = node.service["host"]
         compute_node = self.model.get_node_by_uuid(host)
