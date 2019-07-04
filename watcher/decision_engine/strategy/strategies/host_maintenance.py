@@ -304,7 +304,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         backup_node = self.input_parameters.get('backup_node')
 
         # if no VMs in the maintenance_node, just maintain the compute node
-        src_node = self.compute_model.get_node_by_uuid(maintenance_node)
+        src_node = self.compute_model.get_node_by_name(maintenance_node)
         if len(self.compute_model.get_node_instances(src_node)) == 0:
             if (src_node.disabled_reason !=
                     self.REASON_FOR_MAINTAINING):
@@ -312,7 +312,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                 return
 
         if backup_node:
-            des_node = self.compute_model.get_node_by_uuid(backup_node)
+            des_node = self.compute_model.get_node_by_name(backup_node)
         else:
             des_node = None
 

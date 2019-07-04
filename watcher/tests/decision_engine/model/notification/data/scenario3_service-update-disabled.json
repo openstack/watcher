@@ -5,7 +5,7 @@
         "nova_object.name": "ServiceStatusPayload",
         "nova_object.version": "1.0",
         "nova_object.data": {
-            "host": "Node_0",
+            "host": "hostname_0",
             "disabled": true,
             "last_seen_up": "2012-10-29T13:42:05Z",
             "binary": "nova-compute",

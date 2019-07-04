@@ -11,7 +11,7 @@
             "last_seen_up": null,
             "report_count": 0,
             "topic": "compute",
-            "uuid": "fa69c544-906b-4a6a-a9c6-c1f7a8078c73",
+            "uuid": "fafac544-906b-4a6a-a9c6-c1f7a8078c73",
             "version": 23
         },
         "nova_object.name": "ServiceStatusPayload",

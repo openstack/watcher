@@ -419,13 +419,13 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                     'input_parameters'][
                         'resource_id'] == instance_uuid)
             if len(actions) > 1:
-                src_uuid = actions[0]['input_parameters']['source_node']
-                dst_uuid = actions[-1]['input_parameters']['destination_node']
+                src_name = actions[0]['input_parameters']['source_node']
+                dst_name = actions[-1]['input_parameters']['destination_node']
                 for a in actions:
                     self.solution.actions.remove(a)
                     self.number_of_migrations -= 1
-                src_node = self.compute_model.get_node_by_uuid(src_uuid)
-                dst_node = self.compute_model.get_node_by_uuid(dst_uuid)
+                src_node = self.compute_model.get_node_by_name(src_name)
+                dst_node = self.compute_model.get_node_by_name(dst_name)
                 instance = self.compute_model.get_instance_by_uuid(
                     instance_uuid)
                 if self.compute_model.migrate_instance(

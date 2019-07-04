@@ -32,12 +32,12 @@ class ComputeScope(base.BaseScope):
         self._osc = osc
         self.wrapper = nova_helper.NovaHelper(osc=self._osc)
 
-    def remove_instance(self, cluster_model, instance, node_name):
-        node = cluster_model.get_node_by_uuid(node_name)
+    def remove_instance(self, cluster_model, instance, node_uuid):
+        node = cluster_model.get_node_by_uuid(node_uuid)
         cluster_model.delete_instance(instance, node)
 
-    def update_exclude_instance(self, cluster_model, instance, node_name):
-        node = cluster_model.get_node_by_uuid(node_name)
+    def update_exclude_instance(self, cluster_model, instance, node_uuid):
+        node = cluster_model.get_node_by_uuid(node_uuid)
         cluster_model.unmap_instance(instance, node)
         instance.update({"watcher_exclude": True})
         cluster_model.map_instance(instance, node)
@@ -109,18 +109,18 @@ class ComputeScope(base.BaseScope):
                     [project['uuid'] for project in resource['projects']])
 
     def remove_nodes_from_model(self, nodes_to_remove, cluster_model):
-        for node_uuid in nodes_to_remove:
-            node = cluster_model.get_node_by_uuid(node_uuid)
+        for node_name in nodes_to_remove:
+            node = cluster_model.get_node_by_name(node_name)
             instances = cluster_model.get_node_instances(node)
             for instance in instances:
-                self.remove_instance(cluster_model, instance, node_uuid)
+                self.remove_instance(cluster_model, instance, node.uuid)
             cluster_model.remove_node(node)
 
     def update_exclude_instance_in_model(
             self, instances_to_exclude, cluster_model):
         for instance_uuid in instances_to_exclude:
             try:
-                node_name = cluster_model.get_node_by_instance_uuid(
+                node_uuid = cluster_model.get_node_by_instance_uuid(
                     instance_uuid).uuid
             except exception.ComputeResourceNotFound:
                 LOG.warning("The following instance %s cannot be found. "
@@ -131,7 +131,7 @@ class ComputeScope(base.BaseScope):
             self.update_exclude_instance(
                 cluster_model,
                 cluster_model.get_instance_by_uuid(instance_uuid),
-                node_name)
+                node_uuid)
 
     def exclude_instances_with_given_metadata(
             self, instance_metadata, cluster_model, instances_to_remove):
@@ -166,7 +166,8 @@ class ComputeScope(base.BaseScope):
         projects_to_exclude = []
         compute_scope = []
         found_nothing_flag = False
-        model_hosts = list(cluster_model.get_all_compute_nodes().keys())
+        model_hosts = [n.hostname for n in
+                       cluster_model.get_all_compute_nodes().values()]
 
         if not self.scope:
             return cluster_model

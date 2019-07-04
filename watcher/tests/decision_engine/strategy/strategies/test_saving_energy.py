@@ -76,9 +76,9 @@ class TestSavingEnergy(TestBaseStrategy):
         mock_hyper1 = mock.Mock()
         mock_hyper2 = mock.Mock()
         mock_hyper1.to_dict.return_value = {
-            'running_vms': 2, 'service': {'host': 'Node_0'}, 'state': 'up'}
+            'running_vms': 2, 'service': {'host': 'hostname_0'}, 'state': 'up'}
         mock_hyper2.to_dict.return_value = {
-            'running_vms': 2, 'service': {'host': 'Node_1'}, 'state': 'up'}
+            'running_vms': 2, 'service': {'host': 'hostname_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
         self.strategy.get_hosts_pool()
@@ -101,9 +101,9 @@ class TestSavingEnergy(TestBaseStrategy):
         mock_hyper1 = mock.Mock()
         mock_hyper2 = mock.Mock()
         mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_0'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
         mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
         self.strategy.get_hosts_pool()
@@ -126,9 +126,9 @@ class TestSavingEnergy(TestBaseStrategy):
         mock_hyper1 = mock.Mock()
         mock_hyper2 = mock.Mock()
         mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_0'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
         mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
         self.strategy.get_hosts_pool()
@@ -151,9 +151,11 @@ class TestSavingEnergy(TestBaseStrategy):
         mock_hyper1 = mock.Mock()
         mock_hyper2 = mock.Mock()
         mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_0'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_0'},
+            'state': 'up'}
         mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_10'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_10'},
+            'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
         self.strategy.get_hosts_pool()
@@ -196,9 +198,9 @@ class TestSavingEnergy(TestBaseStrategy):
         mock_hyper1 = mock.Mock()
         mock_hyper2 = mock.Mock()
         mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_0'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
         mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'Node_1'}, 'state': 'up'}
+            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
         self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
 
         model = self.fake_c_cluster.generate_scenario_1()

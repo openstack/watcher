@@ -1,21 +1,23 @@
 {
-    "priority": "INFO",
-    "payload": {
-        "nova_object.namespace": "nova",
-        "nova_object.name": "ServiceStatusPayload",
-        "nova_object.version": "1.0",
-        "nova_object.data": {
-            "host": "host1",
-            "disabled": false,
-            "last_seen_up": "2012-10-29T13:42:05Z",
-            "binary": "nova-compute",
-            "topic": "compute",
-            "disabled_reason": null,
-            "report_count": 1,
-            "forced_down": false,
-            "version": 15
-        }
-    },
     "event_type": "service.update",
+    "payload": {
+        "nova_object.data": {
+            "availability_zone": null,
+            "binary": "nova-compute",
+            "disabled": false,
+            "disabled_reason": null,
+            "forced_down": false,
+            "host": "host1",
+            "last_seen_up": "2012-10-29T13:42:05Z",
+            "report_count": 1,
+            "topic": "compute",
+            "uuid": "fa69c544-906b-4a6a-a9c6-c1f7a8078c73",
+            "version": 23
+        },
+        "nova_object.name": "ServiceStatusPayload",
+        "nova_object.namespace": "nova",
+        "nova_object.version": "1.1"
+    },
+    "priority": "INFO",
     "publisher_id": "nova-compute:host1"
 }

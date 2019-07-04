@@ -19,6 +19,7 @@
 from oslo_log import log
 from watcher.common import exception
 from watcher.common import nova_helper
+from watcher.common import utils
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import base
 from watcher.decision_engine.model.notification import filtering
@@ -38,15 +39,15 @@ class NovaNotification(base.NotificationEndpoint):
             self._nova = nova_helper.NovaHelper()
         return self._nova
 
-    def get_or_create_instance(self, instance_uuid, node_uuid=None):
+    def get_or_create_instance(self, instance_uuid, node_name=None):
         try:
             node = None
-            if node_uuid:
-                node = self.get_or_create_node(node_uuid)
+            if node_name:
+                node = self.get_or_create_node(node_name)
         except exception.ComputeNodeNotFound:
             LOG.warning("Could not find compute node %(node)s for "
                         "instance %(instance)s",
-                        dict(node=node_uuid, instance=instance_uuid))
+                        dict(node=node_name, instance=instance_uuid))
         try:
             instance = self.cluster_data_model.get_instance_by_uuid(
                 instance_uuid)
@@ -117,13 +118,16 @@ class NovaNotification(base.NotificationEndpoint):
             'disabled_reason': disabled_reason,
         })
 
-    def create_compute_node(self, node_hostname):
-        """Update the compute node by querying the Nova API."""
+    def create_compute_node(self, uuid_or_name):
+        """Create the computeNode node."""
         try:
-            _node = self.nova.get_compute_node_by_hostname(node_hostname)
+            if utils.is_uuid_like(uuid_or_name):
+                _node = self.nova.get_compute_node_by_uuid(uuid_or_name)
+            else:
+                _node = self.nova.get_compute_node_by_hostname(uuid_or_name)
+
             node = element.ComputeNode(
-                id=_node.id,
-                uuid=node_hostname,
+                uuid=_node.id,
                 hostname=_node.hypervisor_hostname,
                 state=_node.state,
                 status=_node.status,
@@ -132,26 +136,27 @@ class NovaNotification(base.NotificationEndpoint):
                 disk=_node.free_disk_gb,
                 disk_capacity=_node.local_gb,
             )
+            self.cluster_data_model.add_node(node)
+            LOG.debug("New compute node mapped: %s", node.uuid)
             return node
         except Exception as exc:
             LOG.exception(exc)
-            LOG.debug("Could not refresh the node %s.", node_hostname)
-            raise exception.ComputeNodeNotFound(name=node_hostname)
+            LOG.debug("Could not refresh the node %s.", uuid_or_name)
+            raise exception.ComputeNodeNotFound(name=uuid_or_name)
 
-        return False
-
-    def get_or_create_node(self, uuid):
-        if uuid is None:
-            LOG.debug("Compute node UUID not provided: skipping")
+    def get_or_create_node(self, uuid_or_name):
+        if uuid_or_name is None:
+            LOG.debug("Compute node UUID or name not provided: skipping")
             return
         try:
-            return self.cluster_data_model.get_node_by_uuid(uuid)
+            if utils.is_uuid_like(uuid_or_name):
+                return self.cluster_data_model.get_node_by_uuid(uuid_or_name)
+            else:
+                return self.cluster_data_model.get_node_by_name(uuid_or_name)
         except exception.ComputeNodeNotFound:
             # The node didn't exist yet so we create a new node object
-            node = self.create_compute_node(uuid)
-            LOG.debug("New compute node created: %s", uuid)
-            self.cluster_data_model.add_node(node)
-            LOG.debug("New compute node mapped: %s", uuid)
+            node = self.create_compute_node(uuid_or_name)
+            LOG.debug("New compute node created: %s", uuid_or_name)
             return node
 
     def update_instance_mapping(self, instance, node):
@@ -202,18 +207,18 @@ class VersionedNotification(NovaNotification):
 
     def service_updated(self, payload):
         node_data = payload['nova_object.data']
-        node_uuid = node_data['host']
+        node_name = node_data['host']
         try:
-            node = self.get_or_create_node(node_uuid)
+            node = self.get_or_create_node(node_name)
             self.update_compute_node(node, payload)
         except exception.ComputeNodeNotFound as exc:
             LOG.exception(exc)
 
     def service_deleted(self, payload):
         node_data = payload['nova_object.data']
-        node_uuid = node_data['host']
+        node_name = node_data['host']
         try:
-            node = self.get_or_create_node(node_uuid)
+            node = self.get_or_create_node(node_name)
             self.delete_node(node)
         except exception.ComputeNodeNotFound as exc:
             LOG.exception(exc)
@@ -222,12 +227,12 @@ class VersionedNotification(NovaNotification):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
         instance_state = instance_data['state']
-        node_uuid = instance_data.get('host')
+        node_name = instance_data.get('host')
         # if instance state is building, don't update data model
         if instance_state == 'building':
             return
 
-        instance = self.get_or_create_instance(instance_uuid, node_uuid)
+        instance = self.get_or_create_instance(instance_uuid, node_name)
 
         self.update_instance(instance, payload)
 
@@ -237,9 +242,9 @@ class VersionedNotification(NovaNotification):
         instance = element.Instance(uuid=instance_uuid)
         self.cluster_data_model.add_instance(instance)
 
-        node_uuid = instance_data.get('host')
-        if node_uuid:
-            node = self.get_or_create_node(node_uuid)
+        node_name = instance_data.get('host')
+        if node_name:
+            node = self.get_or_create_node(node_name)
             self.cluster_data_model.map_instance(instance, node)
 
         self.update_instance(instance, payload)
@@ -247,8 +252,8 @@ class VersionedNotification(NovaNotification):
     def instance_deleted(self, payload):
         instance_data = payload['nova_object.data']
         instance_uuid = instance_data['uuid']
-        node_uuid = instance_data.get('host')
-        instance = self.get_or_create_instance(instance_uuid, node_uuid)
+        node_name = instance_data.get('host')
+        instance = self.get_or_create_instance(instance_uuid, node_name)
 
         try:
             node = self.get_or_create_node(instance_data['host'])

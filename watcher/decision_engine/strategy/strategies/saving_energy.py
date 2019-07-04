@@ -177,9 +177,9 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             node.hostname = hypervisor_node.hypervisor_hostname
             hypervisor_node = hypervisor_node.to_dict()
             compute_service = hypervisor_node.get('service', None)
-            host_uuid = compute_service.get('host')
+            host_name = compute_service.get('host')
             try:
-                self.compute_model.get_node_by_uuid(host_uuid)
+                self.compute_model.get_node_by_name(host_name)
             except exception.ComputeNodeNotFound:
                 continue
 

@@ -78,7 +78,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
             disabled_reason='',
         )
         minimal_node = dict(
-            id=1337,
+            id='160a0e7b-8b0b-4854-8257-9c71dff4efcc',
             hypervisor_hostname='test_hostname',
             state='TEST_STATE',
             status='TEST_STATUS',
@@ -149,7 +149,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         node = list(compute_nodes.values())[0]
         instance = list(instances.values())[0]
 
-        self.assertEqual(node.uuid, 'test_hostname')
+        self.assertEqual(node.uuid, '160a0e7b-8b0b-4854-8257-9c71dff4efcc')
         self.assertEqual(instance.uuid, 'ef500f7e-dac8-470f-960c-169486fce71b')
 
         memory_total = node.memory - node.memory_mb_reserved

@@ -39,7 +39,7 @@ class TestComputeScope(base.TestCase):
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
             mock.Mock(zone='AZ{0}'.format(i),
-                      host={'Node_{0}'.format(i): {}})
+                      host={'hostname_{0}'.format(i): {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
@@ -240,7 +240,7 @@ class TestComputeScope(base.TestCase):
         model = self.fake_cluster.generate_scenario_1()
         compute.ComputeScope([], mock.Mock(),
                              osc=mock.Mock()).remove_nodes_from_model(
-            ['Node_1', 'Node_2'], model)
+            ['hostname_1', 'hostname_2'], model)
         expected_edges = [
             ('INSTANCE_0', 'Node_0'),
             ('INSTANCE_1', 'Node_0'),
@@ -290,7 +290,7 @@ class TestComputeScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_2)
         mock_zone_list.return_value = [
             mock.Mock(zone='AZ{0}'.format(i),
-                      host={'Node_{0}'.format(i): {}})
+                      host={'hostname_{0}'.format(i): {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
