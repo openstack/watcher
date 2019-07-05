@@ -86,6 +86,14 @@ class NovaHelper(object):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
+    def get_compute_node_by_uuid(self, node_uuid):
+        """Get compute node by uuid
+
+        :param node_uuid: hypervisor id as uuid after microversion 2.53
+        :returns: novaclient.v2.hypervisors.Hypervisor object if found
+        """
+        return self.nova.hypervisors.get(node_uuid)
+
     def get_instance_list(self, filters=None, marker=None, limit=-1):
         """List servers for all tenants with details.
 

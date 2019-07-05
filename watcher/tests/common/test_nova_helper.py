@@ -162,6 +162,18 @@ class TestNovaHelper(base.TestCase):
             result = nova_util.get_compute_node_by_hostname(name)
             self.assertIs(nodes[index], result)
 
+    def test_get_compute_node_by_uuid(
+            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        hypervisor_id = utils.generate_uuid()
+        hypervisor_name = "fake_hypervisor_1"
+        hypervisor = self.fake_hypervisor(hypervisor_id, hypervisor_name)
+        nova_util.nova.hypervisors.get.return_value = hypervisor
+        # verify that the compute node can be obtained normally by id
+        self.assertEqual(
+            nova_util.get_compute_node_by_uuid(hypervisor_id),
+            hypervisor)
+
     def test_get_instance_list(self, *args):
         nova_util = nova_helper.NovaHelper()
         # Call it once with no filters.
