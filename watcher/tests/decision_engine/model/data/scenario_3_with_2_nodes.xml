@@ -1,8 +1,8 @@
 <ModelRoot>
-  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" disk="250" disk_capacity="250" memory="132">
-    <Instance watcher_exclude="False" state="active" human_id="" name="" uuid="73b09e16-35b7-4922-804e-e8f5d9b740fc" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  <ComputeNode uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance watcher_exclude="False" state="active" name="" uuid="73b09e16-35b7-4922-804e-e8f5d9b740fc" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
-  <ComputeNode human_id="" uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" disk="250" disk_capacity="250" memory="132">
-    <Instance watcher_exclude="False" state="active" human_id="" name="" uuid="a4cab39b-9828-413a-bf88-f76921bf1517" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  <ComputeNode uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" disk="250" disk_capacity="250" memory="132">
+    <Instance watcher_exclude="False" state="active" name="" uuid="a4cab39b-9828-413a-bf88-f76921bf1517" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
 </ModelRoot>
