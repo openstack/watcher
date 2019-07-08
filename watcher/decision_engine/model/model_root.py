@@ -150,6 +150,19 @@ class ModelRoot(nx.DiGraph, base.Model):
             raise exception.ComputeNodeNotFound(name=uuid)
 
     @lockutils.synchronized("model_root")
+    def get_node_by_name(self, name):
+        try:
+            node_list = [cn['attr'] for uuid, cn in self.nodes(data=True)
+                         if (isinstance(cn['attr'], element.ComputeNode) and
+                         cn['attr']['hostname'] == name)]
+            if node_list:
+                return node_list[0]
+            else:
+                raise exception.ComputeResourceNotFound
+        except exception.ComputeResourceNotFound:
+            raise exception.ComputeNodeNotFound(name=name)
+
+    @lockutils.synchronized("model_root")
     def get_instance_by_uuid(self, uuid):
         try:
             return self._get_by_uuid(uuid)
