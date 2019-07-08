@@ -196,25 +196,25 @@ attributes for ComputeNodes, Instances and IronicNodes.
 +=================+=================+====================+
 | uuid            | uuid            | uuid               |
 +-----------------+-----------------+--------------------+
-| human_id        | human_id        | human_id           |
+| id              | name            | human_id           |
 +-----------------+-----------------+--------------------+
-| id              | project_id      | power_state        |
+| hostname        | project_id      | power_state        |
 +-----------------+-----------------+--------------------+
-| hostname        | watcher_exclude | maintenance        |
+| status          | watcher_exclude | maintenance        |
 +-----------------+-----------------+--------------------+
-| status          | locked          | maintenance_reason |
+| disabled_reason | locked          | maintenance_reason |
 +-----------------+-----------------+--------------------+
-| disabled_reason | metadata        | extra              |
+| state           | metadata        | extra              |
 +-----------------+-----------------+--------------------+
-| state           | state           |                    |
+| memory          | state           |                    |
 +-----------------+-----------------+--------------------+
-| memory          | memory          |                    |
+| disk            | memory          |                    |
 +-----------------+-----------------+--------------------+
-| disk            | disk            |                    |
+| disk_capacity   | disk            |                    |
 +-----------------+-----------------+--------------------+
-| disk_capacity   | disk_capacity   |                    |
+| vcpus           | disk_capacity   |                    |
 +-----------------+-----------------+--------------------+
-| vcpus           | vcpus           |                    |
+|                 | vcpus           |                    |
 +-----------------+-----------------+--------------------+
 
 Many if not all of these attributes map to attributes of the objects that are
@@ -337,7 +337,7 @@ for readability reasons.**
     instance_cpu_usage:influxdb,instance_ram_usage:influxdb
 
     attribute_map = host_cpu_usage:hostname,host_ram_usage:hostname,
-    instance_cpu_usage:human_id,instance_ram_usage:human_id
+    instance_cpu_usage:name,instance_ram_usage:name
 
     query_map = host_cpu_usage:SELECT 100-{0}("{0}_value") FROM {4}.cpu WHERE
     ("host" =~ /^{1}$/ AND "type_instance" =~/^idle$/ AND time > now()-{2}s),
@@ -405,7 +405,7 @@ multi line options are demonstrated in the query parameters.
       project: 1337
       db: prod_cloud
       translator: influxdb
-      attribute: human_id
+      attribute: name
       query: >
           SELECT {0}("{0}_value") FROM
            "vmstats" WHERE host =~ /^{1}$/ AND "type_instance" =~ /^cpu$/ AND
@@ -414,7 +414,7 @@ multi line options are demonstrated in the query parameters.
       project: 9696
       db: prod_cloud
       translator: influxdb
-      attribute: human_id
+      attribute: name
       query: >
           SELECT {0}("{0}_value") FROM
            "vmstats" WHERE host =~ /^{1}$/ AND "type_instance" =~ /^mem$/ AND
