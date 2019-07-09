@@ -29,12 +29,12 @@ class TestSavingEnergy(TestBaseStrategy):
     def setUp(self):
         super(TestSavingEnergy, self).setUp()
 
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'uuid': '922d4762-0bc5-4b30-9cb9-48ab644dd861'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'uuid': '922d4762-0bc5-4b30-9cb9-48ab644dd862'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.fake_nodes = [mock_node1, mock_node2]
 
         p_ironic = mock.patch.object(
@@ -63,14 +63,14 @@ class TestSavingEnergy(TestBaseStrategy):
         self.strategy._nova_client = self.m_nova
 
     def test_get_hosts_pool_with_vms_node_pool(self):
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'extra': {'compute_node_id': 1},
             'power_state': 'power on'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'extra': {'compute_node_id': 2},
             'power_state': 'power off'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
 
         mock_hyper1 = mock.Mock()
@@ -88,14 +88,14 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 0)
 
     def test_get_hosts_pool_free_poweron_node_pool(self):
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'extra': {'compute_node_id': 1},
             'power_state': 'power on'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'extra': {'compute_node_id': 2},
             'power_state': 'power on'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
 
         mock_hyper1 = mock.Mock()
@@ -113,14 +113,14 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 0)
 
     def test_get_hosts_pool_free_poweroff_node_pool(self):
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'extra': {'compute_node_id': 1},
             'power_state': 'power off'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'extra': {'compute_node_id': 2},
             'power_state': 'power off'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
 
         mock_hyper1 = mock.Mock()
@@ -138,14 +138,14 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 2)
 
     def test_get_hosts_pool_with_node_out_model(self):
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'extra': {'compute_node_id': 1},
             'power_state': 'power off'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'extra': {'compute_node_id': 2},
             'power_state': 'power off'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
 
         mock_hyper1 = mock.Mock()
@@ -164,8 +164,8 @@ class TestSavingEnergy(TestBaseStrategy):
 
     def test_save_energy_poweron(self):
         self.strategy.free_poweroff_node_pool = [
-            '922d4762-0bc5-4b30-9cb9-48ab644dd861',
-            '922d4762-0bc5-4b30-9cb9-48ab644dd862'
+            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd861'),
+            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd862')
             ]
         self.strategy.save_energy()
         self.assertEqual(len(self.strategy.solution.actions), 1)
@@ -174,8 +174,8 @@ class TestSavingEnergy(TestBaseStrategy):
 
     def test_save_energy_poweroff(self):
         self.strategy.free_poweron_node_pool = [
-            '922d4762-0bc5-4b30-9cb9-48ab644dd861',
-            '922d4762-0bc5-4b30-9cb9-48ab644dd862'
+            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd861'),
+            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd862')
             ]
         self.strategy.save_energy()
         self.assertEqual(len(self.strategy.solution.actions), 1)
@@ -183,14 +183,14 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(action.get('input_parameters').get('state'), 'off')
 
     def test_execute(self):
-        mock_node1 = mock.Mock()
-        mock_node2 = mock.Mock()
-        mock_node1.to_dict.return_value = {
+        mock_node1_dict = {
             'extra': {'compute_node_id': 1},
             'power_state': 'power on'}
-        mock_node2.to_dict.return_value = {
+        mock_node2_dict = {
             'extra': {'compute_node_id': 2},
             'power_state': 'power on'}
+        mock_node1 = mock.Mock(**mock_node1_dict)
+        mock_node2 = mock.Mock(**mock_node2_dict)
         self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
 
         mock_hyper1 = mock.Mock()
