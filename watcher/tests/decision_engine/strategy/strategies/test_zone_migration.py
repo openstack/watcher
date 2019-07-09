@@ -131,6 +131,7 @@ class TestZoneMigration(TestBaseStrategy):
     def fake_instance(**kwargs):
         instance = mock.MagicMock(spec=novaclient.v2.servers.Server)
         instance.id = kwargs.get('id', utils.generate_uuid())
+        instance.name = kwargs.get('name', 'fake_name')
         instance.status = kwargs.get('status', 'ACTIVE')
         instance.tenant_id = kwargs.get('project_id', None)
         instance.flavor = {'id': kwargs.get('flavor_id', None)}
@@ -145,6 +146,7 @@ class TestZoneMigration(TestBaseStrategy):
     def fake_volume(**kwargs):
         volume = mock.MagicMock(spec=cinderclient.v2.volumes.Volume)
         volume.id = kwargs.get('id', utils.generate_uuid())
+        volume.name = kwargs.get('name', 'fake_name')
         volume.status = kwargs.get('status', 'available')
         tenant_id = kwargs.get('project_id', None)
         setattr(volume, 'os-vol-tenant-attr:tenant_id', tenant_id)
@@ -171,9 +173,18 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(sorted(instances), sorted(["src1", "src2"]))
 
     def test_get_instances(self):
-        instance_on_src1 = self.fake_instance(host="src1", id="INSTANCE_1")
-        instance_on_src2 = self.fake_instance(host="src2", id="INSTANCE_2")
-        instance_on_src3 = self.fake_instance(host="src3", id="INSTANCE_3")
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src2 = self.fake_instance(
+            host="src2",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
+        instance_on_src3 = self.fake_instance(
+            host="src3",
+            id="INSTANCE_3",
+            name="INSTANCE_3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -190,11 +201,14 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_get_volumes(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id=volume_uuid_mapping["volume_1"])
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id=volume_uuid_mapping["volume_2"])
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id=volume_uuid_mapping["volume_3"])
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -212,7 +226,10 @@ class TestZoneMigration(TestBaseStrategy):
     # execute #
 
     def test_execute_live_migrate_instance(self):
-        instance_on_src1 = self.fake_instance(host="src1", id="INSTANCE_1")
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
         ]
@@ -229,7 +246,10 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_cold_migrate_instance(self):
-        instance_on_src1 = self.fake_instance(host="src1", id="INSTANCE_1")
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
         setattr(instance_on_src1, "status", "SHUTOFF")
         setattr(instance_on_src1, "OS-EXT-STS:vm_state", "stopped")
         self.m_n_helper.get_instance_list.return_value = [
@@ -248,7 +268,8 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_execute_migrate_volume(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id=volume_uuid_mapping["volume_1"])
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
         ]
@@ -266,7 +287,8 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id=volume_uuid_mapping["volume_2"])
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src2,
         ]
@@ -284,7 +306,8 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_execute_swap_volume(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id=volume_uuid_mapping["volume_1"])
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
         volume_on_src1.status = "in-use"
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
@@ -302,8 +325,14 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_live_migrate_instance_parallel(self):
-        instance_on_src1_1 = self.fake_instance(host="src1", id="INSTANCE_1")
-        instance_on_src1_2 = self.fake_instance(host="src1", id="INSTANCE_2")
+        instance_on_src1_1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src1_2 = self.fake_instance(
+            host="src2",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src1_2,
@@ -323,8 +352,14 @@ class TestZoneMigration(TestBaseStrategy):
     def test_execute_parallel_per_node(self):
         self.m_parallel_per_node.return_value = 1
 
-        instance_on_src1_1 = self.fake_instance(host="src1", id="INSTANCE_1")
-        instance_on_src1_2 = self.fake_instance(host="src1", id="INSTANCE_2")
+        instance_on_src1_1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src1_2 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src1_2,
@@ -343,9 +378,11 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_execute_migrate_volume_parallel(self):
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_1"])
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_2"])
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -366,9 +403,11 @@ class TestZoneMigration(TestBaseStrategy):
         self.m_parallel_per_pool.return_value = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_1"])
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_2"])
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -390,11 +429,14 @@ class TestZoneMigration(TestBaseStrategy):
         self.m_parallel_per_pool.return_value = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_1"])
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
         volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
-                                            id=volume_uuid_mapping["volume_2"])
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
         volume_on_src2_1 = self.fake_volume(host="src2@back1#pool1",
-                                            id=volume_uuid_mapping["volume_3"])
+                                            id=volume_uuid_mapping["volume_3"],
+                                            name="volume_3")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1_1,
             volume_on_src1_2,
@@ -431,9 +473,18 @@ class TestZoneMigration(TestBaseStrategy):
     # ComputeHostSortFilter #
 
     def test_filtered_targets_compute_nodes(self):
-        instance_on_src1 = self.fake_instance(host="src1", id="INSTANCE_1")
-        instance_on_src2 = self.fake_instance(host="src2", id="INSTANCE_2")
-        instance_on_src3 = self.fake_instance(host="src3", id="INSTANCE_3")
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src2 = self.fake_instance(
+            host="src2",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
+        instance_on_src3 = self.fake_instance(
+            host="src3",
+            id="INSTANCE_3",
+            name="INSTANCE_3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -454,11 +505,14 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_filtered_targets_storage_pools(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
-                                          id=volume_uuid_mapping["volume_1"])
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
-                                          id=volume_uuid_mapping["volume_2"])
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
-                                          id=volume_uuid_mapping["volume_3"])
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -479,11 +533,11 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_filtered_targets_project(self):
         instance_on_src1 = self.fake_instance(
-            host="src1", id="INSTANCE_1", project_id="pj2")
+            host="src1", id="INSTANCE_1", name='INSTANCE_1', project_id="pj2")
         instance_on_src2 = self.fake_instance(
-            host="src2", id="INSTANCE_2", project_id="pj1")
+            host="src2", id="INSTANCE_2", name='INSTANCE_2', project_id="pj1")
         instance_on_src3 = self.fake_instance(
-            host="src3", id="INSTANCE_3", project_id="pj3")
+            host="src3", id="INSTANCE_3", name='INSTANCE_3', project_id="pj3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -494,12 +548,15 @@ class TestZoneMigration(TestBaseStrategy):
 
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
                                           id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1",
                                           project_id="pj2")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2",
                                           project_id="pj1")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
                                           id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3",
                                           project_id="pj3")
 
         self.m_c_helper.get_volume_list.return_value = [
@@ -533,11 +590,11 @@ class TestZoneMigration(TestBaseStrategy):
             flavor_512,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1",
+        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
                                               id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2",
+        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
                                               id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3",
+        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
                                               id="INSTANCE_3", flavor_id="3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -565,11 +622,11 @@ class TestZoneMigration(TestBaseStrategy):
             flavor_3,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1",
+        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
                                               id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2",
+        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
                                               id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3",
+        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
                                               id="INSTANCE_3", flavor_id="3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -597,11 +654,11 @@ class TestZoneMigration(TestBaseStrategy):
             flavor_3,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1",
+        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
                                               id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2",
+        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
                                               id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3",
+        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
                                               id="INSTANCE_3", flavor_id="3")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -621,11 +678,14 @@ class TestZoneMigration(TestBaseStrategy):
 
     def test_filtered_targets_instance_created_at(self):
         instance_on_src1 = self.fake_instance(
-            host="src1", id="INSTANCE_1", created_at="2017-10-30T00:00:00")
+            host="src1", id="INSTANCE_1",
+            name="INSTANCE_1", created_at="2017-10-30T00:00:00")
         instance_on_src2 = self.fake_instance(
-            host="src2", id="INSTANCE_2", created_at="1977-03-29T03:03:03")
+            host="src2", id="INSTANCE_2",
+            name="INSTANCE_2", created_at="1977-03-29T03:03:03")
         instance_on_src3 = self.fake_instance(
-            host="src3", id="INSTANCE_3", created_at="1977-03-29T03:03:03")
+            host="src3", id="INSTANCE_3",
+            name="INSTANCE_3", created_at="1977-03-29T03:03:03")
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -648,15 +708,18 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src1 = self.fake_volume(
             host="src1@back1#pool1",
             size="1",
-            id=volume_uuid_mapping["volume_1"])
+            id=volume_uuid_mapping["volume_1"],
+            name="volume_1")
         volume_on_src2 = self.fake_volume(
             host="src2@back1#pool1",
             size="2",
-            id=volume_uuid_mapping["volume_2"])
+            id=volume_uuid_mapping["volume_2"],
+            name="volume_2")
         volume_on_src3 = self.fake_volume(
             host="src3@back2#pool1",
             size="3",
-            id=volume_uuid_mapping["volume_3"],)
+            id=volume_uuid_mapping["volume_3"],
+            name="volume_3")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             volume_on_src2,
@@ -676,12 +739,15 @@ class TestZoneMigration(TestBaseStrategy):
     def test_filtered_targets_storage_created_at(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
                                           id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1",
                                           created_at="2017-10-30T00:00:00")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2",
                                           created_at="1977-03-29T03:03:03")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
                                           id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3",
                                           created_at="1977-03-29T03:03:03")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,

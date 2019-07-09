@@ -407,11 +407,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
             if self.is_available(volume):
                 if src_type == dst_type:
-                    self._volume_migrate(volume.id, dst_pool)
+                    self._volume_migrate(volume, dst_pool)
                 else:
-                    self._volume_retype(volume.id, dst_type)
+                    self._volume_retype(volume, dst_type)
             elif self.is_in_use(volume):
-                self._volume_update(volume.id, dst_type)
+                self._volume_update(volume, dst_type)
 
                 # if with_attached_volume is True, migrate attaching instances
                 if self.with_attached_volume:
@@ -437,56 +437,61 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
             dst_node = self.get_dst_node(src_node)
             if self.is_live(instance):
-                self._live_migration(instance.id, src_node, dst_node)
+                self._live_migration(instance, src_node, dst_node)
             elif self.is_cold(instance):
-                self._cold_migration(instance.id, src_node, dst_node)
+                self._cold_migration(instance, src_node, dst_node)
 
             action_counter.add_node(src_node)
 
-    def _live_migration(self, resource_id, src_node, dst_node):
+    def _live_migration(self, instance, src_node, dst_node):
         parameters = {"migration_type": "live",
                       "destination_node": dst_node,
-                      "source_node": src_node}
+                      "source_node": src_node,
+                      "resource_name": instance.name}
         self.solution.add_action(
             action_type="migrate",
-            resource_id=resource_id,
+            resource_id=instance.id,
             input_parameters=parameters)
         self.planned_live_count += 1
 
-    def _cold_migration(self, resource_id, src_node, dst_node):
+    def _cold_migration(self, instance, src_node, dst_node):
         parameters = {"migration_type": "cold",
                       "destination_node": dst_node,
-                      "source_node": src_node}
+                      "source_node": src_node,
+                      "resource_name": instance.name}
         self.solution.add_action(
             action_type="migrate",
-            resource_id=resource_id,
+            resource_id=instance.id,
             input_parameters=parameters)
         self.planned_cold_count += 1
 
-    def _volume_update(self, resource_id, dst_type):
+    def _volume_update(self, volume, dst_type):
         parameters = {"migration_type": "swap",
-                      "destination_type": dst_type}
+                      "destination_type": dst_type,
+                      "resource_name": volume.name}
         self.solution.add_action(
             action_type="volume_migrate",
-            resource_id=resource_id,
+            resource_id=volume.id,
             input_parameters=parameters)
         self.planned_volume_update_count += 1
 
-    def _volume_migrate(self, resource_id, dst_pool):
+    def _volume_migrate(self, volume, dst_pool):
         parameters = {"migration_type": "migrate",
-                      "destination_node": dst_pool}
+                      "destination_node": dst_pool,
+                      "resource_name": volume.name}
         self.solution.add_action(
             action_type="volume_migrate",
-            resource_id=resource_id,
+            resource_id=volume.id,
             input_parameters=parameters)
         self.planned_volume_count += 1
 
-    def _volume_retype(self, resource_id, dst_type):
+    def _volume_retype(self, volume, dst_type):
         parameters = {"migration_type": "retype",
-                      "destination_type": dst_type}
+                      "destination_type": dst_type,
+                      "resource_name": volume.name}
         self.solution.add_action(
             action_type="volume_migrate",
-            resource_id=resource_id,
+            resource_id=volume.id,
             input_parameters=parameters)
         self.planned_volume_count += 1
 
