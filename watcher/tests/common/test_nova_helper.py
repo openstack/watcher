@@ -61,6 +61,7 @@ class TestNovaHelper(base.TestCase):
         service_dict = {"host": args[1]}
         hypervisor.service = service_dict
         hypervisor.hypervisor_hostname = args[1]
+        hypervisor.hypervisor_type = kwargs.pop('hypervisor_type', 'QEMU')
 
         return hypervisor
 
@@ -667,3 +668,26 @@ class TestNovaHelper(base.TestCase):
         # is not in the expected status.
         result = nova_util.confirm_resize(instance, "fake_status")
         self.assertFalse(result)
+
+    def test_get_compute_node_list(
+            self, mock_glance, mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        hypervisor1_id = utils.generate_uuid()
+        hypervisor1_name = "fake_hypervisor_1"
+        hypervisor1 = self.fake_hypervisor(
+            hypervisor1_id, hypervisor1_name, hypervisor_type="QEMU")
+
+        hypervisor2_id = utils.generate_uuid()
+        hypervisor2_name = "fake_ironic"
+        hypervisor2 = self.fake_hypervisor(
+            hypervisor2_id, hypervisor2_name, hypervisor_type="ironic")
+
+        nova_util.nova.hypervisors.list.return_value = [hypervisor1,
+                                                        hypervisor2]
+
+        compute_nodes = nova_util.get_compute_node_list()
+
+        # baremetal node should be removed
+        self.assertEqual(1, len(compute_nodes))
+        self.assertEqual(hypervisor1_name,
+                         compute_nodes[0].hypervisor_hostname)

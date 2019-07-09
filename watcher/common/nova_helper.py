@@ -45,7 +45,11 @@ class NovaHelper(object):
         self.glance = self.osc.glance()
 
     def get_compute_node_list(self):
-        return self.nova.hypervisors.list()
+        hypervisors = self.nova.hypervisors.list()
+        # filter out baremetal nodes from hypervisors
+        compute_nodes = [node for node in hypervisors if
+                         node.hypervisor_type != 'ironic']
+        return compute_nodes
 
     def get_compute_node_by_name(self, node_name, servers=False,
                                  detailed=False):
