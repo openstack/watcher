@@ -99,6 +99,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
             instance_attributes = {
                 "uuid": instance_uuid,
+                "name": instance_uuid,
                 "memory": 2,
                 "disk": 20,
                 "disk_capacity": 20,

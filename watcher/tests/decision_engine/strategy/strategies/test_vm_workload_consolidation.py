@@ -127,7 +127,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                     'input_parameters': {'destination_node': n2.uuid,
                                          'source_node': n1.uuid,
                                          'migration_type': 'live',
-                                         'resource_id': instance_uuid}}
+                                         'resource_id': instance.uuid,
+                                         'resource_name': instance.name}}
         self.assertEqual(expected, self.strategy.solution.actions[0])
 
     def test_add_migration_with_paused_state(self):
@@ -149,7 +150,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                     'input_parameters': {'destination_node': n2.uuid,
                                          'source_node': n1.uuid,
                                          'migration_type': 'live',
-                                         'resource_id': instance_uuid}}
+                                         'resource_id': instance.uuid,
+                                         'resource_name': instance.name}}
         self.assertEqual(expected, self.strategy.solution.actions[0])
 
     def test_is_overloaded(self):
@@ -191,7 +193,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         self.strategy.add_action_enable_compute_node(n)
         expected = [{'action_type': 'change_nova_service_state',
                      'input_parameters': {'state': 'enabled',
-                                          'resource_id': 'Node_0'}}]
+                                          'resource_id': 'Node_0',
+                                          'resource_name': 'hostname_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_add_action_disable_node(self):
@@ -204,7 +207,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                      'input_parameters': {
                          'state': 'disabled',
                          'disabled_reason': 'watcher_disabled',
-                         'resource_id': 'Node_0'}}]
+                         'resource_id': 'Node_0',
+                         'resource_name': 'hostname_0'}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_disable_unused_nodes(self):
@@ -226,7 +230,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                     'input_parameters': {
                         'state': 'disabled',
                         'disabled_reason': 'watcher_disabled',
-                        'resource_id': 'Node_0'}}
+                        'resource_id': 'Node_0',
+                        'resource_name': 'hostname_0'}}
         self.assertEqual(2, len(self.strategy.solution.actions))
         self.assertEqual(expected, self.strategy.solution.actions[1])
 
@@ -246,13 +251,15 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         n1 = model.get_node_by_uuid('Node_0')
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
+        instance = model.get_instance_by_uuid(instance_uuid)
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         self.strategy.consolidation_phase(cc)
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2.uuid,
                                           'source_node': n1.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': instance_uuid}}]
+                                          'resource_id': instance.uuid,
+                                          'resource_name': instance.name}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
     def test_strategy(self):
@@ -266,32 +273,39 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         n1 = model.get_node_by_uuid('Node_0')
         self.strategy.get_relative_cluster_utilization = mock.MagicMock()
         self.strategy.do_execute()
-        n2 = self.strategy.solution.actions[0][
+        n2_uuid = self.strategy.solution.actions[0][
             'input_parameters']['destination_node']
-        n3 = self.strategy.solution.actions[2][
+        n2 = model.get_node_by_uuid(n2_uuid)
+        n3_uuid = self.strategy.solution.actions[2][
             'input_parameters']['resource_id']
-        n4 = self.strategy.solution.actions[3][
+        n3 = model.get_node_by_uuid(n3_uuid)
+        n4_uuid = self.strategy.solution.actions[3][
             'input_parameters']['resource_id']
+        n4 = model.get_node_by_uuid(n4_uuid)
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2,
+                     'input_parameters': {'destination_node': n2.uuid,
                                           'source_node': n1.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': 'INSTANCE_3'}},
+                                          'resource_id': 'INSTANCE_3',
+                                          'resource_name': ''}},
                     {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2,
+                     'input_parameters': {'destination_node': n2.uuid,
                                           'source_node': n1.uuid,
                                           'migration_type': 'live',
-                                          'resource_id': 'INSTANCE_1'}},
+                                          'resource_id': 'INSTANCE_1',
+                                          'resource_name': ''}},
                     {'action_type': 'change_nova_service_state',
                      'input_parameters': {'state': 'disabled',
                                           'disabled_reason':
                                           'watcher_disabled',
-                                          'resource_id': n3}},
+                                          'resource_id': n3.uuid,
+                                          'resource_name': n3.hostname}},
                     {'action_type': 'change_nova_service_state',
                      'input_parameters': {'state': 'disabled',
                                           'disabled_reason':
                                           'watcher_disabled',
-                                          'resource_id': n4}}]
+                                          'resource_id': n4.uuid,
+                                          'resource_name': n4.hostname}}]
         self.assertEqual(expected, self.strategy.solution.actions)
 
         compute_nodes_count = len(self.strategy.get_available_compute_nodes())
@@ -319,16 +333,19 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                      'input_parameters': {'destination_node': n2.uuid,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_6',
+                                          'resource_name': '',
                                           'source_node': n1.uuid}},
                     {'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2.uuid,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_7',
+                                          'resource_name': '',
                                           'source_node': n1.uuid}},
                     {'action_type': 'migrate',
                      'input_parameters': {'destination_node': n2.uuid,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_8',
+                                          'resource_name': '',
                                           'source_node': n1.uuid}}]
         self.assertEqual(expected, self.strategy.solution.actions)
         self.strategy.consolidation_phase(cc)
@@ -336,6 +353,7 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                          'input_parameters': {'destination_node': n1.uuid,
                                               'migration_type': 'live',
                                               'resource_id': 'INSTANCE_7',
+                                              'resource_name': '',
                                               'source_node': n2.uuid}})
         self.assertEqual(expected, self.strategy.solution.actions)
         self.strategy.optimize_solution()

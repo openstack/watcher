@@ -87,6 +87,10 @@ class Migrate(base.BaseAction):
                                 "([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-"
                                 "([a-fA-F0-9]){12}$")
                 },
+                'resource_name': {
+                    'type': 'string',
+                    "minlength": 1
+                },
                 'source_node': {
                     'type': 'string',
                     "minLength": 1
