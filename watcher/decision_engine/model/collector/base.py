@@ -126,9 +126,9 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
     def __init__(self, config, osc=None):
         super(BaseClusterDataModelCollector, self).__init__(config)
         self.osc = osc if osc else clients.OpenStackClients()
-        self._cluster_data_model = None
         self.lock = threading.RLock()
         self._audit_scope_handler = None
+        self._cluster_data_model = None
         self._data_model_scope = None
 
     @property
@@ -190,3 +190,15 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
         with the existing cluster data model
         """
         self.cluster_data_model = self.execute()
+
+
+class BaseModelBuilder(object):
+
+    @abc.abstractmethod
+    def execute(self, model_scope):
+        """Build the cluster data model limited to the scope and return it
+
+        Builds the cluster data model with respect to the supplied scope. The
+        schema of this scope will depend on the type of ModelBuilder.
+        """
+        raise NotImplementedError()

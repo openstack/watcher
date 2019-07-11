@@ -137,17 +137,27 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = storage_scope.StorageScope(
             audit_scope, self.config)
+        if self._data_model_scope is None or (
+            len(self._data_model_scope) > 0 and (
+                self._data_model_scope != audit_scope)):
+            self._data_model_scope = audit_scope
+            self._cluster_data_model = None
+        LOG.debug("audit scope %s", audit_scope)
         return self._audit_scope_handler
 
     def execute(self):
         """Build the storage cluster data model"""
         LOG.debug("Building latest Cinder cluster data model")
 
-        builder = ModelBuilder(self.osc)
-        return builder.execute()
+        if self._audit_scope_handler is None:
+            LOG.debug("No audit, Don't Build storage data model")
+            return
+
+        builder = CinderModelBuilder(self.osc)
+        return builder.execute(self._data_model_scope)
 
 
-class ModelBuilder(object):
+class CinderModelBuilder(base.BaseModelBuilder):
     """Build the graph-based model
 
     This model builder adds the following data"
@@ -292,12 +302,13 @@ class ModelBuilder(object):
 
         return element.Volume(**volume_attributes)
 
-    def execute(self):
+    def execute(self, model_scope):
         """Instantiates the graph with the openstack cluster data.
 
         The graph is populated along 2 layers: virtual and physical. As each
         new layer is built connections are made back to previous layers.
         """
+        # TODO(Dantali0n): Use scope to limit size of model
         self._add_physical_layer()
         self._add_virtual_layer()
         return self.model
