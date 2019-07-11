@@ -507,7 +507,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         self.aggregation_method = self.input_parameters.aggregation_method
 
         # backwards compatibility for node parameter with aggregate.
-        if self.aggregation_method['node'] is not '':
+        if self.aggregation_method['node']:
             LOG.warning('Parameter node has been renamed to compute_node and '
                         'will be removed in next release.')
             self.aggregation_method['compute_node'] = \
