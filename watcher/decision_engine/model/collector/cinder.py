@@ -176,9 +176,10 @@ class CinderModelBuilder(base.BaseModelBuilder):
         This includes components which represent actual infrastructure
         hardware.
         """
-        for snode in self.cinder_helper.get_storage_node_list():
+        for snode in self.call_retry(
+                self.cinder_helper.get_storage_node_list):
             self.add_storage_node(snode)
-        for pool in self.cinder_helper.get_storage_pool_list():
+        for pool in self.call_retry(self.cinder_helper.get_storage_pool_list):
             pool = self._build_storage_pool(pool)
             self.model.add_pool(pool)
             storage_name = getattr(pool, 'name')
@@ -213,8 +214,8 @@ class CinderModelBuilder(base.BaseModelBuilder):
         except IndexError:
             pass
 
-        volume_type = self.cinder_helper.get_volume_type_by_backendname(
-            backend)
+        volume_type = self.call_retry(
+            self.cinder_helper.get_volume_type_by_backendname, backend)
 
         # build up the storage node.
         node_attributes = {
@@ -262,7 +263,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         self._add_virtual_storage()
 
     def _add_virtual_storage(self):
-        volumes = self.cinder_helper.get_volume_list()
+        volumes = self.call_retry(self.cinder_helper.get_volume_list)
         for vol in volumes:
             volume = self._build_volume_node(vol)
             self.model.add_volume(volume)

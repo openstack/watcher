@@ -106,6 +106,7 @@ strategies.
 import abc
 import copy
 import threading
+import time
 
 from oslo_config import cfg
 from oslo_log import log
@@ -116,6 +117,7 @@ from watcher.common.loader import loadable
 from watcher.decision_engine.model import model_root
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -193,6 +195,42 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton):
 
 
 class BaseModelBuilder(object):
+
+    def call_retry(self, f, *args, **kwargs):
+        """Attempts to call external service
+
+        Attempts to access data from the external service and handles
+        exceptions. The retrieval should be retried in accordance
+        to the value of api_call_retries
+        :param f: The method that performs the actual querying for metrics
+        :param args: Array of arguments supplied to the method
+        :param kwargs: The amount of arguments supplied to the method
+        :return: The value as retrieved from the external service
+        """
+
+        num_retries = CONF.collector.api_call_retries
+        timeout = CONF.collector.api_query_timeout
+
+        for i in range(num_retries):
+            try:
+                return f(*args, **kwargs)
+            except Exception as e:
+                LOG.exception(e)
+                self.call_retry_reset(e)
+                LOG.warning("Retry {0} of {1}, error while calling service "
+                            "retry in {2} seconds".format(i+1, num_retries,
+                                                          timeout))
+                time.sleep(timeout)
+        raise
+
+    @abc.abstractmethod
+    def call_retry_reset(self, exc):
+        """Attempt to recover after encountering an error
+
+        Recover from errors while calling external services, the exception
+        can be used to make a better decision on how to best recover.
+        """
+        pass
 
     @abc.abstractmethod
     def execute(self, model_scope):

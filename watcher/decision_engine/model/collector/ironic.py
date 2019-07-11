@@ -105,6 +105,6 @@ class BareMetalModelBuilder(base.BaseModelBuilder):
 
     def execute(self, model_scope):
         # TODO(Dantali0n): Use scope to limit size of model
-        for node in self.ironic_helper.get_ironic_node_list():
+        for node in self.call_retry(self.ironic_helper.get_ironic_node_list):
             self.add_ironic_node(node)
         return self.model
