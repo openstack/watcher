@@ -168,14 +168,14 @@ class TestNovaHelper(base.TestCase):
         with mock.patch.object(nova_util, 'nova') as nova_mock:
             result = nova_util.get_instance_list()
             nova_mock.servers.list.assert_called_once_with(
-                search_opts={'all_tenants': True}, limit=-1)
+                search_opts={'all_tenants': True}, marker=None, limit=-1)
             self.assertIs(result, nova_mock.servers.list.return_value)
         # Call it again with filters.
         with mock.patch.object(nova_util, 'nova') as nova_mock:
             result = nova_util.get_instance_list(filters={'host': 'fake-host'})
             nova_mock.servers.list.assert_called_once_with(
                 search_opts={'all_tenants': True, 'host': 'fake-host'},
-                limit=-1)
+                marker=None, limit=-1)
             self.assertIs(result, nova_mock.servers.list.return_value)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
