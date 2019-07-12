@@ -21,7 +21,7 @@ import mock
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.datasources import ceilometer as ceilometer_helper
+from watcher.decision_engine.datasources import ceilometer as ceilometer_helper
 from watcher.tests import base
 
 

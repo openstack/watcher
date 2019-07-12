@@ -21,7 +21,8 @@ from oslo_log import log
 from oslo_serialization import jsonutils
 
 from watcher.common import exception
-from watcher.datasources.grafana_translator.base import BaseGrafanaTranslator
+from watcher.decision_engine.datasources.grafana_translator.base import \
+    BaseGrafanaTranslator
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

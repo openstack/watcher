@@ -22,8 +22,8 @@ import six.moves.urllib.parse as urlparse
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.datasources import base
-from watcher.datasources.grafana_translator import influxdb
+from watcher.decision_engine.datasources import base
+from watcher.decision_engine.datasources.grafana_translator import influxdb
 
 import requests
 

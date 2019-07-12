@@ -24,7 +24,7 @@ from oslo_log import log
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.datasources import base
+from watcher.decision_engine.datasources import base
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)

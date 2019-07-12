@@ -21,10 +21,10 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
-from watcher.datasources import ceilometer as ceil
-from watcher.datasources import gnocchi as gnoc
-from watcher.datasources import grafana as graf
-from watcher.datasources import monasca as mon
+from watcher.decision_engine.datasources import ceilometer as ceil
+from watcher.decision_engine.datasources import gnocchi as gnoc
+from watcher.decision_engine.datasources import grafana as graf
+from watcher.decision_engine.datasources import monasca as mon
 
 LOG = log.getLogger(__name__)
 

@@ -48,7 +48,7 @@ from watcher.common import context
 from watcher.common import exception
 from watcher.common.loader import loadable
 from watcher.common import utils
-from watcher.datasources import manager as ds_manager
+from watcher.decision_engine.datasources import manager as ds_manager
 from watcher.decision_engine.loading import default as loading
 from watcher.decision_engine.model.collector import manager
 from watcher.decision_engine.solution import default
