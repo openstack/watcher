@@ -263,6 +263,10 @@ class ModelBuilder(object):
                                                               detailed=True)
             if cnode:
                 node_info = cnode[0]
+                # filter out baremetal node
+                if node_info.hypervisor_type == 'ironic':
+                    LOG.debug("filtering out baremetal node: %s", node_name)
+                    continue
                 self.add_compute_node(node_info)
                 # node.servers is a list of server objects
                 # New in nova version 2.53
