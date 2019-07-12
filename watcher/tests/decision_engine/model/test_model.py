@@ -122,6 +122,32 @@ class TestModel(base.TestCase):
         node.state = element.ServiceState.OFFLINE.value
         self.assertIn(node.state, [el.value for el in element.ServiceState])
 
+    def test_get_node_by_name(self):
+        model = model_root.ModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        name = 'test_node'
+        node = element.ComputeNode()
+        node.uuid = uuid_
+        node.hostname = name
+        model.add_node(node)
+        compute_node = model.get_node_by_name(name)
+        model.assert_node(compute_node)
+        self.assertEqual(name, compute_node['hostname'])
+        self.assertEqual(uuid_, compute_node['uuid'])
+
+    def test_node_from_name_raise(self):
+        model = model_root.ModelRoot()
+        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        name = 'test_node'
+        node = element.ComputeNode()
+        node.uuid = uuid_
+        node.hostname = name
+        model.add_node(node)
+
+        fake_name = 'fake_node'
+        self.assertRaises(exception.ComputeNodeNotFound,
+                          model.get_node_by_name, fake_name)
+
     def test_node_from_uuid_raise(self):
         model = model_root.ModelRoot()
         uuid_ = "{0}".format(uuidutils.generate_uuid())
