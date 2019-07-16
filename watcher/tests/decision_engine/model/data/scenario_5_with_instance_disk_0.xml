@@ -1,5 +1,5 @@
 <ModelRoot>
-  <ComputeNode human_id="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="4" disk="4" disk_capacity="4" memory="4">
-    <Instance watcher_exclude="False" state="active" human_id="" name="" uuid="INSTANCE_0" vcpus="4" disk="0" disk_capacity="0" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  <ComputeNode uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="4" disk="4" disk_capacity="4" memory="4">
+    <Instance watcher_exclude="False" state="active" name="" uuid="INSTANCE_0" vcpus="4" disk="0" disk_capacity="0" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
 </ModelRoot>

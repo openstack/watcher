@@ -29,5 +29,4 @@ class ComputeResource(base.Element):
 
     fields = {
         "uuid": wfields.StringField(),
-        "human_id": wfields.StringField(default=""),
     }

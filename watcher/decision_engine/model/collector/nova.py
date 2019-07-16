@@ -361,9 +361,6 @@ class ModelBuilder(object):
         flavor = instance.flavor
         instance_attributes = {
             "uuid": instance.id,
-            # TODO(chenker) human_id is deprecated for removal. For the reason,
-            # please reference bug 1833665.
-            "human_id": instance.human_id,
             "name": instance.name,
             "memory": flavor["ram"],
             "disk": flavor["disk"],
