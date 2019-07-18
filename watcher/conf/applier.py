@@ -24,7 +24,7 @@ watcher_applier = cfg.OptGroup(name='watcher_applier',
 
 APPLIER_MANAGER_OPTS = [
     cfg.IntOpt('workers',
-               default='1',
+               default=1,
                min=1,
                required=True,
                help='Number of workers for applier, default value is 1.'),
