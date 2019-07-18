@@ -26,17 +26,11 @@ in this package. It is assumed that:
 * this module is only used in the context of sample file generation
 """
 
-import collections
 import importlib
 import os
 import pkgutil
 
 LIST_OPTS_FUNC_NAME = "list_opts"
-
-
-def _tupleize(dct):
-    """Take the dict of options and convert to the 2-tuple format."""
-    return [(key, val) for key, val in dct.items()]
 
 
 def list_opts():
@@ -45,11 +39,12 @@ def list_opts():
     :return: A list of ``(group, [opt_1, opt_2])`` tuple pairs, where ``group``
              is either a group name as a string or an OptGroup object.
     """
-    opts = collections.defaultdict(list)
+    opts = list()
     module_names = _list_module_names()
     imported_modules = _import_modules(module_names)
-    _append_config_options(imported_modules, opts)
-    return _tupleize(opts)
+    for mod in imported_modules:
+        opts.extend(mod.list_opts())
+    return opts
 
 
 def _list_module_names():
@@ -75,21 +70,3 @@ def _import_modules(module_names):
         else:
             imported_modules.append(mod)
     return imported_modules
-
-
-def _process_old_opts(configs):
-    """Convert old-style 2-tuple configs to dicts."""
-    if isinstance(configs, tuple):
-        configs = [configs]
-    return {label: options for label, options in configs}
-
-
-def _append_config_options(imported_modules, config_options):
-    for mod in imported_modules:
-        configs = mod.list_opts()
-        # TODO(markus_z): Remove this compatibility shim once all list_opts()
-        # functions have been updated to return dicts.
-        if not isinstance(configs, dict):
-            configs = _process_old_opts(configs)
-        for key, val in configs.items():
-            config_options[key].extend(val)
