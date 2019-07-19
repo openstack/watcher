@@ -17,7 +17,7 @@
 import mock
 
 from watcher.common import exception
-from watcher.datasources import manager
+from watcher.decision_engine.datasources import manager
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests import base

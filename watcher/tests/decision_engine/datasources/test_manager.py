@@ -19,10 +19,10 @@ import mock
 from mock import MagicMock
 
 from watcher.common import exception
-from watcher.datasources import gnocchi
-from watcher.datasources import grafana
-from watcher.datasources import manager as ds_manager
-from watcher.datasources import monasca
+from watcher.decision_engine.datasources import gnocchi
+from watcher.decision_engine.datasources import grafana
+from watcher.decision_engine.datasources import manager as ds_manager
+from watcher.decision_engine.datasources import monasca
 from watcher.tests import base
 
 
@@ -47,7 +47,8 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertEqual({}, manager.load_metric_map('/nope/nope/nope.yaml'))
 
     def test_metric_file_metric_override(self):
-        path = 'watcher.datasources.manager.DataSourceManager.load_metric_map'
+        path = 'watcher.decision_engine.datasources.manager.' \
+               'DataSourceManager.load_metric_map'
         retval = {
             monasca.MonascaHelper.NAME: {"host_airflow": "host_fnspid"}
         }
@@ -65,7 +66,8 @@ class TestDataSourceManager(base.BaseTestCase):
             "eyJrIjoiT0tTcG1pUlY2RnVKZTFVaDFsNFZXdE9ZWmNrMkZYbk=="
         m_config.grafana_client.base_url = "https://grafana.proxy/api/"
 
-        path = 'watcher.datasources.manager.DataSourceManager.load_metric_map'
+        path = 'watcher.decision_engine.datasources.manager.' \
+               'DataSourceManager.load_metric_map'
         metric_map = {
             'db': 'production_cloud',
             'project': '7485',

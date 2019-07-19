@@ -20,7 +20,7 @@ import mock
 from oslo_config import cfg
 
 from watcher.common import exception
-from watcher.datasources import base as datasource
+from watcher.decision_engine.datasources import base as datasource
 from watcher.tests import base
 
 CONF = cfg.CONF

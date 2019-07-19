@@ -23,7 +23,7 @@ from oslo_log import log
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.datasources import grafana
+from watcher.decision_engine.datasources import grafana
 from watcher.tests import base
 
 import requests

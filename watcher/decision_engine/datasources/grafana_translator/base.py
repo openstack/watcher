@@ -20,7 +20,7 @@ import abc
 
 from watcher._i18n import _
 from watcher.common import exception
-from watcher.datasources import base
+from watcher.decision_engine.datasources import base
 
 
 class BaseGrafanaTranslator(object):

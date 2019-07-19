@@ -23,8 +23,9 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
-from watcher.datasources.grafana_translator import influxdb
-from watcher.tests.datasources.grafana_translators import test_base
+from watcher.decision_engine.datasources.grafana_translator import influxdb
+from watcher.tests.decision_engine.datasources.grafana_translators import \
+    test_base
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
