@@ -48,17 +48,27 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
     def get_audit_scope_handler(self, audit_scope):
         self._audit_scope_handler = baremetal_scope.BaremetalScope(
             audit_scope, self.config)
+        if self._data_model_scope is None or (
+            len(self._data_model_scope) > 0 and (
+                self._data_model_scope != audit_scope)):
+            self._data_model_scope = audit_scope
+            self._cluster_data_model = None
+        LOG.debug("audit scope %s", audit_scope)
         return self._audit_scope_handler
 
     def execute(self):
         """Build the baremetal cluster data model"""
         LOG.debug("Building latest Baremetal cluster data model")
 
-        builder = ModelBuilder(self.osc)
-        return builder.execute()
+        if self._audit_scope_handler is None:
+            LOG.debug("No audit, Don't Build Baremetal data model")
+            return
+
+        builder = BareMetalModelBuilder(self.osc)
+        return builder.execute(self._data_model_scope)
 
 
-class ModelBuilder(object):
+class BareMetalModelBuilder(base.BaseModelBuilder):
     """Build the graph-based model
 
     This model builder adds the following data"
@@ -93,8 +103,8 @@ class ModelBuilder(object):
         ironic_node = element.IronicNode(**node_attributes)
         return ironic_node
 
-    def execute(self):
-
+    def execute(self, model_scope):
+        # TODO(Dantali0n): Use scope to limit size of model
         for node in self.ironic_helper.get_ironic_node_list():
             self.add_ironic_node(node)
         return self.model

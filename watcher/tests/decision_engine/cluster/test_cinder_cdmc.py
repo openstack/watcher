@@ -85,6 +85,7 @@ class TestCinderClusterDataModelCollector(base.TestCase):
         cinder_cdmc = cinder.CinderClusterDataModelCollector(
             config=m_config, osc=m_osc)
 
+        cinder_cdmc.get_audit_scope_handler([])
         model = cinder_cdmc.execute()
 
         storage_nodes = model.get_all_storage_nodes()
@@ -149,5 +150,6 @@ class TestCinderClusterDataModelCollector(base.TestCase):
         cinder_cdmc = cinder.CinderClusterDataModelCollector(
             config=m_config, osc=m_osc)
 
+        cinder_cdmc.get_audit_scope_handler([])
         self.assertRaises(exception.InvalidPoolAttributeValue,
                           cinder_cdmc.execute)

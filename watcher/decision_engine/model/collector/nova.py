@@ -180,17 +180,16 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             LOG.debug("No audit, Don't Build compute data model")
             return
 
-        builder = ModelBuilder(self.osc)
+        builder = NovaModelBuilder(self.osc)
         return builder.execute(self._data_model_scope)
 
 
-class ModelBuilder(object):
+class NovaModelBuilder(base.BaseModelBuilder):
     """Build the graph-based model
 
     This model builder adds the following data"
 
     - Compute-related knowledge (Nova)
-    - TODO(v-francoise): Storage-related knowledge (Cinder)
     - TODO(v-francoise): Network-related knowledge (Neutron)
 
     NOTE(v-francoise): This model builder is meant to be extended in the future
