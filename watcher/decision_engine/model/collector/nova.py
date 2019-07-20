@@ -211,7 +211,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
 
     def _collect_aggregates(self, host_aggregates, _nodes):
-        aggregate_list = self.nova_helper.get_aggregate_list()
+        aggregate_list = self.call_retry(f=self.nova_helper.get_aggregate_list)
         aggregate_ids = [aggregate['id'] for aggregate
                          in host_aggregates if 'id' in aggregate]
         aggregate_names = [aggregate['name'] for aggregate
@@ -226,7 +226,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
                 _nodes.update(aggregate.hosts)
 
     def _collect_zones(self, availability_zones, _nodes):
-        service_list = self.nova_helper.get_service_list()
+        service_list = self.call_retry(f=self.nova_helper.get_service_list)
         zone_names = [zone['name'] for zone
                       in availability_zones]
         include_all_nodes = False
@@ -252,14 +252,15 @@ class NovaModelBuilder(base.BaseModelBuilder):
 
         if not compute_nodes:
             self.no_model_scope_flag = True
-            all_nodes = self.nova_helper.get_compute_node_list()
+            all_nodes = self.call_retry(
+                f=self.nova_helper.get_compute_node_list)
             compute_nodes = set(
                 [node.hypervisor_hostname for node in all_nodes])
         LOG.debug("compute nodes: %s", compute_nodes)
         for node_name in compute_nodes:
-            cnode = self.nova_helper.get_compute_node_by_name(node_name,
-                                                              servers=True,
-                                                              detailed=True)
+            cnode = self.call_retry(
+                self.nova_helper.get_compute_node_by_name,
+                node_name, servers=True, detailed=True)
             if cnode:
                 node_info = cnode[0]
                 # filter out baremetal node
@@ -339,9 +340,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
         # compute API. If we need to request more than 1000 servers,
         # we can set limit=-1. For details, please see:
         # https://bugs.launchpad.net/watcher/+bug/1834679
-        instances = self.nova_helper.get_instance_list(
-            filters=filters,
-            limit=limit)
+        instances = self.call_retry(f=self.nova_helper.get_instance_list,
+                                    filters=filters, limit=limit)
         for inst in instances:
             # Add Node
             instance = self._build_instance_node(inst)

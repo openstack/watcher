@@ -35,6 +35,13 @@ Supported in-tree collectors include:
 Custom data model collector plugins can be defined with the
 ``watcher_cluster_data_model_collectors`` extension point.
 """),
+    cfg.IntOpt('api_call_retries',
+               default=10,
+               help="Number of retries before giving up on external service "
+                    "calls."),
+    cfg.IntOpt('api_query_timeout',
+               default=1,
+               help="Time before retry after failed call to external service.")
 ]
 
 

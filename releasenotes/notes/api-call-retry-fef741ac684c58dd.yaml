@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    API calls while building the Compute data model will be retried upon
+    failure. The amount of failures allowed before giving up and the time before
+    reattempting are configurable. The `api_call_retries` and
+    `api_query_timeout` parameters in the `[collector]` group can be used to
+    adjust these paremeters. 10 retries with a 1 second time in between
+    reattempts is the default.
