@@ -141,17 +141,18 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             },
         }
 
-    def add_action_poweronoff_node(self, node_uuid, state):
+    def add_action_poweronoff_node(self, node, state):
         """Add an action for node disability into the solution.
 
-        :param node: node uuid
+        :param node: node
         :param state: node power state, power on or power off
         :return: None
         """
-        params = {'state': state}
+        params = {'state': state,
+                  'resource_name': node.hostname}
         self.solution.add_action(
             action_type='change_node_power_state',
-            resource_id=node_uuid,
+            resource_id=node.uuid,
             input_parameters=params)
 
     def get_hosts_pool(self):
@@ -163,17 +164,17 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
 
         node_list = self.ironic_client.node.list()
         for node in node_list:
-            node_uuid = (node.to_dict())['uuid']
-            node_info = self.ironic_client.node.get(node_uuid).to_dict()
-            hypervisor_id = node_info['extra'].get('compute_node_id', None)
+            node_info = self.ironic_client.node.get(node.uuid)
+            hypervisor_id = node_info.extra.get('compute_node_id', None)
             if hypervisor_id is None:
                 LOG.warning(('Cannot find compute_node_id in extra '
-                             'of ironic node %s'), node_uuid)
+                             'of ironic node %s'), node.uuid)
                 continue
             hypervisor_node = self.nova_client.hypervisors.get(hypervisor_id)
             if hypervisor_node is None:
                 LOG.warning(('Cannot find hypervisor %s'), hypervisor_id)
                 continue
+            node.hostname = hypervisor_node.hypervisor_hostname
             hypervisor_node = hypervisor_node.to_dict()
             compute_service = hypervisor_node.get('service', None)
             host_uuid = compute_service.get('host')
@@ -187,12 +188,12 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
                 continue
             else:
                 if (hypervisor_node['running_vms'] == 0):
-                    if (node_info['power_state'] == 'power on'):
-                        self.free_poweron_node_pool.append(node_uuid)
-                    elif (node_info['power_state'] == 'power off'):
-                        self.free_poweroff_node_pool.append(node_uuid)
+                    if (node_info.power_state == 'power on'):
+                        self.free_poweron_node_pool.append(node)
+                    elif (node_info.power_state == 'power off'):
+                        self.free_poweroff_node_pool.append(node)
                 else:
-                    self.with_vms_node_pool.append(node_uuid)
+                    self.with_vms_node_pool.append(node)
 
     def save_energy(self):
 
@@ -202,16 +203,16 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
         len_poweron = len(self.free_poweron_node_pool)
         len_poweroff = len(self.free_poweroff_node_pool)
         if len_poweron > need_poweron:
-            for node_uuid in random.sample(self.free_poweron_node_pool,
-                                           (len_poweron - need_poweron)):
-                self.add_action_poweronoff_node(node_uuid, 'off')
-                LOG.debug("power off %s", node_uuid)
+            for node in random.sample(self.free_poweron_node_pool,
+                                      (len_poweron - need_poweron)):
+                self.add_action_poweronoff_node(node, 'off')
+                LOG.debug("power off %s", node.uuid)
         elif len_poweron < need_poweron:
             diff = need_poweron - len_poweron
-            for node_uuid in random.sample(self.free_poweroff_node_pool,
-                                           min(len_poweroff, diff)):
-                self.add_action_poweronoff_node(node_uuid, 'on')
-                LOG.debug("power on %s", node_uuid)
+            for node in random.sample(self.free_poweroff_node_pool,
+                                      min(len_poweroff, diff)):
+                self.add_action_poweronoff_node(node, 'on')
+                LOG.debug("power on %s", node.uuid)
 
     def pre_execute(self):
         self._pre_execute()
