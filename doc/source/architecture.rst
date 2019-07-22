@@ -479,4 +479,4 @@ change to a new value:
 
 
 
-.. _Watcher API: https://developer.openstack.org/api-ref/resource-optimization/
+.. _Watcher API: https://docs.openstack.org/api-ref/resource-optimization/

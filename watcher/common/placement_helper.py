@@ -33,7 +33,7 @@ class PlacementHelper(object):
     @staticmethod
     def get_error_msg(resp):
         json_resp = resp.json()
-        # https://developer.openstack.org/api-ref/placement/#errors
+        # https://docs.openstack.org/api-ref/placement/#errors
         if 'errors' in json_resp:
             error_msg = json_resp['errors'][0].get('detail')
         else:
