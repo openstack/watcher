@@ -22,7 +22,7 @@ from watcher.objects import fields as wfields
 
 
 class VolumeState(enum.Enum):
-    # https://developer.openstack.org/api-ref/block-storage/v3/#volumes-volumes
+    # https://docs.openstack.org/api-ref/block-storage/v3/#volumes-volumes
 
     CREATING = 'creating'
     AVAILABLE = 'available'

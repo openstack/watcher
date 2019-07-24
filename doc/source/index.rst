@@ -83,7 +83,7 @@ API References
 .. toctree::
   :maxdepth: 1
 
-  API Reference <https://developer.openstack.org/api-ref/resource-optimization/>
+  API Reference <https://docs.openstack.org/api-ref/resource-optimization/>
   Watcher API Microversion History </contributor/api_microversion_history>
 
 Plugins
