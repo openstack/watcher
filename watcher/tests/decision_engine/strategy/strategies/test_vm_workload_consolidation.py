@@ -124,8 +124,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         self.strategy.add_migration(instance, n1, n2)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = {'action_type': 'migrate',
-                    'input_parameters': {'destination_node': n2.uuid,
-                                         'source_node': n1.uuid,
+                    'input_parameters': {'destination_node': n2.hostname,
+                                         'source_node': n1.hostname,
                                          'migration_type': 'live',
                                          'resource_id': instance.uuid,
                                          'resource_name': instance.name}}
@@ -147,8 +147,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         self.strategy.add_migration(instance, n1, n2)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = {'action_type': 'migrate',
-                    'input_parameters': {'destination_node': n2.uuid,
-                                         'source_node': n1.uuid,
+                    'input_parameters': {'destination_node': n2.hostname,
+                                         'source_node': n1.hostname,
                                          'migration_type': 'live',
                                          'resource_id': instance.uuid,
                                          'resource_name': instance.name}}
@@ -255,8 +255,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         self.strategy.consolidation_phase(cc)
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
-                                          'source_node': n1.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
+                                          'source_node': n1.hostname,
                                           'migration_type': 'live',
                                           'resource_id': instance.uuid,
                                           'resource_name': instance.name}}]
@@ -273,9 +273,9 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         n1 = model.get_node_by_uuid('Node_0')
         self.strategy.get_relative_cluster_utilization = mock.MagicMock()
         self.strategy.do_execute()
-        n2_uuid = self.strategy.solution.actions[0][
+        n2_name = self.strategy.solution.actions[0][
             'input_parameters']['destination_node']
-        n2 = model.get_node_by_uuid(n2_uuid)
+        n2 = model.get_node_by_name(n2_name)
         n3_uuid = self.strategy.solution.actions[2][
             'input_parameters']['resource_id']
         n3 = model.get_node_by_uuid(n3_uuid)
@@ -283,14 +283,14 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
             'input_parameters']['resource_id']
         n4 = model.get_node_by_uuid(n4_uuid)
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
-                                          'source_node': n1.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
+                                          'source_node': n1.hostname,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_3',
                                           'resource_name': ''}},
                     {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
-                                          'source_node': n1.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
+                                          'source_node': n1.hostname,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_1',
                                           'resource_name': ''}},
@@ -330,31 +330,31 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         cc = {'cpu': 1.0, 'ram': 1.0, 'disk': 1.0}
         self.strategy.offload_phase(cc)
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_6',
                                           'resource_name': '',
-                                          'source_node': n1.uuid}},
+                                          'source_node': n1.hostname}},
                     {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_7',
                                           'resource_name': '',
-                                          'source_node': n1.uuid}},
+                                          'source_node': n1.hostname}},
                     {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': n2.uuid,
+                     'input_parameters': {'destination_node': n2.hostname,
                                           'migration_type': 'live',
                                           'resource_id': 'INSTANCE_8',
                                           'resource_name': '',
-                                          'source_node': n1.uuid}}]
+                                          'source_node': n1.hostname}}]
         self.assertEqual(expected, self.strategy.solution.actions)
         self.strategy.consolidation_phase(cc)
         expected.append({'action_type': 'migrate',
-                         'input_parameters': {'destination_node': n1.uuid,
+                         'input_parameters': {'destination_node': n1.hostname,
                                               'migration_type': 'live',
                                               'resource_id': 'INSTANCE_7',
                                               'resource_name': '',
-                                              'source_node': n2.uuid}})
+                                              'source_node': n2.hostname}})
         self.assertEqual(expected, self.strategy.solution.actions)
         self.strategy.optimize_solution()
         del expected[3]

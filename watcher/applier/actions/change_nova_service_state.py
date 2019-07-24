@@ -50,6 +50,7 @@ class ChangeNovaServiceState(base.BaseAction):
 
     STATE = 'state'
     REASON = 'disabled_reason'
+    RESOURCE_NAME = 'resource_name'
 
     @property
     def schema(self):
@@ -82,7 +83,7 @@ class ChangeNovaServiceState(base.BaseAction):
 
     @property
     def host(self):
-        return self.resource_id
+        return self.input_parameters.get(self.RESOURCE_NAME)
 
     @property
     def state(self):

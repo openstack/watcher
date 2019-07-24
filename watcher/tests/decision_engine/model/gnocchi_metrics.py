@@ -108,9 +108,10 @@ class FakeGnocchiMetrics(object):
         uuid = resource.uuid
 
         mock = {}
-        mock['Node_0'] = 30
+        mock["Node_0"] = 30
+        mock["fa69c544-906b-4a6a-a9c6-c1f7a8078c73"] = 30
         # use a big value to make sure it exceeds threshold
-        mock['Node_1'] = 100
+        mock["af69c544-906b-4a6a-a9c6-c1f7a8078c73"] = 100
 
         return mock[str(uuid)]
 

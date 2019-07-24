@@ -50,7 +50,7 @@ class TestChangeNovaServiceState(base.TestCase):
         self.addCleanup(m_nova_helper.stop)
 
         self.input_parameters = {
-            baction.BaseAction.RESOURCE_ID: "compute-1",
+            "resource_name": "compute-1",
             "state": element.ServiceState.ENABLED.value,
         }
         self.action = change_nova_service_state.ChangeNovaServiceState(

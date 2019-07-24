@@ -63,7 +63,7 @@ class TestOutletTempControl(TestBaseStrategy):
     def test_calc_used_resource(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
         self.m_c_model.return_value = model
-        node = model.get_node_by_uuid('Node_0')
+        node = model.get_node_by_uuid("fa69c544-906b-4a6a-a9c6-c1f7a8078c73")
         cores_used, mem_used, disk_used = self.strategy.calc_used_resource(
             node)
 
@@ -73,15 +73,18 @@ class TestOutletTempControl(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
         self.m_c_model.return_value = model
         n1, n2 = self.strategy.group_hosts_by_outlet_temp()
-        self.assertEqual('Node_1', n1[0]['compute_node'].uuid)
-        self.assertEqual('Node_0', n2[0]['compute_node'].uuid)
+        self.assertEqual("af69c544-906b-4a6a-a9c6-c1f7a8078c73",
+                         n1[0]['compute_node'].uuid)
+        self.assertEqual("fa69c544-906b-4a6a-a9c6-c1f7a8078c73",
+                         n2[0]['compute_node'].uuid)
 
     def test_choose_instance_to_migrate(self):
         model = self.fake_c_cluster.generate_scenario_3_with_2_nodes()
         self.m_c_model.return_value = model
         n1, n2 = self.strategy.group_hosts_by_outlet_temp()
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
-        self.assertEqual('Node_1', instance_to_mig[0].uuid)
+        self.assertEqual('af69c544-906b-4a6a-a9c6-c1f7a8078c73',
+                         instance_to_mig[0].uuid)
         self.assertEqual('a4cab39b-9828-413a-bf88-f76921bf1517',
                          instance_to_mig[1].uuid)
 
@@ -92,7 +95,8 @@ class TestOutletTempControl(TestBaseStrategy):
         instance_to_mig = self.strategy.choose_instance_to_migrate(n1)
         dest_hosts = self.strategy.filter_dest_servers(n2, instance_to_mig[1])
         self.assertEqual(1, len(dest_hosts))
-        self.assertEqual('Node_0', dest_hosts[0]['compute_node'].uuid)
+        self.assertEqual("fa69c544-906b-4a6a-a9c6-c1f7a8078c73",
+                         dest_hosts[0]['compute_node'].uuid)
 
     def test_execute_no_workload(self):
         model = self.fake_c_cluster.\

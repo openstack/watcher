@@ -34,7 +34,6 @@ class ServiceState(enum.Enum):
 class ComputeNode(compute_resource.ComputeResource):
 
     fields = {
-        "id": wfields.StringField(),
         "hostname": wfields.StringField(),
         "status": wfields.StringField(default=ServiceState.ENABLED.value),
         "disabled_reason": wfields.StringField(nullable=True),

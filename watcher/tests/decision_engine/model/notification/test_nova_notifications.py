@@ -122,8 +122,8 @@ class TestNovaNotifications(NotificationTestCase):
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
-        node0_uuid = 'Node_0'
-        node0 = compute_model.get_node_by_uuid(node0_uuid)
+        node0_name = "hostname_0"
+        node0 = compute_model.get_node_by_name(node0_name)
 
         message = self.load_message('scenario3_service-update-disabled.json')
 
@@ -139,7 +139,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        self.assertEqual('Node_0', node0.hostname)
+        self.assertEqual("hostname_0", node0.hostname)
         self.assertEqual(element.ServiceState.OFFLINE.value, node0.state)
         self.assertEqual(element.ServiceState.DISABLED.value, node0.status)
 
@@ -153,7 +153,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        self.assertEqual('Node_0', node0.hostname)
+        self.assertEqual("hostname_0", node0.hostname)
         self.assertEqual(element.ServiceState.ONLINE.value, node0.state)
         self.assertEqual(element.ServiceState.ENABLED.value, node0.status)
 
@@ -161,12 +161,11 @@ class TestNovaNotifications(NotificationTestCase):
     def test_nova_service_create(self, m_nova_helper_cls):
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: mock.Mock(
-                name='m_get_compute_node_by_hostname',
-                id=3,
+                name='m_get_compute_node_by_uuid',
+                id="fafac544-906b-4a6a-a9c6-c1f7a8078c73",
                 hypervisor_hostname="host2",
                 state='up',
                 status='enabled',
-                uuid=uuid,
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
@@ -179,11 +178,11 @@ class TestNovaNotifications(NotificationTestCase):
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
-        new_node_uuid = 'host2'
+        new_node_name = "host2"
 
         self.assertRaises(
             exception.ComputeNodeNotFound,
-            compute_model.get_node_by_uuid, new_node_uuid)
+            compute_model.get_node_by_name, new_node_name)
 
         message = self.load_message('service-create.json')
         handler.info(
@@ -194,7 +193,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
 
-        new_node = compute_model.get_node_by_uuid(new_node_uuid)
+        new_node = compute_model.get_node_by_name(new_node_name)
         self.assertEqual('host2', new_node.hostname)
         self.assertEqual(element.ServiceState.ONLINE.value, new_node.state)
         self.assertEqual(element.ServiceState.ENABLED.value, new_node.status)
@@ -204,10 +203,10 @@ class TestNovaNotifications(NotificationTestCase):
         self.fake_cdmc.cluster_data_model = compute_model
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
-        node0_uuid = 'Node_0'
+        node0_name = "hostname_0"
 
         # Before
-        self.assertTrue(compute_model.get_node_by_uuid(node0_uuid))
+        self.assertTrue(compute_model.get_node_by_name(node0_name))
 
         message = self.load_message('service-delete.json')
         handler.info(
@@ -221,7 +220,7 @@ class TestNovaNotifications(NotificationTestCase):
         # After
         self.assertRaises(
             exception.ComputeNodeNotFound,
-            compute_model.get_node_by_uuid, node0_uuid)
+            compute_model.get_node_by_name, node0_name)
 
     def test_nova_instance_update(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -276,11 +275,10 @@ class TestNovaNotifications(NotificationTestCase):
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: mock.Mock(
                 name='m_get_compute_node_by_hostname',
-                id=3,
+                id='669966bd-a45c-4e1c-9d57-3054899a3ec7',
                 hypervisor_hostname="Node_2",
                 state='up',
                 status='enabled',
-                uuid=uuid,
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
@@ -312,7 +310,7 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_called_once_with('Node_2')
-        node_2 = compute_model.get_node_by_uuid('Node_2')
+        node_2 = compute_model.get_node_by_name('Node_2')
         self.assertEqual(7777, node_2.memory)
         self.assertEqual(42, node_2.vcpus)
         self.assertEqual(974, node_2.disk)
@@ -463,7 +461,7 @@ class TestNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_0', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
             'instance-live_migration_force_complete-end.json')
         handler.info(
@@ -474,7 +472,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_1', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
     def test_live_migrated_end(self):
@@ -484,7 +482,7 @@ class TestNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_0', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
             'instance-live_migration_post-end.json')
         handler.info(
@@ -495,7 +493,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_1', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
     def test_nova_instance_lock(self):
@@ -605,7 +603,7 @@ class TestNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_0', node.uuid)
+        self.assertEqual("fa69c544-906b-4a6a-a9c6-c1f7a8078c73", node.uuid)
         message = self.load_message('instance-rebuild-end.json')
         handler.info(
             ctxt=self.context,
@@ -615,7 +613,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_1', node.uuid)
+        self.assertEqual('hostname_0', node.hostname)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
     def test_nova_instance_rescue(self):
@@ -659,7 +657,7 @@ class TestNovaNotifications(NotificationTestCase):
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_0', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
             'instance-resize_confirm-end.json')
         handler.info(
@@ -670,7 +668,7 @@ class TestNovaNotifications(NotificationTestCase):
             metadata=self.FAKE_METADATA,
         )
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
-        self.assertEqual('Node_1', node.uuid)
+        self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
     def test_nova_instance_restore_end(self):

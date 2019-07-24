@@ -349,9 +349,9 @@ class NovaModelBuilder(base.BaseModelBuilder):
 
         # build up the compute node.
         node_attributes = {
-            "id": node.id,
-            "uuid": node.service["host"],
-            "hostname": node.hypervisor_hostname,
+            # The id of the hypervisor as a UUID from version 2.53.
+            "uuid": node.id,
+            "hostname": node.service["host"],
             "memory": memory_mb,
             "memory_ratio": memory_ratio,
             "memory_mb_reserved": memory_mb_reserved,
@@ -379,7 +379,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
             LOG.info("no instances on compute_node: {0}".format(node))
             return
         host = node.service["host"]
-        compute_node = self.model.get_node_by_uuid(host)
+        compute_node = self.model.get_node_by_uuid(node.id)
         filters = {'host': host}
         limit = len(instances) if len(instances) <= 1000 else -1
         # Get all servers on this compute host.

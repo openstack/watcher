@@ -112,9 +112,9 @@ class FakeCeilometerMetrics(object):
 
         uuid = resource.uuid
         mock = {}
-        mock['Node_0'] = 30
+        mock["fa69c544-906b-4a6a-a9c6-c1f7a8078c73"] = 30
         # use a big value to make sure it exceeds threshold
-        mock['Node_1'] = 100
+        mock["af69c544-906b-4a6a-a9c6-c1f7a8078c73"] = 100
         if uuid not in mock.keys():
             mock[uuid] = 100
         return float(mock[str(uuid)])
@@ -189,6 +189,8 @@ class FakeCeilometerMetrics(object):
         # node 0
         measurements['Node_0_hostname_0'] = 7
         measurements['Node_1_hostname_1'] = 7
+        measurements['fa69c544-906b-4a6a-a9c6-c1f7a8078c73_hostname_0'] = 7
+        measurements['af69c544-906b-4a6a-a9c6-c1f7a8078c73_hostname_1'] = 7
         # node 1
         measurements['Node_2_hostname_2'] = 80
         # node 2

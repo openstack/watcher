@@ -175,7 +175,7 @@ class CeilometerHelper(base.DataSourceBase):
 
         resource_id = resource.uuid
         if resource_type == 'compute_node':
-            resource_id = "%s_%s" % (resource.uuid, resource.hostname)
+            resource_id = "%s_%s" % (resource.hostname, resource.hostname)
 
         query = self.build_query(
             resource_id=resource_id, start_time=start_time, end_time=end_time)

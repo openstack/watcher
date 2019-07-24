@@ -212,8 +212,8 @@ class TestHostMaintenance(TestBaseStrategy):
         result = self.strategy.pre_execute()
         self.assertIsNone(result)
 
-        self.strategy.input_parameters = {"maintenance_node": 'Node_2',
-                                          "backup_node": 'Node_3'}
+        self.strategy.input_parameters = {"maintenance_node": 'hostname_2',
+                                          "backup_node": 'hostname_3'}
         self.strategy.do_execute()
 
         expected = [{'action_type': 'change_nova_service_state',
