@@ -311,40 +311,51 @@ class NovaModelBuilder(base.BaseModelBuilder):
         :type node: :py:class:`~novaclient.v2.hypervisors.Hypervisor`
         """
         inventories = self.placement_helper.get_inventories(node.id)
-        if inventories:
-            vcpus = inventories[orc.VCPU].get('total', node.vcpus)
-            vcpu_reserved = inventories[orc.VCPU].get('reserved', 0)
-            vcpu_ratio = inventories[orc.VCPU].get('allocation_ratio', 1.0)
-            memory_mb = inventories[orc.MEMORY_MB].get(
-                'total', node.memory_mb)
-            memory_mb_reserved = inventories[orc.MEMORY_MB].get('reserved', 0)
-            memory_ratio = inventories[orc.MEMORY_MB].get(
-                'allocation_ratio', 1.0)
-            disk_capacity = inventories[orc.DISK_GB].get(
-                'total', node.local_gb)
-            disk_gb_reserved = inventories[orc.DISK_GB].get('reserved', 0)
-            disk_ratio = inventories[orc.DISK_GB].get(
-                'allocation_ratio', 1.0)
+        if inventories and orc.VCPU in inventories:
+            vcpus = inventories[orc.VCPU]['total']
+            vcpu_reserved = inventories[orc.VCPU]['reserved']
+            vcpu_ratio = inventories[orc.VCPU]['allocation_ratio']
         else:
             vcpus = node.vcpus
             vcpu_reserved = 0
             vcpu_ratio = 1.0
+
+        if inventories and orc.MEMORY_MB in inventories:
+            memory_mb = inventories[orc.MEMORY_MB]['total']
+            memory_mb_reserved = inventories[orc.MEMORY_MB]['reserved']
+            memory_ratio = inventories[orc.MEMORY_MB]['allocation_ratio']
+        else:
             memory_mb = node.memory_mb
             memory_mb_reserved = 0
             memory_ratio = 1.0
+
+        # NOTE(licanwei): A nova BP support-shared-storage-resource-provider
+        # will move DISK_GB from compute node to shared storage RP.
+        # Here may need to be updated when the nova BP released.
+        if inventories and orc.DISK_GB in inventories:
+            disk_capacity = inventories[orc.DISK_GB]['total']
+            disk_gb_reserved = inventories[orc.DISK_GB]['reserved']
+            disk_ratio = inventories[orc.DISK_GB]['allocation_ratio']
+        else:
             disk_capacity = node.local_gb
             disk_gb_reserved = 0
             disk_ratio = 1.0
 
         usages = self.placement_helper.get_usages_for_resource_provider(
             node.id)
-        if usages:
-            vcpus_used = usages.get(orc.VCPU, node.vcpus_used)
-            memory_used = usages.get(orc.MEMORY_MB, node.memory_mb_used)
-            disk_used = usages.get(orc.DISK_GB, node.local_gb_used)
+        if usages and orc.VCPU in usages:
+            vcpus_used = usages[orc.VCPU]
         else:
             vcpus_used = node.vcpus_used
+
+        if usages and orc.MEMORY_MB in usages:
+            memory_used = usages[orc.MEMORY_MB]
+        else:
             memory_used = node.memory_mb_used
+
+        if usages and orc.DISK_GB in usages:
+            disk_used = usages[orc.DISK_GB]
+        else:
             disk_used = node.local_gb_used
 
         # build up the compute node.
