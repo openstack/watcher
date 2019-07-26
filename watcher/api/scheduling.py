@@ -34,9 +34,8 @@ LOG = log.getLogger(__name__)
 
 class APISchedulingService(scheduling.BackgroundSchedulerService):
 
-    def __init__(self, gconfig=None, **options):
+    def __init__(self, gconfig={}, **options):
         self.services_status = {}
-        gconfig = None or {}
         super(APISchedulingService, self).__init__(gconfig, **options)
 
     def get_services_status(self, context):
