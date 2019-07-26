@@ -17,6 +17,7 @@
 # limitations under the License.
 
 import os
+import os_resource_classes as orc
 
 import mock
 from oslo_serialization import jsonutils
@@ -24,6 +25,7 @@ from oslo_serialization import jsonutils
 from watcher.common import context
 from watcher.common import exception
 from watcher.common import nova_helper
+from watcher.common import placement_helper
 from watcher.common import service as watcher_service
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import nova as novanotification
@@ -157,8 +159,18 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(element.ServiceState.ONLINE.value, node0.state)
         self.assertEqual(element.ServiceState.ENABLED.value, node0.status)
 
+    @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, "NovaHelper")
-    def test_nova_service_create(self, m_nova_helper_cls):
+    def test_nova_service_create(self, m_nova_helper_cls,
+                                 m_placement_helper):
+        mock_placement = mock.Mock(name="placement_helper")
+        mock_placement.get_inventories.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = {
+            orc.DISK_GB: 10,
+            orc.MEMORY_MB: 100,
+            orc.VCPU: 0
+        }
+        m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: mock.Mock(
                 name='m_get_compute_node_by_uuid',
@@ -169,7 +181,9 @@ class TestNovaNotifications(NotificationTestCase):
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
-                local_gb=1337))
+                local_gb=1337,
+                service={'id': 123, 'host': 'host2',
+                         'disabled_reason': ''},))
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
@@ -269,9 +283,18 @@ class TestNovaNotifications(NotificationTestCase):
         # since the 'building' state is ignored.
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
+    @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_nova_instance_update_notfound_still_creates(
-            self, m_nova_helper_cls):
+            self, m_nova_helper_cls, m_placement_helper):
+        mock_placement = mock.Mock(name="placement_helper")
+        mock_placement.get_inventories.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = {
+            orc.DISK_GB: 10,
+            orc.MEMORY_MB: 100,
+            orc.VCPU: 0
+        }
+        m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: mock.Mock(
                 name='m_get_compute_node_by_hostname',
@@ -282,7 +305,9 @@ class TestNovaNotifications(NotificationTestCase):
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
-                local_gb=1337))
+                local_gb=1337,
+                service={'id': 123, 'host': 'Node_2',
+                         'disabled_reason': ''},))
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
@@ -355,8 +380,18 @@ class TestNovaNotifications(NotificationTestCase):
             exception.ComputeNodeNotFound,
             compute_model.get_node_by_uuid, 'Node_2')
 
+    @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
-    def test_nova_instance_create(self, m_nova_helper_cls):
+    def test_nova_instance_create(self, m_nova_helper_cls,
+                                  m_placement_helper):
+        mock_placement = mock.Mock(name="placement_helper")
+        mock_placement.get_inventories.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = {
+            orc.DISK_GB: 10,
+            orc.MEMORY_MB: 100,
+            orc.VCPU: 0
+        }
+        m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
             side_effect=lambda uuid: mock.Mock(
                 name='m_get_compute_node_by_hostname',
@@ -368,7 +403,9 @@ class TestNovaNotifications(NotificationTestCase):
                 memory_mb=7777,
                 vcpus=42,
                 free_disk_gb=974,
-                local_gb=1337))
+                local_gb=1337,
+                service={'id': 123, 'host': 'compute',
+                         'disabled_reason': ''},))
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')

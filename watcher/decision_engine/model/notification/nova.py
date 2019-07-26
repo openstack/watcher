@@ -16,9 +16,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os_resource_classes as orc
 from oslo_log import log
 from watcher.common import exception
 from watcher.common import nova_helper
+from watcher.common import placement_helper
 from watcher.common import utils
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import base
@@ -32,12 +34,19 @@ class NovaNotification(base.NotificationEndpoint):
     def __init__(self, collector):
         super(NovaNotification, self).__init__(collector)
         self._nova = None
+        self._placement_helper = None
 
     @property
     def nova(self):
         if self._nova is None:
             self._nova = nova_helper.NovaHelper()
         return self._nova
+
+    @property
+    def placement_helper(self):
+        if self._placement_helper is None:
+            self._placement_helper = placement_helper.PlacementHelper()
+        return self._placement_helper
 
     def get_or_create_instance(self, instance_uuid, node_name=None):
         try:
@@ -125,22 +134,82 @@ class NovaNotification(base.NotificationEndpoint):
                 _node = self.nova.get_compute_node_by_uuid(uuid_or_name)
             else:
                 _node = self.nova.get_compute_node_by_hostname(uuid_or_name)
+            inventories = self.placement_helper.get_inventories(_node.id)
+            if inventories and orc.VCPU in inventories:
+                vcpus = inventories[orc.VCPU]['total']
+                vcpu_reserved = inventories[orc.VCPU]['reserved']
+                vcpu_ratio = inventories[orc.VCPU]['allocation_ratio']
+            else:
+                vcpus = _node.vcpus
+                vcpu_reserved = 0
+                vcpu_ratio = 1.0
 
-            node = element.ComputeNode(
-                uuid=_node.id,
-                hostname=_node.hypervisor_hostname,
-                state=_node.state,
-                status=_node.status,
-                memory=_node.memory_mb,
-                vcpus=_node.vcpus,
+            if inventories and orc.MEMORY_MB in inventories:
+                memory_mb = inventories[orc.MEMORY_MB]['total']
+                memory_mb_reserved = inventories[orc.MEMORY_MB]['reserved']
+                memory_ratio = inventories[orc.MEMORY_MB]['allocation_ratio']
+            else:
+                memory_mb = _node.memory_mb
+                memory_mb_reserved = 0
+                memory_ratio = 1.0
+
+            # NOTE(licanwei): A BP support-shared-storage-resource-provider
+            # will move DISK_GB from compute node to shared storage RP.
+            # Here may need to be updated when the nova BP released.
+            if inventories and orc.DISK_GB in inventories:
+                disk_capacity = inventories[orc.DISK_GB]['total']
+                disk_gb_reserved = inventories[orc.DISK_GB]['reserved']
+                disk_ratio = inventories[orc.DISK_GB]['allocation_ratio']
+            else:
+                disk_capacity = _node.local_gb
+                disk_gb_reserved = 0
+                disk_ratio = 1.0
+
+            usages = self.placement_helper.get_usages_for_resource_provider(
+                _node.id)
+            if usages and orc.VCPU in usages:
+                vcpus_used = usages[orc.VCPU]
+            else:
+                vcpus_used = _node.vcpus_used
+
+            if usages and orc.MEMORY_MB in usages:
+                memory_used = usages[orc.MEMORY_MB]
+            else:
+                memory_used = _node.memory_mb_used
+
+            if usages and orc.DISK_GB in usages:
+                disk_used = usages[orc.DISK_GB]
+            else:
+                disk_used = _node.local_gb_used
+
+            # build up the compute node.
+            node_attributes = {
+                # The id of the hypervisor as a UUID from version 2.53.
+                "uuid": _node.id,
+                "hostname": _node.service["host"],
+                "memory": memory_mb,
+                "memory_ratio": memory_ratio,
+                "memory_mb_reserved": memory_mb_reserved,
+                "memory_mb_used": memory_used,
                 # The node.free_disk_gb does not take allocation ratios used
                 # for overcommit into account so this value may be negative.
                 # We do not need this field and plan to set disk to total disk
                 # capacity and then remove disk_capacity.
-                disk=_node.local_gb,
+                "disk": disk_capacity,
                 # TODO(licanwei): remove and replace by disk field
-                disk_capacity=_node.local_gb,
-            )
+                "disk_capacity": disk_capacity,
+                "disk_gb_used": disk_used,
+                "disk_gb_reserved": disk_gb_reserved,
+                "disk_ratio": disk_ratio,
+                "vcpus": vcpus,
+                "vcpu_reserved": vcpu_reserved,
+                "vcpu_ratio": vcpu_ratio,
+                "vcpus_used": vcpus_used,
+                "state": _node.state,
+                "status": _node.status,
+                "disabled_reason": _node.service["disabled_reason"]}
+
+            node = element.ComputeNode(**node_attributes)
             self.cluster_data_model.add_node(node)
             LOG.debug("New compute node mapped: %s", node.uuid)
             return node
