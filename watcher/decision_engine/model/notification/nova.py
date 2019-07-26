@@ -133,7 +133,12 @@ class NovaNotification(base.NotificationEndpoint):
                 status=_node.status,
                 memory=_node.memory_mb,
                 vcpus=_node.vcpus,
-                disk=_node.free_disk_gb,
+                # The node.free_disk_gb does not take allocation ratios used
+                # for overcommit into account so this value may be negative.
+                # We do not need this field and plan to set disk to total disk
+                # capacity and then remove disk_capacity.
+                disk=_node.local_gb,
+                # TODO(licanwei): remove and replace by disk field
                 disk_capacity=_node.local_gb,
             )
             self.cluster_data_model.add_node(node)
