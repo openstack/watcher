@@ -135,7 +135,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """
         return dict(cpu=node.vcpus,
                     ram=node.memory,
-                    disk=node.disk_capacity)
+                    disk=node.disk)
 
     def get_node_used(self, node):
         """Collect cpu, ram and disk used of a node.
