@@ -152,16 +152,19 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         self.assertEqual(node.uuid, '160a0e7b-8b0b-4854-8257-9c71dff4efcc')
         self.assertEqual(instance.uuid, 'ef500f7e-dac8-470f-960c-169486fce71b')
 
-        memory_total = node.memory - node.memory_mb_reserved
-        memory_free = memory_total * node.memory_ratio - node.memory_mb_used
+        memory_total = (node.memory-node.memory_mb_reserved)*node.memory_ratio
+        self.assertEqual(node.memory_mb_capacity, memory_total)
+        memory_free = memory_total - node.memory_mb_used
         self.assertEqual(node.memory_mb_free, memory_free)
 
-        disk_total = node.disk_capacity - node.disk_gb_reserved
-        disk_free = disk_total * node.disk_ratio - node.disk_gb_used
+        disk_total = (node.disk_capacity-node.disk_gb_reserved)*node.disk_ratio
+        self.assertEqual(node.disk_gb_capacity, disk_total)
+        disk_free = disk_total - node.disk_gb_used
         self.assertEqual(node.disk_gb_free, disk_free)
 
-        vcpus_total = node.vcpus - node.vcpu_reserved
-        vcpus_free = vcpus_total * node.vcpu_ratio - node.vcpus_used
+        vcpus_total = (node.vcpus-node.vcpu_reserved)*node.vcpu_ratio
+        self.assertEqual(node.vcpus_capacity, vcpus_total)
+        vcpus_free = vcpus_total - node.vcpus_used
         self.assertEqual(node.vcpus_free, vcpus_free)
 
         m_nova_helper.get_compute_node_by_name.assert_called_once_with(

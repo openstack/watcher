@@ -57,6 +57,18 @@ class ComputeNode(compute_resource.ComputeResource):
         raise NotImplementedError()
 
     @property
+    def memory_mb_capacity(self):
+        return (self.memory-self.memory_mb_reserved)*self.memory_ratio
+
+    @property
+    def disk_gb_capacity(self):
+        return (self.disk-self.disk_gb_reserved)*self.disk_ratio
+
+    @property
+    def vcpus_capacity(self):
+        return (self.vcpus-self.vcpu_reserved)*self.vcpu_ratio
+
+    @property
     def memory_mb_free(self):
         total = (self.memory-self.memory_mb_reserved)*self.memory_ratio
         return total-self.memory_mb_used
