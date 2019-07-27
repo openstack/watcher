@@ -356,7 +356,12 @@ class NovaModelBuilder(base.BaseModelBuilder):
             "memory_ratio": memory_ratio,
             "memory_mb_reserved": memory_mb_reserved,
             "memory_mb_used": memory_used,
-            "disk": node.free_disk_gb,
+            # The node.free_disk_gb does not take allocation ratios used
+            # for overcommit into account so this value may be negative.
+            # We do not need this field and plan to set disk to total disk
+            # capacity and then remove disk_capacity.
+            "disk": disk_capacity,
+            # TODO(licanwei): remove and replace by disk field
             "disk_capacity": disk_capacity,
             "disk_gb_used": disk_used,
             "disk_gb_reserved": disk_gb_reserved,

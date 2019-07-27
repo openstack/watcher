@@ -313,7 +313,7 @@ class TestNovaNotifications(NotificationTestCase):
         node_2 = compute_model.get_node_by_name('Node_2')
         self.assertEqual(7777, node_2.memory)
         self.assertEqual(42, node_2.vcpus)
-        self.assertEqual(974, node_2.disk)
+        self.assertEqual(1337, node_2.disk)
         self.assertEqual(1337, node_2.disk_capacity)
 
     @mock.patch.object(nova_helper, "NovaHelper")
