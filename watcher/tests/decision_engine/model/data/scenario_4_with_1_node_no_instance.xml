@@ -1,3 +1,3 @@
 <ModelRoot>
-  <ComputeNode name="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="1" disk="1" disk_capacity="1" memory="1"/>
+  <ComputeNode name="" uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="1" vcpu_reserved="0" vcpu_ratio="1" disk="1" disk_gb_reserved="0" disk_ratio="1" disk_capacity="1" memory="1" memory_mb_reserved="0" memory_ratio="1"/>
 </ModelRoot>

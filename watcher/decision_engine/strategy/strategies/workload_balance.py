@@ -205,9 +205,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             # calculate the available resources
             cores_used, mem_used, disk_used = self.calculate_used_resource(
                 host)
-            cores_available = host.vcpus - cores_used
-            disk_available = host.disk - disk_used
-            mem_available = host.memory - mem_used
+            cores_available = host.vcpu_capacity - cores_used
+            disk_available = host.disk_gb_capacity - disk_used
+            mem_available = host.memory_mb_capacity - mem_used
             if (cores_available >= required_cores and
                     mem_available >= required_mem and
                     disk_available >= required_disk):
