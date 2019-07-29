@@ -75,7 +75,7 @@ class ComputeNode(compute_resource.ComputeResource):
 
     @property
     def disk_gb_free(self):
-        total = (self.disk_capacity-self.disk_gb_reserved)*self.disk_ratio
+        total = (self.disk-self.disk_gb_reserved)*self.disk_ratio
         return total-self.disk_gb_used
 
     @property
