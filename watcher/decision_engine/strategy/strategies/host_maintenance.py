@@ -133,9 +133,9 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         :param node: node object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        return dict(cpu=node.vcpus,
-                    ram=node.memory,
-                    disk=node.disk)
+        return dict(cpu=node.vcpu_capacity,
+                    ram=node.memory_mb_capacity,
+                    disk=node.disk_gb_capacity)
 
     def get_node_used(self, node):
         """Collect cpu, ram and disk used of a node.
