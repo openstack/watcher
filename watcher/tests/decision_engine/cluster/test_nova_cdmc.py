@@ -335,7 +335,7 @@ class TestNovaModelBuilder(base.TestCase):
         """"""
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
-        mock_placement.get_usages_for_resource_provider.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement_helper.return_value = mock_placement
         m_nova.return_value.get_aggregate_list.return_value = \
             [mock.Mock(id=1, name='example'),
