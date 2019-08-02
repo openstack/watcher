@@ -480,11 +480,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
         return update_flag
 
     def execute(self, model_scope):
-        """Instantiates the graph with the openstack cluster data.
+        """Instantiates the graph with the openstack cluster data."""
 
-        The graph is populated along 2 layers: virtual and physical. As each
-        new layer is built connections are made back to previous layers.
-        """
         updata_model_flag = self._check_model_scope(model_scope)
         if self.model is None or updata_model_flag:
             self.model = self.model or model_root.ModelRoot()
