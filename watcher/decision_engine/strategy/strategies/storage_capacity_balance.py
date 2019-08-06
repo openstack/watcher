@@ -207,6 +207,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
 
     def check_pool_type(self, volume, dest_pool):
         target_type = None
+        src_extra_specs = {}
         # check type feature
         if not volume.volume_type:
             return target_type
