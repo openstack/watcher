@@ -1,0 +1,23 @@
+---
+features:
+  - |
+    Watcher can get resource information such as total, allocation ratio and
+    reserved information from Placement API.
+    Now we add some new fields to the Watcher Data Model:
+
+    * vcpu_reserved: The amount of cpu a node has reserved for its own use.
+    * vcpu_ratio: CPU allocation ratio.
+    * memory_mb_reserved: The amount of memory a node has reserved for
+      its own use.
+    * memory_ratio: Memory allocation ratio.
+    * disk_gb_reserved: The amount of disk a node has reserved for its own use.
+    * disk_ratio: Disk allocation ratio.
+
+    We also add some new propeties:
+
+    * vcpu_capacity: The amount of vcpu, take allocation ratio into account,
+      but do not include reserved.
+    * memory_mb_capacity: The amount of memory, take allocation ratio into
+      account, but do not include reserved.
+    * disk_gb_capacity: The amount of disk, take allocation ratio into
+      account, but do not include reserved.
