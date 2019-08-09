@@ -154,18 +154,12 @@ class TestNovaClusterDataModelCollector(base.TestCase):
 
         memory_total = (node.memory-node.memory_mb_reserved)*node.memory_ratio
         self.assertEqual(node.memory_mb_capacity, memory_total)
-        memory_free = memory_total - node.memory_mb_used
-        self.assertEqual(node.memory_mb_free, memory_free)
 
         disk_total = (node.disk_capacity-node.disk_gb_reserved)*node.disk_ratio
         self.assertEqual(node.disk_gb_capacity, disk_total)
-        disk_free = disk_total - node.disk_gb_used
-        self.assertEqual(node.disk_gb_free, disk_free)
 
         vcpus_total = (node.vcpus-node.vcpu_reserved)*node.vcpu_ratio
-        self.assertEqual(node.vcpus_capacity, vcpus_total)
-        vcpus_free = vcpus_total - node.vcpus_used
-        self.assertEqual(node.vcpus_free, vcpus_free)
+        self.assertEqual(node.vcpu_capacity, vcpus_total)
 
         m_nova_helper.get_compute_node_by_name.assert_called_once_with(
             minimal_node['hypervisor_hostname'], servers=True, detailed=True)

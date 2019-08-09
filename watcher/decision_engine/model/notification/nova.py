@@ -165,23 +165,6 @@ class NovaNotification(base.NotificationEndpoint):
                 disk_gb_reserved = 0
                 disk_ratio = 1.0
 
-            usages = self.placement_helper.get_usages_for_resource_provider(
-                _node.id)
-            if usages and orc.VCPU in usages:
-                vcpus_used = usages[orc.VCPU]
-            else:
-                vcpus_used = _node.vcpus_used
-
-            if usages and orc.MEMORY_MB in usages:
-                memory_used = usages[orc.MEMORY_MB]
-            else:
-                memory_used = _node.memory_mb_used
-
-            if usages and orc.DISK_GB in usages:
-                disk_used = usages[orc.DISK_GB]
-            else:
-                disk_used = _node.local_gb_used
-
             # build up the compute node.
             node_attributes = {
                 # The id of the hypervisor as a UUID from version 2.53.
@@ -190,7 +173,6 @@ class NovaNotification(base.NotificationEndpoint):
                 "memory": memory_mb,
                 "memory_ratio": memory_ratio,
                 "memory_mb_reserved": memory_mb_reserved,
-                "memory_mb_used": memory_used,
                 # The node.free_disk_gb does not take allocation ratios used
                 # for overcommit into account so this value may be negative.
                 # We do not need this field and plan to set disk to total disk
@@ -198,13 +180,11 @@ class NovaNotification(base.NotificationEndpoint):
                 "disk": disk_capacity,
                 # TODO(licanwei): remove and replace by disk field
                 "disk_capacity": disk_capacity,
-                "disk_gb_used": disk_used,
                 "disk_gb_reserved": disk_gb_reserved,
                 "disk_ratio": disk_ratio,
                 "vcpus": vcpus,
                 "vcpu_reserved": vcpu_reserved,
                 "vcpu_ratio": vcpu_ratio,
-                "vcpus_used": vcpus_used,
                 "state": _node.state,
                 "status": _node.status,
                 "disabled_reason": _node.service["disabled_reason"]}
