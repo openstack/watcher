@@ -32,7 +32,6 @@ class TestElement(base.TestCase):
                 'memory': 111,
                 'vcpus': 222,
                 'disk': 333,
-                'disk_capacity': 444,
             })),
         ("ComputeNode_with_some_fields", dict(
             cls=element.Instance,
@@ -41,7 +40,6 @@ class TestElement(base.TestCase):
                 'state': 'state',
                 'vcpus': 222,
                 'disk': 333,
-                'disk_capacity': 444,
             })),
         ("Instance_with_all_fields", dict(
             cls=element.Instance,
@@ -53,7 +51,6 @@ class TestElement(base.TestCase):
                 'memory': 111,
                 'vcpus': 222,
                 'disk': 333,
-                'disk_capacity': 444,
             })),
         ("Instance_with_some_fields", dict(
             cls=element.Instance,
@@ -62,7 +59,6 @@ class TestElement(base.TestCase):
                 'state': 'state',
                 'vcpus': 222,
                 'disk': 333,
-                'disk_capacity': 444,
             })),
     ]
 

@@ -155,7 +155,7 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         memory_total = (node.memory-node.memory_mb_reserved)*node.memory_ratio
         self.assertEqual(node.memory_mb_capacity, memory_total)
 
-        disk_total = (node.disk_capacity-node.disk_gb_reserved)*node.disk_ratio
+        disk_total = (node.disk-node.disk_gb_reserved)*node.disk_ratio
         self.assertEqual(node.disk_gb_capacity, disk_total)
 
         vcpus_total = (node.vcpus-node.vcpu_reserved)*node.vcpu_ratio

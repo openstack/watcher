@@ -90,7 +90,6 @@ class NovaNotification(base.NotificationEndpoint):
             'memory': memory_mb,
             'vcpus': num_cores,
             'disk': disk_gb,
-            'disk_capacity': disk_gb,
             'metadata': instance_metadata,
             'project_id': instance_data['tenant_id']
         })
@@ -173,13 +172,7 @@ class NovaNotification(base.NotificationEndpoint):
                 "memory": memory_mb,
                 "memory_ratio": memory_ratio,
                 "memory_mb_reserved": memory_mb_reserved,
-                # The node.free_disk_gb does not take allocation ratios used
-                # for overcommit into account so this value may be negative.
-                # We do not need this field and plan to set disk to total disk
-                # capacity and then remove disk_capacity.
                 "disk": disk_capacity,
-                # TODO(licanwei): remove and replace by disk field
-                "disk_capacity": disk_capacity,
                 "disk_gb_reserved": disk_gb_reserved,
                 "disk_ratio": disk_ratio,
                 "vcpus": vcpus,

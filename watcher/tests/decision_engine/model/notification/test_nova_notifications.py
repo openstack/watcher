@@ -331,7 +331,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
         self.assertEqual(1, instance0.vcpus)
-        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(1, instance0.disk)
         self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_called_once_with('Node_2')
@@ -339,7 +339,6 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(7777, node_2.memory)
         self.assertEqual(42, node_2.vcpus)
         self.assertEqual(1337, node_2.disk)
-        self.assertEqual(1337, node_2.disk_capacity)
 
     @mock.patch.object(nova_helper, "NovaHelper")
     def test_instance_update_node_notfound_set_unmapped(
@@ -372,7 +371,6 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(element.InstanceState.PAUSED.value, instance0.state)
         self.assertEqual(1, instance0.vcpus)
         self.assertEqual(1, instance0.disk)
-        self.assertEqual(1, instance0.disk_capacity)
         self.assertEqual(512, instance0.memory)
 
         m_get_compute_node_by_hostname.assert_any_call('Node_2')
@@ -440,7 +438,7 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
         self.assertEqual(1, instance0.vcpus)
-        self.assertEqual(1, instance0.disk_capacity)
+        self.assertEqual(1, instance0.disk)
         self.assertEqual(512, instance0.memory)
 
     def test_nova_instance_delete_end(self):
