@@ -232,9 +232,9 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :param total_mem: total memory used by the virtual machine
         :return: True if the threshold is not exceed
         """
-        cpu_capacity = destination_node.vcpus
-        disk_capacity = destination_node.disk
-        memory_capacity = destination_node.memory
+        cpu_capacity = destination_node.vcpu_capacity
+        disk_capacity = destination_node.disk_gb_capacity
+        memory_capacity = destination_node.memory_mb_capacity
 
         return (cpu_capacity >= total_cores * self.threshold_cores and
                 disk_capacity >= total_disk * self.threshold_disk and
