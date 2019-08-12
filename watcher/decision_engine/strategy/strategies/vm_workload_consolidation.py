@@ -318,7 +318,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :param node: node object
         :return: dict(cpu(cores), ram(MB), disk(B))
         """
-        return dict(cpu=node.vcpus, ram=node.memory, disk=node.disk)
+        return dict(cpu=node.vcpu_capacity, ram=node.memory_mb_capacity,
+                    disk=node.disk_gb_capacity)
 
     def get_relative_node_utilization(self, node):
         """Return relative node utilization.
