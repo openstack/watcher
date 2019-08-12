@@ -1,20 +1,20 @@
 <ModelRoot>
-  <ComputeNode uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" disk="250" disk_capacity="250" memory="132">
+  <ComputeNode uuid="Node_0" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
     <Instance watcher_exclude="False" state="active" name="INSTANCE_0" uuid="INSTANCE_0" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
     <Instance watcher_exclude="False" state="active" name="INSTANCE_1" uuid="INSTANCE_1" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="26F03131-32CB-4697-9D61-9123F87A8147"/>
   </ComputeNode>
-  <ComputeNode uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" disk="250" disk_capacity="250" memory="132">
+  <ComputeNode uuid="Node_1" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
     <Instance watcher_exclude="False" state="active" name="INSTANCE_2" uuid="INSTANCE_2" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="109F7909-0607-4712-B32C-5CC6D49D2F15"/>
   </ComputeNode>
-  <ComputeNode uuid="Node_2" status="enabled" state="up" id="2" hostname="hostname_2" vcpus="40" disk="250" disk_capacity="250" memory="132">
+  <ComputeNode uuid="Node_2" status="enabled" state="up" id="2" hostname="hostname_2" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
     <Instance watcher_exclude="False" state="active" name="INSTANCE_3" uuid="INSTANCE_3" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
     <Instance watcher_exclude="False" state="active" name="INSTANCE_4" uuid="INSTANCE_4" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
     <Instance watcher_exclude="False" state="active" name="INSTANCE_5" uuid="INSTANCE_5" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
-  <ComputeNode uuid="Node_3" status="enabled" state="up" id="3" hostname="hostname_3" vcpus="40" disk="250" disk_capacity="250" memory="132">
+  <ComputeNode uuid="Node_3" status="enabled" state="up" id="3" hostname="hostname_3" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
     <Instance watcher_exclude="False" state="active" name="INSTANCE_6" uuid="INSTANCE_6" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
-  <ComputeNode uuid="Node_4" status="enabled" state="up" id="4" hostname="hostname_4" vcpus="40" disk="250" disk_capacity="250" memory="132">
+  <ComputeNode uuid="Node_4" status="enabled" state="up" id="4" hostname="hostname_4" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
     <Instance watcher_exclude="False" state="active" name="INSTANCE_7" uuid="INSTANCE_7" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
   </ComputeNode>
   <Instance watcher_exclude="False" state="active" name="INSTANCE_10" uuid="INSTANCE_10" vcpus="10" disk="20" disk_capacity="20" memory="2" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>

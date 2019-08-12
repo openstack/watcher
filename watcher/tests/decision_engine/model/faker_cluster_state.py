@@ -82,9 +82,15 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
                 "uuid": node_uuid,
                 "hostname": hostname,
                 "memory": 132,
+                "memory_mb_reserved": 0,
+                "memory_ratio": 1,
                 "disk": 250,
                 "disk_capacity": 250,
+                "disk_gb_reserved": 0,
+                "disk_ratio": 1,
                 "vcpus": 40,
+                "vcpu_reserved": 0,
+                "vcpu_ratio": 1,
             }
             node = element.ComputeNode(**node_attributes)
             model.add_node(node)
