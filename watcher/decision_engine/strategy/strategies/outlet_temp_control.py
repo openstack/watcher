@@ -223,9 +223,9 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
             host = instance_data['compute_node']
             # available
             cores_used, mem_used, disk_used = self.calc_used_resource(host)
-            cores_available = host.vcpus - cores_used
-            disk_available = host.disk - disk_used
-            mem_available = host.memory - mem_used
+            cores_available = host.vcpu_capacity - cores_used
+            disk_available = host.disk_gb_capacity - disk_used
+            mem_available = host.memory_mb_capacity - mem_used
             if cores_available >= required_cores \
                     and disk_available >= required_disk \
                     and mem_available >= required_memory:
