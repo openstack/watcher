@@ -186,7 +186,7 @@ class Migrate(base.BaseAction):
         return self.migrate(destination=self.destination_node)
 
     def revert(self):
-        return self.migrate(destination=self.source_node)
+        LOG.info('Migrate action do not revert!')
 
     def abort(self):
         nova = nova_helper.NovaHelper(osc=self.osc)
