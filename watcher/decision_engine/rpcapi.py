@@ -44,6 +44,11 @@ class DecisionEngineAPI(service.Service):
         return self.conductor_client.call(
             context, 'get_strategy_info', strategy_name=strategy_name)
 
+    def get_data_model_info(self, context, data_model_type, audit):
+        return self.conductor_client.call(
+            context, 'get_data_model_info',
+            data_model_type=data_model_type, audit=audit)
+
 
 class DecisionEngineAPIManager(service_manager.ServiceManager):
 

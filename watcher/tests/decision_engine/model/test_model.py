@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import mock
 import os
 
 from oslo_utils import uuidutils
@@ -62,6 +63,27 @@ class TestModel(base.TestCase):
 
         model = model_root.ModelRoot.from_xml(struct_str)
         self.assertEqual(expected_model.to_string(), model.to_string())
+
+    @mock.patch.object(model_root.ModelRoot, 'get_all_compute_nodes')
+    @mock.patch.object(model_root.ModelRoot, 'get_node_instances')
+    def test_get_model_to_list(self, mock_instances, mock_nodes):
+        fake_compute_node = mock.MagicMock(
+            uuid='fake_node_uuid',
+            fields=['uuid'])
+        fake_instance = mock.MagicMock(
+            uuid='fake_instance_uuid',
+            fields=['uuid'])
+
+        mock_nodes.return_value = {'fake_node_uuid': fake_compute_node}
+        mock_instances.return_value = [fake_instance]
+
+        expected_keys = ['server_uuid', 'node_uuid']
+
+        result = model_root.ModelRoot().to_list()
+        self.assertEqual(1, len(result))
+
+        result_keys = result[0].keys()
+        self.assertEqual(sorted(expected_keys), sorted(result_keys))
 
     def test_get_node_by_instance_uuid(self):
         model = model_root.ModelRoot()
