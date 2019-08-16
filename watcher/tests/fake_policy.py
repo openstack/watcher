@@ -58,7 +58,9 @@ policy_data = """
 
     "service:detail": "",
     "service:get": "",
-    "service:get_all": ""
+    "service:get_all": "",
+
+    "data_model:get_all": ""
 }
 """
 

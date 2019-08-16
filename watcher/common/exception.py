@@ -210,6 +210,10 @@ class InvalidIntervalOrCron(Invalid):
     msg_fmt = _("Expected an interval or cron syntax but received %(name)s")
 
 
+class DataModelTypeNotFound(ResourceNotFound):
+    msg_fmt = _("The %(data_model_type)s data model could not be found")
+
+
 class GoalNotFound(ResourceNotFound):
     msg_fmt = _("Goal %(goal)s could not be found")
 
