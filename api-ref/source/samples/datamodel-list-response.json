@@ -1,0 +1,38 @@
+{
+    "context": [
+        {
+            "server_uuid": "1bf91464-9b41-428d-a11e-af691e5563bb",
+            "server_name": "chenke-test1",
+            "server_vcpus": "1",
+            "server_memory": "512",
+            "server_disk": "1",
+            "server_state": "active",
+            "node_uuid": "253e5dd0-9384-41ab-af13-4f2c2ce26112",
+            "node_hostname": "localhost.localdomain",
+            "node_vcpus": "4",
+            "node_vcpu_ratio": "16.0",
+            "node_memory": "16383",
+            "node_memory_ratio": "1.5",
+            "node_disk": "37"
+            "node_disk_ratio": "1.0",
+            "node_state": "up",
+        },
+        {
+            "server_uuid": "e2cb5f6f-fa1d-4ba2-be1e-0bf02fa86ba4",
+            "server_name": "chenke-test2",
+            "server_vcpus": "1",
+            "server_memory": "512",
+            "server_disk": "1",
+            "server_state": "active",
+            "node_uuid": "253e5dd0-9384-41ab-af13-4f2c2ce26112",
+            "node_hostname": "localhost.localdomain",
+            "node_vcpus": "4",
+            "node_vcpu_ratio": "16.0",
+            "node_memory": "16383",
+            "node_memory_ratio": "1.5",
+            "node_disk": "37"
+            "node_disk_ratio": "1.0",
+            "node_state": "up",
+        }
+    ]
+}
