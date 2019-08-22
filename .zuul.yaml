@@ -150,6 +150,7 @@
           $TEMPEST_CONFIG:
             compute:
               min_compute_nodes: 2
+              min_microversion: 2.56
             compute-feature-enabled:
               live_migration: true
               block_migration_for_live_migration: true
