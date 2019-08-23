@@ -156,6 +156,8 @@
             compute-feature-enabled:
               live_migration: true
               block_migration_for_live_migration: true
+            placement:
+              min_microversion: 1.29
       devstack_plugins:
         ceilometer: https://opendev.org/openstack/ceilometer
 
