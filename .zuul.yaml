@@ -21,10 +21,12 @@
         - watcher-tempest-host_maintenance
         - watcher-tempest-storage_balance
         - watcher-tls-test
+        - watcher-tempest-functional-ipv6-only
     gate:
       queue: watcher
       jobs:
         - watcher-tempest-functional
+        - watcher-tempest-functional-ipv6-only
 
 - job:
     name: watcher-tempest-dummy_optim
@@ -161,7 +163,7 @@
     name: watcher-tempest-functional
     parent: devstack-tempest
     timeout: 7200
-    required-projects:
+    required-projects: &base_required_projects
       - openstack/ceilometer
       - openstack/devstack-gate
       - openstack/python-openstackclient
@@ -169,7 +171,7 @@
       - openstack/watcher
       - openstack/watcher-tempest-plugin
       - openstack/tempest
-    vars:
+    vars: &base_vars
       devstack_plugins:
         watcher: https://opendev.org/openstack/watcher
       devstack_services:
@@ -191,6 +193,14 @@
         PYTHONUNBUFFERED: 'true'
       zuul_copy_output:
         /etc/hosts: logs
+
+- job:
+    name: watcher-tempest-functional-ipv6-only
+    parent: devstack-tempest-ipv6
+    description: |
+      Watcher devstack tempest tests job for IPv6-only deployment
+    required-projects: *base_required_projects
+    vars: *base_vars
 
 - job:
     name: watcher-grenade

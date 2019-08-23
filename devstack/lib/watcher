@@ -193,15 +193,15 @@ function create_watcher_conf {
     iniset_rpc_backend watcher $WATCHER_CONF
 
     iniset $WATCHER_CONF database connection $(database_connection_url watcher)
-    iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
+    iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
 
     if is_service_enabled tls-proxy; then
-        iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
+        iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
         iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT_INT"
         # iniset $WATCHER_CONF api enable_ssl_api "True"
     else
         if [[ "$WATCHER_USE_WSGI_MODE" == "mod_wsgi" ]]; then
-            iniset $WATCHER_CONF api host "$WATCHER_SERVICE_HOST"
+            iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
             iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
         fi
     fi
