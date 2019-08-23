@@ -241,7 +241,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         self.cache_threshold = self.input_parameters.cache_threshold
         self.period = self.input_parameters.period
 

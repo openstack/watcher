@@ -241,7 +241,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         LOG.info("Outlet temperature strategy threshold=%d",
                  self.threshold)
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         hosts_need_release, hosts_target = self.group_hosts_by_outlet_temp()
 
         if len(hosts_need_release) == 0:

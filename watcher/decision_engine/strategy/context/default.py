@@ -65,4 +65,4 @@ class DefaultStrategyContext(base.StrategyContext):
             name: value for name, value in audit.parameters.items()
         })
 
-        return selected_strategy.execute()
+        return selected_strategy.execute(audit=audit)

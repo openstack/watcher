@@ -280,7 +280,7 @@ class UniformAirflow(base.BaseStrategy):
         self.threshold_power = self.input_parameters.threshold_power
         self._period = self.input_parameters.period
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         source_nodes, target_nodes = self.group_hosts_by_airflow()
 
         if not source_nodes:

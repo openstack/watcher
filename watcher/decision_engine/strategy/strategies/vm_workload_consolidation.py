@@ -518,7 +518,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         """Execute strategy.
 
         This strategy produces a solution resulting in more

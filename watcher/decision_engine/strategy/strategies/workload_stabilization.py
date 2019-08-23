@@ -519,7 +519,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                         'will be removed in next release.')
             self.periods['compute_node'] = self.periods['node']
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         migration = self.check_threshold()
         if migration:
             hosts_load = self.get_hosts_load()

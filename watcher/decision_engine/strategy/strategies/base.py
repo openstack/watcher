@@ -223,8 +223,11 @@ class BaseStrategy(loadable.Loadable):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def do_execute(self):
+    def do_execute(self, audit=None):
         """Strategy execution phase
+
+        :param audit: An Audit instance
+        :type audit: :py:class:`~.Audit` instance
 
         This phase is where you should put the main logic of your strategy.
         """
@@ -255,14 +258,16 @@ class BaseStrategy(loadable.Loadable):
 
         LOG.debug(self.compute_model.to_string())
 
-    def execute(self):
+    def execute(self, audit=None):
         """Execute a strategy
 
+        :param audit: An Audit instance
+        :type audit: :py:class:`~.Audit` instance
         :return: A computed solution (via a placement algorithm)
         :rtype: :py:class:`~.BaseSolution` instance
         """
         self.pre_execute()
-        self.do_execute()
+        self.do_execute(audit=audit)
         self.post_execute()
 
         self.solution.compute_global_efficacy()

@@ -48,7 +48,7 @@ class DummyWithResize(base.DummyBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         para1 = self.input_parameters.para1
         para2 = self.input_parameters.para2
         LOG.debug("Executing Dummy strategy with para1=%(p1)f, para2=%(p2)s",

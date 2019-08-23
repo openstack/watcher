@@ -78,7 +78,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         # Simple "hello world" from strategy
         param1 = self.input_parameters.param1
         param2 = self.input_parameters.param2

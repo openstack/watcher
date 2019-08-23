@@ -269,7 +269,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         self._pre_execute()
         LOG.debug(self.storage_model.to_string())
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         """Strategy execution phase
 
         """

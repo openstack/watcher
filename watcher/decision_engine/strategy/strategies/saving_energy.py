@@ -219,7 +219,7 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
         self.free_used_percent = self.input_parameters.free_used_percent
         self.min_free_hosts_num = self.input_parameters.min_free_hosts_num
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         """Strategy execution phase
 
         This phase is where you should put the main logic of your strategy.
