@@ -193,6 +193,38 @@ class TestModel(base.TestCase):
         self.assertRaises(exception.IllegalArgumentException,
                           model.assert_instance, "valeur_qcq")
 
+    def test_get_node_instances(self):
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_1()
+        node = element.ComputeNode(uuid="Node_0")
+        instance0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance1 = model.get_instance_by_uuid("INSTANCE_1")
+        instances = model.get_node_instances(node)
+
+        self.assertEqual(2, len(instances))
+        self.assertIn(instance0, instances)
+        self.assertIn(instance1, instances)
+
+    def test_get_node_used_resources(self):
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_1()
+        node = element.ComputeNode(uuid="Node_0")
+        resources_used = model.get_node_used_resources(node)
+
+        self.assertEqual(20, resources_used.get('vcpu'))
+        self.assertEqual(4, resources_used.get('memory'))
+        self.assertEqual(40, resources_used.get('disk'))
+
+    def test_get_node_free_resources(self):
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_1()
+        node = model.get_node_by_uuid("Node_0")
+        resources_free = model.get_node_free_resources(node)
+
+        self.assertEqual(20, resources_free.get('vcpu'))
+        self.assertEqual(128, resources_free.get('memory'))
+        self.assertEqual(210, resources_free.get('disk'))
+
 
 class TestStorageModel(base.TestCase):
 

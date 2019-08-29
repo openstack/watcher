@@ -201,6 +201,25 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         return node_instances
 
+    def get_node_used_resources(self, node):
+        vcpu_used = 0
+        memory_used = 0
+        disk_used = 0
+        for instance in self.get_node_instances(node):
+            vcpu_used += instance.vcpus
+            memory_used += instance.memory
+            disk_used += instance.disk
+
+        return dict(vcpu=vcpu_used, memory=memory_used, disk=disk_used)
+
+    def get_node_free_resources(self, node):
+        resources_used = self.get_node_used_resources(node)
+        vcpu_free = node.vcpu_capacity-resources_used.get('vcpu')
+        memory_free = node.memory_mb_capacity-resources_used.get('memory')
+        disk_free = node.disk_gb_capacity-resources_used.get('disk')
+
+        return dict(vcpu=vcpu_free, memory=memory_free, disk=disk_free)
+
     def to_string(self):
         return self.to_xml()
 
