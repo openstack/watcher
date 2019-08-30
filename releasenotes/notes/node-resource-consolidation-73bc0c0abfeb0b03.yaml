@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Added strategy "node resource consolidation". This
+    strategy is used to centralize VMs to as few nodes
+    as possible by VM migration. User can set an input
+    parameter to decide how to select the destination node.
