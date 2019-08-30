@@ -30,3 +30,4 @@ migration, increased energy efficiency and more!
 * Bugs: https://bugs.launchpad.net/watcher
 * Documentation: https://docs.openstack.org/watcher/latest/
 * Release notes: https://docs.openstack.org/releasenotes/watcher/
+* Design specifications: https://specs.openstack.org/openstack/watcher-specs/
