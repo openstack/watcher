@@ -37,7 +37,7 @@ class TestV1Root(base.FunctionalTest):
         not_resources = ('id', 'links', 'media_types')
         actual_resources = tuple(set(data.keys()) - set(not_resources))
         expected_resources = ('audit_templates', 'audits', 'actions',
-                              'action_plans', 'scoring_engines',
+                              'action_plans', 'data_model', 'scoring_engines',
                               'services')
         self.assertEqual(sorted(expected_resources), sorted(actual_resources))
 

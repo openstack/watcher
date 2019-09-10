@@ -17,6 +17,7 @@ from watcher.common.policies import action_plan
 from watcher.common.policies import audit
 from watcher.common.policies import audit_template
 from watcher.common.policies import base
+from watcher.common.policies import data_model
 from watcher.common.policies import goal
 from watcher.common.policies import scoring_engine
 from watcher.common.policies import service
@@ -30,6 +31,7 @@ def list_rules():
         action_plan.list_rules(),
         audit.list_rules(),
         audit_template.list_rules(),
+        data_model.list_rules(),
         goal.list_rules(),
         scoring_engine.list_rules(),
         service.list_rules(),
