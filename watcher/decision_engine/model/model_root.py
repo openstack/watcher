@@ -248,6 +248,24 @@ class ModelRoot(nx.DiGraph, base.Model):
 
         return etree.tostring(root, pretty_print=True).decode('utf-8')
 
+    def to_list(self):
+        ret_list = []
+        for cn in sorted(self.get_all_compute_nodes().values(),
+                         key=lambda cn: cn.uuid):
+            in_dict = {}
+            for field in cn.fields:
+                new_name = "node_"+str(field)
+                in_dict[new_name] = cn[field]
+            node_instances = self.get_node_instances(cn)
+            for instance in sorted(node_instances, key=lambda x: x.uuid):
+                for field in instance.fields:
+                    new_name = "server_"+str(field)
+                    in_dict[new_name] = instance[field]
+                if in_dict != {}:
+                    deep_in_dict = in_dict.copy()
+                    ret_list.append(deep_in_dict)
+        return ret_list
+
     @classmethod
     def from_xml(cls, data):
         model = cls()
