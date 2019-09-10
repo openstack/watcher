@@ -297,7 +297,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         LOG.info(_('Executing Host Maintenance Migration Strategy'))
 
         maintenance_node = self.input_parameters.get('maintenance_node')

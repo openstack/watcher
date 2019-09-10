@@ -295,7 +295,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         self._meter = self.input_parameters.metrics
         self._granularity = self.input_parameters.granularity
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         """Strategy execution phase
 
         This phase is where you should put the main logic of your strategy.

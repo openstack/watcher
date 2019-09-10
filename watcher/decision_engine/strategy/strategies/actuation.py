@@ -93,7 +93,7 @@ class Actuator(base.UnclassifiedStrategy):
     def pre_execute(self):
         self._pre_execute()
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         for action in self.actions:
             self.solution.add_action(**action)
 

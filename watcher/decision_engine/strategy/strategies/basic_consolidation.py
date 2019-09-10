@@ -413,7 +413,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
             self.aggregation_method['compute_node'] = \
                 self.aggregation_method['node']
 
-    def do_execute(self):
+    def do_execute(self, audit=None):
         unsuccessful_migration = 0
 
         scores = self.compute_score_of_nodes()
