@@ -129,6 +129,14 @@ r_strategy:
   in: query
   required: false
   type: string
+r_type:
+  description: |
+    Type of data model user want to list. Default type is compute.
+    Supported values: compute.
+    Future support values: storage, baremetal.
+  in: query
+  required: false
+  type: string
 sort_dir:
   description: |
     Sorts the response by the requested sort direction.
@@ -411,6 +419,62 @@ links:
   required: true
   type: array
 
+# Data Model Node
+node_disk:
+  description: |
+    The Disk of the node(in GiB).
+  in: body
+  required: true
+  type: integer
+node_disk_ratio:
+  description: |
+    The Disk Ratio of the node.
+  in: body
+  required: true
+  type: float
+node_hostname:
+  description: |
+    The Host Name of the node.
+  in: body
+  required: true
+  type: string
+node_memory:
+  description: |
+    The Memory of the node(in MiB).
+  in: body
+  required: true
+  type: integer
+node_memory_ratio:
+  description: |
+    The Memory Ratio of the node.
+  in: body
+  required: true
+  type: float
+node_state:
+  description: |
+    The State of the node. The value is up or down.
+  in: body
+  required: true
+  type: string
+node_uuid:
+  description: |
+    The Unique UUID of the node.
+  in: body
+  required: true
+  type: string
+node_vcpu_ratio:
+  description: |
+    The Vcpu ratio of the node.
+  in: body
+  required: true
+  type: float
+node_vcpus:
+  description: |
+    The Vcpu of the node.
+  in: body
+  required: true
+  type: integer
+
 # Scoring Engine
 scoring_engine_description:
   description: |
@@ -430,34 +494,72 @@ scoring_engine_name:
   in: body
   required: true
   type: string
+
+# Data Model Server
+server_disk:
+  description: |
+    The Disk of the server.
+  in: body
+  required: true
+  type: integer
+server_memory:
+  description: |
+    The Memory of server.
+  in: body
+  required: true
+  type: integer
+server_name:
+  description: |
+    The Name of the server.
+  in: body
+  required: true
+  type: string
+server_state:
+  description: |
+    The State of the server.
+  in: body
+  required: true
+  type: string
+server_uuid:
+  description: |
+    The Unique UUID of the server.
+  in: body
+  required: true
+  type: string
+server_vcpus:
+  description: |
+    The Vcpu of the server.
+  in: body
+  required: true
+  type: integer
 # Service
 service_host:
   description: |
-    Name of host where service is placed on.
+    The Name of host where service is placed on.
   in: body
   required: true
   type: string
 service_id:
   description: |
-    ID of service.
+    The ID of service.
   in: body
   required: true
   type: integer
 service_last_seen_up:
   description: |
-    Time when Watcher service sent latest heartbeat.
+    The Time when Watcher service sent latest heartbeat.
   in: body
   required: true
   type: string
 service_name:
   description: |
-    Name of service like ``watcher-applier``.
+    The Name of service like ``watcher-applier``.
   in: body
   required: true
   type: string
 service_status:
   description: |
-    State of service. It can be either in ACTIVE or FAILED state.
+    The State of service. It can be either in ACTIVE or FAILED state.
   in: body
   required: true
   type: string

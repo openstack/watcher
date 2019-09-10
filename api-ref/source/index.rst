@@ -15,3 +15,4 @@ Watcher API
 .. include:: watcher-api-v1-strategies.inc
 .. include:: watcher-api-v1-services.inc
 .. include:: watcher-api-v1-scoring_engines.inc
+.. include:: watcher-api-v1-datamodel.inc
