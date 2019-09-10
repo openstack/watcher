@@ -248,7 +248,7 @@ class BaseStrategy(loadable.Loadable):
          should perform.
         """
 
-        LOG.info("Initializing " + self.get_display_name() + " Strategy")
+        LOG.info("Initializing " + self.get_display_name())
 
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
