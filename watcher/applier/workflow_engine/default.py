@@ -91,7 +91,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
             # default although we still want to leave the possibility for
             # the users to change it.
             # The current implementation uses graph with linked actions.
-            # todo(jed) add olso conf for retry and name
+            # todo(jed) add oslo conf for retry and name
             self.execution_rule = self.get_execution_rule(actions)
             flow = gf.Flow("watcher_flow")
             actions_uuid = {}
