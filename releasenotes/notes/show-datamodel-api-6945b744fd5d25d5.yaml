@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    Add show data model api for Watcher. New in version 1.3.
+    User can use 'openstack optimize datamodel list'
+    command to view the current data model information in memory.
+    User can also add '--audit <Audit_UUID>' to view specific data model
+    in memory filted by the scope in audit.
+    User can also add '--detail' to view detailed information about current data model.
+    User can also add '--type <type>' to specify the type of data model.
+    Default type is 'compute'. In the future, type 'storage' and 'baremetal'
+    will be supported.
