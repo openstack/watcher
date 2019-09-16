@@ -1,0 +1,27 @@
+<ModelRoot>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c97f" status="enabled" state="up" id="0" hostname="hostname_0" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_0" uuid="6ae05517-a512-462d-9d83-90c313b5a8ff" vcpus="10" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_1" uuid="6ae05517-a512-462d-9d83-90c313b5a8f1" vcpus="15" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="26F03131-32CB-4697-9D61-9123F87A8147"/>
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c971" status="enabled" state="up" id="1" hostname="hostname_1" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_2" uuid="6ae05517-a512-462d-9d83-90c313b5a8f2" vcpus="14" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="109F7909-0607-4712-B32C-5CC6D49D2F15"/>
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c972" status="enabled" state="up" id="2" hostname="hostname_2" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_3" uuid="6ae05517-a512-462d-9d83-90c313b5a8f3" vcpus="10" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_4" uuid="6ae05517-a512-462d-9d83-90c313b5a8f4" vcpus="10" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_5" uuid="6ae05517-a512-462d-9d83-90c313b5a8f5" vcpus="10" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c973" status="enabled" state="up" id="3" hostname="hostname_3" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_6" uuid="6ae05517-a512-462d-9d83-90c313b5a8f6" vcpus="8" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c974" status="enabled" state="up" id="4" hostname="hostname_4" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_7" uuid="6ae05517-a512-462d-9d83-90c313b5a8f7" vcpus="10" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c975" status="enabled" state="up" id="5" hostname="hostname_5" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c976" status="disabled" state="up" id="6" hostname="hostname_6" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+  </ComputeNode>
+  <ComputeNode uuid="89dce55c-8e74-4402-b23f-32aaf216c977" status="disabled" state="up" id="4" hostname="hostname_7" vcpus="40" vcpu_reserved="0" vcpu_ratio="1" disk="250" disk_gb_reserved="0" disk_ratio="1" disk_capacity="250" memory="132" memory_mb_reserved="0" memory_ratio="1">
+    <Instance watcher_exclude="False" state="active" name="INSTANCE_8" uuid="6ae05517-a512-462d-9d83-90c313b5a8f8" vcpus="12" disk="20" disk_capacity="20" memory="20" metadata='{"optimize": true,"top": "floor", "nested": {"x": "y"}}' project_id="91FFFE30-78A0-4152-ACD2-8310FF274DC9"/>
+  </ComputeNode>
+</ModelRoot>
