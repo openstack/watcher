@@ -13,7 +13,7 @@
 from ceilometerclient import client as ceclient
 import ceilometerclient.v2.client as ceclient_v2
 from cinderclient import client as ciclient
-from cinderclient.v1 import client as ciclient_v1
+from cinderclient.v3 import client as ciclient_v3
 from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
 from gnocchiclient.v1 import client as gnclient_v1
@@ -248,11 +248,11 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_vers(self, mock_session):
-        CONF.set_override('api_version', '1', group='cinder_client')
+        CONF.set_override('api_version', '3', group='cinder_client')
         osc = clients.OpenStackClients()
         osc._cinder = None
         osc.cinder()
-        self.assertEqual(ciclient_v1.Client, type(osc.cinder()))
+        self.assertEqual(ciclient_v3.Client, type(osc.cinder()))
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_cinder_diff_endpoint(self, mock_session):
