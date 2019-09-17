@@ -250,7 +250,8 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
 
     def pre_execute(self):
         self._pre_execute()
-        self.host_choice = self.input_parameters.host_choice
+        self.host_choice = self.input_parameters.get('host_choice', 'auto')
+        self.planner = 'node_resource_consolidation'
 
     def do_execute(self, audit=None):
         """Strategy execution phase
