@@ -28,7 +28,7 @@ def parse_args(argv, default_config_files=None, default_config_dirs=None):
                            cfg.find_config_dirs(project='watcher'))
     rpc.set_defaults(control_exchange='watcher')
     cfg.CONF(argv[1:],
-             project='python-watcher',
+             project='watcher',
              version=version.version_info.release_string(),
              default_config_dirs=default_config_dirs,
              default_config_files=default_config_files)
