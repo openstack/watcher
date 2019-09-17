@@ -161,6 +161,7 @@ class BaseStrategy(loadable.Loadable):
         self._input_parameters = utils.Struct()
         self._audit_scope = None
         self._datasource_backend = None
+        self._planner = 'weight'
 
     @classmethod
     @abc.abstractmethod
@@ -432,6 +433,14 @@ class BaseStrategy(loadable.Loadable):
     def state_collector(self, s):
         self._cluster_state_collector = s
 
+    @property
+    def planner(self):
+        return self._planner
+
+    @planner.setter
+    def planner(self, s):
+        self._planner = s
+
     def filter_instances_by_audit_tag(self, instances):
         if not self.config.check_optimize_metadata:
             return instances
@@ -511,6 +520,11 @@ class ThermalOptimizationBaseStrategy(BaseStrategy):
 
 @six.add_metaclass(abc.ABCMeta)
 class WorkloadStabilizationBaseStrategy(BaseStrategy):
+
+    def __init__(self, *args, **kwargs):
+        super(WorkloadStabilizationBaseStrategy, self
+              ).__init__(*args, **kwargs)
+        self._planner = 'workload_stabilization'
 
     @classmethod
     def get_goal_name(cls):

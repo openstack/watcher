@@ -26,7 +26,7 @@ from oslo_log import log
 from watcher.applier import rpcapi
 from watcher.common import exception
 from watcher.common import service
-from watcher.decision_engine.planner import manager as planner_manager
+from watcher.decision_engine.loading import default as loader
 from watcher.decision_engine.strategy.context import default as default_context
 from watcher import notifications
 from watcher import objects
@@ -41,11 +41,11 @@ LOG = log.getLogger(__name__)
 class BaseAuditHandler(object):
 
     @abc.abstractmethod
-    def execute(self, audit_uuid, request_context):
+    def execute(self, audit, request_context):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def pre_execute(self, audit_uuid, request_context):
+    def pre_execute(self, audit, request_context):
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -63,15 +63,18 @@ class AuditHandler(BaseAuditHandler):
     def __init__(self):
         super(AuditHandler, self).__init__()
         self._strategy_context = default_context.DefaultStrategyContext()
-        self._planner_manager = planner_manager.PlannerManager()
-        self._planner = None
+        self._planner_loader = loader.DefaultPlannerLoader()
         self.applier_client = rpcapi.ApplierAPI()
 
-    @property
-    def planner(self):
-        if self._planner is None:
-            self._planner = self._planner_manager.load()
-        return self._planner
+    def get_planner(self, audit, request_context):
+        # because AuditHandler is a singletone we need to avoid race condition.
+        # thus we need to load planner every time
+        strategy = self.strategy_context.select_strategy(
+            audit, request_context)
+        planner_name = strategy.planner
+        LOG.debug("Loading %s", planner_name)
+        planner = self._planner_loader.load(name=planner_name)
+        return planner
 
     @property
     def strategy_context(self):
@@ -90,8 +93,8 @@ class AuditHandler(BaseAuditHandler):
                 request_context, audit,
                 action=fields.NotificationAction.PLANNER,
                 phase=fields.NotificationPhase.START)
-            action_plan = self.planner.schedule(request_context, audit.id,
-                                                solution)
+            planner = self.get_planner(audit, request_context)
+            action_plan = planner.schedule(request_context, audit.id, solution)
             notifications.audit.send_action_notification(
                 request_context, audit,
                 action=fields.NotificationAction.PLANNER,
@@ -105,13 +108,15 @@ class AuditHandler(BaseAuditHandler):
                 phase=fields.NotificationPhase.ERROR)
             raise
 
-    def update_audit_state(self, audit, state):
+    @staticmethod
+    def update_audit_state(audit, state):
         if audit.state != state:
             LOG.debug("Update audit state: %s", state)
             audit.state = state
             audit.save()
 
-    def check_ongoing_action_plans(self, request_context):
+    @staticmethod
+    def check_ongoing_action_plans(request_context):
         a_plan_filters = {'state': objects.action_plan.State.ONGOING}
         ongoing_action_plans = objects.ActionPlan.list(
             request_context, filters=a_plan_filters)

@@ -30,7 +30,8 @@ class DefaultStrategyContext(base.StrategyContext):
         super(DefaultStrategyContext, self).__init__()
         LOG.debug("Initializing Strategy Context")
 
-    def do_execute_strategy(self, audit, request_context):
+    @staticmethod
+    def select_strategy(audit, request_context):
         osc = clients.OpenStackClients()
         # todo(jed) retrieve in audit parameters (threshold,...)
         # todo(jed) create ActionPlan
@@ -50,9 +51,10 @@ class DefaultStrategyContext(base.StrategyContext):
             goal_name=goal.name,
             strategy_name=strategy_name,
             osc=osc)
+        return strategy_selector.select()
 
-        selected_strategy = strategy_selector.select()
-
+    def do_execute_strategy(self, audit, request_context):
+        selected_strategy = self.select_strategy(audit, request_context)
         selected_strategy.audit_scope = audit.scope
 
         schema = selected_strategy.get_schema()
