@@ -72,7 +72,7 @@ class BaseSolution(object):
         :type strategy: :py:class:`~.BaseStrategy` instance
         """
         self.goal = goal
-        self.strategy = strategy
+        self._strategy = strategy
         self.origin = None
         self.model = None
         self.efficacy = efficacy.Efficacy(self.goal, self.strategy)
@@ -84,6 +84,10 @@ class BaseSolution(object):
     @property
     def efficacy_indicators(self):
         return self.efficacy.indicators
+
+    @property
+    def strategy(self):
+        return self._strategy
 
     def compute_global_efficacy(self):
         """Compute the global efficacy given a map of efficacy indicators"""
