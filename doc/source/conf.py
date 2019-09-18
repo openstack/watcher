@@ -42,6 +42,7 @@ extensions = [
     'oslo_config.sphinxconfiggen',
     'openstackdocstheme',
     'sphinx.ext.napoleon',
+    'sphinxcontrib.rsvgconverter',
 ]
 
 wsme_protocols = ['restjson']
@@ -137,10 +138,21 @@ bug_tag = ''
 # [howto/manual]).
 latex_documents = [
     ('index',
-     '%s.tex' % project,
+     'doc-watcher.tex',
      u'%s Documentation' % project,
      u'OpenStack Foundation', 'manual'),
 ]
 
+# If false, no module index is generated.
+latex_domain_indices = False
+
+latex_elements = {
+    'makeindex': '',
+    'printindex': '',
+    'preamble': r'\setcounter{tocdepth}{3}',
+}
+
+# Disable usage of xindy https://bugzilla.redhat.com/show_bug.cgi?id=1643664
+latex_use_xindy = False
 # Example configuration for intersphinx: refer to the Python standard library.
 # intersphinx_mapping = {'http://docs.python.org/': None}

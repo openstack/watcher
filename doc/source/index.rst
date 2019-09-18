@@ -112,9 +112,11 @@ Watcher Manual Pages
    man/index
 
 
+.. only:: html
+
 Indices and tables
 ==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`

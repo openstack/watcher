@@ -8,7 +8,7 @@
 Glossary
 ========
 
-.. glossary::
+.. _glossary:
    :sorted:
 
 This page explains the different terms used in the Watcher system.
