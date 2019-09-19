@@ -1,0 +1,5 @@
+---
+features:
+  - Now Watcher strategy can select specific planner
+    beyond default. Strategy can set planner property
+    to specify its own planner.
