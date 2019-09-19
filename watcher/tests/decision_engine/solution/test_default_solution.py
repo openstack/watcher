@@ -17,6 +17,7 @@
 import mock
 
 from watcher.decision_engine.solution import default
+from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 
 
@@ -24,7 +25,8 @@ class TestDefaultSolution(base.TestCase):
 
     def test_default_solution(self):
         solution = default.DefaultSolution(
-            goal=mock.Mock(), strategy=mock.Mock())
+            goal=mock.Mock(),
+            strategy=strategies.DummyStrategy(config=mock.Mock()))
         parameters = {
             "source_node": "server1",
             "destination_node": "server2",
@@ -43,10 +45,12 @@ class TestDefaultSolution(base.TestCase):
                          solution.actions[0].get('action_type'))
         self.assertEqual(expected_parameters,
                          solution.actions[0].get('input_parameters'))
+        self.assertEqual('weight', solution.strategy.planner)
 
     def test_default_solution_with_no_input_parameters(self):
         solution = default.DefaultSolution(
-            goal=mock.Mock(), strategy=mock.Mock())
+            goal=mock.Mock(),
+            strategy=strategies.DummyStrategy(config=mock.Mock()))
         solution.add_action(action_type="nop",
                             resource_id="b199db0c-1408-4d52-b5a5-5ca14de0ff36")
         self.assertEqual(1, len(solution.actions))
@@ -58,3 +62,4 @@ class TestDefaultSolution(base.TestCase):
                          solution.actions[0].get('action_type'))
         self.assertEqual(expected_parameters,
                          solution.actions[0].get('input_parameters'))
+        self.assertEqual('weight', solution.strategy.planner)

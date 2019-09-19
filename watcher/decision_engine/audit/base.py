@@ -66,12 +66,10 @@ class AuditHandler(BaseAuditHandler):
         self._planner_loader = loader.DefaultPlannerLoader()
         self.applier_client = rpcapi.ApplierAPI()
 
-    def get_planner(self, audit, request_context):
+    def get_planner(self, solution):
         # because AuditHandler is a singletone we need to avoid race condition.
         # thus we need to load planner every time
-        strategy = self.strategy_context.select_strategy(
-            audit, request_context)
-        planner_name = strategy.planner
+        planner_name = solution.strategy.planner
         LOG.debug("Loading %s", planner_name)
         planner = self._planner_loader.load(name=planner_name)
         return planner
@@ -93,7 +91,7 @@ class AuditHandler(BaseAuditHandler):
                 request_context, audit,
                 action=fields.NotificationAction.PLANNER,
                 phase=fields.NotificationPhase.START)
-            planner = self.get_planner(audit, request_context)
+            planner = self.get_planner(solution)
             action_plan = planner.schedule(request_context, audit.id, solution)
             notifications.audit.send_action_notification(
                 request_context, audit,
