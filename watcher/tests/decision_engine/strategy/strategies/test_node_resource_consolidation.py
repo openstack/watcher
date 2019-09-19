@@ -34,6 +34,17 @@ class TestNodeResourceConsolidation(TestBaseStrategy):
             config=mock.Mock())
         self.model = self.fake_c_cluster.generate_scenario_10()
         self.m_c_model.return_value = self.model
+        self.strategy.input_parameters = {'host_choice': 'auto'}
+
+    def test_pre_execute(self):
+        planner = 'node_resource_consolidation'
+        self.assertEqual('auto', self.strategy.host_choice)
+        self.assertNotEqual(planner, self.strategy.planner)
+        self.strategy.input_parameters.update(
+            {'host_choice': 'specify'})
+        self.strategy.pre_execute()
+        self.assertEqual(planner, self.strategy.planner)
+        self.assertEqual('specify', self.strategy.host_choice)
 
     def test_check_resources(self):
         instance = [self.model.get_instance_by_uuid(
