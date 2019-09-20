@@ -86,10 +86,10 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         return {
             "properties": {
                 "host_choice": {
-                    "description": "the way to select the server migration "
-                                   "destination node, The value auto "
-                                   "means that Nova schedular selects "
-                                   "the destination node, and specify "
+                    "description": "The way to select the server migration "
+                                   "destination node. The value 'auto' "
+                                   "means that Nova scheduler selects "
+                                   "the destination node, and 'specify' "
                                    "means the strategy specifies the "
                                    "destination.",
                     "type": "string",
