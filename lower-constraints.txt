@@ -113,7 +113,7 @@ python-cinderclient==3.5.0
 python-dateutil==2.7.0
 python-editor==1.0.3
 python-glanceclient==2.9.1
-python-ironicclient==2.3.0
+python-ironicclient==2.5.0
 python-keystoneclient==3.15.0
 python-mimeparse==1.6.0
 python-monascaclient==1.12.0

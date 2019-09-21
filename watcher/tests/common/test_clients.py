@@ -437,7 +437,7 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._ironic = None
         osc.ironic()
-        mock_session.get_endpoint.assert_called_once_with(
+        mock_session.get_endpoint.assert_called_with(
             interface='publicURL',
             region_name=None,
             service_type='baremetal')

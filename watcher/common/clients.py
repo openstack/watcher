@@ -260,7 +260,7 @@ class OpenStackClients(object):
         endpoint_type = self._get_client_option('ironic', 'endpoint_type')
         ironic_region_name = self._get_client_option('ironic', 'region_name')
         self._ironic = irclient.get_client(ironicclient_version,
-                                           os_endpoint_type=endpoint_type,
+                                           interface=endpoint_type,
                                            region_name=ironic_region_name,
                                            session=self.session)
         return self._ironic
