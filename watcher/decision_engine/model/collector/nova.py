@@ -382,6 +382,10 @@ class NovaModelBuilder(base.BaseModelBuilder):
         instances = self.call_retry(f=self.nova_helper.get_instance_list,
                                     filters=filters, limit=limit)
         for inst in instances:
+            # skip deleted instance
+            if getattr(inst, "OS-EXT-STS:vm_state") == (
+                    element.InstanceState.DELETED.value):
+                continue
             # Add Node
             instance = self._build_instance_node(inst)
             self.model.add_instance(instance)

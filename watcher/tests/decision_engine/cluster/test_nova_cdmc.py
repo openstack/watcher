@@ -175,11 +175,26 @@ class TestNovaModelBuilder(base.TestCase):
         model_builder.model = mock.MagicMock()
         mock_node = mock.MagicMock()
         mock_host = mock_node.service["host"]
-        mock_instances = [mock.MagicMock()]
+        inst1 = mock.MagicMock(
+            id='ef500f7e-dac8-470f-960c-169486fce711',
+            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b')
+        setattr(inst1, 'OS-EXT-STS:vm_state', 'deleted')
+        setattr(inst1, 'name', 'instance1')
+        inst2 = mock.MagicMock(
+            id='ef500f7e-dac8-470f-960c-169486fce722',
+            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b')
+        setattr(inst2, 'OS-EXT-STS:vm_state', 'active')
+        setattr(inst2, 'name', 'instance2')
+        mock_instances = [inst1, inst2]
+        model_builder.nova_helper.get_instance_list.return_value = (
+            mock_instances)
         model_builder.add_instance_node(mock_node, mock_instances)
         # verify that when len(instances) <= 1000, limit == len(instance).
         model_builder.nova_helper.get_instance_list.assert_called_once_with(
-            filters={'host': mock_host}, limit=1)
+            filters={'host': mock_host}, limit=2)
+        fake_instance = model_builder._build_instance_node(inst2)
+        model_builder.model.add_instance.assert_called_once_with(
+            fake_instance)
 
         # verify that when len(instances) > 1000, limit == -1.
         mock_instance = mock.Mock()
