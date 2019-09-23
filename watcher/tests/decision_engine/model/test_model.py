@@ -85,6 +85,17 @@ class TestModel(base.TestCase):
         result_keys = result[0].keys()
         self.assertEqual(sorted(expected_keys), sorted(result_keys))
 
+        # test compute node has no instance
+        mock_instances.return_value = []
+
+        expected_keys = ['node_uuid']
+
+        result = model_root.ModelRoot().to_list()
+        self.assertEqual(1, len(result))
+
+        result_keys = result[0].keys()
+        self.assertEqual(expected_keys, list(result_keys))
+
     def test_get_node_by_instance_uuid(self):
         model = model_root.ModelRoot()
         uuid_ = "{0}".format(uuidutils.generate_uuid())

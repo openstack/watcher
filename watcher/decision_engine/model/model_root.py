@@ -257,6 +257,10 @@ class ModelRoot(nx.DiGraph, base.Model):
                 new_name = "node_"+str(field)
                 in_dict[new_name] = cn[field]
             node_instances = self.get_node_instances(cn)
+            if not node_instances:
+                deep_in_dict = in_dict.copy()
+                ret_list.append(deep_in_dict)
+                continue
             for instance in sorted(node_instances, key=lambda x: x.uuid):
                 for field in instance.fields:
                     new_name = "server_"+str(field)
