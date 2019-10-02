@@ -29,7 +29,12 @@ class DataSourceManager(object):
         self._monasca = None
         self._gnocchi = None
         self.metric_map = base.DataSourceBase.METRIC_MAP
-        self.datasources = self.config.datasources
+        if hasattr(self.config, 'datasources'):
+            self.datasources = self.config.datasources
+        elif hasattr(self.config, 'datasource'):
+            self.datasources = [self.config.datasource]
+        else:
+            self.datasources = []
 
     @property
     def ceilometer(self):

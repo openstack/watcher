@@ -69,7 +69,7 @@ class GnocchiHelper(base.DataSourceBase):
 
     def statistic_aggregation(self, resource_id=None, meter_name=None,
                               period=300, granularity=300, dimensions=None,
-                              aggregation='avg', group_by='*'):
+                              aggregation='mean', group_by='*'):
         """Representing a statistic aggregate by operators
 
         :param resource_id: id of resource to list statistics for.

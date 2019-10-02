@@ -239,10 +239,6 @@ so that the watcher service is configured for your needs.
 
     [DEFAULT]
 
-    # The messaging driver to use, defaults to rabbit. Other drivers
-    # include qpid and zmq. (string value)
-    #rpc_backend = rabbit
-
     # The default exchange under which topics are scoped. May be
     # overridden by an exchange name specified in the transport_url
     # option. (string value)
