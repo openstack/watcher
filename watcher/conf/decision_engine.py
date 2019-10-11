@@ -40,11 +40,18 @@ WATCHER_DECISION_ENGINE_OPTS = [
                default='watcher.decision.api',
                help='The identifier used by the Watcher '
                     'module on the message broker'),
-    cfg.IntOpt('max_workers',
+    cfg.IntOpt('max_audit_workers',
                default=2,
                required=True,
                help='The maximum number of threads that can be used to '
-                    'execute strategies'),
+                    'execute audits in parallel.'),
+    cfg.IntOpt('max_general_workers',
+               default=4,
+               required=True,
+               help='The maximum number of threads that can be used to '
+                    'execute general tasks in parallel. The number of general '
+                    'workers will not increase depending on the number of '
+                    'audit workers!'),
     cfg.IntOpt('action_plan_expiry',
                default=24,
                mutable=True,

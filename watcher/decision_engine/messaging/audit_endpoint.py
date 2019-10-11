@@ -35,7 +35,7 @@ class AuditEndpoint(object):
     def __init__(self, messaging):
         self._messaging = messaging
         self._executor = futurist.GreenThreadPoolExecutor(
-            max_workers=CONF.watcher_decision_engine.max_workers)
+            max_workers=CONF.watcher_decision_engine.max_audit_workers)
         self._oneshot_handler = o_handler.OneShotAuditHandler()
         self._continuous_handler = c_handler.ContinuousAuditHandler().start()
 
