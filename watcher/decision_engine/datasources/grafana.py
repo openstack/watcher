@@ -179,6 +179,9 @@ class GrafanaHelper(base.DataSourceBase):
         kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
 
         resp = self.query_retry(self._request, **kwargs)
+        if not resp:
+            LOG.warning("Datasource {0} is not available.".format(self.NAME))
+            return
 
         result = translator.extract_result(resp.content)
 
