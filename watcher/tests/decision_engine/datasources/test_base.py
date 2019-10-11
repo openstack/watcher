@@ -19,7 +19,6 @@
 import mock
 from oslo_config import cfg
 
-from watcher.common import exception
 from watcher.decision_engine.datasources import base as datasource
 from watcher.tests import base
 
@@ -61,9 +60,8 @@ class TestBaseDatasourceHelper(base.BaseTestCase):
         helper = datasource.DataSourceBase()
         helper.query_retry_reset = mock.Mock()
 
-        # Maximum number of retries exceeded query_retry should raise error
-        self.assertRaises(exception.DataSourceNotAvailable,
-                          helper.query_retry, f=method)
+        # Maximum number of retries exceeded query_retry should return None
+        self.assertIsNone(helper.query_retry(f=method))
         # query_retry_reset should be called twice
         helper.query_retry_reset.assert_has_calls(
             [mock.call(exc), mock.call(exc)])

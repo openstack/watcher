@@ -132,11 +132,7 @@ class TestGrafana(base.BaseTestCase):
 
         t_grafana = grafana.GrafanaHelper(osc=mock.Mock())
 
-        self.assertRaises(
-            exception.DataSourceNotAvailable,
-            t_grafana.get_host_cpu_usage,
-            self.m_compute_node
-        )
+        self.assertIsNone(t_grafana.get_host_cpu_usage(self.m_compute_node))
 
     def test_no_metric_raise_error(self):
         """Test raising error when specified meter does not exist"""

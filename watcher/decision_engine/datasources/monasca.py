@@ -73,11 +73,11 @@ class MonascaHelper(base.DataSourceBase):
             self.monasca = self.osc.monasca()
 
     def check_availability(self):
-        try:
-            self.query_retry(self.monasca.metrics.list)
-        except Exception:
+        result = self.query_retry(self.monasca.metrics.list)
+        if result:
+            return 'available'
+        else:
             return 'not available'
-        return 'available'
 
     def list_metrics(self):
         # TODO(alexchadin): this method should be implemented in accordance to
