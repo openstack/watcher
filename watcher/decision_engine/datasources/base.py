@@ -19,8 +19,6 @@ import time
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common import exception
-
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
@@ -79,7 +77,6 @@ class DataSourceBase(object):
                 LOG.warning("Retry {0} of {1} while retrieving metrics retry "
                             "in {2} seconds".format(i+1, num_retries, timeout))
                 time.sleep(timeout)
-        raise exception.DataSourceNotAvailable(datasource=self.NAME)
 
     @abc.abstractmethod
     def query_retry_reset(self, exception_instance):

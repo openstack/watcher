@@ -52,17 +52,16 @@ class GnocchiHelper(base.DataSourceBase):
         self.gnocchi = self.osc.gnocchi()
 
     def check_availability(self):
-        try:
-            self.query_retry(self.gnocchi.status.get)
-        except Exception:
+        status = self.query_retry(self.gnocchi.status.get)
+        if status:
+            return 'available'
+        else:
             return 'not available'
-        return 'available'
 
     def list_metrics(self):
         """List the user's meters."""
-        try:
-            response = self.query_retry(f=self.gnocchi.metric.list)
-        except Exception:
+        response = self.query_retry(f=self.gnocchi.metric.list)
+        if not response:
             return set()
         else:
             return set([metric['name'] for metric in response])
@@ -91,8 +90,9 @@ class GnocchiHelper(base.DataSourceBase):
                 f=self.gnocchi.resource.search, **kwargs)
 
             if not resources:
-                raise exception.ResourceNotFound(name='gnocchi',
-                                                 id=resource_id)
+                LOG.warning("The {0} resource {1} could not be "
+                            "found".format(self.NAME, resource_id))
+                return
 
             resource_id = resources[0]['id']
 
@@ -110,6 +110,7 @@ class GnocchiHelper(base.DataSourceBase):
         statistics = self.query_retry(
             f=self.gnocchi.metric.get_measures, **kwargs)
 
+        return_value = None
         if statistics:
             # return value of latest measure
             # measure has structure [time, granularity, value]
@@ -120,7 +121,7 @@ class GnocchiHelper(base.DataSourceBase):
                 # 1/10 th of actual CFM
                 return_value *= 10
 
-            return return_value
+        return return_value
 
     def get_host_cpu_usage(self, resource, period, aggregate,
                            granularity=300):
