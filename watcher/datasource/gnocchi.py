@@ -24,7 +24,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import clients
-from watcher.common import exception
 from watcher.common import utils as common_utils
 from watcher.datasource import base
 
@@ -49,20 +48,18 @@ class GnocchiHelper(base.DataSourceBase):
             except Exception as e:
                 LOG.exception(e)
                 time.sleep(CONF.gnocchi_client.query_timeout)
-        raise exception.DataSourceNotAvailable(datasource='gnocchi')
 
     def check_availability(self):
-        try:
-            self.query_retry(self.gnocchi.status.get)
-        except Exception:
+        status = self.query_retry(self.gnocchi.status.get)
+        if status:
+            return 'available'
+        else:
             return 'not available'
-        return 'available'
 
     def list_metrics(self):
         """List the user's meters."""
-        try:
-            response = self.query_retry(f=self.gnocchi.metric.list)
-        except Exception:
+        response = self.query_retry(f=self.gnocchi.metric.list)
+        if not response:
             return set()
         else:
             return set([metric['name'] for metric in response])
@@ -95,8 +92,9 @@ class GnocchiHelper(base.DataSourceBase):
                 f=self.gnocchi.resource.search, **kwargs)
 
             if not resources:
-                raise exception.ResourceNotFound(name='gnocchi',
-                                                 id=resource_id)
+                LOG.warning("The {0} resource {1} could not be "
+                            "found".format(self.NAME, resource_id))
+                return
 
             resource_id = resources[0]['id']
 
