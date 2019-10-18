@@ -136,15 +136,15 @@ class CeilometerHelper(base.DataSourceBase):
             self.osc.reset_clients()
             self.ceilometer = self.osc.ceilometer()
             return f(*args, **kargs)
-        except Exception:
-            raise
+        except Exception as e:
+            LOG.exception(e)
 
     def check_availability(self):
-        try:
-            self.query_retry(self.ceilometer.resources.list)
-        except Exception:
+        status = self.query_retry(self.ceilometer.resources.list)
+        if status:
+            return 'available'
+        else:
             return 'not available'
-        return 'available'
 
     def query_sample(self, meter_name, query, limit=1):
         return self.query_retry(f=self.ceilometer.samples.list,
@@ -162,9 +162,8 @@ class CeilometerHelper(base.DataSourceBase):
 
     def list_metrics(self):
         """List the user's meters."""
-        try:
-            meters = self.query_retry(f=self.ceilometer.meters.list)
-        except Exception:
+        meters = self.query_retry(f=self.ceilometer.meters.list)
+        if not meters:
             return set()
         else:
             return meters

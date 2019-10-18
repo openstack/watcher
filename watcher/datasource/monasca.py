@@ -19,10 +19,13 @@
 import datetime
 
 from monascaclient import exc
+from oslo_log import log
 
 from watcher.common import clients
 from watcher.common import exception
 from watcher.datasource import base
+
+LOG = log.getLogger(__name__)
 
 
 class MonascaHelper(base.DataSourceBase):
@@ -53,8 +56,8 @@ class MonascaHelper(base.DataSourceBase):
             self.osc.reset_clients()
             self.monasca = self.osc.monasca()
             return f(*args, **kwargs)
-        except Exception:
-            raise
+        except Exception as e:
+            LOG.exception(e)
 
     def _format_time_params(self, start_time, end_time, period):
         """Format time-related params to the correct Monasca format
@@ -78,11 +81,11 @@ class MonascaHelper(base.DataSourceBase):
         return start_timestamp, end_timestamp, period
 
     def check_availability(self):
-        try:
-            self.query_retry(self.monasca.metrics.list)
-        except Exception:
+        status = self.query_retry(self.monasca.metrics.list)
+        if status:
+            return 'available'
+        else:
             return 'not available'
-        return 'available'
 
     def list_metrics(self):
         # TODO(alexchadin): this method should be implemented in accordance to
