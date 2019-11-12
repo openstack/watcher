@@ -201,19 +201,13 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         LOG.debug('Migrate instance %s from %s to  %s',
                   instance_to_migrate, source_node, destination_node)
 
-        total_cores = 0
-        total_disk = 0
-        total_mem = 0
-        for instance in self.compute_model.get_node_instances(
-                destination_node):
-            total_cores += instance.vcpus
-            total_disk += instance.disk
-            total_mem += instance.memory
+        used_resources = self.compute_model.get_node_used_resources(
+            destination_node)
 
         # capacity requested by the compute node
-        total_cores += instance_to_migrate.vcpus
-        total_disk += instance_to_migrate.disk
-        total_mem += instance_to_migrate.memory
+        total_cores = used_resources['vcpu'] + instance_to_migrate.vcpus
+        total_disk = used_resources['disk'] + instance_to_migrate.disk
+        total_mem = used_resources['memory'] + instance_to_migrate.memory
 
         return self.check_threshold(destination_node, total_cores, total_disk,
                                     total_mem)

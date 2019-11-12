@@ -64,15 +64,6 @@ class TestWorkloadBalance(TestBaseStrategy):
         self.strategy._meter = 'instance_cpu_usage'
         self.strategy._granularity = 300
 
-    def test_calc_used_resource(self):
-        model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
-        self.m_c_model.return_value = model
-        node = model.get_node_by_uuid('Node_0')
-        cores_used, mem_used, disk_used = (
-            self.strategy.calculate_used_resource(node))
-
-        self.assertEqual((cores_used, mem_used, disk_used), (20, 64, 40))
-
     def test_group_hosts_by_cpu_util(self):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
         self.m_c_model.return_value = model

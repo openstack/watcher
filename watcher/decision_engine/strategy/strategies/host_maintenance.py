@@ -137,37 +137,6 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                     ram=node.memory_mb_capacity,
                     disk=node.disk_gb_capacity)
 
-    def get_node_used(self, node):
-        """Collect cpu, ram and disk used of a node.
-
-        :param node: node object
-        :return: dict(cpu(cores), ram(MB), disk(B))
-        """
-        vcpus_used = 0
-        memory_used = 0
-        disk_used = 0
-        for instance in self.compute_model.get_node_instances(node):
-            vcpus_used += instance.vcpus
-            memory_used += instance.memory
-            disk_used += instance.disk
-
-        return dict(cpu=vcpus_used,
-                    ram=memory_used,
-                    disk=disk_used)
-
-    def get_node_free(self, node):
-        """Collect cpu, ram and disk free of a node.
-
-        :param node: node object
-        :return: dict(cpu(cores), ram(MB), disk(B))
-        """
-        node_capacity = self.get_node_capacity(node)
-        node_used = self.get_node_used(node)
-        return dict(cpu=node_capacity['cpu']-node_used['cpu'],
-                    ram=node_capacity['ram']-node_used['ram'],
-                    disk=node_capacity['disk']-node_used['disk'],
-                    )
-
     def host_fits(self, source_node, destination_node):
         """check host fits
 
@@ -175,9 +144,11 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         from source_node to destination_node.
         """
 
-        source_node_used = self.get_node_used(source_node)
-        destination_node_free = self.get_node_free(destination_node)
-        metrics = ['cpu', 'ram']
+        source_node_used = self.compute_model.get_node_used_resources(
+            source_node)
+        destination_node_free = self.compute_model.get_node_free_resources(
+            destination_node)
+        metrics = ['vcpu', 'memory']
         for m in metrics:
             if source_node_used[m] > destination_node_free[m]:
                 return False

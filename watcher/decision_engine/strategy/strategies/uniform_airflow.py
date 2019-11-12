@@ -135,16 +135,9 @@ class UniformAirflow(base.BaseStrategy):
 
     def calculate_used_resource(self, node):
         """Compute the used vcpus, memory and disk based on instance flavors"""
-        instances = self.compute_model.get_node_instances(node)
-        vcpus_used = 0
-        memory_mb_used = 0
-        disk_gb_used = 0
-        for instance in instances:
-            vcpus_used += instance.vcpus
-            memory_mb_used += instance.memory
-            disk_gb_used += instance.disk
+        used_res = self.compute_model.get_node_used_resources(node)
 
-        return vcpus_used, memory_mb_used, disk_gb_used
+        return used_res['vcpu'], used_res['memory'], used_res['disk']
 
     def choose_instance_to_migrate(self, hosts):
         """Pick up an active instance instance to migrate from provided hosts
