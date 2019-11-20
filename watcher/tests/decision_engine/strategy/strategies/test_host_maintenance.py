@@ -70,22 +70,6 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(node_capacity,
                          self.strategy.get_node_capacity(node_0))
 
-    def test_get_node_used(self):
-        model = self.fake_c_cluster.generate_scenario_1()
-        self.m_c_model.return_value = model
-        node_0 = model.get_node_by_uuid("Node_0")
-        node_used = dict(cpu=20, ram=4, disk=40)
-        self.assertEqual(node_used,
-                         self.strategy.get_node_used(node_0))
-
-    def test_get_node_free(self):
-        model = self.fake_c_cluster.generate_scenario_1()
-        self.m_c_model.return_value = model
-        node_0 = model.get_node_by_uuid("Node_0")
-        node_free = dict(cpu=20, ram=128, disk=210)
-        self.assertEqual(node_free,
-                         self.strategy.get_node_free(node_0))
-
     def test_host_fits(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model

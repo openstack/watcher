@@ -208,19 +208,6 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
         return hosts_need_release, hosts_target
 
-    def calc_used_resource(self, node):
-        """Calculate the used vcpus, memory and disk based on VM flavors"""
-        instances = self.compute_model.get_node_instances(node)
-        vcpus_used = 0
-        memory_mb_used = 0
-        disk_gb_used = 0
-        for instance in instances:
-            vcpus_used += instance.vcpus
-            memory_mb_used += instance.memory
-            disk_gb_used += instance.disk
-
-        return vcpus_used, memory_mb_used, disk_gb_used
-
     def filter_dest_servers(self, hosts, instance_to_migrate):
         required_cores = instance_to_migrate.vcpus
         required_disk = instance_to_migrate.disk
@@ -228,12 +215,9 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
         dest_servers = []
         for host in hosts:
-            cores_used, mem_used, disk_used = self.calc_used_resource(host)
-            cores_available = host.vcpu_capacity - cores_used
-            disk_available = host.disk_gb_capacity - disk_used
-            mem_available = host.memory_mb_capacity - mem_used
-            if (cores_available >= required_cores and disk_available >=
-                    required_disk and mem_available >= required_memory):
+            free_res = self.compute_model.get_node_free_resources(host)
+            if (free_res['vcpu'] >= required_cores and free_res['disk'] >=
+                    required_disk and free_res['memory'] >= required_memory):
                 dest_servers.append(host)
 
         return dest_servers

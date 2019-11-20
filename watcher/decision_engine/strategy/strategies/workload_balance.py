@@ -132,19 +132,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 if cn.state == element.ServiceState.ONLINE.value and
                 cn.status in default_node_scope}
 
-    def calculate_used_resource(self, node):
-        """Calculate the used vcpus, memory and disk based on VM flavors"""
-        instances = self.compute_model.get_node_instances(node)
-        vcpus_used = 0
-        memory_mb_used = 0
-        disk_gb_used = 0
-        for instance in instances:
-            vcpus_used += instance.vcpus
-            memory_mb_used += instance.memory
-            disk_gb_used += instance.disk
-
-        return vcpus_used, memory_mb_used, disk_gb_used
-
     def choose_instance_to_migrate(self, hosts, avg_workload, workload_cache):
         """Pick up an active instance instance to migrate from provided hosts
 
@@ -203,14 +190,10 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
             host = instance_data['compute_node']
             workload = instance_data['workload']
             # calculate the available resources
-            cores_used, mem_used, disk_used = self.calculate_used_resource(
-                host)
-            cores_available = host.vcpu_capacity - cores_used
-            disk_available = host.disk_gb_capacity - disk_used
-            mem_available = host.memory_mb_capacity - mem_used
-            if (cores_available >= required_cores and
-                    mem_available >= required_mem and
-                    disk_available >= required_disk):
+            free_res = self.compute_model.get_node_free_resources(host)
+            if (free_res['vcpu'] >= required_cores and
+                    free_res['memory'] >= required_mem and
+                    free_res['disk'] >= required_disk):
                 if (self._meter == 'instance_cpu_usage' and
                     ((src_instance_workload + workload) <
                      self.threshold / 100 * host.vcpus)):

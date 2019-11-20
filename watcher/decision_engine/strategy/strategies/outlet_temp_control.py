@@ -140,19 +140,6 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
                 if cn.state == element.ServiceState.ONLINE.value and
                 cn.status in default_node_scope}
 
-    def calc_used_resource(self, node):
-        """Calculate the used vcpus, memory and disk based on VM flavors"""
-        instances = self.compute_model.get_node_instances(node)
-        vcpus_used = 0
-        memory_mb_used = 0
-        disk_gb_used = 0
-        for instance in instances:
-            vcpus_used += instance.vcpus
-            memory_mb_used += instance.memory
-            disk_gb_used += instance.disk
-
-        return vcpus_used, memory_mb_used, disk_gb_used
-
     def group_hosts_by_outlet_temp(self):
         """Group hosts based on outlet temp meters"""
         nodes = self.get_available_compute_nodes()
@@ -222,13 +209,9 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         for instance_data in hosts:
             host = instance_data['compute_node']
             # available
-            cores_used, mem_used, disk_used = self.calc_used_resource(host)
-            cores_available = host.vcpu_capacity - cores_used
-            disk_available = host.disk_gb_capacity - disk_used
-            mem_available = host.memory_mb_capacity - mem_used
-            if cores_available >= required_cores \
-                    and disk_available >= required_disk \
-                    and mem_available >= required_memory:
+            free_res = self.compute_model.get_node_free_resources(host)
+            if (free_res['vcpu'] >= required_cores and free_res['disk'] >=
+                    required_disk and free_res['memory'] >= required_memory):
                 dest_servers.append(instance_data)
 
         return dest_servers
