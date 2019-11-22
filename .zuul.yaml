@@ -3,7 +3,6 @@
       - check-requirements
       - openstack-cover-jobs
       - openstack-lower-constraints-jobs
-      - openstack-python-jobs
       - openstack-python3-ussuri-jobs
       - publish-openstack-docs-pti
       - release-notes-jobs-python3
@@ -182,6 +181,7 @@
         s-proxy: false
       devstack_localrc:
         TEMPEST_PLUGINS: /opt/stack/watcher-tempest-plugin
+        USE_PYTHON3: true
       tempest_test_regex: watcher_tempest_plugin.tests.api
       tox_envlist: all
       tox_environment:
