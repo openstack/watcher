@@ -1,0 +1,20 @@
+---
+prelude: >
+    Many operations in the decision engine will block on I/O. Such I/O
+    operations can stall the execution of a sequential application
+    significantly. To reduce the potential bottleneck of many operations
+    the general purpose decision engine threadpool is introduced.
+features:
+  - |
+    A new threadpool for the decision engine that contributors can use to
+    improve the performance of many operations, primarily I/O bound onces.
+    The amount of workers used by the decision engine threadpool can be
+    configured to scale according to the available infrastructure using
+    the `watcher_decision_engine.max_general_workers` config option.
+    Documentation for contributors to effectively use this threadpool is
+    available online:
+    https://docs.openstack.org/watcher/latest/contributor/contributor/concurrency.rst
+  - |
+    The building of the compute (Nova) data model will be done using the
+    decision engine threadpool, thereby, significantly reducing the total
+    time required to build it.
