@@ -171,7 +171,7 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]['attr']
+            return self.nodes[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.ComputeResourceNotFound(name=uuid)
@@ -466,14 +466,14 @@ class StorageModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]['attr']
+            return self.nodes[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.StorageResourceNotFound(name=uuid)
 
     def _get_by_name(self, name):
         try:
-            return self.node[name]['attr']
+            return self.nodes[name]['attr']
         except Exception as exc:
             LOG.exception(exc)
             raise exception.StorageResourceNotFound(name=name)
@@ -648,7 +648,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
 
     def _get_by_uuid(self, uuid):
         try:
-            return self.node[uuid]['attr']
+            return self.nodes[uuid]['attr']
         except Exception as exc:
             LOG.exception(exc)
         raise exception.BaremetalResourceNotFound(name=uuid)
