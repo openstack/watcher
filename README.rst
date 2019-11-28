@@ -1,6 +1,6 @@
-========================
-Team and repository tags
-========================
+=======
+Watcher
+=======
 
 .. image:: https://governance.openstack.org/tc/badges/watcher.svg
     :target: https://governance.openstack.org/tc/reference/tags/index.html
@@ -12,10 +12,6 @@ Team and repository tags
       Commons Attribution 3.0 License.  You can view the license at:
 
           https://creativecommons.org/licenses/by/3.0/
-
-=======
-Watcher
-=======
 
 OpenStack Watcher provides a flexible and scalable resource optimization
 service for multi-tenant OpenStack-based clouds.
