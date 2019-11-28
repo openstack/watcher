@@ -164,7 +164,8 @@ def allow_start_end_audit_time():
     Version 1.1 of the API added support for start and end time of continuous
     audits.
     """
-    return pecan.request.version.minor >= versions.MINOR_1_START_END_TIMING
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_1_START_END_TIMING.value)
 
 
 def allow_force():
@@ -173,4 +174,5 @@ def allow_force():
     Version 1.2 of the API added support for forced audits that allows to
     launch audit when other action plan is ongoing.
     """
-    return pecan.request.version.minor >= versions.MINOR_2_FORCE
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_2_FORCE.value)
