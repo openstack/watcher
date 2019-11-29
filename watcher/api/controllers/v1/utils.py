@@ -176,3 +176,12 @@ def allow_force():
     """
     return pecan.request.version.minor >= (
         versions.VERSIONS.MINOR_2_FORCE.value)
+
+
+def allow_list_datamodel():
+    """Check if we should support list data model API.
+
+    Version 1.3 of the API added support to list data model.
+    """
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_3_DATAMODEL.value)

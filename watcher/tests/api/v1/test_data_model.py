@@ -32,8 +32,17 @@ class TestListDataModel(api_base.FunctionalTest):
         self.addCleanup(p_dcapi.stop)
 
     def test_get_all(self):
-        response = self.get_json('/data_model/?data_model_type=compute')
+        response = self.get_json(
+            '/data_model/?data_model_type=compute',
+            headers={'OpenStack-API-Version': 'infra-optim 1.3'})
         self.assertEqual('fake_response_value', response)
+
+    def test_get_all_not_acceptable(self):
+        response = self.get_json(
+            '/data_model/?data_model_type=compute',
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'},
+            expect_errors=True)
+        self.assertEqual(406, response.status_int)
 
 
 class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
@@ -60,6 +69,7 @@ class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
         self._common_policy_check(
             "data_model:get_all", self.get_json,
             "/data_model/?data_model_type=compute",
+            headers={'OpenStack-API-Version': 'infra-optim 1.3'},
             expect_errors=True)
 
 
