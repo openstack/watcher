@@ -292,6 +292,15 @@ class TestNovaModelBuilder(base.TestCase):
         self.assertEqual(set(['hostone', 'hosttwo']), result)
 
     @mock.patch.object(nova_helper, 'NovaHelper')
+    def test_collect_aggregates_none(self, m_nova):
+        """Test collect_aggregates with host_aggregates None"""
+        result = set()
+        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster._collect_aggregates(None, result)
+
+        self.assertEqual(set(), result)
+
+    @mock.patch.object(nova_helper, 'NovaHelper')
     def test_collect_zones(self, m_nova):
         """"""
 
@@ -310,8 +319,35 @@ class TestNovaModelBuilder(base.TestCase):
         self.assertEqual(set(['hostone']), result)
 
     @mock.patch.object(nova_helper, 'NovaHelper')
-    def test_add_physical_layer(self, m_nova):
-        """"""
+    def test_collect_zones_none(self, m_nova):
+        """Test collect_zones with availability_zones None"""
+        result = set()
+        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        t_nova_cluster._collect_zones(None, result)
+
+        self.assertEqual(set(), result)
+
+    @mock.patch.object(placement_helper, 'PlacementHelper')
+    @mock.patch.object(nova_helper, 'NovaHelper')
+    def test_add_physical_layer(self, m_nova, m_placement):
+        """Ensure all three steps of the physical layer are fully executed
+
+        First the return value for get_aggregate_list and get_service_list are
+        mocked. These return 3 hosts of which hostone is returned by both the
+        aggregate and service call. This will help verify the elimination of
+        duplicates. The scope is setup so that only hostone and hosttwo should
+        remain.
+
+        There will be 2 simulated compute nodes and 2 associated instances.
+        These will be returned by their matching calls in nova helper. The
+        calls to get_compute_node_by_name and get_instance_list are asserted
+        as to verify the correct operation of add_physical_layer.
+        """
+
+        mock_placement = mock.Mock(name="placement_helper")
+        mock_placement.get_inventories.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = None
+        m_placement.return_value = mock_placement
 
         m_nova.return_value.get_aggregate_list.return_value = \
             [mock.Mock(id=1, name='example'),
@@ -321,7 +357,69 @@ class TestNovaModelBuilder(base.TestCase):
             [mock.Mock(zone='av_b', host='hostthree'),
              mock.Mock(zone='av_a', host='hostone')]
 
-        m_nova.return_value.get_compute_node_by_name.return_value = False
+        compute_node_one = mock.Mock(
+            id='796fee99-65dd-4262-aa-fd2a1143faa6',
+            hypervisor_hostname='hostone',
+            hypervisor_type='QEMU',
+            state='TEST_STATE',
+            status='TEST_STATUS',
+            memory_mb=333,
+            memory_mb_used=100,
+            free_disk_gb=222,
+            local_gb=111,
+            local_gb_used=10,
+            vcpus=4,
+            vcpus_used=0,
+            servers=[
+                {'name': 'fake_instance',
+                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
+            ],
+            service={'id': 123, 'host': 'hostone',
+                     'disabled_reason': ''},
+        )
+
+        compute_node_two = mock.Mock(
+            id='756fef99-65dd-4262-aa-fd2a1143faa6',
+            hypervisor_hostname='hosttwo',
+            hypervisor_type='QEMU',
+            state='TEST_STATE',
+            status='TEST_STATUS',
+            memory_mb=333,
+            memory_mb_used=100,
+            free_disk_gb=222,
+            local_gb=111,
+            local_gb_used=10,
+            vcpus=4,
+            vcpus_used=0,
+            servers=[
+                {'name': 'fake_instance2',
+                 'uuid': 'ef500f7e-dac8-47f0-960c-169486fce71b'}
+            ],
+            service={'id': 123, 'host': 'hosttwo',
+                     'disabled_reason': ''},
+        )
+
+        m_nova.return_value.get_compute_node_by_name.side_effect = [
+            [compute_node_one], [compute_node_two]
+        ]
+
+        fake_instance_one = mock.Mock(
+            id='796fee99-65dd-4262-aa-fd2a1143faa6',
+            name='fake_instance',
+            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
+            metadata={'hi': 'hello'},
+            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
+        )
+        fake_instance_two = mock.Mock(
+            id='ef500f7e-dac8-47f0-960c-169486fce71b',
+            name='fake_instance2',
+            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
+            metadata={'hi': 'hello'},
+            tenant_id='756fef99-65dd-4262-aa-fd2a1143faa6',
+        )
+        m_nova.return_value.get_instance_list.side_effect = [
+            [fake_instance_one], [fake_instance_two]
+        ]
 
         m_scope = [{"compute": [
             {"host_aggregates": [{"id": 5}]},
@@ -336,6 +434,13 @@ class TestNovaModelBuilder(base.TestCase):
             'hosttwo', servers=True, detailed=True)
         self.assertEqual(
             m_nova.return_value.get_compute_node_by_name.call_count, 2)
+
+        m_nova.return_value.get_instance_list.assert_any_call(
+            filters={'host': 'hostone'}, limit=1)
+        m_nova.return_value.get_instance_list.assert_any_call(
+            filters={'host': 'hosttwo'}, limit=1)
+        self.assertEqual(
+            m_nova.return_value.get_instance_list.call_count, 2)
 
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
