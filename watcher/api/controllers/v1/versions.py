@@ -14,25 +14,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import enum
+
+
+class VERSIONS(enum.Enum):
+    MINOR_0_ROCKY = 0  # v1.0: corresponds to Rocky API
+    MINOR_1_START_END_TIMING = 1  # v1.1: Add start/end timei for audit
+    MINOR_2_FORCE = 2  # v1.2: Add force field to audit
+    MINOR_MAX_VERSION = 2
 
 # This is the version 1 API
 BASE_VERSION = 1
-
-# Here goes a short log of changes in every version.
-#
-# v1.0: corresponds to Rocky API
-# v1.1: Add start/end time for continuous audit
-# v1.2: Add force field to audit
-
-MINOR_0_ROCKY = 0
-MINOR_1_START_END_TIMING = 1
-MINOR_2_FORCE = 2
-
-MINOR_MAX_VERSION = MINOR_2_FORCE
-
 # String representations of the minor and maximum versions
-_MIN_VERSION_STRING = '{}.{}'.format(BASE_VERSION, MINOR_0_ROCKY)
-_MAX_VERSION_STRING = '{}.{}'.format(BASE_VERSION, MINOR_MAX_VERSION)
+_MIN_VERSION_STRING = '{}.{}'.format(BASE_VERSION,
+                                     VERSIONS.MINOR_0_ROCKY.value)
+_MAX_VERSION_STRING = '{}.{}'.format(BASE_VERSION,
+                                     VERSIONS.MINOR_MAX_VERSION.value)
 
 
 def service_type_string():
