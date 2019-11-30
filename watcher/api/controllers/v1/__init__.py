@@ -137,7 +137,8 @@ class V1(APIBase):
     def convert():
         v1 = V1()
         v1.id = "v1"
-        v1.links = [link.Link.make_link('self', pecan.request.host_url,
+        base_url = pecan.request.application_url
+        v1.links = [link.Link.make_link('self', base_url,
                                         'v1', '', bookmark=True),
                     link.Link.make_link('describedby',
                                         'http://docs.openstack.org',
@@ -148,54 +149,54 @@ class V1(APIBase):
         v1.media_types = [MediaType('application/json',
                           'application/vnd.openstack.watcher.v1+json')]
         v1.audit_templates = [link.Link.make_link('self',
-                                                  pecan.request.host_url,
+                                                  base_url,
                                                   'audit_templates', ''),
                               link.Link.make_link('bookmark',
-                                                  pecan.request.host_url,
+                                                  base_url,
                                                   'audit_templates', '',
                                                   bookmark=True)
                               ]
-        v1.audits = [link.Link.make_link('self', pecan.request.host_url,
+        v1.audits = [link.Link.make_link('self', base_url,
                                          'audits', ''),
                      link.Link.make_link('bookmark',
-                                         pecan.request.host_url,
+                                         base_url,
                                          'audits', '',
                                          bookmark=True)
                      ]
-        v1.data_model = [link.Link.make_link('self', pecan.request.host_url,
+        v1.data_model = [link.Link.make_link('self', base_url,
                                              'data_model', ''),
                          link.Link.make_link('bookmark',
-                                             pecan.request.host_url,
+                                             base_url,
                                              'data_model', '',
                                              bookmark=True)
                          ]
-        v1.actions = [link.Link.make_link('self', pecan.request.host_url,
+        v1.actions = [link.Link.make_link('self', base_url,
                                           'actions', ''),
                       link.Link.make_link('bookmark',
-                                          pecan.request.host_url,
+                                          base_url,
                                           'actions', '',
                                           bookmark=True)
                       ]
         v1.action_plans = [link.Link.make_link(
-            'self', pecan.request.host_url, 'action_plans', ''),
+            'self', base_url, 'action_plans', ''),
             link.Link.make_link('bookmark',
-                                pecan.request.host_url,
+                                base_url,
                                 'action_plans', '',
                                 bookmark=True)
             ]
 
         v1.scoring_engines = [link.Link.make_link(
-            'self', pecan.request.host_url, 'scoring_engines', ''),
+            'self', base_url, 'scoring_engines', ''),
             link.Link.make_link('bookmark',
-                                pecan.request.host_url,
+                                base_url,
                                 'scoring_engines', '',
                                 bookmark=True)
             ]
 
         v1.services = [link.Link.make_link(
-            'self', pecan.request.host_url, 'services', ''),
+            'self', base_url, 'services', ''),
             link.Link.make_link('bookmark',
-                                pecan.request.host_url,
+                                base_url,
                                 'services', '',
                                 bookmark=True)
             ]

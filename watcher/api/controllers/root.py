@@ -59,7 +59,8 @@ class Version(base.APIBase):
         version.status = status
         version.max_version = v.max_version_string()
         version.min_version = v.min_version_string()
-        version.links = [link.Link.make_link('self', pecan.request.host_url,
+        version.links = [link.Link.make_link('self',
+                                             pecan.request.application_url,
                                              id, '', bookmark=True)]
         return version
 
