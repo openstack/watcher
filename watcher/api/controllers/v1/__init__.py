@@ -40,6 +40,7 @@ from watcher.api.controllers.v1 import goal
 from watcher.api.controllers.v1 import scoring_engine
 from watcher.api.controllers.v1 import service
 from watcher.api.controllers.v1 import strategy
+from watcher.api.controllers.v1 import utils
 from watcher.api.controllers.v1 import versions
 
 
@@ -163,13 +164,14 @@ class V1(APIBase):
                                          'audits', '',
                                          bookmark=True)
                      ]
-        v1.data_model = [link.Link.make_link('self', base_url,
-                                             'data_model', ''),
-                         link.Link.make_link('bookmark',
-                                             base_url,
-                                             'data_model', '',
-                                             bookmark=True)
-                         ]
+        if utils.allow_list_datamodel():
+            v1.data_model = [link.Link.make_link('self', base_url,
+                                                 'data_model', ''),
+                             link.Link.make_link('bookmark',
+                                                 base_url,
+                                                 'data_model', '',
+                                                 bookmark=True)
+                             ]
         v1.actions = [link.Link.make_link('self', base_url,
                                           'actions', ''),
                       link.Link.make_link('bookmark',

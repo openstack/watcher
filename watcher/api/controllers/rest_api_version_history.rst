@@ -30,3 +30,7 @@ audits.
 ---
 Added ``force`` into create audit request. If ``force`` is true,
 audit will be executed despite of ongoing actionplan.
+
+1.3
+---
+Added list data model API.

@@ -24,6 +24,7 @@ from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
 from watcher.api.controllers.v1 import types
+from watcher.api.controllers.v1 import utils
 from watcher.common import exception
 from watcher.common import policy
 from watcher.decision_engine import rpcapi
@@ -49,6 +50,8 @@ class DataModelController(rest.RestController):
         :param audit_uuid: The UUID of the audit,  used to filter data model
                            by the scope in audit.
         """
+        if not utils.allow_list_datamodel():
+            raise exception.NotAcceptable
         if self.from_data_model:
             raise exception.OperationNotPermitted
         allowed_data_model_type = [

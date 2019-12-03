@@ -21,7 +21,8 @@ class VERSIONS(enum.Enum):
     MINOR_0_ROCKY = 0  # v1.0: corresponds to Rocky API
     MINOR_1_START_END_TIMING = 1  # v1.1: Add start/end timei for audit
     MINOR_2_FORCE = 2  # v1.2: Add force field to audit
-    MINOR_MAX_VERSION = 2
+    MINOR_3_DATAMODEL = 3  # v1.3: Add list datamodel API
+    MINOR_MAX_VERSION = 3
 
 # This is the version 1 API
 BASE_VERSION = 1
