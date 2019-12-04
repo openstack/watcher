@@ -4,6 +4,8 @@
 Data Model
 ==========
 
+.. versionadded:: 1.3
+
 ``Data Model`` is very important for Watcher to generate resource
 optimization solutions. Users can easily view the data model by the
 API.
@@ -18,7 +20,7 @@ Returns the information about Data Model.
 
 Normal response codes: 200
 
-Error codes: 400,401
+Error codes: 400,401,406
 
 Request
 -------
