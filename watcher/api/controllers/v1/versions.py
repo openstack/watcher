@@ -22,7 +22,8 @@ class VERSIONS(enum.Enum):
     MINOR_1_START_END_TIMING = 1  # v1.1: Add start/end timei for audit
     MINOR_2_FORCE = 2  # v1.2: Add force field to audit
     MINOR_3_DATAMODEL = 3  # v1.3: Add list datamodel API
-    MINOR_MAX_VERSION = 3
+    MINOR_4_WEBHOOK_API = 4  # v1.4: Add webhook trigger API
+    MINOR_MAX_VERSION = 4
 
 # This is the version 1 API
 BASE_VERSION = 1

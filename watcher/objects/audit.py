@@ -75,6 +75,7 @@ class State(object):
 class AuditType(enum.Enum):
     ONESHOT = 'ONESHOT'
     CONTINUOUS = 'CONTINUOUS'
+    EVENT = 'EVENT'
 
 
 @base.WatcherObjectRegistry.register

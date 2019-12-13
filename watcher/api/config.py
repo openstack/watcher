@@ -38,6 +38,7 @@ app = {
     'enable_acl': True,
     'acl_public_routes': [
         '/',
+        '/v1/webhooks/.*',
     ],
 }
 

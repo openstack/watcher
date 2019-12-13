@@ -185,3 +185,12 @@ def allow_list_datamodel():
     """
     return pecan.request.version.minor >= (
         versions.VERSIONS.MINOR_3_DATAMODEL.value)
+
+
+def allow_webhook_api():
+    """Check if we should support webhook API.
+
+    Version 1.4 of the API added support to trigger webhook.
+    """
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_4_WEBHOOK_API.value)
