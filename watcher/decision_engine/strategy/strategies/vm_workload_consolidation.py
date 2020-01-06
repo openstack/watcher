@@ -48,7 +48,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     A capacity coefficients (cc) might be used to adjust optimization
     thresholds. Different resources may require different coefficient
     values as well as setting up different coefficient values in both
-    phases may lead to to more efficient consolidation in the end.
+    phases may lead to more efficient consolidation in the end.
     If the cc equals 1 the full resource capacity may be used, cc
     values lower than 1 will lead to resource under utilization and
     values higher than 1 will lead to resource overbooking.

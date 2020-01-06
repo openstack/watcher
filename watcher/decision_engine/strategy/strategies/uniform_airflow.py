@@ -140,7 +140,7 @@ class UniformAirflow(base.BaseStrategy):
         return used_res['vcpu'], used_res['memory'], used_res['disk']
 
     def choose_instance_to_migrate(self, hosts):
-        """Pick up an active instance instance to migrate from provided hosts
+        """Pick up an active instance to migrate from provided hosts
 
         :param hosts: the array of dict which contains node object
         """

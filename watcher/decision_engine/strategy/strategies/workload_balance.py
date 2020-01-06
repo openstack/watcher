@@ -133,7 +133,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                 cn.status in default_node_scope}
 
     def choose_instance_to_migrate(self, hosts, avg_workload, workload_cache):
-        """Pick up an active instance instance to migrate from provided hosts
+        """Pick up an active instance to migrate from provided hosts
 
         :param hosts: the array of dict which contains node object
         :param avg_workload: the average workload value of all nodes
