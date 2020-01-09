@@ -4,8 +4,6 @@
 
           https://creativecommons.org/licenses/by/3.0/
 
-.. _user-guide:
-
 ==================
 Watcher User Guide
 ==================
@@ -60,8 +58,8 @@ plugin installation guide`_.
 .. _`OpenStack CLI`: https://docs.openstack.org/python-openstackclient/latest/cli/man/openstack.html
 .. _`Watcher CLI`: https://docs.openstack.org/python-watcherclient/latest/cli/index.html
 
-Seeing what the Watcher CLI can do ?
-------------------------------------
+Watcher CLI Command
+-------------------
 We can see all of the commands available with Watcher CLI by running the
 watcher binary without options.
 
@@ -69,8 +67,8 @@ watcher binary without options.
 
   $ openstack help optimize
 
-How do I run an audit of my cluster ?
--------------------------------------
+Running an audit of the cluster
+-------------------------------
 
 First, you need to find the :ref:`goal <goal_definition>` you want to achieve:
 
