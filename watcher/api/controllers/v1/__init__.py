@@ -42,6 +42,7 @@ from watcher.api.controllers.v1 import service
 from watcher.api.controllers.v1 import strategy
 from watcher.api.controllers.v1 import utils
 from watcher.api.controllers.v1 import versions
+from watcher.api.controllers.v1 import webhooks
 
 
 def min_version():
@@ -131,6 +132,9 @@ class V1(APIBase):
     services = [link.Link]
     """Links to the services resource"""
 
+    webhooks = [link.Link]
+    """Links to the webhooks resource"""
+
     links = [link.Link]
     """Links that point to a specific URL for this version and documentation"""
 
@@ -202,6 +206,14 @@ class V1(APIBase):
                                 'services', '',
                                 bookmark=True)
             ]
+        if utils.allow_webhook_api():
+            v1.webhooks = [link.Link.make_link(
+                'self', base_url, 'webhooks', ''),
+                link.Link.make_link('bookmark',
+                                    base_url,
+                                    'webhooks', '',
+                                    bookmark=True)
+                ]
         return v1
 
 
@@ -217,6 +229,7 @@ class Controller(rest.RestController):
     services = service.ServicesController()
     strategies = strategy.StrategiesController()
     data_model = data_model.DataModelController()
+    webhooks = webhooks.WebhookController()
 
     @wsme_pecan.wsexpose(V1)
     def get(self):

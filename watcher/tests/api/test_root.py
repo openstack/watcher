@@ -29,7 +29,7 @@ class TestV1Root(base.FunctionalTest):
 
     def test_get_v1_root_all(self):
         data = self.get_json(
-            '/', headers={'OpenStack-API-Version': 'infra-optim 1.3'})
+            '/', headers={'OpenStack-API-Version': 'infra-optim 1.4'})
         self.assertEqual('v1', data['id'])
         # Check fields are not empty
         for f in data.keys():
@@ -39,7 +39,7 @@ class TestV1Root(base.FunctionalTest):
         actual_resources = tuple(set(data.keys()) - set(not_resources))
         expected_resources = ('audit_templates', 'audits', 'actions',
                               'action_plans', 'data_model', 'scoring_engines',
-                              'services')
+                              'services', 'webhooks')
         self.assertEqual(sorted(expected_resources), sorted(actual_resources))
 
         self.assertIn({'type': 'application/vnd.openstack.watcher.v1+json',

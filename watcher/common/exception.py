@@ -243,6 +243,14 @@ class AuditTypeNotFound(Invalid):
     msg_fmt = _("Audit type %(audit_type)s could not be found")
 
 
+class AuditTypeNotAllowed(Invalid):
+    msg_fmt = _("Audit type %(audit_type)s is disallowed.")
+
+
+class AuditStateNotAllowed(Invalid):
+    msg_fmt = _("Audit state %(state)s is disallowed.")
+
+
 class AuditParameterNotAllowed(Invalid):
     msg_fmt = _("Audit parameter %(parameter)s are not allowed")
 
