@@ -22,6 +22,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.decision_engine.audit import continuous as c_handler
+from watcher.decision_engine.audit import event as e_handler
 from watcher.decision_engine.audit import oneshot as o_handler
 
 from watcher import objects
@@ -38,6 +39,7 @@ class AuditEndpoint(object):
             max_workers=CONF.watcher_decision_engine.max_audit_workers)
         self._oneshot_handler = o_handler.OneShotAuditHandler()
         self._continuous_handler = c_handler.ContinuousAuditHandler().start()
+        self._event_handler = e_handler.EventAuditHandler()
 
     @property
     def executor(self):
@@ -45,7 +47,10 @@ class AuditEndpoint(object):
 
     def do_trigger_audit(self, context, audit_uuid):
         audit = objects.Audit.get_by_uuid(context, audit_uuid, eager=True)
-        self._oneshot_handler.execute(audit, context)
+        if audit.audit_type == objects.audit.AuditType.ONESHOT.value:
+            self._oneshot_handler.execute(audit, context)
+        if audit.audit_type == objects.audit.AuditType.EVENT.value:
+            self._event_handler.execute(audit, context)
 
     def trigger_audit(self, context, audit_uuid):
         LOG.debug("Trigger audit %s", audit_uuid)
