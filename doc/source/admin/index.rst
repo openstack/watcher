@@ -8,6 +8,5 @@ Administrator Guide
    apache-mod-wsgi
    gmr
    policy
-   ways-to-install
    ../strategies/index
    ../datasources/index
