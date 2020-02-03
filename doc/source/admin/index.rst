@@ -10,3 +10,4 @@ Administrator Guide
    policy
    ../strategies/index
    ../datasources/index
+   ../contributor/concurrency

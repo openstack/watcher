@@ -67,7 +67,6 @@ Admin Guide
   :maxdepth: 2
 
   admin/index
-  contributor/concurrency
 
 User Guide
 ==========
