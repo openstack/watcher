@@ -1,6 +1,11 @@
-.. toctree::
-   :maxdepth: 1
+==================
+Contribution guide
+==================
 
+.. toctree::
+   :maxdepth: 2
+
+   contributing
    environment
    devstack
    notifications

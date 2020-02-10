@@ -43,7 +43,6 @@ Introduction
 
   glossary
   architecture
-  contributor/contributing
 
 Getting Started
 ---------------
