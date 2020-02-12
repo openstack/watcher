@@ -34,3 +34,8 @@ audit will be executed despite of ongoing actionplan.
 1.3
 ---
 Added list data model API.
+
+1.4
+---
+Added Watcher webhook API. It can be used to trigger audit
+with ``event`` type.
