@@ -281,11 +281,12 @@ previously created :ref:`Audit template <audit_template_definition>`:
    :width: 100%
 
 The :ref:`Administrator <administrator_definition>` also can specify type of
-Audit and interval (in case of CONTINUOUS type). There is two types of Audit:
-ONESHOT and CONTINUOUS. Oneshot Audit is launched once and if it succeeded
-executed new action plan list will be provided. Continuous Audit creates
-action plans with specified interval (in seconds); if action plan
-has been created, all previous action plans get CANCELLED state.
+Audit and interval (in case of CONTINUOUS type). There is three types of Audit:
+ONESHOT, CONTINUOUS and EVENT. ONESHOT Audit is launched once and if it
+succeeded executed new action plan list will be provided; CONTINUOUS Audit
+creates action plans with specified interval (in seconds), if action plan
+has been created, all previous action plans get CANCELLED state;
+EVENT audit is launched when receiving webhooks API.
 
 A message is sent on the :ref:`AMQP bus <amqp_bus_definition>` which triggers
 the Audit in the
