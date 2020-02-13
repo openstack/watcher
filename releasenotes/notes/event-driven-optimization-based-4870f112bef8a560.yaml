@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Add a new webhook API and a new audit type EVENT, the microversion is 1.4.
+    Now Watcher user can create audit with EVENT type and the audit will be
+    triggered by webhook API.
+    The user guide is available online:
+    https://docs.openstack.org/watcher/latest/user/event_type_audit.html
