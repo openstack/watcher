@@ -27,6 +27,10 @@ server = {
 
 # Pecan Application Configurations
 # See https://pecan.readthedocs.org/en/latest/configuration.html#application-configuration # noqa
+acl_public_routes = ['/']
+if not cfg.CONF.api.get("enable_webhooks_auth"):
+    acl_public_routes.append('/v1/webhooks/.*')
+
 app = {
     'root': 'watcher.api.controllers.root.RootController',
     'modules': ['watcher.api'],
@@ -36,10 +40,7 @@ app = {
     ],
     'static_root': '%(confdir)s/public',
     'enable_acl': True,
-    'acl_public_routes': [
-        '/',
-        '/v1/webhooks/.*',
-    ],
+    'acl_public_routes': acl_public_routes,
 }
 
 # WSME Configurations
