@@ -1,3 +1,7 @@
+============
+Plugin Guide
+============
+
 .. toctree::
    :maxdepth: 1
 

@@ -1,5 +1,5 @@
 ==================
-Contribution guide
+Contribution Guide
 ==================
 
 .. toctree::
@@ -8,6 +8,5 @@ Contribution guide
    contributing
    environment
    devstack
-   notifications
    testing
    rally_link

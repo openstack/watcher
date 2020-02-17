@@ -1,6 +1,6 @@
-===================================
-Infrastructure Optimization service
-===================================
+=============
+Install Guide
+=============
 
 .. toctree::
    :maxdepth: 2

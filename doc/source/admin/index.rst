@@ -10,4 +10,5 @@ Administrator Guide
    policy
    ../strategies/index
    ../datasources/index
+   ../contributor/notifications
    ../contributor/concurrency

@@ -32,89 +32,21 @@ specific prior release.
 .. _python-watcherclient: https://opendev.org/openstack/python-watcherclient/
 .. _watcher-dashboard: https://opendev.org/openstack/watcher-dashboard/
 
-Developer Guide
-===============
-
-Introduction
-------------
-
 .. toctree::
-  :maxdepth: 1
+  :maxdepth: 2
 
-  glossary
   architecture
-
-Getting Started
----------------
-
-.. toctree::
-  :maxdepth: 1
-
   contributor/index
-
-Installation
-============
-.. toctree::
-  :maxdepth: 2
-
   install/index
-
-Admin Guide
-===========
-
-.. toctree::
-  :maxdepth: 2
-
   admin/index
-
-User Guide
-==========
-
-.. toctree::
-  :maxdepth: 2
-
   user/index
-
-API References
-==============
+  configuration/index
+  contributor/plugin/index
+  man/index
 
 .. toctree::
   :maxdepth: 1
 
   API Reference <https://docs.openstack.org/api-ref/resource-optimization/>
   Watcher API Microversion History </contributor/api_microversion_history>
-
-Plugins
--------
-
-.. toctree::
-  :maxdepth: 1
-
-  contributor/plugin/index
-
-Watcher Configuration Options
-=============================
-
-.. toctree::
-  :maxdepth: 2
-
-  configuration/index
-
-Watcher Manual Pages
-====================
-
-.. toctree::
-   :glob:
-   :maxdepth: 1
-
-   man/index
-
-
-.. only:: html
-
-Indices and tables
-==================
-
-   * :ref:`genindex`
-   * :ref:`modindex`
-   * :ref:`search`
+  glossary

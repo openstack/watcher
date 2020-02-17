@@ -1,3 +1,7 @@
+====================
+Watcher Manual Pages
+====================
+
 .. toctree::
    :glob:
    :maxdepth: 1
