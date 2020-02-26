@@ -55,6 +55,11 @@ API_SERVICE_OPTS = [
                      "the service, this option should be False; note, you "
                      "will want to change public API endpoint to represent "
                      "SSL termination URL with 'public_endpoint' option."),
+
+    cfg.BoolOpt('enable_webhooks_auth',
+                default=True,
+                help='This option enables or disables webhook request '
+                     'authentication via keystone. Default value is True.'),
 ]
 
 
