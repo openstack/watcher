@@ -298,7 +298,7 @@ function start_watcher_api {
         service_protocol="http"
     fi
     if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-        run_process "watcher-api" "$WATCHER_BIN_DIR/uwsgi --ini $WATCHER_UWSGI_CONF"
+        run_process "watcher-api" "$WATCHER_BIN_DIR/uwsgi --procname-prefix watcher-api --ini $WATCHER_UWSGI_CONF"
         watcher_url=$service_protocol://$SERVICE_HOST/infra-optim
     else
         watcher_url=$service_protocol://$SERVICE_HOST:$service_port
