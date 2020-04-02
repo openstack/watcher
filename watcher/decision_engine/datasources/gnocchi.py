@@ -116,7 +116,7 @@ class GnocchiHelper(base.DataSourceBase):
             # measure has structure [time, granularity, value]
             return_value = statistics[-1][2]
 
-            if meter_name is 'host_airflow':
+            if meter_name == 'host_airflow':
                 # Airflow from hardware.ipmi.node.airflow is reported as
                 # 1/10 th of actual CFM
                 return_value *= 10

@@ -514,7 +514,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
                 self.aggregation_method['node']
 
         # backwards compatibility for node parameter with period.
-        if self.periods['node'] is not 0:
+        if self.periods['node'] != 0:
             LOG.warning('Parameter node has been renamed to compute_node and '
                         'will be removed in next release.')
             self.periods['compute_node'] = self.periods['node']

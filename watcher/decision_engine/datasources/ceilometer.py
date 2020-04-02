@@ -188,7 +188,7 @@ class CeilometerHelper(base.DataSourceBase):
         item_value = None
         if statistic:
             item_value = statistic[-1]._info.get('aggregate').get(aggregate)
-            if meter_name is 'host_airflow':
+            if meter_name == 'host_airflow':
                 # Airflow from hardware.ipmi.node.airflow is reported as
                 # 1/10 th of actual CFM
                 item_value *= 10

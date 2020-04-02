@@ -401,7 +401,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         self._pre_execute()
 
         # backwards compatibility for node parameter.
-        if self.aggregation_method['node'] is not '':
+        if self.aggregation_method['node'] != '':
             LOG.warning('Parameter node has been renamed to compute_node and '
                         'will be removed in next release.')
             self.aggregation_method['compute_node'] = \

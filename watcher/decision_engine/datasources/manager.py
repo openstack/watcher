@@ -112,10 +112,10 @@ class DataSourceManager(object):
         datasource is attempted.
         """
 
-        if not self.datasources or len(self.datasources) is 0:
+        if not self.datasources or len(self.datasources) == 0:
             raise exception.NoDatasourceAvailable
 
-        if not metrics or len(metrics) is 0:
+        if not metrics or len(metrics) == 0:
             LOG.critical("Can not retrieve datasource without specifying "
                          "list of required metrics.")
             raise exception.InvalidParameter(parameter='metrics',
@@ -125,11 +125,11 @@ class DataSourceManager(object):
             no_metric = False
             for metric in metrics:
                 if (metric not in self.metric_map[datasource] or
-                   self.metric_map[datasource].get(metric) is None):
-                        no_metric = True
-                        LOG.warning("Datasource: {0} could not be used due to "
-                                    "metric: {1}".format(datasource, metric))
-                        break
+                        self.metric_map[datasource].get(metric) is None):
+                    no_metric = True
+                    LOG.warning("Datasource: {0} could not be used due to "
+                                "metric: {1}".format(datasource, metric))
+                    break
             if not no_metric:
                 # Try to use a specific datasource but attempt additional
                 # datasources upon exceptions (if config has more datasources)

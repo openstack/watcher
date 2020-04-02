@@ -72,7 +72,7 @@ class GrafanaHelper(base.DataSourceBase):
 
         # Very basic url parsing
         parse = urlparse.urlparse(self._base_url)
-        if parse.scheme is '' or parse.netloc is '' or parse.path is '':
+        if parse.scheme == '' or parse.netloc == '' or parse.path == '':
             LOG.critical("GrafanaHelper url not properly configured, "
                          "check base_url and project_id")
             return

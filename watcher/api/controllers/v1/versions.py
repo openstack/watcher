@@ -25,6 +25,7 @@ class VERSIONS(enum.Enum):
     MINOR_4_WEBHOOK_API = 4  # v1.4: Add webhook trigger API
     MINOR_MAX_VERSION = 4
 
+
 # This is the version 1 API
 BASE_VERSION = 1
 # String representations of the minor and maximum versions

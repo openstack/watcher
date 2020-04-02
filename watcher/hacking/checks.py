@@ -23,6 +23,8 @@ def flake8ext(f):
     only for unit tests to know which are watcher flake8 extensions.
     """
     f.name = __name__
+    f.version = '0.0.1'
+    f.skip_on_py3 = False
     return f
 
 
@@ -162,11 +164,11 @@ def check_asserttrue(logical_line, filename):
 def check_assertfalse(logical_line, filename):
     if 'watcher/tests/' in filename:
         if re.search(r"assertEqual\(\s*False,[^,]*(,[^,]*)?\)", logical_line):
-            msg = ("N328: Use assertFalse(observed) instead of "
+            msg = ("N329: Use assertFalse(observed) instead of "
                    "assertEqual(False, observed)")
             yield (0, msg)
         if re.search(r"assertEqual\([^,]*,\s*False(,[^,]*)?\)", logical_line):
-            msg = ("N328: Use assertFalse(observed) instead of "
+            msg = ("N329: Use assertFalse(observed) instead of "
                    "assertEqual(False, observed)")
             yield (0, msg)
 
@@ -283,21 +285,3 @@ def no_redundant_import_alias(logical_line):
     """
     if re.match(re_redundant_import_alias, logical_line):
         yield(0, "N342: No redundant import alias.")
-
-
-def factory(register):
-    register(use_jsonutils)
-    register(check_assert_called_once_with)
-    register(no_translate_debug_logs)
-    register(check_python3_xrange)
-    register(check_no_basestring)
-    register(check_python3_no_iteritems)
-    register(check_asserttrue)
-    register(check_assertfalse)
-    register(check_assertempty)
-    register(check_assertisinstance)
-    register(check_assertequal_for_httpcode)
-    register(check_log_warn_deprecated)
-    register(check_oslo_i18n_wrapper)
-    register(check_builtins_gettext)
-    register(no_redundant_import_alias)

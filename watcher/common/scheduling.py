@@ -37,6 +37,7 @@ class GreenThreadPoolExecutor(BasePoolExecutor):
         pool = futurist.GreenThreadPoolExecutor(int(max_workers))
         super(GreenThreadPoolExecutor, self).__init__(pool)
 
+
 executors = {
     'default': GreenThreadPoolExecutor(),
 }

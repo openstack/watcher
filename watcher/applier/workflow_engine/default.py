@@ -112,7 +112,7 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
             return flow
 
-        except exception.ActionPlanCancelled as e:
+        except exception.ActionPlanCancelled:
             raise
 
         except tf_exception.WrappedFailure as e:

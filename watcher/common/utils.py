@@ -153,6 +153,7 @@ def extend_with_strict_schema(validator_class):
 
     return validators.extend(validator_class, {"properties": strict_schema})
 
+
 StrictDefaultValidatingDraft4Validator = extend_with_default(
     extend_with_strict_schema(validators.Draft4Validator))
 

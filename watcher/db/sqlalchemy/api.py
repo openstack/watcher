@@ -1125,8 +1125,8 @@ class Connection(api.BaseConnection):
 
     def get_action_description_by_id(self, context,
                                      action_id, eager=False):
-                return self._get_action_description(
-                    context, fieldname="id", value=action_id, eager=eager)
+        return self._get_action_description(
+            context, fieldname="id", value=action_id, eager=eager)
 
     def get_action_description_by_type(self, context,
                                        action_type, eager=False):

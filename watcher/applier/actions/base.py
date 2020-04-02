@@ -140,7 +140,7 @@ class BaseAction(loadable.Loadable):
         raise NotImplementedError()
 
     def check_abort(self):
-        if self.__class__.__name__ is 'Migrate':
+        if self.__class__.__name__ == 'Migrate':
             if self.migration_type == self.LIVE_MIGRATION:
                 return True
             else:

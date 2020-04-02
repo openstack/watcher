@@ -184,7 +184,7 @@ class MultiType(wtypes.UserType):
 class JsonPatchType(wtypes.Base):
     """A complex type that represents a single json-patch operation."""
 
-    path = wtypes.wsattr(wtypes.StringType(pattern='^(/[\w-]+)+$'),
+    path = wtypes.wsattr(wtypes.StringType(pattern=r'^(/[\w-]+)+$'),
                          mandatory=True)
     op = wtypes.wsattr(wtypes.Enum(str, 'add', 'replace', 'remove'),
                        mandatory=True)

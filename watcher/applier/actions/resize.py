@@ -47,24 +47,24 @@ class Resize(base.BaseAction):
 
     @property
     def schema(self):
-            return {
-                'type': 'object',
-                'properties': {
-                    'resource_id': {
-                        'type': 'string',
-                        'minlength': 1,
-                        'pattern': ('^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-'
-                                    '([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-'
-                                    '([a-fA-F0-9]){12}$')
-                    },
-                    'flavor': {
-                        'type': 'string',
-                        'minlength': 1,
-                    },
+        return {
+            'type': 'object',
+            'properties': {
+                'resource_id': {
+                    'type': 'string',
+                    'minlength': 1,
+                    'pattern': ('^([a-fA-F0-9]){8}-([a-fA-F0-9]){4}-'
+                                '([a-fA-F0-9]){4}-([a-fA-F0-9]){4}-'
+                                '([a-fA-F0-9]){12}$')
                 },
-                'required': ['resource_id', 'flavor'],
-                'additionalProperties': False,
-            }
+                'flavor': {
+                    'type': 'string',
+                    'minlength': 1,
+                },
+            },
+            'required': ['resource_id', 'flavor'],
+            'additionalProperties': False,
+        }
 
     @property
     def instance_uuid(self):
