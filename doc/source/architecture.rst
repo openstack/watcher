@@ -284,7 +284,8 @@ The :ref:`Administrator <administrator_definition>` also can specify type of
 Audit and interval (in case of CONTINUOUS type). There is three types of Audit:
 ONESHOT, CONTINUOUS and EVENT. ONESHOT Audit is launched once and if it
 succeeded executed new action plan list will be provided; CONTINUOUS Audit
-creates action plans with specified interval (in seconds), if action plan
+creates action plans with specified interval (in seconds or cron format, cron
+inteval can be used like: `*/5 * * * *`), if action plan
 has been created, all previous action plans get CANCELLED state;
 EVENT audit is launched when receiving webhooks API.
 
