@@ -36,7 +36,6 @@ extensions = [
     'sphinxcontrib.httpdomain',
     'sphinxcontrib.pecanwsme.rest',
     'stevedore.sphinxext',
-    'wsmeext.sphinxext',
     'ext.term',
     'ext.versioned_notifications',
     'oslo_config.sphinxconfiggen',
