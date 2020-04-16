@@ -16,7 +16,6 @@
 """Tests for manipulating Audit via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -273,7 +272,7 @@ class DbAuditTestCase(base.DbTestCase):
         for id_ in range(1, 4):
             audit = utils.create_test_audit(uuid=w_utils.generate_uuid(),
                                             name='My Audit {0}'.format(id_))
-            uuids.append(six.text_type(audit['uuid']))
+            uuids.append(str(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context)
         audit_uuids = [a.uuid for a in audits]
         self.assertEqual(sorted(uuids), sorted(audit_uuids))
@@ -293,7 +292,7 @@ class DbAuditTestCase(base.DbTestCase):
                 id=i, uuid=w_utils.generate_uuid(),
                 name='My Audit {0}'.format(i),
                 goal_id=goal.id, strategy_id=strategy.id)
-            uuids.append(six.text_type(audit['uuid']))
+            uuids.append(str(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context, eager=True)
         audit_map = {a.uuid: a for a in audits}
         self.assertEqual(sorted(uuids), sorted(audit_map.keys()))

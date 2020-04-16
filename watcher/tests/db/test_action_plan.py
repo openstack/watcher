@@ -16,7 +16,6 @@
 """Tests for manipulating ActionPlan via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -235,7 +234,7 @@ class DbActionPlanTestCase(base.DbTestCase):
         for _ in range(1, 4):
             action_plan = utils.create_test_action_plan(
                 uuid=w_utils.generate_uuid())
-            uuids.append(six.text_type(action_plan['uuid']))
+            uuids.append(str(action_plan['uuid']))
         action_plans = self.dbapi.get_action_plan_list(self.context)
         action_plan_uuids = [ap.uuid for ap in action_plans]
         self.assertEqual(sorted(uuids), sorted(action_plan_uuids))
@@ -253,7 +252,7 @@ class DbActionPlanTestCase(base.DbTestCase):
         for _ in range(1, 4):
             action_plan = utils.create_test_action_plan(
                 uuid=w_utils.generate_uuid())
-            uuids.append(six.text_type(action_plan['uuid']))
+            uuids.append(str(action_plan['uuid']))
         action_plans = self.dbapi.get_action_plan_list(
             self.context, eager=True)
         action_plan_map = {a.uuid: a for a in action_plans}

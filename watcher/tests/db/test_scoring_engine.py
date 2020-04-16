@@ -18,7 +18,6 @@
 """Tests for manipulating ScoringEngine via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -237,7 +236,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
                 name="SE_ID_%s" % i,
                 description='My ScoringEngine {0}'.format(i),
                 metainfo='a{0}=b{0}'.format(i))
-            names.append(six.text_type(scoring_engine['name']))
+            names.append(str(scoring_engine['name']))
         scoring_engines = self.dbapi.get_scoring_engine_list(self.context)
         scoring_engines_names = [se.name for se in scoring_engines]
         self.assertEqual(sorted(names), sorted(scoring_engines_names))
