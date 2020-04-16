@@ -165,7 +165,7 @@ class ActionPlan(base.APIBase):
                         name=indicator.name,
                         description=indicator.description,
                         unit=indicator.unit,
-                        value=indicator.value,
+                        value=float(indicator.value),
                     )
                     efficacy_indicators.append(efficacy_indicator.as_dict())
                 self._efficacy_indicators = efficacy_indicators
