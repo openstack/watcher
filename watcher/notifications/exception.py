@@ -13,8 +13,6 @@
 import inspect
 import sys
 
-import six
-
 from watcher.notifications import base as notificationbase
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -42,7 +40,7 @@ class ExceptionPayload(notificationbase.NotificationPayloadBase):
             function_name=trace[3],
             module_name=inspect.getmodule(trace[0]).__name__,
             exception=fault.__class__.__name__,
-            exception_message=six.text_type(fault))
+            exception_message=str(fault))
 
 
 @notificationbase.notification_sample('infra-optim-exception.json')
