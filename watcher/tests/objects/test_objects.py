@@ -21,7 +21,6 @@ import mock
 from oslo_versionedobjects import base as object_base
 from oslo_versionedobjects import exception as object_exception
 from oslo_versionedobjects import fixture as object_fixture
-import six
 
 from watcher.common import context
 from watcher.objects import base
@@ -395,7 +394,7 @@ class _TestObject(object):
         try:
             obj['bar'] = 'value'
         except TypeError as e:
-            err_message = six.text_type(e)
+            err_message = str(e)
         finally:
             self.assertIn("'TestObj' object does not support item assignment",
                           err_message)
