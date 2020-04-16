@@ -27,7 +27,6 @@ from monascaclient.v2_0 import client as monclient_v2
 from neutronclient.neutron import client as netclient
 from neutronclient.v2_0 import client as netclient_v2
 from novaclient import client as nvclient
-import six
 
 from watcher.common import clients
 from watcher import conf
@@ -139,8 +138,7 @@ class TestClients(base.TestCase):
         osc = clients.OpenStackClients()
         osc._nova = None
         ex = self.assertRaises(ValueError, osc.nova)
-        self.assertIn('Invalid nova_client.api_version 2.47',
-                      six.text_type(ex))
+        self.assertIn('Invalid nova_client.api_version 2.47', str(ex))
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_diff_endpoint(self, mock_session):
