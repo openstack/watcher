@@ -15,7 +15,6 @@
 import sys
 
 from oslo_upgradecheck import upgradecheck
-import six
 
 from watcher._i18n import _
 from watcher.common import clients
@@ -38,7 +37,7 @@ class Checks(upgradecheck.UpgradeCommands):
             clients.check_min_nova_api_version(CONF.nova_client.api_version)
         except ValueError as e:
             return upgradecheck.Result(
-                upgradecheck.Code.FAILURE, six.text_type(e))
+                upgradecheck.Code.FAILURE, str(e))
         return upgradecheck.Result(upgradecheck.Code.SUCCESS)
 
     _upgrade_checks = (
