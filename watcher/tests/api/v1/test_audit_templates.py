@@ -14,11 +14,11 @@ import datetime
 import itertools
 from unittest import mock
 from urllib import parse as urlparse
-from webtest.app import AppError
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
+import webtest.app as webtest_app
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import audit_template as api_audit_template
@@ -574,7 +574,7 @@ class TestPost(FunctionalTestWithSetup):
         audit_template_dict = post_get_test_audit_template(
             goal=self.fake_goal1.uuid,
             strategy=self.fake_strategy1.uuid, scope=scope)
-        with self.assertRaisesRegex(AppError,
+        with self.assertRaisesRegex(webtest_app.AppError,
                                     "be included and excluded together"):
             self.post_json('/audit_templates', audit_template_dict)
 

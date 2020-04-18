@@ -13,8 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import jsonschema
 from unittest import mock
+
+import jsonschema
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
