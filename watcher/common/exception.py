@@ -28,7 +28,6 @@ import sys
 from keystoneclient import exceptions as keystone_exceptions
 from oslo_config import cfg
 from oslo_log import log
-import six
 
 from watcher._i18n import _
 
@@ -97,19 +96,16 @@ class WatcherException(Exception):
 
     def __str__(self):
         """Encode to utf-8 then wsme api can consume it as well"""
-        if not six.PY3:
-            return six.text_type(self.args[0]).encode('utf-8')
-        else:
-            return self.args[0]
+        return self.args[0]
 
     def __unicode__(self):
-        return six.text_type(self.args[0])
+        return str(self.args[0])
 
     def format_message(self):
         if self.__class__.__name__.endswith('_Remote'):
             return self.args[0]
         else:
-            return six.text_type(self)
+            return str(self)
 
 
 class UnsupportedError(WatcherException):
