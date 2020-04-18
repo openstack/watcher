@@ -16,7 +16,6 @@
 """Tests for manipulating Action via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -237,7 +236,7 @@ class DbActionTestCase(base.DbTestCase):
         uuids = []
         for _ in range(1, 4):
             action = utils.create_test_action(uuid=w_utils.generate_uuid())
-            uuids.append(six.text_type(action['uuid']))
+            uuids.append(str(action['uuid']))
         actions = self.dbapi.get_action_list(self.context)
         action_uuids = [a.uuid for a in actions]
         self.assertEqual(3, len(action_uuids))
@@ -254,7 +253,7 @@ class DbActionTestCase(base.DbTestCase):
             action = utils.create_test_action(
                 id=i, uuid=w_utils.generate_uuid(),
                 action_plan_id=action_plan.id)
-            uuids.append(six.text_type(action['uuid']))
+            uuids.append(str(action['uuid']))
         actions = self.dbapi.get_action_list(self.context, eager=True)
         action_map = {a.uuid: a for a in actions}
         self.assertEqual(sorted(uuids), sorted(action_map.keys()))

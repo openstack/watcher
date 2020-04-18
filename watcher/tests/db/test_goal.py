@@ -16,7 +16,6 @@
 """Tests for manipulating Goal via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -231,7 +230,7 @@ class DbGoalTestCase(base.DbTestCase):
                 uuid=w_utils.generate_uuid(),
                 name="GOAL_%s" % i,
                 display_name='My Goal %s' % i)
-            uuids.append(six.text_type(goal['uuid']))
+            uuids.append(str(goal['uuid']))
         goals = self.dbapi.get_goal_list(self.context)
         goal_uuids = [g.uuid for g in goals]
         self.assertEqual(sorted(uuids), sorted(goal_uuids))

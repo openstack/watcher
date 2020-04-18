@@ -18,7 +18,6 @@
 """Tests for manipulating Strategy via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -247,7 +246,7 @@ class DbStrategyTestCase(base.DbTestCase):
                 uuid=w_utils.generate_uuid(),
                 name="STRATEGY_ID_%s" % i,
                 display_name='My Strategy {0}'.format(i))
-            uuids.append(six.text_type(strategy['uuid']))
+            uuids.append(str(strategy['uuid']))
         strategies = self.dbapi.get_strategy_list(self.context)
         strategy_uuids = [s.uuid for s in strategies]
         self.assertEqual(sorted(uuids), sorted(strategy_uuids))
@@ -265,7 +264,7 @@ class DbStrategyTestCase(base.DbTestCase):
                 name="STRATEGY_ID_%s" % i,
                 display_name='My Strategy {0}'.format(i),
                 goal_id=goal.id)
-            uuids.append(six.text_type(strategy['uuid']))
+            uuids.append(str(strategy['uuid']))
         strategys = self.dbapi.get_strategy_list(self.context, eager=True)
         strategy_map = {a.uuid: a for a in strategys}
         self.assertEqual(sorted(uuids), sorted(strategy_map.keys()))

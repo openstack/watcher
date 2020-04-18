@@ -16,7 +16,6 @@
 """Tests for manipulating EfficacyIndicator via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -249,7 +248,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             efficacy_indicator = utils.create_test_efficacy_indicator(
                 action_plan_id=action_plan.id, id=id_, uuid=None,
                 name="efficacy_indicator", description="Test Indicator ")
-            uuids.append(six.text_type(efficacy_indicator['uuid']))
+            uuids.append(str(efficacy_indicator['uuid']))
         efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
             self.context)
         efficacy_indicator_uuids = [ei.uuid for ei in efficacy_indicators]
@@ -266,7 +265,7 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
             efficacy_indicator = utils.create_test_efficacy_indicator(
                 id=i, uuid=w_utils.generate_uuid(),
                 action_plan_id=action_plan.id)
-            uuids.append(six.text_type(efficacy_indicator['uuid']))
+            uuids.append(str(efficacy_indicator['uuid']))
         efficacy_indicators = self.dbapi.get_efficacy_indicator_list(
             self.context, eager=True)
         efficacy_indicator_map = {a.uuid: a for a in efficacy_indicators}

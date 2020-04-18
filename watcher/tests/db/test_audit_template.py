@@ -16,7 +16,6 @@
 """Tests for manipulating AuditTemplate via the DB API"""
 
 import freezegun
-import six
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -235,7 +234,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name='My Audit Template {0}'.format(i))
-            uuids.append(six.text_type(audit_template['uuid']))
+            uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(self.context)
         audit_template_uuids = [at.uuid for at in audit_templates]
         self.assertEqual(sorted(uuids), sorted(audit_template_uuids))
@@ -255,7 +254,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
                 id=i, uuid=w_utils.generate_uuid(),
                 name='My Audit Template {0}'.format(i),
                 goal_id=goal.id, strategy_id=strategy.id)
-            uuids.append(six.text_type(audit_template['uuid']))
+            uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(
             self.context, eager=True)
         audit_template_map = {a.uuid: a for a in audit_templates}
