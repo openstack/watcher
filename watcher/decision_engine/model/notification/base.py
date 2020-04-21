@@ -17,11 +17,9 @@
 # limitations under the License.
 
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NotificationEndpoint(object):
+class NotificationEndpoint(object, metaclass=abc.ABCMeta):
 
     def __init__(self, collector):
         super(NotificationEndpoint, self).__init__()

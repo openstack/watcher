@@ -19,7 +19,6 @@
 import re
 
 import oslo_messaging as om
-import six
 
 
 class NotificationFilter(om.NotificationFilter):
@@ -81,7 +80,7 @@ class NotificationFilter(om.NotificationFilter):
         elif regex is not None and data is None:
             return True
         elif (regex is not None and
-              isinstance(data, six.string_types) and
+              isinstance(data, str) and
               not regex.match(data)):
             return True
 

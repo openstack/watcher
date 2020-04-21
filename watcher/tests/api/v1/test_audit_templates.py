@@ -13,12 +13,12 @@
 import datetime
 import itertools
 import mock
+from urllib import parse as urlparse
 from webtest.app import AppError
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
-from six.moves.urllib import parse as urlparse
 from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import audit_template as api_audit_template

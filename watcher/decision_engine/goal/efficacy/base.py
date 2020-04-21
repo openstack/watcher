@@ -27,11 +27,8 @@ import abc
 import jsonschema
 from oslo_serialization import jsonutils
 
-import six
 
-
-@six.add_metaclass(abc.ABCMeta)
-class EfficacySpecification(object):
+class EfficacySpecification(object, metaclass=abc.ABCMeta):
 
     def __init__(self):
         self._indicators_specs = self.get_indicators_specifications()

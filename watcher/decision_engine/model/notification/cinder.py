@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from oslo_log import log
 from watcher.common import cinder_helper
 from watcher.common import exception
@@ -161,7 +159,7 @@ class CinderNotification(base.NotificationEndpoint):
                 return 'attachment_id'
 
         attachments = [
-            {_keyReplace(k): v for k, v in six.iteritems(d)
+            {_keyReplace(k): v for k, v in iter(d.items())
                 if k in ('instance_uuid', 'id')}
             for d in data['volume_attachment']
         ]

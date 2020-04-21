@@ -56,13 +56,11 @@ Two approaches to dealing with this can be envisaged:
 """
 
 import abc
-import six
 
 from watcher.decision_engine.solution import efficacy
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseSolution(object):
+class BaseSolution(object, metaclass=abc.ABCMeta):
     def __init__(self, goal, strategy):
         """Base Solution constructor
 

@@ -12,7 +12,7 @@
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-from six.moves.urllib import parse as urlparse
+from urllib import parse as urlparse
 
 from watcher.common import utils
 from watcher.tests.api import base as api_base

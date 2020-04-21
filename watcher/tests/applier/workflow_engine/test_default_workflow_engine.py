@@ -19,8 +19,6 @@
 import abc
 import mock
 
-import six
-
 from watcher.applier.actions import base as abase
 from watcher.applier.actions import factory
 from watcher.applier.workflow_engine import default as tflow
@@ -36,8 +34,7 @@ class ExpectedException(Exception):
     pass
 
 
-@six.add_metaclass(abc.ABCMeta)
-class FakeAction(abase.BaseAction):
+class FakeAction(abase.BaseAction, metaclass=abc.ABCMeta):
     def schema(self):
         pass
 

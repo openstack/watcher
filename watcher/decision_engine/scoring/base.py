@@ -17,13 +17,11 @@
 # limitations under the License.
 
 import abc
-import six
 
 from watcher.common.loader import loadable
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ScoringEngine(loadable.Loadable):
+class ScoringEngine(loadable.Loadable, metaclass=abc.ABCMeta):
     """A base class for all the Scoring Engines.
 
     A Scoring Engine is an instance of a data model, to which the learning
@@ -97,8 +95,7 @@ class ScoringEngine(loadable.Loadable):
         return []
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ScoringEngineContainer(loadable.Loadable):
+class ScoringEngineContainer(loadable.Loadable, metaclass=abc.ABCMeta):
     """A base class for all the Scoring Engines Containers.
 
     A Scoring Engine Container is an abstraction which allows to plugin

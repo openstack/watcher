@@ -15,13 +15,11 @@
 # limitations under the License.
 
 import abc
-import six
 
 from watcher.common.loader import loadable
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Goal(loadable.Loadable):
+class Goal(loadable.Loadable, metaclass=abc.ABCMeta):
 
     def __init__(self, config):
         super(Goal, self).__init__(config)

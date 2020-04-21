@@ -25,7 +25,6 @@ import sys
 from oslo_log import log
 from oslo_utils import strutils
 import prettytable as ptable
-from six.moves import input
 
 from watcher._i18n import _
 from watcher._i18n import lazy_translation_enabled

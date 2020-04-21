@@ -19,7 +19,6 @@
 import copy
 import futurist
 from futurist import waiters
-import six
 
 from oslo_config import cfg
 from oslo_log import log
@@ -29,8 +28,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-@six.add_metaclass(service.Singleton)
-class DecisionEngineThreadPool(object):
+class DecisionEngineThreadPool(object, metaclass=service.Singleton):
     """Singleton threadpool to submit general tasks to"""
 
     def __init__(self):

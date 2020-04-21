@@ -21,7 +21,6 @@ import collections
 
 from lxml import etree
 from oslo_log import log
-import six
 
 from watcher.objects import base
 from watcher.objects import fields as wfields
@@ -29,9 +28,8 @@ from watcher.objects import fields as wfields
 LOG = log.getLogger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
 class Element(base.WatcherObject, base.WatcherObjectDictCompat,
-              base.WatcherComparableObject):
+              base.WatcherComparableObject, metaclass=abc.ABCMeta):
 
     # Initial version
     VERSION = '1.0'

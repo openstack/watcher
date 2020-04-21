@@ -24,7 +24,6 @@ from xml import etree as et
 
 from oslo_log import log
 from oslo_serialization import jsonutils
-import six
 import webob
 
 from watcher._i18n import _
@@ -84,12 +83,10 @@ class ParsableErrorMiddleware(object):
                             '</error_message>' % state['status_code']]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
-                if six.PY3:
-                    app_iter = [i.decode('utf-8') for i in app_iter]
+                app_iter = [i.decode('utf-8') for i in app_iter]
                 body = [jsonutils.dumps(
                     {'error_message': '\n'.join(app_iter)})]
-                if six.PY3:
-                    body = [item.encode('utf-8') for item in body]
+                body = [item.encode('utf-8') for item in body]
                 state['headers'].append(('Content-Type', 'application/json'))
             state['headers'].append(('Content-Length', str(len(body[0]))))
         else:

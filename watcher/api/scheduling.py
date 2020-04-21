@@ -20,7 +20,6 @@ import itertools
 from oslo_config import cfg
 from oslo_log import log
 from oslo_utils import timeutils
-import six
 
 from watcher.common import context as watcher_context
 from watcher.common import scheduling
@@ -83,7 +82,7 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
         service = objects.Service.get(context, service_id)
         last_heartbeat = (service.last_seen_up or service.updated_at or
                           service.created_at)
-        if isinstance(last_heartbeat, six.string_types):
+        if isinstance(last_heartbeat, str):
             # NOTE(russellb) If this service came in over rpc via
             # conductor, then the timestamp will be a string and needs to be
             # converted back to a datetime.

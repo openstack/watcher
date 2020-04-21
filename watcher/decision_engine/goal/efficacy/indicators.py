@@ -18,7 +18,6 @@ import abc
 import jsonschema
 from jsonschema import SchemaError
 from jsonschema import ValidationError
-import six
 
 from oslo_log import log
 from oslo_serialization import jsonutils
@@ -29,8 +28,7 @@ from watcher.common import exception
 LOG = log.getLogger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class IndicatorSpecification(object):
+class IndicatorSpecification(object, metaclass=abc.ABCMeta):
 
     def __init__(self, name=None, description=None, unit=None, required=True):
         self.name = name

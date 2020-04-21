@@ -13,7 +13,6 @@
 from oslo_context import context
 from oslo_log import log
 from oslo_utils import timeutils
-import six
 
 LOG = log.getLogger(__name__)
 
@@ -69,7 +68,7 @@ class RequestContext(context.RequestContext):
         self.project_id = project_id
         if not timestamp:
             timestamp = timeutils.utcnow()
-        if isinstance(timestamp, six.string_types):
+        if isinstance(timestamp, str):
             timestamp = timeutils.parse_isotime(timestamp)
         self.timestamp = timestamp
         self.user_name = user_name

@@ -11,10 +11,10 @@
 #    limitations under the License.
 
 import mock
+from urllib import parse as urlparse
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
-from six.moves.urllib import parse as urlparse
 
 from watcher.common import utils
 from watcher.decision_engine import rpcapi as deapi

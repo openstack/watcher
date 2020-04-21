@@ -19,7 +19,6 @@
 #
 
 from oslo_log import log
-import six
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -132,7 +131,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :param instance:
         """
-        if isinstance(instance.state, six.string_types):
+        if isinstance(instance.state, str):
             return instance.state
         elif isinstance(instance.state, element.InstanceState):
             return instance.state.value
@@ -148,7 +147,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
         :param node:
         """
-        if isinstance(node.status, six.string_types):
+        if isinstance(node.status, str):
             return node.status
         elif isinstance(node.status, element.ServiceState):
             return node.status.value

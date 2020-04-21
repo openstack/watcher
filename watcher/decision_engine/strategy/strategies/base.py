@@ -37,7 +37,6 @@ which are dynamically loaded by Watcher at launch time.
 """
 
 import abc
-import six
 
 from oslo_config import cfg
 from oslo_log import log
@@ -121,8 +120,7 @@ class StrategyEndpoint(object):
         return [available_datasource, available_metrics, available_cdm]
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseStrategy(loadable.Loadable):
+class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     """A base class for all the strategies
 
     A Strategy is an algorithm implementation which is able to find a
@@ -471,8 +469,7 @@ class BaseStrategy(loadable.Loadable):
                                  input_parameters=parameters)
 
 
-@six.add_metaclass(abc.ABCMeta)
-class DummyBaseStrategy(BaseStrategy):
+class DummyBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_goal_name(cls):
@@ -485,8 +482,7 @@ class DummyBaseStrategy(BaseStrategy):
         return []
 
 
-@six.add_metaclass(abc.ABCMeta)
-class UnclassifiedStrategy(BaseStrategy):
+class UnclassifiedStrategy(BaseStrategy, metaclass=abc.ABCMeta):
     """This base class is used to ease the development of new strategies
 
     The goal defined within this strategy can be used to simplify the
@@ -500,8 +496,7 @@ class UnclassifiedStrategy(BaseStrategy):
         return "unclassified"
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ServerConsolidationBaseStrategy(BaseStrategy):
+class ServerConsolidationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     REASON_FOR_DISABLE = 'watcher_disabled'
 
@@ -510,16 +505,14 @@ class ServerConsolidationBaseStrategy(BaseStrategy):
         return "server_consolidation"
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ThermalOptimizationBaseStrategy(BaseStrategy):
+class ThermalOptimizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_goal_name(cls):
         return "thermal_optimization"
 
 
-@six.add_metaclass(abc.ABCMeta)
-class WorkloadStabilizationBaseStrategy(BaseStrategy):
+class WorkloadStabilizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     def __init__(self, *args, **kwargs):
         super(WorkloadStabilizationBaseStrategy, self
@@ -531,16 +524,14 @@ class WorkloadStabilizationBaseStrategy(BaseStrategy):
         return "workload_balancing"
 
 
-@six.add_metaclass(abc.ABCMeta)
-class NoisyNeighborBaseStrategy(BaseStrategy):
+class NoisyNeighborBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_goal_name(cls):
         return "noisy_neighbor"
 
 
-@six.add_metaclass(abc.ABCMeta)
-class SavingEnergyBaseStrategy(BaseStrategy):
+class SavingEnergyBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_goal_name(cls):
@@ -553,8 +544,7 @@ class SavingEnergyBaseStrategy(BaseStrategy):
         return []
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ZoneMigrationBaseStrategy(BaseStrategy):
+class ZoneMigrationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_goal_name(cls):
@@ -567,8 +557,7 @@ class ZoneMigrationBaseStrategy(BaseStrategy):
         return []
 
 
-@six.add_metaclass(abc.ABCMeta)
-class HostMaintenanceBaseStrategy(BaseStrategy):
+class HostMaintenanceBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     REASON_FOR_MAINTAINING = 'watcher_maintaining'
 

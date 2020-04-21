@@ -17,11 +17,9 @@
 # limitations under the License.
 #
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseSolutionComparator(object):
+class BaseSolutionComparator(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compare(self, sol1, sol2):
         raise NotImplementedError()

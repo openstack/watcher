@@ -25,11 +25,9 @@ See: :doc:`../architecture` for more details on this component.
 """
 
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class Model(object):
+class Model(object, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def to_string(self):

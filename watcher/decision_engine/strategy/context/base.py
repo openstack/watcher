@@ -18,14 +18,12 @@
 # limitations under the License.
 
 import abc
-import six
 
 from watcher import notifications
 from watcher.objects import fields
 
 
-@six.add_metaclass(abc.ABCMeta)
-class StrategyContext(object):
+class StrategyContext(object, metaclass=abc.ABCMeta):
 
     def execute_strategy(self, audit, request_context):
         """Execute the strategy for the given an audit

@@ -26,11 +26,9 @@ See: :doc:`../architecture` for more details on this component.
 """
 
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseApplier(object):
+class BaseApplier(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def execute(self, action_plan_uuid):
         raise NotImplementedError()
