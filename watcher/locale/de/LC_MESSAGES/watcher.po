@@ -1,14 +1,15 @@
 # Frank Kloeker <eumel@arcor.de>, 2018. #zanata
+# Andreas Jaeger <jaegerandi@gmail.com>, 2020. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: watcher VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2019-03-22 02:21+0000\n"
+"POT-Creation-Date: 2020-04-26 02:09+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-03-06 07:56+0000\n"
-"Last-Translator: Frank Kloeker <eumel@arcor.de>\n"
+"PO-Revision-Date: 2020-04-25 11:45+0000\n"
+"Last-Translator: Andreas Jaeger <jaegerandi@gmail.com>\n"
 "Language-Team: German\n"
 "Language: de\n"
 "X-Generator: Zanata 4.3.3\n"
@@ -61,10 +62,6 @@ msgstr "Der Argumenttyp 'obj' ist nicht gültig"
 #, python-format
 msgid "'obj' argument type is not valid: %s"
 msgstr "Der Argumenttyp 'obj' ist nicht gültig: %s"
-
-#, python-format
-msgid "A datetime.datetime is required here. Got %s"
-msgstr "Eine datetime.datetime ist hier erforderlich. Bekam %s"
 
 #, python-format
 msgid "A goal with UUID %(uuid)s already exists"
@@ -169,10 +166,6 @@ msgstr ""
 msgid "An indicator value should be a number"
 msgstr "Ein Indikatorwert sollte eine Zahl sein"
 
-#, python-format
-msgid "An object of class %s is required here"
-msgstr "Ein Objekt der Klasse %s ist hier erforderlich"
-
 msgid "An unknown exception occurred"
 msgstr "Eine unbekannte Ausnahme ist aufgetreten"
 
@@ -204,19 +197,20 @@ msgid "Audit parameter %(parameter)s are not allowed"
 msgstr "Prüfparameter %(parameter)s sind nicht erlaubt"
 
 #, python-format
+msgid "Audit state %(state)s is disallowed."
+msgstr "Auditstatus %(state)s ist ungültig."
+
+#, python-format
 msgid "Audit type %(audit_type)s could not be found"
 msgstr "Audit-Typ %(audit_type)s konnte nicht gefunden werden"
 
 #, python-format
-msgid "AuditTemplate %(audit_template)s could not be found"
-msgstr "AuditTemplate %(audit_template)s konnte nicht gefunden werden"
+msgid "Audit type %(audit_type)s is disallowed."
+msgstr "Audit-Typ %(audit_type)s nicht erlaubt."
 
 #, python-format
-msgid ""
-"AuditTemplate %(audit_template)s is referenced by one or multiple audits"
-msgstr ""
-"AuditTemplate %(audit_template)s wird von einem oder mehreren Audits "
-"referenziert"
+msgid "AuditTemplate %(audit_template)s could not be found"
+msgstr "AuditTemplate %(audit_template)s konnte nicht gefunden werden"
 
 msgid "Audits"
 msgstr "Audits"
@@ -292,6 +286,10 @@ msgstr "Patch '%(patch)s' konnte nicht angewendet werden. Grund:%(reason)s"
 #, python-format
 msgid "Couldn't delete when state is '%(state)s'."
 msgstr "Konnte nicht gelöscht werden, wenn der Status '%(state)s' ist."
+
+#, python-format
+msgid "Couldn't start when state is '%(state)s'."
+msgstr "Konnte nicht gestartet werden, wenn der Status '%(state)s' ist."
 
 #, python-format
 msgid "Datasource %(datasource)s is not available."
@@ -435,6 +433,10 @@ msgstr "Ungültige Abfrage: %(start_time)s > %(end_time)s"
 msgid "Invalid sort direction: %s. Acceptable values are 'asc' or 'desc'"
 msgstr "Ungültige Sortierrichtung: %s. Akzeptable Werte sind 'asc' oder 'desc'"
 
+#, python-format
+msgid "Invalid sort key: %s"
+msgstr "Ungültiger Sortierschlüssel: %s"
+
 msgid "Invalid state for swapping volume"
 msgstr "Ungültiger Status für das Auslagern des Datenträgers"
 
@@ -444,9 +446,6 @@ msgstr "Ungültiger Status: %(state)s"
 
 msgid "JSON list expected in feature argument"
 msgstr "JSON-Liste in Feature-Argument erwartet"
-
-msgid "Keystone API endpoint is missing"
-msgstr "Der Keystone-API-Endpunkt fehlt"
 
 msgid "Limit must be positive"
 msgstr "Limit muss positiv sein"
@@ -458,28 +457,25 @@ msgid "Maximum time since last check-in for up service."
 msgstr "Maximale Zeit seit dem letzten Check-in für den Up-Service."
 
 #, python-format
+msgid "Metric: %(metric)s not available"
+msgstr "Metrik: %(metric)s nicht verfügbar"
+
+#, python-format
 msgid "Migration of type '%(migration_type)s' is not supported."
 msgstr "Die Migration vom Typ '%(migration_type)s' wird nicht unterstützt."
+
+msgid "Minimum Nova API Version"
+msgstr "Minimale Nova API Version"
 
 #, python-format
 msgid "No %(metric)s metric for %(host)s found."
 msgstr "Keine %(metric)s Metrik für %(host)s gefunden."
-
-msgid "No rows were returned"
-msgstr "Es wurden keine Zeilen zurückgegeben"
 
 #, python-format
 msgid "No strategy could be found to achieve the '%(goal)s' goal."
 msgstr ""
 "Es konnte keine Strategie gefunden werden, um das Ziel '%(goal)s' zu "
 "erreichen."
-
-msgid "No such metric"
-msgstr "Keine solche Metrik"
-
-#, python-format
-msgid "No values returned by %(resource_id)s for %(metric_name)s."
-msgstr "Keine Werte von %(resource_id)s für %(metric_name)s zurückgegeben."
 
 msgid "Noisy Neighbor"
 msgstr "Lauter Nachbar"
@@ -558,6 +554,9 @@ msgid ""
 msgstr ""
 "Verhältnis der freigegebenen Compute-Knoten geteilt durch die Gesamtzahl der "
 "aktivierten Compute-Knoten."
+
+msgid "Request not acceptable."
+msgstr "Anforderung nicht zulässig."
 
 #, python-format
 msgid "Role name seems ambiguous: %s"
@@ -649,10 +648,6 @@ msgid "The baremetal resource '%(name)s' could not be found"
 msgstr "Die Barmetal-Ressource '%(name)s' konnte nicht gefunden werden"
 
 #, python-format
-msgid "The capacity %(capacity)s is not defined for '%(resource)s'"
-msgstr "Die Kapazität %(capacity)s ist nicht definiert für '%(resource)s'"
-
-#, python-format
 msgid "The cluster data model '%(cdm)s' could not be built"
 msgstr "Das Clusterdatenmodell '%(cdm)s' konnte nicht erstellt werden"
 
@@ -689,9 +684,6 @@ msgstr "Die Instanz '%(name)s' konnte nicht gefunden werden"
 #, python-format
 msgid "The ironic node %(uuid)s could not be found"
 msgstr "Der Ironic Knoten %(uuid)s konnte nicht gefunden werden"
-
-msgid "The metrics resource collector is not defined"
-msgstr "Der Metrikressourcen-Collector ist nicht definiert"
 
 msgid "The number of VM migrations to be performed."
 msgstr "Die Anzahl der VM-Migrationen, die ausgeführt werden sollen."
