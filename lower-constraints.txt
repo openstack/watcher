@@ -31,7 +31,6 @@ extras==1.0.0
 fasteners==0.14.1
 fixtures==3.0.0
 freezegun==0.3.10
-future==0.16.0
 futurist==1.8.0
 gitdb2==2.0.3
 GitPython==2.1.8

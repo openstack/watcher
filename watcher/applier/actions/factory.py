@@ -15,8 +15,6 @@
 # limitations under the License.
 #
 
-from __future__ import unicode_literals
-
 from oslo_log import log
 
 from watcher.applier.loading import default

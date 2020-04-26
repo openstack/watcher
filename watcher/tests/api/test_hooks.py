@@ -14,8 +14,6 @@
 
 """Tests for the Pecan API hooks."""
 
-from __future__ import unicode_literals
-
 import mock
 from oslo_config import cfg
 import oslo_messaging as messaging
