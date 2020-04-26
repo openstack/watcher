@@ -13,8 +13,8 @@
 #    under the License.
 
 import collections
+from unittest import mock
 
-import mock
 from oslo_versionedobjects import fixture
 
 from watcher.common import exception

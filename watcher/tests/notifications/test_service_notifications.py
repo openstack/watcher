@@ -15,9 +15,9 @@
 # limitations under the License.
 
 import datetime
+from unittest import mock
 
 import freezegun
-import mock
 import oslo_messaging as om
 
 from watcher.common import rpc

@@ -12,7 +12,7 @@
 
 import datetime
 import itertools
-import mock
+from unittest import mock
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils

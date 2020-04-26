@@ -18,7 +18,7 @@
 #
 import collections
 import copy
-import mock
+from unittest import mock
 
 from watcher.applier.loading import default
 from watcher.common import clients

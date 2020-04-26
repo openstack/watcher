@@ -13,7 +13,7 @@
 import datetime
 from dateutil import tz
 import itertools
-import mock
+from unittest import mock
 from urllib import parse as urlparse
 
 from oslo_config import cfg

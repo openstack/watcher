@@ -15,8 +15,8 @@
 
 import copy
 import os
+from unittest import mock
 
-import mock
 from oslo_config import cfg
 from oslo_log import log
 from oslo_messaging import conffixture

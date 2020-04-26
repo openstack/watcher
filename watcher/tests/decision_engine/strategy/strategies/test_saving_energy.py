@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-import mock
+from unittest import mock
 
 from watcher.common import clients
 from watcher.common import utils

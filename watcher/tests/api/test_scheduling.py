@@ -15,7 +15,7 @@
 from apscheduler.schedulers import background
 import datetime
 import freezegun
-import mock
+from unittest import mock
 
 from watcher.api import scheduling
 from watcher.notifications import service

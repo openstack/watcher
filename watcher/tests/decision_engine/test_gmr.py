@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 
 from watcher.decision_engine import gmr
 from watcher.decision_engine.model.collector import manager

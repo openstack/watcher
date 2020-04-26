@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 import collections
-import mock
+from unittest import mock
 
 from watcher.applier.loading import default
 from watcher.common import utils

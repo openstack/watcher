@@ -14,7 +14,7 @@
 #    under the License.
 
 
-import mock
+from unittest import mock
 
 from watcher.common import exception
 from watcher.db.sqlalchemy import api as db_api

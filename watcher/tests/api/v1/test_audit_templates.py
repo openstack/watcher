@@ -12,7 +12,7 @@
 
 import datetime
 import itertools
-import mock
+from unittest import mock
 from urllib import parse as urlparse
 from webtest.app import AppError
 

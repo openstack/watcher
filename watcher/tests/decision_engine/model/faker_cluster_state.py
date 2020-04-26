@@ -17,8 +17,8 @@
 # limitations under the License.
 
 import os
+from unittest import mock
 
-import mock
 
 from watcher.common import utils
 from watcher.decision_engine.model.collector import base

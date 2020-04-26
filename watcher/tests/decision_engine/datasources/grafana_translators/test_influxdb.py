@@ -17,7 +17,7 @@
 # limitations under the License.
 
 import copy
-import mock
+from unittest import mock
 
 from oslo_config import cfg
 from oslo_log import log

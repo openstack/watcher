@@ -16,7 +16,7 @@
 #
 
 from jsonschema import validators
-import mock
+from unittest import mock
 
 from watcher.api.controllers.v1 import audit_template
 from watcher.common import exception

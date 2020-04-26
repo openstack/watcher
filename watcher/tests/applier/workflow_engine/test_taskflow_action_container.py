@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 import eventlet
-import mock
+from unittest import mock
 
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import clients

@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 
 from watcher.decision_engine.audit import continuous as continuous_handler
 from watcher.decision_engine.audit import oneshot as oneshot_handler

@@ -18,7 +18,7 @@
 #
 
 
-import mock
+from unittest import mock
 
 from watcher.applier.messaging import trigger
 from watcher.common import utils

@@ -19,7 +19,7 @@
 from apscheduler.schedulers import background
 from apscheduler.triggers import interval as interval_trigger
 import eventlet
-import mock
+from unittest import mock
 
 from oslo_config import cfg
 from oslo_utils import uuidutils

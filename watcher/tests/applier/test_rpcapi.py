@@ -17,7 +17,8 @@
 # limitations under the License.
 #
 
-import mock
+from unittest import mock
+
 import oslo_messaging as om
 from watcher.applier import rpcapi
 

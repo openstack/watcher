@@ -13,8 +13,8 @@
 # limitations under the License.
 #
 
-import mock
 import time
+from unittest import mock
 
 from cinderclient import exceptions as cinder_exception
 

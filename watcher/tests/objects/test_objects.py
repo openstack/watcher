@@ -16,8 +16,8 @@ import contextlib
 import datetime
 import gettext
 import iso8601
+from unittest import mock
 
-import mock
 from oslo_versionedobjects import base as object_base
 from oslo_versionedobjects import exception as object_exception
 from oslo_versionedobjects import fixture as object_fixture

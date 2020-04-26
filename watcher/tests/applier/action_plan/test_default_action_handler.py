@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 
 from watcher.applier.action_plan import default
 from watcher.applier import default as ap_applier

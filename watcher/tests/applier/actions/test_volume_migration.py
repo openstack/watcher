@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import jsonschema
-import mock
+from unittest import mock
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import volume_migration

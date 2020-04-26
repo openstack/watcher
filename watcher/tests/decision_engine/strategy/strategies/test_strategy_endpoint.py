@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
 
 from watcher.decision_engine.strategy.strategies import base as strategy_base
 from watcher.tests import base

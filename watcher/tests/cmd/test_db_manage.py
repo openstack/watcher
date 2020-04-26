@@ -15,8 +15,8 @@
 # limitations under the License.
 
 import sys
+from unittest import mock
 
-import mock
 from oslo_config import cfg
 
 from watcher.cmd import dbmanage

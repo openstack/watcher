@@ -17,7 +17,7 @@
 # limitations under the License.
 
 import futurist
-import mock
+from unittest import mock
 
 from watcher.decision_engine import threading
 from watcher.tests import base

@@ -18,10 +18,10 @@
 #
 
 import time
+from unittest import mock
 
 from novaclient import api_versions
 
-import mock
 
 import glanceclient.exc as glexceptions
 import novaclient.exceptions as nvexceptions

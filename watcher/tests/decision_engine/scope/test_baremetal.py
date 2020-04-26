@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-import mock
+from unittest import mock
 
 from watcher.decision_engine.scope import baremetal
 from watcher.tests import base

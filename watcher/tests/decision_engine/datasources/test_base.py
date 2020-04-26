@@ -16,7 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
+from unittest import mock
+
 from oslo_config import cfg
 
 from watcher.decision_engine.datasources import base as datasource

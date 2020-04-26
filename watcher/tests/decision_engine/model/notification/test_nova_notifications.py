@@ -18,8 +18,8 @@
 
 import os
 import os_resource_classes as orc
+from unittest import mock
 
-import mock
 from oslo_serialization import jsonutils
 
 from watcher.common import context

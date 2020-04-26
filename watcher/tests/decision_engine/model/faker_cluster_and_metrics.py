@@ -18,8 +18,8 @@
 # limitations under the License.
 
 import os
+from unittest import mock
 
-import mock
 
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import model_root as modelroot

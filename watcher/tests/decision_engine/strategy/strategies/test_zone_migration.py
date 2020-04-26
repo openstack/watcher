@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import collections
-import mock
+from unittest import mock
 
 import cinderclient
 import novaclient

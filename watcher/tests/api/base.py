@@ -23,7 +23,7 @@
 # NOTE(deva): import auth_token so we can override a config option
 
 import copy
-import mock
+from unittest import mock
 from urllib import parse as urlparse
 
 from oslo_config import cfg

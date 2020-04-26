@@ -14,9 +14,9 @@
 #    under the License.
 
 import datetime
+from unittest import mock
 
 import iso8601
-import mock
 
 from watcher.common import exception
 from watcher.common import utils as c_utils

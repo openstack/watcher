@@ -17,7 +17,7 @@
 # limitations under the License.
 #
 import abc
-import mock
+from unittest import mock
 
 from watcher.applier.actions import base as abase
 from watcher.applier.actions import factory

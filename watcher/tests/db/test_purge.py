@@ -14,10 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
+
 from oslo_utils import uuidutils
 
 import freezegun
-import mock
 
 from watcher.common import context as watcher_context
 from watcher.common import utils

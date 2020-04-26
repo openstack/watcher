@@ -14,8 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import mock
 from stevedore import extension
+from unittest import mock
 
 from watcher.common import exception
 from watcher.decision_engine.loading import default as default_loading

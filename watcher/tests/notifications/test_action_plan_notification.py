@@ -13,7 +13,8 @@
 #    under the License.
 
 import freezegun
-import mock
+from unittest import mock
+
 import oslo_messaging as om
 
 from watcher.common import exception

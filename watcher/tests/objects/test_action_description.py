@@ -15,9 +15,9 @@
 #    under the License.
 
 import datetime
+from unittest import mock
 
 import iso8601
-import mock
 
 from watcher.db.sqlalchemy import api as db_api
 from watcher import objects

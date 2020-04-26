@@ -12,6 +12,8 @@
 
 from ceilometerclient import client as ceclient
 import ceilometerclient.v2.client as ceclient_v2
+from unittest import mock
+
 from cinderclient import client as ciclient
 from cinderclient.v3 import client as ciclient_v3
 from glanceclient import client as glclient
@@ -21,7 +23,6 @@ from ironicclient import client as irclient
 from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
-import mock
 from monascaclient import client as monclient
 from monascaclient.v2_0 import client as monclient_v2
 from neutronclient.neutron import client as netclient

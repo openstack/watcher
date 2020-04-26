@@ -14,7 +14,8 @@
 
 """Tests for the Pecan API hooks."""
 
-import mock
+from unittest import mock
+
 from oslo_config import cfg
 import oslo_messaging as messaging
 from oslo_serialization import jsonutils

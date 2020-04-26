@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-import mock
+from unittest import mock
 
 from watcher.common import exception
 from watcher.decision_engine.model import element

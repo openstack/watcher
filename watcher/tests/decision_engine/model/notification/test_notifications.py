@@ -17,8 +17,8 @@
 # limitations under the License.
 
 import os
+from unittest import mock
 
-import mock
 from oslo_serialization import jsonutils
 
 from watcher.common import context
