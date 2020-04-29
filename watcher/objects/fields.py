@@ -15,7 +15,6 @@
 """Utility methods for objects"""
 
 import ast
-import six
 
 from oslo_serialization import jsonutils
 from oslo_versionedobjects import fields
@@ -67,7 +66,7 @@ class ListOfUUIDsField(fields.AutoTypedField):
 class FlexibleDict(fields.FieldType):
     @staticmethod
     def coerce(obj, attr, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = ast.literal_eval(value)
         return dict(value)
 
@@ -87,7 +86,7 @@ class FlexibleDictField(fields.AutoTypedField):
 class FlexibleListOfDict(fields.FieldType):
     @staticmethod
     def coerce(obj, attr, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             value = ast.literal_eval(value)
         return list(value)
 
@@ -106,7 +105,7 @@ class FlexibleListOfDictField(fields.AutoTypedField):
 
 class Json(fields.FieldType):
     def coerce(self, obj, attr, value):
-        if isinstance(value, six.string_types):
+        if isinstance(value, str):
             loaded = jsonutils.loads(value)
             return loaded
         return value

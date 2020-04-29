@@ -16,14 +16,12 @@
 
 import abc
 
-import six
 
 from watcher.decision_engine.model.element import base
 from watcher.objects import fields as wfields
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ComputeResource(base.Element):
+class ComputeResource(base.Element, metaclass=abc.ABCMeta):
 
     VERSION = '1.0'
 

@@ -13,7 +13,6 @@
 #
 
 from dateutil.parser import parse
-import six
 
 from oslo_log import log
 
@@ -282,7 +281,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         action_counter = ActionCounter(total_limit,
                                        per_pool_limit, per_node_limit)
 
-        for k, targets in six.iteritems(filtered_targets):
+        for k, targets in iter(filtered_targets.items()):
             if k == VOLUME:
                 self.volumes_migration(targets, action_counter)
             elif k == INSTANCE:
@@ -580,7 +579,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         filter_list = []
         priority_filter_map = self.get_priority_filter_map()
 
-        for k, v in six.iteritems(self.priority):
+        for k, v in iter(self.priority.items()):
             if k in priority_filter_map:
                 filter_list.append(priority_filter_map[k](v))
 
@@ -710,7 +709,7 @@ class BaseFilter(object):
             return {}
 
         for cond in list(reversed(self.condition)):
-            for k, v in six.iteritems(targets):
+            for k, v in iter(targets.items()):
                 if not self.is_allowed(k):
                     continue
                 LOG.debug("filter:%s with the key: %s", cond, k)

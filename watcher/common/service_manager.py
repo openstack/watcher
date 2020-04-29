@@ -15,11 +15,9 @@
 # under the License.
 
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class ServiceManager(object):
+class ServiceManager(object, metaclass=abc.ABCMeta):
 
     @abc.abstractproperty
     def service_name(self):

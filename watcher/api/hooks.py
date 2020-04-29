@@ -15,9 +15,9 @@
 # under the License.
 
 
+from http import client as http_client
 from oslo_config import cfg
 from pecan import hooks
-from six.moves import http_client
 
 from watcher.common import context
 

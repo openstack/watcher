@@ -24,11 +24,11 @@
 
 import copy
 import mock
+from urllib import parse as urlparse
 
 from oslo_config import cfg
 import pecan
 import pecan.testing
-from six.moves.urllib import parse as urlparse
 
 from watcher.api import hooks
 from watcher.common import context as watcher_context

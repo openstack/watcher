@@ -16,9 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from urllib import parse as urlparse
+
 from oslo_config import cfg
 from oslo_log import log
-import six.moves.urllib.parse as urlparse
 
 from watcher.common import clients
 from watcher.common import exception

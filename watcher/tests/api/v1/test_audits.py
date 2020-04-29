@@ -14,13 +14,13 @@ import datetime
 from dateutil import tz
 import itertools
 import mock
+from urllib import parse as urlparse
 
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
 from wsme import types as wtypes
 
-from six.moves.urllib import parse as urlparse
 from watcher.api.controllers.v1 import audit as api_audit
 from watcher.common import utils
 from watcher.db import api as db_api

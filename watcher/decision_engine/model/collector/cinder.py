@@ -13,8 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import six
-
 from oslo_log import log
 
 from watcher.common import cinder_helper
@@ -286,7 +284,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         :param instance: Cinder Volume object.
         :return: A volume node for the graph.
         """
-        attachments = [{k: v for k, v in six.iteritems(d) if k in (
+        attachments = [{k: v for k, v in iter(d.items()) if k in (
             'server_id', 'attachment_id')} for d in volume.attachments]
 
         volume_attributes = {

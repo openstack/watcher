@@ -17,11 +17,9 @@
 # limitations under the License.
 #
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseSolutionEvaluator(object):
+class BaseSolutionEvaluator(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def evaluate(self, solution):
         raise NotImplementedError()

@@ -16,13 +16,11 @@
 #
 
 import abc
-import six
 
 from watcher.common import context
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseScope(object):
+class BaseScope(object, metaclass=abc.ABCMeta):
     """A base class for Scope mechanism
 
     Child of this class is called when audit launches strategy. This strategy

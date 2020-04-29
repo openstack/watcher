@@ -17,7 +17,6 @@
 #
 
 import abc
-import six
 import time
 
 import eventlet
@@ -40,8 +39,7 @@ CANCEL_STATE = [objects.action_plan.State.CANCELLING,
                 objects.action_plan.State.CANCELLED]
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseWorkFlowEngine(loadable.Loadable):
+class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
 
     def __init__(self, config, context=None, applier_manager=None):
         """Constructor

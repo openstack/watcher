@@ -110,7 +110,6 @@ import time
 
 from oslo_config import cfg
 from oslo_log import log
-import six
 
 from watcher.common import clients
 from watcher.common.loader import loadable
@@ -120,8 +119,8 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseClusterDataModelCollector(loadable.LoadableSingleton):
+class BaseClusterDataModelCollector(loadable.LoadableSingleton,
+                                    metaclass=abc.ABCMeta):
 
     STALE_MODEL = model_root.ModelRoot(stale=True)
 

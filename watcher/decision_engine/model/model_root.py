@@ -21,7 +21,6 @@ from lxml import etree
 import networkx as nx
 from oslo_concurrency import lockutils
 from oslo_log import log
-import six
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -93,9 +92,9 @@ class ModelRoot(nx.DiGraph, base.Model):
         :param node: :py:class:`~.node.ComputeNode` object or node UUID
         :type node: str or :py:class:`~.instance.Instance`
         """
-        if isinstance(instance, six.string_types):
+        if isinstance(instance, str):
             instance = self.get_instance_by_uuid(instance)
-        if isinstance(node, six.string_types):
+        if isinstance(node, str):
             node = self.get_node_by_uuid(node)
         self.assert_node(node)
         self.assert_instance(instance)
@@ -104,9 +103,9 @@ class ModelRoot(nx.DiGraph, base.Model):
 
     @lockutils.synchronized("model_root")
     def unmap_instance(self, instance, node):
-        if isinstance(instance, six.string_types):
+        if isinstance(instance, str):
             instance = self.get_instance_by_uuid(instance)
-        if isinstance(node, six.string_types):
+        if isinstance(node, str):
             node = self.get_node_by_uuid(node)
 
         self.remove_edge(instance.uuid, node.uuid)
@@ -367,9 +366,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         :param pool: :py:class:`~.node.Pool` object or pool name
         :param node: :py:class:`~.node.StorageNode` object or node host
         """
-        if isinstance(pool, six.string_types):
+        if isinstance(pool, str):
             pool = self.get_pool_by_pool_name(pool)
-        if isinstance(node, six.string_types):
+        if isinstance(node, str):
             node = self.get_node_by_name(node)
         self.assert_node(node)
         self.assert_pool(pool)
@@ -383,9 +382,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         :param pool: :py:class:`~.node.Pool` object or pool name
         :param node: :py:class:`~.node.StorageNode` object or node name
         """
-        if isinstance(pool, six.string_types):
+        if isinstance(pool, str):
             pool = self.get_pool_by_pool_name(pool)
-        if isinstance(node, six.string_types):
+        if isinstance(node, str):
             node = self.get_node_by_name(node)
 
         self.remove_edge(pool.name, node.host)
@@ -411,9 +410,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         :param volume: :py:class:`~.volume.Volume` object or volume UUID
         :param pool: :py:class:`~.node.Pool` object or pool name
         """
-        if isinstance(volume, six.string_types):
+        if isinstance(volume, str):
             volume = self.get_volume_by_uuid(volume)
-        if isinstance(pool, six.string_types):
+        if isinstance(pool, str):
             pool = self.get_pool_by_pool_name(pool)
         self.assert_pool(pool)
         self.assert_volume(volume)
@@ -427,9 +426,9 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         :param volume: :py:class:`~.volume.Volume` object or volume UUID
         :param pool: :py:class:`~.node.Pool` object or pool name
         """
-        if isinstance(volume, six.string_types):
+        if isinstance(volume, str):
             volume = self.get_volume_by_uuid(volume)
-        if isinstance(pool, six.string_types):
+        if isinstance(pool, str):
             pool = self.get_pool_by_pool_name(pool)
 
         self.remove_edge(volume.uuid, pool.name)

@@ -18,7 +18,6 @@ Base classes for storage engines
 import abc
 from oslo_config import cfg
 from oslo_db import api as db_api
-import six
 
 _BACKEND_MAPPING = {'sqlalchemy': 'watcher.db.sqlalchemy.api'}
 IMPL = db_api.DBAPI.from_config(cfg.CONF, backend_mapping=_BACKEND_MAPPING,
@@ -30,8 +29,7 @@ def get_instance():
     return IMPL
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseConnection(object):
+class BaseConnection(object, metaclass=abc.ABCMeta):
     """Base class for storage system connections."""
 
     @abc.abstractmethod

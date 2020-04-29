@@ -45,13 +45,11 @@ See :doc:`../architecture` for more details on this component.
 """
 
 import abc
-import six
 
 from watcher.common.loader import loadable
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BasePlanner(loadable.Loadable):
+class BasePlanner(loadable.Loadable, metaclass=abc.ABCMeta):
 
     @classmethod
     def get_config_opts(cls):

@@ -28,7 +28,6 @@ from oslo_config import cfg
 from oslo_log import log
 from oslo_utils import strutils
 from oslo_utils import uuidutils
-import six
 
 from watcher.common import exception
 
@@ -82,7 +81,7 @@ def safe_rstrip(value, chars=None):
     :return: Stripped value.
 
     """
-    if not isinstance(value, six.string_types):
+    if not isinstance(value, str):
         LOG.warning(
             "Failed to remove trailing character. Returning original object."
             "Supplied object is not a string: %s,", value)
@@ -104,7 +103,7 @@ def is_hostname_safe(hostname):
 
     """
     m = r'^[a-z0-9]([a-z0-9\-]{0,61}[a-z0-9])?$'
-    return (isinstance(hostname, six.string_types) and
+    return (isinstance(hostname, str) and
             (re.match(m, hostname) is not None))
 
 

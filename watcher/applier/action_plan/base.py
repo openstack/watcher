@@ -18,11 +18,9 @@
 #
 
 import abc
-import six
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseActionPlanHandler(object):
+class BaseActionPlanHandler(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError()

@@ -19,14 +19,12 @@
 import abc
 
 import jsonschema
-import six
 
 from watcher.common import clients
 from watcher.common.loader import loadable
 
 
-@six.add_metaclass(abc.ABCMeta)
-class BaseAction(loadable.Loadable):
+class BaseAction(loadable.Loadable, metaclass=abc.ABCMeta):
     # NOTE(jed): by convention we decided
     # that the attribute "resource_id" is the unique id of
     # the resource to which the Action applies to allow us to use it in the

@@ -18,7 +18,6 @@
 # limitations under the License.
 #
 import abc
-import six
 
 from oslo_config import cfg
 from oslo_log import log
@@ -36,9 +35,11 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-@six.add_metaclass(abc.ABCMeta)
-@six.add_metaclass(service.Singleton)
-class BaseAuditHandler(object):
+class BaseMetaClass(service.Singleton, abc.ABCMeta):
+    pass
+
+
+class BaseAuditHandler(object, metaclass=BaseMetaClass):
 
     @abc.abstractmethod
     def execute(self, audit, request_context):
@@ -57,8 +58,7 @@ class BaseAuditHandler(object):
         raise NotImplementedError()
 
 
-@six.add_metaclass(abc.ABCMeta)
-class AuditHandler(BaseAuditHandler):
+class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
 
     def __init__(self):
         super(AuditHandler, self).__init__()
