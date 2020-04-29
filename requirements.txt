@@ -39,7 +39,6 @@ python-neutronclient>=6.7.0 # Apache-2.0
 python-novaclient>=14.1.0 # Apache-2.0
 python-openstackclient>=3.14.0 # Apache-2.0
 python-ironicclient>=2.5.0 # Apache-2.0
-six>=1.11.0 # MIT
 SQLAlchemy>=1.2.5 # MIT
 stevedore>=1.28.0 # Apache-2.0
 taskflow>=3.7.1 # Apache-2.0
