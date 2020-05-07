@@ -19,9 +19,6 @@
 # limitations under the License.
 #
 
-from __future__ import unicode_literals
-
-
 from watcher.common.loader import default
 
 

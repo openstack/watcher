@@ -17,8 +17,6 @@
 # limitations under the License.
 #
 
-from __future__ import division
-
 from oslo_log import log
 
 from watcher._i18n import _
