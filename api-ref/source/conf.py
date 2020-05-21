@@ -22,9 +22,6 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-from watcher import version as watcher_version
-
-
 extensions = [
     'openstackdocstheme',
     'os_api_ref',
@@ -46,21 +43,13 @@ project = u'Infrastructure Optimization API Reference'
 copyright = u'2010-present, OpenStack Foundation'
 
 # openstackdocstheme options
-repository_name = 'openstack/watcher'
-bug_project = 'watcher'
-bug_tag = ''
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The full version, including alpha/beta/rc tags.
-release = watcher_version.version_info.release_string()
-# The short X.Y version.
-version = watcher_version.version_string
+openstackdocs_repo_name = 'openstack/watcher'
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'watcher'
+openstackdocs_bug_tag = ''
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # -- Options for HTML output --------------------------------------------------
 
@@ -74,10 +63,6 @@ html_theme = 'openstackdocs'
 html_theme_options = {
     "sidebar_mode": "toc",
 }
-
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 # -- Options for LaTeX output -------------------------------------------------
 

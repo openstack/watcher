@@ -14,7 +14,6 @@
 import os
 import sys
 
-from watcher import version as watcher_version
 from watcher import objects
 
 objects.register_all()
@@ -60,16 +59,6 @@ master_doc = 'index'
 project = u'Watcher'
 copyright = u'OpenStack Foundation'
 
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
-# The short X.Y version.
-# The full version, including alpha/beta/rc tags.
-release = watcher_version.version_info.release_string()
-# The short X.Y version.
-version = watcher_version.version_string
-
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['watcher.']
 
@@ -94,7 +83,7 @@ add_module_names = True
 suppress_warnings = ['app.add_directive']
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # -- Options for man page output --------------------------------------------
 
@@ -125,12 +114,13 @@ html_theme = 'openstackdocs'
 # Output file base name for HTML help builder.
 htmlhelp_basename = '%sdoc' % project
 
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
 
 #openstackdocstheme options
-repository_name = 'openstack/watcher'
-bug_project = 'watcher'
-bug_tag = ''
+openstackdocs_repo_name = 'openstack/watcher'
+openstackdocs_pdf_link = True
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'watcher'
+openstackdocs_bug_tag = ''
 
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass
@@ -138,7 +128,7 @@ bug_tag = ''
 latex_documents = [
     ('index',
      'doc-watcher.tex',
-     u'%s Documentation' % project,
+     u'Watcher Documentation',
      u'OpenStack Foundation', 'manual'),
 ]
 

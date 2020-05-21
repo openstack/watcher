@@ -53,7 +53,6 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'watcher'
 copyright = u'2016, Watcher developers'
 
 # Release notes are version independent
@@ -91,11 +90,15 @@ exclude_patterns = ['_build']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'native'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
 
+# openstackdocstheme options
+openstackdocs_repo_name = 'openstack/watcher'
+openstackdocs_bug_project = 'watcher'
+openstackdocs_bug_tag = ''
 
 # -- Options for HTML output --------------------------------------------------
 
