@@ -138,6 +138,9 @@ class AuditTemplatePostType(wtypes.Base):
             raise exception.InvalidGoal(goal=audit_template.goal)
 
         if audit_template.scope:
+            keys = [list(s)[0] for s in audit_template.scope]
+            if keys[0] not in ('compute', 'storage'):
+                audit_template.scope = [dict(compute=audit_template.scope)]
             common_utils.Draft4Validator(
                 AuditTemplatePostType._build_schema()
                 ).validate(audit_template.scope)
