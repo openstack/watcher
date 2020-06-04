@@ -663,6 +663,26 @@ class TestPost(FunctionalTestWithSetup):
         self.assertEqual(400, response.status_int)
         assert not cn_mock.called
 
+    def test_create_audit_template_with_old_scope(self):
+        scope = [{'host_aggregates': [{'id': '*'}]},
+                 {'availability_zones': [{'name': 'AZ1'},
+                                         {'name': 'AZ2'}]},
+                 {'exclude': [
+                     {'instances': [
+                         {'uuid': 'INSTANCE_1'},
+                         {'uuid': 'INSTANCE_2'}]},
+                     {'compute_nodes': [
+                         {'name': 'Node_1'},
+                         {'name': 'Node_2'}]},
+                 ]}
+                 ]
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid,
+            strategy=self.fake_strategy1.uuid, scope=scope)
+        response = self.post_json('/audit_templates',
+                                  audit_template_dict)
+        self.assertEqual(201, response.status_int)
+
 
 class TestDelete(api_base.FunctionalTest):
 
