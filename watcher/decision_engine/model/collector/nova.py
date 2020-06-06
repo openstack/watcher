@@ -181,6 +181,9 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
         if self._audit_scope_handler is None:
             LOG.debug("No audit, Don't Build compute data model")
             return
+        if self._data_model_scope is None:
+            LOG.debug("No audit scope, Don't Build compute data model")
+            return
 
         builder = NovaModelBuilder(self.osc)
         return builder.execute(self._data_model_scope)
