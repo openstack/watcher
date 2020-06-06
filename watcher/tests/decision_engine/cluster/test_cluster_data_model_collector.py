@@ -17,6 +17,9 @@
 from unittest import mock
 
 from watcher.decision_engine.model.collector import base
+from watcher.decision_engine.model.collector import cinder
+from watcher.decision_engine.model.collector import ironic
+from watcher.decision_engine.model.collector import nova
 from watcher.decision_engine.model import model_root
 from watcher.tests import base as test_base
 
@@ -55,3 +58,36 @@ class TestClusterDataModelCollector(test_base.TestCase):
         self.assertIsNot(
             collector.cluster_data_model,
             collector.get_latest_cluster_data_model())
+
+
+class TestComputeDataModelCollector(test_base.TestCase):
+
+    def test_model_scope_is_none(self):
+        m_config = mock.Mock()
+        collector = nova.NovaClusterDataModelCollector(config=m_config)
+
+        collector._audit_scope_handler = mock.Mock()
+        collector._data_model_scope = None
+        self.assertIsNone(collector.execute())
+
+
+class TestStorageDataModelCollector(test_base.TestCase):
+
+    def test_model_scope_is_none(self):
+        m_config = mock.Mock()
+        collector = cinder.CinderClusterDataModelCollector(config=m_config)
+
+        collector._audit_scope_handler = mock.Mock()
+        collector._data_model_scope = None
+        self.assertIsNone(collector.execute())
+
+
+class TestBareMetalDataModelCollector(test_base.TestCase):
+
+    def test_model_scope_is_none(self):
+        m_config = mock.Mock()
+        collector = ironic.BaremetalClusterDataModelCollector(config=m_config)
+
+        collector._audit_scope_handler = mock.Mock()
+        collector._data_model_scope = None
+        self.assertIsNone(collector.execute())
