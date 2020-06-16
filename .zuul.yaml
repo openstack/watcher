@@ -204,6 +204,7 @@
     timeout: 10800
     run: playbooks/legacy/grenade-devstack-watcher/run.yaml
     post-run: playbooks/legacy/grenade-devstack-watcher/post.yaml
+    voting: false
     irrelevant-files:
       - ^(test-|)requirements.txt$
       - ^.*\.rst$
