@@ -54,7 +54,6 @@ MarkupSafe==1.0
 mccabe==0.2.1
 microversion_parse==0.2.1
 monotonic==1.4
-mox3==0.25.0
 msgpack==0.5.6
 munch==2.2.0
 netaddr==0.7.19
