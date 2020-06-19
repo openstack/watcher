@@ -148,18 +148,23 @@ class AuditTemplatePostType(wtypes.Base):
                         "included and excluded together"))
 
         if audit_template.strategy:
-            available_strategies = objects.Strategy.list(
-                AuditTemplatePostType._ctx)
-            available_strategies_map = {
-                s.uuid: s for s in available_strategies}
-            if audit_template.strategy not in available_strategies_map:
+            try:
+                if (common_utils.is_uuid_like(audit_template.strategy) or
+                        common_utils.is_int_like(audit_template.strategy)):
+                    strategy = objects.Strategy.get(
+                        AuditTemplatePostType._ctx, audit_template.strategy)
+                else:
+                    strategy = objects.Strategy.get_by_name(
+                        AuditTemplatePostType._ctx, audit_template.strategy)
+            except Exception:
                 raise exception.InvalidStrategy(
                     strategy=audit_template.strategy)
 
-            strategy = available_strategies_map[audit_template.strategy]
             # Check that the strategy we indicate is actually related to the
             # specified goal
             if strategy.goal_id != goal.id:
+                available_strategies = objects.Strategy.list(
+                    AuditTemplatePostType._ctx)
                 choices = ["'%s' (%s)" % (s.uuid, s.name)
                            for s in available_strategies]
                 raise exception.InvalidStrategy(

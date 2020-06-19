@@ -555,6 +555,35 @@ class TestPost(FunctionalTestWithSetup):
             response.json['created_at']).replace(tzinfo=None)
         self.assertEqual(test_time, return_created_at)
 
+    @mock.patch.object(timeutils, 'utcnow')
+    def test_create_audit_template_with_strategy_name(self, mock_utcnow):
+        audit_template_dict = post_get_test_audit_template(
+            goal=self.fake_goal1.uuid,
+            strategy=self.fake_strategy1.name)
+        test_time = datetime.datetime(2000, 1, 1, 0, 0)
+        mock_utcnow.return_value = test_time
+
+        response = self.post_json('/audit_templates', audit_template_dict)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(201, response.status_int)
+        # Check location header
+        self.assertIsNotNone(response.location)
+        expected_location = \
+            '/v1/audit_templates/%s' % response.json['uuid']
+        self.assertEqual(urlparse.urlparse(response.location).path,
+                         expected_location)
+        self.assertTrue(utils.is_uuid_like(response.json['uuid']))
+        self.assertNotIn('updated_at', response.json.keys)
+        self.assertNotIn('deleted_at', response.json.keys)
+        self.assertEqual(self.fake_goal1.uuid, response.json['goal_uuid'])
+        self.assertEqual(self.fake_strategy1.uuid,
+                         response.json['strategy_uuid'])
+        self.assertEqual(self.fake_strategy1.name,
+                         response.json['strategy_name'])
+        return_created_at = timeutils.parse_isotime(
+            response.json['created_at']).replace(tzinfo=None)
+        self.assertEqual(test_time, return_created_at)
+
     def test_create_audit_template_validation_with_aggregates(self):
         scope = [{'compute': [{'host_aggregates': [{'id': '*'}]},
                               {'availability_zones': [{'name': 'AZ1'},
