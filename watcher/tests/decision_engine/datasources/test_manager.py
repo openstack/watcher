@@ -16,7 +16,7 @@
 
 from unittest import mock
 
-from mock import MagicMock
+from unittest.mock import MagicMock
 
 from watcher.common import exception
 from watcher.decision_engine.datasources import gnocchi
