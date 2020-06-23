@@ -11,7 +11,8 @@
     check:
       jobs:
         - watcher-tempest-functional
-        - watcher-grenade
+        - watcher-grenade:
+            voting: false
         - watcher-tempest-dummy_optim
         - watcher-tempest-actuator
         - watcher-tempest-basic_optim
