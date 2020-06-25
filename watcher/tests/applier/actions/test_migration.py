@@ -185,6 +185,29 @@ class TestMigration(base.TestCase):
                 dest_hostname="compute2-hostname"
             )
 
+    def test_revert_live_migration(self):
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+
+        self.action.revert()
+
+        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper.live_migrate_instance.assert_called_once_with(
+            instance_id=self.INSTANCE_UUID,
+            dest_hostname="compute1-hostname"
+        )
+
+    def test_revert_cold_migration(self):
+        self.m_helper.find_instance.return_value = self.INSTANCE_UUID
+
+        self.action_cold.revert()
+
+        self.m_helper_cls.assert_called_once_with(osc=self.m_osc)
+        self.m_helper.watcher_non_live_migrate_instance.\
+            assert_called_once_with(
+                instance_id=self.INSTANCE_UUID,
+                dest_hostname="compute1-hostname"
+            )
+
     def test_abort_live_migrate(self):
         migration = mock.MagicMock()
         migration.id = "2"
