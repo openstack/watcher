@@ -95,7 +95,7 @@ class Resize(base.BaseAction):
         return self.resize()
 
     def revert(self):
-        return self.migrate(destination=self.source_node)
+        LOG.warning("revert not supported")
 
     def pre_condition(self):
         # TODO(jed): check if the instance exists / check if the instance is on
