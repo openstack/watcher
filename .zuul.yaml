@@ -160,7 +160,6 @@
     timeout: 7200
     required-projects: &base_required_projects
       - openstack/ceilometer
-      - openstack/devstack-gate
       - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
@@ -179,14 +178,10 @@
         s-container: false
         s-object: false
         s-proxy: false
-      devstack_localrc:
-        TEMPEST_PLUGINS: /opt/stack/watcher-tempest-plugin
-        USE_PYTHON3: true
+      tempest_plugins:
+        - watcher-tempest-plugin
       tempest_test_regex: watcher_tempest_plugin.tests.api
       tox_envlist: all
-      tox_environment:
-        # Do we really need to set this? It's cargo culted
-        PYTHONUNBUFFERED: 'true'
       zuul_copy_output:
         /etc/hosts: logs
 
@@ -200,10 +195,12 @@
 
 - job:
     name: watcher-grenade
-    parent: legacy-dsvm-base
-    timeout: 10800
-    run: playbooks/legacy/grenade-devstack-watcher/run.yaml
-    post-run: playbooks/legacy/grenade-devstack-watcher/post.yaml
+    parent: grenade
+    required-projects:
+      - openstack/watcher
+      - openstack/python-watcherclient
+      - openstack/watcher-tempest-plugin
+    vars: *base_vars
     irrelevant-files:
       - ^(test-|)requirements.txt$
       - ^.*\.rst$
@@ -215,12 +212,6 @@
       - ^setup.cfg$
       - ^tools/.*$
       - ^tox.ini$
-    required-projects:
-      - openstack/grenade
-      - openstack/devstack-gate
-      - openstack/watcher
-      - openstack/python-watcherclient
-      - openstack/watcher-tempest-plugin
 
 - job:
     # This job is used in python-watcherclient repo
