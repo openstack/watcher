@@ -19,6 +19,8 @@
 import eventlet
 from unittest import mock
 
+from oslo_config import cfg
+
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import clients
 from watcher.common import nova_helper
@@ -111,3 +113,52 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         mock_eventlet_spawn.return_value = et
         action_container.execute()
         et.kill.assert_called_with()
+
+    @mock.patch('watcher.applier.workflow_engine.default.LOG')
+    def test_execute_without_rollback(self, mock_log):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.FAILED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", False,
+                              group="watcher_applier")
+        action_name = "action_type:{0} uuid:{1}".format(action.action_type,
+                                                        action.uuid)
+        expected_log = ('Failed actionplan rollback option is turned off, '
+                        'and the following action will be skipped: %s')
+        action_container.revert()
+        mock_log.info.assert_called_once_with(expected_log, action_name)
+
+    @mock.patch('watcher.applier.workflow_engine.default.LOG')
+    def test_execute_with_rollback(self, mock_log):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.FAILED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
+                              group="watcher_applier")
+        action_name = "action_type:{0} uuid:{1}".format(action.action_type,
+                                                        action.uuid)
+        expected_log = 'Revert action: %s'
+        action_container.revert()
+        mock_log.warning.assert_called_once_with(expected_log, action_name)

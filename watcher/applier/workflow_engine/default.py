@@ -25,7 +25,10 @@ from taskflow import task as flow_task
 
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
+from watcher import conf
 from watcher import objects
+
+CONF = conf.CONF
 
 LOG = log.getLogger(__name__)
 
@@ -127,9 +130,11 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
 class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def __init__(self, db_action, engine):
-        name = "action_type:{0} uuid:{1}".format(db_action.action_type,
-                                                 db_action.uuid)
-        super(TaskFlowActionContainer, self).__init__(name, db_action, engine)
+        self.name = "action_type:{0} uuid:{1}".format(db_action.action_type,
+                                                      db_action.uuid)
+        super(TaskFlowActionContainer, self).__init__(self.name,
+                                                      db_action,
+                                                      engine)
 
     def do_pre_execute(self):
         db_action = self.engine.notify(self._db_action,
@@ -158,6 +163,12 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
         self.action.post_condition()
 
     def do_revert(self, *args, **kwargs):
+        # NOTE: Not rollback action plan
+        if not CONF.watcher_applier.rollback_when_actionplan_failed:
+            LOG.info("Failed actionplan rollback option is turned off, and "
+                     "the following action will be skipped: %s", self.name)
+            return
+
         LOG.warning("Revert action: %s", self.name)
         try:
             # TODO(jed): do we need to update the states in case of failure?
