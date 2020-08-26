@@ -21,7 +21,6 @@ import datetime
 from monascaclient import exc
 
 from watcher.common import clients
-from watcher.common import exception
 from watcher.decision_engine.datasources import base
 
 
@@ -90,9 +89,7 @@ class MonascaHelper(base.DataSourceBase):
         stop_time = datetime.datetime.utcnow()
         start_time = stop_time - datetime.timedelta(seconds=(int(period)))
 
-        meter = self.METRIC_MAP.get(meter_name)
-        if meter is None:
-            raise exception.MetricNotAvailable(metric=meter_name)
+        meter = self._get_meter(meter_name)
 
         if aggregate == 'mean':
             aggregate = 'avg'
@@ -120,6 +117,34 @@ class MonascaHelper(base.DataSourceBase):
             cpu_usage = value
 
         return cpu_usage
+
+    def statistic_series(self, resource=None, resource_type=None,
+                         meter_name=None, start_time=None, end_time=None,
+                         granularity=300):
+
+        meter = self._get_meter(meter_name)
+
+        raw_kwargs = dict(
+            name=meter,
+            start_time=start_time.isoformat(),
+            end_time=end_time.isoformat(),
+            dimensions={'hostname': resource.uuid},
+            statistics='avg',
+            group_by='*',
+        )
+
+        kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
+
+        statistics = self.query_retry(
+            f=self.monasca.metrics.list_statistics, **kwargs)
+
+        result = {}
+        for stat in statistics:
+            v_index = stat['columns'].index('avg')
+            t_index = stat['columns'].index('timestamp')
+            result.update({r[t_index]: r[v_index] for r in stat['statistics']})
+
+        return result
 
     def get_host_cpu_usage(self, resource, period,
                            aggregate, granularity=None):

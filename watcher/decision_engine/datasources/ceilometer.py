@@ -161,9 +161,7 @@ class CeilometerHelper(base.DataSourceBase):
         end_time = datetime.datetime.utcnow()
         start_time = end_time - datetime.timedelta(seconds=int(period))
 
-        meter = self.METRIC_MAP.get(meter_name)
-        if meter is None:
-            raise exception.MetricNotAvailable(metric=meter_name)
+        meter = self._get_meter(meter_name)
 
         if aggregate == 'mean':
             aggregate = 'avg'
@@ -193,6 +191,12 @@ class CeilometerHelper(base.DataSourceBase):
                 # 1/10 th of actual CFM
                 item_value *= 10
         return item_value
+
+    def statistic_series(self, resource=None, resource_type=None,
+                         meter_name=None, start_time=None, end_time=None,
+                         granularity=300):
+        raise NotImplementedError(
+            _('Ceilometer helper does not support statistic series method'))
 
     def get_host_cpu_usage(self, resource, period,
                            aggregate, granularity=None):

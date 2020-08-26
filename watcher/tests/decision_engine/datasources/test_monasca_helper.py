@@ -13,7 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from datetime import datetime
 from unittest import mock
 
 from oslo_config import cfg
@@ -66,6 +66,43 @@ class TestMonascaHelper(base.BaseTestCase):
             aggregate='mean',
         )
         self.assertEqual(0.6, result)
+
+    def test_monasca_statistic_series(self, mock_monasca):
+        monasca = mock.MagicMock()
+        expected_stat = [{
+            'columns': ['timestamp', 'avg'],
+            'dimensions': {
+                'hostname': 'rdev-indeedsrv001',
+                'service': 'monasca'},
+            'id': '0',
+            'name': 'cpu.percent',
+            'statistics': [
+                ['2016-07-29T12:45:00Z', 0.0],
+                ['2016-07-29T12:50:00Z', 0.9],
+                ['2016-07-29T12:55:00Z', 0.9]]}]
+
+        expected_result = {
+            '2016-07-29T12:45:00Z': 0.0,
+            '2016-07-29T12:50:00Z': 0.9,
+            '2016-07-29T12:55:00Z': 0.9,
+        }
+
+        monasca.metrics.list_statistics.return_value = expected_stat
+        mock_monasca.return_value = monasca
+
+        start = datetime(year=2016, month=7, day=29, hour=12, minute=45)
+        end = datetime(year=2016, month=7, day=29, hour=12, minute=55)
+
+        helper = monasca_helper.MonascaHelper()
+        result = helper.statistic_series(
+            resource=mock.Mock(id='NODE_UUID'),
+            resource_type='compute_node',
+            meter_name='host_cpu_usage',
+            start_time=start,
+            end_time=end,
+            granularity=300,
+        )
+        self.assertEqual(expected_result, result)
 
     def test_statistic_aggregation_metric_unavailable(self, mock_monasca):
         helper = monasca_helper.MonascaHelper()

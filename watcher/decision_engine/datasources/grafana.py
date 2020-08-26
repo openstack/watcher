@@ -21,6 +21,7 @@ from urllib import parse as urlparse
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception
 from watcher.decision_engine.datasources import base
@@ -187,6 +188,12 @@ class GrafanaHelper(base.DataSourceBase):
         result = translator.extract_result(resp.content)
 
         return result
+
+    def statistic_series(self, resource=None, resource_type=None,
+                         meter_name=None, start_time=None, end_time=None,
+                         granularity=300):
+        raise NotImplementedError(
+            _('Grafana helper does not support statistic series method'))
 
     def get_host_cpu_usage(self, resource, period=300,
                            aggregate="mean", granularity=None):

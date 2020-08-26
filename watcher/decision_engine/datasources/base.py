@@ -19,6 +19,8 @@ import time
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher.common import exception
+
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
@@ -53,6 +55,13 @@ class DataSourceBase(object):
                       instance_l3_cache_usage=None,
                       instance_root_disk_size=None,
                       )
+
+    def _get_meter(self, meter_name):
+        """Retrieve the meter from the metric map or raise error"""
+        meter = self.METRIC_MAP.get(meter_name)
+        if meter is None:
+            raise exception.MetricNotAvailable(metric=meter_name)
+        return meter
 
     def query_retry(self, f, *args, **kwargs):
         """Attempts to retrieve metrics from the external service
@@ -118,6 +127,30 @@ class DataSourceBase(object):
                           samples
         :return: The gathered value for the metric the type of value depends on
                  the meter_name
+        """
+
+        pass
+
+    @abc.abstractmethod
+    def statistic_series(self, resource=None, resource_type=None,
+                         meter_name=None, start_time=None, end_time=None,
+                         granularity=300):
+        """Retrieves metrics based on the specified parameters over a period
+
+        :param resource: Resource object as defined in watcher models such as
+                         ComputeNode and Instance
+        :param resource_type: Indicates which type of object is supplied
+                              to the resource parameter
+        :param meter_name: The desired metric to retrieve as key from
+                           METRIC_MAP
+        :param start_time: The datetime to start retrieving metrics for
+        :type start_time: datetime.datetime
+        :param end_time: The datetime to limit the retrieval of metrics to
+        :type end_time: datetime.datetime
+        :param granularity: Interval between samples in measurements in
+                            seconds
+        :return: Dictionary of key value pairs with timestamps and metric
+                 values
         """
 
         pass

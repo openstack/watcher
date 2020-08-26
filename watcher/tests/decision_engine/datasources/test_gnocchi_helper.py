@@ -13,7 +13,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from datetime import datetime
 from unittest import mock
 
 from oslo_config import cfg
@@ -56,6 +56,35 @@ class TestGnocchiHelper(base.BaseTestCase):
             period=300,
             granularity=360,
             aggregate='mean',
+        )
+        self.assertEqual(expected_result, result)
+
+    def test_gnocchi_statistic_series(self, mock_gnocchi):
+        gnocchi = mock.MagicMock()
+        expected_result = {
+            "2017-02-02T09:00:00.000000": 5.5,
+            "2017-02-02T09:03:60.000000": 5.8
+        }
+
+        expected_measures = [
+            ["2017-02-02T09:00:00.000000", 360, 5.5],
+            ["2017-02-02T09:03:60.000000", 360, 5.8]
+        ]
+
+        gnocchi.metric.get_measures.return_value = expected_measures
+        mock_gnocchi.return_value = gnocchi
+
+        start = datetime(year=2017, month=2, day=2, hour=9, minute=0)
+        end = datetime(year=2017, month=2, day=2, hour=9, minute=4)
+
+        helper = gnocchi_helper.GnocchiHelper()
+        result = helper.statistic_series(
+            resource=mock.Mock(id='16a86790-327a-45f9-bc82-45839f062fdc'),
+            resource_type='instance',
+            meter_name='instance_cpu_usage',
+            start_time=start,
+            end_time=end,
+            granularity=360,
         )
         self.assertEqual(expected_result, result)
 
