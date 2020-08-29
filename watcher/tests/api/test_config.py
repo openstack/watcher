@@ -12,7 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import imp
+import importlib
 from oslo_config import cfg
 from watcher.api import config as api_config
 from watcher.tests.api import base
@@ -23,13 +23,13 @@ class TestRoot(base.FunctionalTest):
     def test_config_enable_webhooks_auth(self):
         acl_public_routes = ['/']
         cfg.CONF.set_override('enable_webhooks_auth', True, 'api')
-        imp.reload(api_config)
+        importlib.reload(api_config)
         self.assertEqual(acl_public_routes,
                          api_config.app['acl_public_routes'])
 
     def test_config_disable_webhooks_auth(self):
         acl_public_routes = ['/', '/v1/webhooks/.*']
         cfg.CONF.set_override('enable_webhooks_auth', False, 'api')
-        imp.reload(api_config)
+        importlib.reload(api_config)
         self.assertEqual(acl_public_routes,
                          api_config.app['acl_public_routes'])
