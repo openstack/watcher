@@ -102,7 +102,7 @@
 - job:
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
-    nodeset: openstack-two-node-bionic
+    nodeset: openstack-two-node-focal
     roles:
       - zuul: openstack/tempest
     group-vars:
