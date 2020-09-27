@@ -23,7 +23,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import clients
-from watcher.common import exception
 from watcher.decision_engine.datasources import base
 
 CONF = cfg.CONF
@@ -72,9 +71,7 @@ class GnocchiHelper(base.DataSourceBase):
         stop_time = datetime.utcnow()
         start_time = stop_time - timedelta(seconds=(int(period)))
 
-        meter = self.METRIC_MAP.get(meter_name)
-        if meter is None:
-            raise exception.MetricNotAvailable(metric=meter_name)
+        meter = self._get_meter(meter_name)
 
         if aggregate == 'count':
             aggregate = 'mean'
@@ -120,6 +117,52 @@ class GnocchiHelper(base.DataSourceBase):
                 # Airflow from hardware.ipmi.node.airflow is reported as
                 # 1/10 th of actual CFM
                 return_value *= 10
+
+        return return_value
+
+    def statistic_series(self, resource=None, resource_type=None,
+                         meter_name=None, start_time=None, end_time=None,
+                         granularity=300):
+
+        meter = self._get_meter(meter_name)
+
+        resource_id = resource.uuid
+        if resource_type == 'compute_node':
+            resource_id = "%s_%s" % (resource.hostname, resource.hostname)
+            kwargs = dict(query={"=": {"original_resource_id": resource_id}},
+                          limit=1)
+            resources = self.query_retry(
+                f=self.gnocchi.resource.search, **kwargs)
+
+            if not resources:
+                LOG.warning("The {0} resource {1} could not be "
+                            "found".format(self.NAME, resource_id))
+                return
+
+            resource_id = resources[0]['id']
+
+        raw_kwargs = dict(
+            metric=meter,
+            start=start_time,
+            stop=end_time,
+            resource_id=resource_id,
+            granularity=granularity,
+        )
+
+        kwargs = {k: v for k, v in raw_kwargs.items() if k and v}
+
+        statistics = self.query_retry(
+            f=self.gnocchi.metric.get_measures, **kwargs)
+
+        return_value = None
+        if statistics:
+            # measure has structure [time, granularity, value]
+            if meter_name == 'host_airflow':
+                # Airflow from hardware.ipmi.node.airflow is reported as
+                # 1/10 th of actual CFM
+                return_value = {s[0]: s[2]*10 for s in statistics}
+            else:
+                return_value = {s[0]: s[2] for s in statistics}
 
         return return_value
 
