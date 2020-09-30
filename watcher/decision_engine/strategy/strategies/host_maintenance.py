@@ -18,8 +18,6 @@
 #
 
 from oslo_log import log
-import six
-
 from watcher._i18n import _
 from watcher.common import exception
 from watcher.decision_engine.model import element
@@ -103,7 +101,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     def get_instance_state_str(self, instance):
         """Get instance state in string format"""
-        if isinstance(instance.state, six.string_types):
+        if isinstance(instance.state, str):
             return instance.state
         elif isinstance(instance.state, element.InstanceState):
             return instance.state.value
@@ -116,7 +114,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     def get_node_status_str(self, node):
         """Get node status in string format"""
-        if isinstance(node.status, six.string_types):
+        if isinstance(node.status, str):
             return node.status
         elif isinstance(node.status, element.ServiceState):
             return node.status.value
