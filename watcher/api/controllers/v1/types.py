@@ -15,7 +15,6 @@
 
 from oslo_serialization import jsonutils
 from oslo_utils import strutils
-import six
 import wsme
 from wsme import types as wtypes
 
@@ -132,7 +131,7 @@ class JsonType(wtypes.UserType):
 
     def __str__(self):
         # These are the json serializable native types
-        return ' | '.join(map(str, (wtypes.text, six.integer_types, float,
+        return ' | '.join(map(str, (wtypes.text, int, float,
                                     BooleanType, list, dict, None)))
 
     @staticmethod

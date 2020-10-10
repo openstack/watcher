@@ -56,9 +56,6 @@ Here is an example showing how you can write a plugin called ``NewStrategy``:
     # filepath: thirdparty/new.py
     # import path: thirdparty.new
     import abc
-
-    import six
-
     from watcher._i18n import _
     from watcher.decision_engine.strategy.strategies import base
 
