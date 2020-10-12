@@ -128,22 +128,20 @@ def check_assert_called_once_with(logical_line, filename):
 @flake8ext
 def check_python3_xrange(logical_line):
     if re.search(r"\bxrange\s*\(", logical_line):
-        yield(0, "N325: Do not use xrange. Use range, or six.moves.range for "
-                 "large loops.")
+        yield(0, "N325: Do not use xrange. Use range for large loops.")
 
 
 @flake8ext
 def check_no_basestring(logical_line):
     if re.search(r"\bbasestring\b", logical_line):
-        msg = ("N326: basestring is not Python3-compatible, use "
-               "six.string_types instead.")
+        msg = ("N326: basestring is not Python3-compatible, use str instead.")
         yield(0, msg)
 
 
 @flake8ext
 def check_python3_no_iteritems(logical_line):
     if re.search(r".*\.iteritems\(\)", logical_line):
-        msg = ("N327: Use six.iteritems() instead of dict.iteritems().")
+        msg = ("N327: Use dict.items() instead of dict.iteritems().")
         yield(0, msg)
 
 
