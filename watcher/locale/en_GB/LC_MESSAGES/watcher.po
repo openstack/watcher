@@ -1,14 +1,15 @@
 # Andi Chandler <andi@gowling.com>, 2017. #zanata
 # Andi Chandler <andi@gowling.com>, 2018. #zanata
+# Andi Chandler <andi@gowling.com>, 2020. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: watcher VERSION\n"
 "Report-Msgid-Bugs-To: https://bugs.launchpad.net/openstack-i18n/\n"
-"POT-Creation-Date: 2020-04-26 02:09+0000\n"
+"POT-Creation-Date: 2020-10-27 04:14+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2018-11-07 06:14+0000\n"
+"PO-Revision-Date: 2020-10-28 11:02+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
@@ -188,8 +189,16 @@ msgid "Audit parameter %(parameter)s are not allowed"
 msgstr "Audit parameter %(parameter)s are not allowed"
 
 #, python-format
+msgid "Audit state %(state)s is disallowed."
+msgstr "Audit state %(state)s is disallowed."
+
+#, python-format
 msgid "Audit type %(audit_type)s could not be found"
 msgstr "Audit type %(audit_type)s could not be found"
+
+#, python-format
+msgid "Audit type %(audit_type)s is disallowed."
+msgstr "Audit type %(audit_type)s is disallowed."
 
 #, python-format
 msgid "AuditTemplate %(audit_template)s could not be found"
@@ -242,6 +251,9 @@ msgstr "Cannot overwrite UUID for an existing efficacy indicator."
 
 msgid "Cannot remove 'goal' attribute from an audit template"
 msgstr "Cannot remove 'goal' attribute from an audit template"
+
+msgid "Ceilometer helper does not support statistic series method"
+msgstr "Ceilometer helper does not support statistic series method"
 
 msgid "Cluster Maintaining"
 msgstr "Cluster Maintaining"
@@ -369,6 +381,9 @@ msgstr "Goal %(goal)s is invalid"
 msgid "Goals"
 msgstr "Goals"
 
+msgid "Grafana helper does not support statistic series method"
+msgstr "Grafana helper does not support statistic series method"
+
 msgid "Hardware Maintenance"
 msgstr "Hardware Maintenance"
 
@@ -435,8 +450,15 @@ msgid "Maximum time since last check-in for up service."
 msgstr "Maximum time since last check-in for up service."
 
 #, python-format
+msgid "Metric: %(metric)s not available"
+msgstr "Metric: %(metric)s not available"
+
+#, python-format
 msgid "Migration of type '%(migration_type)s' is not supported."
 msgstr "Migration of type '%(migration_type)s' is not supported."
+
+msgid "Minimum Nova API Version"
+msgstr "Minimum Nova API Version"
 
 msgid ""
 "Name of this node. This can be an opaque identifier. It is not necessarily a "
@@ -451,9 +473,15 @@ msgstr ""
 msgid "No %(metric)s metric for %(host)s found."
 msgstr "No %(metric)s metric for %(host)s found."
 
+msgid "No datasources available"
+msgstr "No datasources available"
+
 #, python-format
 msgid "No strategy could be found to achieve the '%(goal)s' goal."
 msgstr "No strategy could be found to achieve the '%(goal)s' goal."
+
+msgid "Node Resource Consolidation strategy"
+msgstr "Node Resource Consolidation strategy"
 
 msgid "Noisy Neighbor"
 msgstr "Noisy Neighbour"
@@ -607,6 +635,10 @@ msgid "Strategy %(strategy)s is invalid"
 msgstr "Strategy %(strategy)s is invalid"
 
 #, python-format
+msgid "The %(data_model_type)s data model could not be found"
+msgstr "The %(data_model_type)s data model could not be found"
+
+#, python-format
 msgid "The %(name)s %(id)s could not be found"
 msgstr "The %(name)s %(id)s could not be found"
 
@@ -675,6 +707,13 @@ msgstr "The instance '%(name)s' could not be found"
 msgid "The ironic node %(uuid)s could not be found"
 msgstr "The Ironic node %(uuid)s could not be found"
 
+#, python-format
+msgid "The mapped compute node for instance '%(uuid)s' could not be found."
+msgstr "The mapped compute node for instance '%(uuid)s' could not be found."
+
+msgid "The node status is not defined"
+msgstr "The node status is not defined"
+
 msgid "The number of VM migrations to be performed."
 msgstr "The number of VM migrations to be performed."
 
@@ -737,6 +776,10 @@ msgstr "The total number of audited instances in strategy."
 
 msgid "The total number of enabled compute nodes."
 msgstr "The total number of enabled compute nodes."
+
+#, python-format
+msgid "The value %(value)s for parameter %(parameter)s is invalid"
+msgstr "The value %(value)s for parameter %(parameter)s is invalid"
 
 msgid "The value of original standard deviation."
 msgstr "The value of original standard deviation."
