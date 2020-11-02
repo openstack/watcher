@@ -631,7 +631,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
             super(BaremetalModelRoot, self).remove_node(node.uuid)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
-            raise exception.IronicNodeNotFound(name=node.uuid)
+            raise exception.IronicNodeNotFound(uuid=node.uuid)
 
     @lockutils.synchronized("baremetal_model")
     def get_all_ironic_nodes(self):
@@ -643,7 +643,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
         try:
             return self._get_by_uuid(uuid)
         except exception.BaremetalResourceNotFound:
-            raise exception.IronicNodeNotFound(name=uuid)
+            raise exception.IronicNodeNotFound(uuid=uuid)
 
     def _get_by_uuid(self, uuid):
         try:
