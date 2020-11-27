@@ -350,7 +350,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     def is_in_use(self, volume):
         return getattr(volume, 'status') == IN_USE
 
-    def instances_no_attached(instances):
+    def instances_no_attached(self, instances):
         return [i for i in instances
                 if not getattr(i, "os-extended-volumes:volumes_attached")]
 
