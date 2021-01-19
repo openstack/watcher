@@ -20,7 +20,6 @@ from unittest import mock
 from oslo_config import cfg
 
 import oslo_messaging as om
-from watcher.common import rpc
 from watcher.common import service
 from watcher import objects
 from watcher.tests import base
@@ -102,8 +101,6 @@ class TestService(base.TestCase):
 
     def test_init_service(self):
         dummy_service = service.Service(DummyManager)
-        self.assertIsInstance(dummy_service.serializer,
-                              rpc.RequestContextSerializer)
         self.assertIsInstance(
             dummy_service.conductor_topic_handler,
             om.rpc.server.RPCServer)

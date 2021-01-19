@@ -21,13 +21,11 @@ from oslo_concurrency import processutils
 from oslo_config import cfg
 from oslo_log import _options
 from oslo_log import log
-import oslo_messaging as om
+import oslo_messaging as messaging
 from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
-
-from oslo_messaging.rpc import dispatcher
 
 from watcher._i18n import _
 from watcher.api import app
@@ -183,11 +181,6 @@ class Service(service.ServiceBase):
         ]
         self.notification_endpoints = self.manager.notification_endpoints
 
-        self.serializer = rpc.RequestContextSerializer(
-            base.WatcherObjectSerializer())
-
-        self._transport = None
-        self._notification_transport = None
         self._conductor_client = None
 
         self.conductor_topic_handler = None
@@ -202,26 +195,16 @@ class Service(service.ServiceBase):
             )
 
     @property
-    def transport(self):
-        if self._transport is None:
-            self._transport = om.get_rpc_transport(CONF)
-        return self._transport
-
-    @property
-    def notification_transport(self):
-        if self._notification_transport is None:
-            self._notification_transport = om.get_notification_transport(CONF)
-        return self._notification_transport
-
-    @property
     def conductor_client(self):
         if self._conductor_client is None:
-            target = om.Target(
+            target = messaging.Target(
                 topic=self.conductor_topic,
                 version=self.API_VERSION,
             )
-            self._conductor_client = om.RPCClient(
-                self.transport, target, serializer=self.serializer)
+            self._conductor_client = rpc.get_client(
+                target,
+                serializer=base.WatcherObjectSerializer()
+            )
         return self._conductor_client
 
     @conductor_client.setter
@@ -229,21 +212,18 @@ class Service(service.ServiceBase):
         self.conductor_client = c
 
     def build_topic_handler(self, topic_name, endpoints=()):
-        access_policy = dispatcher.DefaultRPCAccessPolicy
-        serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
-        target = om.Target(
+        target = messaging.Target(
             topic=topic_name,
             # For compatibility, we can override it with 'host' opt
             server=CONF.host or socket.gethostname(),
             version=self.api_version,
         )
-        return om.get_rpc_server(
-            self.transport, target, endpoints,
-            executor='eventlet', serializer=serializer,
-            access_policy=access_policy)
+        return rpc.get_server(
+            target, endpoints,
+            serializer=rpc.JsonPayloadSerializer()
+        )
 
     def build_notification_handler(self, topic_names, endpoints=()):
-        serializer = rpc.RequestContextSerializer(rpc.JsonPayloadSerializer())
         targets = []
         for topic in topic_names:
             kwargs = {}
@@ -251,11 +231,13 @@ class Service(service.ServiceBase):
                 exchange, topic = topic.split('.')
                 kwargs['exchange'] = exchange
             kwargs['topic'] = topic
-            targets.append(om.Target(**kwargs))
-        return om.get_notification_listener(
-            self.notification_transport, targets, endpoints,
-            executor='eventlet', serializer=serializer,
-            allow_requeue=False, pool=CONF.host)
+            targets.append(messaging.Target(**kwargs))
+
+        return rpc.get_notification_listener(
+            targets, endpoints,
+            serializer=rpc.JsonPayloadSerializer(),
+            pool=CONF.host
+        )
 
     def start(self):
         LOG.debug("Connecting to '%s'", CONF.transport_url)
