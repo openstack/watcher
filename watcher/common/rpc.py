@@ -121,22 +121,40 @@ class RequestContextSerializer(messaging.Serializer):
 def get_client(target, version_cap=None, serializer=None):
     assert TRANSPORT is not None
     serializer = RequestContextSerializer(serializer)
-    return messaging.RPCClient(TRANSPORT,
-                               target,
-                               version_cap=version_cap,
-                               serializer=serializer)
+    return messaging.RPCClient(
+        TRANSPORT,
+        target,
+        version_cap=version_cap,
+        serializer=serializer
+    )
 
 
 def get_server(target, endpoints, serializer=None):
     assert TRANSPORT is not None
     access_policy = dispatcher.DefaultRPCAccessPolicy
     serializer = RequestContextSerializer(serializer)
-    return messaging.get_rpc_server(TRANSPORT,
-                                    target,
-                                    endpoints,
-                                    executor='eventlet',
-                                    serializer=serializer,
-                                    access_policy=access_policy)
+    return messaging.get_rpc_server(
+        TRANSPORT,
+        target,
+        endpoints,
+        executor='eventlet',
+        serializer=serializer,
+        access_policy=access_policy
+    )
+
+
+def get_notification_listener(targets, endpoints, serializer=None, pool=None):
+    assert NOTIFICATION_TRANSPORT is not None
+    serializer = RequestContextSerializer(serializer)
+    return messaging.get_notification_listener(
+        NOTIFICATION_TRANSPORT,
+        targets,
+        endpoints,
+        allow_requeue=False,
+        executor='eventlet',
+        pool=pool,
+        serializer=serializer
+    )
 
 
 def get_notifier(publisher_id):
