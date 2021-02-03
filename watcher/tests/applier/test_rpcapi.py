@@ -40,7 +40,7 @@ class TestApplierAPI(base.TestCase):
                 'check_api_version',
                 api_version=rpcapi.ApplierAPI().API_VERSION)
 
-    def test_execute_audit_without_error(self):
+    def test_execute_action_plan_without_error(self):
         with mock.patch.object(om.RPCClient, 'cast') as mock_cast:
             action_plan_uuid = utils.generate_uuid()
             self.api.launch_action_plan(self.context, action_plan_uuid)

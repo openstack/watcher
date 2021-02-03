@@ -83,4 +83,4 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
         m_action_list.assert_called()
         m_plan_save.assert_called()
         m_action_save.assert_called()
-        self.assertEqual(self.action.state, objects.audit.State.CANCELLED)
+        self.assertEqual(self.action.state, objects.action.State.CANCELLED)
