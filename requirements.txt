@@ -1,4 +1,4 @@
-# The order of packages is significant, because pip processes them in the order
+#  The order of packages is significant, because pip processes them in the order
 # of appearance. Changing the order has an impact on the overall integration
 # process, which may cause wedges in the gate later.
 
@@ -28,7 +28,7 @@ oslo.versionedobjects>=1.32.0 # Apache-2.0
 PasteDeploy>=1.5.2 # MIT
 pbr>=3.1.1 # Apache-2.0
 pecan>=1.3.2 # BSD
-PrettyTable<0.8,>=0.7.2 # BSD
+PrettyTable>=0.7.2 # BSD
 gnocchiclient>=7.0.1 # Apache-2.0
 python-ceilometerclient>=2.9.0 # Apache-2.0
 python-cinderclient>=3.5.0 # Apache-2.0
