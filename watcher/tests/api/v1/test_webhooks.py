@@ -12,6 +12,8 @@
 
 from unittest import mock
 
+from http import HTTPStatus
+
 from watcher.decision_engine import rpcapi as deapi
 from watcher import objects
 from watcher.tests.api import base as api_base
@@ -34,7 +36,7 @@ class TestPost(api_base.FunctionalTest):
         response = self.post_json(
             '/webhooks/%s' % audit['uuid'], {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'})
-        self.assertEqual(202, response.status_int)
+        self.assertEqual(HTTPStatus.ACCEPTED, response.status_int)
         mock_trigger_audit.assert_called_once_with(
             mock.ANY, audit['uuid'])
 
@@ -43,7 +45,7 @@ class TestPost(api_base.FunctionalTest):
             '/webhooks/no-audit', {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -53,7 +55,7 @@ class TestPost(api_base.FunctionalTest):
             '/webhooks/%s' % audit['uuid'], {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -66,6 +68,6 @@ class TestPost(api_base.FunctionalTest):
             '/webhooks/%s' % audit['uuid'], {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])

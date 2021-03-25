@@ -57,6 +57,7 @@ are dynamically loaded by Watcher at launch time.
 
 import datetime
 
+from http import HTTPStatus
 import pecan
 from pecan import rest
 import wsme
@@ -362,7 +363,7 @@ class ActionsController(rest.RestController):
 
         return Action.convert_with_links(action)
 
-    @wsme_pecan.wsexpose(Action, body=Action, status_code=201)
+    @wsme_pecan.wsexpose(Action, body=Action, status_code=HTTPStatus.CREATED)
     def post(self, action):
         """Create a new action(forbidden).
 
@@ -422,7 +423,7 @@ class ActionsController(rest.RestController):
         action_to_update.save()
         return Action.convert_with_links(action_to_update)
 
-    @wsme_pecan.wsexpose(None, types.uuid, status_code=204)
+    @wsme_pecan.wsexpose(None, types.uuid, status_code=HTTPStatus.NO_CONTENT)
     def delete(self, action_uuid):
         """Delete a action(forbidden).
 

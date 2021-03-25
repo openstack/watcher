@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from http import HTTPStatus
 from unittest import mock
 
 from watcher.common import placement_helper
@@ -55,10 +56,10 @@ class TestPlacementHelper(base.TestCase):
         kss_req.assert_called_once_with(url, method, **kwargs)
 
     def test_get(self, kss_req):
-        kss_req.return_value = fake_requests.FakeResponse(200)
+        kss_req.return_value = fake_requests.FakeResponse(HTTPStatus.OK)
         url = '/resource_providers'
         resp = self.client.get(url)
-        self.assertEqual(200, resp.status_code)
+        self.assertEqual(HTTPStatus.OK, resp.status_code)
         self._assert_keystone_called_once(kss_req, url, 'GET')
 
     def test_get_resource_providers_OK(self, kss_req):
@@ -76,7 +77,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_resource_providers(rp_name)
 
@@ -99,7 +100,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_resource_providers(rp_name)
 
@@ -110,7 +111,8 @@ class TestPlacementHelper(base.TestCase):
     def test_get_resource_providers_fail(self, kss_req):
         rp_name = 'compute'
         kss_req.return_value = fake_requests.FakeResponse(
-            400, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.BAD_REQUEST,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_resource_providers(rp_name)
         self.assertIsNone(result)
 
@@ -149,7 +151,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_inventories(rp_uuid)
 
@@ -160,7 +162,8 @@ class TestPlacementHelper(base.TestCase):
     def test_get_inventories_fail(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
-            404, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.NOT_FOUND,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_inventories(rp_uuid)
         self.assertIsNone(result)
 
@@ -175,7 +178,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_provider_traits(rp_uuid)
 
@@ -186,7 +189,8 @@ class TestPlacementHelper(base.TestCase):
     def test_get_provider_traits_fail(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
-            404, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.NOT_FOUND,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_provider_traits(rp_uuid)
         self.assertIsNone(result)
 
@@ -216,7 +220,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_allocations_for_consumer(c_uuid)
 
@@ -227,7 +231,8 @@ class TestPlacementHelper(base.TestCase):
     def test_get_allocations_for_consumer_fail(self, kss_req):
         c_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
-            404, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.NOT_FOUND,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_allocations_for_consumer(c_uuid)
         self.assertIsNone(result)
 
@@ -245,7 +250,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_usages_for_resource_provider(rp_uuid)
 
@@ -256,7 +261,8 @@ class TestPlacementHelper(base.TestCase):
     def test_get_usages_for_resource_provider_fail(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
-            404, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.NOT_FOUND,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_usages_for_resource_provider(rp_uuid)
         self.assertIsNone(result)
 
@@ -296,7 +302,7 @@ class TestPlacementHelper(base.TestCase):
         }
 
         kss_req.return_value = fake_requests.FakeResponse(
-            200, content=jsonutils.dump_as_bytes(mock_json_data))
+            HTTPStatus.OK, content=jsonutils.dump_as_bytes(mock_json_data))
 
         result = self.client.get_candidate_providers(resources)
 
@@ -307,6 +313,7 @@ class TestPlacementHelper(base.TestCase):
     def test_get_candidate_providers_fail(self, kss_req):
         rp_uuid = uuidutils.generate_uuid()
         kss_req.return_value = fake_requests.FakeResponse(
-            404, content=jsonutils.dump_as_bytes(self.fake_err_msg))
+            HTTPStatus.NOT_FOUND,
+            content=jsonutils.dump_as_bytes(self.fake_err_msg))
         result = self.client.get_candidate_providers(rp_uuid)
         self.assertIsNone(result)

@@ -25,6 +25,7 @@ SHOULD include dedicated exception logging.
 import functools
 import sys
 
+from http import HTTPStatus
 from keystoneclient import exceptions as keystone_exceptions
 from oslo_config import cfg
 from oslo_log import log
@@ -62,7 +63,7 @@ class WatcherException(Exception):
 
     """
     msg_fmt = _("An unknown exception occurred")
-    code = 500
+    code = HTTPStatus.INTERNAL_SERVER_ERROR
     headers = {}
     safe = False
 
@@ -114,12 +115,12 @@ class UnsupportedError(WatcherException):
 
 class NotAuthorized(WatcherException):
     msg_fmt = _("Not authorized")
-    code = 403
+    code = HTTPStatus.FORBIDDEN
 
 
 class NotAcceptable(WatcherException):
     msg_fmt = _("Request not acceptable.")
-    code = 406
+    code = HTTPStatus.NOT_ACCEPTABLE
 
 
 class PolicyNotAuthorized(NotAuthorized):
@@ -132,7 +133,7 @@ class OperationNotPermitted(NotAuthorized):
 
 class Invalid(WatcherException, ValueError):
     msg_fmt = _("Unacceptable parameters")
-    code = 400
+    code = HTTPStatus.BAD_REQUEST
 
 
 class ObjectNotFound(WatcherException):
@@ -141,12 +142,12 @@ class ObjectNotFound(WatcherException):
 
 class Conflict(WatcherException):
     msg_fmt = _('Conflict')
-    code = 409
+    code = HTTPStatus.CONFLICT
 
 
 class ResourceNotFound(ObjectNotFound):
     msg_fmt = _("The %(name)s resource %(id)s could not be found")
-    code = 404
+    code = HTTPStatus.NOT_FOUND
 
 
 class InvalidParameter(Invalid):

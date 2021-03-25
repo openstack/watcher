@@ -16,6 +16,7 @@ import itertools
 from unittest import mock
 from urllib import parse as urlparse
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from oslo_utils import timeutils
@@ -130,7 +131,7 @@ class TestListAudit(api_base.FunctionalTest):
 
         response = self.get_json('/audits/%s' % audit['uuid'],
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
         audit = obj_utils.create_test_audit(self.context)
@@ -153,7 +154,7 @@ class TestListAudit(api_base.FunctionalTest):
         audit = obj_utils.create_test_audit(self.context)
         response = self.get_json('/audits/%s/detail' % audit['uuid'],
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         audit_list = []
@@ -225,7 +226,7 @@ class TestListAudit(api_base.FunctionalTest):
         response = self.get_json(
             '/audits?sort_key=%s' % 'bad_name',
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
     def test_links(self):
         uuid = utils.generate_uuid()
@@ -295,7 +296,7 @@ class TestPatch(api_base.FunctionalTest):
             [{'path': '/state', 'value': new_state,
              'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
         self.assertEqual(new_state, response['state'])
@@ -308,7 +309,7 @@ class TestPatch(api_base.FunctionalTest):
             '/audits/%s' % utils.generate_uuid(),
             [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
               'op': 'replace'}], expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -318,7 +319,7 @@ class TestPatch(api_base.FunctionalTest):
             '/audits/%s' % self.audit.uuid,
             [{'path': '/state', 'value': new_state, 'op': 'add'}])
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_int)
+        self.assertEqual(HTTPStatus.OK, response.status_int)
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
         self.assertEqual(new_state, response['state'])
@@ -329,7 +330,7 @@ class TestPatch(api_base.FunctionalTest):
             [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertTrue(response.json['error_message'])
 
     def test_remove_ok(self):
@@ -339,7 +340,7 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json('/audits/%s' % self.audit.uuid,
                                    [{'path': '/interval', 'op': 'remove'}])
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
         self.assertIsNone(response['interval'])
@@ -348,7 +349,7 @@ class TestPatch(api_base.FunctionalTest):
         response = self.patch_json('/audits/%s' % self.audit.uuid,
                                    [{'path': '/uuid', 'op': 'remove'}],
                                    expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -357,7 +358,7 @@ class TestPatch(api_base.FunctionalTest):
             '/audits/%s' % self.audit.uuid,
             [{'path': '/non-existent', 'op': 'remove'}],
             expect_errors=True)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -415,7 +416,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
               'op': 'replace'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_code)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertTrue(response.json['error_message'])
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
@@ -462,7 +463,7 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
             [{'path': '/state', 'value': self.new_state,
              'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(200, response.status_code)
+        self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json('/audits/%s' % self.audit.uuid)
         self.assertEqual(self.new_state, response['state'])
@@ -502,7 +503,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         # Check location header
         self.assertIsNotNone(response.location)
         expected_location = '/v1/audits/%s' % response.json['uuid']
@@ -527,7 +528,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(state=objects.audit.State.SUCCEEDED)
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -542,7 +543,7 @@ class TestPost(api_base.FunctionalTest):
                                'next_run_time', 'hostname'])
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -557,7 +558,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -573,7 +574,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -590,7 +591,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -608,7 +609,7 @@ class TestPost(api_base.FunctionalTest):
             '01234567-8910-1112-1314-151617181920')
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
         expected_error_msg = ('The audit template UUID or name specified is '
                               'invalid')
@@ -643,7 +644,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -660,7 +661,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
@@ -679,7 +680,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
@@ -698,7 +699,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(500, response.status_int)
+        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
         expected_error_msg = ('Exactly 5 or 6 columns has to be '
                               'specified for iterator expression.')
         self.assertTrue(response.json['error_message'])
@@ -714,7 +715,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         expected_error_msg = ('Interval of audit must be specified '
                               'for CONTINUOUS.')
@@ -731,7 +732,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict['audit_type'] = objects.audit.AuditType.ONESHOT.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         expected_error_msg = 'Interval of audit must not be set for ONESHOT.'
         self.assertTrue(response.json['error_message'])
@@ -755,7 +756,7 @@ class TestPost(api_base.FunctionalTest):
         del audit_dict['scope']
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         assert not mock_trigger_audit.called
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -769,7 +770,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msg = ('Specify parameters but no predefined '
                               'strategy for audit, or no '
                               'parameter spec in predefined strategy')
@@ -792,7 +793,7 @@ class TestPost(api_base.FunctionalTest):
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         expected_error_msg = ('Specify parameters but no predefined '
                               'strategy for audit, or no '
                               'parameter spec in predefined strategy')
@@ -816,7 +817,7 @@ class TestPost(api_base.FunctionalTest):
             del audit_dict[k]
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
         expected_error_msg = 'Audit parameter fake2 are not allowed'
         self.assertTrue(response.json['error_message'])
@@ -875,13 +876,13 @@ class TestPost(api_base.FunctionalTest):
         audit_dict['name'] = normal_name
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(normal_name, response.json['name'])
 
         audit_dict['name'] = long_name
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertNotEqual(long_name, response.json['name'])
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -905,7 +906,7 @@ class TestPost(api_base.FunctionalTest):
             audit_dict,
             headers={'OpenStack-API-Version': 'infra-optim 1.1'})
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertEqual(objects.audit.State.PENDING,
                          response.json['state'])
         self.assertEqual(audit_dict['interval'], response.json['interval'])
@@ -944,7 +945,7 @@ class TestPost(api_base.FunctionalTest):
             headers={'OpenStack-API-Version': 'infra-optim 1.0'},
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(406, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         expected_error_msg = 'Request not acceptable.'
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
@@ -963,7 +964,7 @@ class TestPost(api_base.FunctionalTest):
             audit_dict,
             headers={'OpenStack-API-Version': 'infra-optim 1.2'})
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertFalse(response.json['force'])
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
@@ -980,7 +981,7 @@ class TestPost(api_base.FunctionalTest):
             audit_dict,
             headers={'OpenStack-API-Version': 'infra-optim 1.2'})
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(201, response.status_int)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertTrue(response.json['force'])
 
 
@@ -1013,7 +1014,7 @@ class TestDelete(api_base.FunctionalTest):
              'op': 'replace'}])
         response = self.delete('/audits/%s' % self.audit.uuid,
                                expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -1025,7 +1026,7 @@ class TestDelete(api_base.FunctionalTest):
         self.delete('/audits/%s' % self.audit.uuid)
         response = self.get_json('/audits/%s' % self.audit.uuid,
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -1041,7 +1042,7 @@ class TestDelete(api_base.FunctionalTest):
     def test_delete_audit_not_found(self):
         uuid = utils.generate_uuid()
         response = self.delete('/audits/%s' % uuid, expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -1058,7 +1059,7 @@ class TestAuditPolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:defaut"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

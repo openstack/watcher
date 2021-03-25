@@ -10,6 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from watcher.common import utils
@@ -44,7 +45,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         response = self.get_json(
             '/scoring_engines/%s' % scoring_engine['name'],
             expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
         obj_utils.create_test_goal(self.context)
@@ -63,7 +64,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         response = self.get_json(
             '/scoring_engines/%s/detail' % scoring_engine.id,
             expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         scoring_engine_list = []
@@ -131,7 +132,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         response = self.get_json(
             '/goals?sort_key=%s' % 'bad_name',
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
@@ -142,7 +143,7 @@ class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:default"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

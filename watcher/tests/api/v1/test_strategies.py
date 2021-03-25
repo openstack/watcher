@@ -13,6 +13,7 @@
 from unittest import mock
 from urllib import parse as urlparse
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 
@@ -88,7 +89,7 @@ class TestListStrategy(api_base.FunctionalTest):
         response = self.get_json(
             '/strategies/%s' % strategy['uuid'],
             expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
         strategy = obj_utils.create_test_strategy(self.context)
@@ -104,7 +105,7 @@ class TestListStrategy(api_base.FunctionalTest):
         strategy = obj_utils.create_test_strategy(self.context)
         response = self.get_json('/strategies/%s/detail' % strategy.uuid,
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         strategy_list = []
@@ -240,7 +241,7 @@ class TestListStrategy(api_base.FunctionalTest):
         response = self.get_json(
             '/strategies?sort_key=%s' % 'bad_name',
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
@@ -256,7 +257,7 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:defaut"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

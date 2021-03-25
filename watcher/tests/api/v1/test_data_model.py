@@ -15,6 +15,7 @@
 
 from unittest import mock
 
+from http import HTTPStatus
 from oslo_serialization import jsonutils
 
 from watcher.decision_engine import rpcapi as deapi
@@ -42,7 +43,7 @@ class TestListDataModel(api_base.FunctionalTest):
             '/data_model/?data_model_type=compute',
             headers={'OpenStack-API-Version': 'infra-optim 1.2'},
             expect_errors=True)
-        self.assertEqual(406, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
 
 
 class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
@@ -59,7 +60,7 @@ class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:defaut"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

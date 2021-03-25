@@ -13,6 +13,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from http import HTTPStatus
+
 from watcher.tests.api import base
 
 
@@ -25,6 +27,6 @@ class TestBase(base.FunctionalTest):
         response = self.get_json('/bad/path',
                                  expect_errors=True,
                                  headers={"Accept": "application/json"})
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual("application/json", response.content_type)
         self.assertTrue(response.json['error_message'])

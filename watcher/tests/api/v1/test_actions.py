@@ -14,6 +14,7 @@ import datetime
 import itertools
 from unittest import mock
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from wsme import types as wtypes
@@ -102,7 +103,7 @@ class TestListAction(api_base.FunctionalTest):
 
         response = self.get_json('/actions/%s' % action['uuid'],
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
         action = obj_utils.create_test_action(self.context, parents=None)
@@ -125,7 +126,7 @@ class TestListAction(api_base.FunctionalTest):
         action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json('/actions/%s/detail' % action['uuid'],
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         action_list = []
@@ -266,7 +267,7 @@ class TestListAction(api_base.FunctionalTest):
         url = '/actions?action_plan_uuid=%s&audit_uuid=%s' % (
             action_plan.uuid, self.audit.uuid)
         response = self.get_json(url, expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
     def test_many_with_sort_key_uuid(self):
         action_plan = obj_utils.create_test_action_plan(
@@ -327,7 +328,7 @@ class TestListAction(api_base.FunctionalTest):
         response = self.get_json(
             '/actions?sort_key=%s' % 'bad_name',
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
     def test_many_with_soft_deleted_action_plan_uuid(self):
         action_plan1 = obj_utils.create_test_action_plan(
@@ -488,7 +489,7 @@ class TestPatch(api_base.FunctionalTest):
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertTrue(response.json['error_message'])
 
 
@@ -516,7 +517,7 @@ class TestDelete(api_base.FunctionalTest):
         mock_utcnow.return_value = test_time
         response = self.delete('/actions/%s' % self.action.uuid,
                                expect_errors=True)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 
@@ -536,7 +537,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:defaut"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

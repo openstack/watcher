@@ -18,6 +18,7 @@
 
 from urllib import parse as urlparse
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_log import log
 
@@ -138,11 +139,11 @@ class GrafanaHelper(base.DataSourceBase):
 
         resp = requests.get(self._base_url + str(project_id) + '/query',
                             params=params, headers=self._headers)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             return resp
-        elif resp.status_code == 400:
+        elif resp.status_code == HTTPStatus.BAD_REQUEST:
             LOG.error("Query for metric is invalid")
-        elif resp.status_code == 401:
+        elif resp.status_code == HTTPStatus.UNAUTHORIZED:
             LOG.error("Authorization token is invalid")
         raise exception.DataSourceNotAvailable(self.NAME)
 

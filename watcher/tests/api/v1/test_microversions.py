@@ -10,6 +10,8 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from http import HTTPStatus
+
 from watcher.api.controllers.v1 import versions
 from watcher.tests.api import base as api_base
 
@@ -38,7 +40,7 @@ class TestMicroversions(api_base.FunctionalTest):
                                                         '10'])},
             expect_errors=True, return_json=False)
         self.assertEqual('application/json', response.content_type)
-        self.assertEqual(406, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         expected_error_msg = ('Invalid value for'
                               ' OpenStack-API-Version header')
         self.assertTrue(response.json['error_message'])
@@ -98,7 +100,7 @@ class TestMicroversions(api_base.FunctionalTest):
             headers={'OpenStack-API-Version': ' '.join([SERVICE_TYPE,
                                                         '1.999'])},
             expect_errors=True)
-        self.assertEqual(406, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
         self.assertEqual(response.headers[H_MIN_VER], MIN_VER)
         self.assertEqual(response.headers[H_MAX_VER], MAX_VER)
         expected_error_msg = ('Version 1.999 was requested but the minor '

@@ -32,6 +32,7 @@ states, visit :ref:`the Audit State machine <audit_state_machine>`.
 import datetime
 from dateutil import tz
 
+from http import HTTPStatus
 import pecan
 from pecan import rest
 import wsme
@@ -595,7 +596,8 @@ class AuditsController(rest.RestController):
 
         return Audit.convert_with_links(rpc_audit)
 
-    @wsme_pecan.wsexpose(Audit, body=AuditPostType, status_code=201)
+    @wsme_pecan.wsexpose(Audit, body=AuditPostType,
+                         status_code=HTTPStatus.CREATED)
     def post(self, audit_p):
         """Create a new audit.
 
@@ -717,7 +719,7 @@ class AuditsController(rest.RestController):
         audit_to_update.save()
         return Audit.convert_with_links(audit_to_update)
 
-    @wsme_pecan.wsexpose(None, wtypes.text, status_code=204)
+    @wsme_pecan.wsexpose(None, wtypes.text, status_code=HTTPStatus.NO_CONTENT)
     def delete(self, audit):
         """Delete an audit.
 

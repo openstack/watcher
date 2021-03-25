@@ -26,6 +26,7 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import grafana
 from watcher.tests import base
 
+from http import HTTPStatus
 import requests
 
 CONF = cfg.CONF
@@ -128,7 +129,7 @@ class TestGrafana(base.BaseTestCase):
         problems.
         """
 
-        m_request.return_value = mock.Mock(status_code=404)
+        m_request.return_value = mock.Mock(status_code=HTTPStatus.NOT_FOUND)
 
         t_grafana = grafana.GrafanaHelper(osc=mock.Mock())
 

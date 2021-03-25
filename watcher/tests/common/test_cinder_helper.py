@@ -13,8 +13,10 @@
 # limitations under the License.
 #
 
-import time
 from unittest import mock
+
+from http import HTTPStatus
+import time
 
 from cinderclient import exceptions as cinder_exception
 
@@ -291,7 +293,8 @@ class TestCinderHelper(base.TestCase):
 
         volume = self.fake_volume()
         cinder_util.get_volume = mock.MagicMock()
-        cinder_util.get_volume.side_effect = cinder_exception.NotFound(404)
+        cinder_util.get_volume.side_effect =\
+            cinder_exception.NotFound(HTTPStatus.NOT_FOUND)
         result = cinder_util._can_get_volume(volume.id)
         self.assertFalse(result)
 
@@ -339,7 +342,7 @@ class TestCinderHelper(base.TestCase):
         cinder_util = cinder_helper.CinderHelper()
 
         volume = self.fake_volume()
-        side_effect = cinder_exception.NotFound(404)
+        side_effect = cinder_exception.NotFound(HTTPStatus.NOT_FOUND)
         cinder_util.cinder.volumes.get.side_effect = side_effect
         cinder_util.cinder.volumes.find.return_value = False
         result = cinder_util.get_volume(volume)

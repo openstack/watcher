@@ -10,6 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_serialization import jsonutils
 from urllib import parse as urlparse
@@ -57,7 +58,7 @@ class TestListService(api_base.FunctionalTest):
         response = self.get_json(
             '/services/%s' % service['id'],
             expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
         service = obj_utils.create_test_service(self.context)
@@ -74,7 +75,7 @@ class TestListService(api_base.FunctionalTest):
         service = obj_utils.create_test_service(self.context)
         response = self.get_json('/services/%s/detail' % service.id,
                                  expect_errors=True)
-        self.assertEqual(404, response.status_int)
+        self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_many(self):
         service_list = []
@@ -149,7 +150,7 @@ class TestListService(api_base.FunctionalTest):
         response = self.get_json(
             '/services?sort_key=%s' % 'bad_name',
             expect_errors=True)
-        self.assertEqual(400, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
 
 class TestServicePolicyEnforcement(api_base.FunctionalTest):
@@ -160,7 +161,7 @@ class TestServicePolicyEnforcement(api_base.FunctionalTest):
             "default": "rule:admin_api",
             rule: "rule:default"})
         response = func(*arg, **kwarg)
-        self.assertEqual(403, response.status_int)
+        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
             "Policy doesn't allow %s to be performed." % rule,

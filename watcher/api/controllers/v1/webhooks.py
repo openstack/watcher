@@ -14,6 +14,7 @@
 Webhook endpoint for Watcher v1 REST API.
 """
 
+from http import HTTPStatus
 from oslo_log import log
 import pecan
 from pecan import rest
@@ -36,7 +37,7 @@ class WebhookController(rest.RestController):
         self.dc_client = rpcapi.DecisionEngineAPI()
 
     @wsme_pecan.wsexpose(None, wtypes.text, body=types.jsontype,
-                         status_code=202)
+                         status_code=HTTPStatus.ACCEPTED)
     def post(self, audit_ident, body):
         """Trigger the given audit.
 

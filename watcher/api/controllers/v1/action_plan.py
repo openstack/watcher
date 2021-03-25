@@ -56,6 +56,7 @@ state machine <action_plan_state_machine>`.
 
 import datetime
 
+from http import HTTPStatus
 from oslo_log import log
 import pecan
 from pecan import rest
@@ -460,7 +461,7 @@ class ActionPlansController(rest.RestController):
 
         return ActionPlan.convert_with_links(action_plan)
 
-    @wsme_pecan.wsexpose(None, types.uuid, status_code=204)
+    @wsme_pecan.wsexpose(None, types.uuid, status_code=HTTPStatus.NO_CONTENT)
     def delete(self, action_plan_uuid):
         """Delete an action plan.
 

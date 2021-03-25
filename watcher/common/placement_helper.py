@@ -11,6 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from http import HTTPStatus
 from oslo_config import cfg
 from oslo_log import log as logging
 
@@ -53,7 +54,7 @@ class PlacementHelper(object):
         if rp_name:
             url += '?name=%s' % rp_name
         resp = self.get(url)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             json_resp = resp.json()
             return json_resp['resource_providers']
 
@@ -77,7 +78,7 @@ class PlacementHelper(object):
         """
         url = '/resource_providers/%s/inventories' % rp_uuid
         resp = self.get(url)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['inventories']
         msg = ("Failed to get resource provider %(rp_uuid)s inventories. "
@@ -97,7 +98,7 @@ class PlacementHelper(object):
         """
         resp = self.get("/resource_providers/%s/traits" % rp_uuid)
 
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['traits']
         msg = ("Failed to get resource provider %(rp_uuid)s traits. "
@@ -118,7 +119,7 @@ class PlacementHelper(object):
         """
         url = '/allocations/%s' % consumer_uuid
         resp = self.get(url)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['allocations']
         msg = ("Failed to get allocations for consumer %(c_uuid). "
@@ -139,7 +140,7 @@ class PlacementHelper(object):
         """
         url = '/resource_providers/%s/usages' % rp_uuid
         resp = self.get(url)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             json = resp.json()
             return json['usages']
         msg = ("Failed to get resource provider %(rp_uuid)s usages. "
@@ -164,7 +165,7 @@ class PlacementHelper(object):
         """
         url = "/allocation_candidates?%s" % resources
         resp = self.get(url)
-        if resp.status_code == 200:
+        if resp.status_code == HTTPStatus.OK:
             data = resp.json()
             return data['provider_summaries']
 

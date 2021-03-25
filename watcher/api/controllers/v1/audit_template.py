@@ -45,6 +45,7 @@ will be launched automatically or will need a manual confirmation from the
 
 import datetime
 
+from http import HTTPStatus
 import pecan
 from pecan import rest
 import wsme
@@ -618,7 +619,7 @@ class AuditTemplatesController(rest.RestController):
 
     @wsme.validate(types.uuid, AuditTemplatePostType)
     @wsme_pecan.wsexpose(AuditTemplate, body=AuditTemplatePostType,
-                         status_code=201)
+                         status_code=HTTPStatus.CREATED)
     def post(self, audit_template_postdata):
         """Create a new audit template.
 
@@ -694,7 +695,7 @@ class AuditTemplatesController(rest.RestController):
         audit_template_to_update.save()
         return AuditTemplate.convert_with_links(audit_template_to_update)
 
-    @wsme_pecan.wsexpose(None, wtypes.text, status_code=204)
+    @wsme_pecan.wsexpose(None, wtypes.text, status_code=HTTPStatus.NO_CONTENT)
     def delete(self, audit_template):
         """Delete a audit template.
 
