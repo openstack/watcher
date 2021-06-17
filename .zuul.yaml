@@ -12,7 +12,6 @@
         - watcher-tempest-strategies
         - watcher-tempest-actuator
         - watcherclient-tempest-functional
-        - watcher-tls-test
         - watcher-tempest-functional-ipv6-only
     gate:
       queue: watcher
@@ -88,17 +87,6 @@
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
 
 - job:
-    name: watcher-tls-test
-    parent: watcher-tempest-multinode
-    group-vars:
-      subnode:
-          devstack_services:
-            tls-proxy: true
-    vars:
-      devstack_services:
-        tls-proxy: true
-
-- job:
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
     nodeset: openstack-two-node-focal
@@ -119,8 +107,6 @@
           watcher-api: false
           watcher-decision-engine: true
           watcher-applier: false
-          # We need to add TLS support for watcher plugin
-          tls-proxy: false
           ceilometer: false
           ceilometer-acompute: false
           ceilometer-acentral: false
@@ -168,7 +154,6 @@
       devstack_plugins:
         watcher: https://opendev.org/openstack/watcher
       devstack_services:
-        tls-proxy: false
         watcher-api: true
         watcher-decision-engine: true
         watcher-applier: true
