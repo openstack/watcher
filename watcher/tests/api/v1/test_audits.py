@@ -700,7 +700,7 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(500, response.status_int)
         expected_error_msg = ('Exactly 5 or 6 columns has to be '
-                              'specified for iteratorexpression.')
+                              'specified for iterator expression.')
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
 
