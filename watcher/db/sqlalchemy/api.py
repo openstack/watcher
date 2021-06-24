@@ -278,7 +278,7 @@ class Connection(api.BaseConnection):
             query = model_query(model, session=session)
             query = add_identity_filter(query, id_)
             try:
-                ref = query.with_lockmode('update').one()
+                ref = query.with_for_update().one()
             except exc.NoResultFound:
                 raise exception.ResourceNotFound(name=model.__name__, id=id_)
 
@@ -815,7 +815,7 @@ class Connection(api.BaseConnection):
             query = model_query(models.Action, session=session)
             query = add_identity_filter(query, action_id)
             try:
-                ref = query.with_lockmode('update').one()
+                ref = query.with_for_update().one()
             except exc.NoResultFound:
                 raise exception.ActionNotFound(action=action_id)
 
@@ -900,7 +900,7 @@ class Connection(api.BaseConnection):
             query = model_query(models.ActionPlan, session=session)
             query = add_identity_filter(query, action_plan_id)
             try:
-                ref = query.with_lockmode('update').one()
+                ref = query.with_for_update().one()
             except exc.NoResultFound:
                 raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
