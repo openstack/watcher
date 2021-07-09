@@ -47,6 +47,8 @@ unavailable as well as `instance_l3_cpu_cache`::
         [[local|localrc]]
         enable_plugin watcher https://opendev.org/openstack/watcher
 
+        enable_plugin watcher-dashboard https://opendev.org/openstack/watcher-dashboard
+
         enable_plugin ceilometer https://opendev.org/openstack/ceilometer.git
         CEILOMETER_BACKEND=gnocchi
 
