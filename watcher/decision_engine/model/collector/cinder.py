@@ -205,7 +205,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         """Build a storage node from a Cinder storage node
 
         :param node: A storage node
-        :type node: :py:class:`~cinderclient.v2.services.Service`
+        :type node: :py:class:`~cinderclient.v3.services.Service`
         """
         # node.host is formatted as host@backendname since ocata,
         # or may be only host as of ocata
@@ -233,7 +233,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
         """Build a storage pool from a Cinder storage pool
 
         :param pool: A storage pool
-        :type pool: :py:class:`~cinderclient.v2.pools.Pool`
+        :type pool: :py:class:`~cinderclient.v3.pools.Pool`
         :raises: exception.InvalidPoolAttributeValue
         """
         # build up the storage pool.

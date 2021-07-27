@@ -17,7 +17,7 @@ import time
 from oslo_log import log
 
 from cinderclient import exceptions as cinder_exception
-from cinderclient.v2.volumes import Volume
+from cinderclient.v3.volumes import Volume
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception

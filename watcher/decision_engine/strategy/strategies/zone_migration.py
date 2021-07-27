@@ -16,7 +16,7 @@ from dateutil.parser import parse
 
 from oslo_log import log
 
-from cinderclient.v2.volumes import Volume
+from cinderclient.v3.volumes import Volume
 from novaclient.v2.servers import Server
 from watcher._i18n import _
 from watcher.common import cinder_helper

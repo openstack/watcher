@@ -144,7 +144,7 @@ class TestZoneMigration(TestBaseStrategy):
 
     @staticmethod
     def fake_volume(**kwargs):
-        volume = mock.MagicMock(spec=cinderclient.v2.volumes.Volume)
+        volume = mock.MagicMock(spec=cinderclient.v3.volumes.Volume)
         volume.id = kwargs.get('id', utils.generate_uuid())
         volume.name = kwargs.get('name', 'fake_name')
         volume.status = kwargs.get('status', 'available')
