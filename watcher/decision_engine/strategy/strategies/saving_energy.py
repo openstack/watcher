@@ -197,9 +197,9 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
 
     def save_energy(self):
 
-        need_poweron = max(
+        need_poweron = int(max(
             (len(self.with_vms_node_pool) * self.free_used_percent / 100), (
-                self.min_free_hosts_num))
+                self.min_free_hosts_num)))
         len_poweron = len(self.free_poweron_node_pool)
         len_poweroff = len(self.free_poweroff_node_pool)
         if len_poweron > need_poweron:
