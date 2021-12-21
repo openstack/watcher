@@ -179,8 +179,9 @@ class CinderHelper(object):
             LOG.error(error_msg)
             return False
         LOG.debug(
-            "Volume migration succeeded : volume %s is now on host '%s'.", (
-                volume.id, host_name))
+            "Volume migration succeeded : "
+            "volume %(volume)s is now on host '%(host)s'.",
+            {'volume': volume.id, 'host': host_name})
         return True
 
     def migrate(self, volume, dest_node):
@@ -193,8 +194,8 @@ class CinderHelper(object):
                 message=(_("Volume type must be same for migrating")))
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
-        LOG.debug("Volume %s found on host '%s'.",
-                  (volume.id, source_node))
+        LOG.debug("Volume %(volume)s found on host '%(host)s'.",
+                  {'volume': volume.id, 'host': source_node})
 
         self.cinder.volumes.migrate_volume(
             volume, dest_node, False, True)
@@ -210,8 +211,8 @@ class CinderHelper(object):
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
         LOG.debug(
-            "Volume %s found on host '%s'.",
-            (volume.id, source_node))
+            "Volume %(volume)s found on host '%(host)s'.",
+            {'volume': volume.id, 'host': source_node})
 
         self.cinder.volumes.retype(
             volume, dest_type, "on-demand")
