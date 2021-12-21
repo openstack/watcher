@@ -731,8 +731,8 @@ class NovaHelper(object):
         host_name = getattr(new_volume, "os-vol-host-attr:host")
         LOG.debug(
             "Volume update succeeded : "
-            "Volume %s is now on host '%s'.",
-            (new_volume.id, host_name))
+            "Volume %(volume)s is now on host '%(host)s'.",
+            {'volume': new_volume.id, 'host': host_name})
         return True
 
     def _check_nova_api_version(self, client, version):
