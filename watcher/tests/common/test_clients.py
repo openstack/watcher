@@ -10,8 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from ceilometerclient import client as ceclient
-import ceilometerclient.v2.client as ceclient_v2
 from unittest import mock
 
 from cinderclient import client as ciclient
@@ -269,56 +267,6 @@ class TestClients(base.TestCase):
         cinder = osc.cinder()
         cinder_cached = osc.cinder()
         self.assertEqual(cinder, cinder_cached)
-
-    @mock.patch.object(ceclient, 'Client')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_ceilometer(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc._ceilometer = None
-        osc.ceilometer()
-        mock_call.assert_called_once_with(
-            CONF.ceilometer_client.api_version,
-            None,
-            endpoint_type=CONF.ceilometer_client.endpoint_type,
-            region_name=CONF.ceilometer_client.region_name,
-            session=mock_session)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
-    def test_clients_ceilometer_diff_vers(self, mock_get_redirect_client,
-                                          mock_session):
-        '''ceilometerclient currently only has one version (v2)'''
-        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
-        CONF.set_override('api_version', '2',
-                          group='ceilometer_client')
-        osc = clients.OpenStackClients()
-        osc._ceilometer = None
-        osc.ceilometer()
-        self.assertEqual(ceclient_v2.Client,
-                         type(osc.ceilometer()))
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
-    def test_clients_ceilometer_diff_endpoint(self, mock_get_redirect_client,
-                                              mock_session):
-        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
-        CONF.set_override('endpoint_type', 'publicURL',
-                          group='ceilometer_client')
-        osc = clients.OpenStackClients()
-        osc._ceilometer = None
-        osc.ceilometer()
-        self.assertEqual('publicURL', osc.ceilometer().http_client.interface)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    @mock.patch.object(ceclient_v2.Client, '_get_redirect_client')
-    def test_clients_ceilometer_cached(self, mock_get_redirect_client,
-                                       mock_session):
-        mock_get_redirect_client.return_value = [mock.Mock(), mock.Mock()]
-        osc = clients.OpenStackClients()
-        osc._ceilometer = None
-        ceilometer = osc.ceilometer()
-        ceilometer_cached = osc.ceilometer()
-        self.assertEqual(ceilometer, ceilometer_cached)
 
     @mock.patch.object(netclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')
