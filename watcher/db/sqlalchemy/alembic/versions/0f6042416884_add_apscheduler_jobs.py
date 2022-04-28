@@ -6,6 +6,7 @@ Create Date: 2017-03-24 11:21:29.036532
 
 """
 from alembic import op
+from sqlalchemy import inspect
 import sqlalchemy as sa
 
 from watcher.db.sqlalchemy import models
@@ -14,8 +15,17 @@ from watcher.db.sqlalchemy import models
 revision = '0f6042416884'
 down_revision = '001'
 
+def _table_exists(table_name):
+    bind = op.get_context().bind
+    insp = inspect(bind)
+    names = insp.get_table_names()
+    return any(t == table_name for t in names)
+
 
 def upgrade():
+    if _table_exists('apscheduler_jobs'):
+        return
+
     op.create_table(
         'apscheduler_jobs',
         sa.Column('id', sa.Unicode(191, _warn_on_bytestring=False),
