@@ -53,7 +53,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-copyright = u'2016, Watcher developers'
+copyright = '2016, Watcher developers'
 
 # Release notes are version independent
 # The short X.Y version.
@@ -196,8 +196,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual])
 latex_documents = [
-  ('index', 'watcher.tex', u'Watcher Documentation',
-   u'Watcher developers', 'manual'),
+  ('index', 'watcher.tex', 'Watcher Documentation',
+   'Watcher developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -226,8 +226,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'watcher', u'Watcher Documentation',
-     [u'Watcher developers'], 1)
+    ('index', 'watcher', 'Watcher Documentation',
+     ['Watcher developers'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -240,8 +240,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'watcher', u'Watcher Documentation',
-   u'Watcher developers', 'watcher', 'One line description of project.',
+  ('index', 'watcher', 'Watcher Documentation',
+   'Watcher developers', 'watcher', 'One line description of project.',
    'Miscellaneous'),
 ]
 

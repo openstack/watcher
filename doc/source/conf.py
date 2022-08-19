@@ -56,8 +56,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Watcher'
-copyright = u'OpenStack Foundation'
+project = 'Watcher'
+copyright = 'OpenStack Foundation'
 
 # A list of ignored prefixes for module index sorting.
 modindex_common_prefix = ['watcher.']
@@ -91,14 +91,14 @@ pygments_style = 'native'
 # List of tuples 'sourcefile', 'target', u'title', u'Authors name', 'manual'
 
 man_pages = [
-    ('man/watcher-api', 'watcher-api', u'Watcher API Server',
-     [u'OpenStack'], 1),
-    ('man/watcher-applier', 'watcher-applier', u'Watcher Applier',
-     [u'OpenStack'], 1),
+    ('man/watcher-api', 'watcher-api', 'Watcher API Server',
+     ['OpenStack'], 1),
+    ('man/watcher-applier', 'watcher-applier', 'Watcher Applier',
+     ['OpenStack'], 1),
     ('man/watcher-db-manage', 'watcher-db-manage',
-     u'Watcher Db Management Utility', [u'OpenStack'], 1),
+     'Watcher Db Management Utility', ['OpenStack'], 1),
     ('man/watcher-decision-engine', 'watcher-decision-engine',
-     u'Watcher Decision Engine', [u'OpenStack'], 1),
+     'Watcher Decision Engine', ['OpenStack'], 1),
 ]
 
 # -- Options for HTML output --------------------------------------------------
@@ -128,8 +128,8 @@ openstackdocs_bug_tag = ''
 latex_documents = [
     ('index',
      'doc-watcher.tex',
-     u'Watcher Documentation',
-     u'OpenStack Foundation', 'manual'),
+     'Watcher Documentation',
+     'OpenStack Foundation', 'manual'),
 ]
 
 # If false, no module index is generated.
