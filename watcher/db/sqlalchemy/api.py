@@ -44,7 +44,11 @@ _FACADE = None
 def _create_facade_lazily():
     global _FACADE
     if _FACADE is None:
-        _FACADE = db_session.EngineFacade.from_config(CONF)
+        # FIXME(amoralej): Remove autocommit=True (and ideally use of
+        # LegacyEngineFacade) asap since it's not compatible with SQLAlchemy
+        # 2.0.
+        _FACADE = db_session.EngineFacade.from_config(CONF,
+                                                      autocommit=True)
     return _FACADE
 
 
