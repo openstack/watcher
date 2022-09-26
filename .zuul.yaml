@@ -1,4 +1,5 @@
 - project:
+    queue: watcher
     templates:
       - check-requirements
       - openstack-cover-jobs
@@ -15,7 +16,6 @@
         - watcher-tls-test
         - watcher-tempest-functional-ipv6-only
     gate:
-      queue: watcher
       jobs:
         - watcher-tempest-functional
         - watcher-tempest-functional-ipv6-only
