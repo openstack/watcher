@@ -206,13 +206,13 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
             for node in random.sample(self.free_poweron_node_pool,
                                       (len_poweron - need_poweron)):
                 self.add_action_poweronoff_node(node, 'off')
-                LOG.debug("power off %s", node.uuid)
+                LOG.info("power off %s", node.uuid)
         elif len_poweron < need_poweron:
             diff = need_poweron - len_poweron
             for node in random.sample(self.free_poweroff_node_pool,
                                       min(len_poweroff, diff)):
                 self.add_action_poweronoff_node(node, 'on')
-                LOG.debug("power on %s", node.uuid)
+                LOG.info("power on %s", node.uuid)
 
     def pre_execute(self):
         self._pre_execute()
