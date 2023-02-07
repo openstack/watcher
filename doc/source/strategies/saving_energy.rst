@@ -89,9 +89,9 @@ step 2: Create audit to do optimization
 .. code-block:: shell
 
     $ openstack optimize audittemplate create \
-      at1 saving_energy --strategy saving_energy
+      saving_energy_template1 saving_energy --strategy saving_energy
 
-    $ openstack optimize audit create -a at1 \
+    $ openstack optimize audit create -a saving_energy_audit1 \
       -p free_used_percent=20.0
 
 External Links
