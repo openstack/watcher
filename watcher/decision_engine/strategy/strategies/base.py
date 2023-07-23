@@ -252,9 +252,6 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
         if not self.compute_model:
             raise exception.ClusterStateNotDefined()
 
-        if self.compute_model.stale:
-            raise exception.ClusterStateStale()
-
         LOG.debug(self.compute_model.to_string())
 
     def execute(self, audit=None):
