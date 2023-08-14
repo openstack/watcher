@@ -2,15 +2,16 @@
 # Andi Chandler <andi@gowling.com>, 2018. #zanata
 # Andi Chandler <andi@gowling.com>, 2020. #zanata
 # Andi Chandler <andi@gowling.com>, 2022. #zanata
+# Andi Chandler <andi@gowling.com>, 2023. #zanata
 msgid ""
 msgstr ""
 "Project-Id-Version: python-watcher\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-03-02 03:13+0000\n"
+"POT-Creation-Date: 2023-08-14 03:05+0000\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"PO-Revision-Date: 2022-05-31 08:39+0000\n"
+"PO-Revision-Date: 2023-06-21 07:54+0000\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English (United Kingdom)\n"
 "Language: en_GB\n"
@@ -58,6 +59,9 @@ msgstr "1.9.0"
 
 msgid "2.0.0"
 msgstr "2.0.0"
+
+msgid "2023.1 Series Release Notes"
+msgstr "2023.1 Series Release Notes"
 
 msgid "3.0.0"
 msgstr "3.0.0"
@@ -207,17 +211,6 @@ msgid "Added SUSPENDED audit state"
 msgstr "Added SUSPENDED audit state"
 
 msgid ""
-"Added a generic scoring engine module, which will standardize interactions "
-"with scoring engines through the common API. It is possible to use the "
-"scoring engine by different Strategies, which improve the code and data "
-"model re-use."
-msgstr ""
-"Added a generic scoring engine module, which will standardize interactions "
-"with scoring engines through the common API. It is possible to use the "
-"scoring engine by different Strategies, which improve the code and data "
-"model re-use."
-
-msgid ""
 "Added a generic scoring engine module, which will standarize interactions "
 "with scoring engines through the common API. It is possible to use the "
 "scoring engine by different Strategies, which improve the code and data "
@@ -335,13 +328,6 @@ msgid ""
 msgstr ""
 "Added a way to create periodic audit to be able to continuously optimise the "
 "cloud infrastructure."
-
-msgid ""
-"Added a way to return the of available goals depending on which strategies "
-"have been deployed on the node where the decision engine is running."
-msgstr ""
-"Added a way to return the of available goals depending on which strategies "
-"have been deployed on the node where the decision engine is running."
 
 msgid ""
 "Added a way to return the of available goals depending on which strategies "
@@ -986,6 +972,9 @@ msgstr "Xena Series Release Notes"
 
 msgid "Yoga Series Release Notes"
 msgstr "Yoga Series Release Notes"
+
+msgid "Zed Series Release Notes"
+msgstr "Zed Series Release Notes"
 
 msgid "``[watcher_datasources] datasources = gnocchi,monasca,ceilometer``"
 msgstr "``[watcher_datasources] datasources = gnocchi,monasca,ceilometer``"
