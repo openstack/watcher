@@ -134,7 +134,13 @@ GRAFANA_CLIENT_OPTS = [
                      "InfluxDB this will be the retention period. "
                      "These queries will need to be constructed using tools "
                      "such as Postman. Example: SELECT cpu FROM {4}."
-                     "cpu_percent WHERE host == '{1}' AND time > now()-{2}s")]
+                     "cpu_percent WHERE host == '{1}' AND time > now()-{2}s"),
+    cfg.IntOpt('http_timeout',
+               min=0,
+               default=60,
+               mutable=True,
+               help='Timeout for Grafana request')
+]
 
 
 def register_opts(conf):

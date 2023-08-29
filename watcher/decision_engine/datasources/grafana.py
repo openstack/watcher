@@ -138,7 +138,8 @@ class GrafanaHelper(base.DataSourceBase):
             raise exception.DataSourceNotAvailable(self.NAME)
 
         resp = requests.get(self._base_url + str(project_id) + '/query',
-                            params=params, headers=self._headers)
+                            params=params, headers=self._headers,
+                            timeout=CONF.grafana_client.http_timeout)
         if resp.status_code == HTTPStatus.OK:
             return resp
         elif resp.status_code == HTTPStatus.BAD_REQUEST:
