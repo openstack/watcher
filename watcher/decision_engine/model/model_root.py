@@ -157,7 +157,7 @@ class ModelRoot(nx.DiGraph, base.Model):
             if node_list:
                 return node_list[0]
             else:
-                raise exception.ComputeResourceNotFound
+                raise exception.ComputeNodeNotFound(name=name)
         except exception.ComputeResourceNotFound:
             raise exception.ComputeNodeNotFound(name=name)
 

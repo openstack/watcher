@@ -18,8 +18,10 @@
 from unittest import mock
 
 from watcher.common import clients
+from watcher.common.metal_helper import constants as m_constants
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
+from watcher.tests.decision_engine import fake_metal_helper
 from watcher.tests.decision_engine.strategy.strategies.test_base \
     import TestBaseStrategy
 
@@ -29,25 +31,14 @@ class TestSavingEnergy(TestBaseStrategy):
     def setUp(self):
         super(TestSavingEnergy, self).setUp()
 
-        mock_node1_dict = {
-            'uuid': '922d4762-0bc5-4b30-9cb9-48ab644dd861'}
-        mock_node2_dict = {
-            'uuid': '922d4762-0bc5-4b30-9cb9-48ab644dd862'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.fake_nodes = [mock_node1, mock_node2]
+        self.fake_nodes = [fake_metal_helper.get_mock_metal_node(),
+                           fake_metal_helper.get_mock_metal_node()]
+        self._metal_helper = mock.Mock()
+        self._metal_helper.list_compute_nodes.return_value = self.fake_nodes
 
-        p_ironic = mock.patch.object(
-            clients.OpenStackClients, 'ironic')
-        self.m_ironic = p_ironic.start()
-        self.addCleanup(p_ironic.stop)
-
-        p_nova = mock.patch.object(
-            clients.OpenStackClients, 'nova')
+        p_nova = mock.patch.object(clients.OpenStackClients, 'nova')
         self.m_nova = p_nova.start()
         self.addCleanup(p_nova.stop)
-
-        self.m_ironic.node.list.return_value = self.fake_nodes
 
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
 
@@ -59,27 +50,20 @@ class TestSavingEnergy(TestBaseStrategy):
              'min_free_hosts_num': 1})
         self.strategy.free_used_percent = 10.0
         self.strategy.min_free_hosts_num = 1
-        self.strategy._ironic_client = self.m_ironic
+        self.strategy._metal_helper = self._metal_helper
         self.strategy._nova_client = self.m_nova
 
     def test_get_hosts_pool_with_vms_node_pool(self):
-        mock_node1_dict = {
-            'extra': {'compute_node_id': 1},
-            'power_state': 'power on'}
-        mock_node2_dict = {
-            'extra': {'compute_node_id': 2},
-            'power_state': 'power off'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
-
-        mock_hyper1 = mock.Mock()
-        mock_hyper2 = mock.Mock()
-        mock_hyper1.to_dict.return_value = {
-            'running_vms': 2, 'service': {'host': 'hostname_0'}, 'state': 'up'}
-        mock_hyper2.to_dict.return_value = {
-            'running_vms': 2, 'service': {'host': 'hostname_1'}, 'state': 'up'}
-        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
+        self._metal_helper.list_compute_nodes.return_value = [
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.ON,
+                hostname='hostname_0',
+                running_vms=2),
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.OFF,
+                hostname='hostname_1',
+                running_vms=2),
+        ]
 
         self.strategy.get_hosts_pool()
 
@@ -88,23 +72,16 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 0)
 
     def test_get_hosts_pool_free_poweron_node_pool(self):
-        mock_node1_dict = {
-            'extra': {'compute_node_id': 1},
-            'power_state': 'power on'}
-        mock_node2_dict = {
-            'extra': {'compute_node_id': 2},
-            'power_state': 'power on'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
-
-        mock_hyper1 = mock.Mock()
-        mock_hyper2 = mock.Mock()
-        mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
-        mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
-        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
+        self._metal_helper.list_compute_nodes.return_value = [
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.ON,
+                hostname='hostname_0',
+                running_vms=0),
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.ON,
+                hostname='hostname_1',
+                running_vms=0),
+        ]
 
         self.strategy.get_hosts_pool()
 
@@ -113,23 +90,16 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 0)
 
     def test_get_hosts_pool_free_poweroff_node_pool(self):
-        mock_node1_dict = {
-            'extra': {'compute_node_id': 1},
-            'power_state': 'power off'}
-        mock_node2_dict = {
-            'extra': {'compute_node_id': 2},
-            'power_state': 'power off'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
-
-        mock_hyper1 = mock.Mock()
-        mock_hyper2 = mock.Mock()
-        mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
-        mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
-        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
+        self._metal_helper.list_compute_nodes.return_value = [
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.OFF,
+                hostname='hostname_0',
+                running_vms=0),
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.OFF,
+                hostname='hostname_1',
+                running_vms=0),
+        ]
 
         self.strategy.get_hosts_pool()
 
@@ -138,26 +108,16 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(len(self.strategy.free_poweroff_node_pool), 2)
 
     def test_get_hosts_pool_with_node_out_model(self):
-        mock_node1_dict = {
-            'extra': {'compute_node_id': 1},
-            'power_state': 'power off'}
-        mock_node2_dict = {
-            'extra': {'compute_node_id': 2},
-            'power_state': 'power off'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
-
-        mock_hyper1 = mock.Mock()
-        mock_hyper2 = mock.Mock()
-        mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_0'},
-            'state': 'up'}
-        mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_10'},
-            'state': 'up'}
-        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
-
+        self._metal_helper.list_compute_nodes.return_value = [
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.OFF,
+                hostname='hostname_0',
+                running_vms=0),
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.OFF,
+                hostname='hostname_10',
+                running_vms=0),
+        ]
         self.strategy.get_hosts_pool()
 
         self.assertEqual(len(self.strategy.with_vms_node_pool), 0)
@@ -166,9 +126,9 @@ class TestSavingEnergy(TestBaseStrategy):
 
     def test_save_energy_poweron(self):
         self.strategy.free_poweroff_node_pool = [
-            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd861'),
-            mock.Mock(uuid='922d4762-0bc5-4b30-9cb9-48ab644dd862')
-            ]
+            fake_metal_helper.get_mock_metal_node(),
+            fake_metal_helper.get_mock_metal_node(),
+        ]
         self.strategy.save_energy()
         self.assertEqual(len(self.strategy.solution.actions), 1)
         action = self.strategy.solution.actions[0]
@@ -185,23 +145,16 @@ class TestSavingEnergy(TestBaseStrategy):
         self.assertEqual(action.get('input_parameters').get('state'), 'off')
 
     def test_execute(self):
-        mock_node1_dict = {
-            'extra': {'compute_node_id': 1},
-            'power_state': 'power on'}
-        mock_node2_dict = {
-            'extra': {'compute_node_id': 2},
-            'power_state': 'power on'}
-        mock_node1 = mock.Mock(**mock_node1_dict)
-        mock_node2 = mock.Mock(**mock_node2_dict)
-        self.m_ironic.node.get.side_effect = [mock_node1, mock_node2]
-
-        mock_hyper1 = mock.Mock()
-        mock_hyper2 = mock.Mock()
-        mock_hyper1.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_0'}, 'state': 'up'}
-        mock_hyper2.to_dict.return_value = {
-            'running_vms': 0, 'service': {'host': 'hostname_1'}, 'state': 'up'}
-        self.m_nova.hypervisors.get.side_effect = [mock_hyper1, mock_hyper2]
+        self._metal_helper.list_compute_nodes.return_value = [
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.ON,
+                hostname='hostname_0',
+                running_vms=0),
+            fake_metal_helper.get_mock_metal_node(
+                power_state=m_constants.PowerState.ON,
+                hostname='hostname_1',
+                running_vms=0),
+        ]
 
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
