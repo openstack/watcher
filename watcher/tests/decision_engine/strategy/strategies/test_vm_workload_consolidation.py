@@ -113,7 +113,8 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         expected_cru = {'cpu': 0.05, 'disk': 0.05, 'ram': 0.0234375}
         self.assertEqual(expected_cru, cru)
 
-    def test_add_migration_with_active_state(self):
+    def _test_add_migration(self, instance_state, expect_migration=True,
+                            expected_migration_type="live"):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         self.fake_metrics.model = model
@@ -121,38 +122,36 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         n2 = model.get_node_by_uuid('Node_1')
         instance_uuid = 'INSTANCE_0'
         instance = model.get_instance_by_uuid(instance_uuid)
+        instance.state = instance_state
         self.strategy.add_migration(instance, n1, n2)
-        self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = {'action_type': 'migrate',
-                    'input_parameters': {'destination_node': n2.hostname,
-                                         'source_node': n1.hostname,
-                                         'migration_type': 'live',
-                                         'resource_id': instance.uuid,
-                                         'resource_name': instance.name}}
-        self.assertEqual(expected, self.strategy.solution.actions[0])
+
+        if expect_migration:
+            self.assertEqual(1, len(self.strategy.solution.actions))
+
+            expected = {'action_type': 'migrate',
+                        'input_parameters': {
+                            'destination_node': n2.hostname,
+                            'source_node': n1.hostname,
+                            'migration_type': expected_migration_type,
+                            'resource_id': instance.uuid,
+                            'resource_name': instance.name}}
+            self.assertEqual(expected, self.strategy.solution.actions[0])
+        else:
+            self.assertEqual(0, len(self.strategy.solution.actions))
+
+    def test_add_migration_with_active_state(self):
+        self._test_add_migration(element.InstanceState.ACTIVE.value)
 
     def test_add_migration_with_paused_state(self):
-        model = self.fake_c_cluster.generate_scenario_1()
-        self.m_c_model.return_value = model
-        self.fake_metrics.model = model
-        n1 = model.get_node_by_uuid('Node_0')
-        n2 = model.get_node_by_uuid('Node_1')
-        instance_uuid = 'INSTANCE_0'
-        instance = model.get_instance_by_uuid(instance_uuid)
-        setattr(instance, 'state', element.InstanceState.ERROR.value)
-        self.strategy.add_migration(instance, n1, n2)
-        self.assertEqual(0, len(self.strategy.solution.actions))
+        self._test_add_migration(element.InstanceState.PAUSED.value)
 
-        setattr(instance, 'state', element.InstanceState.PAUSED.value)
-        self.strategy.add_migration(instance, n1, n2)
-        self.assertEqual(1, len(self.strategy.solution.actions))
-        expected = {'action_type': 'migrate',
-                    'input_parameters': {'destination_node': n2.hostname,
-                                         'source_node': n1.hostname,
-                                         'migration_type': 'live',
-                                         'resource_id': instance.uuid,
-                                         'resource_name': instance.name}}
-        self.assertEqual(expected, self.strategy.solution.actions[0])
+    def test_add_migration_with_error_state(self):
+        self._test_add_migration(element.InstanceState.ERROR.value,
+                                 expect_migration=False)
+
+    def test_add_migration_with_stopped_state(self):
+        self._test_add_migration(element.InstanceState.STOPPED.value,
+                                 expected_migration_type="cold")
 
     def test_is_overloaded(self):
         model = self.fake_c_cluster.generate_scenario_1()
