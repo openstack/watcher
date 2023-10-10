@@ -26,8 +26,7 @@ metric                       service name plugins comment
                                                   ``compute_monitors`` option
                                                   to ``cpu.virt_driver`` in
                                                   the nova.conf.
-``cpu_util``                 ceilometer_  none    cpu_util has been removed
-                                                  since Stein.
+``cpu``                      ceilometer_  none
 ============================ ============ ======= ===========================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute

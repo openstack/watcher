@@ -295,7 +295,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                         self.threshold)
             return self.solution
 
-        # choose the server with largest cpu_util
+        # choose the server with largest cpu usage
         source_nodes = sorted(source_nodes,
                               reverse=True,
                               key=lambda x: (x[self._meter]))

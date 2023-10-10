@@ -27,9 +27,8 @@ metric                       service name plugins comment
                                                   to ``cpu.virt_driver`` in the
                                                   nova.conf.
 ``hardware.memory.used``     ceilometer_  SNMP_
-``cpu_util``                 ceilometer_  none    cpu_util has been removed
-                                                  since Stein.
-``memory.resident``          ceilometer_  none
+``cpu``                      ceilometer_  none
+``instance_ram_usage``       ceilometer_  none
 ============================ ============ ======= =============================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
@@ -107,10 +106,10 @@ parameter            type   default Value         description
                                                   period of all received ones.
 ==================== ====== ===================== =============================
 
-.. |metrics| replace:: ["cpu_util", "memory.resident"]
-.. |thresholds| replace:: {"cpu_util": 0.2, "memory.resident": 0.2}
-.. |weights| replace:: {"cpu_util_weight": 1.0, "memory.resident_weight": 1.0}
-.. |instance_metrics| replace:: {"cpu_util": "compute.node.cpu.percent", "memory.resident": "hardware.memory.used"}
+.. |metrics| replace:: ["instance_cpu_usage", "instance_ram_usage"]
+.. |thresholds| replace:: {"instance_cpu_usage": 0.2, "instance_ram_usage": 0.2}
+.. |weights| replace:: {"instance_cpu_usage_weight": 1.0, "instance_ram_usage_weight": 1.0}
+.. |instance_metrics| replace:: {"instance_cpu_usage": "compute.node.cpu.percent", "instance_ram_usage": "hardware.memory.used"}
 .. |periods| replace:: {"instance": 720, "node": 600}
 
 Efficacy Indicator
@@ -136,8 +135,8 @@ How to use it ?
       at1 workload_balancing --strategy workload_stabilization
 
     $ openstack optimize audit create -a at1 \
-      -p thresholds='{"memory.resident": 0.05}' \
-      -p metrics='["memory.resident"]'
+      -p thresholds='{"instance_ram_usage": 0.05}' \
+      -p metrics='["instance_ram_usage"]'
 
 External Links
 --------------
