@@ -63,7 +63,7 @@ class DataSourceBase(object):
             raise exception.MetricNotAvailable(metric=meter_name)
         return meter
 
-    def query_retry(self, f, *args, **kwargs):
+    def query_retry(self, f, *args, ignored_exc=None, **kwargs):
         """Attempts to retrieve metrics from the external service
 
         Attempts to access data from the external service and handles
@@ -71,15 +71,23 @@ class DataSourceBase(object):
         to the value of query_max_retries
         :param f: The method that performs the actual querying for metrics
         :param args: Array of arguments supplied to the method
+        :param ignored_exc: An exception or tuple of exceptions that shouldn't
+                            be retried, for example "NotFound" exceptions.
         :param kwargs: The amount of arguments supplied to the method
         :return: The value as retrieved from the external service
         """
 
         num_retries = CONF.watcher_datasources.query_max_retries
         timeout = CONF.watcher_datasources.query_timeout
+        ignored_exc = ignored_exc or tuple()
+
         for i in range(num_retries):
             try:
                 return f(*args, **kwargs)
+            except ignored_exc as e:
+                LOG.debug("Got an ignored exception (%s) while calling: %s ",
+                          e, f)
+                return
             except Exception as e:
                 LOG.exception(e)
                 self.query_retry_reset(e)
