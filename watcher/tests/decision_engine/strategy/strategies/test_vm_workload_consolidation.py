@@ -64,6 +64,10 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
                 self.fake_metrics.get_instance_ram_util),
             get_instance_root_disk_size=(
                 self.fake_metrics.get_instance_disk_root_size),
+            get_host_cpu_usage=(
+                self.fake_metrics.get_compute_node_cpu_util),
+            get_host_ram_usage=(
+                self.fake_metrics.get_compute_node_ram_util)
             )
         self.strategy = strategies.VMWorkloadConsolidation(
             config=mock.Mock(datasources=self.datasource))
@@ -87,6 +91,71 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
         self.assertEqual(
             node_util,
             self.strategy.get_node_utilization(node_0))
+
+    def test_get_node_utilization_using_host_metrics(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_0 = model.get_node_by_uuid("Node_0")
+
+        # "get_node_utilization" is expected to return the maximum
+        # between the host metrics and the sum of the instance metrics.
+        data_src = self.m_datasource.return_value
+        cpu_usage = 30
+        data_src.get_host_cpu_usage = mock.Mock(return_value=cpu_usage)
+        data_src.get_host_ram_usage = mock.Mock(return_value=512 * 1024)
+
+        exp_cpu_usage = cpu_usage * node_0.vcpus / 100
+        exp_node_util = dict(cpu=exp_cpu_usage, ram=512, disk=10)
+        self.assertEqual(
+            exp_node_util,
+            self.strategy.get_node_utilization(node_0))
+
+    def test_get_node_utilization_after_migrations(self):
+        model = self.fake_c_cluster.generate_scenario_1()
+        self.m_c_model.return_value = model
+        self.fake_metrics.model = model
+        node_0 = model.get_node_by_uuid("Node_0")
+        node_1 = model.get_node_by_uuid("Node_1")
+
+        data_src = self.m_datasource.return_value
+        cpu_usage = 30
+        host_ram_usage_mb = 512
+        data_src.get_host_cpu_usage = mock.Mock(return_value=cpu_usage)
+        data_src.get_host_ram_usage = mock.Mock(
+            return_value=host_ram_usage_mb * 1024)
+
+        instance_uuid = 'INSTANCE_0'
+        instance = model.get_instance_by_uuid(instance_uuid)
+        self.strategy.add_migration(instance, node_0, node_1)
+
+        instance_util = self.strategy.get_instance_utilization(instance)
+
+        # Ensure that we take into account planned migrations when
+        # determining node utilization
+        exp_node_0_cpu_usage = (
+            cpu_usage * node_0.vcpus) / 100 - instance_util['cpu']
+        exp_node_1_cpu_usage = (
+            cpu_usage * node_1.vcpus) / 100 + instance_util['cpu']
+
+        exp_node_0_ram_usage = host_ram_usage_mb - instance.memory
+        exp_node_1_ram_usage = host_ram_usage_mb + instance.memory
+
+        exp_node_0_util = dict(
+            cpu=exp_node_0_cpu_usage,
+            ram=exp_node_0_ram_usage,
+            disk=0)
+        exp_node_1_util = dict(
+            cpu=exp_node_1_cpu_usage,
+            ram=exp_node_1_ram_usage,
+            disk=25)
+
+        self.assertEqual(
+            exp_node_0_util,
+            self.strategy.get_node_utilization(node_0))
+        self.assertEqual(
+            exp_node_1_util,
+            self.strategy.get_node_utilization(node_1))
 
     def test_get_node_capacity(self):
         model = self.fake_c_cluster.generate_scenario_1()
