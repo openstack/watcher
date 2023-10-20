@@ -48,7 +48,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                     "type": "array",
                     "items": {
                         "anyOf": [
-                            {"$ref": HOST_AGGREGATES + "id"},
+                            {"$ref": HOST_AGGREGATES + "host_aggr_id"},
                             {"$ref": HOST_AGGREGATES + "name"},
                         ]
                     }
@@ -98,7 +98,8 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
                                 "type": "array",
                                 "items": {
                                     "anyOf": [
-                                        {"$ref": HOST_AGGREGATES + "id"},
+                                        {"$ref":
+                                            HOST_AGGREGATES + "host_aggr_id"},
                                         {"$ref": HOST_AGGREGATES + "name"},
                                     ]
                                 }
@@ -129,7 +130,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             "additionalProperties": False
         },
         "host_aggregates": {
-            "id": {
+            "host_aggr_id": {
                 "properties": {
                     "id": {
                         "oneOf": [

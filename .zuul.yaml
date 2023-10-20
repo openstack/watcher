@@ -89,7 +89,7 @@
 - job:
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
-    nodeset: openstack-two-node-focal
+    nodeset: openstack-two-node-jammy
     roles:
       - zuul: openstack/tempest
     group-vars:
@@ -107,6 +107,7 @@
           watcher-api: false
           watcher-decision-engine: true
           watcher-applier: false
+          c-bak: false
           ceilometer: false
           ceilometer-acompute: false
           ceilometer-acentral: false
