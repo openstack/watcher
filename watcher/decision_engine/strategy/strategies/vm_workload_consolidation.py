@@ -21,6 +21,7 @@
 from oslo_log import log
 
 from watcher._i18n import _
+from watcher.applier.actions import migration
 from watcher.common import exception
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
@@ -196,20 +197,18 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         :return: None
         """
         instance_state_str = self.get_instance_state_str(instance)
-        if instance_state_str not in (element.InstanceState.ACTIVE.value,
-                                      element.InstanceState.PAUSED.value):
-            # Watcher currently only supports live VM migration and block live
-            # VM migration which both requires migrated VM to be active.
-            # When supported, the cold migration may be used as a fallback
-            # migration mechanism to move non active VMs.
+        if instance_state_str in (element.InstanceState.ACTIVE.value,
+                                  element.InstanceState.PAUSED.value):
+            migration_type = migration.Migrate.LIVE_MIGRATION
+        elif instance_state_str == element.InstanceState.STOPPED.value:
+            migration_type = migration.Migrate.COLD_MIGRATION
+        else:
             LOG.error(
                 'Cannot live migrate: instance_uuid=%(instance_uuid)s, '
                 'state=%(instance_state)s.', dict(
                     instance_uuid=instance.uuid,
                     instance_state=instance_state_str))
             return
-
-        migration_type = 'live'
 
         # Here will makes repeated actions to enable the same compute node,
         # when migrating VMs to the destination node which is disabled.
