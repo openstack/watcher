@@ -39,7 +39,7 @@ class GnocchiHelper(base.DataSourceBase):
                       host_inlet_temp='hardware.ipmi.node.temperature',
                       host_airflow='hardware.ipmi.node.airflow',
                       host_power='hardware.ipmi.node.power',
-                      instance_cpu_usage='cpu_util',
+                      instance_cpu_usage='cpu',
                       instance_ram_usage='memory.resident',
                       instance_ram_allocated='memory',
                       instance_l3_cache_usage='cpu_l3_cache',
@@ -96,6 +96,25 @@ class GnocchiHelper(base.DataSourceBase):
 
             resource_id = resources[0]['id']
 
+        if meter_name == "instance_cpu_usage":
+            if resource_type != "instance":
+                LOG.warning("Unsupported resource type for metric "
+                            "'instance_cpu_usage': ", resource_type)
+                return
+
+            # The "cpu_util" gauge (percentage) metric has been removed.
+            # We're going to obtain the same result by using the rate of change
+            # aggregate operation.
+            if aggregate not in ("mean", "rate:mean"):
+                LOG.warning("Unsupported aggregate for instance_cpu_usage "
+                            "metric: %s. "
+                            "Supported aggregates: mean, rate:mean ",
+                            aggregate)
+                return
+
+            # TODO(lpetrut): consider supporting other aggregates.
+            aggregate = "rate:mean"
+
         raw_kwargs = dict(
             metric=meter,
             start=start_time,
@@ -122,6 +141,17 @@ class GnocchiHelper(base.DataSourceBase):
                 # Airflow from hardware.ipmi.node.airflow is reported as
                 # 1/10 th of actual CFM
                 return_value *= 10
+            if meter_name == "instance_cpu_usage":
+                # "rate:mean" can return negative values for migrated vms.
+                return_value = max(0, return_value)
+
+                # We're converting the cumulative cpu time (ns) to cpu usage
+                # percentage.
+                vcpus = resource.vcpus
+                if not vcpus:
+                    LOG.warning("instance vcpu count not set, assuming 1")
+                    vcpus = 1
+                return_value *= 100 / (granularity * 10e+8) / vcpus
 
         return return_value
 

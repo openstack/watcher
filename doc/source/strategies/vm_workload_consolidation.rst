@@ -22,8 +22,7 @@ The *vm_workload_consolidation* strategy requires the following metrics:
 ============================ ============ ======= =========================
 metric                       service name plugins comment
 ============================ ============ ======= =========================
-``cpu_util``                 ceilometer_  none    cpu_util has been removed
-                                                  since Stein.
+``cpu``                      ceilometer_  none
 ``memory.resident``          ceilometer_  none
 ``memory``                   ceilometer_  none
 ``disk.root.size``           ceilometer_  none
