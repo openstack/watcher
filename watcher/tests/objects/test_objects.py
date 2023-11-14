@@ -531,6 +531,7 @@ class TestRegistry(test_base.TestCase):
 
     @mock.patch('watcher.objects.base.objects')
     def test_hook_chooses_newer_properly(self, mock_objects):
+        mock_objects.MyObj.VERSION = MyObj.VERSION
         reg = base.WatcherObjectRegistry()
         reg.registration_hook(MyObj, 0)
 
@@ -547,6 +548,7 @@ class TestRegistry(test_base.TestCase):
 
     @mock.patch('watcher.objects.base.objects')
     def test_hook_keeps_newer_properly(self, mock_objects):
+        mock_objects.MyObj.VERSION = MyObj.VERSION
         reg = base.WatcherObjectRegistry()
         reg.registration_hook(MyObj, 0)
 
