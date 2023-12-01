@@ -26,9 +26,15 @@ metric                       service name plugins comment
 ``memory.resident``          ceilometer_  none
 ``memory``                   ceilometer_  none
 ``disk.root.size``           ceilometer_  none
+``compute.node.cpu.percent`` ceilometer_  none    (optional) need to set the
+                                                  ``compute_monitors`` option
+                                                  to ``cpu.virt_driver`` in the
+                                                  nova.conf.
+``hardware.memory.used``     ceilometer_  SNMP_   (optional)
 ============================ ============ ======= =========================
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
+.. _SNMP: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#snmp-based-meters
 
 Cluster data model
 ******************

@@ -18,7 +18,10 @@
 # limitations under the License.
 #
 
+import collections
+
 from oslo_log import log
+import oslo_utils
 
 from watcher._i18n import _
 from watcher.applier.actions import migration
@@ -67,7 +70,8 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
 
     AGGREGATE = 'mean'
     DATASOURCE_METRICS = ['instance_ram_allocated', 'instance_cpu_usage',
-                          'instance_ram_usage', 'instance_root_disk_size']
+                          'instance_ram_usage', 'instance_root_disk_size',
+                          'host_cpu_usage', 'host_ram_usage']
 
     MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
@@ -77,6 +81,11 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
         self.number_of_migrations = 0
         self.number_of_released_nodes = 0
         self.datasource_instance_data_cache = dict()
+        self.datasource_node_data_cache = dict()
+        # Host metric adjustments that take into account planned
+        # migrations.
+        self.host_metric_delta = collections.defaultdict(
+            lambda: collections.defaultdict(int))
 
     @classmethod
     def get_name(cls):
@@ -227,6 +236,18 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
                 destination_node)
             self.number_of_migrations += 1
 
+            instance_util = self.get_instance_utilization(instance)
+            self.host_metric_delta[source_node.hostname]['cpu'] -= (
+                instance_util['cpu'])
+            # We'll deduce the vm allocated memory.
+            self.host_metric_delta[source_node.hostname]['ram'] -= (
+                instance.memory)
+
+            self.host_metric_delta[destination_node.hostname]['cpu'] += (
+                instance_util['cpu'])
+            self.host_metric_delta[destination_node.hostname]['ram'] += (
+                instance.memory)
+
     def disable_unused_nodes(self):
         """Generate actions for disabling unused nodes.
 
@@ -289,6 +310,21 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             disk=instance_disk_util)
         return self.datasource_instance_data_cache.get(instance.uuid)
 
+    def _get_node_total_utilization(self, node):
+        if node.hostname in self.datasource_node_data_cache:
+            return self.datasource_node_data_cache[node.hostname]
+
+        cpu = self.datasource_backend.get_host_cpu_usage(
+            node, self.period, self.AGGREGATE,
+            self.granularity)
+        ram = self.datasource_backend.get_host_ram_usage(
+            node, self.period, self.AGGREGATE,
+            self.granularity)
+
+        self.datasource_node_data_cache[node.hostname] = dict(
+            cpu=cpu, ram=ram)
+        return self.datasource_node_data_cache[node.hostname]
+
     def get_node_utilization(self, node):
         """Collect cpu, ram and disk utilization statistics of a node.
 
@@ -309,7 +345,33 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
             LOG.debug("instance utilization: %s %s",
                       instance, instance_util)
 
-        return dict(cpu=node_cpu_util, ram=node_ram_util,
+        total_node_util = self._get_node_total_utilization(node)
+        total_node_cpu_util = total_node_util['cpu'] or 0
+        if total_node_cpu_util:
+            total_node_cpu_util = total_node_cpu_util * node.vcpus / 100
+            # account for planned migrations
+            total_node_cpu_util += self.host_metric_delta[node.hostname]['cpu']
+
+        total_node_ram_util = total_node_util['ram'] or 0
+        if total_node_ram_util:
+            total_node_ram_util /= oslo_utils.units.Ki
+            total_node_ram_util += self.host_metric_delta[node.hostname]['ram']
+
+        LOG.debug(
+            "node utilization: %s. "
+            "total instance cpu: %s, "
+            "total instance ram: %s, "
+            "total instance disk: %s, "
+            "total host cpu: %s, "
+            "total host ram: %s, "
+            "node delta usage: %s.",
+            node,
+            node_cpu_util, node_ram_util, node_disk_util,
+            total_node_cpu_util, total_node_ram_util,
+            self.host_metric_delta[node.hostname])
+
+        return dict(cpu=max(node_cpu_util, total_node_cpu_util),
+                    ram=max(node_ram_util, total_node_ram_util),
                     disk=node_disk_util)
 
     def get_node_capacity(self, node):
