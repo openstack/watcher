@@ -44,11 +44,7 @@ _FACADE = None
 def _create_facade_lazily():
     global _FACADE
     if _FACADE is None:
-        # FIXME(amoralej): Remove autocommit=True (and ideally use of
-        # LegacyEngineFacade) asap since it's not compatible with SQLAlchemy
-        # 2.0.
-        _FACADE = db_session.EngineFacade.from_config(CONF,
-                                                      autocommit=True)
+        _FACADE = db_session.EngineFacade.from_config(CONF)
     return _FACADE
 
 
@@ -252,26 +248,31 @@ class Connection(api.BaseConnection):
         return query
 
     def _create(self, model, values):
-        obj = model()
-        cleaned_values = {k: v for k, v in values.items()
-                          if k not in self._get_relationships(model)}
-        obj.update(cleaned_values)
-        obj.save()
+        session = get_session()
+        with session.begin():
+            obj = model()
+            cleaned_values = {k: v for k, v in values.items()
+                              if k not in self._get_relationships(model)}
+            obj.update(cleaned_values)
+            obj.save(session=session)
+            session.commit()
         return obj
 
     def _get(self, context, model, fieldname, value, eager):
-        query = model_query(model)
-        if eager:
-            query = self._set_eager_options(model, query)
+        session = get_session()
+        with session.begin():
+            query = model_query(model, session=session)
+            if eager:
+                query = self._set_eager_options(model, query)
 
-        query = query.filter(getattr(model, fieldname) == value)
-        if not context.show_deleted:
-            query = query.filter(model.deleted_at.is_(None))
+            query = query.filter(getattr(model, fieldname) == value)
+            if not context.show_deleted:
+                query = query.filter(model.deleted_at.is_(None))
 
-        try:
-            obj = query.one()
-        except exc.NoResultFound:
-            raise exception.ResourceNotFound(name=model.__name__, id=value)
+            try:
+                obj = query.one()
+            except exc.NoResultFound:
+                raise exception.ResourceNotFound(name=model.__name__, id=value)
 
         return obj
 
