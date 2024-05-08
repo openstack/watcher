@@ -244,7 +244,8 @@ class Connection(api.BaseConnection):
         for relationship in relationships:
             if not relationship.uselist:
                 # We have a One-to-X relationship
-                query = query.options(joinedload(relationship.key))
+                query = query.options(joinedload(
+                    getattr(model, relationship.key)))
         return query
 
     def _create(self, model, values):

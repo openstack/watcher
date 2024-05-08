@@ -22,6 +22,7 @@ from apscheduler.jobstores.base import ConflictingIdError
 from apscheduler.jobstores import sqlalchemy
 from apscheduler.util import datetime_to_utc_timestamp
 from apscheduler.util import maybe_ref
+from apscheduler.util import utc_timestamp_to_datetime
 
 from watcher.common import context
 from watcher.common import service
@@ -32,7 +33,7 @@ try:
 except ImportError:  # pragma: nocover
     import pickle
 
-from sqlalchemy import Table, MetaData, select, and_
+from sqlalchemy import Table, MetaData, select, and_, null
 from sqlalchemy.exc import IntegrityError
 
 
@@ -58,8 +59,7 @@ class WatcherJobStore(sqlalchemy.SQLAlchemyJobStore):
         super(WatcherJobStore, self).__init__(url, engine, tablename,
                                               metadata, pickle_protocol)
         metadata = maybe_ref(metadata) or MetaData()
-        self.jobs_t = Table(tablename, metadata, autoload=True,
-                            autoload_with=engine)
+        self.jobs_t = Table(tablename, metadata, autoload_with=engine)
         service_ident = service.ServiceHeartbeat.get_service_name()
         self.tag = tag or {'host': service_ident[0], 'name': service_ident[1]}
         self.service_id = objects.Service.list(context=context.make_context(),
@@ -79,7 +79,8 @@ class WatcherJobStore(sqlalchemy.SQLAlchemyJobStore):
             'tag': jsonutils.dumps(self.tag)
         })
         try:
-            self.engine.execute(insert)
+            with self.engine.begin() as conn:
+                conn.execute(insert)
         except IntegrityError:
             raise ConflictingIdError(job.id)
 
@@ -88,20 +89,36 @@ class WatcherJobStore(sqlalchemy.SQLAlchemyJobStore):
         self._fix_paused_jobs_sorting(jobs)
         return jobs
 
+    def get_next_run_time(self):
+        selectable = select(self.jobs_t.c.next_run_time).\
+            where(self.jobs_t.c.next_run_time != null()).\
+            order_by(self.jobs_t.c.next_run_time).limit(1)
+        with self.engine.begin() as connection:
+            # NOTE(danms): The apscheduler implementation of this gets a
+            # decimal.Decimal back from scalar() which causes
+            # utc_timestamp_to_datetime() to choke since it is expecting a
+            # python float. Assume this is SQLAlchemy 2.0 stuff, so just
+            # coerce to a float here.
+            next_run_time = connection.execute(selectable).scalar()
+            return utc_timestamp_to_datetime(float(next_run_time)
+                                             if next_run_time is not None
+                                             else None)
+
     def _get_jobs(self, *conditions):
         jobs = []
         conditions += (self.jobs_t.c.service_id == self.service_id,)
         selectable = select(
-            [self.jobs_t.c.id, self.jobs_t.c.job_state, self.jobs_t.c.tag]
+            self.jobs_t.c.id, self.jobs_t.c.job_state, self.jobs_t.c.tag
         ).order_by(self.jobs_t.c.next_run_time).where(and_(*conditions))
         failed_job_ids = set()
-        for row in self.engine.execute(selectable):
-            try:
-                jobs.append(self._reconstitute_job(row.job_state))
-            except Exception:
-                self._logger.exception(
-                    'Unable to restore job "%s" -- removing it', row.id)
-                failed_job_ids.add(row.id)
+        with self.engine.begin() as conn:
+            for row in conn.execute(selectable):
+                try:
+                    jobs.append(self._reconstitute_job(row.job_state))
+                except Exception:
+                    self._logger.exception(
+                        'Unable to restore job "%s" -- removing it', row.id)
+                    failed_job_ids.add(row.id)
 
         # Remove all the jobs we failed to restore
         if failed_job_ids:

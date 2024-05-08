@@ -28,7 +28,7 @@ def upgrade():
 
     op.create_table(
         'apscheduler_jobs',
-        sa.Column('id', sa.Unicode(191, _warn_on_bytestring=False),
+        sa.Column('id', sa.Unicode(191),
                   nullable=False),
         sa.Column('next_run_time', sa.Float(25), index=True),
         sa.Column('job_state', sa.LargeBinary, nullable=False),
