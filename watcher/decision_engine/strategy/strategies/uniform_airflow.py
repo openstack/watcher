@@ -205,7 +205,7 @@ class UniformAirflow(base.BaseStrategy):
                 host = nodemap['node']
                 if 'cores_used' not in nodemap:
                     # calculate the available resources
-                    nodemap['cores_used'], nodemap['mem_used'],\
+                    nodemap['cores_used'], nodemap['mem_used'], \
                         nodemap['disk_used'] = self.calculate_used_resource(
                             host)
                 cores_available = (host.vcpus -

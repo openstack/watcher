@@ -216,9 +216,9 @@ class BaseModelBuilder(object):
             except Exception as e:
                 LOG.exception(e)
                 self.call_retry_reset(e)
-                LOG.warning("Retry {0} of {1}, error while calling service "
-                            "retry in {2} seconds".format(i+1, num_retries,
-                                                          timeout))
+                LOG.warning("Retry %d of %d, error while calling service "
+                            "retry in %s seconds",
+                            i+1, num_retries, timeout)
                 time.sleep(timeout)
         raise
 

@@ -274,7 +274,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
             instances = getattr(node_info, "servers", None)
             # Do not submit job if there are no instances on compute node
             if instances is None:
-                LOG.info("No instances on compute_node: {0}".format(node_info))
+                LOG.info("No instances on compute_node: %s", node_info)
                 return
             future_instances.append(
                 self.executor.submit(
@@ -330,7 +330,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
             self.nova_helper.get_compute_node_by_name,
             node, servers=True, detailed=True)
             for node in compute_nodes]
-        LOG.debug("submitted {0} jobs".format(len(compute_nodes)))
+        LOG.debug("submitted %d jobs", len(compute_nodes))
 
         # Futures will concurrently be added, only safe with CPython GIL
         future_instances = []
@@ -427,7 +427,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
 
     def add_instance_node(self, node, instances):
         if instances is None:
-            LOG.info("no instances on compute_node: {0}".format(node))
+            LOG.info("no instances on compute_node: %s", node)
             return
         host = node.service["host"]
         compute_node = self.model.get_node_by_uuid(node.id)

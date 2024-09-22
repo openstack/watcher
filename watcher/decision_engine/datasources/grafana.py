@@ -158,8 +158,9 @@ class GrafanaHelper(base.DataSourceBase):
         try:
             self.METRIC_MAP[meter_name]
         except KeyError:
-            LOG.error("Metric: {0} does not appear in the current Grafana "
-                      "metric map".format(meter_name))
+            LOG.error(
+                "Metric: %s does not appear in the current Grafana metric map",
+                meter_name)
             raise exception.MetricNotAvailable(metric=meter_name)
 
         db = self.METRIC_MAP[meter_name]['db']
@@ -184,7 +185,7 @@ class GrafanaHelper(base.DataSourceBase):
 
         resp = self.query_retry(self._request, **kwargs)
         if not resp:
-            LOG.warning("Datasource {0} is not available.".format(self.NAME))
+            LOG.warning("Datasource %s is not available.", self.NAME)
             return
 
         result = translator.extract_result(resp.content)

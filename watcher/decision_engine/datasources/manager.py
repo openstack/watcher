@@ -37,8 +37,8 @@ class DataSourceManager(object):
         (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
         (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
     ])
-    """Dictionary with all possible datasources, dictionary order is the default
-    order for attempting to use datasources
+    """Dictionary with all possible datasources, dictionary order is
+    the default order for attempting to use datasources
     """
 
     def __init__(self, config=None, osc=None):
@@ -127,8 +127,9 @@ class DataSourceManager(object):
                 if (metric not in self.metric_map[datasource] or
                         self.metric_map[datasource].get(metric) is None):
                     no_metric = True
-                    LOG.warning("Datasource: {0} could not be used due to "
-                                "metric: {1}".format(datasource, metric))
+                    LOG.warning(
+                        "Datasource: %s could not be used due to metric: %s",
+                        datasource, metric)
                     break
             if not no_metric:
                 # Try to use a specific datasource but attempt additional

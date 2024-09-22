@@ -91,8 +91,8 @@ class DataSourceBase(object):
             except Exception as e:
                 LOG.exception(e)
                 self.query_retry_reset(e)
-                LOG.warning("Retry {0} of {1} while retrieving metrics retry "
-                            "in {2} seconds".format(i+1, num_retries, timeout))
+                LOG.warning("Retry %d of %d while retrieving metrics retry "
+                            "in %d seconds", i+1, num_retries, timeout)
                 time.sleep(timeout)
 
     @abc.abstractmethod

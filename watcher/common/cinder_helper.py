@@ -153,7 +153,7 @@ class CinderHelper(object):
         final_status = ('success', 'error')
         while getattr(volume, 'migration_status') not in final_status:
             volume = self.get_volume(volume.id)
-            LOG.debug('Waiting the migration of {0}'.format(volume))
+            LOG.debug('Waiting the migration of %s', volume)
             time.sleep(retry_interval)
             if getattr(volume, 'migration_status') == 'error':
                 host_name = getattr(volume, 'os-vol-host-attr:host')
@@ -230,7 +230,7 @@ class CinderHelper(object):
             availability_zone=getattr(volume, 'availability_zone'))
         while getattr(new_volume, 'status') != 'available' and retry:
             new_volume = cinder.volumes.get(new_volume.id)
-            LOG.debug('Waiting volume creation of {0}'.format(new_volume))
+            LOG.debug('Waiting volume creation of %s', new_volume)
             time.sleep(retry_interval)
             retry -= 1
             LOG.debug("retry count: %s", retry)

@@ -67,7 +67,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_uuid = 'Node_1'
         n1, n2 = self.strategy.group_hosts()
-        self.assertTrue(node_uuid in n1)
+        self.assertIn(node_uuid, n1)
         self.assertEqual(n1[node_uuid]['priority_vm'].uuid, 'INSTANCE_3')
         self.assertEqual(n1[node_uuid]['noisy_vm'].uuid, 'INSTANCE_4')
         self.assertEqual('Node_0', n2[0].uuid)

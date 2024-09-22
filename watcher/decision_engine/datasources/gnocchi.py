@@ -90,8 +90,8 @@ class GnocchiHelper(base.DataSourceBase):
                 **kwargs)
 
             if not resources:
-                LOG.warning("The {0} resource {1} could not be "
-                            "found".format(self.NAME, resource_id))
+                LOG.warning("The %s resource %s could not be found",
+                            self.NAME, resource_id)
                 return
 
             resource_id = resources[0]['id']
@@ -99,7 +99,7 @@ class GnocchiHelper(base.DataSourceBase):
         if meter_name == "instance_cpu_usage":
             if resource_type != "instance":
                 LOG.warning("Unsupported resource type for metric "
-                            "'instance_cpu_usage': ", resource_type)
+                            "'instance_cpu_usage': %s", resource_type)
                 return
 
             # The "cpu_util" gauge (percentage) metric has been removed.
@@ -172,8 +172,8 @@ class GnocchiHelper(base.DataSourceBase):
                 **kwargs)
 
             if not resources:
-                LOG.warning("The {0} resource {1} could not be "
-                            "found".format(self.NAME, resource_id))
+                LOG.warning("The %s resource %s could not be found",
+                            self.NAME, resource_id)
                 return
 
             resource_id = resources[0]['id']

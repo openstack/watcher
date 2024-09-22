@@ -292,9 +292,7 @@ class NovaHelper(object):
                       'OS-EXT-STS:vm_state') != 'resized' \
                 and retry:
             instance = self.nova.servers.get(instance.id)
-            LOG.debug(
-                'Waiting the resize of {0}  to {1}'.format(
-                    instance, flavor_id))
+            LOG.debug('Waiting the resize of %s to %s', instance, flavor_id)
             time.sleep(1)
             retry -= 1
 
@@ -349,8 +347,7 @@ class NovaHelper(object):
             if dest_hostname is None:
                 while (instance.status not in ['ACTIVE', 'ERROR'] and retry):
                     instance = self.nova.servers.get(instance.id)
-                    LOG.debug(
-                        'Waiting the migration of {0}'.format(instance.id))
+                    LOG.debug('Waiting the migration of %s', instance.id)
                     time.sleep(1)
                     retry -= 1
                 new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
@@ -371,11 +368,9 @@ class NovaHelper(object):
                 if not getattr(instance, 'OS-EXT-STS:task_state'):
                     LOG.debug("Instance task state: %s is null", instance_id)
                     break
-                LOG.debug(
-                    'Waiting the migration of {0}  to {1}'.format(
-                        instance,
-                        getattr(instance,
-                                'OS-EXT-SRV-ATTR:host')))
+                LOG.debug('Waiting the migration of %s to %s',
+                          instance,
+                          getattr(instance, 'OS-EXT-SRV-ATTR:host'))
                 time.sleep(1)
                 retry -= 1
 
@@ -725,7 +720,7 @@ class NovaHelper(object):
             instance_id, old_volume.id, new_volume.id)
         while getattr(new_volume, 'status') != 'in-use' and retry:
             new_volume = self.cinder.volumes.get(new_volume.id)
-            LOG.debug('Waiting volume update to {0}'.format(new_volume))
+            LOG.debug('Waiting volume update to %s', new_volume)
             time.sleep(retry_interval)
             retry -= 1
             LOG.debug("retry count: %s", retry)

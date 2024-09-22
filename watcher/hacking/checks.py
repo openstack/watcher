@@ -98,7 +98,7 @@ def no_translate_debug_logs(logical_line, filename):
     """
     for hint in _all_hints:
         if logical_line.startswith("LOG.debug(%s(" % hint):
-            yield(0, "N319 Don't translate debug level logs")
+            yield (0, "N319 Don't translate debug level logs")
 
 
 @flake8ext
@@ -128,21 +128,21 @@ def check_assert_called_once_with(logical_line, filename):
 @flake8ext
 def check_python3_xrange(logical_line):
     if re.search(r"\bxrange\s*\(", logical_line):
-        yield(0, "N325: Do not use xrange. Use range for large loops.")
+        yield (0, "N325: Do not use xrange. Use range for large loops.")
 
 
 @flake8ext
 def check_no_basestring(logical_line):
     if re.search(r"\bbasestring\b", logical_line):
         msg = ("N326: basestring is not Python3-compatible, use str instead.")
-        yield(0, msg)
+        yield (0, msg)
 
 
 @flake8ext
 def check_python3_no_iteritems(logical_line):
     if re.search(r".*\.iteritems\(\)", logical_line):
         msg = ("N327: Use dict.items() instead of dict.iteritems().")
-        yield(0, msg)
+        yield (0, msg)
 
 
 @flake8ext
@@ -282,7 +282,7 @@ def no_redundant_import_alias(logical_line):
     N342
     """
     if re.match(re_redundant_import_alias, logical_line):
-        yield(0, "N342: No redundant import alias.")
+        yield (0, "N342: No redundant import alias.")
 
 
 @flake8ext

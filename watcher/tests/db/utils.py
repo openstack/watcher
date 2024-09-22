@@ -70,7 +70,7 @@ def create_test_audit_template(**kwargs):
     :param kwargs: kwargsargs with overriding values for audit template's
                    attributes.
     :returns: Test AuditTemplate DB object.
-    """
+    """  # noqa: E501
     audit_template = get_test_audit_template(**kwargs)
     # Let DB generate ID if it isn't specified explicitly
     if 'id' not in kwargs:

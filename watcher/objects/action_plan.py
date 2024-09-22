@@ -169,7 +169,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :param action_plan_id: the id *or* uuid of a action_plan.
         :param eager: Load object fields if True (Default: False)
         :returns: a :class:`Action` object.
-        """
+        """  # noqa: E501
         if utils.is_int_like(action_plan_id):
             return cls.get_by_id(context, action_plan_id, eager=eager)
         elif utils.is_uuid_like(action_plan_id):
@@ -184,7 +184,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :param action_plan_id: the id of a action_plan.
         :param eager: Load object fields if True (Default: False)
         :returns: a :class:`ActionPlan` object.
-        """
+        """  # noqa: E501
         db_action_plan = cls.dbapi.get_action_plan_by_id(
             context, action_plan_id, eager=eager)
         action_plan = cls._from_db_object(
@@ -199,7 +199,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         :param context: Security context
         :param eager: Load object fields if True (Default: False)
         :returns: a :class:`ActionPlan` object.
-        """
+        """  # noqa: E501
         db_action_plan = cls.dbapi.get_action_plan_by_uuid(
             context, uuid, eager=eager)
         action_plan = cls._from_db_object(

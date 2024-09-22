@@ -180,8 +180,8 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
 
                         for potential_noisy_instance in (
                                 instance_priority_list_reverse):
-                            if(potential_noisy_instance ==
-                               potential_priority_instance):
+                            if (potential_noisy_instance ==
+                                    potential_priority_instance):
                                 loop_break_flag = True
                                 break
 

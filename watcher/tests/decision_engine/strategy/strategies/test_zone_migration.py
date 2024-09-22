@@ -464,11 +464,11 @@ class TestZoneMigration(TestBaseStrategy):
         }
         filters = self.strategy.get_priority_filter_list()
         self.assertIn(strategies.zone_migration.ComputeHostSortFilter,
-                      map(lambda l: l.__class__, filters))
+                      map(lambda l: l.__class__, filters))  # noqa: E741
         self.assertIn(strategies.zone_migration.StorageHostSortFilter,
-                      map(lambda l: l.__class__, filters))
+                      map(lambda l: l.__class__, filters))  # noqa: E741
         self.assertIn(strategies.zone_migration.ProjectSortFilter,
-                      map(lambda l: l.__class__, filters))
+                      map(lambda l: l.__class__, filters))  # noqa: E741
 
     # ComputeHostSortFilter #
 
