@@ -26,6 +26,7 @@ from oslo_reports import guru_meditation_report as gmr
 from oslo_reports import opts as gmr_opts
 from oslo_service import service
 from oslo_service import wsgi
+from oslo_utils import timeutils
 
 from watcher._i18n import _
 from watcher.api import app
@@ -120,7 +121,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
                                    'host': host})
         if watcher_list:
             watcher_service = watcher_list[0]
-            watcher_service.last_seen_up = datetime.datetime.utcnow()
+            watcher_service.last_seen_up = timeutils.utcnow()
             watcher_service.save()
         else:
             watcher_service = objects.Service(self.context)

@@ -54,10 +54,9 @@ To see the life-cycle and description of
 state machine <action_plan_state_machine>`.
 """
 
-import datetime
-
 from http import HTTPStatus
 from oslo_log import log
+from oslo_utils import timeutils
 import pecan
 from pecan import rest
 import wsme
@@ -293,9 +292,9 @@ class ActionPlan(base.APIBase):
     def sample(cls, expand=True):
         sample = cls(uuid='9ef4d84c-41e8-4418-9220-ce55be0436af',
                      state='ONGOING',
-                     created_at=datetime.datetime.utcnow(),
+                     created_at=timeutils.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow())
+                     updated_at=timeutils.utcnow())
         sample._audit_uuid = 'abcee106-14d3-4515-b744-5a26885cf6f6'
         sample._efficacy_indicators = [{'description': 'Test indicator',
                                         'name': 'test_indicator',

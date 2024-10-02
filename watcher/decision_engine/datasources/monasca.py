@@ -19,6 +19,7 @@
 import datetime
 
 from monascaclient import exc
+from oslo_utils import timeutils
 
 from watcher.common import clients
 from watcher.decision_engine.datasources import base
@@ -58,8 +59,7 @@ class MonascaHelper(base.DataSourceBase):
             period = int(datetime.timedelta(hours=3).total_seconds())
         if not start_time:
             start_time = (
-                datetime.datetime.utcnow() -
-                datetime.timedelta(seconds=period))
+                timeutils.utcnow() - datetime.timedelta(seconds=period))
 
         start_timestamp = None if not start_time else start_time.isoformat()
         end_timestamp = None if not end_time else end_time.isoformat()
@@ -86,7 +86,7 @@ class MonascaHelper(base.DataSourceBase):
     def statistic_aggregation(self, resource=None, resource_type=None,
                               meter_name=None, period=300, aggregate='mean',
                               granularity=300):
-        stop_time = datetime.datetime.utcnow()
+        stop_time = timeutils.utcnow()
         start_time = stop_time - datetime.timedelta(seconds=(int(period)))
 
         meter = self._get_meter(meter_name)

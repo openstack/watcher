@@ -12,10 +12,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from apscheduler.schedulers import background
-import datetime
-import freezegun
 from unittest import mock
+
+from apscheduler.schedulers import background
+import freezegun
+from oslo_utils import timeutils
 
 from watcher.api import scheduling
 from watcher.notifications import service
@@ -41,7 +42,7 @@ class TestSchedulingServiceFunctions(db_base.DbTestCase):
     def setUp(self):
         super(TestSchedulingServiceFunctions, self).setUp()
         fake_service = utils.get_test_service(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
         self.fake_service = objects.Service(**fake_service)
 
     @mock.patch.object(scheduling.APISchedulingService, 'get_service_status')

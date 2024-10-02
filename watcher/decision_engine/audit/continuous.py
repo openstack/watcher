@@ -19,9 +19,10 @@
 
 
 import datetime
-from dateutil import tz
 
 from croniter import croniter
+from dateutil import tz
+from oslo_utils import timeutils
 
 from watcher.common import context
 from watcher.common import scheduling
@@ -97,7 +98,7 @@ class ContinuousAuditHandler(base.AuditHandler):
     @staticmethod
     def _next_cron_time(audit):
         if utils.is_cron_like(audit.interval):
-            return croniter(audit.interval, datetime.datetime.utcnow()
+            return croniter(audit.interval, timeutils.utcnow()
                             ).get_next(datetime.datetime)
 
     @classmethod
@@ -111,7 +112,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             finally:
                 if utils.is_int_like(audit.interval):
                     audit.next_run_time = (
-                        datetime.datetime.utcnow() +
+                        timeutils.utcnow() +
                         datetime.timedelta(seconds=int(audit.interval)))
                 else:
                     audit.next_run_time = self._next_cron_time(audit)
@@ -129,7 +130,7 @@ class ContinuousAuditHandler(base.AuditHandler):
                                **trigger_args)
 
     def check_audit_expired(self, audit):
-        current = datetime.datetime.utcnow()
+        current = timeutils.utcnow()
         # Note: if audit still didn't get into the timeframe,
         #       skip it
         if audit.start_time and audit.start_time > current:
@@ -196,7 +197,7 @@ class ContinuousAuditHandler(base.AuditHandler):
                     # to restore it after shutdown
                     if audit.next_run_time is not None:
                         old_run_time = audit.next_run_time
-                        current = datetime.datetime.utcnow()
+                        current = timeutils.utcnow()
                         if old_run_time < current:
                             delta = datetime.timedelta(
                                 seconds=(int(audit.interval) - (
@@ -206,7 +207,7 @@ class ContinuousAuditHandler(base.AuditHandler):
                         next_run_time = audit.next_run_time
                     # if audit is new one
                     else:
-                        next_run_time = datetime.datetime.utcnow()
+                        next_run_time = timeutils.utcnow()
                     self._add_job('interval', audit, audit_context,
                                   seconds=int(audit.interval),
                                   next_run_time=next_run_time)

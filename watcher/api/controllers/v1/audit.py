@@ -33,14 +33,14 @@ import datetime
 from dateutil import tz
 
 from http import HTTPStatus
+from oslo_log import log
+from oslo_utils import timeutils
 import pecan
 from pecan import rest
 import wsme
 from wsme import types as wtypes
 from wsme import utils as wutils
 import wsmeext.pecan as wsme_pecan
-
-from oslo_log import log
 
 from watcher._i18n import _
 from watcher.api.controllers import base
@@ -171,16 +171,16 @@ class AuditPostType(wtypes.Base):
                 strategy = _get_object_by_value(context, objects.Strategy,
                                                 self.strategy)
                 self.name = "%s-%s" % (strategy.name,
-                                       datetime.datetime.utcnow().isoformat())
+                                       timeutils.utcnow().isoformat())
             elif self.audit_template_uuid:
                 audit_template = objects.AuditTemplate.get(
                     context, self.audit_template_uuid)
                 self.name = "%s-%s" % (audit_template.name,
-                                       datetime.datetime.utcnow().isoformat())
+                                       timeutils.utcnow().isoformat())
             else:
                 goal = _get_object_by_value(context, objects.Goal, self.goal)
                 self.name = "%s-%s" % (goal.name,
-                                       datetime.datetime.utcnow().isoformat())
+                                       timeutils.utcnow().isoformat())
         # No more than 63 characters
         if len(self.name) > 63:
             LOG.warning("Audit: %s length exceeds 63 characters",
@@ -424,15 +424,15 @@ class Audit(base.APIBase):
                      name='My Audit',
                      audit_type='ONESHOT',
                      state='PENDING',
-                     created_at=datetime.datetime.utcnow(),
+                     created_at=timeutils.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow(),
+                     updated_at=timeutils.utcnow(),
                      interval='7200',
                      scope=[],
                      auto_trigger=False,
-                     next_run_time=datetime.datetime.utcnow(),
-                     start_time=datetime.datetime.utcnow(),
-                     end_time=datetime.datetime.utcnow())
+                     next_run_time=timeutils.utcnow(),
+                     start_time=timeutils.utcnow(),
+                     end_time=timeutils.utcnow())
 
         sample.goal_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         sample.strategy_id = '7ae81bb3-dec3-4289-8d6c-da80bd8001ff'

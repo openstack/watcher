@@ -73,6 +73,8 @@ state may be one of the following:
 """
 import datetime
 
+from oslo_utils import timeutils
+
 from watcher.common import exception
 from watcher.common import utils
 from watcher import conf
@@ -332,7 +334,7 @@ class StateManager(object):
     def check_expired(self, context):
         action_plan_expiry = (
             CONF.watcher_decision_engine.action_plan_expiry)
-        date_created = datetime.datetime.utcnow() - datetime.timedelta(
+        date_created = timeutils.utcnow() - datetime.timedelta(
             hours=action_plan_expiry)
         filters = {'state__eq': State.RECOMMENDED,
                    'created_at__lt': date_created}

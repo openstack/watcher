@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 from unittest import mock
 
 import freezegun
 import oslo_messaging as om
+from oslo_utils import timeutils
 
 from watcher.common import rpc
 from watcher import notifications
@@ -45,7 +45,7 @@ class TestActionPlanNotification(base.DbTestCase):
 
     def test_service_failed(self):
         service = utils.get_test_service(mock.Mock(),
-                                         created_at=datetime.datetime.utcnow())
+                                         created_at=timeutils.utcnow())
         state = w_service.ServiceStatus.FAILED
         notifications.service.send_service_update(mock.MagicMock(),
                                                   service,

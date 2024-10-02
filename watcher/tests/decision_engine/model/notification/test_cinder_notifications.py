@@ -14,11 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import datetime
 import os
 from unittest import mock
 
 from oslo_serialization import jsonutils
+from oslo_utils import timeutils
 
 from watcher.common import cinder_helper
 from watcher.common import context
@@ -64,7 +64,7 @@ class TestReceiveCinderNotifications(NotificationTestCase):
         m_get_service_list = p_get_service_list.start()
         m_update_service = p_update_service.start()
         fake_service = utils.get_test_service(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
         m_get_service_list.return_value = [fake_service]
         m_update_service.return_value = fake_service.copy()

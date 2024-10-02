@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
@@ -29,7 +29,7 @@ class TestGoalObject(base.DbTestCase):
     def setUp(self):
         super(TestGoalObject, self).setUp()
         self.fake_goal = utils.get_test_goal(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'get_goal_by_id')
     def test_get_by_id(self, mock_get_goal):
@@ -93,7 +93,7 @@ class TestGoalObject(base.DbTestCase):
         mock_get_goal.return_value = self.fake_goal
         goal_uuid = self.fake_goal['uuid']
         fake_saved_goal = self.fake_goal.copy()
-        fake_saved_goal['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_goal['updated_at'] = timeutils.utcnow()
         mock_update_goal.return_value = fake_saved_goal
 
         goal = objects.Goal.get_by_uuid(self.context, goal_uuid)
@@ -125,7 +125,7 @@ class TestGoalObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_goal, mock_soft_delete_goal):
         mock_get_goal.return_value = self.fake_goal
         fake_deleted_goal = self.fake_goal.copy()
-        fake_deleted_goal['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_goal['deleted_at'] = timeutils.utcnow()
         mock_soft_delete_goal.return_value = fake_deleted_goal
 
         expected_goal = fake_deleted_goal.copy()

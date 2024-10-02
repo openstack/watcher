@@ -14,10 +14,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
@@ -30,7 +30,7 @@ class TestActionDescriptionObject(base.DbTestCase):
     def setUp(self):
         super(TestActionDescriptionObject, self).setUp()
         self.fake_action_desc = utils.get_test_action_desc(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'get_action_description_by_id')
     def test_get_by_id(self, mock_get_action_desc):
@@ -70,7 +70,7 @@ class TestActionDescriptionObject(base.DbTestCase):
     def test_save(self, mock_get_action_desc, mock_update_action_desc):
         mock_get_action_desc.return_value = self.fake_action_desc
         fake_saved_action_desc = self.fake_action_desc.copy()
-        fake_saved_action_desc['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_action_desc['updated_at'] = timeutils.utcnow()
         mock_update_action_desc.return_value = fake_saved_action_desc
         _id = self.fake_action_desc['id']
         action_desc = objects.ActionDescription.get(self.context, _id)
@@ -102,7 +102,7 @@ class TestActionDescriptionObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_action_desc, mock_soft_delete):
         mock_get_action_desc.return_value = self.fake_action_desc
         fake_deleted_action_desc = self.fake_action_desc.copy()
-        fake_deleted_action_desc['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_action_desc['deleted_at'] = timeutils.utcnow()
         mock_soft_delete.return_value = fake_deleted_action_desc
 
         expected_action_desc = fake_deleted_action_desc.copy()

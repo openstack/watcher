@@ -43,9 +43,8 @@ will be launched automatically or will need a manual confirmation from the
 :ref:`Administrator <administrator_definition>`.
 """
 
-import datetime
-
 from http import HTTPStatus
+from oslo_utils import timeutils
 import pecan
 from pecan import rest
 import wsme
@@ -440,9 +439,9 @@ class AuditTemplate(base.APIBase):
                      description='Description of my audit template',
                      goal_uuid='83e44733-b640-40e2-8d8a-7dd3be7134e6',
                      strategy_uuid='367d826e-b6a4-4b70-bc44-c3f6fe1c9986',
-                     created_at=datetime.datetime.utcnow(),
+                     created_at=timeutils.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow(),
+                     updated_at=timeutils.utcnow(),
                      scope=[],)
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)
 

@@ -16,7 +16,9 @@ Utils for testing the API service.
 """
 
 import datetime
+
 from oslo_serialization import jsonutils
+from oslo_utils import timeutils
 
 from watcher.api.controllers.v1 import action as action_ctrl
 from watcher.api.controllers.v1 import action_plan as action_plan_ctrl
@@ -65,7 +67,7 @@ class FakeMemcache(object):
         self.token_expiration = None
 
     def get(self, key):
-        dt = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+        dt = timeutils.utcnow() + datetime.timedelta(minutes=5)
         return jsonutils.dumps((self._cache.get(key), dt.isoformat()))
 
     def set(self, key, value, time=0, min_compress_len=0):

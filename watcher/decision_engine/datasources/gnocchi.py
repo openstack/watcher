@@ -16,12 +16,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import datetime
 from datetime import timedelta
 
 from gnocchiclient import exceptions as gnc_exc
 from oslo_config import cfg
 from oslo_log import log
+from oslo_utils import timeutils
 
 from watcher.common import clients
 from watcher.decision_engine.datasources import base
@@ -69,7 +69,7 @@ class GnocchiHelper(base.DataSourceBase):
     def statistic_aggregation(self, resource=None, resource_type=None,
                               meter_name=None, period=300, aggregate='mean',
                               granularity=300):
-        stop_time = datetime.utcnow()
+        stop_time = timeutils.utcnow()
         start_time = stop_time - timedelta(seconds=(int(period)))
 
         meter = self._get_meter(meter_name)
