@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
@@ -29,7 +29,7 @@ class TestServiceObject(base.DbTestCase):
     def setUp(self):
         super(TestServiceObject, self).setUp()
         self.fake_service = utils.get_test_service(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'get_service_by_id')
     def test_get_by_id(self, mock_get_service):
@@ -66,7 +66,7 @@ class TestServiceObject(base.DbTestCase):
     def test_save(self, mock_get_service, mock_update_service):
         mock_get_service.return_value = self.fake_service
         fake_saved_service = self.fake_service.copy()
-        fake_saved_service['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_service['updated_at'] = timeutils.utcnow()
         mock_update_service.return_value = fake_saved_service
         _id = self.fake_service['id']
         service = objects.Service.get(self.context, _id)
@@ -98,7 +98,7 @@ class TestServiceObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_service, mock_soft_delete):
         mock_get_service.return_value = self.fake_service
         fake_deleted_service = self.fake_service.copy()
-        fake_deleted_service['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_service['deleted_at'] = timeutils.utcnow()
         mock_soft_delete.return_value = fake_deleted_service
 
         expected_service = fake_deleted_service.copy()

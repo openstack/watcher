@@ -158,7 +158,7 @@ class CeilometerHelper(base.DataSourceBase):
     def statistic_aggregation(self, resource=None, resource_type=None,
                               meter_name=None, period=300, granularity=300,
                               aggregate='mean'):
-        end_time = datetime.datetime.utcnow()
+        end_time = timeutils.utcnow()
         start_time = end_time - datetime.timedelta(seconds=int(period))
 
         meter = self._get_meter(meter_name)

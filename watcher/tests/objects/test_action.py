@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.common import exception
 from watcher.common import utils as c_utils
@@ -123,7 +123,7 @@ class TestActionObject(base.DbTestCase):
             uuid=c_utils.generate_uuid())
         mock_get_strategy.return_value = mock.PropertyMock(
             uuid=c_utils.generate_uuid())
-        fake_saved_action['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_action['updated_at'] = timeutils.utcnow()
         mock_update_action.return_value = fake_saved_action
         uuid = self.fake_action['uuid']
         action = objects.Action.get_by_uuid(
@@ -172,7 +172,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.create_test_action_plan()
         self.fake_action = utils.get_test_action(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_action')
     def test_create(self, mock_create_action):
@@ -195,7 +195,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
                          mock_send_update, mock_send_delete):
         mock_get_action.return_value = self.fake_action
         fake_deleted_action = self.fake_action.copy()
-        fake_deleted_action['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_action['deleted_at'] = timeutils.utcnow()
         mock_soft_delete_action.return_value = fake_deleted_action
         mock_update_action.return_value = fake_deleted_action
 

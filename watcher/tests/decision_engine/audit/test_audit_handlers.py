@@ -18,6 +18,7 @@ import datetime
 from unittest import mock
 
 from oslo_config import cfg
+from oslo_utils import timeutils
 from oslo_utils import uuidutils
 
 from apscheduler import job
@@ -486,7 +487,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertFalse(is_inactive)
 
     def test_check_audit_expired(self):
-        current = datetime.datetime.utcnow()
+        current = timeutils.utcnow()
 
         # start_time and end_time are None
         audit_handler = continuous.ContinuousAuditHandler()

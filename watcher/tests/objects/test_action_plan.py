@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.common import exception
 from watcher.common import utils as common_utils
@@ -39,19 +39,19 @@ class TestActionPlanObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_action_plan=utils.get_test_action_plan(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 audit_id=audit_id,
                 strategy_id=strategy_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_action_plan=utils.get_test_action_plan(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 audit_id=audit_id,
                 strategy_id=strategy_id))),
         ('eager_with_eager_load', dict(
             eager=True,
             fake_action_plan=utils.get_test_action_plan(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 strategy_id=strategy_id,
                 strategy=utils.get_test_strategy(id=strategy_id),
                 audit_id=audit_id,
@@ -132,7 +132,7 @@ class TestActionPlanObject(base.DbTestCase):
         mock_get_action_plan.return_value = self.fake_action_plan
         fake_saved_action_plan = self.fake_action_plan.copy()
         fake_saved_action_plan['state'] = objects.action_plan.State.SUCCEEDED
-        fake_saved_action_plan['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_action_plan['updated_at'] = timeutils.utcnow()
 
         mock_update_action_plan.return_value = fake_saved_action_plan
 
@@ -197,7 +197,7 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         self.fake_strategy = utils.create_test_strategy(name="DUMMY")
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.get_test_action_plan(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_action_plan')
     def test_create(self, mock_create_action_plan):
@@ -234,7 +234,7 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
 
         m_get_action_plan.return_value = self.fake_action_plan
         fake_deleted_action_plan = self.fake_action_plan.copy()
-        fake_deleted_action_plan['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_action_plan['deleted_at'] = timeutils.utcnow()
         m_update_action_plan.return_value = fake_deleted_action_plan
         m_soft_delete_action_plan.return_value = fake_deleted_action_plan
         expected_action_plan = fake_deleted_action_plan.copy()

@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
 from watcher import objects
@@ -29,7 +29,7 @@ class TestScoringEngineObject(base.DbTestCase):
     def setUp(self):
         super(TestScoringEngineObject, self).setUp()
         self.fake_scoring_engine = utils.get_test_scoring_engine(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'get_scoring_engine_by_id')
     def test_get_by_id(self, mock_get_scoring_engine):
@@ -100,7 +100,7 @@ class TestScoringEngineObject(base.DbTestCase):
     def test_save(self, mock_get_scoring_engine, mock_update_scoring_engine):
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         fake_saved_scoring_engine = self.fake_scoring_engine.copy()
-        fake_saved_scoring_engine['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_scoring_engine['updated_at'] = timeutils.utcnow()
         mock_update_scoring_engine.return_value = fake_saved_scoring_engine
 
         uuid = self.fake_scoring_engine['uuid']
@@ -134,7 +134,7 @@ class TestScoringEngineObject(base.DbTestCase):
     def test_soft_delete(self, mock_get_scoring_engine, mock_soft_delete):
         mock_get_scoring_engine.return_value = self.fake_scoring_engine
         fake_deleted_scoring_engine = self.fake_scoring_engine.copy()
-        fake_deleted_scoring_engine['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_scoring_engine['deleted_at'] = timeutils.utcnow()
         mock_soft_delete.return_value = fake_deleted_scoring_engine
 
         expected_scoring_engine = fake_deleted_scoring_engine.copy()

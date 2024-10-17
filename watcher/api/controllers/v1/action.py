@@ -55,9 +55,8 @@ possible to :ref:`develop new implementations <implement_action_plugin>` which
 are dynamically loaded by Watcher at launch time.
 """
 
-import datetime
-
 from http import HTTPStatus
+from oslo_utils import timeutils
 import pecan
 from pecan import rest
 import wsme
@@ -194,9 +193,9 @@ class Action(base.APIBase):
         sample = cls(uuid='27e3153e-d5bf-4b7e-b517-fb518e17f34c',
                      description='action description',
                      state='PENDING',
-                     created_at=datetime.datetime.utcnow(),
+                     created_at=timeutils.utcnow(),
                      deleted_at=None,
-                     updated_at=datetime.datetime.utcnow(),
+                     updated_at=timeutils.utcnow(),
                      parents=[])
         sample._action_plan_uuid = '7ae81bb3-dec3-4289-8d6c-da80bd8001ae'
         return cls._convert_with_links(sample, 'http://localhost:9322', expand)

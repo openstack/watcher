@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.common import exception
 from watcher.common import utils as w_utils
@@ -37,17 +37,17 @@ class TestAuditTemplateObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_audit_template=utils.get_test_audit_template(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_audit_template=utils.get_test_audit_template(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_eager_load', dict(
             eager=True,
             fake_audit_template=utils.get_test_audit_template(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id, goal=goal_data))),
     ]
 
@@ -127,7 +127,7 @@ class TestAuditTemplateObject(base.DbTestCase):
     def test_save(self, mock_get_audit_template, mock_update_audit_template):
         mock_get_audit_template.return_value = self.fake_audit_template
         fake_saved_audit_template = self.fake_audit_template.copy()
-        fake_saved_audit_template['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_audit_template['updated_at'] = timeutils.utcnow()
         mock_update_audit_template.return_value = fake_saved_audit_template
         uuid = self.fake_audit_template['uuid']
         audit_template = objects.AuditTemplate.get_by_uuid(
@@ -165,7 +165,7 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
     def setUp(self):
         super(TestCreateDeleteAuditTemplateObject, self).setUp()
         self.fake_audit_template = utils.get_test_audit_template(
-            created_at=datetime.datetime.utcnow())
+            created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_audit_template')
     def test_create(self, mock_create_audit_template):
@@ -188,7 +188,7 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
                          m_soft_delete_audit_template):
         m_get_audit_template.return_value = self.fake_audit_template
         fake_deleted_audit_template = self.fake_audit_template.copy()
-        fake_deleted_audit_template['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_audit_template['deleted_at'] = timeutils.utcnow()
         m_soft_delete_audit_template.return_value = fake_deleted_audit_template
 
         expected_audit_template = fake_deleted_audit_template.copy()

@@ -13,10 +13,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import datetime
 from unittest import mock
 
 import iso8601
+from oslo_utils import timeutils
 
 from watcher.common import exception
 from watcher.common import rpc
@@ -40,17 +40,17 @@ class TestAuditObject(base.DbTestCase):
         ('non_eager', dict(
             eager=False,
             fake_audit=utils.get_test_audit(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_non_eager_load', dict(
             eager=True,
             fake_audit=utils.get_test_audit(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id))),
         ('eager_with_eager_load', dict(
             eager=True,
             fake_audit=utils.get_test_audit(
-                created_at=datetime.datetime.utcnow(),
+                created_at=timeutils.utcnow(),
                 goal_id=goal_id, goal=goal_data))),
     ]
 
@@ -125,7 +125,7 @@ class TestAuditObject(base.DbTestCase):
         mock_get_audit.return_value = self.fake_audit
         fake_saved_audit = self.fake_audit.copy()
         fake_saved_audit['state'] = objects.audit.State.SUCCEEDED
-        fake_saved_audit['updated_at'] = datetime.datetime.utcnow()
+        fake_saved_audit['updated_at'] = timeutils.utcnow()
         mock_update_audit.return_value = fake_saved_audit
 
         expected_audit = fake_saved_audit.copy()
@@ -184,7 +184,7 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
         self.goal_id = 1
         self.goal = utils.create_test_goal(id=self.goal_id, name="DUMMY")
         self.fake_audit = utils.get_test_audit(
-            goal_id=self.goal_id, created_at=datetime.datetime.utcnow())
+            goal_id=self.goal_id, created_at=timeutils.utcnow())
 
     @mock.patch.object(db_api.Connection, 'create_audit')
     def test_create(self, mock_create_audit):
@@ -204,7 +204,7 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
                          mock_soft_delete_audit, mock_update_audit):
         mock_get_audit.return_value = self.fake_audit
         fake_deleted_audit = self.fake_audit.copy()
-        fake_deleted_audit['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_audit['deleted_at'] = timeutils.utcnow()
         mock_soft_delete_audit.return_value = fake_deleted_audit
         mock_update_audit.return_value = fake_deleted_audit
 
@@ -305,7 +305,7 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
             strategy=self.fake_strategy.as_dict())
         m_get_audit.return_value = fake_audit
         fake_deleted_audit = self.fake_audit.copy()
-        fake_deleted_audit['deleted_at'] = datetime.datetime.utcnow()
+        fake_deleted_audit['deleted_at'] = timeutils.utcnow()
         expected_audit = fake_deleted_audit.copy()
         expected_audit['deleted_at'] = expected_audit['deleted_at'].replace(
             tzinfo=iso8601.UTC)
