@@ -13,7 +13,7 @@ features:
     * disk_gb_reserved: The amount of disk a node has reserved for its own use.
     * disk_ratio: Disk allocation ratio.
 
-    We also add some new propeties:
+    We also add some new properties:
 
     * vcpu_capacity: The amount of vcpu, take allocation ratio into account,
       but do not include reserved.

@@ -72,8 +72,8 @@ class KeystoneHelper(object):
                     message=(_("Project not Found: %s") % name_or_id))
             if len(projects) > 1:
                 raise exception.Invalid(
-                    messsage=(_("Project name seems ambiguous: %s") %
-                              name_or_id))
+                    message=(_("Project name seems ambiguous: %s") %
+                             name_or_id))
             return projects[0]
 
     def get_domain(self, name_or_id):

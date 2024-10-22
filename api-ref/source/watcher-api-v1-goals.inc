@@ -12,7 +12,7 @@ Here are some examples of ``Goals``:
 -  minimize the energy consumption
 -  minimize the number of compute nodes (consolidation)
 -  balance the workload among compute nodes
--  minimize the license cost (some softwares have a licensing model which is
+-  minimize the license cost (some software have a licensing model which is
    based on the number of sockets or cores where the software is deployed)
 -  find the most appropriate moment for a planned maintenance on a
    given group of host (which may be an entire availability zone):

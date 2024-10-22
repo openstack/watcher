@@ -105,10 +105,10 @@ class FakeGnocchiMetrics(object):
 
     def get_compute_node_cpu_util(self, resource, period,
                                   aggregate, granularity):
-        """Calculates node utilization dynamicaly.
+        """Calculates node utilization dynamically.
 
         node CPU utilization should consider
-        and corelate with actual instance-node mappings
+        and correlate with actual instance-node mappings
         provided within a cluster model.
         Returns relative node CPU utilization <0, 100>.
         :param r_id: resource id

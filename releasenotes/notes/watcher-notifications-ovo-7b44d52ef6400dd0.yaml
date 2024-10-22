@@ -4,5 +4,5 @@ features:
     Whenever a Watcher object is created, updated or deleted, a versioned
     notification will, if it's relevant, be automatically sent to notify in order
     to allow an event-driven style of architecture within Watcher. Moreover, it
-    will also give other services and/or 3rd party softwares (e.g. monitoring
+    will also give other services and/or 3rd party software (e.g. monitoring
     solutions or rules engines) the ability to react to such events.

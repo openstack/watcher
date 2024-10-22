@@ -334,7 +334,7 @@ class ActionsController(rest.RestController):
         policy.enforce(context, 'action:detail',
                        action='action:detail')
 
-        # NOTE(lucasagomes): /detail should only work agaist collections
+        # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "actions":
             raise exception.HTTPNotFound

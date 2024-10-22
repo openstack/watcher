@@ -459,24 +459,24 @@ class TestObjectVersions(test_base.TestCase):
 class TestObjectSerializer(test_base.TestCase):
 
     def test_object_serialization(self):
-        ser = base.WatcherObjectSerializer()
+        obj_ser = base.WatcherObjectSerializer()
         obj = MyObj(self.context)
-        primitive = ser.serialize_entity(self.context, obj)
+        primitive = obj_ser.serialize_entity(self.context, obj)
         self.assertIn('watcher_object.name', primitive)
-        obj2 = ser.deserialize_entity(self.context, primitive)
+        obj2 = obj_ser.deserialize_entity(self.context, primitive)
         self.assertIsInstance(obj2, MyObj)
         self.assertEqual(self.context, obj2._context)
 
     def test_object_serialization_iterables(self):
-        ser = base.WatcherObjectSerializer()
+        obj_ser = base.WatcherObjectSerializer()
         obj = MyObj(self.context)
         for iterable in (list, tuple, set):
             thing = iterable([obj])
-            primitive = ser.serialize_entity(self.context, thing)
+            primitive = obj_ser.serialize_entity(self.context, thing)
             self.assertEqual(1, len(primitive))
             for item in primitive:
                 self.assertFalse(isinstance(item, base.WatcherObject))
-            thing2 = ser.deserialize_entity(self.context, primitive)
+            thing2 = obj_ser.deserialize_entity(self.context, primitive)
             self.assertEqual(1, len(thing2))
             for item in thing2:
                 self.assertIsInstance(item, MyObj)
@@ -485,7 +485,7 @@ class TestObjectSerializer(test_base.TestCase):
     def _test_deserialize_entity_newer(self, obj_version, backported_to,
                                        mock_indirection_api,
                                        my_version='1.6'):
-        ser = base.WatcherObjectSerializer()
+        obj_ser = base.WatcherObjectSerializer()
         mock_indirection_api.object_backport_versions.return_value \
             = 'backported'
 
@@ -496,7 +496,7 @@ class TestObjectSerializer(test_base.TestCase):
         obj = MyTestObj(self.context)
         obj.VERSION = obj_version
         primitive = obj.obj_to_primitive()
-        result = ser.deserialize_entity(self.context, primitive)
+        result = obj_ser.deserialize_entity(self.context, primitive)
         if backported_to is None:
             self.assertFalse(
                 mock_indirection_api.object_backport_versions.called)

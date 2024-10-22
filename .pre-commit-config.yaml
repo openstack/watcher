@@ -41,14 +41,11 @@ repos:
     hooks:
       - id: autopep8
         files: '^.*\.py$'
-  # FIXME(sean-k-mooney): we have many typos and some false
-  # positives that need to be added to the dictionary
-  # correct this in a followup change
-  # - repo: https://github.com/codespell-project/codespell
-  #   rev: v2.3.0
-  #   hooks:
-  #     - id: codespell
-  #       args: ['--ignore-words=doc/dictionary.txt']
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args: ['--ignore-words=doc/dictionary.txt']
   # FIXME(sean-k-mooney): we have many sphinx issues fix them
   # in a separate commit to make it easier to review
   # - repo: https://github.com/sphinx-contrib/sphinx-lint

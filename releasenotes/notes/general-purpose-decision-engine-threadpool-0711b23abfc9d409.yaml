@@ -7,7 +7,7 @@ prelude: >
 features:
   - |
     A new threadpool for the decision engine that contributors can use to
-    improve the performance of many operations, primarily I/O bound onces.
+    improve the performance of many operations, primarily I/O bound ones.
     The amount of workers used by the decision engine threadpool can be
     configured to scale according to the available infrastructure using
     the `watcher_decision_engine.max_general_workers` config option.

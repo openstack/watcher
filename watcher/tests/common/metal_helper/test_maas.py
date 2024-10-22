@@ -38,7 +38,7 @@ class TestMaasNode(base.TestCase):
 
     def test_get_power_state(self):
         if not maas_enum:
-            self.skipTest("python-libmaas not intalled.")
+            self.skipTest("python-libmaas not installed.")
 
         self._wrapped_node.query_power_state.side_effect = (
             maas_enum.PowerState.ON,

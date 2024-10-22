@@ -32,7 +32,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
     *Description*
 
         It is a migration strategy for one compute node maintenance,
-        without having the user's application been interruptted.
+        without having the user's application been interrupted.
         If given one backup node, the strategy will firstly
         migrate all instances from the maintenance node to
         the backup node. If the backup node is not provided,

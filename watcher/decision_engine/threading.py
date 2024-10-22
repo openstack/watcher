@@ -59,7 +59,7 @@ class DecisionEngineThreadPool(object, metaclass=service.Singleton):
 
         :param futures: list, set or dictionary of futures
         :type  futures: list :py:class:`futurist.GreenFuture`
-        :param fn:  function to execute upon the future finishing exection
+        :param fn:  function to execute upon the future finishing execution
         :param args: arguments for the function
         :param kwargs: amount of arguments for the function
         """
@@ -83,7 +83,7 @@ class DecisionEngineThreadPool(object, metaclass=service.Singleton):
 
         :param futures: list, set or dictionary of futures
         :type  futures: list :py:class:`futurist.GreenFuture`
-        :param fn:  function to execute upon the future finishing exection
+        :param fn:  function to execute upon the future finishing execution
         :param args: arguments for the function
         :param kwargs: amount of arguments for the function
         """

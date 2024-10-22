@@ -52,7 +52,7 @@ class BaseWatcherDirective(rst.Directive):
                 obj_raw_docstring = obj.__init__.__doc__
 
         if not obj_raw_docstring:
-            # Raise a warning to make the tests fail wit doc8
+            # Raise a warning to make the tests fail with doc8
             raise self.error("No docstring available for %s!" % obj)
 
         obj_docstring = inspect.cleandoc(obj_raw_docstring)

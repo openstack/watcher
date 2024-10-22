@@ -76,22 +76,22 @@ class TestSyncer(base.DbTestCase):
         self.addCleanup(p_strategies.stop)
 
     @staticmethod
-    def _find_created_modified_unmodified_ids(befores, afters):
+    def _find_created_modified_unmodified_ids(before, after):
         created = {
-            a_item.id: a_item for a_item in afters
-            if a_item.uuid not in (b_item.uuid for b_item in befores)
+            a_item.id: a_item for a_item in after
+            if a_item.uuid not in (b_item.uuid for b_item in before)
         }
 
         modified = {
-            a_item.id: a_item for a_item in afters
+            a_item.id: a_item for a_item in after
             if a_item.as_dict() not in (
-                b_items.as_dict() for b_items in befores)
+                b_items.as_dict() for b_items in before)
         }
 
         unmodified = {
-            a_item.id: a_item for a_item in afters
+            a_item.id: a_item for a_item in after
             if a_item.as_dict() in (
-                b_items.as_dict() for b_items in befores)
+                b_items.as_dict() for b_items in before)
         }
 
         return created, modified, unmodified

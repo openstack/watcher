@@ -221,7 +221,7 @@ workflow engine can halt or take other actions while the action plan is being
 executed based on the success or failure of individual actions. However, the
 base workflow engine simply uses these notifies to store the result of
 individual actions in the database. Additionally, since taskflow uses a graph
-flow if any of the tasks would fail all childs of this tasks not be executed
+flow if any of the tasks would fail all children of this tasks not be executed
 while ``do_revert`` will be triggered for all parents.
 
 .. code-block:: python

@@ -52,8 +52,8 @@ class DefaultStrategySelector(base.BaseSelector):
             else:
                 available_strategies = self.strategy_loader.list_available()
                 available_strategies_for_goal = list(
-                    key for key, strat in available_strategies.items()
-                    if strat.get_goal_name() == self.goal_name)
+                    key for key, strategy in available_strategies.items()
+                    if strategy.get_goal_name() == self.goal_name)
 
                 if not available_strategies_for_goal:
                     raise exception.NoAvailableStrategyForGoal(

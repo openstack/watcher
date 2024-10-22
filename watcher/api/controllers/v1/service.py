@@ -237,7 +237,7 @@ class ServicesController(rest.RestController):
         context = pecan.request.context
         policy.enforce(context, 'service:detail',
                        action='service:detail')
-        # NOTE(lucasagomes): /detail should only work agaist collections
+        # NOTE(lucasagomes): /detail should only work against collections
         parent = pecan.request.path.split('/')[:-1][-1]
         if parent != "services":
             raise exception.HTTPNotFound

@@ -563,7 +563,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         filter_actions = self.get_priority_filter_list()
         LOG.debug(filter_actions)
 
-        # apply all filters set in input prameter
+        # apply all filters set in input parameter
         for action in list(reversed(filter_actions)):
             LOG.debug(action)
             result = action.apply_filter(result)
@@ -795,7 +795,7 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
 
         :param item: instance object
         :param sort_key: compute host name
-        :returns: true: compute name on which intance is equals sort_key
+        :returns: true: compute name on where instance host equals sort_key
                   false: otherwise
         """
 
@@ -823,7 +823,7 @@ class StorageHostSortFilter(SortMovingToFrontFilter):
 
         :param item: volume object
         :param sort_key: storage pool name
-        :returns: true: pool name on which intance is equals sort_key
+        :returns: true: pool name on where instance.host equals sort_key
                   false: otherwise
         """
 
