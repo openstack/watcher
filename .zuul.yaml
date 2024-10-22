@@ -9,6 +9,7 @@
     check:
       jobs:
         - watcher-tempest-functional
+        - watcher-tempest-functional-jammy
         - watcher-grenade
         - watcher-tempest-strategies
         - watcher-tempest-actuator
@@ -17,6 +18,7 @@
     gate:
       jobs:
         - watcher-tempest-functional
+        - watcher-tempest-functional-jammy
         - watcher-tempest-functional-ipv6-only
 
 - job:
@@ -89,7 +91,7 @@
 - job:
     name: watcher-tempest-multinode
     parent: watcher-tempest-functional
-    nodeset: openstack-two-node-jammy
+    nodeset: openstack-two-node-noble
     roles:
       - zuul: openstack/tempest
     group-vars:
@@ -169,6 +171,17 @@
       tox_envlist: all
       zuul_copy_output:
         /etc/hosts: logs
+
+# TODO(gmann): As per the 2025.1 testing runtime, we need to run at least
+# one job on jammy. This job can be removed in the next cycle(2025.2)
+- job:
+    name: watcher-tempest-functional-jammy
+    description: This is integrated job testing on Ubuntu jammy(22.04)
+    parent: watcher-tempest-functional
+    nodeset: openstack-single-node-jammy
+    vars:
+      <<: *base_vars
+      python_version: '3.9'
 
 - job:
     name: watcher-tempest-functional-ipv6-only
