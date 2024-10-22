@@ -70,7 +70,7 @@ then write_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI" "/infra-optim"
 fi
 
 # Migrate the database
-watcher-db-manage upgrade || die $LINO "DB migration error"
+$WATCHER_BIN_DIR/watcher-db-manage upgrade || die $LINO "DB migration error"
 
 start_watcher
 

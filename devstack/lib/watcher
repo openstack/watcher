@@ -275,6 +275,9 @@ function install_watcherclient {
         git_clone_by_name "python-watcherclient"
         setup_dev_lib "python-watcherclient"
     fi
+    if [[ "$GLOBAL_VENV" == "True" ]]; then
+        sudo ln -sf /opt/stack/data/venv/bin/watcher /usr/local/bin
+    fi
 }
 
 # install_watcher() - Collect source and prepare
