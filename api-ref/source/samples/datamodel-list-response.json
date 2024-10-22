@@ -13,9 +13,9 @@
             "node_vcpu_ratio": "16.0",
             "node_memory": "16383",
             "node_memory_ratio": "1.5",
-            "node_disk": "37"
+            "node_disk": "37",
             "node_disk_ratio": "1.0",
-            "node_state": "up",
+            "node_state": "up"
         },
         {
             "server_uuid": "e2cb5f6f-fa1d-4ba2-be1e-0bf02fa86ba4",
@@ -30,9 +30,9 @@
             "node_vcpu_ratio": "16.0",
             "node_memory": "16383",
             "node_memory_ratio": "1.5",
-            "node_disk": "37"
+            "node_disk": "37",
             "node_disk_ratio": "1.0",
-            "node_state": "up",
+            "node_state": "up"
         }
     ]
 }

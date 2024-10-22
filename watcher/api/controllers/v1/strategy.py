@@ -196,6 +196,7 @@ class StrategyCollection(collection.Collection):
 
 class StrategiesController(rest.RestController):
     """REST controller for Strategies."""
+
     def __init__(self):
         super(StrategiesController, self).__init__()
 

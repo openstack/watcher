@@ -83,6 +83,7 @@ class NoExceptionTracebackHook(hooks.PecanHook):
     # 'on_error' never fired for wsme+pecan pair. wsme @wsexpose decorator
     # catches and handles all the errors, so 'on_error' dedicated for unhandled
     # exceptions never fired.
+
     def after(self, state):
         # Omit empty body. Some errors may not have body at this level yet.
         if not state.response.body:

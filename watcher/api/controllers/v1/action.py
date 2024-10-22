@@ -229,6 +229,7 @@ class ActionCollection(collection.Collection):
 
 class ActionsController(rest.RestController):
     """REST controller for Actions."""
+
     def __init__(self):
         super(ActionsController, self).__init__()
 

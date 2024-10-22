@@ -165,6 +165,7 @@ class CinderModelBuilder(base.BaseModelBuilder):
     - Storage-related knowledge (Cinder)
 
     """
+
     def __init__(self, osc):
         self.osc = osc
         self.model = model_root.StorageModelRoot()

@@ -115,7 +115,7 @@ html_theme = 'openstackdocs'
 htmlhelp_basename = '%sdoc' % project
 
 
-#openstackdocstheme options
+# openstackdocstheme options
 openstackdocs_repo_name = 'openstack/watcher'
 openstackdocs_pdf_link = True
 openstackdocs_auto_name = False

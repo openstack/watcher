@@ -32,6 +32,7 @@ LOG = log.getLogger(__name__)
 
 class WebhookController(rest.RestController):
     """REST controller for webhooks resource."""
+
     def __init__(self):
         super(WebhookController, self).__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()

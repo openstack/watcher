@@ -1,4 +1,4 @@
 ---
 features:
-  - Check the creation time of the action plan, 
+  - Check the creation time of the action plan,
     and set its state to SUPERSEDED if it has expired.
