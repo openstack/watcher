@@ -161,6 +161,7 @@ class MultiType(wtypes.UserType):
     :param types: Variable-length list of types.
 
     """
+
     def __init__(self, *types):
         self.types = types
 

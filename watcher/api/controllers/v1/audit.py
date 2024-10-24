@@ -468,6 +468,7 @@ class AuditCollection(collection.Collection):
 
 class AuditsController(rest.RestController):
     """REST controller for Audits."""
+
     def __init__(self):
         super(AuditsController, self).__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()

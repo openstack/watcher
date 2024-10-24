@@ -78,6 +78,7 @@ class BareMetalModelBuilder(base.BaseModelBuilder):
 
     - Baremetal-related knowledge (Ironic)
     """
+
     def __init__(self, osc):
         self.osc = osc
         self.model = model_root.BaremetalModelRoot()

@@ -1,0 +1,60 @@
+---
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # whitespace
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+        args: ['--fix', 'lf']
+        exclude: '.*\.(svg)$'
+      - id: check-byte-order-marker
+      # file format and permissions
+      - id: check-ast
+      - id: debug-statements
+      - id: check-json
+        files: .*\.json$
+      - id: check-yaml
+        files: .*\.(yaml|yml)$
+      # FIXME(sean-k-mooney): we currently have some files
+      # with incorrect permission, resolve this in a follow up
+      # - id: check-executables-have-shebangs
+      # - id: check-shebang-scripts-are-executable
+      # git
+      - id: check-added-large-files
+      - id: check-case-conflict
+      - id: detect-private-key
+      - id: check-merge-conflict
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.5
+    hooks:
+      - id: remove-tabs
+        exclude: '.*\.(svg)$'
+  - repo: https://opendev.org/openstack/hacking
+    rev: 7.0.0
+    hooks:
+      - id: hacking
+        additional_dependencies: []
+        exclude: '^(doc|releasenotes|tools)/.*$'
+  - repo: https://github.com/hhatto/autopep8
+    rev: v2.3.1
+    hooks:
+      - id: autopep8
+        files: '^.*\.py$'
+  # FIXME(sean-k-mooney): we have many typos and some false
+  # positives that need to be added to the dictionary
+  # correct this in a followup change
+  # - repo: https://github.com/codespell-project/codespell
+  #   rev: v2.3.0
+  #   hooks:
+  #     - id: codespell
+  #       args: ['--ignore-words=doc/dictionary.txt']
+  # FIXME(sean-k-mooney): we have many sphinx issues fix them
+  # in a separate commit to make it easier to review
+  # - repo: https://github.com/sphinx-contrib/sphinx-lint
+  #   rev: v1.0.0
+  #   hooks:
+  #     - id: sphinx-lint
+  #       args: [--enable=default-role]
+  #       files: ^doc/|releasenotes|api-guide
+  #       types: [rst]

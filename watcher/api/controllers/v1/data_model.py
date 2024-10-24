@@ -32,6 +32,7 @@ from watcher.decision_engine import rpcapi
 
 class DataModelController(rest.RestController):
     """REST controller for data model"""
+
     def __init__(self):
         super(DataModelController, self).__init__()
 

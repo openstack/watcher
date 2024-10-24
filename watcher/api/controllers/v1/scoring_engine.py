@@ -145,6 +145,7 @@ class ScoringEngineCollection(collection.Collection):
 
 class ScoringEngineController(rest.RestController):
     """REST controller for Scoring Engines."""
+
     def __init__(self):
         super(ScoringEngineController, self).__init__()
 

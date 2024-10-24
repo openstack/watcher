@@ -199,5 +199,6 @@ class TaskFlowNop(flow_task.Task):
 
     We need at least two atoms to create a link.
     """
+
     def execute(self):
         pass

@@ -153,6 +153,7 @@ class GoalCollection(collection.Collection):
 
 class GoalsController(rest.RestController):
     """REST controller for Goals."""
+
     def __init__(self):
         super(GoalsController, self).__init__()
 

@@ -175,6 +175,7 @@ class ServiceCollection(collection.Collection):
 
 class ServicesController(rest.RestController):
     """REST controller for Services."""
+
     def __init__(self):
         super(ServicesController, self).__init__()
 

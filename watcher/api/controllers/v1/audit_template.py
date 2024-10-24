@@ -475,6 +475,7 @@ class AuditTemplateCollection(collection.Collection):
 
 class AuditTemplatesController(rest.RestController):
     """REST controller for AuditTemplates."""
+
     def __init__(self):
         super(AuditTemplatesController, self).__init__()
 
