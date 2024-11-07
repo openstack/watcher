@@ -13,8 +13,15 @@
 #    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 #    License for the specific language governing permissions and limitations
 #    under the License.
+# NOTE(sean-k-mooney): watcher does not split up the tests that need eventlet
+# and those that do not currently so we need to monkey patch all the tests.
+# as an example the watcher.test.cmd module is importing watcher.cmd,
+# that has the side effect of monkey patching the test executor
+# after many modules are already imported.
+from watcher import eventlet
+eventlet.patch()
 
-from watcher import objects
+from watcher import objects  # noqa E402
 
 # NOTE(comstud): Make sure we have all of the objects loaded. We do this
 # at module import time, because we may be using mock decorators in our

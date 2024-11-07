@@ -15,6 +15,15 @@
 # common/service.py.  This allows the API service to run without monkey
 # patching under Apache (which uses its own concurrency model). Mixing
 # concurrency models can cause undefined behavior and potentially API timeouts.
-import eventlet
-
-eventlet.monkey_patch()
+# NOTE(sean-k-mooney) while ^ is true, since that was written asyncio was added
+# to the code base in addition to apscheduler which provides native threads.
+# As such we have a lot of technical debt to fix with regards to watchers
+# concurrency model as we are mixing up to 3 models the same process.
+# apscheduler does not technically support eventlet but it has mostly worked
+# until now, apscheduler is used to provide a job schedulers which mixes
+# monkey patched and non monkey patched code in the same process.
+# That is problematic and can lead to errors on python 3.12+.
+# The maas support added asyncio to the codebase which is unsafe to mix
+# with eventlets by default.
+from watcher import eventlet
+eventlet.patch()
