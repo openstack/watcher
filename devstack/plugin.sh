@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # plugin.sh - DevStack plugin script to install watcher
 
 # Save trace setting

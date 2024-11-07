@@ -1,5 +1,3 @@
-#!/bin/bash
-#
 # lib/watcher
 # Functions to control the configuration and operation of the watcher services
 

@@ -16,10 +16,8 @@ repos:
         files: .*\.json$
       - id: check-yaml
         files: .*\.(yaml|yml)$
-      # FIXME(sean-k-mooney): we currently have some files
-      # with incorrect permission, resolve this in a follow up
-      # - id: check-executables-have-shebangs
-      # - id: check-shebang-scripts-are-executable
+      - id: check-executables-have-shebangs
+      - id: check-shebang-scripts-are-executable
       # git
       - id: check-added-large-files
       - id: check-case-conflict
