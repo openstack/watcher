@@ -1,7 +1,8 @@
 Rally job
 =========
 
-We provide, with Watcher, a Rally plugin you can use to benchmark the optimization service.
+We provide, with Watcher, a Rally plugin you can use to benchmark
+the optimization service.
 
 To launch this task with configured Rally you just need to run:
 

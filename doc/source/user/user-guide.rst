@@ -132,8 +132,8 @@ audit) that you want to use.
   $ openstack optimize audit create -a <your_audit_template>
 
 If your_audit_template was created by --strategy <your_strategy>, and it
-defines some parameters (command `watcher strategy show` to check parameters
-format), your can append `-p` to input required parameters:
+defines some parameters (command ``watcher strategy show`` to check parameters
+format), your can append ``-p`` to input required parameters:
 
 .. code:: bash
 

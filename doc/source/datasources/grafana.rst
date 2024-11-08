@@ -90,15 +90,15 @@ parameter will need to specify the type of http protocol and the use of
 plain text http is strongly discouraged due to the transmission of the access
 token. Additionally the path to the proxy interface needs to be supplied as
 well in case Grafana is placed in a sub directory of the web server. An example
-would be: `https://mygrafana.org/api/datasource/proxy/` were
-`/api/datasource/proxy` is the default path without any subdirectories.
+would be: ``https://mygrafana.org/api/datasource/proxy/`` were
+``/api/datasource/proxy`` is the default path without any subdirectories.
 Likewise, this parameter can not be placed in the yaml.
 
 To prevent many errors from occurring and potentially filing the logs files it
 is advised to specify the desired datasource in the configuration as it would
 prevent the datasource manager from having to iterate and try possible
-datasources with the launch of each audit. To do this specify `datasources` in
-the `[watcher_datasources]` group.
+datasources with the launch of each audit. To do this specify
+``datasources`` in the ``[watcher_datasources]`` group.
 
 The current configuration that is required to be placed in the traditional
 configuration file would look like the following:
@@ -120,7 +120,7 @@ traditional configuration file or in the yaml, however, it is not advised to
 mix and match but in the case it does occur the yaml would override the
 settings from the traditional configuration file. All five of these parameters
 are dictionaries mapping specific metrics to a configuration parameter. For
-instance the `project_id_map` will specify the specific project id in Grafana
+instance the ``project_id_map`` will specify the specific project id in Grafana
 to be used. The parameters are named as follow:
 
 * project_id_map
@@ -149,10 +149,10 @@ project_id
 
 The project id's can only be determined by someone with the admin role in
 Grafana as that role is required to open the list of projects. The list of
-projects can be found on `/datasources` in the web interface but
+projects can be found on ``/datasources`` in the web interface but
 unfortunately it does not immediately display the project id. To display
 the id one can best hover the mouse over the projects and the url will show the
-project id's for example `/datasources/edit/7563`. Alternatively the entire
+project id's for example ``/datasources/edit/7563``. Alternatively the entire
 list of projects can be retrieved using the `REST api`_. To easily make
 requests to the REST api a tool such as Postman can be used.
 
@@ -239,18 +239,24 @@ conversion from bytes to megabytes.
 
     SELECT value/1000000 FROM memory...
 
-Queries will be formatted using the .format string method within Python. This
-format will currently have give attributes exposed to it labeled `{0}` to
-`{4}`. Every occurrence of these characters within the string will be replaced
+Queries will be formatted using the .format string method within Python.
+This format will currently have give attributes exposed to it labeled
+``{0}`` through ``{4}``.
+Every occurrence of these characters within the string will be replaced
 with the specific attribute.
 
-- {0} is the aggregate typically `mean`, `min`, `max` but `count` is also
-  supported.
-- {1} is the attribute as specified in the attribute parameter.
-- {2} is the period of time to aggregate data over in seconds.
-- {3} is the granularity or the interval between data points in seconds.
-- {4} is translator specific and in the case of InfluxDB it will be used for
-  retention_periods.
+{0}
+    is the aggregate typically ``mean``, ``min``, ``max`` but ``count``
+    is also supported.
+{1}
+    is the attribute as specified in the attribute parameter.
+{2}
+    is the period of time to aggregate data over in seconds.
+{3}
+    is the granularity or the interval between data points in seconds.
+{4}
+    is translator specific and in the case of InfluxDB it will be used for
+    retention_periods.
 
 **InfluxDB**
 

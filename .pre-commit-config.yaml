@@ -44,12 +44,14 @@ repos:
     hooks:
       - id: codespell
         args: ['--ignore-words=doc/dictionary.txt']
-  # FIXME(sean-k-mooney): we have many sphinx issues fix them
-  # in a separate commit to make it easier to review
-  # - repo: https://github.com/sphinx-contrib/sphinx-lint
-  #   rev: v1.0.0
-  #   hooks:
-  #     - id: sphinx-lint
-  #       args: [--enable=default-role]
-  #       files: ^doc/|releasenotes|api-guide
-  #       types: [rst]
+  - repo: https://github.com/sphinx-contrib/sphinx-lint
+    rev: v1.0.0
+    hooks:
+      - id: sphinx-lint
+        args: [--enable=default-role]
+        files: ^doc/|releasenotes|api-guide
+        types: [rst]
+  - repo: https://github.com/PyCQA/doc8
+    rev: v1.1.2
+    hooks:
+      - id: doc8

@@ -9,7 +9,7 @@
         ...
         connection = mysql+pymysql://watcher:WATCHER_DBPASS@controller/watcher?charset=utf8
 
-   * In the `[DEFAULT]` section, configure the transport url for RabbitMQ message broker.
+   * In the ``[DEFAULT]`` section, configure the transport url for RabbitMQ message broker.
 
      .. code-block:: ini
 
@@ -20,7 +20,7 @@
 
      Replace the RABBIT_PASS with the password you chose for OpenStack user in RabbitMQ.
 
-   * In the `[keystone_authtoken]` section, configure Identity service access.
+   * In the ``[keystone_authtoken]`` section, configure Identity service access.
 
      .. code-block:: ini
 
@@ -39,7 +39,7 @@
      Replace WATCHER_PASS with the password you chose for the watcher user in the Identity service.
 
    * Watcher interacts with other OpenStack projects via project clients, in order to instantiate these
-     clients, Watcher requests new session from Identity service. In the `[watcher_clients_auth]` section,
+     clients, Watcher requests new session from Identity service. In the ``[watcher_clients_auth]`` section,
      configure the identity service access to interact with other OpenStack project clients.
 
      .. code-block:: ini
@@ -56,7 +56,7 @@
 
      Replace WATCHER_PASS with the password you chose for the watcher user in the Identity service.
 
-   * In the `[api]` section, configure host option.
+   * In the ``[api]`` section, configure host option.
 
      .. code-block:: ini
 
@@ -66,7 +66,7 @@
 
      Replace controller with the IP address of the management network interface on your controller node, typically 10.0.0.11 for the first node in the example architecture.
 
-   * In the `[oslo_messaging_notifications]` section, configure the messaging driver.
+   * In the ``[oslo_messaging_notifications]`` section, configure the messaging driver.
 
      .. code-block:: ini
 

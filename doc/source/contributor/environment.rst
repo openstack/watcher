@@ -43,7 +43,7 @@ different version of the above, please document your configuration here!
 Getting the latest code
 =======================
 
-Make a clone of the code from our `Git repository`:
+Make a clone of the code from our ``Git repository``:
 
 .. code-block:: bash
 
@@ -72,9 +72,9 @@ These dependencies can be installed from PyPi_ using the Python tool pip_.
 .. _PyPi: https://pypi.org/
 .. _pip: https://pypi.org/project/pip
 
-However, your system *may* need additional dependencies that `pip` (and by
+However, your system *may* need additional dependencies that ``pip`` (and by
 extension, PyPi) cannot satisfy. These dependencies should be installed
-prior to using `pip`, and the installation method may vary depending on
+prior to using ``pip``, and the installation method may vary depending on
 your platform.
 
 * Ubuntu 16.04::
@@ -141,7 +141,7 @@ forget to activate it:
 
     $ workon watcher
 
-You should then be able to `import watcher` using Python without issue:
+You should then be able to ``import watcher`` using Python without issue:
 
 .. code-block:: bash
 
