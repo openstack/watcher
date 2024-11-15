@@ -15,6 +15,7 @@
         - watcher-tempest-actuator
         - watcherclient-tempest-functional
         - watcher-tempest-functional-ipv6-only
+        - watcher-prometheus-integration
     gate:
       jobs:
         - watcher-tempest-functional
@@ -199,7 +200,7 @@
       - openstack/python-watcherclient
       - openstack/watcher-tempest-plugin
     vars: *base_vars
-    irrelevant-files:
+    irrelevant-files: &irrelevent_files
       - ^(test-|)requirements.txt$
       - ^.*\.rst$
       - ^api-ref/.*$
@@ -219,3 +220,108 @@
     vars:
       tempest_concurrency: 1
       tempest_test_regex: watcher_tempest_plugin.tests.client_functional
+
+- job:
+    name: watcher-sg-core-tempest-base
+    parent: devstack-tempest
+    nodeset: openstack-two-node-noble
+    description: |
+      This job is for testing watcher and sg-core/prometheus installation
+    abstract: true
+    irrelevant-files: *irrelevent_files
+    timeout: 7800
+    required-projects: &base_sg_required_projects
+      - openstack/aodh
+      - openstack/ceilometer
+      - openstack/tempest
+      - openstack-k8s-operators/sg-core
+      - openstack/watcher
+      - openstack/python-watcherclient
+      - openstack/watcher-tempest-plugin
+    vars:
+      configure_swap_size: 8192
+      devstack_plugins:
+        ceilometer: https://opendev.org/openstack/ceilometer
+        aodh: https://opendev.org/openstack/aodh
+        sg-core: https://github.com/openstack-k8s-operators/sg-core
+        watcher: https://opendev.org/openstack/watcher
+      devstack_services:
+        watcher-api: true
+        watcher-decision-engine: true
+        watcher-applier: true
+        tempest: true
+        # We do not need Swift in this job so disable it for speed
+        # Swift services
+        s-account: false
+        s-container: false
+        s-object: false
+        s-proxy: false
+      devstack_localrc:
+        CEILOMETER_BACKENDS: "sg-core"
+        CEILOMETER_PIPELINE_INTERVAL: 15
+        CEILOMETER_ALARM_THRESHOLD: 6000000000
+        NODE_EXPORTER_ENABLE: true
+        PROMETHEUS_SERVICE_SCRAPE_TARGETS: "sg-core,node-exporter"
+      devstack_local_conf:
+        post-config:
+          $WATCHER_CONF:
+            watcher_cluster_data_model_collectors.compute:
+              period: 120
+            watcher_cluster_data_model_collectors.baremetal:
+              period: 120
+            watcher_cluster_data_model_collectors.storage:
+              period: 120
+        test-config:
+          $TEMPEST_CONFIG:
+            compute:
+              min_compute_nodes: 2
+              min_microversion: 2.56
+            compute-feature-enabled:
+              live_migration: true
+              block_migration_for_live_migration: true
+            placement:
+              min_microversion: 1.29
+            service_available:
+              sg_core: True
+            telemetry_services:
+              metric_backends: prometheus
+            telemetry:
+              disable_ssl_certificate_validation: True
+              ceilometer_polling_interval: 15
+      tempest_plugins:
+        - watcher-tempest-plugin
+      # TODO (rlandy): enable all scenario tests
+      # when tests can be run with prometheus data source.
+      # https://bugs.launchpad.net/watcher-tempest-plugin/+bug/2090853
+      tempest_test_regex: "\
+        (^watcher_tempest_plugin.tests.api)|\
+        (^watcher_tempest_plugin.tests.client_functional)|\
+        (^watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim)"
+      tempest_concurrency: 1
+      tox_envlist: all
+    group-vars:
+      subnode:
+        devstack_plugins:
+          ceilometer: https://opendev.org/openstack/ceilometer
+          sg-core: https://github.com/openstack-k8s-operators/sg-core
+        devstack_services:
+          ceilometer-acompute: true
+          sg-core: false
+        devstack_localrc:
+          CEILOMETER_BACKEND: "none"
+          CEILOMETER_BACKENDS: "none"
+          NODE_EXPORTER_ENABLE: true
+          PROMETHEUS_ENABLE: false
+        devstack_local_conf:
+          post-config:
+            $WATCHER_CONF:
+              watcher_cluster_data_model_collectors.compute:
+                period: 120
+              watcher_cluster_data_model_collectors.baremetal:
+                period: 120
+              watcher_cluster_data_model_collectors.storage:
+                period: 120
+
+- job:
+    name: watcher-prometheus-integration
+    parent: watcher-sg-core-tempest-base
