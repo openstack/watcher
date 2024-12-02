@@ -16,16 +16,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import eventlet
+
 from apscheduler import events
-from apscheduler.executors.pool import BasePoolExecutor
+from apscheduler.executors import pool as pool_executor
 from apscheduler.schedulers import background
+
 import futurist
+
 from oslo_service import service
+
+from watcher import eventlet as eventlet_helper
 
 job_events = events
 
 
-class GreenThreadPoolExecutor(BasePoolExecutor):
+class GreenThreadPoolExecutor(pool_executor.BasePoolExecutor):
     """Green thread pool
 
     An executor that runs jobs in a green thread pool.
@@ -43,16 +49,25 @@ executors = {
 }
 
 
-class BackgroundSchedulerService(service.ServiceBase,
-                                 background.BackgroundScheduler):
-    def __init__(self, gconfig={}, **options):
+class BackgroundSchedulerService(
+        service.ServiceBase, background.BackgroundScheduler):
+    def __init__(self, gconfig=None, **options):
+        self.should_patch = eventlet_helper.is_patched()
         if options is None:
             options = {'executors': executors}
         else:
             if 'executors' not in options.keys():
                 options['executors'] = executors
-        super(BackgroundSchedulerService, self).__init__(
-            gconfig, **options)
+        super().__init__(gconfig or {}, **options)
+
+    def _main_loop(self):
+        if self.should_patch:
+            # NOTE(sean-k-mooney): is_patched and monkey_patch form
+            # watcher.eventlet check a non thread local variable to early out
+            # as we do not use eventlet_helper.patch() here to ensure
+            # eventlet.monkey_patch() is actually called.
+            eventlet.monkey_patch()
+        super()._main_loop()
 
     def start(self):
         """Start service."""
