@@ -22,64 +22,10 @@
         - watcher-tempest-functional-ipv6-only
 
 - job:
-    name: watcher-tempest-dummy_optim
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim
-
-- job:
     name: watcher-tempest-actuator
     parent: watcher-tempest-multinode
     vars:
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_actuator
-
-- job:
-    name: watcher-tempest-basic_optim
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_basic_optim
-
-- job:
-    name: watcher-tempest-vm_workload_consolidation
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation
-      devstack_local_conf:
-        test-config:
-          $WATCHER_CONFIG:
-            watcher_strategies.vm_workload_consolidation:
-              datasource: ceilometer
-
-- job:
-    name: watcher-tempest-workload_balancing
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing
-
-- job:
-    name: watcher-tempest-zone_migration
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
-
-- job:
-    name: watcher-tempest-host_maintenance
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance
-
-- job:
-    name: watcher-tempest-storage_balance
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_storage_balance
-      devstack_local_conf:
-        test-config:
-          $TEMPEST_CONFIG:
-            volume:
-              backend_names: ['BACKEND_1', 'BACKEND_2']
-            volume-feature-enabled:
-              multi_backend: true
 
 - job:
     name: watcher-tempest-strategies

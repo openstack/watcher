@@ -29,7 +29,7 @@ from watcher.tests import base
 class TestDataSourceManager(base.BaseTestCase):
 
     def _dsm_config(self, **kwargs):
-        dss = ['gnocchi', 'ceilometer', 'monasca']
+        dss = ['gnocchi', 'monasca']
         opts = dict(datasources=dss, metric_map_path=None)
         opts.update(kwargs)
         return MagicMock(**opts)
@@ -96,7 +96,7 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertEqual(backend, manager.gnocchi)
 
     def test_get_backend_order(self):
-        dss = ['monasca', 'ceilometer', 'gnocchi']
+        dss = ['monasca', 'gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
         manager = self._dsm(config=dsmcfg)
         backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
@@ -112,12 +112,12 @@ class TestDataSourceManager(base.BaseTestCase):
         m_gnocchi.side_effect = exception.DataSourceNotAvailable
         manager = self._dsm()
         backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
-        self.assertEqual(backend, manager.ceilometer)
+        self.assertEqual(backend, manager.monasca)
 
     @mock.patch.object(grafana.GrafanaHelper, 'METRIC_MAP',
                        {'host_cpu_usage': 'test'})
     def test_get_backend_grafana(self):
-        dss = ['grafana', 'ceilometer', 'gnocchi']
+        dss = ['grafana', 'gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
         manager = self._dsm(config=dsmcfg)
         backend = manager.get_backend(['host_cpu_usage'])
@@ -135,7 +135,7 @@ class TestDataSourceManager(base.BaseTestCase):
         m_config.grafana_client.query_map = {
             'host_cpu_usage': 'SHOW SERIES'
         }
-        dss = ['grafana', 'ceilometer', 'gnocchi']
+        dss = ['grafana', 'gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
         manager = self._dsm(config=dsmcfg)
         backend = manager.get_backend(['host_cpu_usage'])

@@ -28,12 +28,6 @@ from watcher.common import exception
 from watcher.common import utils
 
 try:
-    from ceilometerclient import client as ceclient
-    HAS_CEILCLIENT = True
-except ImportError:
-    HAS_CEILCLIENT = False
-
-try:
     from maas import client as maas_client
 except ImportError:
     maas_client = None
@@ -77,7 +71,6 @@ class OpenStackClients(object):
         self._glance = None
         self._gnocchi = None
         self._cinder = None
-        self._ceilometer = None
         self._monasca = None
         self._neutron = None
         self._ironic = None
@@ -187,24 +180,6 @@ class OpenStackClients(object):
                                        region_name=cinder_region_name,
                                        session=self.session)
         return self._cinder
-
-    @exception.wrap_keystone_exception
-    def ceilometer(self):
-        if self._ceilometer:
-            return self._ceilometer
-
-        ceilometerclient_version = self._get_client_option('ceilometer',
-                                                           'api_version')
-        ceilometer_endpoint_type = self._get_client_option('ceilometer',
-                                                           'endpoint_type')
-        ceilometer_region_name = self._get_client_option('ceilometer',
-                                                         'region_name')
-        self._ceilometer = ceclient.get_client(
-            ceilometerclient_version,
-            endpoint_type=ceilometer_endpoint_type,
-            region_name=ceilometer_region_name,
-            session=self.session)
-        return self._ceilometer
 
     @exception.wrap_keystone_exception
     def monasca(self):

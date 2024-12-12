@@ -22,7 +22,6 @@ from unittest import mock
 from watcher.applier.loading import default
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
-from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import gnocchi_metrics
 from watcher.tests.decision_engine.strategy.strategies.test_base \
     import TestBaseStrategy
@@ -31,9 +30,6 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestUniformAirflow(TestBaseStrategy):
 
     scenarios = [
-        ("Ceilometer",
-         {"datasource": "ceilometer",
-          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
         ("Gnocchi",
          {"datasource": "gnocchi",
           "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),

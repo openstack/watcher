@@ -194,11 +194,14 @@ The configuration file is organized into the following sections:
 * ``[watcher_applier]`` - Watcher Applier module configuration
 * ``[watcher_decision_engine]`` - Watcher Decision Engine module configuration
 * ``[oslo_messaging_rabbit]`` - Oslo Messaging RabbitMQ driver configuration
-* ``[ceilometer_client]`` - Ceilometer client configuration
 * ``[cinder_client]`` - Cinder client configuration
 * ``[glance_client]`` - Glance client configuration
+* ``[gnocchi_client]`` - Gnocchi client configuration
+* ``[ironic_client]`` - Ironic client configuration
+* ``[keystone_client]`` - Keystone client configuration
 * ``[nova_client]`` - Nova client configuration
 * ``[neutron_client]`` - Neutron client configuration
+* ``[placement_client]`` - Placement client configuration
 
 The Watcher configuration file is expected to be named
 ``watcher.conf``. When starting Watcher, you can specify a different

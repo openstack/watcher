@@ -64,7 +64,7 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         """Test if the global preference is used"""
 
         m_conf.watcher_datasources.datasources = \
-            ['gnocchi', 'monasca', 'ceilometer']
+            ['gnocchi', 'monasca']
 
         # Make sure we access the property and not the underlying function.
         m_manager.return_value.get_backend.return_value = \
@@ -84,7 +84,7 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         """Test if the global preference is used with another order"""
 
         m_conf.watcher_datasources.datasources = \
-            ['ceilometer', 'monasca', 'gnocchi']
+            ['monasca', 'gnocchi']
 
         # Make sure we access the property and not the underlying function.
         m_manager.return_value.get_backend.return_value = \
@@ -103,13 +103,13 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
     def test_strategy_preference_override(self, m_conf, m_manager):
         """Test if the global preference can be overridden"""
 
-        datasources = mock.Mock(datasources=['ceilometer'])
+        datasources = mock.Mock(datasources=['gnocchi'])
 
         self.strategy = strategies.DummyStrategy(
             config=datasources)
 
         m_conf.watcher_datasources.datasources = \
-            ['ceilometer', 'monasca', 'gnocchi']
+            ['monasca', 'gnocchi']
 
         # Access the property so that the configuration is read in order to
         # get the correct datasource

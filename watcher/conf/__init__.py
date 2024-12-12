@@ -21,7 +21,6 @@ from oslo_config import cfg
 
 from watcher.conf import api
 from watcher.conf import applier
-from watcher.conf import ceilometer_client
 from watcher.conf import cinder_client
 from watcher.conf import clients_auth
 from watcher.conf import collector
@@ -64,7 +63,6 @@ keystone_client.register_opts(CONF)
 grafana_client.register_opts(CONF)
 grafana_translators.register_opts(CONF)
 cinder_client.register_opts(CONF)
-ceilometer_client.register_opts(CONF)
 neutron_client.register_opts(CONF)
 clients_auth.register_opts(CONF)
 ironic_client.register_opts(CONF)
