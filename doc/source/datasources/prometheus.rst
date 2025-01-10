@@ -43,6 +43,12 @@ An example ``fqdn_instance_map`` is the following:
      'tria.controlplane.domain': '10.1.2.3:9100'
     }
 
+For instance metrics, it is required that Prometheus contains a label
+with the uuid of the OpenStack instance in each relevant metric. By default,
+the datasource will look for the label ``resource``. The
+``instance_uuid_label`` config option in watcher.conf allows deployers to
+override this default to any other label name that stores the  ``uuid``.
+
 Limitations
 -----------
 The current implementation doesn't support the ``statistic_series`` function of
@@ -89,6 +95,10 @@ duplicated below from the code as they are self documenting:
                default="fqdn",
                help="The label that Prometheus uses to store the fqdn of "
                     "exporters. Defaults to 'fqdn'."),
+    cfg.StrOpt('instance_uuid_label',
+               default="resource",
+               help="The label that Prometheus uses to store the uuid of "
+                    "OpenStack instances. Defaults to 'resource'."),
     cfg.StrOpt('username',
                help="The basic_auth username to use to authenticate with the "
                     "Prometheus server."),

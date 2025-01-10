@@ -46,6 +46,11 @@ class TestPrometheusHelper(base.BaseTestCase):
             spec=prometheus_helper.PrometheusHelper.statistic_aggregation)
         self.mock_aggregation = stat_agg_patcher.start()
         self.addCleanup(stat_agg_patcher.stop)
+        self.mock_instance = mock.Mock(
+            uuid='uuid-0',
+            memory=512,
+            disk=2,
+            vcpus=2)
 
     def test_unset_missing_prometheus_host(self):
         cfg.CONF.prometheus_client.port = '123'
@@ -143,6 +148,167 @@ class TestPrometheusHelper(base.BaseTestCase):
         mock_prometheus_query.assert_called_once_with(
             "100 - (avg by (instance)(rate(node_cpu_seconds_total"
             "{mode='idle',instance='10.0.1.2:9100'}[300s])) * 100)")
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_get_instance_cpu_usage(self, mock_prometheus_get,
+                                    mock_prometheus_query):
+        mock_instance = self.mock_instance
+        expected_cpu_usage = 13.2706140350701673
+
+        mock_prom_metric = mock.Mock(
+            labels={'resource': 'uuid-0'},
+            timestamp=1731065985.408,
+            value=expected_cpu_usage
+        )
+        mock_prometheus_query.return_value = [mock_prom_metric]
+        helper = prometheus_helper.PrometheusHelper()
+
+        cpu_usage = helper.get_instance_cpu_usage(mock_instance)
+        self.assertIsInstance(cpu_usage, float)
+        self.assertEqual(expected_cpu_usage, cpu_usage)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_get_instance_ram_usage(self, mock_prometheus_get,
+                                    mock_prometheus_query):
+
+        mock_instance = self.mock_instance
+        expected_ram_usage = 49.86
+
+        mock_prom_metric = mock.Mock(
+            labels={'resource': 'uuid-0'},
+            timestamp=1731065985.408,
+            value=expected_ram_usage
+        )
+        mock_prometheus_query.return_value = [mock_prom_metric]
+        helper = prometheus_helper.PrometheusHelper()
+
+        ram_usage = helper.get_instance_ram_usage(
+            mock_instance, period=222, aggregate="max",
+            granularity=200)
+        self.assertIsInstance(ram_usage, float)
+        self.assertEqual(expected_ram_usage, ram_usage)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_get_instance_ram_allocated(self, mock_prometheus_get,
+                                        mock_prometheus_query):
+
+        mock_instance = self.mock_instance
+        helper = prometheus_helper.PrometheusHelper()
+        ram_allocated = helper.get_instance_ram_allocated(mock_instance,
+                                                          period=222,
+                                                          aggregate="max")
+        self.assertIsInstance(ram_allocated, float)
+        self.assertEqual(512, ram_allocated)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_get_instance_root_disk_size(self, mock_prometheus_get,
+                                         mock_prometheus_query):
+
+        mock_instance = self.mock_instance
+        helper = prometheus_helper.PrometheusHelper()
+        disk_size = helper.get_instance_root_disk_size(mock_instance,
+                                                       period=331,
+                                                       aggregate="avg")
+        self.assertIsInstance(disk_size, float)
+        self.assertEqual(2, disk_size)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_prometheus_stt_agg_instance_cpu_usage(self, mock_prometheus_get,
+                                                   mock_prometheus_query):
+        mock_instance = self.mock_instance
+        expected_cpu_usage = 13.2706140350701673
+
+        mock_prom_metric = mock.Mock(
+            labels={'resource': 'uuid-0'},
+            timestamp=1731065985.408,
+            value=expected_cpu_usage
+        )
+        mock_prometheus_query.return_value = [mock_prom_metric]
+        helper = prometheus_helper.PrometheusHelper()
+        result_cpu = helper.statistic_aggregation(
+            resource=mock_instance,
+            resource_type='instance',
+            meter_name='instance_cpu_usage',
+            period=300,
+            granularity=300,
+            aggregate='mean',
+        )
+        self.assertEqual(expected_cpu_usage, result_cpu)
+        self.assertIsInstance(result_cpu, float)
+        mock_prometheus_query.assert_called_once_with(
+            "clamp_max((avg by (instance)(rate("
+            "ceilometer_cpu{resource='uuid-0'}[300s]))"
+            "/10e+8) *(100/2), 100)"
+        )
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_prometheus_stt_agg_instance_ram_usage(self, mock_prometheus_get,
+                                                   mock_prometheus_query):
+        mock_instance = self.mock_instance
+        expected_ram_usage = 49.86
+
+        mock_prom_metric = mock.Mock(
+            labels={'resource': 'uuid-0'},
+            timestamp=1731065985.408,
+            value=expected_ram_usage
+        )
+        mock_prometheus_query.return_value = [mock_prom_metric]
+        helper = prometheus_helper.PrometheusHelper()
+        result_ram_usage = helper.statistic_aggregation(
+            resource=mock_instance,
+            resource_type='instance',
+            meter_name='instance_ram_usage',
+            period=300,
+            granularity=300,
+            aggregate='mean',
+        )
+        self.assertEqual(expected_ram_usage, result_ram_usage)
+        self.assertIsInstance(result_ram_usage, float)
+        mock_prometheus_query.assert_called_with(
+            "avg_over_time(ceilometer_memory_usage{resource='uuid-0'}[300s])"
+        )
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_prometheus_stt_agg_instance_root_size(self, mock_prometheus_get,
+                                                   mock_prometheus_query):
+        mock_instance = self.mock_instance
+
+        helper = prometheus_helper.PrometheusHelper()
+        result_disk = helper.statistic_aggregation(
+            resource=mock_instance,
+            resource_type='instance',
+            meter_name='instance_root_disk_size',
+            period=300,
+            granularity=300,
+            aggregate='mean',
+        )
+        self.assertEqual(2, result_disk)
+        self.assertIsInstance(result_disk, float)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_prometheus_stt_agg_instance_ram_alloc(self, mock_prometheus_get,
+                                                   mock_prometheus_query):
+        mock_instance = self.mock_instance
+
+        helper = prometheus_helper.PrometheusHelper()
+        result_memory = helper.statistic_aggregation(
+            resource=mock_instance,
+            resource_type='instance',
+            meter_name='instance_ram_allocated',
+            period=300,
+            granularity=300,
+            aggregate='mean',
+        )
+        self.assertEqual(512, result_memory)
+        self.assertIsInstance(result_memory, float)
 
     def test_statistic_aggregation_metric_unavailable(self):
         self.assertRaisesRegex(
@@ -390,6 +556,48 @@ class TestPrometheusHelper(base.BaseTestCase):
             'min', 'node_memory_MemAvailable_bytes', 'd_host', '222')
         self.assertEqual(result, expected_query)
 
+    def test_build_prometheus_query_instance_memory_avg_agg(self):
+        expected_query = (
+            "avg_over_time(ceilometer_memory_usage{resource='uuid-0'}[555s])"
+        )
+        result = self.helper._build_prometheus_query(
+            'avg', 'ceilometer_memory_usage', 'uuid-0', '555')
+        self.assertEqual(result, expected_query)
+
+    def test_build_prometheus_query_instance_memory_min_agg(self):
+        expected_query = (
+            "min_over_time(ceilometer_memory_usage{resource='uuid-0'}[222s])"
+        )
+        result = self.helper._build_prometheus_query(
+            'min', 'ceilometer_memory_usage', 'uuid-0', '222')
+        self.assertEqual(result, expected_query)
+
+    def test_build_prometheus_query_instance_cpu_avg_agg(self):
+        expected_query = (
+            "clamp_max((avg by (instance)(rate("
+            "ceilometer_cpu{resource='uuid-0'}[222s]))"
+            "/10e+8) *(100/2), 100)"
+        )
+        result = self.helper._build_prometheus_query(
+            'avg', 'ceilometer_cpu', 'uuid-0', '222',
+            resource=self.mock_instance)
+        self.assertEqual(result, expected_query)
+
+    def test_build_prometheus_query_instance_cpu_max_agg(self):
+        expected_query = (
+            "clamp_max((max by (instance)(rate("
+            "ceilometer_cpu{resource='uuid-0'}[555s]))"
+            "/10e+8) *(100/4), 100)"
+        )
+        mock_instance = mock.Mock(
+            uuid='uuid-0',
+            memory=512,
+            disk=2,
+            vcpus=4)
+        result = self.helper._build_prometheus_query(
+            'max', 'ceilometer_cpu', 'uuid-0', '555', resource=mock_instance)
+        self.assertEqual(result, expected_query)
+
     def test_build_prometheus_query_error(self):
         self.assertRaisesRegex(
             exception.InvalidParameter, 'Cannot process prometheus meter NOPE',
@@ -416,3 +624,20 @@ class TestPrometheusHelper(base.BaseTestCase):
         self.assertRaisesRegex(
             exception.InvalidParameter, 'Unknown Watcher aggregate NOPE.',
             self.helper._resolve_prometheus_aggregate, 'NOPE', 'some_meter')
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_prometheus_query_custom_uuid_label(self, mock_prometheus_get):
+        cfg.CONF.prometheus_client.instance_uuid_label = 'custom_uuid_label'
+        expected_query = (
+            "clamp_max((max by (instance)"
+            "(rate(ceilometer_cpu{custom_uuid_label='uuid-0'}[555s]))"
+            "/10e+8) *(100/4), 100)"
+        )
+        mock_instance = mock.Mock(
+            uuid='uuid-0',
+            memory=512,
+            disk=2,
+            vcpus=4)
+        result = self.helper._build_prometheus_query(
+            'max', 'ceilometer_cpu', 'uuid-0', '555', resource=mock_instance)
+        self.assertEqual(result, expected_query)

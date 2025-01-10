@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Support for instance metrics has been added to the prometheus data source.
+    The included metrics are `instance_cpu_usage`, `instance_ram_usage`,
+    `instance_ram_allocated` and `instance_root_disk_size`.

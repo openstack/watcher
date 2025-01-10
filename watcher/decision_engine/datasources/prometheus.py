@@ -38,11 +38,11 @@ class PrometheusHelper(base.DataSourceBase):
                       host_inlet_temp=None,
                       host_airflow=None,
                       host_power=None,
-                      instance_cpu_usage=None,
-                      instance_ram_usage=None,
-                      instance_ram_allocated=None,
+                      instance_cpu_usage='ceilometer_cpu',
+                      instance_ram_usage='ceilometer_memory_usage',
+                      instance_ram_allocated='instance.memory',
                       instance_l3_cache_usage=None,
-                      instance_root_disk_size=None,
+                      instance_root_disk_size='instance.disk',
                       )
     AGGREGATES_MAP = dict(mean='avg', max='max', min='min', count='avg')
 
@@ -258,7 +258,7 @@ class PrometheusHelper(base.DataSourceBase):
         return promql_aggregate
 
     def _build_prometheus_query(self, aggregate, meter, instance_label,
-                                period):
+                                period, resource=None):
         """Build and return the prometheus query string with the given args
 
         This function builds and returns the string query that will be sent
@@ -286,12 +286,14 @@ class PrometheusHelper(base.DataSourceBase):
         :param meter: the name of the Prometheus meter to use
         :param instance_label: the Prometheus instance label (scrape target).
         :param period: the period in seconds for which to query
+        :param resource: the resource object for which metrics are requested
         :return: a String containing the Prometheus query
         :raises watcher.common.exception.InvalidParameter if params are None
         :raises watcher.common.exception.InvalidParameter if meter is not
                 known or currently supported (prometheus meter name).
         """
         query_args = None
+        uuid_label_key = CONF.prometheus_client.instance_uuid_label
         if (meter is None or aggregate is None or instance_label is None or
                 period is None):
             raise exception.InvalidParameter(
@@ -316,6 +318,30 @@ class PrometheusHelper(base.DataSourceBase):
                 "/ 1024 / 1024" %
                 (instance_label, aggregate, meter,
                  instance_label, period)
+            )
+        elif meter == 'ceilometer_memory_usage':
+            query_args = (
+                "%s_over_time(%s{%s='%s'}[%ss])" %
+                (aggregate, meter, uuid_label_key, instance_label, period)
+            )
+        elif meter == 'ceilometer_cpu':
+            # We are converting the total cumulative cpu time (ns) to cpu usage
+            # percentage so we need to divide between the number of vcpus.
+            # As this is a percentage metric, we set a max level of 100. It has
+            # been observed in very high usage cases, prometheus reporting
+            # values higher that 100 what can lead to unexpected behaviors.
+            vcpus = resource.vcpus
+            if not vcpus:
+                LOG.warning(
+                    "instance vcpu count not set for instance %s, assuming 1",
+                    instance_label
+                )
+                vcpus = 1
+            query_args = (
+                "clamp_max((%s by (instance)(rate(%s{%s='%s'}[%ss]))/10e+8) "
+                "*(100/%s), 100)" %
+                (aggregate, meter, uuid_label_key, instance_label, period,
+                 vcpus)
             )
         else:
             raise exception.InvalidParameter(
@@ -365,9 +391,21 @@ class PrometheusHelper(base.DataSourceBase):
         query_args = ''
         instance_label = ''
 
+        # For instance resource type, the datasource expects the uuid of the
+        # instance to be assigned to a label in the prometheus metrics, with a
+        # specific key value.
         if resource_type == 'compute_node':
             instance_label = self._resolve_prometheus_instance_label(
                 resource.hostname)
+        elif resource_type == 'instance':
+            instance_label = resource.uuid
+            # For ram_allocated and root_disk size metrics there are no valid
+            # values in the prometheus backend store. We rely in the values
+            # provided in the vms inventory.
+            if meter == 'instance.memory':
+                return float(resource.memory)
+            elif meter == 'instance.disk':
+                return float(resource.disk)
         else:
             LOG.warning(
                 "Prometheus data source does not currently support "
@@ -377,7 +415,7 @@ class PrometheusHelper(base.DataSourceBase):
 
         promql_aggregate = self._resolve_prometheus_aggregate(aggregate, meter)
         query_args = self._build_prometheus_query(
-            promql_aggregate, meter, instance_label, period
+            promql_aggregate, meter, instance_label, period, resource
         )
         if not query_args:
             LOG.error("Cannot proceed without valid prometheus query")
@@ -440,3 +478,35 @@ class PrometheusHelper(base.DataSourceBase):
             'host_ram_usage', period=period,
             granularity=granularity, aggregate=aggregate)
         return float(ram_usage) if ram_usage else None
+
+    def get_instance_ram_usage(self, resource, period=300,
+                               aggregate="mean", granularity=None):
+        ram_usage = self.statistic_aggregation(
+            resource, 'instance',
+            'instance_ram_usage', period=period,
+            granularity=granularity, aggregate=aggregate)
+        return ram_usage
+
+    def get_instance_cpu_usage(self, resource, period=300,
+                               aggregate="mean", granularity=None):
+        cpu_usage = self.statistic_aggregation(
+            resource, 'instance',
+            'instance_cpu_usage', period=period,
+            granularity=granularity, aggregate=aggregate)
+        return cpu_usage
+
+    def get_instance_ram_allocated(self, resource, period=300,
+                                   aggregate="mean", granularity=None):
+        ram_allocated = self.statistic_aggregation(
+            resource, 'instance',
+            'instance_ram_allocated', period=period,
+            granularity=granularity, aggregate=aggregate)
+        return ram_allocated
+
+    def get_instance_root_disk_size(self, resource, period=300,
+                                    aggregate="mean", granularity=None):
+        root_disk_size = self.statistic_aggregation(
+            resource, 'instance',
+            'instance_root_disk_size', period=period,
+            granularity=granularity, aggregate=aggregate)
+        return root_disk_size

@@ -30,6 +30,10 @@ PROMETHEUS_CLIENT_OPTS = [
                default="fqdn",
                help="The label that Prometheus uses to store the fqdn of "
                     "exporters. Defaults to 'fqdn'."),
+    cfg.StrOpt('instance_uuid_label',
+               default="resource",
+               help="The label that Prometheus uses to store the uuid of "
+                    "OpenStack instances. Defaults to 'resource'."),
     cfg.StrOpt('username',
                help="The basic_auth username to use to authenticate with the "
                     "Prometheus server."),
