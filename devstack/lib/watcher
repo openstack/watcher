@@ -36,7 +36,6 @@ GITBRANCH["python-watcherclient"]=${WATCHERCLIENT_BRANCH:-master}
 GITDIR["python-watcherclient"]=$DEST/python-watcherclient
 
 WATCHER_STATE_PATH=${WATCHER_STATE_PATH:=$DATA_DIR/watcher}
-WATCHER_AUTH_CACHE_DIR=${WATCHER_AUTH_CACHE_DIR:-/var/cache/watcher}
 
 WATCHER_CONF_DIR=/etc/watcher
 WATCHER_CONF=$WATCHER_CONF_DIR/watcher.conf
@@ -101,7 +100,7 @@ function _cleanup_watcher_apache_wsgi {
 # cleanup_watcher() - Remove residual data files, anything left over from previous
 # runs that a clean run would need to clean up
 function cleanup_watcher {
-    sudo rm -rf $WATCHER_STATE_PATH $WATCHER_AUTH_CACHE_DIR
+    sudo rm -rf $WATCHER_STATE_PATH
     if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
         remove_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI"
     else
@@ -208,8 +207,8 @@ function create_watcher_conf {
 
     iniset $WATCHER_CONF oslo_messaging_notifications driver "messagingv2"
 
-    configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR
-    configure_auth_token_middleware $WATCHER_CONF watcher $WATCHER_AUTH_CACHE_DIR "watcher_clients_auth"
+    configure_keystone_authtoken_middleware $WATCHER_CONF watcher
+    configure_keystone_authtoken_middleware $WATCHER_CONF watcher "watcher_clients_auth"
 
     if is_fedora || is_suse; then
         # watcher defaults to /usr/local/bin, but fedora and suse pip like to
@@ -246,13 +245,6 @@ function create_watcher_conf {
     fi
 }
 
-# create_watcher_cache_dir() - Part of the init_watcher() process
-function create_watcher_cache_dir {
-    # Create cache dir
-    sudo install -d -o $STACK_USER $WATCHER_AUTH_CACHE_DIR
-    rm -rf $WATCHER_AUTH_CACHE_DIR/*
-}
-
 # init_watcher() - Initialize databases, etc.
 function init_watcher {
     # clean up from previous (possibly aborted) runs
@@ -264,7 +256,6 @@ function init_watcher {
         # Create watcher schema
         $WATCHER_BIN_DIR/watcher-db-manage --config-file $WATCHER_CONF upgrade
     fi
-    create_watcher_cache_dir
 }
 
 # install_watcherclient() - Collect source and prepare
