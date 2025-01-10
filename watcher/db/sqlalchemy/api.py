@@ -22,7 +22,7 @@ import operator
 
 from oslo_config import cfg
 from oslo_db import exception as db_exc
-from oslo_db.sqlalchemy import session as db_session
+from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import utils as db_utils
 from oslo_utils import timeutils
 from sqlalchemy.inspection import inspect
@@ -44,7 +44,8 @@ _FACADE = None
 def _create_facade_lazily():
     global _FACADE
     if _FACADE is None:
-        _FACADE = db_session.EngineFacade.from_config(CONF)
+        ctx = enginefacade.transaction_context()
+        _FACADE = ctx.writer
     return _FACADE
 
 
@@ -55,7 +56,8 @@ def get_engine():
 
 def get_session(**kwargs):
     facade = _create_facade_lazily()
-    return facade.get_session(**kwargs)
+    sessionmaker = facade.get_sessionmaker()
+    return sessionmaker(**kwargs)
 
 
 def get_backend():
