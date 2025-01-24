@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    A new Prometheus data source is added. This allows the watcher decision
+    engine to collect metrics from Prometheus server. For more information
+    about the Prometheus data source, including limitations and configuration
+    options see
+    https://docs.openstack.org/watcher/latest/datasources/prometheus.html

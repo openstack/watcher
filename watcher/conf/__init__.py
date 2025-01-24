@@ -42,6 +42,7 @@ from watcher.conf import nova_client
 from watcher.conf import paths
 from watcher.conf import placement_client
 from watcher.conf import planner
+from watcher.conf import prometheus_client
 from watcher.conf import service
 
 CONF = cfg.CONF
@@ -70,3 +71,4 @@ clients_auth.register_opts(CONF)
 ironic_client.register_opts(CONF)
 collector.register_opts(CONF)
 placement_client.register_opts(CONF)
+prometheus_client.register_opts(CONF)

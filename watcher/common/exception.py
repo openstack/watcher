@@ -154,6 +154,10 @@ class InvalidParameter(Invalid):
     msg_fmt = _("%(parameter)s has to be of type %(parameter_type)s")
 
 
+class MissingParameter(Invalid):
+    msg_fmt = _("%(parameter)s is required but missing. Check watcher.conf")
+
+
 class InvalidIdentity(Invalid):
     msg_fmt = _("Expected a uuid or int but received %(identity)s")
 
