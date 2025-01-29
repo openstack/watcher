@@ -21,7 +21,6 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
-from watcher.decision_engine.datasources import ceilometer as ceil
 from watcher.decision_engine.datasources import gnocchi as gnoc
 from watcher.decision_engine.datasources import grafana as graf
 from watcher.decision_engine.datasources import monasca as mon
@@ -34,7 +33,6 @@ class DataSourceManager(object):
 
     metric_map = OrderedDict([
         (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
-        (ceil.CeilometerHelper.NAME, ceil.CeilometerHelper.METRIC_MAP),
         (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
         (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
         (prom.PrometheusHelper.NAME, prom.PrometheusHelper.METRIC_MAP),
@@ -46,7 +44,6 @@ class DataSourceManager(object):
     def __init__(self, config=None, osc=None):
         self.osc = osc
         self.config = config
-        self._ceilometer = None
         self._monasca = None
         self._gnocchi = None
         self._grafana = None
@@ -66,16 +63,6 @@ class DataSourceManager(object):
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
         self.datasources = self.config.datasources
-
-    @property
-    def ceilometer(self):
-        if self._ceilometer is None:
-            self.ceilometer = ceil.CeilometerHelper(osc=self.osc)
-        return self._ceilometer
-
-    @ceilometer.setter
-    def ceilometer(self, ceilometer):
-        self._ceilometer = ceilometer
 
     @property
     def monasca(self):

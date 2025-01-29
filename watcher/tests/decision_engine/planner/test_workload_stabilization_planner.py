@@ -26,8 +26,8 @@ from watcher.decision_engine.strategy import strategies
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.db import utils as db_utils
-from watcher.tests.decision_engine.model import ceilometer_metrics as fake
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.decision_engine.model import gnocchi_metrics as fake
 from watcher.tests.objects import utils as obj_utils
 
 
@@ -38,7 +38,7 @@ class SolutionFaker(object):
         current_state_cluster = faker_cluster_state.FakerModelCollector()
         sercon = strategies.BasicConsolidation(config=mock.Mock())
         sercon._compute_model = current_state_cluster.generate_scenario_1()
-        sercon.ceilometer = mock.MagicMock(
+        sercon.gnocchi = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
         return sercon.execute()
 
@@ -51,7 +51,7 @@ class SolutionFakerSingleHyp(object):
         sercon = strategies.BasicConsolidation(config=mock.Mock())
         sercon._compute_model = (
             current_state_cluster.generate_scenario_3_with_2_nodes())
-        sercon.ceilometer = mock.MagicMock(
+        sercon.gnocchi = mock.MagicMock(
             get_statistics=metrics.mock_get_statistics)
 
         return sercon.execute()

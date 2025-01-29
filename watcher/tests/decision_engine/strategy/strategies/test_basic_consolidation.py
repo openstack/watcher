@@ -24,7 +24,6 @@ from watcher.applier.loading import default
 from watcher.common import clients
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
-from watcher.tests.decision_engine.model import ceilometer_metrics
 from watcher.tests.decision_engine.model import gnocchi_metrics
 from watcher.tests.decision_engine.model import monasca_metrics
 from watcher.tests.decision_engine.strategy.strategies.test_base \
@@ -34,9 +33,6 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestBasicConsolidation(TestBaseStrategy):
 
     scenarios = [
-        ("Ceilometer",
-         {"datasource": "ceilometer",
-          "fake_datasource_cls": ceilometer_metrics.FakeCeilometerMetrics}),
         ("Monasca",
          {"datasource": "monasca",
           "fake_datasource_cls": monasca_metrics.FakeMonascaMetrics}),

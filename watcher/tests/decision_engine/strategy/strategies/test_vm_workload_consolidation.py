@@ -31,10 +31,6 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestVMWorkloadConsolidation(TestBaseStrategy):
 
     scenarios = [
-        ("Ceilometer",
-         {"datasource": "ceilometer",
-          "fake_datasource_cls":
-          faker_cluster_and_metrics.FakeCeilometerMetrics}),
         ("Gnocchi",
          {"datasource": "gnocchi",
           "fake_datasource_cls":

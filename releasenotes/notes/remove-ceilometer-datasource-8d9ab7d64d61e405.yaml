@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Ceilometer datasource has been completely removed. The datasource requires
+    ceilometer API which was already removed from Ceilometer. Use the other
+    datasources such as Gnocchi.
