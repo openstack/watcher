@@ -1,0 +1,9 @@
+---
+- hosts: all
+  tasks:
+    - name: Generate prometheus.yml config file
+      delegate_to: controller
+      template:
+        src: "templates/prometheus.yml.j2"
+        dest: "/home/zuul/prometheus.yml"
+        mode: "0644"

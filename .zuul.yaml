@@ -174,6 +174,8 @@
     description: |
       This job is for testing watcher and sg-core/prometheus installation
     abstract: true
+    pre-run:
+      - playbooks/generate_prometheus_config.yml
     irrelevant-files: *irrelevent_files
     timeout: 7800
     required-projects: &base_sg_required_projects
@@ -184,6 +186,7 @@
       - openstack/watcher
       - openstack/python-watcherclient
       - openstack/watcher-tempest-plugin
+      - openstack/devstack-plugin-prometheus
     vars:
       configure_swap_size: 8192
       devstack_plugins:
@@ -191,6 +194,7 @@
         aodh: https://opendev.org/openstack/aodh
         sg-core: https://github.com/openstack-k8s-operators/sg-core
         watcher: https://opendev.org/openstack/watcher
+        devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
       devstack_services:
         watcher-api: true
         watcher-decision-engine: true
@@ -202,15 +206,25 @@
         s-container: false
         s-object: false
         s-proxy: false
+        # Prometheus related service
+        prometheus: true
+        node_exporter: true
       devstack_localrc:
         CEILOMETER_BACKENDS: "sg-core"
         CEILOMETER_PIPELINE_INTERVAL: 15
         CEILOMETER_ALARM_THRESHOLD: 6000000000
-        NODE_EXPORTER_ENABLE: true
+        NODE_EXPORTER_ENABLE: false
+        PROMETHEUS_ENABLE: false
         PROMETHEUS_SERVICE_SCRAPE_TARGETS: "sg-core,node-exporter"
+        PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:
+            watcher_datasources:
+              datasources: prometheus
+            prometheus_client:
+              host: 127.0.0.1
+              port: 9090
             watcher_cluster_data_model_collectors.compute:
               period: 120
             watcher_cluster_data_model_collectors.baremetal:
@@ -234,29 +248,38 @@
             telemetry:
               disable_ssl_certificate_validation: True
               ceilometer_polling_interval: 15
+            # Note(Chandan Kumar): Setting datasource to empty till we
+            # add prometheus datasource support in watcher-tempest-plugin
+            optimize:
+              datasource: ""
       tempest_plugins:
         - watcher-tempest-plugin
       # TODO (rlandy): enable all scenario tests
       # when tests can be run with prometheus data source.
       # https://bugs.launchpad.net/watcher-tempest-plugin/+bug/2090853
       tempest_test_regex: "\
-        (^watcher_tempest_plugin.tests.api)|\
-        (^watcher_tempest_plugin.tests.client_functional)|\
-        (^watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim)"
+        (^^watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation)|\
+        (^watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing)"
       tempest_concurrency: 1
       tox_envlist: all
+      zuul_copy_output:
+        /etc/prometheus/prometheus.yml: logs
     group-vars:
       subnode:
         devstack_plugins:
           ceilometer: https://opendev.org/openstack/ceilometer
           sg-core: https://github.com/openstack-k8s-operators/sg-core
+          devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
         devstack_services:
           ceilometer-acompute: true
           sg-core: false
+          prometheus: false
+          node_exporter: true
         devstack_localrc:
           CEILOMETER_BACKEND: "none"
           CEILOMETER_BACKENDS: "none"
-          NODE_EXPORTER_ENABLE: true
+          # sg_core related var
+          NODE_EXPORTER_ENABLE: false
           PROMETHEUS_ENABLE: false
         devstack_local_conf:
           post-config:
