@@ -84,7 +84,6 @@ def fake_headers(admin=False):
             # 'X-Tenant': 'admin'
             'X-Tenant-Name': 'admin',
             'X-Tenant-Id': 'c2a3a69d456a412376efdd9dac38',
-            'X-Project-Name': 'admin',
             'X-Project-Id': 'c2a3a69d456a412376efdd9dac38',
         })
     else:
