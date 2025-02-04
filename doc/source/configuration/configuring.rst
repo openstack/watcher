@@ -372,7 +372,7 @@ You can configure and install Ceilometer by following the documentation below :
 #. https://docs.openstack.org/ceilometer/latest
 
 The built-in strategy 'basic_consolidation' provided by watcher requires
-"**compute.node.cpu.percent**" and "**cpu_util**" measurements to be collected
+"**compute.node.cpu.percent**" and "**cpu**" measurements to be collected
 by Ceilometer.
 The measurements available depend on the hypervisors that OpenStack manages on
 the specific implementation.

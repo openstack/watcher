@@ -40,17 +40,25 @@ class TestGnocchiHelper(base.BaseTestCase):
         self.addCleanup(stat_agg_patcher.stop)
 
     def test_gnocchi_statistic_aggregation(self, mock_gnocchi):
+        vcpus = 2
+        mock_instance = mock.Mock(
+            id='16a86790-327a-45f9-bc82-45839f062fdc',
+            vcpus=vcpus)
+
         gnocchi = mock.MagicMock()
+        # cpu time rate of change (ns)
+        mock_rate_measure = 360 * 10e+8 * vcpus * 5.5 / 100
         expected_result = 5.5
 
-        expected_measures = [["2017-02-02T09:00:00.000000", 360, 5.5]]
+        expected_measures = [
+            ["2017-02-02T09:00:00.000000", 360, mock_rate_measure]]
 
         gnocchi.metric.get_measures.return_value = expected_measures
         mock_gnocchi.return_value = gnocchi
 
         helper = gnocchi_helper.GnocchiHelper()
         result = helper.statistic_aggregation(
-            resource=mock.Mock(id='16a86790-327a-45f9-bc82-45839f062fdc'),
+            resource=mock_instance,
             resource_type='instance',
             meter_name='instance_cpu_usage',
             period=300,
@@ -58,6 +66,14 @@ class TestGnocchiHelper(base.BaseTestCase):
             aggregate='mean',
         )
         self.assertEqual(expected_result, result)
+
+        gnocchi.metric.get_measures.assert_called_once_with(
+            metric="cpu",
+            start=mock.ANY,
+            stop=mock.ANY,
+            resource_id=mock_instance.uuid,
+            granularity=360,
+            aggregation="rate:mean")
 
     def test_gnocchi_statistic_series(self, mock_gnocchi):
         gnocchi = mock.MagicMock()

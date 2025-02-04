@@ -300,6 +300,6 @@ Using that you can now query the values for that specific metric:
 .. code-block:: py
 
     avg_meter = self.datasource_backend.statistic_aggregation(
-        instance.uuid, 'cpu_util', self.periods['instance'],
+        instance.uuid, 'instance_cpu_usage', self.periods['instance'],
         self.granularity,
         aggregation=self.aggregation_method['instance'])
