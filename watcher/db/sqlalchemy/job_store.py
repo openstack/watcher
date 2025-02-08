@@ -16,22 +16,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from oslo_serialization import jsonutils
+import pickle
 
 from apscheduler.jobstores.base import ConflictingIdError
 from apscheduler.jobstores import sqlalchemy
 from apscheduler.util import datetime_to_utc_timestamp
 from apscheduler.util import maybe_ref
 from apscheduler.util import utc_timestamp_to_datetime
+from oslo_serialization import jsonutils
 
 from watcher.common import context
 from watcher.common import service
 from watcher import objects
-
-try:
-    import cPickle as pickle
-except ImportError:  # pragma: nocover
-    import pickle
 
 from sqlalchemy import Table, MetaData, select, and_, null
 from sqlalchemy.exc import IntegrityError
