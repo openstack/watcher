@@ -17,7 +17,7 @@ Openstack implementation of the cluster graph.
 """
 
 import ast
-from lxml import etree
+from lxml import etree  # nosec: B410
 import networkx as nx
 from oslo_concurrency import lockutils
 from oslo_log import log

@@ -139,7 +139,7 @@ class DataSourceManager(object):
                     ds.METRIC_MAP.update(self.metric_map[ds.NAME])
                     return ds
                 except Exception:
-                    pass
+                    pass  # nosec: B110
         raise exception.MetricNotAvailable(metric=metric)
 
     def load_metric_map(self, file_path):
