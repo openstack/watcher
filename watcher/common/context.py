@@ -11,12 +11,15 @@
 # under the License.
 
 from oslo_context import context
+from oslo_db.sqlalchemy import enginefacade
 from oslo_log import log
 from oslo_utils import timeutils
+
 
 LOG = log.getLogger(__name__)
 
 
+@enginefacade.transaction_context_provider
 class RequestContext(context.RequestContext):
     """Extends security contexts from the OpenStack common library."""
 
