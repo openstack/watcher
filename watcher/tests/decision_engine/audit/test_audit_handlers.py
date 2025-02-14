@@ -263,7 +263,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         cfg.CONF.set_override("host", "hostname1")
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
@@ -286,7 +286,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertIsNone(self.audits[1].next_run_time)
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
@@ -309,7 +309,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
 
     @mock.patch.object(continuous.ContinuousAuditHandler, '_next_cron_time')
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
@@ -328,7 +328,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
                           audit_handler.launch_audits_periodically)
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
@@ -349,7 +349,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         m_add_job.assert_has_calls(calls)
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.Audit, 'list')
@@ -384,7 +384,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertTrue(is_inactive)
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')
     @mock.patch.object(objects.audit.AuditStateTransitionManager,
                        'is_inactive')
@@ -406,7 +406,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
         self.assertIsNotNone(self.audits[0].next_run_time)
 
     @mock.patch.object(objects.service.Service, 'list')
-    @mock.patch.object(sq_api, 'get_engine')
+    @mock.patch.object(sq_api.enginefacade.writer, 'get_engine')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'remove_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'add_job')
     @mock.patch.object(scheduling.BackgroundSchedulerService, 'get_jobs')

@@ -52,7 +52,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             self._audit_scheduler = scheduling.BackgroundSchedulerService(
                 jobstores={
                     'default': job_store.WatcherJobStore(
-                        engine=sq_api.get_engine()),
+                        engine=sq_api.enginefacade.writer.get_engine()),
                 }
             )
         return self._audit_scheduler

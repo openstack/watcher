@@ -19,8 +19,10 @@
 import collections
 import datetime
 import operator
+import threading
 
 from oslo_config import cfg
+from oslo_db import api as oslo_db_api
 from oslo_db import exception as db_exc
 from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import utils as db_utils
@@ -38,26 +40,7 @@ from watcher import objects
 
 CONF = cfg.CONF
 
-_FACADE = None
-
-
-def _create_facade_lazily():
-    global _FACADE
-    if _FACADE is None:
-        ctx = enginefacade.transaction_context()
-        _FACADE = ctx.writer
-    return _FACADE
-
-
-def get_engine():
-    facade = _create_facade_lazily()
-    return facade.get_engine()
-
-
-def get_session(**kwargs):
-    facade = _create_facade_lazily()
-    sessionmaker = facade.get_sessionmaker()
-    return sessionmaker(**kwargs)
+_CONTEXT = threading.local()
 
 
 def get_backend():
@@ -65,14 +48,15 @@ def get_backend():
     return Connection()
 
 
-def model_query(model, *args, **kwargs):
-    """Query helper for simpler session usage.
+def _session_for_read():
+    return enginefacade.reader.using(_CONTEXT)
 
-    :param session: if present, the session to use
-    """
-    session = kwargs.get('session') or get_session()
-    query = session.query(model, *args)
-    return query
+
+# NOTE(tylerchristie) Please add @oslo_db_api.retry_on_deadlock decorator to
+# any new methods using _session_for_write (as deadlocks happen on write), so
+# that oslo_db is able to retry in case of deadlocks.
+def _session_for_write():
+    return enginefacade.writer.using(_CONTEXT)
 
 
 def add_identity_filter(query, value):
@@ -95,8 +79,6 @@ def add_identity_filter(query, value):
 
 def _paginate_query(model, limit=None, marker=None, sort_key=None,
                     sort_dir=None, query=None):
-    if not query:
-        query = model_query(model)
     sort_keys = ['id']
     if sort_key and sort_key not in sort_keys:
         sort_keys.insert(0, sort_key)
@@ -249,21 +231,20 @@ class Connection(api.BaseConnection):
                 query = query.options(joinedload(relationship.key))
         return query
 
+    @oslo_db_api.retry_on_deadlock
     def _create(self, model, values):
-        session = get_session()
-        with session.begin():
+        with _session_for_write() as session:
             obj = model()
             cleaned_values = {k: v for k, v in values.items()
                               if k not in self._get_relationships(model)}
             obj.update(cleaned_values)
-            obj.save(session=session)
-            session.commit()
-        return obj
+            session.add(obj)
+            session.flush()
+            return obj
 
     def _get(self, context, model, fieldname, value, eager):
-        session = get_session()
-        with session.begin():
-            query = model_query(model, session=session)
+        with _session_for_read() as session:
+            query = session.query(model)
             if eager:
                 query = self._set_eager_options(model, query)
 
@@ -276,13 +257,13 @@ class Connection(api.BaseConnection):
             except exc.NoResultFound:
                 raise exception.ResourceNotFound(name=model.__name__, id=value)
 
-        return obj
+            return obj
 
     @staticmethod
+    @oslo_db_api.retry_on_deadlock
     def _update(model, id_, values):
-        session = get_session()
-        with session.begin():
-            query = model_query(model, session=session)
+        with _session_for_write() as session:
+            query = session.query(model)
             query = add_identity_filter(query, id_)
             try:
                 ref = query.with_for_update().one()
@@ -290,13 +271,14 @@ class Connection(api.BaseConnection):
                 raise exception.ResourceNotFound(name=model.__name__, id=id_)
 
             ref.update(values)
-        return ref
+
+            return ref
 
     @staticmethod
+    @oslo_db_api.retry_on_deadlock
     def _soft_delete(model, id_):
-        session = get_session()
-        with session.begin():
-            query = model_query(model, session=session)
+        with _session_for_write() as session:
+            query = session.query(model)
             query = add_identity_filter(query, id_)
             try:
                 row = query.one()
@@ -308,10 +290,10 @@ class Connection(api.BaseConnection):
             return row
 
     @staticmethod
+    @oslo_db_api.retry_on_deadlock
     def _destroy(model, id_):
-        session = get_session()
-        with session.begin():
-            query = model_query(model, session=session)
+        with _session_for_write() as session:
+            query = session.query(model)
             query = add_identity_filter(query, id_)
 
             try:
@@ -324,14 +306,15 @@ class Connection(api.BaseConnection):
     def _get_model_list(self, model, add_filters_func, context, filters=None,
                         limit=None, marker=None, sort_key=None, sort_dir=None,
                         eager=False):
-        query = model_query(model)
-        if eager:
-            query = self._set_eager_options(model, query)
-        query = add_filters_func(query, filters)
-        if not context.show_deleted:
-            query = query.filter(model.deleted_at.is_(None))
-        return _paginate_query(model, limit, marker,
-                               sort_key, sort_dir, query)
+        with _session_for_read() as session:
+            query = session.query(model)
+            if eager:
+                query = self._set_eager_options(model, query)
+            query = add_filters_func(query, filters)
+            if not context.show_deleted:
+                query = query.filter(model.deleted_at.is_(None))
+            return _paginate_query(model, limit, marker,
+                                   sort_key, sort_dir, query)
 
     # NOTE(erakli): _add_..._filters methods should be refactored to have same
     # content. join_fieldmap should be filled with JoinMap instead of dict
@@ -426,11 +409,12 @@ class Connection(api.BaseConnection):
             plain_fields=plain_fields, join_fieldmap=join_fieldmap)
 
         if 'audit_uuid' in filters:
-            stmt = model_query(models.ActionPlan).join(
-                models.Audit,
-                models.Audit.id == models.ActionPlan.audit_id)\
-                .filter_by(uuid=filters['audit_uuid']).subquery()
-            query = query.filter_by(action_plan_id=stmt.c.id)
+            with _session_for_read() as session:
+                stmt = session.query(models.ActionPlan).join(
+                    models.Audit,
+                    models.Audit.id == models.ActionPlan.audit_id)\
+                    .filter_by(uuid=filters['audit_uuid']).subquery()
+                query = query.filter_by(action_plan_id=stmt.c.id)
 
         return query
 
@@ -608,20 +592,21 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        query = model_query(models.AuditTemplate)
-        query = query.filter_by(name=values.get('name'),
-                                deleted_at=None)
+        with _session_for_write() as session:
+            query = session.query(models.AuditTemplate)
+            query = query.filter_by(name=values.get('name'),
+                                    deleted_at=None)
 
-        if len(query.all()) > 0:
-            raise exception.AuditTemplateAlreadyExists(
-                audit_template=values['name'])
+            if len(query.all()) > 0:
+                raise exception.AuditTemplateAlreadyExists(
+                    audit_template=values['name'])
 
-        try:
-            audit_template = self._create(models.AuditTemplate, values)
-        except db_exc.DBDuplicateEntry:
-            raise exception.AuditTemplateAlreadyExists(
-                audit_template=values['name'])
-        return audit_template
+            try:
+                audit_template = self._create(models.AuditTemplate, values)
+            except db_exc.DBDuplicateEntry:
+                raise exception.AuditTemplateAlreadyExists(
+                    audit_template=values['name'])
+            return audit_template
 
     def _get_audit_template(self, context, fieldname, value, eager):
         try:
@@ -683,25 +668,26 @@ class Connection(api.BaseConnection):
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
-        query = model_query(models.Audit)
-        query = query.filter_by(name=values.get('name'),
-                                deleted_at=None)
+        with _session_for_write() as session:
+            query = session.query(models.Audit)
+            query = query.filter_by(name=values.get('name'),
+                                    deleted_at=None)
 
-        if len(query.all()) > 0:
-            raise exception.AuditAlreadyExists(
-                audit=values['name'])
+            if len(query.all()) > 0:
+                raise exception.AuditAlreadyExists(
+                    audit=values['name'])
 
-        if values.get('state') is None:
-            values['state'] = objects.audit.State.PENDING
+            if values.get('state') is None:
+                values['state'] = objects.audit.State.PENDING
 
-        if not values.get('auto_trigger'):
-            values['auto_trigger'] = False
+            if not values.get('auto_trigger'):
+                values['auto_trigger'] = False
 
-        try:
-            audit = self._create(models.Audit, values)
-        except db_exc.DBDuplicateEntry:
-            raise exception.AuditAlreadyExists(audit=values['uuid'])
-        return audit
+            try:
+                audit = self._create(models.Audit, values)
+            except db_exc.DBDuplicateEntry:
+                raise exception.AuditAlreadyExists(audit=values['uuid'])
+            return audit
 
     def _get_audit(self, context, fieldname, value, eager):
         try:
@@ -725,14 +711,13 @@ class Connection(api.BaseConnection):
     def destroy_audit(self, audit_id):
         def is_audit_referenced(session, audit_id):
             """Checks whether the audit is referenced by action_plan(s)."""
-            query = model_query(models.ActionPlan, session=session)
+            query = session.query(models.ActionPlan)
             query = self._add_action_plans_filters(
                 query, {'audit_id': audit_id})
             return query.count() != 0
 
-        session = get_session()
-        with session.begin():
-            query = model_query(models.Audit, session=session)
+        with _session_for_write() as session:
+            query = session.query(models.Audit)
             query = add_identity_filter(query, audit_id)
 
             try:
@@ -799,9 +784,8 @@ class Connection(api.BaseConnection):
             context, fieldname="uuid", value=action_uuid, eager=eager)
 
     def destroy_action(self, action_id):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.Action, session=session)
+        with _session_for_write() as session:
+            query = session.query(models.Action)
             query = add_identity_filter(query, action_id)
             count = query.delete()
             if count != 1:
@@ -817,9 +801,8 @@ class Connection(api.BaseConnection):
 
     @staticmethod
     def _do_update_action(action_id, values):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.Action, session=session)
+        with _session_for_write() as session:
+            query = session.query(models.Action)
             query = add_identity_filter(query, action_id)
             try:
                 ref = query.with_for_update().one()
@@ -827,7 +810,7 @@ class Connection(api.BaseConnection):
                 raise exception.ActionNotFound(action=action_id)
 
             ref.update(values)
-        return ref
+            return ref
 
     def soft_delete_action(self, action_id):
         try:
@@ -871,14 +854,13 @@ class Connection(api.BaseConnection):
     def destroy_action_plan(self, action_plan_id):
         def is_action_plan_referenced(session, action_plan_id):
             """Checks whether the action_plan is referenced by action(s)."""
-            query = model_query(models.Action, session=session)
+            query = session.query(models.Action)
             query = self._add_actions_filters(
                 query, {'action_plan_id': action_plan_id})
             return query.count() != 0
 
-        session = get_session()
-        with session.begin():
-            query = model_query(models.ActionPlan, session=session)
+        with _session_for_write() as session:
+            query = session.query(models.ActionPlan)
             query = add_identity_filter(query, action_plan_id)
 
             try:
@@ -902,9 +884,8 @@ class Connection(api.BaseConnection):
 
     @staticmethod
     def _do_update_action_plan(action_plan_id, values):
-        session = get_session()
-        with session.begin():
-            query = model_query(models.ActionPlan, session=session)
+        with _session_for_write() as session:
+            query = session.query(models.ActionPlan)
             query = add_identity_filter(query, action_plan_id)
             try:
                 ref = query.with_for_update().one()
@@ -912,7 +893,7 @@ class Connection(api.BaseConnection):
                 raise exception.ActionPlanNotFound(action_plan=action_plan_id)
 
             ref.update(values)
-        return ref
+            return ref
 
     def soft_delete_action_plan(self, action_plan_id):
         try:
