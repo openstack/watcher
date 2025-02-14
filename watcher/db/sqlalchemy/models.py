@@ -93,14 +93,6 @@ class WatcherBase(models.SoftDeleteMixin,
             d[c.name] = self[c.name]
         return d
 
-    def save(self, session=None):
-        import watcher.db.sqlalchemy.api as db_api
-
-        if session is None:
-            session = db_api.get_session()
-
-        super(WatcherBase, self).save(session)
-
 
 Base = declarative_base(cls=WatcherBase)
 
