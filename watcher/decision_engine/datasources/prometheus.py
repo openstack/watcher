@@ -16,7 +16,6 @@
 from observabilityclient import prometheus_client
 from oslo_config import cfg
 from oslo_log import log
-import re
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -54,40 +53,14 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
         :raises watcher.common.exception.InvalidParameter if
                 the prometheus host or port have invalid format.
         """
-        def _validate_host_port(host, port):
-            if len(host) > 255:
-                return (False, f"hostname is too long: '{host}'")
-            if host[-1] == '.':
-                host = host[:-1]
-            legal_hostname = re.compile(
-                "(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
-            if not all(legal_hostname.match(host_part)
-                       for host_part in host.split(".")):
-                return (False, f"hostname '{host}' failed regex match ")
-            try:
-                assert bool(1 <= int(port) <= 65535)
-            except (AssertionError, ValueError):
-                return (False, f"missing or invalid port number '{port}' ")
-            return (True, "all good")
-
         _host = CONF.prometheus_client.host
         _port = CONF.prometheus_client.port
-        if (not _host or not _port):
+        if not _host:
             raise exception.MissingParameter(
                 message=(_(
-                    "prometheus host and port must be set in watcher.conf "
+                    "prometheus host must be set in watcher.conf "
                     "under the [prometheus_client] section. Can't initialise "
-                    "the datasource without valid host and port."))
-            )
-        validated, reason = _validate_host_port(_host, _port)
-        if (not validated):
-            raise exception.InvalidParameter(
-                message=(_(
-                    "A valid prometheus host and port are required. The #"
-                    "values found in watcher.conf are '%(host)s' '%(port)s'. "
-                    "This fails validation for the following reason: "
-                    "%(reason)s.")
-                    % {'host': _host, 'port': _port, 'reason': reason})
+                    "the datasource without valid host."))
             )
         the_client = prometheus_client.PrometheusAPIClient(
             f"{_host}:{_port}")

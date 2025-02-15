@@ -26,7 +26,7 @@ class TestPrometheusHelper(base.BaseTestCase):
     def setUp(self):
         super().setUp()
         cfg.CONF.prometheus_client.host = "foobarbaz"
-        cfg.CONF.prometheus_client.port = "1234"
+        cfg.CONF.prometheus_client.port = 9090
 
         with mock.patch.object(
             prometheus_helper.PrometheusHelper,
@@ -59,63 +59,10 @@ class TestPrometheusHelper(base.BaseTestCase):
         self.addCleanup(self.mock_build_fqdn_labels.stop)
 
     def test_unset_missing_prometheus_host(self):
-        cfg.CONF.prometheus_client.port = '123'
         cfg.CONF.prometheus_client.host = None
         self.assertRaisesRegex(
-            exception.MissingParameter, 'prometheus host and port must be '
-                                        'set in watcher.conf',
-            prometheus_helper.PrometheusHelper
-        )
-        cfg.CONF.prometheus_client.host = ''
-        self.assertRaisesRegex(
-            exception.MissingParameter, 'prometheus host and port must be '
-                                        'set in watcher.conf',
-            prometheus_helper.PrometheusHelper
-        )
-
-    def test_unset_missing_prometheus_port(self):
-        cfg.CONF.prometheus_client.host = 'some.host.domain'
-        cfg.CONF.prometheus_client.port = None
-        self.assertRaisesRegex(
-            exception.MissingParameter, 'prometheus host and port must be '
-                                        'set in watcher.conf',
-            prometheus_helper.PrometheusHelper
-        )
-        cfg.CONF.prometheus_client.port = ''
-        self.assertRaisesRegex(
-            exception.MissingParameter, 'prometheus host and port must be '
-                                        'set in watcher.conf',
-            prometheus_helper.PrometheusHelper
-        )
-
-    def test_invalid_prometheus_port(self):
-        cfg.CONF.prometheus_client.host = "hostOK"
-        cfg.CONF.prometheus_client.port = "123badPort"
-        self.assertRaisesRegex(
-            exception.InvalidParameter, "missing or invalid port number "
-                                        "'123badPort'",
-            prometheus_helper.PrometheusHelper
-        )
-        cfg.CONF.prometheus_client.port = "123456"
-        self.assertRaisesRegex(
-            exception.InvalidParameter, "missing or invalid port number "
-                                        "'123456'",
-            prometheus_helper.PrometheusHelper
-        )
-
-    def test_invalid_prometheus_host(self):
-        cfg.CONF.prometheus_client.port = "123"
-        cfg.CONF.prometheus_client.host = "-badhost"
-        self.assertRaisesRegex(
-            exception.InvalidParameter, "hostname '-badhost' "
-                                        "failed regex match",
-            prometheus_helper.PrometheusHelper
-        )
-        too_long_hostname = ("a" * 256)
-        cfg.CONF.prometheus_client.host = too_long_hostname
-        self.assertRaisesRegex(
-            exception.InvalidParameter, ("hostname is too long: " +
-                                         "'" + too_long_hostname + "'"),
+            exception.MissingParameter,
+            'prometheus host must be set in watcher.conf',
             prometheus_helper.PrometheusHelper
         )
 
@@ -137,10 +84,10 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_setup_prometheus_client_no_auth_no_tls(self):
         cfg.CONF.prometheus_client.host = "somehost"
-        cfg.CONF.prometheus_client.port = "1234"
+        cfg.CONF.prometheus_client.port = 9090
         prometheus_helper.PrometheusHelper()
 
-        self.mock_init.assert_called_once_with("somehost:1234")
+        self.mock_init.assert_called_once_with("somehost:9090")
         self.mock_set_basic_auth.assert_not_called()
         self.mock_set_client_cert.assert_not_called()
         self.mock_set_ca_cert.assert_not_called()
