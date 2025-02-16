@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    Monasca Data Source is deprecated and will be removed in the future, due
+    to inactivity of Monasca project.
