@@ -248,18 +248,11 @@
             telemetry:
               disable_ssl_certificate_validation: True
               ceilometer_polling_interval: 15
-            # Note(Chandan Kumar): Setting datasource to empty till we
-            # add prometheus datasource support in watcher-tempest-plugin
             optimize:
-              datasource: ""
+              datasource: prometheus
       tempest_plugins:
         - watcher-tempest-plugin
-      # TODO (rlandy): enable all scenario tests
-      # when tests can be run with prometheus data source.
-      # https://bugs.launchpad.net/watcher-tempest-plugin/+bug/2090853
-      tempest_test_regex: "\
-        (^^watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation)|\
-        (^watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing)"
+      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
       tempest_concurrency: 1
       tox_envlist: all
       zuul_copy_output:
