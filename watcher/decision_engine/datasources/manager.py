@@ -63,6 +63,9 @@ class DataSourceManager(object):
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
         self.datasources = self.config.datasources
+        if self.datasources and mon.MonascaHelper.NAME in self.datasources:
+            LOG.warning('The monasca datasource is deprecated and will be '
+                        'removed in a future release.')
 
     @property
     def monasca(self):
