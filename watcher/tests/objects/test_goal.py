@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
@@ -71,7 +71,7 @@ class TestGoalObject(base.DbTestCase):
         goal.create()
         expected_goal = self.fake_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         mock_create_goal.assert_called_once_with(expected_goal)
         self.assertEqual(self.context, goal._context)
 
@@ -130,9 +130,9 @@ class TestGoalObject(base.DbTestCase):
 
         expected_goal = fake_deleted_goal.copy()
         expected_goal['created_at'] = expected_goal['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         expected_goal['deleted_at'] = expected_goal['deleted_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
 
         uuid = self.fake_goal['uuid']
         goal = objects.Goal.get_by_uuid(self.context, uuid)

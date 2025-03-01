@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.common import exception
@@ -177,7 +177,7 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
         audit_template.create()
         expected_audit_template = self.fake_audit_template.copy()
         expected_audit_template['created_at'] = expected_audit_template[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         mock_create_audit_template.assert_called_once_with(
             expected_audit_template)
         self.assertEqual(self.context, audit_template._context)
@@ -193,9 +193,9 @@ class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
 
         expected_audit_template = fake_deleted_audit_template.copy()
         expected_audit_template['created_at'] = expected_audit_template[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         expected_audit_template['deleted_at'] = expected_audit_template[
-            'deleted_at'].replace(tzinfo=iso8601.UTC)
+            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
         del expected_audit_template['goal']
         del expected_audit_template['strategy']
 

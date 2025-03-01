@@ -15,7 +15,6 @@
 import contextlib
 import datetime
 import gettext
-import iso8601
 from unittest import mock
 
 from oslo_versionedobjects import base as object_base
@@ -268,7 +267,7 @@ class _TestObject(object):
         self.assertEqual('updated', obj.bar)
 
     def test_base_attributes(self):
-        dt = datetime.datetime(1955, 11, 5, 0, 0, tzinfo=iso8601.UTC)
+        dt = datetime.datetime(1955, 11, 5, 0, 0, tzinfo=datetime.timezone.utc)
         datatime = fields.DateTimeField()
         obj = MyObj(self.context)
         obj.created_at = dt

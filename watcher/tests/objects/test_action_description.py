@@ -14,9 +14,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
@@ -60,7 +60,7 @@ class TestActionDescriptionObject(base.DbTestCase):
         action_desc.create()
         expected_action_desc = self.fake_action_desc.copy()
         expected_action_desc['created_at'] = expected_action_desc[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
 
         mock_create_action_desc.assert_called_once_with(expected_action_desc)
         self.assertEqual(self.context, action_desc._context)
@@ -107,9 +107,9 @@ class TestActionDescriptionObject(base.DbTestCase):
 
         expected_action_desc = fake_deleted_action_desc.copy()
         expected_action_desc['created_at'] = expected_action_desc[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         expected_action_desc['deleted_at'] = expected_action_desc[
-            'deleted_at'].replace(tzinfo=iso8601.UTC)
+            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_action_desc['id']
         action_desc = objects.ActionDescription.get(self.context, _id)

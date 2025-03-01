@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.common import exception
@@ -136,7 +136,7 @@ class TestActionObject(base.DbTestCase):
             action.save()
 
         expected_update_at = fake_saved_action['updated_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
 
         mock_get_action.assert_called_once_with(
             self.context, uuid, eager=self.eager)
@@ -181,7 +181,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         action.create()
         expected_action = self.fake_action.copy()
         expected_action['created_at'] = expected_action['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         mock_create_action.assert_called_once_with(expected_action)
         self.assertEqual(self.context, action._context)
 
@@ -201,9 +201,9 @@ class TestCreateDeleteActionObject(base.DbTestCase):
 
         expected_action = fake_deleted_action.copy()
         expected_action['created_at'] = expected_action['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         expected_action['deleted_at'] = expected_action['deleted_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         del expected_action['action_plan']
 
         uuid = self.fake_action['uuid']

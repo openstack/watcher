@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.common import exception
@@ -139,10 +139,10 @@ class TestActionPlanObject(base.DbTestCase):
         expected_action_plan = fake_saved_action_plan.copy()
         expected_action_plan[
             'created_at'] = expected_action_plan['created_at'].replace(
-                tzinfo=iso8601.UTC)
+                tzinfo=datetime.timezone.utc)
         expected_action_plan[
             'updated_at'] = expected_action_plan['updated_at'].replace(
-                tzinfo=iso8601.UTC)
+                tzinfo=datetime.timezone.utc)
 
         uuid = self.fake_action_plan['uuid']
         action_plan = objects.ActionPlan.get_by_uuid(
@@ -207,7 +207,7 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         action_plan.create()
         expected_action_plan = self.fake_action_plan.copy()
         expected_action_plan['created_at'] = expected_action_plan[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         mock_create_action_plan.assert_called_once_with(expected_action_plan)
         self.assertEqual(self.context, action_plan._context)
 
@@ -239,9 +239,9 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
         m_soft_delete_action_plan.return_value = fake_deleted_action_plan
         expected_action_plan = fake_deleted_action_plan.copy()
         expected_action_plan['created_at'] = expected_action_plan[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         expected_action_plan['deleted_at'] = expected_action_plan[
-            'deleted_at'].replace(tzinfo=iso8601.UTC)
+            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
         del expected_action_plan['audit']
         del expected_action_plan['strategy']
 

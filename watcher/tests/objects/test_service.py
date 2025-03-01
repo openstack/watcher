@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
@@ -56,7 +56,7 @@ class TestServiceObject(base.DbTestCase):
         service.create()
         expected_service = self.fake_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
 
         mock_create_service.assert_called_once_with(expected_service)
         self.assertEqual(self.context, service._context)
@@ -103,9 +103,9 @@ class TestServiceObject(base.DbTestCase):
 
         expected_service = fake_deleted_service.copy()
         expected_service['created_at'] = expected_service[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         expected_service['deleted_at'] = expected_service[
-            'deleted_at'].replace(tzinfo=iso8601.UTC)
+            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_service['id']
         service = objects.Service.get(self.context, _id)
