@@ -114,6 +114,7 @@ class BaseSolution(object, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def actions(self):
         raise NotImplementedError()

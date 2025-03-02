@@ -118,7 +118,8 @@ class BaseAction(loadable.Loadable, metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def schema(self):
         """Defines a Schema that the input parameters shall comply to
 

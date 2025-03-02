@@ -147,7 +147,8 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
         self._cluster_data_model = model
         self.lock.release()
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def notification_endpoints(self):
         """Associated notification endpoints
 

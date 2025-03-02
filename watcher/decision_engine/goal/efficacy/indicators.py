@@ -36,7 +36,8 @@ class IndicatorSpecification(object, metaclass=abc.ABCMeta):
         self.unit = unit
         self.required = required
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def schema(self):
         """JsonSchema used to validate the indicator value
 
