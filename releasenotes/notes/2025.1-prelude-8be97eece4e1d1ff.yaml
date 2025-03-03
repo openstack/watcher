@@ -1,0 +1,33 @@
+---
+prelude: |
+  The ``Openstack 2025.1`` (``Watcher 14.0.0``) includes several new features,
+  deprecations, and removals. After a period of inactivity, the Watcher
+  project moved to the Distributed leadership model in ``2025.1`` with
+  several new contributors working to modernize the code base.
+  Activity this cycle was mainly focused on paying down technical debt
+  related to supporting newer testing runtimes. With this release,
+  ``ubuntu 24.04`` is now officially tested and supported.
+
+  ``Ubuntu 24.04`` brings a new default Python runtime ``3.12`` and with it
+  improvements to eventlet and SQLAlchemy 2.0 compatibility where required.
+  ``2025.1`` is the last release to officially support and test with ``Ubuntu 22.04``.
+
+  ``2025.1`` is the second official skip-level upgrade release supporting
+  upgrades from either ``2024.1`` or ``2024.2``
+
+  Another area of focus in this cycle was the data sources supported by Watcher.
+  The long obsolete `Ceilometer` API data source has been removed, and the untested
+  `Monasca` data source has been deprecated and a new `Prometheus` data source
+  has been added.
+  https://specs.openstack.org/openstack/watcher-specs/specs/2025.1/approved/prometheus-datasource.html
+fixes:
+  - https://bugs.launchpad.net/watcher/+bug/2086710 watcher compatibility between
+    eventlet, apscheduler, and python 3.12
+  - https://bugs.launchpad.net/watcher/+bug/2067815 refactoring of the SQLAlchemy
+    database layer to improve compatibility with eventlet on newer Pythons
+  - A number of linting issues were addressed with the introduction
+    of pre-commit. The issues include but are not limited to, spelling and grammar
+    fixes across all documentation and code, numerous sphinx documentation build warnings
+    , and incorrect file permission such as files having the execute bit set when not required.
+    While none of these changes should affect the runtime behavior of Watcher, they
+    generally improve the maintainability and quality of the codebase.
