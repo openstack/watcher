@@ -13,7 +13,9 @@
         - watcher-grenade
         - watcher-tempest-strategies
         - watcher-tempest-actuator
-        - watcherclient-tempest-functional
+        - python-watcherclient-functional:
+            files:
+              - ^watcher/api/*
         - watcher-tempest-functional-ipv6-only
         - watcher-prometheus-integration
     gate:
@@ -157,15 +159,6 @@
       - ^setup.cfg$
       - ^tools/.*$
       - ^tox.ini$
-
-- job:
-    # This job is used in python-watcherclient repo
-    name: watcherclient-tempest-functional
-    parent: watcher-tempest-functional
-    timeout: 4200
-    vars:
-      tempest_concurrency: 1
-      tempest_test_regex: watcher_tempest_plugin.tests.client_functional
 
 - job:
     name: watcher-sg-core-tempest-base
