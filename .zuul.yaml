@@ -214,6 +214,9 @@
         CEILOMETER_PIPELINE_INTERVAL: 15
         CEILOMETER_ALARM_THRESHOLD: 6000000000
         NODE_EXPORTER_ENABLE: false
+        # avoid collecting real host cpu metrics since tests
+        # will inject fake metrics when needed
+        NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
         PROMETHEUS_ENABLE: false
         PROMETHEUS_SERVICE_SCRAPE_TARGETS: "sg-core,node-exporter"
         PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
@@ -271,6 +274,9 @@
         devstack_localrc:
           CEILOMETER_BACKEND: "none"
           CEILOMETER_BACKENDS: "none"
+          # avoid collecting real host cpu metric since tests
+          # will inject fake metrics when needed
+          NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
           # sg_core related var
           NODE_EXPORTER_ENABLE: false
           PROMETHEUS_ENABLE: false
