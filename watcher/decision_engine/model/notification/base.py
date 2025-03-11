@@ -26,7 +26,8 @@ class NotificationEndpoint(object, metaclass=abc.ABCMeta):
         self.collector = collector
         self._notifier = None
 
-    @abc.abstractproperty
+    @property
+    @abc.abstractmethod
     def filter_rule(self):
         """Notification Filter"""
         raise NotImplementedError()
