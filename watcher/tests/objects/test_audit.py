@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.common import exception
@@ -130,9 +130,9 @@ class TestAuditObject(base.DbTestCase):
 
         expected_audit = fake_saved_audit.copy()
         expected_audit['created_at'] = expected_audit['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         expected_audit['updated_at'] = expected_audit['updated_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
 
         uuid = self.fake_audit['uuid']
         audit = objects.Audit.get_by_uuid(self.context, uuid, eager=self.eager)
@@ -193,7 +193,7 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
         audit.create()
         expected_audit = self.fake_audit.copy()
         expected_audit['created_at'] = expected_audit['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         mock_create_audit.assert_called_once_with(expected_audit)
         self.assertEqual(self.context, audit._context)
 
@@ -210,9 +210,9 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
 
         expected_audit = fake_deleted_audit.copy()
         expected_audit['created_at'] = expected_audit['created_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         expected_audit['deleted_at'] = expected_audit['deleted_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
         del expected_audit['goal']
         del expected_audit['strategy']
 
@@ -308,7 +308,7 @@ class TestAuditObjectSendNotifications(base.DbTestCase):
         fake_deleted_audit['deleted_at'] = timeutils.utcnow()
         expected_audit = fake_deleted_audit.copy()
         expected_audit['deleted_at'] = expected_audit['deleted_at'].replace(
-            tzinfo=iso8601.UTC)
+            tzinfo=datetime.timezone.utc)
 
         m_soft_delete_audit.return_value = fake_deleted_audit
         m_update_audit.return_value = fake_deleted_audit

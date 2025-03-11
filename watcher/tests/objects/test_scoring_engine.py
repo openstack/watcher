@@ -13,9 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import datetime
 from unittest import mock
 
-import iso8601
 from oslo_utils import timeutils
 
 from watcher.db.sqlalchemy import api as db_api
@@ -78,7 +78,7 @@ class TestScoringEngineObject(base.DbTestCase):
         scoring_engine.create()
         expected_scoring_engine = self.fake_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         mock_create_scoring_engine.assert_called_once_with(
             expected_scoring_engine)
         self.assertEqual(self.context, scoring_engine._context)
@@ -139,9 +139,9 @@ class TestScoringEngineObject(base.DbTestCase):
 
         expected_scoring_engine = fake_deleted_scoring_engine.copy()
         expected_scoring_engine['created_at'] = expected_scoring_engine[
-            'created_at'].replace(tzinfo=iso8601.UTC)
+            'created_at'].replace(tzinfo=datetime.timezone.utc)
         expected_scoring_engine['deleted_at'] = expected_scoring_engine[
-            'deleted_at'].replace(tzinfo=iso8601.UTC)
+            'deleted_at'].replace(tzinfo=datetime.timezone.utc)
 
         _id = self.fake_scoring_engine['id']
         scoring_engine = objects.ScoringEngine.get_by_id(self.context, _id)
