@@ -19,7 +19,7 @@
 import abc
 import collections
 
-from lxml import etree
+from lxml import etree  # nosec: B410
 from oslo_log import log
 
 from watcher.objects import base

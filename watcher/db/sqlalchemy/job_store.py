@@ -16,7 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pickle
+import pickle  # nosec: B403
 
 from apscheduler.jobstores.base import ConflictingIdError
 from apscheduler.jobstores import sqlalchemy
