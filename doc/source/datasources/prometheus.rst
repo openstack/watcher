@@ -29,19 +29,19 @@ This default can be overridden when a deployer uses a different label to
 identify the exporter host (for example ``hostname`` or ``host``, or any other
 label, as long as it identifies the host).
 
-Internally this label is used in creating a ``fqdn_instance_map``, mapping
-the fqdn with the Prometheus instance label associated with each exporter.
-The keys of the resulting fqdn_instance_map are expected to match the
+Internally this label is used in creating ``fqdn_instance_labels``, containing
+the list of values assigned to the the label in the Prometheus targets.
+The elements of the resulting fqdn_instance_labels are expected to match the
 ``ComputeNode.hostname`` used in the Watcher decision engine cluster model.
-An example ``fqdn_instance_map`` is the following:
+An example ``fqdn_instance_labels`` is the following:
 
 .. code-block::
 
-    {
-     'ena.controlplane.domain': '10.1.2.1:9100',
-     'dio.controlplane.domain': '10.1.2.2:9100',
-     'tria.controlplane.domain': '10.1.2.3:9100'
-    }
+    [
+     'ena.controlplane.domain',
+     'dio.controlplane.domain',
+     'tria.controlplane.domain',
+    ]
 
 For instance metrics, it is required that Prometheus contains a label
 with the uuid of the OpenStack instance in each relevant metric. By default,

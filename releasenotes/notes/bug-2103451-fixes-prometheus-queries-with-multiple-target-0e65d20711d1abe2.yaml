@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    When using prometheus datasource and more that one target has the same value
+    for the `fqdn_label`, the driver used the wrong instance label to query for host
+    metrics. The `instance` label is no longer used in the queries but the `fqdn_label`
+    which identifies all the metrics for a specific compute node.
+
+    .. _Bug 2103451: https://bugs.launchpad.net/watcher/+bug/2103451

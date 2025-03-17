@@ -147,7 +147,8 @@ class TestPrometheusHelper(base.BaseTestCase):
         self.assertEqual(expected_cpu_usage, result)
         mock_prometheus_query.assert_called_once_with(
             "100 - (avg by (instance)(rate(node_cpu_seconds_total"
-            "{mode='idle',instance='10.0.1.2:9100'}[300s])) * 100)")
+            "{mode='idle',fqdn='marios-env.controlplane.domain'}[300s]))"
+            " * 100)")
 
     @mock.patch.object(prometheus_client.PrometheusAPIClient, 'query')
     @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
@@ -437,15 +438,48 @@ class TestPrometheusHelper(base.BaseTestCase):
                 'instance': '10.1.2.3:9100', 'job': 'node',
             }},
         ]}}
-        expected_fqdn_map = {'foo.controlplane.domain': '10.1.2.1:9100',
-                             'bar.controlplane.domain': '10.1.2.2:9100',
-                             'baz.controlplane.domain': '10.1.2.3:9100'}
-        expected_host_map = {'foo': '10.1.2.1:9100',
-                             'bar': '10.1.2.2:9100',
-                             'baz': '10.1.2.3:9100'}
+        expected_fqdn_list = {'foo.controlplane.domain',
+                              'bar.controlplane.domain',
+                              'baz.controlplane.domain'}
+        expected_host_map = {'foo': 'foo.controlplane.domain',
+                             'bar': 'bar.controlplane.domain',
+                             'baz': 'baz.controlplane.domain'}
         helper = prometheus_helper.PrometheusHelper()
-        self.assertEqual(helper.prometheus_fqdn_instance_map,
-                         expected_fqdn_map)
+        self.assertEqual(helper.prometheus_fqdn_labels,
+                         expected_fqdn_list)
+        self.assertEqual(helper.prometheus_host_instance_map,
+                         expected_host_map)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_build_prometheus_fqdn_host_instance_map_dupl_fqdn(
+            self, mock_prometheus_get):
+        mock_prometheus_get.return_value = {'data': {'activeTargets': [
+            {'labels': {
+                'fqdn': 'foo.controlplane.domain',
+                'instance': '10.1.2.1:9100', 'job': 'node',
+            }},
+            {'labels': {
+                'fqdn': 'foo.controlplane.domain',
+                'instance': '10.1.2.1:9229', 'job': 'podman',
+            }},
+            {'labels': {
+                'fqdn': 'bar.controlplane.domain',
+                'instance': '10.1.2.2:9100', 'job': 'node',
+            }},
+            {'labels': {
+                'fqdn': 'baz.controlplane.domain',
+                'instance': '10.1.2.3:9100', 'job': 'node',
+            }},
+        ]}}
+        expected_fqdn_list = {'foo.controlplane.domain',
+                              'bar.controlplane.domain',
+                              'baz.controlplane.domain'}
+        expected_host_map = {'foo': 'foo.controlplane.domain',
+                             'bar': 'bar.controlplane.domain',
+                             'baz': 'baz.controlplane.domain'}
+        helper = prometheus_helper.PrometheusHelper()
+        self.assertEqual(helper.prometheus_fqdn_labels,
+                         expected_fqdn_list)
         self.assertEqual(helper.prometheus_host_instance_map,
                          expected_host_map)
 
@@ -460,7 +494,7 @@ class TestPrometheusHelper(base.BaseTestCase):
             }},
         ]}}
         helper = prometheus_helper.PrometheusHelper()
-        self.assertEqual({}, helper.prometheus_fqdn_instance_map)
+        self.assertEqual(set(), helper.prometheus_fqdn_labels)
         self.assertEqual({}, helper.prometheus_host_instance_map)
 
     @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
@@ -476,11 +510,28 @@ class TestPrometheusHelper(base.BaseTestCase):
             }},
         ]}}
         helper = prometheus_helper.PrometheusHelper()
-        expected_fqdn_map = {'ena': '10.1.2.1:9100',
-                             'dyo': '10.1.2.2:9100'}
+        expected_fqdn_list = {'ena', 'dyo'}
         self.assertEqual(
-            helper.prometheus_fqdn_instance_map, expected_fqdn_map)
+            helper.prometheus_fqdn_labels, expected_fqdn_list)
         self.assertEqual({}, helper.prometheus_host_instance_map)
+
+    @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
+    def test_using_ips_not_fqdn(self, mock_prometheus_get):
+        mock_prometheus_get.return_value = {'data': {'activeTargets': [
+            {'labels': {
+                'ip_label': '10.1.2.1',
+                'instance': '10.1.2.1:9100', 'job': 'node',
+            }},
+            {'labels': {
+                'ip_label': '10.1.2.2',
+                'instance': '10.1.2.2:9100', 'job': 'node',
+            }},
+        ]}}
+        cfg.CONF.prometheus_client.fqdn_label = 'ip_label'
+        helper = prometheus_helper.PrometheusHelper()
+        expected_fqdn_list = {'10.1.2.1', '10.1.2.2'}
+        self.assertEqual(
+            helper.prometheus_fqdn_labels, expected_fqdn_list)
 
     @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
     def test_override_prometheus_fqdn_label(self, mock_prometheus_get):
@@ -494,19 +545,19 @@ class TestPrometheusHelper(base.BaseTestCase):
                 'instance': '10.1.2.2:9100', 'job': 'node',
             }},
         ]}}
-        expected_fqdn_map = {'foo.controlplane.domain': '10.1.2.1:9100',
-                             'bar.controlplane.domain': '10.1.2.2:9100'}
-        expected_host_map = {'foo': '10.1.2.1:9100',
-                             'bar': '10.1.2.2:9100'}
+        expected_fqdn_list = {'foo.controlplane.domain',
+                              'bar.controlplane.domain'}
+        expected_host_map = {'foo': 'foo.controlplane.domain',
+                             'bar': 'bar.controlplane.domain'}
         cfg.CONF.prometheus_client.fqdn_label = 'custom_fqdn_label'
         helper = prometheus_helper.PrometheusHelper()
-        self.assertEqual(helper.prometheus_fqdn_instance_map,
-                         expected_fqdn_map)
+        self.assertEqual(helper.prometheus_fqdn_labels,
+                         expected_fqdn_list)
         self.assertEqual(helper.prometheus_host_instance_map,
                          expected_host_map)
 
     def test_resolve_prometheus_instance_label(self):
-        expected_instance_label = '10.0.1.2:9100'
+        expected_instance_label = 'marios-env.controlplane.domain'
         result = self.helper._resolve_prometheus_instance_label(
             'marios-env.controlplane.domain')
         self.assertEqual(result, expected_instance_label)
@@ -525,7 +576,7 @@ class TestPrometheusHelper(base.BaseTestCase):
     def test_build_prometheus_query_node_cpu_avg_agg(self):
         expected_query = (
             "100 - (avg by (instance)(rate(node_cpu_seconds_total"
-            "{mode='idle',instance='a_host'}[111s])) * 100)")
+            "{mode='idle',fqdn='a_host'}[111s])) * 100)")
         result = self.helper._build_prometheus_query(
             'avg', 'node_cpu_seconds_total', 'a_host', '111')
         self.assertEqual(result, expected_query)
@@ -533,15 +584,15 @@ class TestPrometheusHelper(base.BaseTestCase):
     def test_build_prometheus_query_node_cpu_max_agg(self):
         expected_query = (
             "100 - (max by (instance)(rate(node_cpu_seconds_total"
-            "{mode='idle',instance='b_host'}[444s])) * 100)")
+            "{mode='idle',fqdn='b_host'}[444s])) * 100)")
         result = self.helper._build_prometheus_query(
             'max', 'node_cpu_seconds_total', 'b_host', '444')
         self.assertEqual(result, expected_query)
 
     def test_build_prometheus_query_node_memory_avg_agg(self):
         expected_query = (
-            "(node_memory_MemTotal_bytes{instance='c_host'} - avg_over_time"
-            "(node_memory_MemAvailable_bytes{instance='c_host'}[555s])) "
+            "(node_memory_MemTotal_bytes{fqdn='c_host'} - avg_over_time"
+            "(node_memory_MemAvailable_bytes{fqdn='c_host'}[555s])) "
             "/ 1024 / 1024")
         result = self.helper._build_prometheus_query(
             'avg', 'node_memory_MemAvailable_bytes', 'c_host', '555')
@@ -549,8 +600,27 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_build_prometheus_query_node_memory_min_agg(self):
         expected_query = (
-            "(node_memory_MemTotal_bytes{instance='d_host'} - min_over_time"
-            "(node_memory_MemAvailable_bytes{instance='d_host'}[222s])) "
+            "(node_memory_MemTotal_bytes{fqdn='d_host'} - min_over_time"
+            "(node_memory_MemAvailable_bytes{fqdn='d_host'}[222s])) "
+            "/ 1024 / 1024")
+        result = self.helper._build_prometheus_query(
+            'min', 'node_memory_MemAvailable_bytes', 'd_host', '222')
+        self.assertEqual(result, expected_query)
+
+    def test_build_prometheus_query_node_cpu_avg_agg_custom_label(self):
+        self.helper.prometheus_fqdn_label = 'custom_fqdn_label'
+        expected_query = (
+            "100 - (avg by (instance)(rate(node_cpu_seconds_total"
+            "{mode='idle',custom_fqdn_label='a_host'}[111s])) * 100)")
+        result = self.helper._build_prometheus_query(
+            'avg', 'node_cpu_seconds_total', 'a_host', '111')
+        self.assertEqual(result, expected_query)
+
+    def test_build_prometheus_query_node_memory_min_agg_custom_label(self):
+        self.helper.prometheus_fqdn_label = 'custom_fqdn'
+        expected_query = (
+            "(node_memory_MemTotal_bytes{custom_fqdn='d_host'} - min_over_time"
+            "(node_memory_MemAvailable_bytes{custom_fqdn='d_host'}[222s])) "
             "/ 1024 / 1024")
         result = self.helper._build_prometheus_query(
             'min', 'node_memory_MemAvailable_bytes', 'd_host', '222')
