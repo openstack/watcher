@@ -51,10 +51,10 @@ class PrometheusHelper(base.DataSourceBase):
 
         The prometheus helper uses the PrometheusAPIClient provided by
         python-observabilityclient.
-        The prometheus_fqdn_instance_map maps the fqdn of each node to the
-        Prometheus instance label added to all metrics on that node. When
-        making queries to Prometheus we use the instance label to specify
-        the node for which metrics are to be retrieved.
+        The prometheus_fqdn_labels contains a list the values contained in
+        the fqdn_label in the Prometheus instance. When making queries to
+        Prometheus we use the fqdn_label to specify the node for which
+         metrics are to be retrieved.
         host, port and fqdn_label come from watcher_client
         config. The prometheus_fqdn_label allows override of the required label
         in Prometheus scrape configs that specifies each target's fqdn.
@@ -63,8 +63,8 @@ class PrometheusHelper(base.DataSourceBase):
         self.prometheus_fqdn_label = (
             CONF.prometheus_client.fqdn_label
         )
-        self.prometheus_fqdn_instance_map = (
-            self._build_prometheus_fqdn_instance_map()
+        self.prometheus_fqdn_labels = (
+            self._build_prometheus_fqdn_labels()
         )
         self.prometheus_host_instance_map = (
             self._build_prometheus_host_instance_map()
@@ -136,73 +136,71 @@ class PrometheusHelper(base.DataSourceBase):
 
         return the_client
 
-    def _build_prometheus_fqdn_instance_map(self):
-        """Build the fqdn<-->instance_label mapping needed for queries
+    def _build_prometheus_fqdn_labels(self):
+        """Build the list of fqdn_label values to be used in host queries
 
         Watcher knows nodes by their hostname. In Prometheus however the
         scrape targets (also known as 'instances') are specified by I.P.
-        (or hostname) and port number. This function creates a mapping between
-        the fully qualified domain name of each node and the corresponding
-        instance label used in the scrape config. This relies on a custom
-        'fqdn' label added to Prometheus scrape_configs. Operators can use
-        a different custom label instead by setting the prometheus_fqdn_label
+        (or hostname) and port number and fqdn is stored in a custom 'fqdn'
+        label added to Prometheus scrape_configs. Operators can use a
+        different custom label instead by setting the prometheus_fqdn_label
         config option under the prometheus_client section of watcher config.
-        The built prometheus_fqdn_instance_map is used to match watcher
-        node.hostname if watcher stores fqdn and otherwise the
-        host_instance_map is used instead.
-        :return a dict mapping fqdn to instance label. For example:
-                {'marios-env-again.controlplane.domain': '10.1.2.3:9100'}
+        The built prometheus_fqdn_labels is created with the full list
+        of values of the prometheus_fqdn_label label in Prometheus. This will
+        be used to create a map of hostname<-->fqdn and to identify if a target
+        exist in prometheus for the compute nodes before sending the query.
+        :return a set of values of the fqdn label. For example:
+                {'foo.example.com', 'bar.example.com'}
+                {'foo', 'bar'}
         """
         prometheus_targets = self.prometheus._get(
             "targets?state=active")['data']['activeTargets']
         # >>> prometheus_targets[0]['labels']
         # {'fqdn': 'marios-env-again.controlplane.domain',
         #  'instance': 'localhost:9100', 'job': 'node'}
-        fqdn_instance_map = {
-            fqdn: instance for (fqdn, instance) in (
-                (target['labels'].get(self.prometheus_fqdn_label),
-                 target['labels'].get('instance'))
-                for target in prometheus_targets
-                if target.get('labels', {}).get(self.prometheus_fqdn_label)
-            )
-        }
-        if not fqdn_instance_map:
+        fqdn_instance_labels = set()
+        for target in prometheus_targets:
+            if target.get('labels', {}).get(self.prometheus_fqdn_label):
+                fqdn_instance_labels.add(
+                    target['labels'].get(self.prometheus_fqdn_label))
+
+        if not fqdn_instance_labels:
             LOG.error(
-                "Could not create fqdn instance map from Prometheus "
+                "Could not create fqdn labels list from Prometheus "
                 "targets config. Prometheus returned the following: %s",
                 prometheus_targets
             )
-            return {}
-        return fqdn_instance_map
+            return set()
+        return fqdn_instance_labels
 
     def _build_prometheus_host_instance_map(self):
         """Build the hostname<-->instance_label mapping needed for queries
 
-        The prometheus_fqdn_instance_map has the fully qualified domain name
+        The prometheus_fqdn_labels has the fully qualified domain name
         for hosts. This will create a duplicate map containing only the host
         name part. Depending on the watcher node.hostname either the
-        fqdn_instance_map or the host_instance_map will be used to resolve
-        the correct prometheus instance label for queries. In the event the
-        fqdn_instance_map keys are not valid fqdn (for example it contains
+        fqdn_instance_labels or the host_instance_map will be used to resolve
+        the correct prometheus fqdn_label for queries. In the event the
+        fqdn_instance_labels elements are not valid fqdn (for example it has
         hostnames, not fqdn) the host_instance_map cannot be created and
         an empty dictionary is returned with a warning logged.
         :return a dict mapping hostname to instance label. For example:
-                {'marios-env-again': 'localhost:9100'}
+                {'foo': 'foo.example.com', 'bar': 'bar.example.com'}
         """
-        if not self.prometheus_fqdn_instance_map:
+        if not self.prometheus_fqdn_labels:
             LOG.error("Cannot build host_instance_map without "
-                      "fqdn_instance_map")
+                      "fqdn_instance_labels")
             return {}
         host_instance_map = {
-            host: instance for (host, instance) in (
-                (fqdn.split('.')[0], inst)
-                for fqdn, inst in self.prometheus_fqdn_instance_map.items()
+            host: fqdn for (host, fqdn) in (
+                (fqdn.split('.')[0], fqdn)
+                for fqdn in self.prometheus_fqdn_labels
                 if '.' in fqdn
             )
         }
         if not host_instance_map:
             LOG.warning("Creating empty host instance map. Are the keys "
-                        "in prometheus_fqdn_instance_map valid fqdn?")
+                        "in prometheus_fqdn_labels valid fqdn?")
             return {}
         return host_instance_map
 
@@ -210,23 +208,25 @@ class PrometheusHelper(base.DataSourceBase):
         """Resolve the prometheus instance label to use in queries
 
         Given the watcher node.hostname, resolve the prometheus instance
-        label for use in queries, first trying the fqdn_instance_map and
+        label for use in queries, first trying the fqdn_instance_labels and
         then the host_instance_map (watcher.node_name can be fqdn or hostname).
         If the name is not resolved after the first attempt, rebuild the fqdn
         and host instance maps and try again. This allows for new hosts added
-        after the initialisation of the fqdn_instance_map.
+        after the initialisation of the fqdn_instance_labels.
         :param node_name: the watcher node.hostname
         :return String for the prometheus instance label and None if not found
         """
         def _query_maps(node):
-            return self.prometheus_fqdn_instance_map.get(
-                node, self.prometheus_host_instance_map.get(node, None))
+            if node in self.prometheus_fqdn_labels:
+                return node
+            else:
+                return self.prometheus_host_instance_map.get(node, None)
 
         instance_label = _query_maps(node_name)
         # refresh the fqdn and host instance maps and retry
         if not instance_label:
-            self.prometheus_fqdn_instance_map = (
-                self._build_prometheus_fqdn_instance_map()
+            self.prometheus_fqdn_labels = (
+                self._build_prometheus_fqdn_labels()
             )
             self.prometheus_host_instance_map = (
                 self._build_prometheus_host_instance_map()
@@ -307,17 +307,21 @@ class PrometheusHelper(base.DataSourceBase):
 
         if meter == 'node_cpu_seconds_total':
             query_args = (
-                "100 - (%s by (instance)(rate(%s"
-                "{mode='idle',instance='%s'}[%ss])) * 100)" %
-                (aggregate, meter, instance_label, period)
+                "100 - (%(agg)s by (instance)(rate(%(meter)s"
+                "{mode='idle',%(label)s='%(label_value)s'}[%(period)ss])) "
+                "* 100)"
+                % {'label': self.prometheus_fqdn_label,
+                   'label_value': instance_label, 'agg': aggregate,
+                   'meter': meter, 'period': period}
             )
         elif meter == 'node_memory_MemAvailable_bytes':
             query_args = (
-                "(node_memory_MemTotal_bytes{instance='%s'} "
-                "- %s_over_time(%s{instance='%s'}[%ss])) "
-                "/ 1024 / 1024" %
-                (instance_label, aggregate, meter,
-                 instance_label, period)
+                "(node_memory_MemTotal_bytes{%(label)s='%(label_value)s'} "
+                "- %(agg)s_over_time(%(meter)s{%(label)s='%(label_value)s'}"
+                "[%(period)ss])) / 1024 / 1024"
+                % {'label': self.prometheus_fqdn_label,
+                   'label_value': instance_label, 'agg': aggregate,
+                   'meter': meter, 'period': period}
             )
         elif meter == 'ceilometer_memory_usage':
             query_args = (
