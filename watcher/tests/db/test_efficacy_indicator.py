@@ -409,3 +409,55 @@ class DbEfficacyIndicatorTestCase(base.DbTestCase):
         self.assertRaises(exception.EfficacyIndicatorAlreadyExists,
                           utils.create_test_efficacy_indicator,
                           id=2, uuid=uuid)
+
+
+class MySQLDbEfficacyIndicatorTestCase(base.MySQLDbTestCase):
+
+    FAKE_OLDER_DATE = '2014-01-01T09:52:05.219414'
+    FAKE_OLD_DATE = '2015-01-01T09:52:05.219414'
+    FAKE_TODAY = '2016-02-24T09:52:05.219414'
+
+    def setUp(self):
+        super(MySQLDbEfficacyIndicatorTestCase, self).setUp()
+        self.context.show_deleted = True
+        self._data_setup()
+
+    def _data_setup(self):
+        self.audit_template_name = "Audit Template"
+
+        self.goal = utils.create_test_goal(
+            id=1, uuid=w_utils.generate_uuid(),
+            name="GOAL_1", display_name='Goal 1')
+        self.strategy = utils.create_test_strategy(
+            id=1, uuid=w_utils.generate_uuid(),
+            name="STRATEGY_ID_1", display_name='My Strategy 1')
+        self.audit_template = utils.create_test_audit_template(
+            name=self.audit_template_name, id=1, uuid=None)
+        self.audit = utils.create_test_audit(
+            audit_template_id=self.audit_template.id, id=1, uuid=None)
+        self.action_plan = utils.create_test_action_plan(
+            audit_id=self.audit.id, id=1, uuid=None)
+
+        with freezegun.freeze_time(self.FAKE_TODAY):
+            self.efficacy_indicator1 = utils.create_test_efficacy_indicator(
+                action_plan_id=self.action_plan.id, id=1, uuid=None,
+                name="efficacy_indicator1", description="Test Indicator 1",
+                value=0.01234567912345678)
+        with freezegun.freeze_time(self.FAKE_OLD_DATE):
+            self.efficacy_indicator2 = utils.create_test_efficacy_indicator(
+                action_plan_id=self.action_plan.id, id=2, uuid=None,
+                name="efficacy_indicator2", description="Test Indicator 2")
+        with freezegun.freeze_time(self.FAKE_OLDER_DATE):
+            self.efficacy_indicator3 = utils.create_test_efficacy_indicator(
+                action_plan_id=self.action_plan.id, id=3, uuid=None,
+                name="efficacy_indicator3", description="Test Indicator 3")
+
+    def test_efficacy_indicator_value_decimals(self):
+        db_efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
+            self.context, 1)
+        self.assertAlmostEqual(float(db_efficacy_indicator.value),
+                               0.00, places=2)
+        # FIXME: once the database bug is fixed check that the value is stored
+        # correctly
+        # self.assertAlmostEqual(float(db_efficacy_indicator.value),
+        #                        0.01, places=2)

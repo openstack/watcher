@@ -18,6 +18,7 @@
 import fixtures
 from oslo_config import cfg
 from oslo_db.sqlalchemy import enginefacade
+from oslo_db.sqlalchemy import test_fixtures
 
 
 from watcher.db import api as dbapi
@@ -86,3 +87,18 @@ class DbTestCase(base.TestCase):
             engine.dispose()
         self.useFixture(_DB_CACHE)
         self._id_gen = utils.id_generator()
+
+
+class MySQLDbTestCase(test_fixtures.OpportunisticDBTestMixin, base.TestCase):
+
+    FIXTURE = test_fixtures.MySQLOpportunisticFixture
+
+    def setUp(self):
+        conn_str = "mysql+pymysql://root:insecure_slave@127.0.0.1"
+        # to use mysql db
+        cfg.CONF.set_override("connection", conn_str,
+                              group="database")
+        super().setUp()
+        self.engine = enginefacade.writer.get_engine()
+        self.dbapi = dbapi.get_instance()
+        migration.create_schema()
