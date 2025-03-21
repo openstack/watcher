@@ -905,15 +905,34 @@ class Connection(api.BaseConnection):
     # ### EFFICACY INDICATORS ### #
 
     def get_efficacy_indicator_list(self, *args, **kwargs):
-        return self._get_model_list(models.EfficacyIndicator,
-                                    self._add_efficacy_indicators_filters,
-                                    *args, **kwargs)
+        eff_ind_models = self._get_model_list(
+            models.EfficacyIndicator,
+            self._add_efficacy_indicators_filters,
+            *args, **kwargs
+            )
+        for indicator in eff_ind_models:
+            if indicator.data is not None:
+                # jgilaber: use the data value since it stores the value
+                # properly, see https://bugs.launchpad.net/watcher/+bug/2103458
+                # for more details
+                indicator.value = indicator.data
+            else:
+                # if data is None, it means that we're reading data from a
+                # database created before the 15f7375ca737 revision, use the
+                # value column
+                indicator.data = indicator.value
+
+        return eff_ind_models
 
     def create_efficacy_indicator(self, values):
         # ensure defaults are present for new efficacy indicators
         if not values.get('uuid'):
             values['uuid'] = utils.generate_uuid()
 
+        # jgilaber: use the data column since it stores the value
+        # properly, see https://bugs.launchpad.net/watcher/+bug/2103458
+        # for more details
+        values['data'] = values.get('value')
         try:
             efficacy_indicator = self._create(models.EfficacyIndicator, values)
         except db_exc.DBDuplicateEntry:
@@ -922,8 +941,22 @@ class Connection(api.BaseConnection):
 
     def _get_efficacy_indicator(self, context, fieldname, value, eager):
         try:
-            return self._get(context, model=models.EfficacyIndicator,
-                             fieldname=fieldname, value=value, eager=eager)
+            efficacy_indicator = self._get(context,
+                                           model=models.EfficacyIndicator,
+                                           fieldname=fieldname,
+                                           value=value, eager=eager)
+
+            if efficacy_indicator.data is not None:
+                # jgilaber: use the data value since it stores the value
+                # properly, see https://bugs.launchpad.net/watcher/+bug/2103458
+                # for more details
+                efficacy_indicator.value = efficacy_indicator.data
+            else:
+                # if data is None, it means that we're reading data from a
+                # database created before the 15f7375ca737 revision, use the
+                # value column
+                efficacy_indicator.data = efficacy_indicator.value
+            return efficacy_indicator
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(efficacy_indicator=value)
 

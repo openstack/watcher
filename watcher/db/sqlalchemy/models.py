@@ -238,7 +238,10 @@ class EfficacyIndicator(Base):
     name = Column(String(63))
     description = Column(String(255), nullable=True)
     unit = Column(String(63), nullable=True)
+    # this column is deprecated due to bug
+    # https://bugs.launchpad.net/watcher/+bug/2103458
     value = Column(Numeric())
+    data = Column(Float())
     action_plan_id = Column(Integer, ForeignKey('action_plans.id'),
                             nullable=False)
 
