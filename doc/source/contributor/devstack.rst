@@ -31,14 +31,45 @@ Quick Devstack Instructions with Datasources
 ============================================
 
 Watcher requires a datasource to collect metrics from compute nodes and
-instances in order to execute most strategies. To enable this a
-``[[local|localrc]]`` to setup DevStack for some of the supported datasources
-is provided. These examples specify the minimal configuration parameters to
-get both Watcher and the datasource working but can be expanded is desired.
+instances in order to execute most strategies. To enable this two possible
+examples of ``[[local|localrc]]`` to setup DevStack for some of the
+supported datasources is provided. These examples specify the minimal
+configuration parameters to get both Watcher and the datasource working
+but can be expanded is desired.
+The first example configures watcher to user prometheus as a datasource, while
+the second example show how to use gnocchi as the datasource. The procedure is
+equivalent, it just requires using the ``local.conf.controller`` and
+``local.conf.compute`` in the first example and
+``local_gnocchi.conf.controller`` and ``local_gnocchi.conf.compute`` in the
+second.
+
+Prometheus
+----------
+
+With the Prometheus datasource most of the metrics for compute nodes and
+instances will work with the provided configuration but metrics that
+require Ironic such as ``host_airflow and`` ``host_power`` will still be
+unavailable as well as ``instance_l3_cpu_cache``
+
+.. code-block:: ini
+
+   [[local|localrc]]
+
+   enable_plugin watcher https://opendev.org/openstack/watcher
+   enable_plugin watcher-dashboard https://opendev.org/openstack/watcher-dashboard
+   enable_plugin ceilometer https://opendev.org/openstack/ceilometer.git
+   enable_plugin aodh https://opendev.org/openstack/aodh
+   enable_plugin devstack-plugin-prometheus https://opendev.org/openstack/devstack-plugin-prometheus
+   enable_plugin sg-core https://github.com/openstack-k8s-operators/sg-core main
+
+
+   CEILOMETER_BACKEND=sg-core
+   [[post-config|$NOVA_CONF]]
+   [DEFAULT]
+   compute_monitors=cpu.virt_driver
 
 Gnocchi
 -------
-
 With the Gnocchi datasource most of the metrics for compute nodes and
 instances will work with the provided configuration but metrics that
 require Ironic such as ``host_airflow and`` ``host_power`` will still be
@@ -96,7 +127,8 @@ Detailed DevStack Instructions
         cd ~
         git clone https://opendev.org/openstack/devstack.git
 
-#. For each compute node, copy the provided `local.conf.compute`_ example file
+#. For each compute node, copy the provided `local.conf.compute`_
+   (`local_gnocchi.conf.compute`_ if deploying with gnocchi) example file
    to the compute node's system at ~/devstack/local.conf. Make sure the
    HOST_IP and SERVICE_HOST values are changed appropriately - i.e., HOST_IP
    is set to the IP address of the compute node and SERVICE_HOST is set to the
@@ -112,7 +144,8 @@ Detailed DevStack Instructions
    to configure similar configuration options for the projects providing those
    metrics.
 
-#. For the controller node, copy the provided `local.conf.controller`_ example
+#. For the controller node, copy the provided `local.conf.controller`_
+   (`local_gnocchi.conf.controller`_ if deploying with gnocchi) example
    file to the controller node's system at ~/devstack/local.conf. Make sure
    the HOST_IP value is changed appropriately - i.e., HOST_IP is set to the IP
    address of the controller node.
@@ -142,6 +175,17 @@ Detailed DevStack Instructions
         to FALSE. For Production environment it is suggested to keep it at the
         default TRUE value.
 
+#. If you want to use prometheus as a datasource, you need to provide a
+   Prometheus configuration with the compute nodes set as targets, so
+   it can consume their node-exporter metrics (if you are deploying watcher
+   with gnocchi as datasource you can skip this step altogether). Copy the
+   provided `prometheus.yml`_ example file and set the appropriate hostnames
+   for all the compute nodes (the example configures 2 of them plus the
+   controller, but you should add all of them if using more than 2 compute
+   nodes). Set the value of ``PROMETHEUS_CONFIG_FILE`` to the path of the
+   file you created in the local.conf file (the sample local.conf file uses
+   ``$DEST`` as the default value for the prometheus config path).
+
 #. Start stacking from the controller node::
 
        ./devstack/stack.sh
@@ -154,6 +198,9 @@ Detailed DevStack Instructions
 
 .. _local.conf.controller: https://github.com/openstack/watcher/tree/master/devstack/local.conf.controller
 .. _local.conf.compute: https://github.com/openstack/watcher/tree/master/devstack/local.conf.compute
+.. _local_gnocchi.conf.controller: https://github.com/openstack/watcher/tree/master/devstack/local_gnocchi.conf.controller
+.. _local_gnocchi.conf.compute: https://github.com/openstack/watcher/tree/master/devstack/local_gnocchi.conf.compute
+.. _prometheus.yml: https://github.com/openstack/watcher/tree/master/devstack/prometheus.yml
 
 Multi-Node DevStack Environment
 ===============================

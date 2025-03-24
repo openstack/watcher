@@ -26,7 +26,7 @@ GLANCE_HOSTPORT=${SERVICE_HOST}:9292
 DATABASE_TYPE=mysql
 
 # Enable services (including neutron)
-ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt,placement-client,node-exporter
+ENABLED_SERVICES=n-cpu,n-api-meta,c-vol,q-agt,placement-client
 
 NOVA_VNC_ENABLED=True
 NOVNCPROXY_URL="http://$SERVICE_HOST:6080/vnc_auto.html"
@@ -41,10 +41,6 @@ disable_service ceilometer-acentral,ceilometer-collector,ceilometer-api
 
 LOGFILE=$DEST/logs/stack.sh.log
 LOGDAYS=2
-
-CEILOMETER_BACKEND="none"
-CEILOMETER_BACKENDS="none"
-enable_plugin devstack-plugin-prometheus https://opendev.org/openstack/devstack-plugin-prometheus
 
 [[post-config|$NOVA_CONF]]
 [DEFAULT]
