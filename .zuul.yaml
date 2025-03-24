@@ -95,7 +95,6 @@
     timeout: 7200
     required-projects: &base_required_projects
       - openstack/ceilometer
-      - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
       - openstack/watcher-tempest-plugin
