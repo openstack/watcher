@@ -1,29 +1,3 @@
-- project:
-    queue: watcher
-    templates:
-      - check-requirements
-      - openstack-cover-jobs
-      - openstack-python3-jobs
-      - publish-openstack-docs-pti
-      - release-notes-jobs-python3
-    check:
-      jobs:
-        - watcher-tempest-functional
-        - watcher-tempest-functional-jammy
-        - watcher-grenade
-        - watcher-tempest-strategies
-        - watcher-tempest-actuator
-        - python-watcherclient-functional:
-            files:
-              - ^watcher/api/*
-        - watcher-tempest-functional-ipv6-only
-        - watcher-prometheus-integration
-    gate:
-      jobs:
-        - watcher-tempest-functional
-        - watcher-tempest-functional-jammy
-        - watcher-tempest-functional-ipv6-only
-
 - job:
     name: watcher-tempest-actuator
     parent: watcher-tempest-multinode
@@ -36,6 +10,7 @@
     vars:
       tempest_concurrency: 1
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
+      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
 
 - job:
     name: watcher-tempest-multinode
@@ -251,6 +226,7 @@
       tempest_plugins:
         - watcher-tempest-plugin
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
+      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
       tempest_concurrency: 1
       tox_envlist: all
       zuul_copy_output:
@@ -284,3 +260,53 @@
 - job:
     name: watcher-prometheus-integration
     parent: watcher-sg-core-tempest-base
+
+- job:
+    name: watcher-prometheus-integration-realdata
+    parent: watcher-sg-core-tempest-base
+    vars:
+      devstack_localrc:
+        NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
+      devstack_local_conf:
+        test-config:
+          $TEMPEST_CONFIG:
+            optimize:
+              datasource: ""
+      tempest_test_regex: .*\[.*\breal_load\b.*\].*
+      tempest_exclude_regex: ""
+    group-vars:
+      subnode:
+        devstack_localrc:
+          NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
+
+- project:
+    queue: watcher
+    templates:
+      - check-requirements
+      - openstack-cover-jobs
+      - openstack-python3-jobs
+      - publish-openstack-docs-pti
+      - release-notes-jobs-python3
+    check:
+      jobs:
+        - watcher-tempest-functional
+        - watcher-tempest-functional-jammy
+        - watcher-grenade
+        - watcher-tempest-strategies
+        - watcher-tempest-actuator
+        - python-watcherclient-functional:
+            files:
+              - ^watcher/api/*
+        - watcher-tempest-functional-ipv6-only
+        - watcher-prometheus-integration
+    gate:
+      jobs:
+        - watcher-tempest-functional
+        - watcher-tempest-functional-jammy
+        - watcher-tempest-functional-ipv6-only
+    experimental:
+      jobs:
+        - watcher-prometheus-integration-realdata
+    periodic-weekly:
+      jobs:
+        - watcher-prometheus-integration-realdata
