@@ -146,7 +146,7 @@ class TestPrometheusHelper(base.BaseTestCase):
         )
         self.assertEqual(expected_cpu_usage, result)
         mock_prometheus_query.assert_called_once_with(
-            "100 - (avg by (instance)(rate(node_cpu_seconds_total"
+            "100 - (avg by (fqdn)(rate(node_cpu_seconds_total"
             "{mode='idle',fqdn='marios-env.controlplane.domain'}[300s]))"
             " * 100)")
 
@@ -575,7 +575,7 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_build_prometheus_query_node_cpu_avg_agg(self):
         expected_query = (
-            "100 - (avg by (instance)(rate(node_cpu_seconds_total"
+            "100 - (avg by (fqdn)(rate(node_cpu_seconds_total"
             "{mode='idle',fqdn='a_host'}[111s])) * 100)")
         result = self.helper._build_prometheus_query(
             'avg', 'node_cpu_seconds_total', 'a_host', '111')
@@ -583,7 +583,7 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_build_prometheus_query_node_cpu_max_agg(self):
         expected_query = (
-            "100 - (max by (instance)(rate(node_cpu_seconds_total"
+            "100 - (max by (fqdn)(rate(node_cpu_seconds_total"
             "{mode='idle',fqdn='b_host'}[444s])) * 100)")
         result = self.helper._build_prometheus_query(
             'max', 'node_cpu_seconds_total', 'b_host', '444')
@@ -610,7 +610,7 @@ class TestPrometheusHelper(base.BaseTestCase):
     def test_build_prometheus_query_node_cpu_avg_agg_custom_label(self):
         self.helper.prometheus_fqdn_label = 'custom_fqdn_label'
         expected_query = (
-            "100 - (avg by (instance)(rate(node_cpu_seconds_total"
+            "100 - (avg by (custom_fqdn_label)(rate(node_cpu_seconds_total"
             "{mode='idle',custom_fqdn_label='a_host'}[111s])) * 100)")
         result = self.helper._build_prometheus_query(
             'avg', 'node_cpu_seconds_total', 'a_host', '111')

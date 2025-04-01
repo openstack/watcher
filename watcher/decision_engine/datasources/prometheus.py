@@ -264,8 +264,8 @@ class PrometheusHelper(base.DataSourceBase):
         This function builds and returns the string query that will be sent
         to the Prometheus server /query endpoint. For host cpu usage we use:
 
-        100 - (avg by (instance)(rate(node_cpu_seconds_total{mode='idle',
-                                       instance='some_host'}[300s])) * 100)
+        100 - (avg by (fqdn)(rate(node_cpu_seconds_total{mode='idle',
+                                       fqdn='some_host'}[300s])) * 100)
 
         so using prometheus rate function over the specified period, we average
         per instance (all cpus) idle time and then 'everything else' is cpu
@@ -307,7 +307,7 @@ class PrometheusHelper(base.DataSourceBase):
 
         if meter == 'node_cpu_seconds_total':
             query_args = (
-                "100 - (%(agg)s by (instance)(rate(%(meter)s"
+                "100 - (%(agg)s by (%(label)s)(rate(%(meter)s"
                 "{mode='idle',%(label)s='%(label_value)s'}[%(period)ss])) "
                 "* 100)"
                 % {'label': self.prometheus_fqdn_label,
@@ -464,8 +464,8 @@ class PrometheusHelper(base.DataSourceBase):
         This calculates the host cpu usage and returns it as a percentage
         The calculation is made by using the cpu 'idle' time, per
         instance (so all CPUs are included). For example the query looks like
-        (100 - (avg by (instance)(rate(node_cpu_seconds_total
-            {mode='idle',instance='localhost:9100'}[300s])) * 100))
+        (100 - (avg by (fqdn)(rate(node_cpu_seconds_total
+            {mode='idle',fqdn='compute1.example.com'}[300s])) * 100))
         """
         aggregate = self._invert_max_min_aggregate(aggregate)
         cpu_usage = self.statistic_aggregation(
