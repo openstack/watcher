@@ -213,10 +213,12 @@
         CEILOMETER_BACKENDS: "sg-core"
         CEILOMETER_PIPELINE_INTERVAL: 15
         CEILOMETER_ALARM_THRESHOLD: 6000000000
-        NODE_EXPORTER_ENABLE: false
-        PROMETHEUS_ENABLE: false
-        PROMETHEUS_SERVICE_SCRAPE_TARGETS: "sg-core,node-exporter"
         PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
+        # Disable sg_core prometheus config copy
+        PROMETHEUS_ENABLE: false
+        # PROMETHEUS_CONFIG_FILE var conflicts with sg_core var
+        # to avoid issue, set PROMETHEUS_CONF_DIR
+        PROMETHEUS_CONF_DIR: "/home/zuul"
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:
@@ -261,7 +263,6 @@
       subnode:
         devstack_plugins:
           ceilometer: https://opendev.org/openstack/ceilometer
-          sg-core: https://github.com/openstack-k8s-operators/sg-core
           devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
         devstack_services:
           ceilometer-acompute: true
@@ -271,9 +272,9 @@
         devstack_localrc:
           CEILOMETER_BACKEND: "none"
           CEILOMETER_BACKENDS: "none"
-          # sg_core related var
-          NODE_EXPORTER_ENABLE: false
-          PROMETHEUS_ENABLE: false
+          # avoid collecting real host cpu metric since tests
+          # will inject fake metrics when needed
+          NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
         devstack_local_conf:
           post-config:
             $WATCHER_CONF:
