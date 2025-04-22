@@ -39,10 +39,8 @@ class ChangeNovaServiceState(base.BaseAction):
          'disabled_reason': str,
         })
 
-    The `resource_id` references a nova-compute service name (list of available
-    nova-compute services is returned by this command: ``nova service-list
-    --binary nova-compute``).
-    The `state` value should either be `ONLINE` or `OFFLINE`.
+    The `resource_id` references a nova-compute service name.
+    The `state` value should either be `up` or `down`.
     The `disabled_reason` references the reason why Watcher disables this
     nova-compute service. The value should be with `watcher_` prefix, such as
     `watcher_disabled`, `watcher_maintaining`.
