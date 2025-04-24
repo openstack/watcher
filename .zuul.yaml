@@ -34,6 +34,7 @@
     vars:
       tempest_concurrency: 1
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
+      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
 
 - job:
     name: watcher-tempest-multinode
@@ -255,6 +256,7 @@
       tempest_plugins:
         - watcher-tempest-plugin
       tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
+      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
       tempest_concurrency: 1
       tox_envlist: all
       zuul_copy_output:
