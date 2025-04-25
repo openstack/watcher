@@ -195,7 +195,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                   'source_node': src_node.uuid,
                   'resource_name': instance.name}
         if des_node:
-            params['destination_node'] = des_node.uuid
+            params['destination_node'] = des_node.hostname
         self.solution.add_action(action_type=self.INSTANCE_MIGRATION,
                                  resource_id=instance.uuid,
                                  input_parameters=params)
