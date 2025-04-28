@@ -21,7 +21,7 @@ keystone_client = cfg.OptGroup(name='keystone_client',
 
 KEYSTONE_CLIENT_OPTS = [
     cfg.StrOpt('interface',
-               default='admin',
+               default='public',
                choices=['internal', 'public', 'admin'],
                help='Type of endpoint to use in keystoneclient.'),
     cfg.StrOpt('region_name',
