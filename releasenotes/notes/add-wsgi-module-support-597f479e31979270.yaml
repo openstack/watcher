@@ -1,0 +1,30 @@
+---
+features:
+  - |
+    A new module, ``watcher.wsgi``, has been added as a place to gather WSGI
+    ``application`` objects. This is intended to ease deployment by providing
+    a consistent location for these objects. For example, if using uWSGI then
+    instead of:
+
+    .. code-block:: ini
+
+       [uwsgi]
+        wsgi-file = /bin/watcher-api-wsgi
+
+    You can now use:
+
+    .. code-block:: ini
+
+        [uwsgi]
+        module = watcher.wsgi.api:application
+
+    This also simplifies deployment with other WSGI servers that expect module
+    paths such as gunicorn.
+deprecations:
+  - |
+    The watcher-api-wsgi console script is deprecated for removal
+    in a future release. This artifact is generated using a setup-tools
+    extension that is provide by PBR which is also deprecated.
+    due to the changes in python packaging this custom extensions
+    is planned to be removed form all OpenStack projects in a future
+    PBR release in favor of module based wsgi applications entry points.

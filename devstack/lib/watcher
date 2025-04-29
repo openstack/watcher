@@ -55,11 +55,7 @@ else
     WATCHER_BIN_DIR=$(get_python_exec_prefix)
 fi
 
-# There are 2 modes, which is "uwsgi" which runs with an apache
-# proxy uwsgi in front of it, or "mod_wsgi", which runs in
-# apache. mod_wsgi is deprecated, don't use it.
-WATCHER_USE_WSGI_MODE=${WATCHER_USE_WSGI_MODE:-$WSGI_MODE}
-WATCHER_UWSGI=$WATCHER_BIN_DIR/watcher-api-wsgi
+WATCHER_UWSGI=watcher.wsgi.api:application
 WATCHER_UWSGI_CONF=$WATCHER_CONF_DIR/watcher-uwsgi.ini
 
 if is_suse; then
@@ -73,11 +69,7 @@ WATCHER_SERVICE_PORT=${WATCHER_SERVICE_PORT:-9322}
 WATCHER_SERVICE_PORT_INT=${WATCHER_SERVICE_PORT_INT:-19322}
 WATCHER_SERVICE_PROTOCOL=${WATCHER_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
 
-if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-    WATCHER_API_URL="$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST/infra-optim"
-else
-    WATCHER_API_URL="$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST:$WATCHER_SERVICE_PORT"
-fi
+WATCHER_API_URL="$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST/infra-optim"
 
 # Entry Points
 # ------------
@@ -101,11 +93,7 @@ function _cleanup_watcher_apache_wsgi {
 # runs that a clean run would need to clean up
 function cleanup_watcher {
     sudo rm -rf $WATCHER_STATE_PATH
-    if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-        remove_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI"
-    else
-        _cleanup_watcher_apache_wsgi
-    fi
+    remove_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI"
 }
 
 # configure_watcher() - Set config files, create data dirs, etc
@@ -154,31 +142,6 @@ function create_watcher_accounts {
         "$WATCHER_API_URL"
 }
 
-# _config_watcher_apache_wsgi() - Set WSGI config files of watcher
-function _config_watcher_apache_wsgi {
-    local watcher_apache_conf
-    if [[ "$WATCHER_USE_WSGI_MODE" == "mod_wsgi" ]]; then
-        local service_port=$WATCHER_SERVICE_PORT
-        if is_service_enabled tls-proxy; then
-            service_port=$WATCHER_SERVICE_PORT_INT
-            service_protocol="http"
-        fi
-        sudo mkdir -p $WATCHER_WSGI_DIR
-        sudo cp $WATCHER_DIR/watcher/api/app.wsgi $WATCHER_WSGI_DIR/app.wsgi
-        watcher_apache_conf=$(apache_site_config_for watcher-api)
-        sudo cp $WATCHER_DEVSTACK_FILES_DIR/apache-watcher-api.template $watcher_apache_conf
-        sudo sed -e "
-            s|%WATCHER_SERVICE_PORT%|$service_port|g;
-            s|%WATCHER_WSGI_DIR%|$WATCHER_WSGI_DIR|g;
-            s|%USER%|$STACK_USER|g;
-            s|%APIWORKERS%|$API_WORKERS|g;
-            s|%APACHE_NAME%|$APACHE_NAME|g;
-        " -i $watcher_apache_conf
-        enable_apache_site watcher-api
-   fi
-
-}
-
 # create_watcher_conf() - Create a new watcher.conf file
 function create_watcher_conf {
     # (Re)create ``watcher.conf``
@@ -196,11 +159,6 @@ function create_watcher_conf {
         iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
         iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT_INT"
         # iniset $WATCHER_CONF api enable_ssl_api "True"
-    else
-        if [[ "$WATCHER_USE_WSGI_MODE" == "mod_wsgi" ]]; then
-            iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
-            iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT"
-        fi
     fi
 
     iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
@@ -228,12 +186,8 @@ function create_watcher_conf {
     # Format logging
     setup_logging $WATCHER_CONF
 
-    #config apache files
-    if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-        write_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI" "/infra-optim"
-    else
-        _config_watcher_apache_wsgi
-    fi
+    write_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI" "/infra-optim" "" "watcher-api"
+
     # Register SSL certificates if provided
     if is_ssl_enabled_service watcher; then
         ensure_certificates WATCHER
@@ -273,9 +227,6 @@ function install_watcherclient {
 function install_watcher {
     git_clone $WATCHER_REPO $WATCHER_DIR $WATCHER_BRANCH
     setup_develop $WATCHER_DIR
-    if [[ "$WATCHER_USE_WSGI_MODE" == "mod_wsgi" ]]; then
-        install_apache_wsgi
-    fi
 }
 
 # start_watcher_api() - Start the API process ahead of other things
@@ -289,19 +240,10 @@ function start_watcher_api {
         service_port=$WATCHER_SERVICE_PORT_INT
         service_protocol="http"
     fi
-    if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-        run_process "watcher-api" "$(which uwsgi) --procname-prefix watcher-api --ini $WATCHER_UWSGI_CONF"
-        watcher_url=$service_protocol://$SERVICE_HOST/infra-optim
-    else
-        watcher_url=$service_protocol://$SERVICE_HOST:$service_port
-        enable_apache_site watcher-api
-        restart_apache_server
-        # Start proxies if enabled
-        if is_service_enabled tls-proxy; then
-            start_tls_proxy watcher '*' $WATCHER_SERVICE_PORT $WATCHER_SERVICE_HOST $WATCHER_SERVICE_PORT_INT
-        fi
-    fi
-
+    run_process "watcher-api" "$(which uwsgi) --procname-prefix watcher-api --ini $WATCHER_UWSGI_CONF"
+    watcher_url=$service_protocol://$SERVICE_HOST/infra-optim
+    # TODO(sean-k-mooney): we should probably check that we can hit
+    # the microversion endpoint and get a valid response.
     echo "Waiting for watcher-api to start..."
     if ! wait_for_service $SERVICE_TIMEOUT $watcher_url; then
         die $LINENO "watcher-api did not start"
@@ -319,12 +261,7 @@ function start_watcher {
 
 # stop_watcher() - Stop running processes (non-screen)
 function stop_watcher {
-    if [[ "$WATCHER_USE_WSGI_MODE" == "uwsgi" ]]; then
-        stop_process watcher-api
-    else
-        disable_apache_site watcher-api
-        restart_apache_server
-    fi
+    stop_process watcher-api
     for serv in watcher-decision-engine watcher-applier; do
         stop_process $serv
     done
