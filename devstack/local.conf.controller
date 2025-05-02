@@ -8,6 +8,11 @@ DATABASE_PASSWORD=stackdb
 RABBIT_PASSWORD=stackqueue
 SERVICE_PASSWORD=$ADMIN_PASSWORD
 SERVICE_TOKEN=azertytoken
+# Disable sg_core prometheus config copy
+PROMETHEUS_ENABLE=false
+# PROMETHEUS_CONFIG_FILE var conflicts with sg_core var
+# to avoid issue, set PROMETHEUS_CONF_DIR
+PROMETHEUS_CONF_DIR="${DEST}"
 
 HOST_IP=192.168.42.1 # Change this to your controller node IP address
 #HOST_IPV6=2001:db8::7
@@ -17,6 +22,10 @@ FIXED_RANGE=10.254.1.0/24 # Change this to whatever your network is
 NETWORK_GATEWAY=10.254.1.1 # Change this for your network
 
 MULTI_HOST=1
+
+CEILOMETER_ALARM_THRESHOLD="6000000000"
+CEILOMETER_BACKENDS="sg-core"
+CEILOMETER_PIPELINE_INTERVAL="15"
 
 
 #Set this to FALSE if do not want to run watcher-api behind mod-wsgi
@@ -40,8 +49,10 @@ disable_service ceilometer-acompute
 # Enable the ceilometer api explicitly(bug:1667678)
 enable_service ceilometer-api
 
-# Enable the Gnocchi plugin
-enable_plugin gnocchi https://github.com/gnocchixyz/gnocchi
+enable_service prometheus
+enable_plugin aodh https://opendev.org/openstack/aodh
+enable_plugin devstack-plugin-prometheus https://opendev.org/openstack/devstack-plugin-prometheus
+enable_plugin sg-core https://github.com/openstack-k8s-operators/sg-core main
 
 LOGFILE=$DEST/logs/stack.sh.log
 LOGDAYS=2
@@ -55,3 +66,42 @@ compute_monitors=cpu.virt_driver
 # can change this to just versioned when ceilometer handles versioned
 # notifications from nova: https://bugs.launchpad.net/ceilometer/+bug/1665449
 notification_format=both
+
+[[post-config|$WATCHER_CONF]]
+[prometheus_client]
+host = 127.0.0.1
+port = 9090
+
+[watcher_cluster_data_model_collectors.baremetal]
+period = 120
+
+[watcher_cluster_data_model_collectors.compute]
+period = 120
+
+[watcher_cluster_data_model_collectors.storage]
+period = 120
+
+[watcher_datasources]
+datasources = prometheus
+
+[[test-config|$TEMPEST_CONFIG]]
+[optimize]
+datasource = prometheus
+
+[service_available]
+sg_core = True
+
+[telemetry]
+ceilometer_polling_interval = 15
+disable_ssl_certificate_validation = True
+
+[telemetry_services]
+metric_backends = prometheus
+
+[compute]
+min_compute_nodes = 2
+min_microversion = 2.56
+
+[compute-feature-enabled]
+block_migration_for_live_migration = True
+live_migration = True

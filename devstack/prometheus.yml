@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 10s
+scrape_configs:
+  - job_name: "node"
+    static_configs:
+      - targets: ["controller:3000"]
+      - targets: ["controller:9100"]
+        labels:
+          fqdn: "controller" # change the hostname here to your controller hostname
+      - targets: ["compute-1:9100"]
+        labels:
+          fqdn: "compute-1" # change the hostname here to your fist compute hostname
+      - targets: ["compute-2:9100"]
+        labels:
+          fqdn: "compute-2" # change the hostname her to your secondd compute hostname
+      # add as many blocks as compute nodes you have
