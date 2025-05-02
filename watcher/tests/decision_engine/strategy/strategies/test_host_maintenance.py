@@ -111,7 +111,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.instance_migration(instance_0, node_0, node_1)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.uuid,
+                     'input_parameters': {'destination_node': node_1.hostname,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
                                           'resource_id': instance_0.uuid,
@@ -144,14 +144,14 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.host_migration(node_0, node_1)
         self.assertEqual(2, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.uuid,
+                     'input_parameters': {'destination_node': node_1.hostname,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
                                           'resource_id': instance_0.uuid,
                                           'resource_name': instance_0.name
                                           }},
                     {'action_type': 'migrate',
-                     'input_parameters': {'destination_node': node_1.uuid,
+                     'input_parameters': {'destination_node': node_1.hostname,
                                           'source_node': node_0.uuid,
                                           'migration_type': 'live',
                                           'resource_id': instance_1.uuid,
@@ -213,7 +213,7 @@ class TestHostMaintenance(TestBaseStrategy):
                          'disabled_reason': 'watcher_maintaining'}},
                     {'action_type': 'migrate',
                      'input_parameters': {
-                         'destination_node': node_3.uuid,
+                         'destination_node': node_3.hostname,
                          'source_node': node_2.uuid,
                          'migration_type': 'live',
                          'resource_id': instance_4.uuid,
