@@ -245,6 +245,25 @@ class TestZoneMigration(TestBaseStrategy):
         global_efficacy_value = solution.global_efficacy[0].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
 
+    def test_execute_live_migrate_instance_no_dst_node(self):
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1,
+        ]
+        self.m_c_helper.get_volume_list.return_value = []
+        self.m_migrate_compute_nodes.return_value = [{"src_node": "src1"}]
+        solution = self.strategy.execute()
+        migration_params = solution.actions[0]['input_parameters']
+        # since we have not passed 'dst_node' in the input, we should not have
+        # a destination_node in the generated migration action
+        # self.assertNotIn('destination_node', migration_params)
+        # temporarily make the test pass, delete and use the above assert in
+        # followup
+        self.assertIsNone(migration_params['destination_node'])
+
     def test_execute_cold_migrate_instance(self):
         instance_on_src1 = self.fake_instance(
             host="src1",
@@ -284,6 +303,27 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 0))
         global_efficacy_value = solution.global_efficacy[2].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volume_no_dst_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+        migration_params = solution.actions[0]['input_parameters']
+        # since we have not passed 'dst_pool' in the input, we should not have
+        # a destination_node in the generated migration action
+        # self.assertNotIn('destination_node', migration_params)
+        # temporarily make the test pass, delete and use the above assert in
+        # followup
+        self.assertIsNone(migration_params['destination_node'])
 
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
