@@ -16,8 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+from debtcollector import removals
 from oslo_config import cfg
 from oslo_log import log
+import warnings
 
 from watcher._i18n import _
 from watcher.decision_engine.strategy.strategies import base
@@ -25,7 +27,11 @@ from watcher.decision_engine.strategy.strategies import base
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
+warnings.simplefilter('always')
 
+
+@removals.removed_class("NoisyNeighbor", version="2025.2",
+                        removal_version="2026.2")
 class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     """Noisy Neighbor strategy using live migration
 

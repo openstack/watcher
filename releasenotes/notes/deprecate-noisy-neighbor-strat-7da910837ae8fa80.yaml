@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    Noisy Neighbor strategy is deprecated and will be removed in a future release.
+    This strategy relies on Last Level Cache metrics that are not available in Nova
+    since `Victoria release <https://docs.openstack.org/releasenotes/nova/victoria.html>`_.
