@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    Host maintenance strategy should migrate servers based on backup node if specified
+    or rely on nova scheduler. It was enabling disabled hosts with watcher_disabled
+    reason and migrating servers to those nodes. It can impact customer workload. Compute
+    nodes were disabled for a reason.
+
+    Host maintenance strategy is fixed now to support migrating servers only on backup
+    node or rely on nova scheduler if no backup node is provided.

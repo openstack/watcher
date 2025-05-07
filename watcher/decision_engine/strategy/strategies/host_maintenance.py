@@ -53,7 +53,6 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     INSTANCE_MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
-    REASON_FOR_DISABLE = 'watcher_disabled'
 
     def __init__(self, config, osc=None):
         super(HostMaintenance, self).__init__(config, osc)
@@ -94,10 +93,6 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                 if cn.state == element.ServiceState.ONLINE.value and
                 cn.status == element.ServiceState.DISABLED.value and
                 cn.disabled_reason == reason}
-
-    def get_disabled_compute_nodes(self):
-        return self.get_disabled_compute_nodes_with_reason(
-            self.REASON_FOR_DISABLE)
 
     def get_instance_state_str(self, instance):
         """Get instance state in string format"""
@@ -215,8 +210,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         """safe maintain one compute node
 
         Migrate all instances of the maintenance_node intensively to the
-        backup host. If the user didn't give the backup host, it will
-        select one unused node to backup the maintaining node.
+        backup host.
 
         It calculate the resource both of the backup node and maintaining
         node to evaluate the migrations from maintaining node to backup node.
@@ -231,22 +225,6 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                 self.enable_compute_node_if_disabled(backup_node)
                 self.add_action_maintain_compute_node(maintenance_node)
                 self.host_migration(maintenance_node, backup_node)
-                return True
-
-        # If the user didn't give the backup host, select one unused
-        # node with required capacity, then migrates all instances
-        # from maintaining node to it.
-        nodes = sorted(
-            self.get_disabled_compute_nodes().values(),
-            key=lambda x: self.get_node_capacity(x)['cpu'])
-        if maintenance_node in nodes:
-            nodes.remove(maintenance_node)
-
-        for node in nodes:
-            if self.host_fits(maintenance_node, node):
-                self.enable_compute_node_if_disabled(node)
-                self.add_action_maintain_compute_node(maintenance_node)
-                self.host_migration(maintenance_node, node)
                 return True
 
         return False
