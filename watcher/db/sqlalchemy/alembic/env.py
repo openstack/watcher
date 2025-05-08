@@ -10,8 +10,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from logging import config as log_config
-
 from alembic import context
 from oslo_db.sqlalchemy import enginefacade
 
@@ -20,10 +18,6 @@ from watcher.db.sqlalchemy import models
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-log_config.fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
 # for 'autogenerate' support
