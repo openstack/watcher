@@ -142,10 +142,10 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
                       phase=objects.fields.NotificationPhase.START),
             mock.call(self.context, self.action_plan,
                       action=objects.fields.NotificationAction.EXECUTION,
-                      phase=objects.fields.NotificationPhase.END)]
-        # (amoralej) the actual action_plan.state should beh FAILED. I am
-        # setting it to SUCCEEDDED and will change it in the fixing change.
-        self.assertEqual(ap_objects.State.SUCCEEDED, self.action_plan.state)
+                      priority=objects.fields.NotificationPriority.ERROR,
+                      phase=objects.fields.NotificationPhase.ERROR)]
+
+        self.assertEqual(ap_objects.State.FAILED, self.action_plan.state)
         self.assertEqual(
             expected_calls,
             self.m_action_plan_notifications
