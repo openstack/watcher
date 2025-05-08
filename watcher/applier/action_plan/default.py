@@ -56,12 +56,30 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             applier = default.DefaultApplier(self.ctx, self.service)
             applier.execute(self.action_plan_uuid)
 
-            action_plan.state = objects.action_plan.State.SUCCEEDED
+            # If any action has failed the action plan should be FAILED
+            # Define default values for successful execution
+            ap_state = objects.action_plan.State.SUCCEEDED
+            notification_kwargs = {
+                'phase': fields.NotificationPhase.END
+            }
+
+            failed_filter = {'action_plan_uuid': self.action_plan_uuid,
+                             'state': objects.action.State.FAILED}
+            failed_actions = objects.Action.list(
+                self.ctx, filters=failed_filter, eager=True)
+            if failed_actions:
+                ap_state = objects.action_plan.State.FAILED
+                notification_kwargs = {
+                    'phase': fields.NotificationPhase.ERROR,
+                    'priority': fields.NotificationPriority.ERROR
+                }
+
+            action_plan.state = ap_state
             action_plan.save()
             notifications.action_plan.send_action_notification(
                 self.ctx, action_plan,
                 action=fields.NotificationAction.EXECUTION,
-                phase=fields.NotificationPhase.END)
+                **notification_kwargs)
 
         except exception.ActionPlanCancelled as e:
             LOG.exception(e)
