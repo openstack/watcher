@@ -47,9 +47,7 @@ class Migrate(base.BaseAction):
 
     The `resource_id` is the UUID of the server to migrate.
     The `source_node` and `destination_node` parameters are respectively the
-    source and the destination compute hostname (list of available compute
-    hosts is returned by this command: ``nova service-list --binary
-    nova-compute``).
+    source and the destination compute hostname.
 
     .. note::
 
