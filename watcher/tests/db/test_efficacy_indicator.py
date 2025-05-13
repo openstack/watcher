@@ -452,12 +452,8 @@ class MySQLDbEfficacyIndicatorTestCase(base.MySQLDbTestCase):
                 action_plan_id=self.action_plan.id, id=3, uuid=None,
                 name="efficacy_indicator3", description="Test Indicator 3")
 
-    def test_efficacy_indicator_value_decimals(self):
+    def test_efficacy_indicator_value(self):
         db_efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
             self.context, 1)
-        self.assertAlmostEqual(float(db_efficacy_indicator.value),
-                               0.00, places=2)
-        # FIXME: once the database bug is fixed check that the value is stored
-        # correctly
-        # self.assertAlmostEqual(float(db_efficacy_indicator.value),
-        #                        0.01, places=2)
+        self.assertAlmostEqual(db_efficacy_indicator.value, 0.012, places=3)
+        self.assertAlmostEqual(db_efficacy_indicator.data, 0.012, places=3)
