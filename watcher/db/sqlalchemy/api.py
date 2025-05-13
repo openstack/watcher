@@ -921,6 +921,9 @@ class Connection(api.BaseConnection):
                 # database created before the 15f7375ca737 revision, use the
                 # value column
                 indicator.data = indicator.value
+                # store the new column in the database
+                self._update(models.EfficacyIndicator,
+                             indicator.id, indicator)
 
         return eff_ind_models
 
@@ -956,6 +959,9 @@ class Connection(api.BaseConnection):
                 # database created before the 15f7375ca737 revision, use the
                 # value column
                 efficacy_indicator.data = efficacy_indicator.value
+                # store the new column in the database
+                self._update(models.EfficacyIndicator, efficacy_indicator.id,
+                             efficacy_indicator)
             return efficacy_indicator
         except exception.ResourceNotFound:
             raise exception.EfficacyIndicatorNotFound(efficacy_indicator=value)
