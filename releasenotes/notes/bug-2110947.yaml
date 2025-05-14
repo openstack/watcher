@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+     Previously, when users attempted to create a new audit without providing
+     a name and a goal or an audit template, the API returned error 500 and an
+     incorrect error message was displayed.
+
+     Now, Watcher displays a helpful message and returns HTTP error 400.
+
+     For more info see: https://bugs.launchpad.net/watcher/+bug/2110947
