@@ -987,6 +987,26 @@ class TestPost(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
         self.assertTrue(response.json['force'])
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_no_goal_no_name(self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+
+        audit_dict = post_get_test_audit(
+            params_to_exclude=['uuid', 'state', 'interval', 'scope',
+                               'next_run_time', 'hostname', 'goal',
+                               'audit_template_uuid', 'name'])
+
+        response = self.post_json(
+            '/audits',
+            audit_dict,
+            expect_errors=True,
+            headers={'OpenStack-API-Version': 'infra-optim 1.2'})
+        self.assertEqual('application/json', response.content_type)
+        # (amoralej) this should return HTTP error 400 with a proper message.
+        # I am adding this test to show the bug here, I will switch it to the
+        # expected error in the fixing patch.
+        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
+
 
 class TestDelete(api_base.FunctionalTest):
 
