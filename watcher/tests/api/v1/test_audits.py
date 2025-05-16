@@ -26,6 +26,7 @@ from watcher.api.controllers.v1 import audit as api_audit
 from watcher.common import utils
 from watcher.db import api as db_api
 from watcher.decision_engine import rpcapi as deapi
+from watcher.decision_engine.strategy import strategies
 from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils
@@ -534,10 +535,14 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         self.assertEqual(test_time, return_updated_at)
 
 
-class TestPost(api_base.FunctionalTest):
+class TestPostBase(api_base.FunctionalTest):
+
+    def _simulate_rpc_audit_create(self, audit):
+        audit.create()
+        return audit
 
     def setUp(self):
-        super(TestPost, self).setUp()
+        super(TestPostBase, self).setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)
@@ -547,9 +552,43 @@ class TestPost(api_base.FunctionalTest):
             self._simulate_rpc_audit_create)
         self.addCleanup(p.stop)
 
-    def _simulate_rpc_audit_create(self, audit):
-        audit.create()
-        return audit
+    def prepare_audit_template_strategy_with_parameter(self, fake_spec=None):
+        if fake_spec is None:
+            fake_spec = {
+                "properties": {
+                    "fake1": {
+                        "description": "number parameter example",
+                        "type": "number",
+                        "minimum": 1.0,
+                        "maximum": 10.2,
+                    }
+                },
+                'required': ['fake1']
+            }
+        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a67'
+        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a68'
+        template_name = 'my template'
+        strategy_name = 'my strategy'
+        strategy_id = 3
+        strategy = db_utils.get_test_strategy(parameters_spec=fake_spec,
+                                              id=strategy_id,
+                                              uuid=strategy_uuid,
+                                              name=strategy_name)
+        obj_utils.create_test_strategy(self.context,
+                                       parameters_spec=fake_spec,
+                                       id=strategy_id,
+                                       uuid=strategy_uuid,
+                                       name=strategy_name)
+        obj_utils.create_test_audit_template(self.context,
+                                             strategy_id=strategy_id,
+                                             uuid=template_uuid,
+                                             name='name')
+        audit_template = db_utils.get_test_audit_template(
+            strategy_id=strategy['id'], uuid=template_uuid, name=template_name)
+        return audit_template
+
+
+class TestPost(TestPostBase):
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
@@ -912,40 +951,6 @@ class TestPost(api_base.FunctionalTest):
         self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
-    def prepare_audit_template_strategy_with_parameter(self):
-        fake_spec = {
-            "properties": {
-                "fake1": {
-                    "description": "number parameter example",
-                    "type": "number",
-                    "minimum": 1.0,
-                    "maximum": 10.2,
-                }
-            },
-            'required': ['fake1']
-        }
-        template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a67'
-        strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a68'
-        template_name = 'my template'
-        strategy_name = 'my strategy'
-        strategy_id = 3
-        strategy = db_utils.get_test_strategy(parameters_spec=fake_spec,
-                                              id=strategy_id,
-                                              uuid=strategy_uuid,
-                                              name=strategy_name)
-        obj_utils.create_test_strategy(self.context,
-                                       parameters_spec=fake_spec,
-                                       id=strategy_id,
-                                       uuid=strategy_uuid,
-                                       name=strategy_name)
-        obj_utils.create_test_audit_template(self.context,
-                                             strategy_id=strategy_id,
-                                             uuid=template_uuid,
-                                             name='name')
-        audit_template = db_utils.get_test_audit_template(
-            strategy_id=strategy['id'], uuid=template_uuid, name=template_name)
-        return audit_template
-
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
     def test_create_audit_with_name(self, mock_utcnow, mock_trigger_audit):
@@ -1228,3 +1233,110 @@ class TestAuditEnforcementWithAdminContext(TestListAudit,
             "audit:get": "rule:default",
             "audit:get_all": "rule:default",
             "audit:update": "rule:default"})
+
+
+class TestAuditZoneMigration(TestPostBase):
+    def setUp(self):
+        super(TestAuditZoneMigration, self).setUp()
+
+        # create strategy having  the same spec as Zone Migration
+        self.zm_spec = strategies.ZoneMigration.get_schema()
+
+    def _prepare_audit_params(self, parameters):
+        audit_templ = self.prepare_audit_template_strategy_with_parameter(
+            fake_spec=self.zm_spec
+            )
+        audit_dict = api_utils.audit_post_data(parameters=parameters)
+        audit_dict['audit_template_uuid'] = audit_templ['uuid']
+        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state',
+                    'interval', 'scope', 'next_run_time', 'hostname']
+        for k in del_keys:
+            del audit_dict[k]
+        return audit_dict
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_without_dst_pool(self,
+                                                          mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"src_pool": "src_pool_name",
+                     "src_type": "src_type_name",
+                     "dst_type": "dst_type_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_without_src_pool(self,
+                                                          mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"dst_pool": "dst_pool_name",
+                     "src_type": "src_type_name",
+                     "dst_type": "dst_type_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict,
+                                  expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual("application/json", response.content_type)
+        expected_error_msg = ("'src_pool' is a required property")
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_without_dst_type(self,
+                                                          mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"src_pool": "src_pool_name",
+                     "src_type": "src_type_name",
+                     "dst_pool": "dst_pool_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict,
+                                  expect_errors=True)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msg = ("'dst_type' is a required property")
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_without_src_type(self,
+                                                          mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"dst_pool": "dst_pool_name",
+                     "src_pool": "src_pool_name",
+                     "dst_type": "dst_type_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict,
+                                  expect_errors=True)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msg = ("'src_type' is a required property")
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called

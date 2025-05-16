@@ -112,6 +112,9 @@ parameter     type    default  required  description
                                          instances migrate.
 ``dst_node``  string  None     Optional  Compute node to which
                                          instances migrate.
+                                         If omitted, nova will
+                                         choose the destination
+                                         node automatically.
 ============= ======= ======== ========= ========================
 
 The elements of storage_pools array are:

@@ -6,4 +6,9 @@ fixes:
     This brings the implementation of the strategy in line with the the api schema
     where dest_node is optional.
 
+    If a dst_pool is not passed, the strategy will not migrate some volumes, as Cinder can't compute a
+    destination host when migrating available volumes like Nova does. If src_type and dst_type are equal,
+    a migration is only performed if a dst_pool is provided, otherwise the volume will be skipped/ignored.
+    If src_type and dst_type are different, the strategy will retype the volumes.
+
     See: https://bugs.launchpad.net/watcher/+bug/2108988 for more details.

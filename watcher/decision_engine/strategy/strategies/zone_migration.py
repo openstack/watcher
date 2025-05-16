@@ -412,6 +412,13 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             LOG.debug("%s %s", dst_pool, dst_type)
 
             if src_type == dst_type:
+                if dst_pool is None:
+                    LOG.warning("volume %s will not be migrated because "
+                                "it already has type %s and 'dst_pool'"
+                                " was not specified for src_pool %s",
+                                volume.name, dst_type,
+                                pool)
+                    continue
                 self._volume_migrate(volume, dst_pool)
             else:
                 self._volume_retype(volume, dst_type)
