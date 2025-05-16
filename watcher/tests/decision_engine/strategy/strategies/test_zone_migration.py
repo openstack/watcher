@@ -259,10 +259,7 @@ class TestZoneMigration(TestBaseStrategy):
         migration_params = solution.actions[0]['input_parameters']
         # since we have not passed 'dst_node' in the input, we should not have
         # a destination_node in the generated migration action
-        # self.assertNotIn('destination_node', migration_params)
-        # temporarily make the test pass, delete and use the above assert in
-        # followup
-        self.assertIsNone(migration_params['destination_node'])
+        self.assertNotIn('destination_node', migration_params)
 
     def test_execute_cold_migrate_instance(self):
         instance_on_src1 = self.fake_instance(

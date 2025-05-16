@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The zone migration strategy no longer requires a dst_node to be passed.
+    When unspecified, the Nova scheduler will select an appropriate host automatically.
+    This brings the implementation of the strategy in line with the the api schema
+    where dest_node is optional.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2108988 for more details.
