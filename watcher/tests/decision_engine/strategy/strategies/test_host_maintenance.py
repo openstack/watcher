@@ -167,12 +167,15 @@ class TestHostMaintenance(TestBaseStrategy):
         node_1 = model.get_node_by_uuid('Node_1')
         self.assertFalse(self.strategy.safe_maintain(node_0))
         self.assertFalse(self.strategy.safe_maintain(node_1))
+        # It will return true, if backup node is passed
+        self.assertTrue(self.strategy.safe_maintain(node_0, node_1))
 
         model = self.fake_c_cluster.\
             generate_scenario_1_with_all_nodes_disable()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        self.assertTrue(self.strategy.safe_maintain(node_0))
+        # It will return false, if there is no backup node
+        self.assertFalse(self.strategy.safe_maintain(node_0))
 
     def test_try_maintain(self):
         model = self.fake_c_cluster.generate_scenario_1()
