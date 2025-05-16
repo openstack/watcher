@@ -444,9 +444,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def _live_migration(self, instance, src_node, dst_node):
         parameters = {"migration_type": "live",
-                      "destination_node": dst_node,
                       "source_node": src_node,
                       "resource_name": instance.name}
+        if dst_node:
+            # if dst_node is None, do not add it to the parameters for the
+            # migration action, and let Nova figure out the destination node
+            parameters["destination_node"] = dst_node
         self.solution.add_action(
             action_type="migrate",
             resource_id=instance.id,
@@ -455,9 +458,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def _cold_migration(self, instance, src_node, dst_node):
         parameters = {"migration_type": "cold",
-                      "destination_node": dst_node,
                       "source_node": src_node,
                       "resource_name": instance.name}
+        if dst_node:
+            # if dst_node is None, do not add it to the parameters for the
+            # migration action, and let Nova figure out the destination node
+            parameters["destination_node"] = dst_node
         self.solution.add_action(
             action_type="migrate",
             resource_id=instance.id,
