@@ -124,3 +124,30 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
             self.context, mock.MagicMock(), self.action_plan.uuid)
         command.execute()
         self.assertEqual(ap_objects.State.CANCELLED, self.action_plan.state)
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    @mock.patch.object(objects.Action, "list")
+    def test_launch_action_plan_failed_actions(self, m_action_list,
+                                               m_get_action_plan):
+        m_get_action_plan.return_value = self.action_plan
+        failed_action = self.action
+        failed_action.state = objects.action.State.FAILED
+        m_action_list.return_value = [failed_action]
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
+        command.execute()
+        expected_calls = [
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.END)]
+        # (amoralej) the actual action_plan.state should beh FAILED. I am
+        # setting it to SUCCEEDDED and will change it in the fixing change.
+        self.assertEqual(ap_objects.State.SUCCEEDED, self.action_plan.state)
+        self.assertEqual(
+            expected_calls,
+            self.m_action_plan_notifications
+                .send_action_notification
+                .call_args_list)
