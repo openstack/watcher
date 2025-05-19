@@ -38,7 +38,7 @@ class RequestContext(context.RequestContext):
         """
         user = kwargs.pop('user', None)
         tenant = kwargs.pop('tenant', None)
-        super(RequestContext, self).__init__(
+        super().__init__(
             auth_token=auth_token,
             user_id=user_id or user,
             project_id=project_id or tenant,
@@ -56,53 +56,23 @@ class RequestContext(context.RequestContext):
             global_request_id=kwargs.pop('global_request_id', None),
             system_scope=kwargs.pop('system_scope', None))
 
-        self.remote_address = kwargs.pop('remote_address', None)
-        self.read_deleted = kwargs.pop('read_deleted', None)
-        self.service_catalog = kwargs.pop('service_catalog', None)
-        self.quota_class = kwargs.pop('quota_class', None)
-
-        # FIXME(dims): user_id and project_id duplicate information that is
-        # already present in the oslo_context's RequestContext. We need to
-        # get rid of them.
-        self.domain_name = domain_name
-        self.domain_id = domain_id
+        # Note(sean-k-mooney): we should audit what we are using
+        # this for and possibly remove it or document it.
         self.auth_token_info = auth_token_info
-        self.user_id = user_id or user
-        self.project_id = project_id
+
         if not timestamp:
             timestamp = timeutils.utcnow()
         if isinstance(timestamp, str):
             timestamp = timeutils.parse_isotime(timestamp)
         self.timestamp = timestamp
-        self.user_name = user_name
-        self.project_name = project_name
-        self.is_admin = is_admin
-        # if self.is_admin is None:
-        #     self.is_admin = policy.check_is_admin(self)
 
     def to_dict(self):
-        values = super(RequestContext, self).to_dict()
-        # FIXME(dims): defensive hasattr() checks need to be
-        # removed once we figure out why we are seeing stack
-        # traces
+        values = super().to_dict()
         values.update({
-            'user_id': getattr(self, 'user_id', None),
-            'user_name': getattr(self, 'user_name', None),
-            'project_id': getattr(self, 'project_id', None),
-            'project_name': getattr(self, 'project_name', None),
-            'domain_id': getattr(self, 'domain_id', None),
-            'domain_name': getattr(self, 'domain_name', None),
             'auth_token_info': getattr(self, 'auth_token_info', None),
-            'is_admin': getattr(self, 'is_admin', None),
-            'timestamp': self.timestamp.isoformat() if hasattr(
-                self, 'timestamp') else None,
-            'request_id': getattr(self, 'request_id', None),
+            'timestamp': self.timestamp.isoformat(),
         })
         return values
-
-    @classmethod
-    def from_dict(cls, values):
-        return cls(**values)
 
     def __str__(self):
         return "<Context %s>" % self.to_dict()
