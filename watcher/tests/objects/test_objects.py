@@ -55,7 +55,7 @@ class MyObj(base.WatcherPersistentObject, base.WatcherObject,
 
     @object_base.remotable
     def update_test(self, context=None):
-        if context and context.user == 'alternate':
+        if context and context.user_id == 'alternate':
             self.bar = 'alternate-context'
         else:
             self.bar = 'updated'
@@ -209,7 +209,7 @@ class _TestObject(object):
 
     def test_with_alternate_context(self):
         ctxt1 = context.RequestContext('foo', 'foo')
-        ctxt2 = context.RequestContext(user='alternate')
+        ctxt2 = context.RequestContext(user_id='alternate')
         obj = MyObj.query(ctxt1)
         obj.update_test(ctxt2)
         self.assertEqual('alternate-context', obj.bar)
