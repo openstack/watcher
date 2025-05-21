@@ -79,6 +79,13 @@ class TestZoneMigration(TestBaseStrategy):
         self.m_priority = p_priority.start()
         self.addCleanup(p_priority.stop)
 
+        p_with_attached_volume = mock.patch.object(
+            strategies.ZoneMigration, "with_attached_volume",
+            new_callable=mock.PropertyMock
+        )
+        self.m_with_attached_volume = p_with_attached_volume.start()
+        self.addCleanup(p_with_attached_volume.stop)
+
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
 
@@ -99,6 +106,7 @@ class TestZoneMigration(TestBaseStrategy):
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
              "src_type": "type2", "dst_type": "type3"}
         ]
+        self.m_with_attached_volume.return_value = False
 
         self.strategy = strategies.ZoneMigration(
             config=mock.Mock())
@@ -154,6 +162,7 @@ class TestZoneMigration(TestBaseStrategy):
         setattr(volume, 'size', kwargs.get('size', '1'))
         setattr(volume, 'created_at',
                 kwargs.get('created_at', '1977-01-01T00:00:00'))
+        setattr(volume, 'attachments', kwargs.get('attachments', []))
         volume.volume_type = kwargs.get('volume_type', 'type1')
 
         return volume
@@ -321,6 +330,39 @@ class TestZoneMigration(TestBaseStrategy):
         # temporarily make the test pass, delete and use the above assert in
         # followup
         self.assertIsNone(migration_params['destination_node'])
+
+    def test_execute_migrate_volume_no_compute_nodes(self):
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        vol_attach = [{"server_id": instance_on_src1.id}]
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1",
+                                          status="in-use",
+                                          attachments=vol_attach)
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1",
+             "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            ]
+        self.m_migrate_compute_nodes.return_value = None
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1,
+        ]
+        self.m_with_attached_volume.return_value = True
+
+        # check that the solution contains one 'swap' volume migration and one
+        # instance migration, once the bug is fixed
+        # solution = self.strategy.execute()
+
+        # temporarily catch the error to demonstrate it
+        exception = self.assertRaises(TypeError, self.strategy.execute)
+        self.assertEqual(str(exception), "'NoneType' object is not iterable")
 
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
