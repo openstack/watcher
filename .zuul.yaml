@@ -175,11 +175,6 @@
         # will inject fake metrics when needed
         NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
         PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
-        # Disable sg_core prometheus config copy
-        PROMETHEUS_ENABLE: false
-        # PROMETHEUS_CONFIG_FILE var conflicts with sg_core var
-        # to avoid issue, set PROMETHEUS_CONF_DIR
-        PROMETHEUS_CONF_DIR: "/home/zuul"
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:

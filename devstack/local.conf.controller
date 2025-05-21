@@ -8,11 +8,6 @@ DATABASE_PASSWORD=stackdb
 RABBIT_PASSWORD=stackqueue
 SERVICE_PASSWORD=$ADMIN_PASSWORD
 SERVICE_TOKEN=azertytoken
-# Disable sg_core prometheus config copy
-PROMETHEUS_ENABLE=false
-# PROMETHEUS_CONFIG_FILE var conflicts with sg_core var
-# to avoid issue, set PROMETHEUS_CONF_DIR
-PROMETHEUS_CONF_DIR="${DEST}"
 
 HOST_IP=192.168.42.1 # Change this to your controller node IP address
 #HOST_IPV6=2001:db8::7
