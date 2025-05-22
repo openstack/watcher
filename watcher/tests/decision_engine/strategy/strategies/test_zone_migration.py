@@ -590,6 +590,10 @@ class TestZoneMigration(TestBaseStrategy):
             id="INSTANCE_1",
             name="INSTANCE_1")
         vol_attach = [{"server_id": instance_on_src1.id}]
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1,
+        ]
+        self.m_n_helper.find_instance.return_value = instance_on_src1
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
                                           id=volume_uuid_mapping["volume_1"],
                                           name="volume_1",
@@ -604,18 +608,18 @@ class TestZoneMigration(TestBaseStrategy):
              "src_type": "type1", "dst_type": "type1"},
             ]
         self.m_migrate_compute_nodes.return_value = None
-        self.m_n_helper.get_instance_list.return_value = [
-            instance_on_src1,
-        ]
         self.m_with_attached_volume.return_value = True
 
-        # check that the solution contains one 'swap' volume migration and one
+        # check that the solution contains one volume migration and no
         # instance migration, once the bug is fixed
-        # solution = self.strategy.execute()
-
-        # temporarily catch the error to demonstrate it
-        exception = self.assertRaises(TypeError, self.strategy.execute)
-        self.assertEqual(str(exception), "'NoneType' object is not iterable")
+        solution = self.strategy.execute()
+        self.assertEqual(len(solution.actions), 1)
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions]
+            )
+        self.assertEqual(0, migration_types.get("live", 0))
+        self.assertEqual(1, migration_types.get("migrate", 0))
 
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
@@ -1080,6 +1084,10 @@ class TestZoneMigration(TestBaseStrategy):
         live_ind = [item['value'] for item in solution.global_efficacy
                     if item['name'] == "live_instance_migrate_ratio"][0]
         self.assertEqual(100, live_ind)
+        # check that the live migration is the third action, after all
+        # volume migrations, since with_attached_volume=False in this test
+        second_action = solution.actions[2]['input_parameters']
+        self.assertEqual(second_action['migration_type'], 'live')
 
     def test_execute_mixed_instances_volumes_with_attached(self):
         instance_on_src1_1 = self.fake_instance(
@@ -1136,7 +1144,7 @@ class TestZoneMigration(TestBaseStrategy):
         action_types = collections.Counter(
             [action['action_type']
              for action in solution.actions])
-        expected_vol_igrations = [
+        expected_vol_migrations = [
             {'action_type': 'volume_migrate',
              'input_parameters':
                 {'migration_type': 'migrate',
@@ -1170,7 +1178,7 @@ class TestZoneMigration(TestBaseStrategy):
                             for action in solution.actions
                             if action['action_type'] == 'volume_migrate']
         self.assertEqual(2, action_types.get("volume_migrate", 0))
-        self.assertEqual(expected_vol_igrations, migrated_volumes)
+        self.assertEqual(expected_vol_migrations, migrated_volumes)
         migrated_vms = [action
                         for action in solution.actions
                         if action['action_type'] == 'migrate']
@@ -1178,6 +1186,10 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(expected_vm_migrations, migrated_vms)
 
         self.assertEqual(2, action_types.get("migrate", 0))
+        # check that the live migration is the second action, before other
+        # volume migrations
+        second_action = solution.actions[1]['input_parameters']
+        self.assertEqual(second_action['migration_type'], 'live')
 
         # All the detached volumes in the pool should be migrated
         volume_mig_ind = [item['value'] for item in solution.global_efficacy
