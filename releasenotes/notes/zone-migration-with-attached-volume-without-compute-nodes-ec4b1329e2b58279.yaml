@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    The zone migration strategy no longer fails when when an audit is created
+    with defined storage_pools, compute_nodes is not provided, and
+    with_attached_volume is set to True.
+    The strategy now creates the required volume migrations, but no instance
+    migrations. Both volumes and instances will only be migrated if the audit parameters
+    have both compute_nodes and storage_pools.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2111429 for more details.
