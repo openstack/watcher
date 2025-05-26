@@ -137,7 +137,6 @@ def get_server(target, endpoints, serializer=None):
         TRANSPORT,
         target,
         endpoints,
-        executor='eventlet',
         serializer=serializer,
         access_policy=access_policy
     )
@@ -151,7 +150,6 @@ def get_notification_listener(targets, endpoints, serializer=None, pool=None):
         targets,
         endpoints,
         allow_requeue=False,
-        executor='eventlet',
         pool=pool,
         serializer=serializer
     )
