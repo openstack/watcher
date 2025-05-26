@@ -1,0 +1,13 @@
+---
+fixes:
+  - |
+    Previously, if an action failed in an action plan, the state of the
+    action plan was reported as SUCCEEDED if the execution of the action has
+    finished regardless of the outcome.
+
+    Watcher will now reflect the actual state of all the actions in the plan
+    after the execution has finished. If any action has status FAILED, it
+    will set the state of the action plan as FAILED. This is the expected
+    behavior according to Watcher documentation.
+
+    For more info see: https://bugs.launchpad.net/watcher/+bug/2106407
