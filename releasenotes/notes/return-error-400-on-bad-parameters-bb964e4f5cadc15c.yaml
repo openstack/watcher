@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    `Bug #2110538 <https://bugs.launchpad.net/watcher/+bug/2110538>`_:
+    Corrected the HTTP error code returned when watcher users try to create
+    audits with invalid parameters. The API now correctly returns a 400 Bad
+    Request error.
