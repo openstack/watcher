@@ -28,13 +28,16 @@ LOG = log.getLogger(__name__)
 
 
 class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
-    """[PoC]Workload balance using live migration
+    """Workload balance using live migration
 
     *Description*
 
         It is a migration strategy based on the VM workload of physical
         servers. It generates solutions to move a workload whenever a server's
         CPU or RAM utilization % is higher than the specified threshold.
+        The threshold specified is used to trigger a migration,
+        but it is also used to determine if there is an available host,
+        with low enough utilization, to migrate the instance.
         The VM to be moved should make the host close to average workload
         of all compute nodes.
 
@@ -48,7 +51,6 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
 
     *Limitations*
 
-       - This is a proof of concept that is not meant to be used in production
        - We cannot forecast how many servers should be migrated. This is the
          reason why we only plan a single virtual machine migration at a time.
          So it's better to use this algorithm with `CONTINUOUS` audits.
@@ -105,7 +107,9 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
                     "default": "instance_cpu_usage"
                 },
                 "threshold": {
-                    "description": "workload threshold for migration",
+                    "description": "Workload threshold for migration - "
+                                   "used for source and destination hosts. "
+                                   "It is always a percentage value.",
                     "type": "number",
                     "default": 25.0
                 },
