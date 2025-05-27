@@ -27,16 +27,18 @@ LOG = log.getLogger(__name__)
 
 
 class HostMaintenance(base.HostMaintenanceBaseStrategy):
-    """[PoC]Host Maintenance
+    """Host Maintenance
 
     *Description*
 
         It is a migration strategy for one compute node maintenance,
         without having the user's application been interrupted.
-        If given one backup node, the strategy will firstly
+        If given one backup node (where backup node is the
+        destination node for migration), the strategy will firstly
         migrate all instances from the maintenance node to
         the backup node. If the backup node is not provided,
         it will migrate all instances, relying on nova-scheduler.
+        The maintenance node will then be disabled.
 
     *Requirements*
 
@@ -44,11 +46,14 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     *Limitations*
 
-       - This is a proof of concept that is not meant to be used in production
-       - It migrates all instances from one host to other hosts. It's better to
-         execute such strategy when load is not heavy, and use this algorithm
-         with `ONESHOT` audit.
        - It assumes that cold and live migrations are possible.
+
+     .. note::
+         It migrates all instances from one host to other hosts.
+         It is recommended to use this strategy in a planned maintenance
+         window where the load is low to minimize impact on the workloads,
+         and use this algorithm with `ONESHOT` audit.
+
     """
 
     INSTANCE_MIGRATION = "migrate"
