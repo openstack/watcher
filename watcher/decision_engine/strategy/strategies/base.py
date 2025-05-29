@@ -273,7 +273,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
     @property
     def collector_manager(self):
         if self._collector_manager is None:
-            self._collector_manager = manager.CollectorManager()
+            self._collector_manager = manager.CollectorManager(osc=self.osc)
         return self._collector_manager
 
     @property

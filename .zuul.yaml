@@ -32,6 +32,11 @@
                 period: 120
               watcher_cluster_data_model_collectors.storage:
                 period: 120
+            $CINDER_CONF:
+              # enable notifications in compute node, by default they are only
+              # configured in the controller
+              oslo_messaging_notifications:
+                driver: messagingv2
         devstack_services:
           watcher-api: false
           watcher-decision-engine: true
@@ -63,6 +68,11 @@
               period: 120
             watcher_cluster_data_model_collectors.storage:
               period: 120
+          $CINDER_CONF:
+            # enable notifications in compute node, by default they are only
+            # configured in the controller
+            oslo_messaging_notifications:
+              driver: messagingv2
         test-config:
           $TEMPEST_CONFIG:
             compute:

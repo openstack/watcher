@@ -18,23 +18,46 @@
 # limitations under the License.
 
 from oslo_config import cfg
+from oslo_log import log
 
+from watcher.common import clients
+from watcher.common import keystone_helper
 from watcher.common import utils
 from watcher.decision_engine.loading import default
+
+LOG = log.getLogger(__name__)
 
 
 class CollectorManager(object):
 
-    def __init__(self):
+    def __init__(self, osc=None):
         self.collector_loader = default.ClusterDataModelCollectorLoader()
         self._collectors = None
         self._notification_endpoints = None
+        self.osc = osc if osc else clients.OpenStackClients()
+
+    def is_cinder_enabled(self):
+        keystone = keystone_helper.KeystoneHelper(self.osc)
+        if keystone.is_service_enabled_by_type(svc_type='block-storage'):
+            return True
+        elif keystone.is_service_enabled_by_type(svc_type='volumev3'):
+            # volumev3 is a commonly used alias for the cinder keystone service
+            # type
+            return True
+        return False
 
     def get_collectors(self):
         if self._collectors is None:
             collectors = utils.Struct()
             collector_plugins = cfg.CONF.collector.collector_plugins
             for collector_name in collector_plugins:
+                if collector_name == 'storage':
+                    if not self.is_cinder_enabled():
+                        LOG.warning(
+                            "Block storage service is not enabled,"
+                            " skipping storage collector"
+                        )
+                        continue
                 collector = self.collector_loader.load(collector_name)
                 collectors[collector_name] = collector
             self._collectors = collectors
