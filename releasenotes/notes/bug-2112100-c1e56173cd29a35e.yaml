@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    Currently, when Watcher applies a `volume_migrate` action with value
+    `retype` for the `migratione_type`, it can wrongly report the result of
+    the action when the retype does not trigger a volume migration.
+
+    This patch fixes the logic to validate the resulting state of the action
+    and reports it correctly.
+
+    For more details: https://bugs.launchpad.net/watcher/+bug/2112100
