@@ -304,8 +304,8 @@ class FakeGnocchiMetrics(object):
         mock = {}
 
         # node 0
-        mock['INSTANCE_1'] = 30
-        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 12
+        mock['INSTANCE_1'] = 40
+        mock['73b09e16-35b7-4922-804e-e8f5d9b740fc'] = 9
         # node 1
         mock['INSTANCE_3'] = 12
         mock['INSTANCE_4'] = 12

@@ -22,6 +22,7 @@ from unittest import mock
 from watcher.applier.loading import default
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
+from watcher.decision_engine.strategy.strategies import workload_balance
 from watcher.tests.decision_engine.model import gnocchi_metrics
 from watcher.tests.decision_engine.strategy.strategies.test_base \
     import TestBaseStrategy
@@ -77,7 +78,7 @@ class TestWorkloadBalance(TestBaseStrategy):
         n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
         self.assertEqual(n1[0]['compute_node'].uuid, 'Node_0')
         self.assertEqual(n2[0]['compute_node'].uuid, 'Node_1')
-        self.assertEqual(avg, 33.0)
+        self.assertEqual(avg, 36.5)
 
     def test_choose_instance_to_migrate(self):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
@@ -99,7 +100,8 @@ class TestWorkloadBalance(TestBaseStrategy):
             n1, avg, w_map)
         self.assertIsNone(instance_to_mig)
 
-    def test_filter_destination_hosts(self):
+    @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
+    def test_filter_destination_hosts_cpu(self, mock_debug):
         model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
         self.m_c_model.return_value = model
         self.strategy.datasource = mock.MagicMock(
@@ -111,6 +113,42 @@ class TestWorkloadBalance(TestBaseStrategy):
             n2, instance_to_mig[1], avg, w_map)
         self.assertEqual(len(dest_hosts), 1)
         self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
+        expected_calls = [
+            mock.call('Host usage for Node_0: host_cpu_usage_percent is 32.5. '
+                      'Higher than threshold 25.0: True'),
+            mock.call('Host usage for Node_1: host_cpu_usage_percent is 7.5. '
+                      'Higher than threshold 25.0: False'),
+            mock.call('Host hostname_1 evaluated as destination for '
+                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
+                      'cpu would be 20.0.The threshold is: 25.0. selected: '
+                      'True')]
+        mock_debug.assert_has_calls(expected_calls, any_order=True)
+
+    @mock.patch.object(workload_balance.LOG, 'debug', autospec=True)
+    def test_filter_destination_hosts_ram(self, mock_debug):
+        model = self.fake_c_cluster.generate_scenario_6_with_2_nodes()
+        self.m_c_model.return_value = model
+        self.strategy._meter = 'instance_ram_usage'
+        self.strategy.threshold = 30.0
+        self.strategy.datasource = mock.MagicMock(
+            statistic_aggregation=self.fake_metrics.mock_get_statistics_wb)
+        n1, n2, avg, w_map = self.strategy.group_hosts_by_cpu_or_ram_util()
+        instance_to_mig = self.strategy.choose_instance_to_migrate(
+            n1, avg, w_map)
+        dest_hosts = self.strategy.filter_destination_hosts(
+            n2, instance_to_mig[1], avg, w_map)
+        self.assertEqual(len(dest_hosts), 1)
+        self.assertEqual(dest_hosts[0]['compute_node'].uuid, 'Node_1')
+        expected_calls = [
+            mock.call('Host usage for Node_0: host_ram_usage_percent is '
+                      '37.121212121212125. Higher than threshold 30.0: True'),
+            mock.call('Host usage for Node_1: host_ram_usage_percent is '
+                      '18.181818181818183. Higher than threshold 30.0: False'),
+            mock.call('Host hostname_1 evaluated as destination for '
+                      '73b09e16-35b7-4922-804e-e8f5d9b740fc. Host usage for '
+                      'ram would be 25.0.The threshold is: 30.0. selected: '
+                      'True')]
+        mock_debug.assert_has_calls(expected_calls, any_order=True)
 
     def test_execute_no_workload(self):
         model = self.fake_c_cluster.\
