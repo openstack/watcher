@@ -42,6 +42,7 @@ specific prior release.
   user/index
   configuration/index
   contributor/plugin/index
+  integrations/index
   man/index
 
 .. toctree::
