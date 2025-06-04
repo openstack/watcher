@@ -1332,11 +1332,6 @@ class TestAuditZoneMigration(TestPostBase):
 
         audit_input_dict = self._prepare_audit_params(zm_params)
 
-        response = self.post_json('/audits', audit_input_dict,
-                                  expect_errors=True)
+        response = self.post_json('/audits', audit_input_dict)
         self.assertEqual("application/json", response.content_type)
-        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
-        expected_error_msg = ("'src_type' is a required property")
-        self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)

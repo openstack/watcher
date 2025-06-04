@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    Currently, the zone migration strategy has a ``src_type`` parameter in the ``storage_pools``
+    input parameter which is ignored, even though it's required when storage_pools is defined.
+
+    This patch makes the src_type parameter optional in the zone migration strategy, and when
+    passed by the user, will use its values to filter the volumes which can be migrated.
+
+    For more details: https://launchpad.net/bugs/2111507
