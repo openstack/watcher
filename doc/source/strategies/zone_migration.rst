@@ -126,7 +126,7 @@ parameter     type    default  required  description
                                          volumes migrate.
 ``dst_pool``  string  None     Optional  Storage pool to which
                                          volumes migrate.
-``src_type``  string  None     Required  Source volume type.
+``src_type``  string  None     Optional  Source volume type.
 ``dst_type``  string  None     Required  Destination volume type
 ============= ======= ======== ========= ========================
 

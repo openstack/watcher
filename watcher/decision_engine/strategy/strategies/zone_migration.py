@@ -132,7 +132,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                                 "type": "string"
                             }
                         },
-                        "required": ["src_pool", "src_type", "dst_type"],
+                        "required": ["src_pool", "dst_type"],
                         "additionalProperties": False
                     }
                 },
@@ -382,11 +382,10 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             if node.get("src_node") == src_node:
                 return node.get("dst_node")
 
-    def get_dst_pool_and_type(self, src_pool, src_type):
+    def get_dst_pool_and_type(self, src_pool):
         """Get destination pool and type from self.migration_storage_pools
 
         :param src_pool: storage pool name
-        :param src_type: storage volume type
         :returns: set of storage pool name and volume type name
         """
         for pool in self.migrate_storage_pools:
@@ -407,7 +406,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 continue
 
             src_type = volume.volume_type
-            dst_pool, dst_type = self.get_dst_pool_and_type(pool, src_type)
+            dst_pool, dst_type = self.get_dst_pool_and_type(pool)
             LOG.debug(src_type)
             LOG.debug("%s %s", dst_pool, dst_type)
 
@@ -541,12 +540,27 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
         :returns: volume list on src pools and storage scope
         """
+        def _is_src_type(volume, src_type):
+            return (src_type is None or
+                    (src_type is not None and volume.volume_type == src_type))
 
-        src_pool_list = self.get_src_pool_list()
+        target_volumes = []
+        for volume in self.cinder.get_volume_list():
+            if not self.storage_model.has_node(volume.id):
+                # skip volumes that are not in the storage model to satisfy
+                # scope constraints
+                continue
+            for migrate_input in self.migrate_storage_pools:
+                src_pool = migrate_input["src_pool"]
+                src_type = migrate_input.get("src_type")
+                if (getattr(volume, 'os-vol-host-attr:host') == src_pool and
+                        _is_src_type(volume, src_type)):
+                    target_volumes.append(volume)
+                    # once the volume satisfies one the storage_pools
+                    # inputs, we don't need to check the rest
+                    break
 
-        return [i for i in self.cinder.get_volume_list()
-                if getattr(i, 'os-vol-host-attr:host') in src_pool_list and
-                self.storage_model.get_volume_by_uuid(i.id)]
+        return target_volumes
 
     def filtered_targets(self):
         """Filter targets

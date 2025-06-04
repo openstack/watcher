@@ -226,11 +226,233 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # src1,src2 is in instances
-        # src3 is not in instances
+        # src1 is in instances
+        # src2,src3 is not in instances
+        self.assertIn(volume_on_src1, volumes)
+        self.assertNotIn(volume_on_src2, volumes)
+        self.assertNotIn(volume_on_src3, volumes)
+
+    def test_get_volumes_no_src_type(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+        ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "dst_type": "type1"},
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "dst_type": "type3"}
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # src1, src2 are in volumes
+        # src3 is not in volumes
         self.assertIn(volume_on_src1, volumes)
         self.assertIn(volume_on_src2, volumes)
         self.assertNotIn(volume_on_src3, volumes)
+
+    def test_get_volumes_different_types_different_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          volume_type="type2",
+                                          name="volume_0")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4,
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # src1,src4 is in volumes
+        # src2,src3 is not in volumes
+        self.assertIn(volume_on_src1, volumes)
+        self.assertIn(volume_on_src4, volumes)
+        self.assertNotIn(volume_on_src3, volumes)
+        self.assertNotIn(volume_on_src2, volumes)
+
+    def test_get_volumes_different_types_same_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          volume_type="type3",
+                                          name="volume_0")
+        self.m_c_helper.get_volume_list.return_value = {
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4,
+        }
+
+        volumes = self.strategy.get_volumes()
+
+        # src1,src3 is in volumes
+        # src2,src4 is not in volumes
+        self.assertIn(volume_on_src1, volumes)
+        self.assertIn(volume_on_src3, volumes)
+        self.assertNotIn(volume_on_src4, volumes)
+        self.assertNotIn(volume_on_src2, volumes)
+
+    def test_get_volumes_all_types_in_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          volume_type="type2",
+                                          name="volume_4")
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "src_type": "type2", "dst_type": "type3"}
+        ]
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4,
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # all volumes are selected
+        self.assertIn(volume_on_src1, volumes)
+        self.assertIn(volume_on_src3, volumes)
+        self.assertIn(volume_on_src4, volumes)
+        self.assertIn(volume_on_src2, volumes)
+
+    def test_get_volumes_type_in_all_pools(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          name="volume_0")
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "src_type": "type1", "dst_type": "type3"}
+        ]
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4,
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # all volumes are selected
+        self.assertIn(volume_on_src1, volumes)
+        self.assertIn(volume_on_src3, volumes)
+        self.assertIn(volume_on_src4, volumes)
+        self.assertIn(volume_on_src2, volumes)
+
+    def test_get_volumes_select_no_volumes(self):
+        volume_on_src1 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src3@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # no volumes are selected
+        self.assertEqual(len(volumes), 0)
+
+    def test_get_volumes_duplicated_input(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          volume_type="type2",
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          name="volume_4")
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "src_type": "type1", "dst_type": "type3"}
+        ]
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4,
+        ]
+
+        volumes = self.strategy.get_volumes()
+
+        # src4 is in volumes
+        # src1, src2, src3 are not in volumes
+        self.assertIn(volume_on_src4, volumes)
+        self.assertNotIn(volume_on_src1, volumes)
+        self.assertNotIn(volume_on_src2, volumes)
+        self.assertNotIn(volume_on_src3, volumes)
+        # only src4 is selected
+        self.assertEqual(len(volumes), 1)
 
     # execute #
 
@@ -391,9 +613,10 @@ class TestZoneMigration(TestBaseStrategy):
     def test_execute_retype_volume(self):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
                                           name="volume_2")
         self.m_c_helper.get_volume_list.return_value = [
-            volume_on_src2,
+            volume_on_src2
         ]
 
         self.m_n_helper.get_instance_list.return_value = []
@@ -429,6 +652,212 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 1))
         global_efficacy_value = solution.global_efficacy[3].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volumes_no_src_type(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3
+        ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "dst_type": "type1"},
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "dst_type": "type3"}
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+
+        solution = self.strategy.execute()
+
+        self.assertEqual(2, len(solution.actions))
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(1,
+                         migration_types.get("migrate", 0))
+        self.assertEqual(1,
+                         migration_types.get("retype", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volumes_different_types_different_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          volume_type="type2",
+                                          name="volume_0")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+
+        solution = self.strategy.execute()
+
+        self.assertEqual(2, len(solution.actions))
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(1,
+                         migration_types.get("migrate", 0))
+        self.assertEqual(1,
+                         migration_types.get("retype", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volumes_different_types_same_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          volume_type="type3",
+                                          name="volume_0")
+
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+
+        self.assertEqual(2, len(solution.actions))
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(2,
+                         migration_types.get("migrate", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volumes_all_types_in_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          volume_type="type2",
+                                          name="volume_4")
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "src_type": "type2", "dst_type": "type3"}
+        ]
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+
+        self.assertEqual(2, len(solution.actions))
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(1,
+                         migration_types.get("migrate", 0))
+        self.assertEqual(1,
+                         migration_types.get("retype", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(50, global_efficacy_value)
+
+    def test_execute_migrate_volumes_type_in_all_pools(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_0"],
+                                          name="volume_0")
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
+             "src_type": "type1", "dst_type": "type3"}
+        ]
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+            volume_on_src4
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+
+        self.assertEqual(4, len(solution.actions))
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(2,
+                         migration_types.get("migrate", 0))
+        self.assertEqual(2,
+                         migration_types.get("retype", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
+
+    def test_execute_migrate_volumes_select_no_volumes(self):
+        volume_on_src1 = self.fake_volume(host="src2@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        volume_on_src2 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
+                                          name="volume_2")
+        volume_on_src3 = self.fake_volume(host="src3@back1#pool1",
+                                          id=volume_uuid_mapping["volume_3"],
+                                          name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+            volume_on_src2,
+            volume_on_src3,
+        ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+        self.assertEqual(0, len(solution.actions))
 
     def test_execute_live_migrate_instance_parallel(self):
         instance_on_src1_1 = self.fake_instance(
@@ -615,6 +1044,7 @@ class TestZoneMigration(TestBaseStrategy):
                                           name="volume_1")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
                                           name="volume_2")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
                                           id=volume_uuid_mapping["volume_3"],
@@ -659,6 +1089,7 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
                                           name="volume_2",
+                                          volume_type="type2",
                                           project_id="pj1")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
                                           id=volume_uuid_mapping["volume_3"],
@@ -820,6 +1251,7 @@ class TestZoneMigration(TestBaseStrategy):
             host="src2@back1#pool1",
             size="2",
             id=volume_uuid_mapping["volume_2"],
+            volume_type="type2",
             name="volume_2")
         volume_on_src3 = self.fake_volume(
             host="src3@back2#pool1",
@@ -849,6 +1281,7 @@ class TestZoneMigration(TestBaseStrategy):
                                           created_at="2017-10-30T00:00:00")
         volume_on_src2 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_2"],
+                                          volume_type="type2",
                                           name="volume_2",
                                           created_at="1977-03-29T03:03:03")
         volume_on_src3 = self.fake_volume(host="src3@back2#pool1",
