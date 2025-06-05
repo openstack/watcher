@@ -1026,10 +1026,11 @@ class TestPost(api_base.FunctionalTest):
             expect_errors=True,
             headers={'OpenStack-API-Version': 'infra-optim 1.2'})
         self.assertEqual('application/json', response.content_type)
-        # (amoralej) this should return HTTP error 400 with a proper message.
-        # I am adding this test to show the bug here, I will switch it to the
-        # expected error in the fixing patch.
-        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_msg = 'A valid goal or audit_template_id must be provided'
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
 
 
 class TestDelete(api_base.FunctionalTest):
