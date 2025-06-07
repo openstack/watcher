@@ -21,7 +21,7 @@ from oslo_config import cfg
 from oslo_service import service
 
 from watcher.applier import sync
-from watcher.cmd import applier
+from watcher.cmd.eventlet import applier
 from watcher.common import service as watcher_service
 from watcher.tests import base
 

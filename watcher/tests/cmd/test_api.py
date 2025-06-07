@@ -22,7 +22,7 @@ from oslo_service import wsgi
 from pecan.testing import load_test_app
 
 from watcher.api import config as api_config
-from watcher.cmd import api
+from watcher.cmd.eventlet import api
 from watcher.common import service
 from watcher.tests import base
 
