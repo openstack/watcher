@@ -10,7 +10,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import debtcollector
 from oslo_config import cfg
+import warnings
 
 from cinderclient import client as ciclient
 from glanceclient import client as glclient
@@ -42,6 +44,8 @@ _CLIENTS_AUTH_GROUP = 'watcher_clients_auth'
 # versions, they should perform version discovery and be backward compatible
 # for at least one release before raising the minimum required version.
 MIN_NOVA_API_VERSION = '2.56'
+
+warnings.simplefilter("once")
 
 
 def check_min_nova_api_version(config_version):
@@ -135,6 +139,13 @@ class OpenStackClients(object):
         if self._glance:
             return self._glance
 
+        # NOTE(dviroel): This integration is classified as Experimental due to
+        # the lack of documentation and CI testing. It can be marked as
+        # supported or deprecated in future releases, based on improvements.
+        debtcollector.deprecate(
+            ("Glance is an experimental integration and may be "
+             "deprecated in future releases."),
+            version="2025.2", category=PendingDeprecationWarning)
         glanceclient_version = self._get_client_option('glance', 'api_version')
         glance_endpoint_type = self._get_client_option('glance',
                                                        'endpoint_type')
@@ -221,6 +232,14 @@ class OpenStackClients(object):
         if self._neutron:
             return self._neutron
 
+        # NOTE(dviroel): This integration is classified as Experimental due to
+        # the lack of documentation and CI testing. It can be marked as
+        # supported or deprecated in future releases, based on improvements.
+        debtcollector.deprecate(
+            ("Neutron is an experimental integration and may be "
+             "deprecated in future releases."),
+            version="2025.2", category=PendingDeprecationWarning)
+
         neutronclient_version = self._get_client_option('neutron',
                                                         'api_version')
         neutron_endpoint_type = self._get_client_option('neutron',
@@ -239,6 +258,14 @@ class OpenStackClients(object):
         if self._ironic:
             return self._ironic
 
+        # NOTE(dviroel): This integration is classified as Experimental due to
+        # the lack of documentation and CI testing. It can be marked as
+        # supported or deprecated in future releases, based on improvements.
+        debtcollector.deprecate(
+            ("Ironic is an experimental integration and may be "
+             "deprecated in future releases."),
+            version="2025.2", category=PendingDeprecationWarning)
+
         ironicclient_version = self._get_client_option('ironic', 'api_version')
         endpoint_type = self._get_client_option('ironic', 'endpoint_type')
         ironic_region_name = self._get_client_option('ironic', 'region_name')
@@ -251,6 +278,14 @@ class OpenStackClients(object):
     def maas(self):
         if self._maas:
             return self._maas
+
+        # NOTE(dviroel): This integration is classified as Experimental due to
+        # the lack of documentation and CI testing. It can be marked as
+        # supported or deprecated in future releases, based on improvements.
+        debtcollector.deprecate(
+            ("MAAS is an experimental integration and may be "
+             "deprecated in future releases."),
+            version="2025.2", category=PendingDeprecationWarning)
 
         if not maas_client:
             raise exception.UnsupportedError(

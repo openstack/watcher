@@ -1,0 +1,6 @@
+---
+upgrade:
+  - |
+    Glance, Ironic, MAAS, and Neutron integrations with Watcher are now marked
+    as Experimental and may be deprecated in a future release. These
+    integrations have not been tested recently and may not be fully stable.
