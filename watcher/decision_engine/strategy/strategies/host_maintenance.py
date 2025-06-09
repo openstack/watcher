@@ -87,13 +87,6 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             "required": ["maintenance_node"],
         }
 
-    def get_disabled_compute_nodes_with_reason(self, reason=None):
-        return {uuid: cn for uuid, cn in
-                self.compute_model.get_all_compute_nodes().items()
-                if cn.state == element.ServiceState.ONLINE.value and
-                cn.status == element.ServiceState.DISABLED.value and
-                cn.disabled_reason == reason}
-
     def get_instance_state_str(self, instance):
         """Get instance state in string format"""
         if isinstance(instance.state, str):
