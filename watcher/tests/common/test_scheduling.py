@@ -11,8 +11,6 @@
 # under the License.
 from unittest import mock
 
-import eventlet
-
 from apscheduler.schedulers import background
 
 from watcher.common import scheduling
@@ -54,15 +52,9 @@ class TestSchedulerMonkeyPatching(base.BaseTestCase):
         mock_main_loop.assert_called_once_with()
 
     @mock.patch.object(background.BackgroundScheduler, '_main_loop')
-    @mock.patch.object(eventlet, 'monkey_patch')
+    @mock.patch.object(eventlet_helper, 'patch')
     def test_main_loop_is_monkey_patched(
-            self, mock_monky_patch, mock_main_loop):
+            self, mock_eventlet_patch, mock_main_loop):
         self.test_scheduler._main_loop()
-        self.assertEqual(
-            eventlet_helper.is_patched(), self.test_scheduler.should_patch)
-        mock_monky_patch.assert_called_once_with()
+        mock_eventlet_patch.assert_called_once_with()
         mock_main_loop.assert_called_once_with()
-
-    def test_scheduler_should_patch(self):
-        self.assertEqual(
-            eventlet_helper.is_patched(), self.test_scheduler.should_patch)

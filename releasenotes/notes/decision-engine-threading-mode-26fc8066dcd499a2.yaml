@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    The Decision Engine service now supports running with ``native threading``
+    mode enabled as opposed to the use of the Eventlet library.
+    Note that the use of ``native threading`` is still ``experimental``,
+    and is disabled by default. It should not be used in production. To
+    switch from Eventlet to native threading mode, the environment variable
+    ``OS_WATCHER_DISABLE_EVENTLET_PATCHING=true`` needs to be added to
+    the decision engine service configuration. For more information,
+    please check `eventlet removal
+    <https://wiki.openstack.org/wiki/Eventlet-removal>`__ documentation.

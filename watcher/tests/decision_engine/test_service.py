@@ -15,6 +15,7 @@
 from unittest import mock
 
 from watcher.common import service as watcher_service
+from watcher.decision_engine.audit import continuous as c_handler
 from watcher.decision_engine import scheduling
 from watcher.decision_engine import service
 from watcher.tests import base
@@ -25,9 +26,11 @@ from watcher.tests import base
 @mock.patch.object(watcher_service.Service, '__init__', return_value=None)
 class TestDecisionEngineService(base.TestCase):
 
+    @mock.patch.object(c_handler.ContinuousAuditHandler, 'start')
     @mock.patch.object(scheduling.DecisionEngineSchedulingService, 'start')
     @mock.patch.object(watcher_service.Service, 'start')
     def test_decision_engine_service_start(self, svc_start, sch_start,
+                                           cont_audit_start,
                                            svc_init, sch_init):
         de_service = service.DecisionEngineService()
         de_service.start()
@@ -37,6 +40,7 @@ class TestDecisionEngineService(base.TestCase):
 
         svc_start.assert_called()
         sch_start.assert_called()
+        cont_audit_start.assert_called()
 
     @mock.patch.object(scheduling.DecisionEngineSchedulingService, 'stop')
     @mock.patch.object(watcher_service.Service, 'stop')

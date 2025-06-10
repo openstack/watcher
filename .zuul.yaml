@@ -271,6 +271,13 @@
         devstack_localrc:
           NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
 
+- job:
+    name: watcher-prometheus-integration-threading
+    parent: watcher-sg-core-tempest-base
+    vars:
+      devstack_localrc:
+        'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+
 - project:
     queue: watcher
     templates:
@@ -290,6 +297,7 @@
               - ^watcher/api/*
         - watcher-tempest-functional-ipv6-only
         - watcher-prometheus-integration
+        - watcher-prometheus-integration-threading
     gate:
       jobs:
         - watcher-tempest-functional
