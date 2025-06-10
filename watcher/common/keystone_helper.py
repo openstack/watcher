@@ -15,8 +15,6 @@
 from oslo_log import log
 
 from keystoneauth1.exceptions import http as ks_exceptions
-from keystoneauth1 import loading
-from keystoneauth1 import session
 from watcher._i18n import _
 from watcher.common import clients
 from watcher.common import exception
@@ -90,35 +88,3 @@ class KeystoneHelper(object):
                     message=(_("Domain name seems ambiguous: %s") %
                              name_or_id))
             return domains[0]
-
-    def create_session(self, user_id, password):
-        user = self.get_user(user_id)
-        loader = loading.get_plugin_loader('password')
-        auth = loader.load_from_options(
-            auth_url=CONF.watcher_clients_auth.auth_url,
-            password=password,
-            user_id=user_id,
-            project_id=user.default_project_id)
-        return session.Session(auth=auth)
-
-    def create_user(self, user):
-        project = self.get_project(user['project'])
-        domain = self.get_domain(user['domain'])
-        _user = self.keystone.users.create(
-            user['name'],
-            password=user['password'],
-            domain=domain,
-            project=project,
-        )
-        for role in user['roles']:
-            role = self.get_role(role)
-            self.keystone.roles.grant(
-                role.id, user=_user.id, project=project.id)
-        return _user
-
-    def delete_user(self, user):
-        try:
-            user = self.get_user(user)
-            self.keystone.users.delete(user)
-        except exception.Invalid:
-            pass
