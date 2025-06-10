@@ -17,14 +17,11 @@ import jsonschema
 
 from oslo_log import log
 
-from cinderclient import client as cinder_client
 from watcher._i18n import _
 from watcher.applier.actions import base
 from watcher.common import cinder_helper
 from watcher.common import exception
-from watcher.common import keystone_helper
 from watcher.common import nova_helper
-from watcher.common import utils
 from watcher import conf
 
 CONF = conf.CONF
@@ -70,8 +67,6 @@ class VolumeMigrate(base.BaseAction):
 
     def __init__(self, config, osc=None):
         super(VolumeMigrate, self).__init__(config)
-        self.temp_username = utils.random_string(10)
-        self.temp_password = utils.random_string(10)
         self.cinder_util = cinder_helper.CinderHelper(osc=self.osc)
         self.nova_util = nova_helper.NovaHelper(osc=self.osc)
 
@@ -134,83 +129,42 @@ class VolumeMigrate(base.BaseAction):
 
     def _can_swap(self, volume):
         """Judge volume can be swapped"""
+        # TODO(sean-k-mooney): rename this to _can_migrate and update
+        # tests to reflect that.
 
+        # cinder volume migration can migrate volumes that are not
+        # attached to instances or nova can migrate the data for cinder
+        # if the volume is in-use. If the volume has no attachments
+        # allow cinder to decided if it can be migrated.
         if not volume.attachments:
-            return False
-        instance_id = volume.attachments[0]['server_id']
-        instance_status = self.nova_util.find_instance(instance_id).status
-
-        if (volume.status == 'in-use' and
-                instance_status in ('ACTIVE', 'PAUSED', 'RESIZED')):
+            LOG.debug(f"volume: {volume.id} has no attachments")
             return True
 
-        return False
-
-    def _create_user(self, volume, user):
-        """Create user with volume attribute and user information"""
-        keystone_util = keystone_helper.KeystoneHelper(osc=self.osc)
-        project_id = getattr(volume, 'os-vol-tenant-attr:tenant_id')
-        user['project'] = project_id
-        user['domain'] = keystone_util.get_project(project_id).domain_id
-        user['roles'] = ['admin']
-        return keystone_util.create_user(user)
-
-    def _get_cinder_client(self, session):
-        """Get cinder client by session"""
-        return cinder_client.Client(
-            CONF.cinder_client.api_version,
-            session=session,
-            endpoint_type=CONF.cinder_client.endpoint_type)
-
-    def _swap_volume(self, volume, dest_type):
-        """Swap volume to dest_type
-
-           Limitation note: only for compute libvirt driver
-        """
-        if not dest_type:
-            raise exception.Invalid(
-                message=(_("destination type is required when "
-                           "migration type is swap")))
-
-        if not self._can_swap(volume):
-            raise exception.Invalid(
-                message=(_("Invalid state for swapping volume")))
-
-        user_info = {
-            'name': self.temp_username,
-            'password': self.temp_password}
-        user = self._create_user(volume, user_info)
-        keystone_util = keystone_helper.KeystoneHelper(osc=self.osc)
-        try:
-            session = keystone_util.create_session(
-                user.id, self.temp_password)
-            temp_cinder = self._get_cinder_client(session)
-
-            # swap volume
-            new_volume = self.cinder_util.create_volume(
-                temp_cinder, volume, dest_type)
-            self.nova_util.swap_volume(volume, new_volume)
-
-            # delete old volume
-            self.cinder_util.delete_volume(volume)
-
-        finally:
-            keystone_util.delete_user(user)
-
-        return True
+        # since it has attachments we need to validate nova's constraints
+        instance_id = volume.attachments[0]['server_id']
+        instance_status = self.nova_util.find_instance(instance_id).status
+        LOG.debug(
+            f"volume: {volume.id} is attached to instance: {instance_id} "
+            f"in instance status: {instance_status}")
+        # NOTE(sean-k-mooney): This used to allow RESIZED which
+        # is the resize_verify task state, that is not an acceptable time
+        # to migrate volumes, if nova does not block this in the API
+        # today that is probably a bug. PAUSED is also questionable but
+        # it should generally be safe.
+        return (volume.status == 'in-use' and
+                instance_status in ('ACTIVE', 'PAUSED'))
 
     def _migrate(self, volume_id, dest_node, dest_type):
-
         try:
             volume = self.cinder_util.get_volume(volume_id)
-            if self.migration_type == self.SWAP:
-                if dest_node:
-                    LOG.warning("dest_node is ignored")
-                return self._swap_volume(volume, dest_type)
+            # for backward compatibility map swap to migrate.
+            if self.migration_type in (self.SWAP, self.MIGRATE):
+                if not self._can_swap(volume):
+                    raise exception.Invalid(
+                        message=(_("Invalid state for swapping volume")))
+                return self.cinder_util.migrate(volume, dest_node)
             elif self.migration_type == self.RETYPE:
                 return self.cinder_util.retype(volume, dest_type)
-            elif self.migration_type == self.MIGRATE:
-                return self.cinder_util.migrate(volume, dest_node)
             else:
                 raise exception.Invalid(
                     message=(_("Migration of type '%(migration_type)s' is not "
