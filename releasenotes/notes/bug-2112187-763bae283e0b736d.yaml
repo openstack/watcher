@@ -1,0 +1,47 @@
+---
+security:
+  - |
+    Watchers no longer forges requests on behalf of a tenant when
+    swapping volumes. Prior to this release watcher had 2 implementations
+    of moving a volume, it could use cinders volume migrate api or its own
+    internal implementation that directly calls nova volume attachment update
+    api. The former is safe and the recommend way to move volumes between
+    cinder storage backend the internal implementation was insecure, fragile
+    due to a lack of error handling and capable of deleting user data.
+
+    Insecure: the internal volume migration operation created a new keystone
+    user with a weak name and password and added it to the tenants project
+    with the admin role. It then used that user to forge request on behalf
+    of the tenant with admin right to swap the volume. if the applier was
+    restarted during the execution of this operation it would never be cleaned
+    up.
+
+    Fragile: the error handling was minimal, the swap volume api is async
+    so watcher has to poll for completion, there was no support to resume
+    that if interrupted of the time out was exceeded.
+
+    Data-loss: while the internal polling logic returned success or failure
+    watcher did not check the result, once the function returned it
+    unconditionally deleted the source volume. For larger volumes this
+    could result in irretrievable data loss.
+
+    Finally if a volume was swapped using the internal workflow it put
+    the nova instance in an out of sync state. If the VM was live migrated
+    after the swap volume completed successfully prior to a hard reboot
+    then the migration would fail or succeed and break tenant isolation.
+
+    see: https://bugs.launchpad.net/nova/+bug/2112187 for details.
+fixes:
+  - |
+    All code related to creating keystone user and granting roles has been
+    removed. The internal swap volume implementation has been removed and
+    replaced by cinders volume migrate api. Note as part of this change
+    Watcher will no longer attempt volume migrations or retypes if the
+    instance is in the `Verify Resize` task state. This resolves several
+    issues related to volume migration in the zone migration and
+    Storage capacity balance strategies. While efforts have been made
+    to maintain backward compatibility these changes are required to
+    address a security weakness in watcher's prior approach.
+
+    see: https://bugs.launchpad.net/nova/+bug/2112187 for more context.
+
