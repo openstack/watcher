@@ -57,8 +57,19 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         self.planned_cold_count = 0
         self.volume_count = 0
         self.planned_volume_count = 0
-        self.volume_update_count = 0
-        self.planned_volume_update_count = 0
+
+    # TODO(sean-n-mooney) This is backward compatibility
+    # for calling the swap code paths. Swap is now an alias
+    # for migrate, we should clean this up in a future
+    # cycle.
+    @property
+    def volume_update_count(self):
+        return self.volume_count
+
+    # same as above clean up later.
+    @property
+    def planned_volume_update_count(self):
+        return self.planned_volume_count
 
     @classmethod
     def get_name(cls):
@@ -312,8 +323,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             planned_cold_migrate_instance_count=self.planned_cold_count,
             volume_migrate_count=self.volume_count,
             planned_volume_migrate_count=self.planned_volume_count,
-            volume_update_count=self.volume_update_count,
-            planned_volume_update_count=self.planned_volume_update_count
+            volume_update_count=self.volume_count,
+            planned_volume_update_count=self.planned_volume_count
         )
 
     def set_migration_count(self, targets):
@@ -328,10 +339,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             elif self.is_cold(instance):
                 self.cold_count += 1
         for volume in targets.get('volume', []):
-            if self.is_available(volume):
-                self.volume_count += 1
-            elif self.is_in_use(volume):
-                self.volume_update_count += 1
+            self.volume_count += 1
 
     def is_live(self, instance):
         status = getattr(instance, 'status')
@@ -404,19 +412,16 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             LOG.debug(src_type)
             LOG.debug("%s %s", dst_pool, dst_type)
 
-            if self.is_available(volume):
-                if src_type == dst_type:
-                    self._volume_migrate(volume, dst_pool)
-                else:
-                    self._volume_retype(volume, dst_type)
-            elif self.is_in_use(volume):
-                self._volume_update(volume, dst_type)
+            if src_type == dst_type:
+                self._volume_migrate(volume, dst_pool)
+            else:
+                self._volume_retype(volume, dst_type)
 
-                # if with_attached_volume is True, migrate attaching instances
-                if self.with_attached_volume:
-                    instances = [self.nova.find_instance(dic.get('server_id'))
-                                 for dic in volume.attachments]
-                    self.instances_migration(instances, action_counter)
+            # if with_attached_volume is True, migrate attaching instances
+            if self.with_attached_volume:
+                instances = [self.nova.find_instance(dic.get('server_id'))
+                             for dic in volume.attachments]
+                self.instances_migration(instances, action_counter)
 
             action_counter.add_pool(pool)
 
@@ -463,16 +468,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             resource_id=instance.id,
             input_parameters=parameters)
         self.planned_cold_count += 1
-
-    def _volume_update(self, volume, dst_type):
-        parameters = {"migration_type": "swap",
-                      "destination_type": dst_type,
-                      "resource_name": volume.name}
-        self.solution.add_action(
-            action_type="volume_migrate",
-            resource_id=volume.id,
-            input_parameters=parameters)
-        self.planned_volume_update_count += 1
 
     def _volume_migrate(self, volume, dst_pool):
         parameters = {"migration_type": "migrate",

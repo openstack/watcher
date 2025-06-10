@@ -19,9 +19,7 @@
 import asyncio
 import datetime
 import inspect
-import random
 import re
-import string
 
 from croniter import croniter
 import eventlet
@@ -160,12 +158,8 @@ def extend_with_strict_schema(validator_class):
 StrictDefaultValidatingDraft4Validator = extend_with_default(
     extend_with_strict_schema(validators.Draft4Validator))
 
+
 Draft4Validator = validators.Draft4Validator
-
-
-def random_string(n):
-    return ''.join([random.choice(
-        string.ascii_letters + string.digits) for i in range(n)])
 
 
 # Some clients (e.g. MAAS) use asyncio, which isn't compatible with Eventlet.

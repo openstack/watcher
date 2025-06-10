@@ -22,7 +22,6 @@ from watcher.common import cinder_helper
 from watcher.common import clients
 from watcher.common import keystone_helper
 from watcher.common import nova_helper
-from watcher.common import utils as w_utils
 from watcher.tests import base
 
 
@@ -102,12 +101,15 @@ class TestMigration(base.TestCase):
 
     @staticmethod
     def fake_volume(**kwargs):
+        # FIXME(sean-k-mooney): we should be using real objects in this
+        # test or at lease something more Representative of the real data
         volume = mock.MagicMock()
         volume.id = kwargs.get('id', TestMigration.VOLUME_UUID)
         volume.size = kwargs.get('size', '1')
         volume.status = kwargs.get('status', 'available')
         volume.snapshot_id = kwargs.get('snapshot_id', None)
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
+        volume.attachments = kwargs.get('attachments', [])
         return volume
 
     @staticmethod
@@ -175,42 +177,14 @@ class TestMigration(base.TestCase):
             "storage1-typename",
         )
 
-    def test_swap_success(self):
-        volume = self.fake_volume(
-            status='in-use', attachments=[{'server_id': 'server_id'}])
-        self.m_n_helper.find_instance.return_value = self.fake_instance()
-
-        new_volume = self.fake_volume(id=w_utils.generate_uuid())
-        user = mock.Mock()
-        session = mock.MagicMock()
-        self.m_k_helper.create_user.return_value = user
-        self.m_k_helper.create_session.return_value = session
-        self.m_c_helper.get_volume.return_value = volume
-        self.m_c_helper.create_volume.return_value = new_volume
-
-        result = self.action_swap.execute()
-        self.assertTrue(result)
-
-        self.m_n_helper.swap_volume.assert_called_once_with(
-            volume,
-            new_volume
-        )
-        self.m_k_helper.delete_user.assert_called_once_with(user)
-
-    def test_swap_fail(self):
-        # _can_swap fail
-        instance = self.fake_instance(status='STOPPED')
-        self.m_n_helper.find_instance.return_value = instance
-
-        result = self.action_swap.execute()
-        self.assertFalse(result)
-
     def test_can_swap_success(self):
         volume = self.fake_volume(
-            status='in-use', attachments=[{'server_id': 'server_id'}])
-        instance = self.fake_instance()
+            status='in-use', attachments=[
+                {'server_id': TestMigration.INSTANCE_UUID}])
 
+        instance = self.fake_instance()
         self.m_n_helper.find_instance.return_value = instance
+
         result = self.action_swap._can_swap(volume)
         self.assertTrue(result)
 
@@ -219,16 +193,33 @@ class TestMigration(base.TestCase):
         result = self.action_swap._can_swap(volume)
         self.assertTrue(result)
 
-        instance = self.fake_instance(status='RESIZED')
-        self.m_n_helper.find_instance.return_value = instance
-        result = self.action_swap._can_swap(volume)
-        self.assertTrue(result)
-
     def test_can_swap_fail(self):
 
         volume = self.fake_volume(
-            status='in-use', attachments=[{'server_id': 'server_id'}])
+            status='in-use', attachments=[
+                {'server_id': TestMigration.INSTANCE_UUID}])
         instance = self.fake_instance(status='STOPPED')
         self.m_n_helper.find_instance.return_value = instance
         result = self.action_swap._can_swap(volume)
         self.assertFalse(result)
+
+        instance = self.fake_instance(status='RESIZED')
+        self.m_n_helper.find_instance.return_value = instance
+        result = self.action_swap._can_swap(volume)
+        self.assertFalse(result)
+
+    def test_swap_success(self):
+        volume = self.fake_volume(
+            status='in-use', attachments=[
+                {'server_id': TestMigration.INSTANCE_UUID}])
+        self.m_c_helper.get_volume.return_value = volume
+
+        instance = self.fake_instance()
+        self.m_n_helper.find_instance.return_value = instance
+
+        result = self.action_swap.execute()
+        self.assertTrue(result)
+        self.m_c_helper.migrate.assert_called_once_with(
+            volume,
+            "storage1-poolname"
+        )
