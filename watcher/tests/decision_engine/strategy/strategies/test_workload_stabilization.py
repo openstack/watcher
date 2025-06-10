@@ -212,11 +212,71 @@ class TestWorkloadStabilization(TestBaseStrategy):
             len(self.strategy.simulate_migrations(self.hosts_load_assert)))
 
     def test_check_threshold(self):
+
+        # sd for 0.05, 0.05, 0.07, 0.07, 0.8
+        test_cpu_sd = 0.296
+
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
-        self.strategy.thresholds = {'instance_cpu_usage': 0.001,
+        self.strategy.thresholds = {'instance_cpu_usage': 0.25,
                                     'instance_ram_usage': 0.2}
+
         self.strategy.simulate_migrations = mock.Mock(return_value=True)
         self.assertTrue(self.strategy.check_threshold())
+        self.assertEqual(
+            round(self.strategy.sd_before_audit, 3),
+            test_cpu_sd)
+
+    def test_check_threshold_cpu(self):
+
+        test_cpu_sd = 0.296
+
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
+        self.strategy.metrics = ["instance_cpu_usage"]
+        self.strategy.thresholds = {'instance_cpu_usage': 0.25}
+
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertTrue(self.strategy.check_threshold())
+        self.assertEqual(
+            round(self.strategy.sd_before_audit, 3),
+            test_cpu_sd)
+
+    def test_check_threshold_ram(self):
+
+        # sd for 4,5,7,8, 29 MB used in 132MB total memory hosts
+        test_ram_sd = 0.071
+
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
+        self.strategy.metrics = ["instance_ram_usage"]
+        self.strategy.thresholds = {'instance_cpu_usage': 0.25,
+                                    'instance_ram_usage': 0.05}
+
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertTrue(self.strategy.check_threshold())
+        self.assertEqual(
+            round(self.strategy.sd_before_audit, 3),
+            test_ram_sd)
+
+    def test_check_threshold_fail(self):
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
+        self.strategy.thresholds = {'instance_cpu_usage': 0.3,
+                                    'instance_ram_usage': 0.2}
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertFalse(self.strategy.check_threshold())
+
+    def test_check_threshold_cpu_fail(self):
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
+        self.strategy.metrics = ["instance_cpu_usage"]
+        self.strategy.thresholds = {'instance_cpu_usage': 0.4}
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertFalse(self.strategy.check_threshold())
+
+    def test_check_threshold_ram_fail(self):
+        self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
+        self.strategy.metrics = ["instance_ram_usage"]
+        self.strategy.thresholds = {'instance_cpu_usage': 0.25,
+                                    'instance_ram_usage': 0.1}
+        self.strategy.simulate_migrations = mock.Mock(return_value=True)
+        self.assertFalse(self.strategy.check_threshold())
 
     def test_execute_one_migration(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()

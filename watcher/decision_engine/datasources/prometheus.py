@@ -276,7 +276,7 @@ class PrometheusHelper(base.DataSourceBase):
         (node_memory_MemTotal_bytes{instance='the_host'} -
         avg_over_time(
             node_memory_MemAvailable_bytes{instance='the_host'}[300s]))
-            / 1024 / 1024
+            / 1024
 
         So we take total and subtract available memory to determine
         how much is in use. We use the prometheus xxx_over_time functions
@@ -315,10 +315,11 @@ class PrometheusHelper(base.DataSourceBase):
                    'meter': meter, 'period': period}
             )
         elif meter == 'node_memory_MemAvailable_bytes':
+            # Prometheus metric is in B and we need to return KB
             query_args = (
                 "(node_memory_MemTotal_bytes{%(label)s='%(label_value)s'} "
                 "- %(agg)s_over_time(%(meter)s{%(label)s='%(label_value)s'}"
-                "[%(period)ss])) / 1024 / 1024"
+                "[%(period)ss])) / 1024"
                 % {'label': self.prometheus_fqdn_label,
                    'label_value': instance_label, 'agg': aggregate,
                    'meter': meter, 'period': period}
