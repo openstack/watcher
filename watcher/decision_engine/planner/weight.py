@@ -50,6 +50,7 @@ class WeightPlanner(base.BasePlanner):
         'volume_migrate': 60,
         'change_nova_service_state': 50,
         'sleep': 40,
+        'stop': 35,
         'migrate': 30,
         'resize': 20,
         'turn_host_to_acpi_s3_state': 10,
@@ -59,6 +60,7 @@ class WeightPlanner(base.BasePlanner):
     parallelization = {
         'turn_host_to_acpi_s3_state': 2,
         'resize': 2,
+        'stop': 2,
         'migrate': 2,
         'sleep': 1,
         'change_nova_service_state': 1,
