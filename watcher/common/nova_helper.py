@@ -556,6 +556,30 @@ class NovaHelper(object):
             else:
                 return False
 
+    def start_instance(self, instance_id):
+        """This method starts a given instance.
+
+        :param instance_id: the unique id of the instance to start.
+        """
+        LOG.debug("Trying to start instance %s ...", instance_id)
+
+        instance = self.find_instance(instance_id)
+
+        if not instance:
+            LOG.debug("Instance not found: %s", instance_id)
+            return False
+        elif getattr(instance, 'OS-EXT-STS:vm_state') == "active":
+            LOG.debug("Instance has already active: %s", instance_id)
+            return True
+        else:
+            self.nova.servers.start(instance_id)
+
+            if self.wait_for_instance_state(instance, "active", 8, 10):
+                LOG.debug("Instance %s started.", instance_id)
+                return True
+            else:
+                return False
+
     def wait_for_instance_state(self, server, state, retry, sleep):
         """Waits for server to be in a specific state
 

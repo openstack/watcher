@@ -53,6 +53,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
 
     INSTANCE_MIGRATION = "migrate"
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
+    STOP_INSTANCE = "stop_instance"
 
     def __init__(self, config, osc=None):
         super(HostMaintenance, self).__init__(config, osc)
@@ -83,9 +84,27 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
                                    "will backup the maintenance node.",
                     "type": "string",
                 },
+                "disable_live_migration": {
+                    "description": "Disable live migration during maintenance. "
+                                   "If True, active instances will be stopped "
+                                   "instead of live migrated."
+                                   "If `disable_live_migration` is `True`,"
+                                   "the newly stopped instances will be "
+                                   "cold migrated.",
+                    "type": "boolean",
+                    "default": False,
+                },
+                "disable_cold_migration": {
+                    "description": "Disable cold migration during maintenance. "
+                                   "If True, non-active instances will not be "
+                                   "cold migrated.",
+                    "type": "boolean",
+                    "default": False,
+                },
             },
             "required": ["maintenance_node"],
         }
+
 
     def get_instance_state_str(self, instance):
         """Get instance state in string format"""
@@ -164,6 +183,12 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         if node_status_str != element.ServiceState.ENABLED.value:
             self.add_action_enable_compute_node(node)
 
+    def add_action_stop_instance(self, instance):
+        """Add an action for instance stop into the solution."""
+        self.solution.add_action(
+            action_type=self.STOP_INSTANCE,
+            resource_id=instance.uuid)
+
     def instance_migration(self, instance, src_node, des_node=None):
         """Add an action for instance migration into the solution.
 
@@ -174,10 +199,33 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         :return: None
         """
         instance_state_str = self.get_instance_state_str(instance)
+        disable_live_migration = self.input_parameters.get('disable_live_migration', False)
+        disable_cold_migration = self.input_parameters.get('disable_cold_migration', False)
+
+        # Case 1: Both migrations disabled -> only stop instance
+        if disable_live_migration and disable_cold_migration:
+            self.add_action_stop_instance(instance)
+            return
+
+        # Case 2: Handle active instance
         if instance_state_str == element.InstanceState.ACTIVE.value:
-            migration_type = 'live'
+            if disable_live_migration:
+                # Stop active instance first, then cold migrate
+                self.add_action_stop_instance(instance)
+                if not disable_cold_migration:
+                    migration_type = 'cold'
+                else:
+                    return  # Only stop, no migration
+            else:
+                # Live migrate active instance
+                migration_type = 'live'
         else:
-            migration_type = 'cold'
+            # Case 3: Handle non-active instance
+            if disable_cold_migration:
+                # Non-active instance, cold migration disabled, then do nothing
+                return
+            else:
+                migration_type = 'cold'
 
         params = {'migration_type': migration_type,
                   'source_node': src_node.uuid,
@@ -187,6 +235,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
         self.solution.add_action(action_type=self.INSTANCE_MIGRATION,
                                  resource_id=instance.uuid,
                                  input_parameters=params)
+
 
     def host_migration(self, source_node, destination_node):
         """host migration
