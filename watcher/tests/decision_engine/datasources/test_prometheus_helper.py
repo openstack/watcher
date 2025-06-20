@@ -593,7 +593,7 @@ class TestPrometheusHelper(base.BaseTestCase):
         expected_query = (
             "(node_memory_MemTotal_bytes{fqdn='c_host'} - avg_over_time"
             "(node_memory_MemAvailable_bytes{fqdn='c_host'}[555s])) "
-            "/ 1024 / 1024")
+            "/ 1024")
         result = self.helper._build_prometheus_query(
             'avg', 'node_memory_MemAvailable_bytes', 'c_host', '555')
         self.assertEqual(result, expected_query)
@@ -602,7 +602,7 @@ class TestPrometheusHelper(base.BaseTestCase):
         expected_query = (
             "(node_memory_MemTotal_bytes{fqdn='d_host'} - min_over_time"
             "(node_memory_MemAvailable_bytes{fqdn='d_host'}[222s])) "
-            "/ 1024 / 1024")
+            "/ 1024")
         result = self.helper._build_prometheus_query(
             'min', 'node_memory_MemAvailable_bytes', 'd_host', '222')
         self.assertEqual(result, expected_query)
@@ -621,7 +621,7 @@ class TestPrometheusHelper(base.BaseTestCase):
         expected_query = (
             "(node_memory_MemTotal_bytes{custom_fqdn='d_host'} - min_over_time"
             "(node_memory_MemAvailable_bytes{custom_fqdn='d_host'}[222s])) "
-            "/ 1024 / 1024")
+            "/ 1024")
         result = self.helper._build_prometheus_query(
             'min', 'node_memory_MemAvailable_bytes', 'd_host', '222')
         self.assertEqual(result, expected_query)

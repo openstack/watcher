@@ -1,0 +1,14 @@
+---
+fixes:
+  - |
+    When running an audit with the `workload_stabilization` strategy with
+    `instance_ram_usage` metric in a deployment with prometheus datasource,
+    the host metric for the ram usage was wrongly reported with the incorrect
+    unit which lead to incorrect standard deviation and action plans due to the
+    application of the wrong scale factor in the algorithm.
+
+    The host ram usage metric is now properly reported in KB when using a
+    prometheus datasource and the strategy `workload_stabilization` calculates
+    the standard deviation properly.
+
+    For more details: https://launchpad.net/bugs/2113776
