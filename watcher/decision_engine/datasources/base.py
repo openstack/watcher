@@ -178,7 +178,7 @@ class DataSourceBase(object):
                            granularity=None):
         """Get the ram usage for a host such as a compute_node
 
-        :return: ram usage as float in megabytes
+        :return: ram usage as float in kibibytes
         """
         pass
 
