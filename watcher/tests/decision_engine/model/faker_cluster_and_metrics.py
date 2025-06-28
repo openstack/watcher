@@ -182,9 +182,3 @@ class FakeGnocchiMetrics(object):
         instance_disk_util['INSTANCE_8'] = 25
         instance_disk_util['INSTANCE_9'] = 25
         return instance_disk_util[str(resource.uuid)]
-
-
-# TODO(lpetrut): consider dropping Ceilometer support, it was deprecated
-# in Ocata.
-class FakeCeilometerMetrics(FakeGnocchiMetrics):
-    pass
