@@ -10,9 +10,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import datetime
 import itertools
-from unittest import mock
 
 from http import HTTPStatus
 from oslo_config import cfg
@@ -21,7 +19,6 @@ from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action as api_action
 from watcher.common import utils
-from watcher.db import api as db_api
 from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils
@@ -457,70 +454,6 @@ class TestListAction(api_base.FunctionalTest):
                                          uuid=utils.generate_uuid())
         response = self.get_json('/actions')
         self.assertEqual(3, len(response['actions']))
-
-
-class TestPatch(api_base.FunctionalTest):
-
-    def setUp(self):
-        super(TestPatch, self).setUp()
-        obj_utils.create_test_goal(self.context)
-        obj_utils.create_test_strategy(self.context)
-        obj_utils.create_test_audit(self.context)
-        obj_utils.create_test_action_plan(self.context)
-        self.action = obj_utils.create_test_action(self.context, parents=None)
-        p = mock.patch.object(db_api.BaseConnection, 'update_action')
-        self.mock_action_update = p.start()
-        self.mock_action_update.side_effect = self._simulate_rpc_action_update
-        self.addCleanup(p.stop)
-
-    def _simulate_rpc_action_update(self, action):
-        action.save()
-        return action
-
-    @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_patch_not_allowed(self, mock_utcnow):
-        test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
-        new_state = objects.audit.State.SUCCEEDED
-        response = self.get_json('/actions/%s' % self.action.uuid)
-        self.assertNotEqual(new_state, response['state'])
-
-        response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
-            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
-            expect_errors=True)
-        self.assertEqual('application/json', response.content_type)
-        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
-        self.assertTrue(response.json['error_message'])
-
-
-class TestDelete(api_base.FunctionalTest):
-
-    def setUp(self):
-        super(TestDelete, self).setUp()
-        self.goal = obj_utils.create_test_goal(self.context)
-        self.strategy = obj_utils.create_test_strategy(self.context)
-        self.audit = obj_utils.create_test_audit(self.context)
-        self.action_plan = obj_utils.create_test_action_plan(self.context)
-        self.action = obj_utils.create_test_action(self.context, parents=None)
-        p = mock.patch.object(db_api.BaseConnection, 'update_action')
-        self.mock_action_update = p.start()
-        self.mock_action_update.side_effect = self._simulate_rpc_action_update
-        self.addCleanup(p.stop)
-
-    def _simulate_rpc_action_update(self, action):
-        action.save()
-        return action
-
-    @mock.patch('oslo_utils.timeutils.utcnow')
-    def test_delete_action_not_allowed(self, mock_utcnow):
-        test_time = datetime.datetime(2000, 1, 1, 0, 0)
-        mock_utcnow.return_value = test_time
-        response = self.delete('/actions/%s' % self.action.uuid,
-                               expect_errors=True)
-        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
-        self.assertEqual('application/json', response.content_type)
-        self.assertTrue(response.json['error_message'])
 
 
 class TestActionPolicyEnforcement(api_base.FunctionalTest):

@@ -55,15 +55,12 @@ possible to :ref:`develop new implementations <implement_action_plugin>` which
 are dynamically loaded by Watcher at launch time.
 """
 
-from http import HTTPStatus
 from oslo_utils import timeutils
 import pecan
 from pecan import rest
-import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
-from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -362,78 +359,3 @@ class ActionsController(rest.RestController):
         policy.enforce(context, 'action:get', action, action='action:get')
 
         return Action.convert_with_links(action)
-
-    @wsme_pecan.wsexpose(Action, body=Action, status_code=HTTPStatus.CREATED)
-    def post(self, action):
-        """Create a new action(forbidden).
-
-        :param action: a action within the request body.
-        """
-        # FIXME: blueprint edit-action-plan-flow
-        raise exception.OperationNotPermitted(
-            _("Cannot create an action directly"))
-
-        if self.from_actions:
-            raise exception.OperationNotPermitted
-
-        action_dict = action.as_dict()
-        context = pecan.request.context
-        new_action = objects.Action(context, **action_dict)
-        new_action.create()
-
-        # Set the HTTP Location Header
-        pecan.response.location = link.build_url('actions', new_action.uuid)
-        return Action.convert_with_links(new_action)
-
-    @wsme.validate(types.uuid, [ActionPatchType])
-    @wsme_pecan.wsexpose(Action, types.uuid, body=[ActionPatchType])
-    def patch(self, action_uuid, patch):
-        """Update an existing action(forbidden).
-
-        :param action_uuid: UUID of a action.
-        :param patch: a json PATCH document to apply to this action.
-        """
-        # FIXME: blueprint edit-action-plan-flow
-        raise exception.OperationNotPermitted(
-            _("Cannot modify an action directly"))
-
-        if self.from_actions:
-            raise exception.OperationNotPermitted
-
-        action_to_update = objects.Action.get_by_uuid(pecan.request.context,
-                                                      action_uuid)
-        try:
-            action_dict = action_to_update.as_dict()
-            action = Action(**api_utils.apply_jsonpatch(action_dict, patch))
-        except api_utils.JSONPATCH_EXCEPTIONS as e:
-            raise exception.PatchError(patch=patch, reason=e)
-
-        # Update only the fields that have changed
-        for field in objects.Action.fields:
-            try:
-                patch_val = getattr(action, field)
-            except AttributeError:
-                # Ignore fields that aren't exposed in the API
-                continue
-            if patch_val == wtypes.Unset:
-                patch_val = None
-            if action_to_update[field] != patch_val:
-                action_to_update[field] = patch_val
-
-        action_to_update.save()
-        return Action.convert_with_links(action_to_update)
-
-    @wsme_pecan.wsexpose(None, types.uuid, status_code=HTTPStatus.NO_CONTENT)
-    def delete(self, action_uuid):
-        """Delete a action(forbidden).
-
-        :param action_uuid: UUID of a action.
-        """
-        # FIXME: blueprint edit-action-plan-flow
-        raise exception.OperationNotPermitted(
-            _("Cannot delete an action directly"))
-
-        action_to_delete = objects.Action.get_by_uuid(
-            pecan.request.context,
-            action_uuid)
-        action_to_delete.soft_delete()
