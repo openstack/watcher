@@ -1,0 +1,7 @@
+---
+other:
+  - |
+    The Watcher Overload Standard Deviation algorithm is now referred to in the
+    documentation as the Workload Stabilization Strategy. The documentation of
+    this strategy has been enhanced to clarify and better explain the usage of
+    parameters.
