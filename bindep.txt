@@ -12,3 +12,12 @@ python3-all-dev [platform:dpkg test]
 python3 [platform:rpm test]
 python3-devel [platform:rpm test]
 sqlite-devel [platform:rpm test]
+# gettext and graphviz are needed by doc builds only.
+gettext [doc]
+graphviz [doc]
+# fonts-freefont-otf is needed for pdf docs builds with the 'xelatex' engine
+fonts-freefont-otf [pdf-docs]
+texlive [pdf-docs]
+texlive-latex-recommended [pdf-docs]
+texlive-xetex [pdf-docs]
+latexmk [pdf-docs]
