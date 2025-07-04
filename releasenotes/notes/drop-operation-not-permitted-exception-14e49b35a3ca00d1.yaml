@@ -1,0 +1,9 @@
+---
+other:
+  - |
+    Removed unused ``OperationNotPermitted`` exception that was dead code
+    since the initial import of the Watcher codebase. This exception was
+    not used anywhere in the REST API controllers except for preventing
+    goal removal from audit templates. The functionality has been replaced
+    with the standard ``wsme.exc.ClientSideError`` exception, which provides
+    the appropriate 400 Bad Request response behavior.

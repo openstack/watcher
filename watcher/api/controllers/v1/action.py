@@ -230,10 +230,6 @@ class ActionsController(rest.RestController):
     def __init__(self):
         super(ActionsController, self).__init__()
 
-    from_actions = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Actions."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -351,9 +347,6 @@ class ActionsController(rest.RestController):
 
         :param action_uuid: UUID of a action.
         """
-        if self.from_actions:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         action = api_utils.get_resource('Action', action_uuid)
         policy.enforce(context, 'action:get', action, action='action:get')

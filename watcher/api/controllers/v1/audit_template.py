@@ -208,7 +208,7 @@ class AuditTemplatePatchType(types.JsonPatchType):
         if patch.path == "/goal" and patch.op != "remove":
             AuditTemplatePatchType._validate_goal(patch)
         elif patch.path == "/goal" and patch.op == "remove":
-            raise exception.OperationNotPermitted(
+            raise wsme.exc.ClientSideError(
                 _("Cannot remove 'goal' attribute "
                   "from an audit template"))
         if patch.path == "/strategy":
@@ -479,10 +479,6 @@ class AuditTemplatesController(rest.RestController):
     def __init__(self):
         super(AuditTemplatesController, self).__init__()
 
-    from_audit_templates = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource AuditTemplates."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -606,9 +602,6 @@ class AuditTemplatesController(rest.RestController):
 
         :param audit_template: UUID or name of an audit template.
         """
-        if self.from_audit_templates:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         rpc_audit_template = api_utils.get_resource('AuditTemplate',
                                                     audit_template)
@@ -626,9 +619,6 @@ class AuditTemplatesController(rest.RestController):
         :param audit_template_postdata: the audit template POST data
                                         from the request body.
         """
-        if self.from_audit_templates:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         policy.enforce(context, 'audit_template:create',
                        action='audit_template:create')
@@ -654,9 +644,6 @@ class AuditTemplatesController(rest.RestController):
         :param template_uuid: UUID of a audit template.
         :param patch: a json PATCH document to apply to this audit template.
         """
-        if self.from_audit_templates:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         audit_template_to_update = api_utils.get_resource('AuditTemplate',
                                                           audit_template)

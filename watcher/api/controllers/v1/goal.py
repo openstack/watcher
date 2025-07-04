@@ -157,10 +157,6 @@ class GoalsController(rest.RestController):
     def __init__(self):
         super(GoalsController, self).__init__()
 
-    from_goals = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Goals."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -232,9 +228,6 @@ class GoalsController(rest.RestController):
 
         :param goal: UUID or name of the goal.
         """
-        if self.from_goals:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         rpc_goal = api_utils.get_resource('Goal', goal)
         policy.enforce(context, 'goal:get', rpc_goal, action='goal:get')

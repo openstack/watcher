@@ -179,10 +179,6 @@ class ServicesController(rest.RestController):
     def __init__(self):
         super(ServicesController, self).__init__()
 
-    from_services = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Services."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -253,9 +249,6 @@ class ServicesController(rest.RestController):
 
         :param service: ID or name of the service.
         """
-        if self.from_services:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         rpc_service = api_utils.get_resource('Service', service)
         policy.enforce(context, 'service:get', rpc_service,
