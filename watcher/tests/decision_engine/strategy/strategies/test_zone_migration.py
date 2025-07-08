@@ -12,13 +12,11 @@
 # limitations under the License.
 
 import collections
+import fixtures
 from unittest import mock
 
 import cinderclient
 import novaclient
-from watcher.common import cinder_helper
-from watcher.common import clients
-from watcher.common import nova_helper
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.decision_engine.model import faker_cluster_state
@@ -42,105 +40,49 @@ class TestZoneMigration(TestBaseStrategy):
         self.m_s_model = p_s_model.start()
         self.addCleanup(p_s_model.stop)
 
-        p_migrate_compute_nodes = mock.patch.object(
-            strategies.ZoneMigration, "migrate_compute_nodes",
-            new_callable=mock.PropertyMock)
-        self.m_migrate_compute_nodes = p_migrate_compute_nodes.start()
-        self.addCleanup(p_migrate_compute_nodes.stop)
-
-        p_migrate_storage_pools = mock.patch.object(
-            strategies.ZoneMigration, "migrate_storage_pools",
-            new_callable=mock.PropertyMock)
-        self.m_migrate_storage_pools = p_migrate_storage_pools.start()
-        self.addCleanup(p_migrate_storage_pools.stop)
-
-        p_parallel_total = mock.patch.object(
-            strategies.ZoneMigration, "parallel_total",
-            new_callable=mock.PropertyMock)
-        self.m_parallel_total = p_parallel_total.start()
-        self.addCleanup(p_parallel_total.stop)
-
-        p_parallel_per_node = mock.patch.object(
-            strategies.ZoneMigration, "parallel_per_node",
-            new_callable=mock.PropertyMock)
-        self.m_parallel_per_node = p_parallel_per_node.start()
-        self.addCleanup(p_parallel_per_node.stop)
-
-        p_parallel_per_pool = mock.patch.object(
-            strategies.ZoneMigration, "parallel_per_pool",
-            new_callable=mock.PropertyMock)
-        self.m_parallel_per_pool = p_parallel_per_pool.start()
-        self.addCleanup(p_parallel_per_pool.stop)
-
-        p_priority = mock.patch.object(
-            strategies.ZoneMigration, "priority",
-            new_callable=mock.PropertyMock
-        )
-        self.m_priority = p_priority.start()
-        self.addCleanup(p_priority.stop)
-
-        p_with_attached_volume = mock.patch.object(
-            strategies.ZoneMigration, "with_attached_volume",
-            new_callable=mock.PropertyMock
-        )
-        self.m_with_attached_volume = p_with_attached_volume.start()
-        self.addCleanup(p_with_attached_volume.stop)
-
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
 
         model = self.fake_s_cluster.generate_scenario_1()
         self.m_s_model.return_value = model
 
-        self.m_parallel_total.return_value = 6
-        self.m_parallel_per_node.return_value = 2
-        self.m_parallel_per_pool.return_value = 2
-        self.m_audit_scope.return_value = mock.Mock()
-        self.m_migrate_compute_nodes.return_value = [
-            {"src_node": "src1", "dst_node": "dst1"},
-            {"src_node": "src2", "dst_node": "dst2"}
-        ]
-        self.m_migrate_storage_pools.return_value = [
-            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
-             "src_type": "type1", "dst_type": "type1"},
-            {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
-             "src_type": "type2", "dst_type": "type3"}
-        ]
-        self.m_with_attached_volume.return_value = False
-
-        p_with_attached_volume = mock.patch.object(
-            strategies.ZoneMigration, "with_attached_volume",
-            new_callable=mock.PropertyMock)
-        self.m_with_attached_volume = p_with_attached_volume.start()
-        self.addCleanup(p_with_attached_volume.stop)
-        self.m_with_attached_volume.return_value = False
+        self.input_parameters = {
+            "storage_pools": [
+                {"src_pool": "src1@back1#pool1",
+                 "dst_pool": "dst1@back1#pool1",
+                 "src_type": "type1", "dst_type": "type1"},
+                {"src_pool": "src2@back1#pool1",
+                 "dst_pool": "dst2@back2#pool1",
+                 "src_type": "type2", "dst_type": "type3"}
+            ],
+            "compute_nodes": [
+                {"src_node": "src1", "dst_node": "dst1"},
+                {"src_node": "src2", "dst_node": "dst2"}
+            ],
+            "parallel_per_node": 2,
+            "parallel_per_pool": 2,
+            "parallel_total": 6,
+            "with_attached_volume": False
+        }
 
         self.strategy = strategies.ZoneMigration(
             config=mock.Mock())
+        self.strategy.input_parameters = self.input_parameters
 
-        self.m_osc_cls = mock.Mock()
-        self.m_osc = mock.Mock(spec=clients.OpenStackClients)
-        self.m_osc_cls.return_value = self.m_osc
-        m_openstack_clients = mock.patch.object(
-            clients, "OpenStackClients", self.m_osc_cls)
-        m_openstack_clients.start()
-        self.addCleanup(m_openstack_clients.stop)
+        self.m_osc = self.useFixture(
+            fixtures.MockPatch(
+                "watcher.common.clients.OpenStackClients",
+                autospec=True)).mock.return_value
 
-        self.m_n_helper_cls = mock.Mock()
-        self.m_n_helper = mock.Mock(spec=nova_helper.NovaHelper)
-        self.m_n_helper_cls.return_value = self.m_n_helper
-        m_nova_helper = mock.patch.object(
-            nova_helper, "NovaHelper", self.m_n_helper_cls)
-        m_nova_helper.start()
-        self.addCleanup(m_nova_helper.stop)
+        self.m_n_helper = self.useFixture(
+            fixtures.MockPatch(
+                "watcher.common.nova_helper.NovaHelper",
+                autospec=False)).mock.return_value
 
-        self.m_c_helper_cls = mock.Mock()
-        self.m_c_helper = mock.Mock(spec=cinder_helper.CinderHelper)
-        self.m_c_helper_cls.return_value = self.m_c_helper
-        m_cinder_helper = mock.patch.object(
-            cinder_helper, "CinderHelper", self.m_c_helper_cls)
-        m_cinder_helper.start()
-        self.addCleanup(m_cinder_helper.stop)
+        self.m_c_helper = self.useFixture(
+            fixtures.MockPatch(
+                "watcher.common.cinder_helper.CinderHelper",
+                autospec=False)).mock.return_value
 
     @staticmethod
     def fake_instance(**kwargs):
@@ -254,7 +196,7 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src2,
             volume_on_src3,
         ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "dst_type": "type1"},
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -293,8 +235,20 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # src1,src4 is in volumes
-        # src2,src3 is not in volumes
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # src1 is in volumes since it has volume type "type1" and host
+        # "src1@back1#pool1" which matches the default input parameters
+        # for storage_pools
+        # src4 is in volumes since it has volume type "type2" and host
+        # "src2@back1#pool1" which matches the default input parameters
+        # for storage_pools
+        # src2 is not in volumes since it has volume type "type2" and host
+        # "src2@back1#pool1" which does not match the default input parameters
+        # for storage_pools
+        # src3 is not in volumes since it has volume type "type1" and host
+        # "src2@back1#pool1" which does not match the default input parameters
+        # for storage_pools
         self.assertIn(volume_on_src1, volumes)
         self.assertIn(volume_on_src4, volumes)
         self.assertNotIn(volume_on_src3, volumes)
@@ -324,8 +278,19 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # src1,src3 is in volumes
-        # src2,src4 is not in volumes
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # src1 is in volumes since it has volume type "type1" and host
+        # "src1@back1#pool1" which
+        # matches the default input parameters for storage_pools
+        # src3 is in volumes since it has volume type "type1" and host
+        # "src1@back1#pool1" which
+        # matches the default input parameters for storage_pools
+        # src2 is not in volumes since it has volume type "type2" and host
+        # "src1@back1#pool1" which
+        # does not match the default input parameters for storage_pools
+        # src4 is not in volumes since it has volume type "type3" which
+        # does not match the default input parameters for storage_pools
         self.assertIn(volume_on_src1, volumes)
         self.assertIn(volume_on_src3, volumes)
         self.assertNotIn(volume_on_src4, volumes)
@@ -346,7 +311,7 @@ class TestZoneMigration(TestBaseStrategy):
                                           id=volume_uuid_mapping["volume_0"],
                                           volume_type="type2",
                                           name="volume_4")
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -361,7 +326,10 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # all volumes are selected
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # all volumes are selected since they match the src_pool and src_type
+        # in the input parameters
         self.assertIn(volume_on_src1, volumes)
         self.assertIn(volume_on_src3, volumes)
         self.assertIn(volume_on_src4, volumes)
@@ -380,7 +348,7 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_0"],
                                           name="volume_0")
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -395,7 +363,10 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # all volumes are selected
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # all volumes are selected since they match the src_pool and src_type
+        # in the input parameters
         self.assertIn(volume_on_src1, volumes)
         self.assertIn(volume_on_src3, volumes)
         self.assertIn(volume_on_src4, volumes)
@@ -420,7 +391,10 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # no volumes are selected
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # no volumes are selected since none of the volumes match the src_pool
+        # and src_type in the input parameters
         self.assertEqual(len(volumes), 0)
 
     def test_get_volumes_duplicated_input(self):
@@ -437,7 +411,7 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_0"],
                                           name="volume_4")
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -452,8 +426,16 @@ class TestZoneMigration(TestBaseStrategy):
 
         volumes = self.strategy.get_volumes()
 
-        # src4 is in volumes
-        # src1, src2, src3 are not in volumes
+        self.m_c_helper.get_volume_list.assert_called_once_with()
+
+        # src4 is in volumes since it has volume type "type1" and host
+        # "src2@back1#pool1" which matches the default input parameters for
+        # storage_pools
+        # src1, src2 are not in volumes since they are in host
+        # "src1@back1#pool1" which does not match the test input parameters for
+        # storage_pools
+        # src3 is not in volumes since it has volume type "type2" which
+        # does not match the test input parameters for storage_pools
         self.assertIn(volume_on_src4, volumes)
         self.assertNotIn(volume_on_src1, volumes)
         self.assertNotIn(volume_on_src2, volumes)
@@ -492,7 +474,7 @@ class TestZoneMigration(TestBaseStrategy):
             instance_on_src1,
         ]
         self.m_c_helper.get_volume_list.return_value = []
-        self.m_migrate_compute_nodes.return_value = [{"src_node": "src1"}]
+        self.input_parameters["compute_nodes"] = [{"src_node": "src1"}]
         solution = self.strategy.execute()
         migration_params = solution.actions[0]['input_parameters']
         # since we have not passed 'dst_node' in the input, we should not have
@@ -547,12 +529,10 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src1,
 
             ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1",
-             "src_type": "type1",
-             "dst_type": "type1"},
-
-            ]
+             "src_type": "type1", "dst_type": "type1"},
+        ]
         self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
         # check that there are no volume migrations proposed, because the input
@@ -567,7 +547,7 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src1,
 
             ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1",
              "src_type": "type1",
              "dst_pool": "back2",
@@ -602,13 +582,16 @@ class TestZoneMigration(TestBaseStrategy):
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
             ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1",
              "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             ]
-        self.m_migrate_compute_nodes.return_value = None
-        self.m_with_attached_volume.return_value = True
+        self.input_parameters["compute_nodes"] = None
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1,
+        ]
+        self.input_parameters["with_attached_volume"] = True
 
         # check that the solution contains one volume migration and no
         # instance migration, once the bug is fixed
@@ -679,7 +662,7 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src2,
             volume_on_src3
         ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "dst_type": "type1"},
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -785,7 +768,7 @@ class TestZoneMigration(TestBaseStrategy):
                                           id=volume_uuid_mapping["volume_0"],
                                           volume_type="type2",
                                           name="volume_4")
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -824,7 +807,7 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src4 = self.fake_volume(host="src2@back1#pool1",
                                           id=volume_uuid_mapping["volume_0"],
                                           name="volume_0")
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
             {"src_pool": "src2@back1#pool1", "dst_pool": "dst2@back2#pool1",
@@ -896,7 +879,7 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_parallel_per_node(self):
-        self.m_parallel_per_node.return_value = 1
+        self.input_parameters["parallel_per_node"] = 1
 
         instance_on_src1_1 = self.fake_instance(
             host="src1",
@@ -946,7 +929,7 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_parallel_per_pool(self):
-        self.m_parallel_per_pool.return_value = 1
+        self.input_parameters["parallel_per_pool"] = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
                                             id=volume_uuid_mapping["volume_1"],
@@ -971,8 +954,8 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(50.0, global_efficacy_value)
 
     def test_execute_parallel_total(self):
-        self.m_parallel_total.return_value = 1
-        self.m_parallel_per_pool.return_value = 1
+        self.input_parameters["parallel_total"] = 1
+        self.input_parameters["parallel_per_pool"] = 1
 
         volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
                                             id=volume_uuid_mapping["volume_1"],
@@ -1027,10 +1010,10 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src2_1,
         ]
 
-        self.m_migrate_compute_nodes.return_value = [
+        self.input_parameters["compute_nodes"] = [
             {"src_node": "src1", "dst_node": "dst1"},
         ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
         ]
@@ -1127,15 +1110,14 @@ class TestZoneMigration(TestBaseStrategy):
         volume_on_src1_1.attachments = [{"server_id": "INSTANCE_3",
                                         "attachment_id": "attachment1"}]
 
-        self.m_migrate_compute_nodes.return_value = [
+        self.input_parameters["compute_nodes"] = [
             {"src_node": "src1", "dst_node": "dst1"},
         ]
-        self.m_migrate_storage_pools.return_value = [
+        self.input_parameters["storage_pools"] = [
             {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
              "src_type": "type1", "dst_type": "type1"},
         ]
-
-        self.m_with_attached_volume.return_value = True
+        self.input_parameters["with_attached_volume"] = True
 
         self.m_n_helper.find_instance.return_value = instance_on_src1_3
 
@@ -1226,7 +1208,7 @@ class TestZoneMigration(TestBaseStrategy):
     # priority filter #
 
     def test_get_priority_filter_list(self):
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "project": ["pj1"],
             "compute_node": ["compute1", "compute2"],
             "compute": ["cpu_num"],
@@ -1264,7 +1246,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "compute_node": ["src1", "src2"],
         }
 
@@ -1293,7 +1275,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_n_helper.get_instance_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "storage_pool": ["src1@back1#pool1", "src2@back1#pool1"],
         }
 
@@ -1338,7 +1320,7 @@ class TestZoneMigration(TestBaseStrategy):
             volume_on_src3,
         ]
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "project": ["pj1"],
         }
 
@@ -1377,7 +1359,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "compute": ["mem_size"],
         }
 
@@ -1409,7 +1391,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "compute": ["vcpu_num"],
         }
 
@@ -1441,7 +1423,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "compute": ["disk_size"],
         }
 
@@ -1467,7 +1449,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_c_helper.get_volume_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "compute": ["created_at"],
         }
 
@@ -1502,7 +1484,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_n_helper.get_instance_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "storage": ["size"]
         }
 
@@ -1532,7 +1514,7 @@ class TestZoneMigration(TestBaseStrategy):
 
         self.m_n_helper.get_instance_list.return_value = []
 
-        self.m_priority.return_value = {
+        self.input_parameters["priority"] = {
             "storage": ["created_at"]
         }
 
