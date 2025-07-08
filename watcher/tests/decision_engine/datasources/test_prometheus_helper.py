@@ -242,7 +242,7 @@ class TestPrometheusHelper(base.BaseTestCase):
         self.assertEqual(expected_cpu_usage, result_cpu)
         self.assertIsInstance(result_cpu, float)
         mock_prometheus_query.assert_called_once_with(
-            "clamp_max((avg by (instance)(rate("
+            "clamp_max((avg by (resource)(rate("
             "ceilometer_cpu{resource='uuid-0'}[300s]))"
             "/10e+8) *(100/2), 100)"
         )
@@ -644,7 +644,7 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_build_prometheus_query_instance_cpu_avg_agg(self):
         expected_query = (
-            "clamp_max((avg by (instance)(rate("
+            "clamp_max((avg by (resource)(rate("
             "ceilometer_cpu{resource='uuid-0'}[222s]))"
             "/10e+8) *(100/2), 100)"
         )
@@ -655,7 +655,7 @@ class TestPrometheusHelper(base.BaseTestCase):
 
     def test_build_prometheus_query_instance_cpu_max_agg(self):
         expected_query = (
-            "clamp_max((max by (instance)(rate("
+            "clamp_max((max by (resource)(rate("
             "ceilometer_cpu{resource='uuid-0'}[555s]))"
             "/10e+8) *(100/4), 100)"
         )
@@ -699,7 +699,7 @@ class TestPrometheusHelper(base.BaseTestCase):
     def test_prometheus_query_custom_uuid_label(self, mock_prometheus_get):
         cfg.CONF.prometheus_client.instance_uuid_label = 'custom_uuid_label'
         expected_query = (
-            "clamp_max((max by (instance)"
+            "clamp_max((max by (custom_uuid_label)"
             "(rate(ceilometer_cpu{custom_uuid_label='uuid-0'}[555s]))"
             "/10e+8) *(100/4), 100)"
         )

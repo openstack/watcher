@@ -343,10 +343,12 @@ class PrometheusHelper(base.DataSourceBase):
                 )
                 vcpus = 1
             query_args = (
-                "clamp_max((%s by (instance)(rate(%s{%s='%s'}[%ss]))/10e+8) "
-                "*(100/%s), 100)" %
-                (aggregate, meter, uuid_label_key, instance_label, period,
-                 vcpus)
+                "clamp_max((%(agg)s by (%(label)s)"
+                "(rate(%(meter)s{%(label)s='%(label_value)s'}[%(period)ss]))"
+                "/10e+8) *(100/%(vcpus)s), 100)"
+                % {'label': uuid_label_key, 'label_value': instance_label,
+                   'agg': aggregate, 'meter': meter, 'period': period,
+                   'vcpus': vcpus}
             )
         else:
             raise exception.InvalidParameter(
