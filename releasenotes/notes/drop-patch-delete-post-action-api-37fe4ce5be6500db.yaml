@@ -1,0 +1,6 @@
+---
+other:
+  - |
+    The `DELETE`, `POST` and `Patch` REST methods for the `action` APIs
+    are forbidden and not implemented. They are now now removed from
+    the API controller.
