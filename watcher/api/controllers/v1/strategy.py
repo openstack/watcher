@@ -200,10 +200,6 @@ class StrategiesController(rest.RestController):
     def __init__(self):
         super(StrategiesController, self).__init__()
 
-    from_strategies = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Strategies."""
-
     _custom_actions = {
         'detail': ['GET'],
         'state': ['GET'],
@@ -327,9 +323,6 @@ class StrategiesController(rest.RestController):
 
         :param strategy: UUID or name of the strategy.
         """
-        if self.from_strategies:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         rpc_strategy = api_utils.get_resource('Strategy', strategy)
         policy.enforce(context, 'strategy:get', rpc_strategy,

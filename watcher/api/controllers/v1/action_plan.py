@@ -337,10 +337,6 @@ class ActionPlansController(rest.RestController):
         super(ActionPlansController, self).__init__()
         self.applier_client = rpcapi.ApplierAPI()
 
-    from_actionsPlans = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource ActionPlan."""
-
     _custom_actions = {
         'start': ['POST'],
         'detail': ['GET']
@@ -450,9 +446,6 @@ class ActionPlansController(rest.RestController):
 
         :param action_plan_uuid: UUID of a action plan.
         """
-        if self.from_actionsPlans:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         action_plan = api_utils.get_resource('ActionPlan', action_plan_uuid)
         policy.enforce(
@@ -492,9 +485,6 @@ class ActionPlansController(rest.RestController):
         :param action_plan_uuid: UUID of a action plan.
         :param patch: a json PATCH document to apply to this action plan.
         """
-        if self.from_actionsPlans:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         action_plan_to_update = api_utils.get_resource(
             'ActionPlan', action_plan_uuid, eager=True)

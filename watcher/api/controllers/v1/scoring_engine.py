@@ -149,10 +149,6 @@ class ScoringEngineController(rest.RestController):
     def __init__(self):
         super(ScoringEngineController, self).__init__()
 
-    from_scoring_engines = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Scoring Engines."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -240,10 +236,6 @@ class ScoringEngineController(rest.RestController):
         context = pecan.request.context
         policy.enforce(context, 'scoring_engine:get',
                        action='scoring_engine:get')
-
-        if self.from_scoring_engines:
-            raise exception.OperationNotPermitted
-
         rpc_scoring_engine = api_utils.get_resource(
             'ScoringEngine', scoring_engine)
 

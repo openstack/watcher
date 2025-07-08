@@ -479,10 +479,6 @@ class AuditsController(rest.RestController):
         super(AuditsController, self).__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()
 
-    from_audits = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource Audits."""
-
     _custom_actions = {
         'detail': ['GET'],
     }
@@ -594,9 +590,6 @@ class AuditsController(rest.RestController):
 
         :param audit: UUID or name of an audit.
         """
-        if self.from_audits:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         rpc_audit = api_utils.get_resource('Audit', audit)
         policy.enforce(context, 'audit:get', rpc_audit, action='audit:get')
@@ -614,9 +607,6 @@ class AuditsController(rest.RestController):
         policy.enforce(context, 'audit:create',
                        action='audit:create')
         audit = audit_p.as_audit(context)
-
-        if self.from_audits:
-            raise exception.OperationNotPermitted
 
         strategy_uuid = audit.strategy_uuid
         no_schema = True
@@ -673,9 +663,6 @@ class AuditsController(rest.RestController):
         :param audit: UUID or name of an audit.
         :param patch: a json PATCH document to apply to this audit.
         """
-        if self.from_audits:
-            raise exception.OperationNotPermitted
-
         context = pecan.request.context
         audit_to_update = api_utils.get_resource(
             'Audit', audit, eager=True)

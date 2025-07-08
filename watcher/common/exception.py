@@ -127,10 +127,6 @@ class PolicyNotAuthorized(NotAuthorized):
     msg_fmt = _("Policy doesn't allow %(action)s to be performed.")
 
 
-class OperationNotPermitted(NotAuthorized):
-    msg_fmt = _("Operation not permitted")
-
-
 class Invalid(WatcherException, ValueError):
     msg_fmt = _("Unacceptable parameters")
     code = HTTPStatus.BAD_REQUEST

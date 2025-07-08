@@ -505,7 +505,7 @@ class TestPatch(FunctionalTestWithSetup):
             '/audit_templates/%s' % self.audit_template.uuid,
             [{'path': '/goal', 'op': 'remove'}],
             expect_errors=True)
-        self.assertEqual(HTTPStatus.FORBIDDEN, response.status_code)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
 

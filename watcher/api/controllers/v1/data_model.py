@@ -36,10 +36,6 @@ class DataModelController(rest.RestController):
     def __init__(self):
         super(DataModelController, self).__init__()
 
-    from_data_model = False
-    """A flag to indicate if the requests to this controller are coming
-    from the top-level resource DataModel."""
-
     @wsme_pecan.wsexpose(wtypes.text, wtypes.text, types.uuid)
     def get_all(self, data_model_type='compute', audit_uuid=None):
         """Retrieve information about the given data model.
@@ -53,8 +49,6 @@ class DataModelController(rest.RestController):
         """
         if not utils.allow_list_datamodel():
             raise exception.NotAcceptable
-        if self.from_data_model:
-            raise exception.OperationNotPermitted
         allowed_data_model_type = [
             'compute',
             ]
