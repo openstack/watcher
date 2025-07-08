@@ -21,7 +21,6 @@ from oslo_serialization import jsonutils
 from sqlalchemy import Boolean
 from sqlalchemy import Column
 from sqlalchemy import DateTime
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Float
 from sqlalchemy import ForeignKey
 from sqlalchemy import Integer
@@ -94,7 +93,7 @@ class WatcherBase(models.SoftDeleteMixin,
         return d
 
 
-Base = declarative_base(cls=WatcherBase)
+Base = orm.declarative_base(cls=WatcherBase)
 
 
 class Goal(Base):
