@@ -278,6 +278,14 @@
       devstack_localrc:
         'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
 
+- job:
+    name: openstack-tox-py312-threading
+    parent: openstack-tox-py312
+    description: |
+      Run tox with the py3-threading environment.
+    vars:
+      tox_envlist: py3-threading
+
 - project:
     queue: watcher
     templates:
@@ -288,6 +296,7 @@
       - release-notes-jobs-python3
     check:
       jobs:
+        - openstack-tox-py312-threading
         - watcher-tempest-functional
         - watcher-grenade
         - watcher-tempest-strategies
