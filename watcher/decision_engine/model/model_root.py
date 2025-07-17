@@ -17,9 +17,11 @@ Openstack implementation of the cluster graph.
 """
 
 import ast
+
 from lxml import etree  # nosec: B410
 import networkx as nx
 from oslo_concurrency import lockutils
+from oslo_config import cfg
 from oslo_log import log
 
 from watcher._i18n import _
@@ -28,6 +30,7 @@ from watcher.decision_engine.model import base
 from watcher.decision_engine.model import element
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class ModelRoot(nx.DiGraph, base.Model):
@@ -36,11 +39,23 @@ class ModelRoot(nx.DiGraph, base.Model):
     def __init__(self, stale=False):
         super(ModelRoot, self).__init__()
         self.stale = stale
+        self._extended_attributes_enabled = None
 
     def __nonzero__(self):
         return not self.stale
 
     __bool__ = __nonzero__
+
+    @property
+    def extended_attributes_enabled(self):
+        if self._extended_attributes_enabled is None:
+            self._extended_attributes_enabled = (
+                CONF.compute_model.enable_extended_attributes)
+        return self._extended_attributes_enabled
+
+    @extended_attributes_enabled.setter
+    def extended_attributes_enabled(self, value):
+        self._extended_attributes_enabled = value
 
     @staticmethod
     def assert_node(obj):

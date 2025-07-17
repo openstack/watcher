@@ -203,3 +203,13 @@ def allow_skipped_action():
     """
     return pecan.request.version.minor >= (
         versions.VERSIONS.MINOR_5_SKIPPED_ACTION.value)
+
+
+def allow_list_extend_compute_model():
+    """Check if it should list extended compute model attributes.
+
+    Version 1.6 of the API added support to additional attributes
+    to the compute data model.
+    """
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_6_EXT_COMPUTE_MODEL.value)

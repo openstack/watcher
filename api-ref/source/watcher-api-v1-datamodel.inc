@@ -45,6 +45,8 @@ Response
     - server_project_id: server_project_id
     - server_locked: server_locked
     - server_uuid: server_uuid
+    - server_pinned_az: server_pinned_az
+    - server_flavor_extra_specs: server_flavor_extra_specs
     - node_hostname: node_hostname
     - node_status: node_status
     - node_disabled_reason: node_disabled_reason

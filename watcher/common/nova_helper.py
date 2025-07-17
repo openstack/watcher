@@ -43,6 +43,19 @@ class NovaHelper(object):
         self.cinder = self.osc.cinder()
         self.nova = self.osc.nova()
         self.glance = self.osc.glance()
+        self._is_pinned_az_available = None
+
+    def is_pinned_az_available(self):
+        """Check if pinned AZ is available in GET /servers/detail response.
+
+        :returns: True if is available, False otherwise.
+        """
+        if self._is_pinned_az_available is None:
+            self._is_pinned_az_available = (
+                api_versions.APIVersion(
+                    version_str=CONF.nova_client.api_version) >=
+                api_versions.APIVersion(version_str='2.96'))
+        return self._is_pinned_az_available
 
     def get_compute_node_list(self):
         hypervisors = self.nova.hypervisors.list()

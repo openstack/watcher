@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    The compute model was extended with additional server attributes to provide
+    more detailed information about compute instances. These additions will
+    enable strategies to make more precise decisions by considering more server
+    placement constraints. The new attributes are ``flavor extra specs`` and
+    ``pinned availability zone``. Each new attribute depends on a minimal
+    microversion to be supported in nova and configured in the watcher
+    configuration, at ``nova_client`` section. Please refer to the nova api-ref
+    documentation for more details on which microversion is required:
+    https://docs.openstack.org/api-ref/compute/
+    A new configuration option was added to allow the user to enable or disable
+    the extended attributes collection, which is disabled by default.

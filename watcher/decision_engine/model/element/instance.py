@@ -54,6 +54,9 @@ class Instance(compute_resource.ComputeResource):
         "metadata": wfields.JsonField(),
         "project_id": wfields.UUIDField(),
         "locked": wfields.BooleanField(default=False),
+        # New fields for extended compute model
+        "pinned_az": wfields.StringField(default=""),
+        "flavor_extra_specs": wfields.JsonField(default={}),
     }
 
     def accept(self, visitor):

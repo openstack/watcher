@@ -11,6 +11,10 @@
             "server_project_id": "baea342fc74b4a1785b4a40c69a8d958",
             "server_locked":false,
             "server_uuid": "1bf91464-9b41-428d-a11e-af691e5563bb",
+            "server_pinned_az": "nova",
+            "server_flavor_extra_specs": {
+                "hw_rng:allowed": true
+            },
             "node_hostname": "localhost.localdomain",
             "node_status": "enabled",
             "node_disabled_reason": null,
@@ -37,6 +41,8 @@
             "server_project_id": "baea342fc74b4a1785b4a40c69a8d958",
             "server_locked": false,
             "server_uuid": "e2cb5f6f-fa1d-4ba2-be1e-0bf02fa86ba4",
+            "server_pinned_az": "nova",
+            "server_flavor_extra_specs": {},
             "node_hostname": "localhost.localdomain",
             "node_status": "enabled",
             "node_disabled_reason": null,
