@@ -10,3 +10,4 @@ Contribution Guide
    devstack
    testing
    rally_link
+   release-guide
