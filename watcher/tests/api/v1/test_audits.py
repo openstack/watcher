@@ -827,17 +827,45 @@ class TestPost(api_base.FunctionalTest):
         self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_with_missing_parameter(
+            self, mock_trigger_audit):
+        mock_trigger_audit.return_value = mock.ANY
+        audit_template = self.prepare_audit_template_strategy_with_parameter()
+
+        audit_dict = api_utils.audit_post_data(
+            parameters={})
+
+        audit_dict['audit_template_uuid'] = audit_template['uuid']
+        del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
+                    'scope', 'next_run_time', 'hostname']
+        for k in del_keys:
+            del audit_dict[k]
+
+        response = self.post_json('/audits', audit_dict, expect_errors=True)
+        # (amoralej) This should return HTTPStatus.BAD_REQUEST, however this
+        # review is adding the test to show wrong code is returned. I will
+        # switch this to be HTTPStatus.BAD_REQUEST in the fixing review.
+        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
+        self.assertEqual("application/json", response.content_type)
+        # (amoralej) uncomment with the fix
+        # expected_error_msg = (
+        #    "Invalid parameters for strategy: 'fake1' is a required property")
+        # self.assertTrue(response.json['error_message'])
+        # self.assertIn(expected_error_msg, response.json['error_message'])
+        assert not mock_trigger_audit.called
+
     def prepare_audit_template_strategy_with_parameter(self):
         fake_spec = {
             "properties": {
                 "fake1": {
                     "description": "number parameter example",
                     "type": "number",
-                    "default": 3.2,
                     "minimum": 1.0,
                     "maximum": 10.2,
                 }
-            }
+            },
+            'required': ['fake1']
         }
         template_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a67'
         strategy_uuid = 'e74c40e0-d825-11e2-a28f-0800200c9a68'
