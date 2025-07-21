@@ -114,6 +114,11 @@ class AuditPostType(wtypes.Base):
         if self.audit_type not in audit_type_values:
             raise exception.AuditTypeNotFound(audit_type=self.audit_type)
 
+        if not self.audit_template_uuid and not self.goal:
+            message = _(
+                'A valid goal or audit_template_id must be provided')
+            raise exception.Invalid(message)
+
         if (self.audit_type == objects.audit.AuditType.ONESHOT.value and
                 self.interval not in (wtypes.Unset, None)):
             raise exception.AuditIntervalNotAllowed(audit_type=self.audit_type)
@@ -611,11 +616,6 @@ class AuditsController(rest.RestController):
 
         if self.from_audits:
             raise exception.OperationNotPermitted
-
-        if not audit._goal_uuid:
-            raise exception.Invalid(
-                message=_('A valid goal_id or audit_template_id '
-                          'must be provided'))
 
         strategy_uuid = audit.strategy_uuid
         no_schema = True
