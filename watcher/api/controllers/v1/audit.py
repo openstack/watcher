@@ -33,6 +33,7 @@ import datetime
 from dateutil import tz
 
 from http import HTTPStatus
+import jsonschema
 from oslo_log import log
 from oslo_utils import timeutils
 import pecan
@@ -627,8 +628,12 @@ class AuditsController(rest.RestController):
             if schema:
                 # validate input parameter with default value feedback
                 no_schema = False
-                utils.StrictDefaultValidatingDraft4Validator(schema).validate(
-                    audit.parameters)
+                try:
+                    utils.StrictDefaultValidatingDraft4Validator(
+                        schema).validate(audit.parameters)
+                except jsonschema.exceptions.ValidationError as e:
+                    raise exception.Invalid(
+                        _('Invalid parameters for strategy: %s') % e)
 
         if no_schema and audit.parameters:
             raise exception.Invalid(_('Specify parameters but no predefined '

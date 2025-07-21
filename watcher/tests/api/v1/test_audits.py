@@ -843,16 +843,12 @@ class TestPost(api_base.FunctionalTest):
             del audit_dict[k]
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
-        # (amoralej) This should return HTTPStatus.BAD_REQUEST, however this
-        # review is adding the test to show wrong code is returned. I will
-        # switch this to be HTTPStatus.BAD_REQUEST in the fixing review.
-        self.assertEqual(HTTPStatus.INTERNAL_SERVER_ERROR, response.status_int)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
-        # (amoralej) uncomment with the fix
-        # expected_error_msg = (
-        #    "Invalid parameters for strategy: 'fake1' is a required property")
-        # self.assertTrue(response.json['error_message'])
-        # self.assertIn(expected_error_msg, response.json['error_message'])
+        expected_error_msg = (
+            "Invalid parameters for strategy: 'fake1' is a required property")
+        self.assertTrue(response.json['error_message'])
+        self.assertIn(expected_error_msg, response.json['error_message'])
         assert not mock_trigger_audit.called
 
     def prepare_audit_template_strategy_with_parameter(self):
