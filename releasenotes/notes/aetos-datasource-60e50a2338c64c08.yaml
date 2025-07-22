@@ -1,0 +1,13 @@
+---
+features:
+  - |
+    A new Aetos data source is added. This allows the watcher decision
+    engine to collect metrics through an Aetos reverse proxy server which
+    provides multi-tenant aware access to Prometheus with Keystone
+    authentication and role-based access control. The Aetos datasource
+    uses Keystone service discovery to automatically locate the Aetos
+    endpoint and provides enhanced security compared to direct Prometheus
+    access. For more information about the Aetos data source, including
+    configuration options see
+    https://docs.openstack.org/watcher/latest/datasources/aetos.html
+

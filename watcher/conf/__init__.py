@@ -19,6 +19,7 @@
 
 from oslo_config import cfg
 
+from watcher.conf import aetos_client
 from watcher.conf import api
 from watcher.conf import applier
 from watcher.conf import cinder_client
@@ -47,6 +48,7 @@ from watcher.conf import service
 CONF = cfg.CONF
 
 service.register_opts(CONF)
+aetos_client.register_opts(CONF)
 api.register_opts(CONF)
 paths.register_opts(CONF)
 exception.register_opts(CONF)

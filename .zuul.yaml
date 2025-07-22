@@ -265,9 +265,40 @@
           node_exporter: false
 
 - job:
+    name: watcher-aetos-integration
+    parent: watcher-sg-core-tempest-base
+    description: |
+      This job tests Watcher with Aetos reverse-proxy for Prometheus
+      using Keystone authentication instead of direct Prometheus access.
+    required-projects:
+      - openstack/python-observabilityclient
+      - openstack/aetos
+    vars: &aetos_vars
+      devstack_plugins:
+        ceilometer: https://opendev.org/openstack/ceilometer
+        sg-core: https://github.com/openstack-k8s-operators/sg-core
+        watcher: https://opendev.org/openstack/watcher
+        devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
+        aetos: https://opendev.org/openstack/aetos
+      devstack_local_conf:
+        post-config:
+          $WATCHER_CONF:
+            watcher_datasources:
+              datasources: aetos
+            aetos_client:
+              interface: public
+              region_name: RegionOne
+              fqdn_label: fqdn
+              instance_uuid_label: resource
+        test-config:
+          $TEMPEST_CONFIG:
+            optimize:
+              datasource: prometheus
+
+- job:
     name: watcher-prometheus-integration-realdata
     parent: watcher-sg-core-tempest-base
-    vars:
+    vars: &realdata_vars
       devstack_services:
         ceilometer-acompute: true
         node_exporter: true
@@ -282,7 +313,7 @@
       # All tests inside watcher_tempest_plugin.tests.scenario with tag "real_load"
       tempest_test_regex: (^watcher_tempest_plugin.tests.scenario)(.*\[.*\breal_load\b.*\].*)
       tempest_exclude_regex: ""
-    group-vars:
+    group-vars: &realdata_group_vars
       subnode:
         devstack_services:
           ceilometer-acompute: true
@@ -305,6 +336,12 @@
     vars:
       tox_envlist: py3-threading
 
+- job:
+    name: watcher-aetos-integration-realdata
+    parent: watcher-aetos-integration
+    vars: *realdata_vars
+    group-vars: *realdata_group_vars
+
 - project:
     queue: watcher
     templates:
@@ -326,6 +363,7 @@
         - watcher-tempest-functional-ipv6-only
         - watcher-prometheus-integration
         - watcher-prometheus-integration-threading
+        - watcher-aetos-integration
     gate:
       jobs:
         - watcher-tempest-functional
@@ -333,6 +371,8 @@
     experimental:
       jobs:
         - watcher-prometheus-integration-realdata
+        - watcher-aetos-integration-realdata
     periodic-weekly:
       jobs:
         - watcher-prometheus-integration-realdata
+        - watcher-aetos-integration-realdata

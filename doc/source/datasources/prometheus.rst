@@ -30,7 +30,7 @@ identify the exporter host (for example ``hostname`` or ``host``, or any other
 label, as long as it identifies the host).
 
 Internally this label is used in creating ``fqdn_instance_labels``, containing
-the list of values assigned to the the label in the Prometheus targets.
+the list of values assigned to the label in the Prometheus targets.
 The elements of the resulting fqdn_instance_labels are expected to match the
 ``ComputeNode.hostname`` used in the Watcher decision engine cluster model.
 An example ``fqdn_instance_labels`` is the following:
@@ -47,7 +47,7 @@ For instance metrics, it is required that Prometheus contains a label
 with the uuid of the OpenStack instance in each relevant metric. By default,
 the datasource will look for the label ``resource``. The
 ``instance_uuid_label`` config option in watcher.conf allows deployers to
-override this default to any other label name that stores the  ``uuid``.
+override this default to any other label name that stores the ``uuid``.
 
 Limitations
 -----------

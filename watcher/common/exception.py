@@ -512,3 +512,8 @@ class NotificationPayloadError(WatcherException):
 
 class InvalidPoolAttributeValue(Invalid):
     msg_fmt = _("The %(name)s pool %(attribute)s is not integer")
+
+
+class DataSourceConfigConflict(UnsupportedError):
+    msg_fmt = _("Datasource %(datasource_one)s is not supported "
+                "when datasource %(datasource_two)s is also enabled.")

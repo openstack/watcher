@@ -18,6 +18,7 @@
 
 from oslo_config import cfg
 
+from watcher.decision_engine.datasources import aetos
 from watcher.decision_engine.datasources import manager
 
 datasources = cfg.OptGroup(name='watcher_datasources',
@@ -25,6 +26,12 @@ datasources = cfg.OptGroup(name='watcher_datasources',
                                  ' datasources')
 
 possible_datasources = list(manager.DataSourceManager.metric_map.keys())
+
+# NOTE(jwysogla): Having the Aetos and Prometheus datasources specified at the
+# same time raises a DataSourceConfigConflict exception. So remove the Aetos
+# datasource from the list to have a valid default configuration.
+default_datasources = list(possible_datasources)
+default_datasources.remove(aetos.AetosHelper.NAME)
 
 DATASOURCES_OPTS = [
     cfg.ListOpt("datasources",
@@ -34,7 +41,7 @@ DATASOURCES_OPTS = [
                      " the default for all strategies unless a strategy has a"
                      " specific override.",
                 item_type=cfg.types.String(choices=possible_datasources),
-                default=possible_datasources),
+                default=default_datasources),
     cfg.IntOpt('query_max_retries',
                min=1,
                default=10,

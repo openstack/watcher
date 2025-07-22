@@ -19,10 +19,12 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from watcher.common import exception
+from watcher.decision_engine.datasources import aetos
 from watcher.decision_engine.datasources import gnocchi
 from watcher.decision_engine.datasources import grafana
 from watcher.decision_engine.datasources import manager as ds_manager
 from watcher.decision_engine.datasources import monasca
+from watcher.decision_engine.datasources import prometheus
 from watcher.tests import base
 
 
@@ -156,3 +158,48 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertRaises(exception.InvalidParameter, manager.get_backend, [])
         self.assertRaises(exception.InvalidParameter, manager.get_backend,
                           None)
+
+    def test_datasource_validation_prometheus_and_aetos_conflict(self):
+        """Test having both prometheus and aetos datasources raises error"""
+        conflicting_datasources = [
+            prometheus.PrometheusHelper.NAME,
+            aetos.AetosHelper.NAME
+        ]
+        dsmcfg = self._dsm_config(datasources=conflicting_datasources)
+
+        self.assertRaises(
+            exception.DataSourceConfigConflict,
+            self._dsm,
+            config=dsmcfg
+        )
+
+    def test_datasource_validation_single_prometheus_ok(self):
+        """Test that having only prometheus datasource works"""
+        prometheus_datasource = [prometheus.PrometheusHelper.NAME]
+        dsmcfg = self._dsm_config(datasources=prometheus_datasource)
+
+        # Should not raise any exception
+        manager = self._dsm(config=dsmcfg)
+        self.assertIsNotNone(manager)
+
+    def test_datasource_validation_single_aetos_ok(self):
+        """Test that having only aetos datasource works"""
+        aetos_datasource = [aetos.AetosHelper.NAME]
+        dsmcfg = self._dsm_config(datasources=aetos_datasource)
+
+        # Should not raise any exception
+        manager = self._dsm(config=dsmcfg)
+        self.assertIsNotNone(manager)
+
+    def test_datasource_validation_mixed_datasources_ok(self):
+        """Test mixing aetos with other non-prometheus datasources works"""
+        mixed_datasources = [
+            aetos.AetosHelper.NAME,
+            gnocchi.GnocchiHelper.NAME,
+            monasca.MonascaHelper.NAME
+        ]
+        dsmcfg = self._dsm_config(datasources=mixed_datasources)
+
+        # Should not raise any exception
+        manager = self._dsm(config=dsmcfg)
+        self.assertIsNotNone(manager)

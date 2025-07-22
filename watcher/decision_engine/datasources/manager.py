@@ -21,6 +21,7 @@ from oslo_config import cfg
 from oslo_log import log
 
 from watcher.common import exception
+from watcher.decision_engine.datasources import aetos
 from watcher.decision_engine.datasources import gnocchi as gnoc
 from watcher.decision_engine.datasources import grafana as graf
 from watcher.decision_engine.datasources import monasca as mon
@@ -36,6 +37,7 @@ class DataSourceManager(object):
         (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
         (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
         (prom.PrometheusHelper.NAME, prom.PrometheusHelper.METRIC_MAP),
+        (aetos.AetosHelper.NAME, aetos.AetosHelper.METRIC_MAP),
     ])
     """Dictionary with all possible datasources, dictionary order is
     the default order for attempting to use datasources
@@ -48,6 +50,7 @@ class DataSourceManager(object):
         self._gnocchi = None
         self._grafana = None
         self._prometheus = None
+        self._aetos = None
 
         # Dynamically update grafana metric map, only available at runtime
         # The metric map can still be overridden by a yaml config file
@@ -66,6 +69,24 @@ class DataSourceManager(object):
         if self.datasources and mon.MonascaHelper.NAME in self.datasources:
             LOG.warning('The monasca datasource is deprecated and will be '
                         'removed in a future release.')
+
+        self._validate_datasource_config()
+
+    def _validate_datasource_config(self):
+        """Validate datasource configuration
+
+        Checks for configuration conflicts, such as having both prometheus
+        and aetos datasources configured simultaneously.
+        """
+        if (self.datasources and
+                prom.PrometheusHelper.NAME in self.datasources and
+                aetos.AetosHelper.NAME in self.datasources):
+            LOG.error("Configuration error: Cannot use both prometheus "
+                      "and aetos datasources simultaneously.")
+            raise exception.DataSourceConfigConflict(
+                datasource_one=prom.PrometheusHelper.NAME,
+                datasource_two=aetos.AetosHelper.NAME
+            )
 
     @property
     def monasca(self):
@@ -106,6 +127,16 @@ class DataSourceManager(object):
     @prometheus.setter
     def prometheus(self, prometheus):
         self._prometheus = prometheus
+
+    @property
+    def aetos(self):
+        if self._aetos is None:
+            self._aetos = aetos.AetosHelper(osc=self.osc)
+        return self._aetos
+
+    @aetos.setter
+    def aetos(self, aetos):
+        self._aetos = aetos
 
     def get_backend(self, metrics):
         """Determine the datasource to use from the configuration
