@@ -420,9 +420,21 @@ links:
   type: array
 
 # Data Model Node
+node_disabled_reason:
+  description: |
+    The Disabled Reason of the node.
+  in: body
+  required: true
+  type: string
 node_disk:
   description: |
     The Disk of the node(in GiB).
+  in: body
+  required: true
+  type: integer
+node_disk_gb_reserved:
+  description: |
+    The Disk Reserved of the node (in GiB).
   in: body
   required: true
   type: integer
@@ -444,6 +456,12 @@ node_memory:
   in: body
   required: true
   type: integer
+node_memory_mb_reserved:
+  description: |
+    The Memory Reserved of the node(in MiB).
+  in: body
+  required: true
+  type: integer
 node_memory_ratio:
   description: |
     The Memory Ratio of the node.
@@ -453,6 +471,12 @@ node_memory_ratio:
 node_state:
   description: |
     The State of the node. The value is up or down.
+  in: body
+  required: true
+  type: string
+node_status:
+  description: |
+    The Status of the node.
   in: body
   required: true
   type: string
@@ -468,13 +492,18 @@ node_vcpu_ratio:
   in: body
   required: true
   type: float
+node_vcpu_reserved:
+  description: |
+    The Vcpu Reserved of the node.
+  in: body
+  required: true
+  type: integer
 node_vcpus:
   description: |
     The Vcpu of the node.
   in: body
   required: true
   type: integer
-
 # Scoring Engine
 scoring_engine_description:
   description: |
@@ -502,15 +531,33 @@ server_disk:
   in: body
   required: true
   type: integer
+server_locked:
+  description: |
+    Whether the server is locked.
+  in: body
+  required: true
+  type: boolean
 server_memory:
   description: |
     The Memory of server.
   in: body
   required: true
   type: integer
+server_metadata:
+  description: |
+    The metadata associated with the server.
+  in: body
+  required: true
+  type: JSON
 server_name:
   description: |
     The Name of the server.
+  in: body
+  required: true
+  type: string
+server_project_id:
+  description: |
+    The project ID of the server.
   in: body
   required: true
   type: string
@@ -532,6 +579,12 @@ server_vcpus:
   in: body
   required: true
   type: integer
+server_watcher_exclude:
+  description: |
+    Whether the server is excluded from the scope.
+  in: body
+  required: true
+  type: boolean
 # Service
 service_host:
   description: |

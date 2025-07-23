@@ -35,21 +35,30 @@ Response
 
 .. rest_parameters:: parameters.yaml
 
-    - server_uuid: server_uuid
+    - server_watcher_exclude: server_watcher_exclude
     - server_name: server_name
-    - server_vcpus: server_vcpus
+    - server_state: server_state
     - server_memory: server_memory
     - server_disk: server_disk
-    - server_state: server_state
-    - node_uuid: node_uuid
+    - server_vcpus: server_vcpus
+    - server_metadata: server_metadata
+    - server_project_id: server_project_id
+    - server_locked: server_locked
+    - server_uuid: server_uuid
     - node_hostname: node_hostname
-    - node_vcpus: node_vcpus
-    - node_vcpu_ratio: node_vcpu_ratio
-    - node_memory: node_memory
-    - node_memory_ratio: node_memory_ratio
-    - node_disk: node_disk
-    - node_disk_ratio: node_disk_ratio
+    - node_status: node_status
+    - node_disabled_reason: node_disabled_reason
     - node_state: node_state
+    - node_memory: node_memory
+    - node_memory_mb_reserved: node_memory_mb_reserved
+    - node_disk: node_disk
+    - node_disk_gb_reserved: node_disk_gb_reserved
+    - node_vcpus: node_vcpus
+    - node_vcpu_reserved: node_vcpu_reserved
+    - node_memory_ratio: node_memory_ratio
+    - node_vcpu_ratio: node_vcpu_ratio
+    - node_disk_ratio: node_disk_ratio
+    - node_uuid: node_uuid
 
 **Example JSON representation of a Data Model:**
 

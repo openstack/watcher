@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Fix API reference documentation for ``GET /infra-optim/v1/data_model``,
+    to include all missing fields from the response body. Please see
+    `Bug 2117726 <https://bugs.launchpad.net/watcher/+bug/2117726>`_ for
+    more details.
