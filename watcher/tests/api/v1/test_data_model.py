@@ -18,8 +18,10 @@ from unittest import mock
 from http import HTTPStatus
 from oslo_serialization import jsonutils
 
+from watcher.api.controllers.v1 import versions
 from watcher.decision_engine import rpcapi as deapi
 from watcher.tests.api import base as api_base
+from watcher.tests.decision_engine.model import faker_cluster_state
 
 
 class TestListDataModel(api_base.FunctionalTest):
@@ -44,6 +46,82 @@ class TestListDataModel(api_base.FunctionalTest):
             headers={'OpenStack-API-Version': 'infra-optim 1.2'},
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
+
+
+class TestListDataModelResponse(api_base.FunctionalTest):
+
+    NODE_FIELDS_1_3 = [
+        'node_disabled_reason',
+        'node_hostname',
+        'node_status',
+        'node_state',
+        'node_memory',
+        'node_memory_mb_reserved',
+        'node_disk',
+        'node_disk_gb_reserved',
+        'node_vcpus',
+        'node_vcpu_reserved',
+        'node_memory_ratio',
+        'node_vcpu_ratio',
+        'node_disk_ratio',
+        'node_uuid'
+    ]
+
+    SERVER_FIELDS_1_3 = [
+        'server_watcher_exclude',
+        'server_name',
+        'server_state',
+        'server_memory',
+        'server_disk',
+        'server_vcpus',
+        'server_metadata',
+        'server_project_id',
+        'server_locked',
+        'server_uuid'
+    ]
+
+    NODE_FIELDS_LATEST = NODE_FIELDS_1_3
+    SERVER_FIELDS_LATEST = SERVER_FIELDS_1_3
+
+    def setUp(self):
+        super(TestListDataModelResponse, self).setUp()
+        p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
+        self.mock_dcapi = p_dcapi.start()
+        self.addCleanup(p_dcapi.stop)
+
+    def test_model_list_compute_no_instance(self):
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_11_with_1_node_no_instance()
+        get_model_resp = {'context': model.to_list()}
+
+        self.mock_dcapi().get_data_model_info.return_value = get_model_resp
+        infra_max_version = 'infra-optim ' + versions.max_version_string()
+        response = self.get_json(
+            '/data_model/?data_model_type=compute',
+            headers={'OpenStack-API-Version': infra_max_version})
+
+        server_info = response.get("context")[0]
+        expected_keys = self.NODE_FIELDS_LATEST
+
+        self.assertEqual(len(response.get("context")), 1)
+        self.assertEqual(set(expected_keys), set(server_info.keys()))
+
+    def test_model_list_compute_with_instances(self):
+        fake_cluster = faker_cluster_state.FakerModelCollector()
+        model = fake_cluster.generate_scenario_11_with_2_nodes_2_instances()
+        get_model_resp = {'context': model.to_list()}
+
+        self.mock_dcapi().get_data_model_info.return_value = get_model_resp
+        infra_max_version = 'infra-optim ' + versions.max_version_string()
+        response = self.get_json(
+            '/data_model/?data_model_type=compute',
+            headers={'OpenStack-API-Version': infra_max_version})
+
+        server_info = response.get("context")[0]
+        expected_keys = self.NODE_FIELDS_LATEST + self.SERVER_FIELDS_LATEST
+
+        self.assertEqual(len(response.get("context")), 2)
+        self.assertEqual(set(expected_keys), set(server_info.keys()))
 
 
 class TestDataModelPolicyEnforcement(api_base.FunctionalTest):

@@ -174,6 +174,12 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
     def generate_scenario_10(self):
         return self.load_model('scenario_10.xml')
 
+    def generate_scenario_11_with_1_node_no_instance(self):
+        return self.load_model('scenario_11_with_1_node_no_instance.xml')
+
+    def generate_scenario_11_with_2_nodes_2_instances(self):
+        return self.load_model('scenario_11_with_2_nodes_2_instances.xml')
+
 
 class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
