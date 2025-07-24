@@ -1,0 +1,14 @@
+---
+features:
+  - |
+    Three new parameters have been added to the ``nop`` action:
+
+    * ``fail_pre_condition``: When setting it to `true` the action
+      fails on the pre_condition execution.
+
+    * ``fail_execute``: When setting it to `true` the action fails
+      on the execute step.
+
+    * ``fail_post_condition``: When setting it to `true` the action
+      fails on the post_condition execution.
+

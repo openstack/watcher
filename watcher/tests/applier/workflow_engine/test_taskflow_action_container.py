@@ -91,6 +91,63 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             self.engine.context, action.uuid)
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
 
+    def test_execute_with_failed_execute(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_execute': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+        action_container.execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+
+    def test_pre_execute_with_failed_pre_condition(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_pre_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+
+    def test_post_execute_with_failed_post_condition(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_post_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+        action_container.post_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+
     @mock.patch('eventlet.spawn')
     def test_execute_with_cancel_action_plan(self, mock_eventlet_spawn):
         action_plan = obj_utils.create_test_action_plan(
