@@ -85,6 +85,23 @@ class MyPatchType(types.JsonPatchType):
         return ['/internal']
 
 
+class MyAllowedPatchType(types.JsonPatchType):
+    """Helper class for TestJsonPatchType tests."""
+
+    @staticmethod
+    def mandatory_attrs():
+        return ['/mandatory']
+
+    @staticmethod
+    def internal_attrs():
+        return ['/internal']
+
+    @staticmethod
+    def allowed_attrs():
+        allowed_fields = ['/allowed', '/internal', '/mandatory']
+        return allowed_fields
+
+
 class MyRoot(wsme.WSRoot):
     """Helper class for TestJsonPatchType tests."""
 
@@ -182,6 +199,59 @@ class TestJsonPatchType(base.TestCase):
 
     def test_cannot_replace_with_no_value(self):
         patch = [{'path': '/foo', 'op': 'replace'}]
+        ret = self._patch_json(patch, True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, ret.status_int)
+        self.assertTrue(ret.json['faultstring'])
+
+
+class MyAllowedRoot(wsme.WSRoot):
+    """Helper class for TestJsonPatchType tests."""
+
+    @wsme.expose([wsme.types.text], body=[MyAllowedPatchType])
+    @wsme.validate([MyAllowedPatchType])
+    def test(self, patch):
+        return patch
+
+
+class TestAllowedJsonPatchType(base.TestCase):
+
+    def setUp(self):
+        super(TestAllowedJsonPatchType, self).setUp()
+        self.app = webtest.TestApp(MyAllowedRoot(['restjson']).wsgiapp())
+
+    def _patch_json(self, params, expect_errors=False):
+        return self.app.patch_json(
+            '/test',
+            params=params,
+            headers={'Accept': 'application/json'},
+            expect_errors=expect_errors
+        )
+
+    def test_not_allowed_patches(self):
+        patch = [{'path': '/foo', 'value': 'bar', 'op': 'replace'}]
+        ret = self._patch_json(patch, True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, ret.status_int)
+        self.assertTrue(ret.json['faultstring'])
+
+    def test_mandatory_attr(self):
+        patch = [{'op': 'replace', 'path': '/mandatory', 'value': 'foo'}]
+        ret = self._patch_json(patch, False)
+        self.assertEqual(HTTPStatus.OK, ret.status_int)
+        self.assertEqual(patch, ret.json)
+
+    def test_cannot_remove_mandatory_attr(self):
+        patch = [{'op': 'remove', 'path': '/mandatory'}]
+        ret = self._patch_json(patch, True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, ret.status_int)
+        self.assertTrue(ret.json['faultstring'])
+
+    def test_allowed_attributes(self):
+        patch = [{'path': '/allowed', 'value': 'bar', 'op': 'replace'}]
+        ret = self._patch_json(patch, True)
+        self.assertEqual(HTTPStatus.OK, ret.status_int)
+
+    def test_cannot_update_internal_attr(self):
+        patch = [{'path': '/internal', 'op': 'replace', 'value': 'foo'}]
         ret = self._patch_json(patch, True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, ret.status_int)
         self.assertTrue(ret.json['faultstring'])

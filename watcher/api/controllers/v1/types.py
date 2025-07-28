@@ -212,8 +212,19 @@ class JsonPatchType(wtypes.Base):
         return []
 
     @staticmethod
+    def allowed_attrs():
+        """Returns a list of allowed attributes to be patched."""
+        return []
+
+    @staticmethod
     def validate(patch):
         _path = '/{0}'.format(patch.path.split('/')[1])
+        if len(patch.allowed_attrs()) > 0:
+            if _path not in patch.allowed_attrs():
+                msg = _("'%s' is not an allowed attribute and can not be "
+                        "updated")
+                raise wsme.exc.ClientSideError(msg % patch.path)
+
         if _path in patch.internal_attrs():
             msg = _("'%s' is an internal attribute and can not be updated")
             raise wsme.exc.ClientSideError(msg % patch.path)
