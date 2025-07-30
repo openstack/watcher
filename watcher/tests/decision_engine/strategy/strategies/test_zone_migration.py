@@ -17,6 +17,7 @@ from unittest import mock
 
 import cinderclient
 import novaclient
+from watcher.common import exception as watcher_exception
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.decision_engine.model import faker_cluster_state
@@ -156,6 +157,40 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertIn(instance_on_src1, instances)
         self.assertIn(instance_on_src2, instances)
         self.assertNotIn(instance_on_src3, instances)
+
+    def test_get_instances_with_instance_not_found(self):
+        # Create a test instance without a known id
+        # so we expect it to not be in the model
+        instance_on_src1 = self.fake_instance(
+            host="src1",
+            name="INSTANCE_1")
+
+        # Mock nova helper to return our test instance
+        self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
+
+        # FIXME(dviroel): Fix this test together with bug #2098984
+        # It should return an empty list and not raise an exception
+        # Verify that the instance does not exist in the model
+        # instances = self.strategy.get_instances()
+        # self.assertEqual([], instances)
+
+        self.assertRaises(
+            watcher_exception.InstanceNotFound,
+            self.strategy.get_instances)
+
+    def test_get_volumes_with_volume_not_found(self):
+        # Create a test volume without an known id
+        # so we expect it to not be in the model
+        volume_on_src1 = self.fake_volume(
+            host="src1@back1#pool1",
+            name="volume_1")
+
+        # Mock cinder helper to return our tets volume
+        self.m_c_helper.get_volume_list.return_value = [volume_on_src1]
+
+        # Call get_volumes and verify the volume does not exist in the model
+        volumes = self.strategy.get_volumes()
+        self.assertEqual([], volumes)
 
     def test_get_volumes(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
