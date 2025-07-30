@@ -17,7 +17,6 @@ from unittest import mock
 
 import cinderclient
 import novaclient
-from watcher.common import exception as watcher_exception
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.decision_engine.model import faker_cluster_state
@@ -168,15 +167,9 @@ class TestZoneMigration(TestBaseStrategy):
         # Mock nova helper to return our test instance
         self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
 
-        # FIXME(dviroel): Fix this test together with bug #2098984
-        # It should return an empty list and not raise an exception
         # Verify that the instance does not exist in the model
-        # instances = self.strategy.get_instances()
-        # self.assertEqual([], instances)
-
-        self.assertRaises(
-            watcher_exception.InstanceNotFound,
-            self.strategy.get_instances)
+        instances = self.strategy.get_instances()
+        self.assertEqual([], instances)
 
     def test_get_volumes_with_volume_not_found(self):
         # Create a test volume without an known id

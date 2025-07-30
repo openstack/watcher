@@ -540,7 +540,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
         return [i for i in self.nova.get_instance_list()
                 if getattr(i, 'OS-EXT-SRV-ATTR:host') in src_node_list and
-                self.compute_model.get_instance_by_uuid(i.id)]
+                self.compute_model.has_node(i.id)]
 
     def get_volumes(self):
         """Get migrate target volumes
