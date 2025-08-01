@@ -38,6 +38,9 @@ if is_service_enabled watcher-api watcher-decision-engine watcher-applier; then
         # Start the watcher components
         echo_summary "Starting watcher"
         start_watcher
+    elif [[ "$1" == "stack" && "$2" == "test-config" ]]; then
+        echo_summary "Configuring tempest for watcher"
+        configure_tempest_for_watcher
     fi
 
     if [[ "$1" == "unstack" ]]; then

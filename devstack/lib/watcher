@@ -341,6 +341,19 @@ function stop_watcher {
     done
 }
 
+# configure_tempest_for_watcher() - Configure Tempest for watcher
+function configure_tempest_for_watcher {
+    # Set default microversion for watcher-tempest-plugin
+    # Please make sure to update this when the microversion is updated, otherwise
+    # new tests may be skipped.
+    TEMPEST_WATCHER_MIN_MICROVERSION=${TEMPEST_WATCHER_MIN_MICROVERSION:-"1.0"}
+    TEMPEST_WATCHER_MAX_MICROVERSION=${TEMPEST_WATCHER_MAX_MICROVERSION:-"1.4"}
+
+    # Set microversion options in tempest.conf
+    iniset $TEMPEST_CONFIG optimize min_microversion $TEMPEST_WATCHER_MIN_MICROVERSION
+    iniset $TEMPEST_CONFIG optimize max_microversion $TEMPEST_WATCHER_MAX_MICROVERSION
+}
+
 # Restore xtrace
 $_XTRACE_WATCHER
 
