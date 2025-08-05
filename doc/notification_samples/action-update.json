@@ -18,10 +18,12 @@
         "watcher_object.name": "ActionStateUpdatePayload",
         "watcher_object.data": {
           "old_state": "PENDING",
-          "state": "ONGOING"
+          "state": "ONGOING",
+          "status_message": null
         }
       },
       "state": "ONGOING",
+      "status_message": null,
       "action_plan": {
         "watcher_object.namespace": "watcher",
         "watcher_object.version": "1.0",
@@ -32,6 +34,7 @@
           "created_at": "2016-10-18T09:52:05Z",
           "updated_at": null,
           "state": "ONGOING",
+          "status_message": null,
           "audit_uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
           "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
           "deleted_at": null

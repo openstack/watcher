@@ -59,7 +59,8 @@ class TestActionNotification(base.DbTestCase):
         action = utils.create_test_action(
             mock.Mock(), state=objects.action.State.ONGOING,
             action_type='nop', input_parameters={'param1': 1, 'param2': 2},
-            parents=[], action_plan_id=self.action_plan.id)
+            parents=[], action_plan_id=self.action_plan.id,
+            status_message="Test status message")
         notifications.action.send_update(
             mock.MagicMock(), action, host='node0',
             old_state=objects.action.State.PENDING)
@@ -74,7 +75,7 @@ class TestActionNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 'watcher_object.namespace': 'watcher',
-                'watcher_object.version': '1.0',
+                'watcher_object.version': '1.1',
                 'watcher_object.name': 'ActionUpdatePayload',
                 'watcher_object.data': {
                     'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -86,17 +87,18 @@ class TestActionNotification(base.DbTestCase):
                     'updated_at': None,
                     'state_update': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.0',
+                        'watcher_object.version': '1.1',
                         'watcher_object.name': 'ActionStateUpdatePayload',
                         'watcher_object.data': {
                             'old_state': 'PENDING',
-                            'state': 'ONGOING'
+                            'state': 'ONGOING',
+                            'status_message': 'Test status message'
                         }
                     },
                     'state': 'ONGOING',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.1',
+                        'watcher_object.version': '1.2',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -108,12 +110,14 @@ class TestActionNotification(base.DbTestCase):
                                           '-91cf-eff046dbdb8d',
                             'strategy_uuid': 'cb3d0b58-4415-4d90'
                                              '-b75b-1e96878730e3',
-                            'deleted_at': None
+                            'deleted_at': None,
+                            'status_message': None
                         }
                     },
                     'parents': [],
                     'action_type': 'nop',
-                    'deleted_at': None
+                    'deleted_at': None,
+                    'status_message': 'Test status message'
                 }
             },
             payload
@@ -135,7 +139,7 @@ class TestActionNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 'watcher_object.namespace': 'watcher',
-                'watcher_object.version': '1.0',
+                'watcher_object.version': '1.1',
                 'watcher_object.name': 'ActionCreatePayload',
                 'watcher_object.data': {
                     'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -148,7 +152,7 @@ class TestActionNotification(base.DbTestCase):
                     'state': 'PENDING',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.1',
+                        'watcher_object.version': '1.2',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -160,12 +164,14 @@ class TestActionNotification(base.DbTestCase):
                                           '-91cf-eff046dbdb8d',
                             'strategy_uuid': 'cb3d0b58-4415-4d90'
                                              '-b75b-1e96878730e3',
-                            'deleted_at': None
+                            'deleted_at': None,
+                            'status_message': None
                         }
                     },
                     'parents': [],
                     'action_type': 'nop',
-                    'deleted_at': None
+                    'deleted_at': None,
+                    'status_message': None
                 }
             },
             payload
@@ -189,7 +195,7 @@ class TestActionNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 'watcher_object.namespace': 'watcher',
-                'watcher_object.version': '1.0',
+                'watcher_object.version': '1.1',
                 'watcher_object.name': 'ActionDeletePayload',
                 'watcher_object.data': {
                     'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -202,7 +208,7 @@ class TestActionNotification(base.DbTestCase):
                     'state': 'DELETED',
                     'action_plan': {
                         'watcher_object.namespace': 'watcher',
-                        'watcher_object.version': '1.1',
+                        'watcher_object.version': '1.2',
                         'watcher_object.name': 'TerseActionPlanPayload',
                         'watcher_object.data': {
                             'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -214,12 +220,14 @@ class TestActionNotification(base.DbTestCase):
                                           '-91cf-eff046dbdb8d',
                             'strategy_uuid': 'cb3d0b58-4415-4d90'
                                              '-b75b-1e96878730e3',
-                            'deleted_at': None
+                            'deleted_at': None,
+                            'status_message': None
                         }
                     },
                     'parents': [],
                     'action_type': 'nop',
-                    'deleted_at': None
+                    'deleted_at': None,
+                    'status_message': None
                 }
             },
             payload
@@ -244,7 +252,7 @@ class TestActionNotification(base.DbTestCase):
                 'event_type': 'action.execution.start',
                 'payload': {
                     'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.0',
+                    'watcher_object.version': '1.1',
                     'watcher_object.name': 'ActionExecutionPayload',
                     'watcher_object.data': {
                         'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -258,7 +266,7 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'PENDING',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.1',
+                            'watcher_object.version': '1.2',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -270,12 +278,14 @@ class TestActionNotification(base.DbTestCase):
                                               '-91cf-eff046dbdb8d',
                                 'strategy_uuid': 'cb3d0b58-4415-4d90'
                                                  '-b75b-1e96878730e3',
-                                'deleted_at': None
+                                'deleted_at': None,
+                                'status_message': None
                             }
                         },
                         'parents': [],
                         'action_type': 'nop',
-                        'deleted_at': None
+                        'deleted_at': None,
+                        'status_message': None
                     }
                 }
             },
@@ -283,11 +293,13 @@ class TestActionNotification(base.DbTestCase):
         )
 
     def test_send_action_execution_with_error(self):
+        self.action_plan.status_message = 'Action plan status message'
+        self.action_plan.save()
         action = utils.create_test_action(
             mock.Mock(), state=objects.action.State.FAILED,
             action_type='nop', input_parameters={'param1': 1, 'param2': 2},
-            parents=[], action_plan_id=self.action_plan.id)
-
+            parents=[], action_plan_id=self.action_plan.id,
+            status_message='Action status message')
         try:
             # This is to load the exception in sys.exc_info()
             raise exception.WatcherException("TEST")
@@ -304,7 +316,7 @@ class TestActionNotification(base.DbTestCase):
                 'event_type': 'action.execution.error',
                 'payload': {
                     'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.0',
+                    'watcher_object.version': '1.1',
                     'watcher_object.name': 'ActionExecutionPayload',
                     'watcher_object.data': {
                         'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -331,24 +343,26 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'FAILED',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.1',
+                            'watcher_object.version': '1.2',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
                                 'global_efficacy': [],
                                 'created_at': '2016-10-18T09:52:05Z',
-                                'updated_at': None,
+                                'updated_at': '2016-10-18T09:52:05Z',
                                 'state': 'ONGOING',
                                 'audit_uuid': '10a47dd1-4874-4298'
                                               '-91cf-eff046dbdb8d',
                                 'strategy_uuid': 'cb3d0b58-4415-4d90'
                                                  '-b75b-1e96878730e3',
-                                'deleted_at': None
+                                'deleted_at': None,
+                                'status_message': 'Action plan status message'
                             }
                         },
                         'parents': [],
                         'action_type': 'nop',
-                        'deleted_at': None
+                        'deleted_at': None,
+                        'status_message': 'Action status message'
                     }
                 }
             },
@@ -374,7 +388,7 @@ class TestActionNotification(base.DbTestCase):
                 'event_type': 'action.cancel.start',
                 'payload': {
                     'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.0',
+                    'watcher_object.version': '1.1',
                     'watcher_object.name': 'ActionCancelPayload',
                     'watcher_object.data': {
                         'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -388,7 +402,7 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'PENDING',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.1',
+                            'watcher_object.version': '1.2',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -400,12 +414,14 @@ class TestActionNotification(base.DbTestCase):
                                               '-91cf-eff046dbdb8d',
                                 'strategy_uuid': 'cb3d0b58-4415-4d90'
                                                  '-b75b-1e96878730e3',
-                                'deleted_at': None
+                                'deleted_at': None,
+                                'status_message': None
                             }
                         },
                         'parents': [],
                         'action_type': 'nop',
-                        'deleted_at': None
+                        'deleted_at': None,
+                        'status_message': None
                     }
                 }
             },
@@ -434,7 +450,7 @@ class TestActionNotification(base.DbTestCase):
                 'event_type': 'action.cancel.error',
                 'payload': {
                     'watcher_object.namespace': 'watcher',
-                    'watcher_object.version': '1.0',
+                    'watcher_object.version': '1.1',
                     'watcher_object.name': 'ActionCancelPayload',
                     'watcher_object.data': {
                         'uuid': '10a47dd1-4874-4298-91cf-eff046dbdb8d',
@@ -461,7 +477,7 @@ class TestActionNotification(base.DbTestCase):
                         'state': 'FAILED',
                         'action_plan': {
                             'watcher_object.namespace': 'watcher',
-                            'watcher_object.version': '1.1',
+                            'watcher_object.version': '1.2',
                             'watcher_object.name': 'TerseActionPlanPayload',
                             'watcher_object.data': {
                                 'uuid': '76be87bd-3422-43f9-93a0-e85a577e3061',
@@ -473,12 +489,14 @@ class TestActionNotification(base.DbTestCase):
                                               '-91cf-eff046dbdb8d',
                                 'strategy_uuid': 'cb3d0b58-4415-4d90'
                                                  '-b75b-1e96878730e3',
-                                'deleted_at': None
+                                'deleted_at': None,
+                                'status_message': None
                             }
                         },
                         'parents': [],
                         'action_type': 'nop',
-                        'deleted_at': None
+                        'deleted_at': None,
+                        'status_message': None
                     }
                 }
             },

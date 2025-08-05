@@ -52,13 +52,15 @@
           "scope": [],
           "updated_at": null,
           "audit_type": "ONESHOT",
+          "status_message": null,
           "interval": null,
           "deleted_at": null,
           "state": "SUCCEEDED"
         }
       },
       "global_efficacy": [],
-      "state": "CANCELLING"
+      "state": "CANCELLING",
+      "status_message": null
     }
   },
   "timestamp": "2016-10-18 09:52:05.219414"

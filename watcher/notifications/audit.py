@@ -45,6 +45,8 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
         'deleted_at': ('audit', 'deleted_at'),
+
+        'status_message': ('audit', 'status_message'),
     }
 
     # Version 1.0: Initial version
@@ -52,7 +54,8 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     #              Added 'next_run_time' DateTime field,
     #              'interval' type has been changed from Integer to String
     # Version 1.2: Added 'name' string field
-    VERSION = '1.2'
+    # Version 1.3: Added 'status_message' string field
+    VERSION = '1.3'
 
     fields = {
         'uuid': wfields.UUIDField(),
@@ -70,6 +73,8 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
         'deleted_at': wfields.DateTimeField(nullable=True),
+
+        'status_message': wfields.StringField(nullable=True),
     }
 
     def __init__(self, audit, goal_uuid, strategy_uuid=None, **kwargs):
@@ -94,13 +99,16 @@ class AuditPayload(TerseAuditPayload):
         'created_at': ('audit', 'created_at'),
         'updated_at': ('audit', 'updated_at'),
         'deleted_at': ('audit', 'deleted_at'),
+
+        'status_message': ('audit', 'status_message'),
     }
 
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
     # Version 1.2: Added 'name' string field
-    VERSION = '1.2'
+    # Version 1.3: Added 'status_message' string field
+    VERSION = '1.3'
 
     fields = {
         'goal': wfields.ObjectField('GoalPayload'),
@@ -122,11 +130,13 @@ class AuditPayload(TerseAuditPayload):
 @base.WatcherObjectRegistry.register_notification
 class AuditStateUpdatePayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' string field
+    VERSION = '1.1'
 
     fields = {
         'old_state': wfields.StringField(nullable=True),
         'state': wfields.StringField(nullable=True),
+        'status_message': wfields.StringField(nullable=True),
     }
 
 
@@ -135,7 +145,8 @@ class AuditCreatePayload(AuditPayload):
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' string field
+    VERSION = '1.2'
     fields = {}
 
     def __init__(self, audit, goal, strategy):
@@ -151,7 +162,8 @@ class AuditUpdatePayload(AuditPayload):
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' string field
+    VERSION = '1.2'
     fields = {
         'state_update': wfields.ObjectField('AuditStateUpdatePayload'),
     }
@@ -170,7 +182,8 @@ class AuditActionPayload(AuditPayload):
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' string field
+    VERSION = '1.2'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -189,7 +202,8 @@ class AuditDeletePayload(AuditPayload):
     # Version 1.0: Initial version
     # Version 1.1: Added 'auto_trigger' field,
     #              Added 'next_run_time' field
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' string field
+    VERSION = '1.2'
     fields = {}
 
     def __init__(self, audit, goal, strategy):
@@ -296,7 +310,10 @@ def send_update(context, audit, service='infra-optim',
 
     state_update = AuditStateUpdatePayload(
         old_state=old_state,
-        state=audit.state if old_state else None)
+        state=audit.state if old_state else None,
+        status_message=(
+            audit.status_message if old_state and
+            audit.status_message else None))
 
     versioned_payload = AuditUpdatePayload(
         audit=audit,

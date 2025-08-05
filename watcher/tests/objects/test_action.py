@@ -172,7 +172,8 @@ class TestCreateDeleteActionObject(base.DbTestCase):
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.create_test_action_plan()
         self.fake_action = utils.get_test_action(
-            created_at=timeutils.utcnow())
+            created_at=timeutils.utcnow(),
+            status_message="Fake status message")
 
     @mock.patch.object(db_api.Connection, 'create_action')
     def test_create(self, mock_create_action):
@@ -184,6 +185,7 @@ class TestCreateDeleteActionObject(base.DbTestCase):
             tzinfo=datetime.timezone.utc)
         mock_create_action.assert_called_once_with(expected_action)
         self.assertEqual(self.context, action._context)
+        self.assertEqual("Fake status message", action.status_message)
 
     @mock.patch.object(notifications.action, 'send_delete')
     @mock.patch.object(notifications.action, 'send_update')

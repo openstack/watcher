@@ -91,7 +91,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     # Version 1.5: Added 'hostname' field
     # Version 1.6: Added 'start_time' and 'end_time' DateTime fields
     # Version 1.7: Added 'force' boolean field
-    VERSION = '1.7'
+    # Version 1.8: Added 'status_message' string field
+    VERSION = '1.8'
 
     dbapi = db_api.get_instance()
 
@@ -116,6 +117,8 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
 
         'goal': wfields.ObjectField('Goal', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
+
+        'status_message': wfields.StringField(nullable=True),
     }
 
     object_fields = {

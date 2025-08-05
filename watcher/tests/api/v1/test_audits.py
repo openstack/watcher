@@ -59,7 +59,7 @@ def post_get_test_audit_with_predefined_strategy(**kw):
     audit = api_utils.audit_post_data(**kw)
     audit_template = db_utils.get_test_audit_template(
         strategy_id=strategy['id'])
-    del_keys = ['goal_id', 'strategy_id']
+    del_keys = ['goal_id', 'strategy_id', 'status_message']
     add_keys = {'audit_template_uuid': audit_template['uuid'],
                 }
     for k in del_keys:
@@ -500,7 +500,8 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -541,7 +542,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname'])
+                               'next_run_time', 'hostname', 'status_message'])
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
@@ -555,7 +556,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
                                'next_run_time', 'hostname',
-                               'audit_template_uuid'])
+                               'audit_template_uuid', 'status_message'])
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -571,7 +572,8 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
                                'next_run_time', 'hostname',
-                               'audit_template_uuid', 'strategy'])
+                               'audit_template_uuid', 'strategy',
+                               'status_message'])
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -587,7 +589,7 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
                                'next_run_time', 'hostname',
-                               'audit_template_uuid'],
+                               'audit_template_uuid', 'status_message'],
             use_named_goal=True)
 
         response = self.post_json('/audits', audit_dict)
@@ -604,7 +606,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         # Make the audit template UUID some garbage value
         audit_dict['audit_template_uuid'] = (
             '01234567-8910-1112-1314-151617181920')
@@ -624,7 +627,8 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
             params_to_exclude=['uuid', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         state = audit_dict['state']
         del audit_dict['state']
         with mock.patch.object(self.dbapi, 'create_audit',
@@ -641,7 +645,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
 
         response = self.post_json('/audits', audit_dict)
         self.assertEqual('application/json', response.content_type)
@@ -656,7 +661,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
 
@@ -675,7 +681,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '* * * * *'
 
@@ -694,7 +701,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = 'zxc'
 
@@ -714,7 +722,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
@@ -731,7 +740,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         audit_dict['audit_type'] = objects.audit.AuditType.ONESHOT.value
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
@@ -747,7 +757,8 @@ class TestPost(api_base.FunctionalTest):
             audit_dict = post_get_test_audit(
                 state=objects.audit.State.PENDING,
                 params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                                   'next_run_time', 'hostname', 'goal'])
+                                   'next_run_time', 'hostname', 'goal',
+                                   'status_message'])
             response = self.post_json('/audits', audit_dict)
             de_mock.assert_called_once_with(mock.ANY, response.json['uuid'])
 
@@ -769,7 +780,8 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             parameters={'name': 'Tom'},
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
 
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -815,7 +827,7 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict['audit_template_uuid'] = audit_template['uuid']
         del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
-                    'scope', 'next_run_time', 'hostname']
+                    'scope', 'next_run_time', 'hostname', 'status_message']
         for k in del_keys:
             del audit_dict[k]
 
@@ -838,7 +850,7 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict['audit_template_uuid'] = audit_template['uuid']
         del_keys = ['uuid', 'goal_id', 'strategy_id', 'state', 'interval',
-                    'scope', 'next_run_time', 'hostname']
+                    'scope', 'next_run_time', 'hostname', 'status_message']
         for k in del_keys:
             del audit_dict[k]
 
@@ -894,7 +906,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         normal_name = 'this audit name is just for test'
         # long_name length exceeds 63 characters
         long_name = normal_name + audit_dict['uuid']
@@ -921,7 +934,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal']
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message']
         )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
@@ -957,7 +971,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal']
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message']
         )
         audit_dict['audit_type'] = objects.audit.AuditType.CONTINUOUS.value
         audit_dict['interval'] = '1200'
@@ -982,7 +997,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
 
         response = self.post_json(
             '/audits',
@@ -998,7 +1014,8 @@ class TestPost(api_base.FunctionalTest):
 
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
 
         audit_dict['force'] = True
         response = self.post_json(
@@ -1016,7 +1033,8 @@ class TestPost(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             params_to_exclude=['uuid', 'state', 'interval', 'scope',
                                'next_run_time', 'hostname', 'goal',
-                               'audit_template_uuid', 'name'])
+                               'audit_template_uuid', 'name',
+                               'status_message'])
 
         response = self.post_json(
             '/audits',
@@ -1141,7 +1159,8 @@ class TestAuditPolicyEnforcement(api_base.FunctionalTest):
         audit_dict = post_get_test_audit(
             state=objects.audit.State.PENDING,
             params_to_exclude=['uuid', 'state', 'scope',
-                               'next_run_time', 'hostname', 'goal'])
+                               'next_run_time', 'hostname', 'goal',
+                               'status_message'])
         self._common_policy_check(
             "audit:create", self.post_json, '/audits', audit_dict,
             expect_errors=True)

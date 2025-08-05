@@ -16,6 +16,7 @@
           "interval": null,
           "updated_at": null,
           "state": "PENDING",
+          "status_message": null,
           "deleted_at": null,
           "parameters": {}
         },
@@ -35,6 +36,7 @@
         "watcher_object.name": "ActionPlanStateUpdatePayload"
       },
       "state": "ONGOING",
+      "status_message": null,
       "deleted_at": null,
       "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
       "strategy": {
