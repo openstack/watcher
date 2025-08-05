@@ -12,9 +12,8 @@
 # limitations under the License.
 #
 
-from dateutil.parser import parse
-
 from oslo_log import log
+from oslo_utils import timeutils
 
 from cinderclient.v3.volumes import Volume
 from novaclient.v2.servers import Server
@@ -893,7 +892,8 @@ class ComputeSpecSortFilter(BaseFilter):
                             reverse=True)
         elif sort_key == 'created_at':
             result = sorted(items,
-                            key=lambda x: parse(getattr(x, sort_key)),
+                            key=lambda x: timeutils.parse_isotime(
+                                getattr(x, sort_key)),
                             reverse=False)
 
         return result
@@ -959,7 +959,8 @@ class StorageSpecSortFilter(BaseFilter):
 
         if sort_key == 'created_at':
             result = sorted(items,
-                            key=lambda x: parse(getattr(x, sort_key)),
+                            key=lambda x: timeutils.parse_isotime(
+                                getattr(x, sort_key)),
                             reverse=False)
         else:
             result = sorted(items,

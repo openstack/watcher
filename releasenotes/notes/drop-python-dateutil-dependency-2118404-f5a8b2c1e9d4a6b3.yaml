@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Removed the ``python-dateutil`` dependency from Watcher to reduce the
+    number of external dependencies and improve maintainability.

@@ -11,7 +11,7 @@
 #    limitations under the License.
 
 import datetime
-from dateutil import tz
+from datetime import timezone
 import itertools
 from unittest import mock
 from urllib import parse as urlparse
@@ -942,10 +942,8 @@ class TestPost(api_base.FunctionalTest):
             response.json['start_time'])
         return_end_time = timeutils.parse_isotime(
             response.json['end_time'])
-        iso_start_time = start_time.replace(
-            tzinfo=tz.tzlocal()).astimezone(tz.tzutc())
-        iso_end_time = end_time.replace(
-            tzinfo=tz.tzlocal()).astimezone(tz.tzutc())
+        iso_start_time = start_time.astimezone(timezone.utc)
+        iso_end_time = end_time.astimezone(timezone.utc)
 
         self.assertEqual(iso_start_time, return_start_time)
         self.assertEqual(iso_end_time, return_end_time)
