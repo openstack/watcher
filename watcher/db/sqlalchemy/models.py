@@ -177,6 +177,7 @@ class Audit(Base):
     start_time = Column(DateTime, nullable=True)
     end_time = Column(DateTime, nullable=True)
     force = Column(Boolean, nullable=False)
+    status_message = Column(String(255), nullable=True)
 
     goal = orm.relationship(Goal, foreign_keys=goal_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
@@ -197,6 +198,7 @@ class ActionPlan(Base):
     state = Column(String(20), nullable=True)
     global_efficacy = Column(JSONEncodedList, nullable=True)
     hostname = Column(String(255), nullable=True)
+    status_message = Column(String(255), nullable=True)
 
     audit = orm.relationship(Audit, foreign_keys=audit_id, lazy=None)
     strategy = orm.relationship(Strategy, foreign_keys=strategy_id, lazy=None)
@@ -219,6 +221,7 @@ class Action(Base):
     input_parameters = Column(JSONEncodedDict, nullable=True)
     state = Column(String(20), nullable=True)
     parents = Column(JSONEncodedList, nullable=True)
+    status_message = Column(String(255), nullable=True)
 
     action_plan = orm.relationship(
         ActionPlan, foreign_keys=action_plan_id, lazy=None)

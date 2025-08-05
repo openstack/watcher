@@ -442,3 +442,11 @@ class DbAuditTestCase(base.DbTestCase):
             utils.create_test_audit,
             uuid=w_utils.generate_uuid(),
             name='my_audit')
+
+    def test_audit_status_message(self):
+        audit = utils.create_test_audit()
+        self.assertIsNone(audit.status_message)
+        self.dbapi.update_audit(audit['id'],
+                                {'status_message': 'test'})
+        audit = self.dbapi.get_audit_by_id(self.context, audit['id'])
+        self.assertEqual(audit.status_message, 'test')
