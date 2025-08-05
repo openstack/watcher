@@ -37,6 +37,10 @@ be one of the following:
 
 -  **PENDING** : the :ref:`Action <action_definition>` has not been executed
    yet by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **SKIPPED** : the :ref:`Action<action_definition>` will not be executed
+   because a predefined skipping condition is found by
+   :ref:`Watcher Applier <watcher_applier_definition>` or is explicitly
+   skipped by the :ref:`Administrator <administrator_definition>`.
 -  **ONGOING** : the :ref:`Action <action_definition>` is currently being
    processed by the :ref:`Watcher Applier <watcher_applier_definition>`
 -  **SUCCEEDED** : the :ref:`Action <action_definition>` has been executed

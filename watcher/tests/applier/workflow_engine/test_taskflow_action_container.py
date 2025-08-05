@@ -62,7 +62,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
     @mock.patch.object(clients.OpenStackClients, 'nova', mock.Mock())
-    def test_execute_with_failed(self):
+    def test_execute_with_failed_execute(self):
         nova_util = nova_helper.NovaHelper()
         instance = "31b9dd5c-b1fd-4f61-9b68-a47096326dac"
         nova_util.nova.servers.get.return_value = instance
@@ -90,8 +90,11 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         obj_action = objects.Action.get_by_uuid(
             self.engine.context, action.uuid)
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(obj_action.status_message, "Action failed in execute:"
+                         " The action 10a47dd1-4874-4298-91cf-eff046dbdb8d "
+                         "execution failed.")
 
-    def test_execute_with_failed_execute(self):
+    def test_pre_execute(self):
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,
@@ -100,15 +103,16 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             self.context, action_plan_id=action_plan.id,
             state=objects.action.State.PENDING,
             action_type='nop',
-            input_parameters={'message': 'hello World',
-                              'fail_execute': True})
+            input_parameters={'message': 'hello World'})
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
-        action_container.execute()
+
+        action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
             self.engine.context, action.uuid)
-        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(obj_action.state, objects.action.State.PENDING)
+        self.assertIsNone(obj_action.status_message)
 
     def test_pre_execute_with_failed_pre_condition(self):
         action_plan = obj_utils.create_test_action_plan(
@@ -124,10 +128,37 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
+
         action_container.pre_execute()
         obj_action = objects.Action.get_by_uuid(
             self.engine.context, action.uuid)
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in pre_condition: Failed in pre_condition")
+
+    def test_pre_execute_with_skipped(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'skip_pre_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.SKIPPED)
+        self.assertEqual(obj_action.status_message,
+                         "Action was skipped automatically: "
+                         "Skipped in pre_condition")
 
     def test_post_execute_with_failed_post_condition(self):
         action_plan = obj_utils.create_test_action_plan(
@@ -143,10 +174,14 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
+
         action_container.post_execute()
         obj_action = objects.Action.get_by_uuid(
             self.engine.context, action.uuid)
         self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in post_condition: Failed in post_condition")
 
     @mock.patch('eventlet.spawn')
     def test_execute_with_cancel_action_plan(self, mock_eventlet_spawn):

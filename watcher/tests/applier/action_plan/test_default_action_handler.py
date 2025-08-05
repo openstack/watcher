@@ -20,6 +20,7 @@ from unittest import mock
 from watcher.applier.action_plan import default
 from watcher.applier import default as ap_applier
 from watcher.common import exception
+from watcher.common import utils
 from watcher import notifications
 from watcher import objects
 from watcher.objects import action_plan as ap_objects
@@ -146,6 +147,73 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
                       phase=objects.fields.NotificationPhase.ERROR)]
 
         self.assertEqual(ap_objects.State.FAILED, self.action_plan.state)
+        self.assertEqual(
+            expected_calls,
+            self.m_action_plan_notifications
+                .send_action_notification
+                .call_args_list)
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_launch_action_plan_skipped_actions(self,
+                                                m_get_action_plan):
+        m_get_action_plan.return_value = self.action_plan
+        skipped_action = obj_utils.create_test_action(
+            self.context, action_plan_id=self.action_plan.id,
+            action_type='nop',
+            uuid=utils.generate_uuid(),
+            input_parameters={'message': 'hello World',
+                              'skip_pre_condition': True})
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
+        command.execute()
+        expected_calls = [
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.END)
+        ]
+
+        self.assertEqual(
+            self.action.get_by_uuid(self.context, skipped_action.uuid).state,
+            objects.action.State.SKIPPED)
+        self.assertEqual(ap_objects.State.SUCCEEDED, self.action_plan.state)
+        self.assertEqual(self.action_plan.status_message,
+                         "One or more actions were skipped.")
+        self.assertEqual(
+            expected_calls,
+            self.m_action_plan_notifications
+                .send_action_notification
+                .call_args_list)
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_launch_action_plan_manual_skipped_actions(self,
+                                                       m_get_action_plan):
+        m_get_action_plan.return_value = self.action_plan
+        skipped_action = obj_utils.create_test_action(
+            self.context, action_plan_id=self.action_plan.id,
+            action_type='nop',
+            uuid=utils.generate_uuid(),
+            state=objects.action.State.SKIPPED,
+            input_parameters={'message': 'hello World'})
+        command = default.DefaultActionPlanHandler(
+            self.context, mock.MagicMock(), self.action_plan.uuid)
+        command.execute()
+        expected_calls = [
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.START),
+            mock.call(self.context, self.action_plan,
+                      action=objects.fields.NotificationAction.EXECUTION,
+                      phase=objects.fields.NotificationPhase.END)
+        ]
+        self.assertEqual(
+            self.action.get_by_uuid(self.context, skipped_action.uuid).state,
+            objects.action.State.SKIPPED)
+        self.assertEqual(ap_objects.State.SUCCEEDED, self.action_plan.state)
+        self.assertEqual(self.action_plan.status_message,
+                         "One or more actions were skipped.")
         self.assertEqual(
             expected_calls,
             self.m_action_plan_notifications

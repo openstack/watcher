@@ -19,6 +19,7 @@
 from oslo_config import cfg
 from oslo_log import log
 
+from watcher._i18n import _
 from watcher.applier.action_plan import base
 from watcher.applier import default
 from watcher.common import exception
@@ -73,6 +74,14 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
                     'phase': fields.NotificationPhase.ERROR,
                     'priority': fields.NotificationPriority.ERROR
                 }
+
+            skipped_filter = {'action_plan_uuid': self.action_plan_uuid,
+                              'state': objects.action.State.SKIPPED}
+            skipped_actions = objects.Action.list(
+                self.ctx, filters=skipped_filter, eager=True)
+            if skipped_actions:
+                status_message = _("One or more actions were skipped.")
+                action_plan.status_message = status_message
 
             action_plan.state = ap_state
             action_plan.save()
