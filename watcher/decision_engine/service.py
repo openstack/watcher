@@ -13,6 +13,7 @@
 # under the License.
 
 from watcher.common import service as watcher_service
+from watcher.decision_engine.audit import continuous as c_handler
 from watcher.decision_engine import manager
 from watcher.decision_engine import scheduling
 
@@ -31,6 +32,7 @@ class DecisionEngineService(watcher_service.Service):
         # task, an one shot task to cancel ongoing audits and a periodic
         # check for expired action plans
         self._bg_scheduler = None
+        self._continuous_handler = None
 
     @property
     def bg_scheduler(self):
@@ -38,10 +40,17 @@ class DecisionEngineService(watcher_service.Service):
             self._bg_scheduler = scheduling.DecisionEngineSchedulingService()
         return self._bg_scheduler
 
+    @property
+    def continuous_handler(self):
+        if self._continuous_handler is None:
+            self._continuous_handler = c_handler.ContinuousAuditHandler()
+        return self._continuous_handler
+
     def start(self):
         """Start service."""
         super().start()
         self.bg_scheduler.start()
+        self.continuous_handler.start()
 
     def stop(self):
         """Stop service."""

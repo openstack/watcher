@@ -17,12 +17,13 @@
 # limitations under the License.
 
 import copy
-import futurist
 from futurist import waiters
 
 from oslo_config import cfg
 from oslo_log import log
 from oslo_service import service
+
+from watcher.common import executor
 
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
@@ -33,8 +34,8 @@ class DecisionEngineThreadPool(object, metaclass=service.Singleton):
 
     def __init__(self):
         self.amount_workers = CONF.watcher_decision_engine.max_general_workers
-        self._threadpool = futurist.GreenThreadPoolExecutor(
-            max_workers=self.amount_workers)
+        self._threadpool = (
+            executor.get_futurist_pool_executor(self.amount_workers))
 
     def submit(self, fn, *args, **kwargs):
         """Will submit the job to the underlying threadpool

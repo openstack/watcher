@@ -16,12 +16,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import futurist
-
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.decision_engine.audit import continuous as c_handler
+from watcher.common import executor
 from watcher.decision_engine.audit import event as e_handler
 from watcher.decision_engine.audit import oneshot as o_handler
 
@@ -35,10 +33,10 @@ class AuditEndpoint(object):
 
     def __init__(self, messaging):
         self._messaging = messaging
-        self._executor = futurist.GreenThreadPoolExecutor(
-            max_workers=CONF.watcher_decision_engine.max_audit_workers)
+        self.amount_workers = CONF.watcher_decision_engine.max_audit_workers
+        self._executor = (
+            executor.get_futurist_pool_executor(self.amount_workers))
         self._oneshot_handler = o_handler.OneShotAuditHandler()
-        self._continuous_handler = c_handler.ContinuousAuditHandler().start()
         self._event_handler = e_handler.EventAuditHandler()
 
     @property

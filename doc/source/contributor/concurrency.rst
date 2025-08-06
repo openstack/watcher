@@ -52,18 +52,43 @@ types of concurrency used in various services of Watcher.
 .. _wait_for_any: https://docs.openstack.org/futurist/latest/reference/index.html#waiters
 
 
+Concurrency modes
+#################
+
+Evenlet has been the main concurrency library within the OpenStack community
+for the last 10 years since the removal of twisted. Over the last few years,
+the maintenance of eventlet has decreased and the efforts to remove the GIL
+from Python (PEP 703), have fundamentally changed how concurrency is making
+eventlet no longer viable. While transitioning to a new native thread
+solution, Watcher services will be supporting both modes, with the usage of
+native threading mode initially classified as ``experimental``.
+
+It is possible to enable the new native threading mode by setting the following
+environment variable in the corresponding service configuration:
+
+.. code:: bash
+
+   OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+
+.. note::
+
+   The only service that supports two different concurrency modes is the
+   ``decision engine``.
+
 Decision engine concurrency
 ***************************
 
 The concurrency in the decision engine is governed by two independent
-threadpools. Both of these threadpools are GreenThreadPoolExecutor_ from the
-futurist_ library. One of these is used automatically and most contributors
+threadpools. These threadpools can be configured as GreenThreadPoolExecutor_
+or ThreadPoolExecutor_, both from the futurist_ library, depending on the
+service configuration. One of these is used automatically and most contributors
 will not interact with it while developing new features. The other threadpool
 can frequently be used while developing new features or updating existing ones.
 It is known as the DecisionEngineThreadpool and allows to achieve performance
 improvements in network or I/O bound operations.
 
-.. _GreenThreadPoolExecutor: https://docs.openstack.org/futurist/latest/reference/index.html#executors
+.. _GreenThreadPoolExecutor: https://docs.openstack.org/futurist/latest/reference/index.html#futurist.GreenThreadPoolExecutor
+.. _ThreadPoolExecutor: https://docs.openstack.org/futurist/latest/reference/index.html#futurist.ThreadPoolExecutor
 
 AuditEndpoint
 #############
