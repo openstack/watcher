@@ -194,3 +194,12 @@ def allow_webhook_api():
     """
     return pecan.request.version.minor >= (
         versions.VERSIONS.MINOR_4_WEBHOOK_API.value)
+
+
+def allow_skipped_action():
+    """Check if we should support skipped action.
+
+    Version 1.5 of the API added support to skipped actions.
+    """
+    return pecan.request.version.minor >= (
+        versions.VERSIONS.MINOR_5_SKIPPED_ACTION.value)

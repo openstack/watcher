@@ -11,6 +11,7 @@
 #    limitations under the License.
 
 import itertools
+from unittest import mock
 
 from http import HTTPStatus
 from oslo_config import cfg
@@ -19,6 +20,7 @@ from wsme import types as wtypes
 
 from watcher.api.controllers.v1 import action as api_action
 from watcher.common import utils
+from watcher.db import api as db_api
 from watcher import objects
 from watcher.tests.api import base as api_base
 from watcher.tests.api import utils as api_utils
@@ -70,6 +72,36 @@ class TestListAction(api_base.FunctionalTest):
         response = self.get_json('/actions')
         self.assertEqual(action.uuid, response['actions'][0]["uuid"])
         self._assert_action_fields(response['actions'][0])
+        self.assertNotIn('status_message', response['actions'][0])
+
+    def test_one_with_status_message(self):
+        action = obj_utils.create_test_action(
+            self.context, parents=None, status_message='Fake message')
+        response = self.get_json(
+            '/actions', headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action.uuid, response['actions'][0]["uuid"])
+        self._assert_action_fields(response['actions'][0])
+        # status_message is not in the basic actions list
+        self.assertNotIn('status_message', response['actions'][0])
+
+    def test_list_detail(self):
+        action = obj_utils.create_test_action(
+            self.context, status_message='Fake message', parents=None)
+        response = self.get_json('/actions/detail')
+        self.assertEqual(action.uuid, response['actions'][0]["uuid"])
+        self._assert_action_fields(response['actions'][0])
+        self.assertNotIn('status_message', response['actions'][0])
+
+    def test_list_detail_with_status_message(self):
+        action = obj_utils.create_test_action(
+            self.context, status_message='Fake message', parents=None)
+        response = self.get_json(
+            '/actions/detail',
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action.uuid, response['actions'][0]["uuid"])
+        self._assert_action_fields(response['actions'][0])
+        self.assertEqual(
+            'Fake message', response['actions'][0]["status_message"])
 
     def test_one_soft_deleted(self):
         action = obj_utils.create_test_action(self.context, parents=None)
@@ -88,6 +120,42 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
         self.assertEqual(action.input_parameters, response['input_parameters'])
+        self.assertNotIn('status_message', response)
+        self._assert_action_fields(response)
+
+    def test_get_one_with_status_message(self):
+        action = obj_utils.create_test_action(
+            self.context, parents=None, status_message='test')
+        response = self.get_json(
+            '/actions/%s' % action['uuid'],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action.uuid, response['uuid'])
+        self.assertEqual(action.action_type, response['action_type'])
+        self.assertEqual(action.input_parameters, response['input_parameters'])
+        self.assertEqual('test', response['status_message'])
+        self._assert_action_fields(response)
+
+    def test_get_one_with_hidden_status_message(self):
+        action = obj_utils.create_test_action(
+            self.context, parents=None, status_message='test')
+        response = self.get_json(
+            '/actions/%s' % action['uuid'],
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'})
+        self.assertEqual(action.uuid, response['uuid'])
+        self.assertEqual(action.action_type, response['action_type'])
+        self.assertEqual(action.input_parameters, response['input_parameters'])
+        self.assertNotIn('status_message', response)
+        self._assert_action_fields(response)
+
+    def test_get_one_with_empty_status_message(self):
+        action = obj_utils.create_test_action(self.context, parents=None)
+        response = self.get_json(
+            '/actions/%s' % action['uuid'],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action.uuid, response['uuid'])
+        self.assertEqual(action.action_type, response['action_type'])
+        self.assertEqual(action.input_parameters, response['input_parameters'])
+        self.assertIsNone(response['status_message'])
         self._assert_action_fields(response)
 
     def test_get_one_soft_deleted(self):
@@ -456,6 +524,166 @@ class TestListAction(api_base.FunctionalTest):
         self.assertEqual(3, len(response['actions']))
 
 
+class TestPatchAction(api_base.FunctionalTest):
+
+    def setUp(self):
+        super(TestPatchAction, self).setUp()
+        obj_utils.create_test_goal(self.context)
+        obj_utils.create_test_strategy(self.context)
+        obj_utils.create_test_audit(self.context)
+        self.action_plan = obj_utils.create_test_action_plan(
+            self.context,
+            state=objects.action_plan.State.PENDING)
+        self.action = obj_utils.create_test_action(self.context, parents=None)
+        p = mock.patch.object(db_api.BaseConnection, 'update_action')
+        self.mock_action_update = p.start()
+        self.mock_action_update.side_effect = self._simulate_rpc_action_update
+        self.addCleanup(p.stop)
+
+    def _simulate_rpc_action_update(self, action):
+        action.save()
+        return action
+
+    def test_patch_action_not_allowed_old_microversion(self):
+        """Test that action patch is not allowed in older microversions"""
+        new_state = objects.action.State.SKIPPED
+        response = self.get_json('/actions/%s' % self.action.uuid)
+        self.assertNotEqual(new_state, response['state'])
+
+        # Test with API version 1.4 (should fail)
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'},
+            expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertTrue(response.json['error_message'])
+
+    def test_patch_action_allowed_new_microversion(self):
+        """Test that action patch is allowed in microversion 1.5+"""
+        new_state = objects.action.State.SKIPPED
+        response = self.get_json('/actions/%s' % self.action.uuid)
+        self.assertNotEqual(new_state, response['state'])
+
+        # Test with API version 1.5 (should succeed)
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(HTTPStatus.OK, response.status_int)
+        self.assertEqual(new_state, response.json['state'])
+        self.assertEqual('Action skipped by user.',
+                         response.json['status_message'])
+
+    def test_patch_action_invalid_state_transition(self):
+        """Test that invalid state transitions are rejected"""
+        # Try to transition from PENDING to SUCCEEDED (should fail)
+        new_state = objects.action.State.SUCCEEDED
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.CONFLICT, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+        self.assertIn("State transition not allowed: (PENDING -> SUCCEEDED)",
+                      response.json['error_message'])
+
+    def test_patch_action_skip_non_pending_ap(self):
+        """Test transition conditions on parent actionplan
+
+        The PENDING to SKIPPED transition is not allowed if
+        the actionplan is not PENDING or RECOMMENDED state
+        """
+        self.action_plan.state = objects.action_plan.State.ONGOING
+        self.action_plan.save()
+        new_state = objects.action.State.SKIPPED
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(HTTPStatus.CONFLICT, response.status_int)
+        self.assertTrue(response.json['error_message'])
+        self.assertIn("State update not allowed for actionplan state: ONGOING",
+                      response.json['error_message'])
+
+    def test_patch_action_skip_transition_with_status_message(self):
+        """Test that PENDING to SKIPPED transition is allowed"""
+        new_state = objects.action.State.SKIPPED
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'},
+             {'path': '/status_message', 'value': 'test message',
+              'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(HTTPStatus.OK, response.status_int)
+        self.assertEqual(new_state, response.json['state'])
+        self.assertEqual(
+            'Action skipped by user. Reason: test message',
+            response.json['status_message'])
+
+    def test_patch_action_invalid_state_value(self):
+        """Test that invalid state values are rejected"""
+        invalid_state = "INVALID_STATE"
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': invalid_state, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+    def test_patch_action_remove_status_message_not_allowed(self):
+        """Test that remove fields is not allowed"""
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/status_message', 'op': 'remove'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+        self.assertIn("is a mandatory attribute and can not be removed",
+                      response.json['error_message'])
+
+    def test_patch_action_status_message_not_allowed(self):
+        """Test that status_message cannot be patched directly"""
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/status_message', 'value': 'test message',
+              'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertIn("status_message update only allowed with state change",
+                      response.json['error_message'])
+        self.assertIsNone(self.action.status_message)
+
+    def test_patch_action_one_allowed_one_not_allowed(self):
+        """Test that status_message cannot be patched directly"""
+        new_state = objects.action.State.SKIPPED
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'},
+             {'path': '/action_plan_id', 'value': 56, 'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+        self.assertIn("\'/action_plan_id\' is not an allowed attribute and "
+                      "can not be updated", response.json['error_message'])
+        self.assertIsNone(self.action.status_message)
+
+
 class TestActionPolicyEnforcement(api_base.FunctionalTest):
 
     def setUp(self):
@@ -493,6 +721,16 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         self._common_policy_check(
             "action:detail", self.get_json,
             '/actions/detail',
+            expect_errors=True)
+
+    def test_policy_disallow_patch(self):
+        action = obj_utils.create_test_action(self.context)
+        self._common_policy_check(
+            "action:update", self.patch_json,
+            '/actions/%s' % action.uuid,
+            [{'path': '/state', 'value': objects.action.State.SKIPPED,
+              'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
 
 

@@ -39,3 +39,9 @@ Added list data model API.
 ---
 Added Watcher webhook API. It can be used to trigger audit
 with ``event`` type.
+
+1.5
+---
+Added support for SKIPPED actions status via PATCH support for Actions API.
+This feature also introduces the ``status_message`` field to audits, actions
+and action plans.

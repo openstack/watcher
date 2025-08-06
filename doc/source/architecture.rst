@@ -481,6 +481,39 @@ change to a new value:
 .. image:: ./images/action_plan_state_machine.png
    :width: 100%
 
+.. _action_state_machine:
+
+Action State Machine
+-------------------------
+
+An :ref:`Action <action_definition>` has a life-cycle and its current state may
+be one of the following:
+
+-  **PENDING** : the :ref:`Action <action_definition>` has not been executed
+   yet by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **SKIPPED** : the :ref:`Action <action_definition>` will not be executed
+   because a predefined skipping condition is found by
+   :ref:`Watcher Applier <watcher_applier_definition>` or is explicitly
+   skipped by the :ref:`Administrator <administrator_definition>`.
+-  **ONGOING** : the :ref:`Action <action_definition>` is currently being
+   processed by the :ref:`Watcher Applier <watcher_applier_definition>`
+-  **SUCCEEDED** : the :ref:`Action <action_definition>` has been executed
+   successfully
+-  **FAILED** : an error occurred while trying to execute the
+   :ref:`Action <action_definition>`
+-  **DELETED** : the :ref:`Action <action_definition>` is still stored in the
+   :ref:`Watcher database <watcher_database_definition>` but is not returned
+   any more through the Watcher APIs.
+-  **CANCELLED** : the :ref:`Action <action_definition>` was in **PENDING** or
+   **ONGOING** state and was cancelled by the
+   :ref:`Administrator <administrator_definition>`
+
+The following diagram shows the different possible states of an
+:ref:`Action <action_definition>` and what event makes the state change
+change to a new value:
+
+.. image:: ./images/action_state_machine.png
+   :width: 100%
 
 
 .. _Watcher API: https://docs.openstack.org/api-ref/resource-optimization/

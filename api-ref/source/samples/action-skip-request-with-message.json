@@ -1,0 +1,12 @@
+[
+    {
+        "op": "replace",
+        "value": "SKIPPED",
+        "path": "/state"
+    },
+    {
+        "op": "replace",
+        "value": "Skipping due to maintenance window",
+        "path": "/status_message"
+    }
+]

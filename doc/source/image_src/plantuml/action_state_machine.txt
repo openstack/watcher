@@ -1,0 +1,23 @@
+@startuml
+
+skinparam ArrowColor DarkRed
+skinparam StateBorderColor DarkRed
+skinparam StateBackgroundColor LightYellow
+skinparam Shadowing true
+
+[*] --> PENDING: The Watcher Planner\ncreates the Action
+PENDING --> SKIPPED: The Action detects skipping condition\n in pre_condition or was\n skipped by cloud Admin.
+PENDING --> FAILED: The Action fails unexpectedly\n in pre_condition.
+PENDING --> ONGOING: The Watcher Applier starts executing/n the action.
+ONGOING --> FAILED: Something failed while executing\nthe Action in the Watcher Applier
+ONGOING --> SUCCEEDED: The Watcher Applier executed\nthe Action successfully
+FAILED --> DELETED : Administrator removes\nAction Plan
+SUCCEEDED --> DELETED : Administrator removes\n theAction
+ONGOING --> CANCELLED : The Action was cancelled\n as part of an Action Plan cancellation.
+PENDING --> CANCELLED : The Action was cancelled\n as part of an Action Plan cancellation.
+CANCELLED --> DELETED
+FAILED --> DELETED
+SKIPPED --> DELETED
+DELETED --> [*]
+
+@enduml

@@ -189,6 +189,13 @@ action_state:
   in: body
   required: true
   type: string
+action_status_message:
+  description: |
+    Message with additional information about the Action state.
+  in: body
+  required: false
+  type: string
+  min_version: 1.5
 action_type:
   description: |
     Action type based on specific API action. Actions in Watcher are
@@ -230,6 +237,13 @@ actionplan_state:
   in: body
   required: false
   type: string
+actionplan_status_message:
+  description: |
+    Message with additional information about the Action Plan state.
+  in: body
+  required: false
+  type: string
+  min_version: 1.5
 
 # Audit
 audit_autotrigger:
@@ -320,6 +334,13 @@ audit_state:
   in: body
   required: true
   type: string
+audit_status_message:
+  description: |
+    Message with additional information about the Audit state.
+  in: body
+  required: false
+  type: string
+  min_version: 1.5
 audit_strategy:
   description: |
     The UUID or name of the Strategy.

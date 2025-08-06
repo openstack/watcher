@@ -49,6 +49,17 @@ rules = [
                 'method': 'GET'
             }
         ]
+    ),
+    policy.DocumentedRuleDefault(
+        name=ACTION % 'update',
+        check_str=base.RULE_ADMIN_API,
+        description='Update an action.',
+        operations=[
+            {
+                'path': '/v1/actions/{action_id}',
+                'method': 'PATCH'
+            }
+        ]
     )
 ]
 

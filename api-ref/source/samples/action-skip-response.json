@@ -1,6 +1,6 @@
 {
-    "state": "SUCCEEDED",
-    "description": "Logging a NOP message",
+    "state": "SKIPPED",
+    "description": "Migrate instance to another compute node",
     "parents": [
         "b4529294-1de6-4302-b57a-9b5d5dc363c6"
     ],
@@ -17,11 +17,13 @@
     "action_plan_uuid": "4cbc4ede-0d25-481b-b86e-998dbbd4f8bf",
     "uuid": "54acc7a0-91b0-46ea-a5f7-4ae2b9df0b0a",
     "deleted_at": null,
-    "updated_at": "2018-04-10T11:59:44.026973+00:00",
+    "updated_at": "2018-04-10T12:15:44.026973+00:00",
     "input_parameters": {
-        "message": "Welcome"
+        "migration_type": "live",
+        "destination_node": "compute-2",
+        "resource_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef"
     },
-    "action_type": "nop",
+    "action_type": "migrate",
     "created_at": "2018-04-10T11:59:12.725147+00:00",
-    "status_message": null
+    "status_message": "Action skipped by user. Reason:Skipping due to maintenance window"
 }

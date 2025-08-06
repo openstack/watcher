@@ -51,6 +51,17 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual(action_plan.uuid,
                          response['action_plans'][0]["uuid"])
         self._assert_action_plans_fields(response['action_plans'][0])
+        self.assertNotIn('status_message', response['action_plans'][0])
+
+    def test_one_with_status_message(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        response = self.get_json('/action_plans')
+        self.assertEqual(action_plan.uuid,
+                         response['action_plans'][0]["uuid"])
+        self._assert_action_plans_fields(response['action_plans'][0])
+        # status_message is not in the basic action_plans list
+        self.assertNotIn('status_message', response['action_plans'][0])
 
     def test_one_soft_deleted(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
@@ -78,6 +89,29 @@ class TestListActionPlan(api_base.FunctionalTest):
               'unit': '%'}],
             response['efficacy_indicators'])
 
+    def test_get_one_ok_with_status_message(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, status_message='Fake message')
+        obj_utils.create_test_efficacy_indicator(
+            self.context, action_plan_id=action_plan['id'])
+        response = self.get_json(
+            '/action_plans/%s' % action_plan['uuid'],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action_plan.uuid, response['uuid'])
+        self._assert_action_plans_fields(response)
+        self.assertEqual("Fake message", response['status_message'])
+
+    def test_get_one_ok_with_empty_status_message(self):
+        action_plan = obj_utils.create_test_action_plan(self.context)
+        obj_utils.create_test_efficacy_indicator(
+            self.context, action_plan_id=action_plan['id'])
+        response = self.get_json(
+            '/action_plans/%s' % action_plan['uuid'],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action_plan.uuid, response['uuid'])
+        self._assert_action_plans_fields(response)
+        self.assertIsNone(response['status_message'])
+
     def test_get_one_soft_deleted(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
@@ -96,6 +130,30 @@ class TestListActionPlan(api_base.FunctionalTest):
         self.assertEqual(action_plan.uuid,
                          response['action_plans'][0]["uuid"])
         self._assert_action_plans_fields(response['action_plans'][0])
+        self.assertNotIn('status_message', response['action_plans'][0])
+
+    def test_detail_with_status_message(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, status_message='Fake message')
+        response = self.get_json(
+            '/action_plans/detail',
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(action_plan.uuid,
+                         response['action_plans'][0]["uuid"])
+        self._assert_action_plans_fields(response['action_plans'][0])
+        self.assertEqual(
+            "Fake message", response['action_plans'][0]['status_message'])
+
+    def test_detail_with_hidden_status_message(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, status_message='Fake message')
+        response = self.get_json(
+            '/action_plans/detail',
+            headers={'OpenStack-API-Version': 'infra-optim 1.4'})
+        self.assertEqual(action_plan.uuid,
+                         response['action_plans'][0]["uuid"])
+        self._assert_action_plans_fields(response['action_plans'][0])
+        self.assertNotIn('status_message', response['action_plans'][0])
 
     def test_detail_soft_deleted(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
@@ -517,6 +575,24 @@ class TestPatch(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.OK, response.status_code)
         applier_mock.assert_called_once_with(mock.ANY,
                                              self.action_plan.uuid)
+
+    def test_replace_status_message_denied(self):
+        response = self.patch_json(
+            '/action_plans/%s' % self.action_plan.uuid,
+            [{'path': '/status_message', 'value': 'test', 'op': 'replace'}],
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
+
+    def test_add_status_message_denied(self):
+        response = self.patch_json(
+            '/action_plans/%s' % self.action_plan.uuid,
+            [{'path': '/status_message', 'value': 'test', 'op': 'add'}],
+            expect_errors=True)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
+        self.assertEqual('application/json', response.content_type)
+        self.assertTrue(response.json['error_message'])
 
 
 ALLOWED_TRANSITIONS = [

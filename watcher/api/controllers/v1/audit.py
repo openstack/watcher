@@ -77,6 +77,8 @@ def hide_fields_in_newer_versions(obj):
         obj.end_time = wtypes.Unset
     if not api_utils.allow_force():
         obj.force = wtypes.Unset
+    if not api_utils.allow_skipped_action():
+        obj.status_message = wtypes.Unset
 
 
 class AuditPostType(wtypes.Base):
@@ -212,6 +214,14 @@ class AuditPatchType(types.JsonPatchType):
     @staticmethod
     def mandatory_attrs():
         return ['/audit_template_uuid', '/type']
+
+    @staticmethod
+    def internal_attrs():
+        # There are global internal attributes and object specific ones.
+        # /status_message is only modified internally based on state changes
+        # and is not exposed in the patch API for Audits.
+        audit_internal_attrs = ['/status_message']
+        return types.JsonPatchType.internal_attrs() + audit_internal_attrs
 
     @staticmethod
     def validate(patch):
@@ -374,6 +384,9 @@ class Audit(base.APIBase):
     force = wsme.wsattr(bool, mandatory=False, default=False)
     """Allow Action Plan of this Audit be executed in parallel
        with other Action Plan"""
+
+    status_message = wtypes.wsattr(wtypes.text, mandatory=False)
+    """Status message of the audit"""
 
     def __init__(self, **kwargs):
         self.fields = []
