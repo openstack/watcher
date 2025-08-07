@@ -21,7 +21,7 @@
 import datetime
 
 from croniter import croniter
-from dateutil import tz
+from datetime import timezone
 from oslo_utils import timeutils
 
 from watcher.common import context
@@ -123,7 +123,7 @@ class ContinuousAuditHandler(base.AuditHandler):
             'next_run_time') else 'run_date'
         # We should convert UTC time to local time without tzinfo
         trigger_args[time_var] = trigger_args[time_var].replace(
-            tzinfo=tz.tzutc()).astimezone(tz.tzlocal()).replace(tzinfo=None)
+            tzinfo=timezone.utc).astimezone().replace(tzinfo=None)
         self.scheduler.add_job(self.execute_audit, trigger,
                                args=[audit, audit_context],
                                name='execute_audit',

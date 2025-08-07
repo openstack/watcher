@@ -30,7 +30,7 @@ states, visit :ref:`the Audit State machine <audit_state_machine>`.
 """
 
 import datetime
-from dateutil import tz
+from datetime import timezone
 
 from http import HTTPStatus
 import jsonschema
@@ -635,13 +635,11 @@ class AuditsController(rest.RestController):
         start_time_value = audit_dict.get('start_time')
         end_time_value = audit_dict.get('end_time')
         if start_time_value:
-            audit_dict['start_time'] = start_time_value.replace(
-                tzinfo=tz.tzlocal()).astimezone(
-                    tz.tzutc()).replace(tzinfo=None)
+            audit_dict['start_time'] = start_time_value.astimezone(
+                timezone.utc).replace(tzinfo=None)
         if end_time_value:
-            audit_dict['end_time'] = end_time_value.replace(
-                tzinfo=tz.tzlocal()).astimezone(
-                    tz.tzutc()).replace(tzinfo=None)
+            audit_dict['end_time'] = end_time_value.astimezone(
+                timezone.utc).replace(tzinfo=None)
 
         new_audit = objects.Audit(context, **audit_dict)
         new_audit.create()
@@ -688,9 +686,8 @@ class AuditsController(rest.RestController):
                 patch_value = api_utils.get_patch_value(patch, patch_path)
                 # convert string format to UTC time
                 new_patch_value = wutils.parse_isodatetime(
-                    patch_value).replace(
-                        tzinfo=tz.tzlocal()).astimezone(
-                            tz.tzutc()).replace(tzinfo=None)
+                    patch_value).astimezone(
+                        timezone.utc).replace(tzinfo=None)
                 api_utils.set_patch_value(patch, patch_path, new_patch_value)
 
             audit = Audit(**api_utils.apply_jsonpatch(audit_dict, patch))
