@@ -66,7 +66,7 @@ class DataSourceManager(object):
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
         self.datasources = self.config.datasources
-        if self.datasources and mon.MonascaHelper.NAME in self.datasources:
+        if self.datasources and 'monasca' in self.datasources:
             LOG.warning('The monasca datasource is deprecated and will be '
                         'removed in a future release.')
 
@@ -156,6 +156,13 @@ class DataSourceManager(object):
                                              parameter_type='none empty list')
 
         for datasource in self.datasources:
+            # Skip configured datasources that are not available at runtime
+            if datasource not in self.metric_map:
+                LOG.warning(
+                    "Datasource: %s is not available; skipping.",
+                    datasource,
+                )
+                continue
             no_metric = False
             for metric in metrics:
                 if (metric not in self.metric_map[datasource] or
@@ -163,7 +170,9 @@ class DataSourceManager(object):
                     no_metric = True
                     LOG.warning(
                         "Datasource: %s could not be used due to metric: %s",
-                        datasource, metric)
+                        datasource,
+                        metric,
+                    )
                     break
             if not no_metric:
                 # Try to use a specific datasource but attempt additional

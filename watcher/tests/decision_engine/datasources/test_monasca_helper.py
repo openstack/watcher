@@ -13,6 +13,9 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+import unittest
+
 from datetime import datetime
 from unittest import mock
 
@@ -20,13 +23,19 @@ from oslo_config import cfg
 
 from watcher.common import clients
 from watcher.common import exception
-from watcher.decision_engine.datasources import monasca as monasca_helper
+try:
+    from monascaclient import client as monclient  # noqa: F401
+    from watcher.decision_engine.datasources import monasca as monasca_helper
+    MONASCA_INSTALLED = True
+except Exception:
+    MONASCA_INSTALLED = False
 from watcher.tests import base
 
 CONF = cfg.CONF
 
 
 @mock.patch.object(clients.OpenStackClients, 'monasca')
+@unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
 class TestMonascaHelper(base.BaseTestCase):
 
     def setUp(self):

@@ -1,0 +1,13 @@
+---
+upgrade:
+  - |
+    **Monasca client** dependency is now **optional**. The Monasca datasource
+    remains **deprecated for removal**, and the ``python-monascaclient`` package
+    is no longer installed by default. If you use the Monasca datasource,
+    you **MUST** install the optional extra when upgrading.
+    Behavior for deployments that do not use Monasca is unchanged.
+
+    **Example**
+    ::
+
+      pip install watcher[monasca]

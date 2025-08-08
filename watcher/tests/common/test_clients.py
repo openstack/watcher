@@ -10,6 +10,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import unittest
+
 from unittest import mock
 
 from cinderclient import client as ciclient
@@ -21,8 +23,11 @@ from ironicclient import client as irclient
 from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
-from monascaclient import client as monclient
-from monascaclient.v2_0 import client as monclient_v2
+try:
+    from monascaclient.v2_0 import client as monclient_v2
+    MONASCA_INSTALLED = True
+except Exception:  # ImportError or others
+    MONASCA_INSTALLED = False
 from neutronclient.neutron import client as netclient
 from neutronclient.v2_0 import client as netclient_v2
 from novaclient import client as nvclient
@@ -69,10 +74,6 @@ class TestClients(base.TestCase):
         expected = {'username': 'foousername',
                     'password': 'foopassword',
                     'auth_url': 'http://server.ip:5000',
-                    'cafile': None,
-                    'certfile': None,
-                    'keyfile': None,
-                    'insecure': False,
                     'user_domain_id': 'foouserdomainid',
                     'project_domain_id': 'fooprojdomainid'}
 
@@ -309,7 +310,8 @@ class TestClients(base.TestCase):
         neutron_cached = osc.neutron()
         self.assertEqual(neutron, neutron_cached)
 
-    @mock.patch.object(monclient, 'Client')
+    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
+    @mock.patch('monascaclient.client.Client')
     @mock.patch.object(ka_loading, 'load_session_from_conf_options')
     def test_clients_monasca(self, mock_session, mock_call):
         mock_session.return_value = mock.Mock(
@@ -329,6 +331,7 @@ class TestClients(base.TestCase):
             password='foopassword', service_type='monitoring',
             token='test_token', username='foousername')
 
+    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
     @mock.patch.object(ka_loading, 'load_session_from_conf_options')
     def test_clients_monasca_diff_vers(self, mock_session):
         mock_session.return_value = mock.Mock(
@@ -343,6 +346,7 @@ class TestClients(base.TestCase):
         osc.monasca()
         self.assertEqual(monclient_v2.Client, type(osc.monasca()))
 
+    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
     @mock.patch.object(ka_loading, 'load_session_from_conf_options')
     def test_clients_monasca_cached(self, mock_session):
         mock_session.return_value = mock.Mock(

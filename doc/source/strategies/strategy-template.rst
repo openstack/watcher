@@ -35,6 +35,11 @@ power                   ceilometer_  kwapi_  one point every 60s
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
 .. _monasca: https://github.com/openstack/monasca-agent/blob/master/docs/Libvirt.md
+
+.. note::
+   The Monasca datasource is deprecated for removal and optional. If a strategy requires Monasca metrics,
+   ensure the Monasca optional extra is installed: ``pip install watcher[monasca]``.
+
 .. _kwapi: https://kwapi.readthedocs.io/en/latest/index.html
 
 

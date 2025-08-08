@@ -21,7 +21,6 @@ from ironicclient import client as irclient
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
-from monascaclient import client as monclient
 from neutronclient.neutron import client as netclient
 from novaclient import api_versions as nova_api_versions
 from novaclient import client as nvclient
@@ -196,6 +195,16 @@ class OpenStackClients(object):
     def monasca(self):
         if self._monasca:
             return self._monasca
+
+        try:
+            from monascaclient import client as monclient
+        except ImportError as e:
+            message = (
+                "Monasca client is not installed. "
+                "Install 'watcher[monasca]' or "
+                "add 'python-monascaclient' to your environment."
+            )
+            raise exception.UnsupportedError(message) from e
 
         monascaclient_version = self._get_client_option(
             'monasca', 'api_version')

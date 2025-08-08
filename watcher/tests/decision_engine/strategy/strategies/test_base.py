@@ -23,6 +23,14 @@ from watcher.decision_engine.strategy import strategies
 from watcher.tests import base
 from watcher.tests.decision_engine.model import faker_cluster_state
 
+try:
+    # Only check availability; tests mock DataSourceManager so this is just
+    # to build conditional example lists below.
+    from monascaclient import client as monclient  # noqa: F401
+    MONASCA_INSTALLED = True
+except Exception:
+    MONASCA_INSTALLED = False
+
 
 class TestBaseStrategy(base.TestCase):
 
@@ -62,9 +70,10 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
     @mock.patch.object(strategies.base, 'CONF')
     def test_global_preference(self, m_conf, m_manager):
         """Test if the global preference is used"""
-
-        m_conf.watcher_datasources.datasources = \
-            ['gnocchi', 'monasca']
+        dss = ['gnocchi']
+        if MONASCA_INSTALLED:
+            dss.append('monasca')
+        m_conf.watcher_datasources.datasources = dss
 
         # Make sure we access the property and not the underlying function.
         m_manager.return_value.get_backend.return_value = \
@@ -82,9 +91,11 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
     @mock.patch.object(strategies.base, 'CONF')
     def test_global_preference_reverse(self, m_conf, m_manager):
         """Test if the global preference is used with another order"""
-
-        m_conf.watcher_datasources.datasources = \
-            ['monasca', 'gnocchi']
+        if MONASCA_INSTALLED:
+            dss = ['monasca', 'gnocchi']
+        else:
+            dss = ['gnocchi']
+        m_conf.watcher_datasources.datasources = dss
 
         # Make sure we access the property and not the underlying function.
         m_manager.return_value.get_backend.return_value = \
@@ -108,8 +119,10 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
         self.strategy = strategies.DummyStrategy(
             config=datasources)
 
-        m_conf.watcher_datasources.datasources = \
-            ['monasca', 'gnocchi']
+        if MONASCA_INSTALLED:
+            m_conf.watcher_datasources.datasources = ['monasca', 'gnocchi']
+        else:
+            m_conf.watcher_datasources.datasources = ['gnocchi']
 
         # Access the property so that the configuration is read in order to
         # get the correct datasource

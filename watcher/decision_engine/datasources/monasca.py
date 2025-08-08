@@ -18,7 +18,6 @@
 
 import datetime
 
-from monascaclient import exc
 from oslo_utils import timeutils
 
 from watcher.common import clients
@@ -42,9 +41,15 @@ class MonascaHelper(base.DataSourceBase):
                       )
 
     def __init__(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
+        ":param osc: an OpenStackClients instance"
         self.osc = osc if osc else clients.OpenStackClients()
-        self.monasca = self.osc.monasca()
+        self._monasca = None
+
+    @property
+    def monasca(self):
+        if self._monasca is None:
+            self._monasca = self.osc.monasca()
+        return self._monasca
 
     def _format_time_params(self, start_time, end_time, period):
         """Format time-related params to the correct Monasca format
@@ -67,9 +72,13 @@ class MonascaHelper(base.DataSourceBase):
         return start_timestamp, end_timestamp, period
 
     def query_retry_reset(self, exception_instance):
-        if isinstance(exception_instance, exc.Unauthorized):
+        try:
+            from monascaclient import exc as mon_exc
+        except Exception:
+            mon_exc = None
+        if mon_exc and isinstance(exception_instance, mon_exc.Unauthorized):
             self.osc.reset_clients()
-            self.monasca = self.osc.monasca()
+            self._monasca = None
 
     def check_availability(self):
         result = self.query_retry(self.monasca.metrics.list)
