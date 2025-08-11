@@ -47,6 +47,13 @@
           rabbit: false
           mysql: false
     vars:
+      devstack_localrc:
+        GNOCCHI_ARCHIVE_POLICY_TEMPEST: "ceilometer-low-rate"
+        CEILOMETER_PIPELINE_INTERVAL: 15
+      devstack_services:
+        ceilometer-acompute: false
+        ceilometer-acentral: true
+        ceilometer-anotification: true
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:
@@ -66,6 +73,8 @@
               block_migration_for_live_migration: true
             placement:
               min_microversion: 1.29
+            telemetry:
+              ceilometer_polling_interval: 15
       devstack_plugins:
         ceilometer: https://opendev.org/openstack/ceilometer
 
@@ -98,7 +107,6 @@
       tox_envlist: all
       zuul_copy_output:
         /etc/hosts: logs
-
 
 - job:
     name: watcher-tempest-functional-ipv6-only
@@ -157,6 +165,7 @@
         watcher: https://opendev.org/openstack/watcher
         devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
       devstack_services:
+        ceilometer-acompute: true
         watcher-api: true
         watcher-decision-engine: true
         watcher-applier: true
@@ -174,9 +183,6 @@
         CEILOMETER_BACKENDS: "sg-core"
         CEILOMETER_PIPELINE_INTERVAL: 15
         CEILOMETER_ALARM_THRESHOLD: 6000000000
-        # avoid collecting real host cpu metrics since tests
-        # will inject fake metrics when needed
-        NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
         PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
       devstack_local_conf:
         post-config:
@@ -235,9 +241,6 @@
         devstack_localrc:
           CEILOMETER_BACKEND: "none"
           CEILOMETER_BACKENDS: "none"
-          # avoid collecting real host cpu metric since tests
-          # will inject fake metrics when needed
-          NODE_EXPORTER_COLLECTOR_EXCLUDE: "cpu"
         devstack_local_conf:
           post-config:
             $WATCHER_CONF:
@@ -251,11 +254,23 @@
 - job:
     name: watcher-prometheus-integration
     parent: watcher-sg-core-tempest-base
+    vars:
+      devstack_services:
+        ceilometer-acompute: false
+        node_exporter: false
+    group-vars:
+      subnode:
+        devstack_services:
+          ceilometer-acompute: false
+          node_exporter: false
 
 - job:
     name: watcher-prometheus-integration-realdata
     parent: watcher-sg-core-tempest-base
     vars:
+      devstack_services:
+        ceilometer-acompute: true
+        node_exporter: true
       devstack_localrc:
         NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
       devstack_local_conf:
@@ -263,11 +278,15 @@
           $TEMPEST_CONFIG:
             optimize:
               datasource: ""
+              real_workload_period: 300
       # All tests inside watcher_tempest_plugin.tests.scenario with tag "real_load"
       tempest_test_regex: (^watcher_tempest_plugin.tests.scenario)(.*\[.*\breal_load\b.*\].*)
       tempest_exclude_regex: ""
     group-vars:
       subnode:
+        devstack_services:
+          ceilometer-acompute: true
+          node_exporter: true
         devstack_localrc:
           NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
 
