@@ -8,3 +8,4 @@ User Guide
    ways-to-install
    user-guide
    event_type_audit
+   continuous_type_audit
