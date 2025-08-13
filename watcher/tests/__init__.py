@@ -21,6 +21,13 @@
 from watcher import eventlet
 eventlet.patch()
 
+# NOTE(dviroel): oslo service backend needs to be initialize
+# as soon as possible, before importing oslo service. If eventlet
+# patching is enabled, it should be patched before calling this
+# function
+from watcher.common import oslo_service_helper as helper  # noqa E402
+helper.init_oslo_service_backend()
+
 from watcher import objects  # noqa E402
 
 # NOTE(comstud): Make sure we have all of the objects loaded. We do this
