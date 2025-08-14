@@ -605,3 +605,140 @@ class TestCinderNotifications(NotificationTestCase):
         self.assertEqual(460, pool_0.free_capacity_gb)
         self.assertEqual(40, pool_0.allocated_capacity_gb)
         self.assertEqual(40, pool_0.provisioned_capacity_gb)
+
+
+class TestCinderNotificationsEmptyModel(NotificationTestCase):
+
+    FAKE_METADATA = {'message_id': None, 'timestamp': None}
+
+    def setUp(self):
+        super(TestCinderNotificationsEmptyModel, self).setUp()
+        self.fake_cdmc = faker_cluster_state.FakerEmptyModelCollector()
+
+    @mock.patch.object(cnotification.CapacityNotificationEndpoint,
+                       'update_pool')
+    def test_cinder_capacity_empty_model(self, m_update_pool):
+        """test consuming capacity"""
+
+        handler = cnotification.CapacityNotificationEndpoint(self.fake_cdmc)
+
+        message = self.load_message('scenario_1_capacity.json')
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        m_update_pool.assert_not_called()
+
+    @mock.patch.object(cnotification.VolumeCreateEnd, 'update_volume')
+    @mock.patch.object(cinder_helper, 'CinderHelper')
+    def test_cinder_volume_create_empty_model(self, m_update_volume,
+                                              m_cinder_helper):
+        """test creating volume in existing pool and node"""
+
+        # create storage_pool_by_name mock
+        return_pool_mock = mock.Mock()
+        return_pool_mock.configure_mock(
+            name='host_0@backend_0#pool_0',
+            total_volumes='3',
+            total_capacity_gb='500',
+            free_capacity_gb='380',
+            provisioned_capacity_gb='120',
+            allocated_capacity_gb='120')
+
+        m_get_storage_pool_by_name = mock.Mock(
+            side_effect=lambda name: return_pool_mock)
+
+        m_cinder_helper.return_value = mock.Mock(
+            get_storage_pool_by_name=m_get_storage_pool_by_name)
+
+        handler = cnotification.VolumeCreateEnd(self.fake_cdmc)
+
+        message = self.load_message('scenario_1_volume-create.json')
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+        # check that create_volume is not called
+        m_cinder_helper.assert_not_called()
+        m_update_volume.assert_not_called()
+
+    @mock.patch.object(cnotification.VolumeUpdateEnd, 'update_volume')
+    @mock.patch.object(cinder_helper, 'CinderHelper')
+    def test_cinder_volume_update_empty_model(self, m_update_volume,
+                                              m_cinder_helper):
+        """test updating volume in existing pool and node"""
+
+        handler = cnotification.VolumeUpdateEnd(self.fake_cdmc)
+
+        # create storage_pool_by name mock
+        return_pool_mock = mock.Mock()
+        return_pool_mock.configure_mock(
+            name='host_0@backend_0#pool_0',
+            total_volumes='2',
+            total_capacity_gb='500',
+            free_capacity_gb='420',
+            provisioned_capacity_gb='80',
+            allocated_capacity_gb='80')
+
+        m_get_storage_pool_by_name = mock.Mock(
+            side_effect=lambda name: return_pool_mock)
+
+        m_cinder_helper.return_value = mock.Mock(
+            get_storage_pool_by_name=m_get_storage_pool_by_name)
+
+        message = self.load_message('scenario_1_volume-update.json')
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        # check that update_volume is not called
+        m_cinder_helper.assert_not_called()
+        m_update_volume.assert_not_called()
+
+    @mock.patch.object(cinder_helper, 'CinderHelper')
+    @mock.patch.object(cnotification.VolumeDeleteEnd, 'delete_volume')
+    def test_cinder_volume_delete_empty_model(self, m_delete_volume,
+                                              m_cinder_helper):
+        """test deleting volume when model is empty"""
+
+        # create storage_pool_by name mock
+        return_pool_mock = mock.Mock()
+        return_pool_mock.configure_mock(
+            name='host_0@backend_0#pool_0',
+            total_volumes='1',
+            total_capacity_gb='500',
+            free_capacity_gb='460',
+            provisioned_capacity_gb='40',
+            allocated_capacity_gb='40')
+
+        m_get_storage_pool_by_name = mock.Mock(
+            side_effect=lambda name: return_pool_mock)
+
+        m_cinder_helper.return_value = mock.Mock(
+            get_storage_pool_by_name=m_get_storage_pool_by_name)
+
+        handler = cnotification.VolumeDeleteEnd(self.fake_cdmc)
+
+        message = self.load_message('scenario_1_volume-delete.json')
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+
+        # check that delete_volume is not called
+        m_cinder_helper.assert_not_called()
+        m_delete_volume.assert_not_called()

@@ -359,3 +359,21 @@ class FakerBaremetalModelCollector(base.BaseClusterDataModelCollector):
 
     def generate_scenario_1(self):
         return self.load_model('ironic_scenario_1.xml')
+
+
+class FakerEmptyModelCollector(base.BaseClusterDataModelCollector):
+
+    def __init__(self, config=None, osc=None):
+        if config is None:
+            config = mock.Mock(period=777)
+        super(FakerEmptyModelCollector, self).__init__(config)
+
+    @property
+    def notification_endpoints(self):
+        return []
+
+    def get_audit_scope_handler(self, audit_scope):
+        return None
+
+    def execute(self):
+        return None
