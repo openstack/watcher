@@ -24,7 +24,8 @@ aetos_client = cfg.OptGroup(name='aetos_client',
 AETOS_CLIENT_OPTS = [
     cfg.StrOpt('interface',
                default='public',
-               choices=['internal', 'public', 'admin'],
+               choices=['public', 'internal', 'admin',
+                        'publicURL', 'internalURL', 'adminURL'],
                help="Type of endpoint to use in keystoneclient."),
     cfg.StrOpt('region_name',
                help="Region in Identity service catalog to use for "
