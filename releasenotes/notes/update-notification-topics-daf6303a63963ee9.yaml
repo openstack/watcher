@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    Watcher now listens by default to the exchange and channel used by default
+    in Cinder, which is 'openstack.notifications'. The previous instructions
+    in the documentation to enable cinder notifications have been modified to
+    make clear that there is no need of changing the cinder conf.
