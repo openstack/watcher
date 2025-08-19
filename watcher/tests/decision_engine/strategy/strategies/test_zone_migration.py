@@ -320,7 +320,10 @@ class TestZoneMigration(TestBaseStrategy):
         migration_types = collections.Counter(
             [action.get('input_parameters')['migration_type']
              for action in solution.actions])
-        self.assertEqual(1, migration_types.get("swap", 0))
+        # watcher no longer implements swap. it is now an
+        # alias for migrate.
+        self.assertEqual(0, migration_types.get("swap", 0))
+        self.assertEqual(1, migration_types.get("migrate", 1))
         global_efficacy_value = solution.global_efficacy[3].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
 
