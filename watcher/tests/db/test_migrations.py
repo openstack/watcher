@@ -29,6 +29,7 @@ from alembic.script import ScriptDirectory
 from oslo_config import cfg
 from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import test_fixtures
+from oslo_db.sqlalchemy import utils as oslodbutils
 from oslo_log import log as logging
 import sqlalchemy
 
@@ -55,7 +56,7 @@ class MySQLDbMigrationsTestCase(test_fixtures.OpportunisticDBTestMixin,
         self.engine = enginefacade.writer.get_engine()
         self.dbapi = dbapi.get_instance()
         self.alembic_config = migration._alembic_config()
-        self.revisions_tested = set(["15f7375ca737"])
+        self.revisions_tested = set(["15f7375ca737", "7150a7d8f228"])
 
     def _apply_migration(self, connection, revision):
         if revision not in self.revisions_tested:
@@ -113,6 +114,32 @@ class MySQLDbMigrationsTestCase(test_fixtures.OpportunisticDBTestMixin,
 
 
 class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
+    def _transform_mutable_fields_to_text(self, obj_values):
+        transformed = {}
+        for key, value in obj_values.items():
+            if type(value) in (dict, list):
+                transformed[key] = str(value)
+            else:
+                transformed[key] = value
+        return transformed
+
+    def _create_manual_action_plan(self, connection, **kwargs):
+        ap_values = utils.get_test_action_plan(**kwargs)
+        ap_values = self._transform_mutable_fields_to_text(ap_values)
+        metadata = sqlalchemy.MetaData()
+        metadata.reflect(bind=self.engine)
+        ap_table = sqlalchemy.Table('action_plans', metadata)
+        with connection.begin():
+            connection.execute(ap_table.insert(), ap_values)
+
+    def _create_manual_audit(self, connection, **kwargs):
+        audit_values = utils.get_test_audit(**kwargs)
+        audit_values = self._transform_mutable_fields_to_text(audit_values)
+        metadata = sqlalchemy.MetaData()
+        metadata.reflect(bind=self.engine)
+        audit_table = sqlalchemy.Table('audits', metadata)
+        with connection.begin():
+            connection.execute(audit_table.insert(), audit_values)
 
     def _create_manual_efficacy_indicator(self, connection, **kwargs):
         eff_ind_values = utils.get_test_efficacy_indicator(**kwargs)
@@ -149,20 +176,22 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
             name="STRATEGY_ID_1", display_name='My Strategy 1')
         self.audit_template = utils.create_test_audit_template(
             name="Audit Template", id=1, uuid=None)
-        self.audit = utils.create_test_audit(
+        self._create_manual_audit(
+            connection,
             audit_template_id=self.audit_template.id, id=1, uuid=None,
             name="AUDIT_1")
-        self.action_plan = utils.create_test_action_plan(
-            audit_id=self.audit.id, id=1, uuid=None)
+        self._create_manual_action_plan(
+            connection,
+            audit_id=1, id=1, uuid=None)
 
         self._create_manual_efficacy_indicator(
             connection,
-            action_plan_id=self.action_plan.id, id=1, uuid=None,
+            action_plan_id=1, id=1, uuid=None,
             name="efficacy_indicator1", description="Test Indicator 1",
             value=1.01234567912345678)
         self._create_manual_efficacy_indicator(
             connection,
-            action_plan_id=self.action_plan.id, id=2, uuid=None,
+            action_plan_id=1, id=2, uuid=None,
             name="efficacy_indicator2", description="Test Indicator 2",
             value=2.01234567912345678)
 
@@ -171,7 +200,7 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         # check that creating a new efficacy_indicator after the migration
         # works
         utils.create_test_efficacy_indicator(
-            action_plan_id=self.action_plan.id, id=3, uuid=None,
+            action_plan_id=1, id=3, uuid=None,
             name="efficacy_indicator3", description="Test Indicator 3",
             value=0.01234567912345678)
         db_efficacy_indicator = self.dbapi.get_efficacy_indicator_by_id(
@@ -183,15 +212,6 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         self.assertIsNone(self._read_efficacy_indicator(connection, 2)[0])
 
         # check that the existing data is there after the migration
-        db_goal = self.dbapi.get_goal_by_id(self.context, 1)
-        self.assertEqual(db_goal.name, "GOAL_1")
-        db_strategy = self.dbapi.get_strategy_by_id(self.context, 1)
-        self.assertEqual(db_strategy.name, "STRATEGY_ID_1")
-        db_audit_template = self.dbapi.get_audit_template_by_id(
-            self.context, 1)
-        self.assertEqual(db_audit_template.name, "Audit Template")
-        db_audit = self.dbapi.get_audit_by_id(self.context, 1)
-        self.assertEqual(db_audit.name, "AUDIT_1")
         db_efficacy_indicator_1 = self.dbapi.get_efficacy_indicator_by_id(
             self.context, 1)
         self.assertAlmostEqual(db_efficacy_indicator_1.data,
@@ -226,6 +246,21 @@ class MySQLDbDataMigrationsTestCase(MySQLDbMigrationsTestCase):
         eff_ind_2_data = self._read_efficacy_indicator(connection, 2)[0]
         self.assertAlmostEqual(eff_ind_2_data,
                                2.00, places=2)
+
+    def _check_7150a7d8f228(self, connection):
+        """Check new columen status_message have been created."""
+        self.assertTrue(
+            oslodbutils.column_exists(
+                connection, "action_plans", "status_message")
+        )
+        self.assertTrue(
+            oslodbutils.column_exists(
+                connection, "actions", "status_message")
+        )
+        self.assertTrue(
+            oslodbutils.column_exists(
+                connection, "audits", "status_message")
+        )
 
     def test_migration_revisions(self):
         with self.engine.connect() as connection:

@@ -401,3 +401,11 @@ class DbActionTestCase(base.DbTestCase):
         self.assertRaises(exception.ActionAlreadyExists,
                           utils.create_test_action,
                           id=2, uuid=uuid)
+
+    def test_action_status_message(self):
+        action = utils.create_test_action()
+        self.assertIsNone(action.status_message)
+        self.dbapi.update_action(action['id'],
+                                 {'status_message': 'test'})
+        action = self.dbapi.get_action_by_id(self.context, action['id'])
+        self.assertEqual(action.status_message, 'test')

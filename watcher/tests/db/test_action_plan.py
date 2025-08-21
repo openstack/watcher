@@ -389,3 +389,12 @@ class DbActionPlanTestCase(base.DbTestCase):
         self.assertRaises(exception.ActionPlanAlreadyExists,
                           utils.create_test_action_plan,
                           id=2, uuid=uuid)
+
+    def test_action_plan_status_message(self):
+        action_plan = utils.create_test_action_plan()
+        self.assertIsNone(action_plan.status_message)
+        self.dbapi.update_action_plan(action_plan['id'],
+                                      {'status_message': 'test'})
+        action_plan = self.dbapi.get_action_plan_by_id(
+            self.context, action_plan['id'])
+        self.assertEqual(action_plan.status_message, 'test')
