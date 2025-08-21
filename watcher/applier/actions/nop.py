@@ -20,6 +20,7 @@
 from oslo_log import log
 
 from watcher.applier.actions import base
+from watcher.common import exception
 
 LOG = log.getLogger(__name__)
 
@@ -45,6 +46,18 @@ class Nop(base.BaseAction):
             'properties': {
                 'message': {
                     'type': ['string', 'null']
+                },
+                'fail_pre_condition': {
+                    'type': 'boolean',
+                    'default': False
+                },
+                'fail_execute': {
+                    'type': 'boolean',
+                    'default': False
+                },
+                'fail_post_condition': {
+                    'type': 'boolean',
+                    'default': False
                 }
             },
             'required': ['message'],
@@ -55,8 +68,13 @@ class Nop(base.BaseAction):
     def message(self):
         return self.input_parameters.get(self.MESSAGE)
 
+    def debug_message(self, message):
+        return ("Executing action NOP message: %s ", message)
+
     def execute(self):
-        LOG.debug("Executing action NOP message: %s ", self.message)
+        LOG.debug(self.debug_message(self.message))
+        if self.input_parameters.get('fail_execute'):
+            return False
         return True
 
     def revert(self):
@@ -64,10 +82,12 @@ class Nop(base.BaseAction):
         return True
 
     def pre_condition(self):
-        pass
+        if self.input_parameters.get('fail_pre_condition'):
+            raise exception.WatcherException("Failed in pre_condition")
 
     def post_condition(self):
-        pass
+        if self.input_parameters.get('fail_post_condition'):
+            raise exception.WatcherException("Failed in post_condition")
 
     def get_description(self):
         """Description of the action"""
