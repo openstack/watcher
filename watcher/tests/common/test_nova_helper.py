@@ -236,6 +236,52 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
+    def test_start_instance(self, mock_glance, mock_cinder, mock_neutron,
+                            mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance_id = utils.generate_uuid()
+        server = self.fake_server(instance_id)
+        setattr(server, 'OS-EXT-STS:vm_state', 'active')
+        self.fake_nova_find_list(
+            nova_util,
+            fake_find=server,
+            fake_list=server)
+
+        result = nova_util.start_instance(instance_id)
+        self.assertTrue(result)
+
+        setattr(server, 'OS-EXT-STS:vm_state', 'stopped')
+        result = nova_util.start_instance(instance_id)
+        self.assertFalse(result)
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
+
+        result = nova_util.start_instance(instance_id)
+        self.assertFalse(result)
+
+        # verify that the method will return True when the state of instance
+        # is in the expected state.
+        setattr(server, 'OS-EXT-STS:vm_state', 'stopped')
+        with mock.patch.object(
+            nova_util,
+            'wait_for_instance_state',
+            return_value=True
+        ) as mock_instance_state:
+            result = nova_util.start_instance(instance_id)
+            self.assertTrue(result)
+            mock_instance_state.assert_called_once_with(
+                mock.ANY,
+                "active",
+                8,
+                10)
+
+        # verify that the method start_instance will return False when the
+        # server is not available.
+        nova_util.nova.servers.get.return_value = None
+        result = nova_util.start_instance(instance_id)
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_delete_instance(self, mock_glance, mock_cinder, mock_neutron,
                              mock_nova):
         nova_util = nova_helper.NovaHelper()

@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    The Host Maintenance strategy now supports two new input parameters:
+    ``disable_live_migration`` and ``disable_cold_migration``. These
+    parameters allow cloud administrators to control whether live, cold or
+    no migration should be considered during host maintenance operations.
+
+    * If ``disable_live_migration`` is set, active instances will be cold
+      migrated if ``disable_cold_migration`` is not set, otherwise active
+      instances will be stopped.
+    * If ``disable_cold_migration`` is set, inactive instances will not be
+      cold migrated.
+    * If both are set, only stop actions will be applied on active instances.
+
+    A new `stop` action has been introduced and registered to support
+    scenarios where migration is disabled.

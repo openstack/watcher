@@ -52,15 +52,29 @@ Configuration
 
 Strategy parameters are:
 
-==================== ====== ================================ ==================
-parameter            type   description                      required/optional
-==================== ====== ================================ ==================
-``maintenance_node`` String The name of the compute node     Required
-                            which needs maintenance.
-``backup_node``      String The name of the compute node     Optional
-                            which will backup the
-                            maintenance node.
-==================== ====== ================================ ==================
+========================== ======== ========================== ==========
+parameter                  type     description                required
+========================== ======== ========================== ==========
+``maintenance_node``       String   The name of the            Required
+                                    compute node
+                                    which needs maintenance.
+``backup_node``            String   The name of the compute    Optional
+                                    node which will backup
+                                    the maintenance node.
+``disable_live_migration`` Boolean  False: Active instances    Optional
+                                    will be live migrated.
+                                    True: Active instances
+                                    will be cold migrated
+                                    if cold migration is
+                                    not disabled. Otherwise,
+                                    they will be stopped.
+                                    False by default.
+``disable_cold_migration`` Boolean  False: Inactive instances  Optional
+                                    will be cold migrated.
+                                    True: Inactive instances
+                                    will not be cold migrated.
+                                    False by default.
+========================== ======== ========================== ==========
 
 Efficacy Indicator
 ------------------
@@ -96,6 +110,18 @@ to compute02 host.
       -g cluster_maintaining -s host_maintenance \
       -p maintenance_node=compute01 \
       -p backup_node=compute02
+
+Run an audit using Host Maintenance strategy with migration disabled.
+This will only stop active instances on compute01, useful for maintenance
+scenarios where operators do not want to migrate workloads to other hosts.
+
+.. code-block:: shell
+
+    $ openstack optimize audit create \
+      -g cluster_maintaining -s host_maintenance \
+      -p maintenance_node=compute01 \
+      -p disable_live_migration=True \
+      -p disable_cold_migration=True
 
 Note that after executing this strategy, the *maintenance_node* will be
 marked as disabled, with the reason set to ``watcher_maintaining``.
