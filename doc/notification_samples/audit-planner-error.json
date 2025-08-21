@@ -9,6 +9,7 @@
         "para1": 3.2
       },
       "state": "ONGOING",
+      "status_message": null,
       "updated_at": null,
       "deleted_at": null,
       "fault": {

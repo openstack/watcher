@@ -57,7 +57,8 @@ class TestActionPlanNotification(base.DbTestCase):
         action_plan = utils.create_test_action_plan(
             mock.Mock(), state=objects.action_plan.State.ONGOING,
             audit_id=self.audit.id, strategy_id=self.strategy.id,
-            audit=self.audit, strategy=self.strategy)
+            audit=self.audit, strategy=self.strategy,
+            status_message="Test status message")
         notifications.action_plan.send_update(
             mock.MagicMock(), action_plan, host='node0',
             old_state=objects.action_plan.State.PENDING)
@@ -72,7 +73,7 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
@@ -108,22 +109,25 @@ class TestActionPlanNotification(base.DbTestCase):
                             "state": "PENDING",
                             "updated_at": None,
                             "created_at": "2016-10-18T09:52:05Z",
-                            "audit_type": "ONESHOT"
+                            "audit_type": "ONESHOT",
+                            "status_message": None
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.2"
+                        "watcher_object.version": "1.3"
                     },
                     "deleted_at": None,
                     "state": "ONGOING",
+                    "status_message": 'Test status message',
                     "updated_at": None,
                     "created_at": "2016-10-18T09:52:05Z",
                     "state_update": {
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.0",
+                        "watcher_object.version": "1.1",
                         "watcher_object.data": {
                             "old_state": "PENDING",
-                            "state": "ONGOING"
+                            "state": "ONGOING",
+                            "status_message": "Test status message",
                         },
                         "watcher_object.name": "ActionPlanStateUpdatePayload"
                     },
@@ -149,7 +153,7 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
@@ -185,14 +189,16 @@ class TestActionPlanNotification(base.DbTestCase):
                             "state": "PENDING",
                             "updated_at": None,
                             "created_at": "2016-10-18T09:52:05Z",
-                            "audit_type": "ONESHOT"
+                            "audit_type": "ONESHOT",
+                            "status_message": None
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.2"
+                        "watcher_object.version": "1.3"
                     },
                     "deleted_at": None,
                     "state": "PENDING",
+                    "status_message": None,
                     "updated_at": None,
                     "created_at": None,
                 },
@@ -218,7 +224,7 @@ class TestActionPlanNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "global_efficacy": [],
                     "strategy_uuid": "cb3d0b58-4415-4d90-b75b-1e96878730e3",
@@ -254,14 +260,16 @@ class TestActionPlanNotification(base.DbTestCase):
                             "state": "PENDING",
                             "updated_at": None,
                             "created_at": "2016-10-18T09:52:05Z",
-                            "audit_type": "ONESHOT"
+                            "audit_type": "ONESHOT",
+                            "status_message": None
                         },
                         "watcher_object.name": "TerseAuditPayload",
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.2"
+                        "watcher_object.version": "1.3"
                     },
                     "deleted_at": None,
                     "state": "DELETED",
+                    "status_message": None,
                     "updated_at": None,
                     "created_at": "2016-10-18T09:52:05Z",
                 },
@@ -297,7 +305,7 @@ class TestActionPlanNotification(base.DbTestCase):
                         "audit": {
                             "watcher_object.namespace": "watcher",
                             "watcher_object.name": "TerseAuditPayload",
-                            "watcher_object.version": "1.2",
+                            "watcher_object.version": "1.3",
                             "watcher_object.data": {
                                 "interval": None,
                                 "next_run_time": None,
@@ -313,11 +321,13 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "state": "PENDING",
                                 "updated_at": None,
                                 "created_at": "2016-10-18T09:52:05Z",
-                                "audit_type": "ONESHOT"
+                                "audit_type": "ONESHOT",
+                                "status_message": None
                             }
                         },
                         "global_efficacy": [],
                         "state": "ONGOING",
+                        "status_message": None,
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
@@ -339,7 +349,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification
@@ -399,14 +409,16 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "state": "PENDING",
                                 "updated_at": None,
                                 "created_at": "2016-10-18T09:52:05Z",
-                                "audit_type": "ONESHOT"
+                                "audit_type": "ONESHOT",
+                                "status_message": None
                             },
                             "watcher_object.name": "TerseAuditPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.2"
+                            "watcher_object.version": "1.3"
                         },
                         "global_efficacy": [],
                         "state": "ONGOING",
+                        "status_message": None,
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
@@ -428,7 +440,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification
@@ -460,7 +472,7 @@ class TestActionPlanNotification(base.DbTestCase):
                         "audit": {
                             "watcher_object.namespace": "watcher",
                             "watcher_object.name": "TerseAuditPayload",
-                            "watcher_object.version": "1.2",
+                            "watcher_object.version": "1.3",
                             "watcher_object.data": {
                                 "interval": None,
                                 "next_run_time": None,
@@ -476,11 +488,13 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "state": "PENDING",
                                 "updated_at": None,
                                 "created_at": "2016-10-18T09:52:05Z",
-                                "audit_type": "ONESHOT"
+                                "audit_type": "ONESHOT",
+                                "status_message": None
                             }
                         },
                         "global_efficacy": [],
                         "state": "ONGOING",
+                        "status_message": None,
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
@@ -502,7 +516,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanCancelPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification
@@ -562,14 +576,16 @@ class TestActionPlanNotification(base.DbTestCase):
                                 "state": "PENDING",
                                 "updated_at": None,
                                 "created_at": "2016-10-18T09:52:05Z",
-                                "audit_type": "ONESHOT"
+                                "audit_type": "ONESHOT",
+                                "status_message": None
                             },
                             "watcher_object.name": "TerseAuditPayload",
                             "watcher_object.namespace": "watcher",
-                            "watcher_object.version": "1.2"
+                            "watcher_object.version": "1.3"
                         },
                         "global_efficacy": [],
                         "state": "ONGOING",
+                        "status_message": None,
                         "strategy_uuid": (
                             "cb3d0b58-4415-4d90-b75b-1e96878730e3"),
                         "strategy": {
@@ -591,7 +607,7 @@ class TestActionPlanNotification(base.DbTestCase):
                     },
                     "watcher_object.name": "ActionPlanCancelPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification

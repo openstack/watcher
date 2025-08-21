@@ -99,8 +99,8 @@ def get_test_audit(**kwargs):
         'hostname': kwargs.get('hostname', 'host_1'),
         'start_time': kwargs.get('start_time'),
         'end_time': kwargs.get('end_time'),
-        'force': kwargs.get('force', False)
-
+        'force': kwargs.get('force', False),
+        'status_message': kwargs.get('status_message', None),
     }
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
     # non-eager object loading, the field should not be referenced at all.
@@ -141,6 +141,7 @@ def get_test_action(**kwargs):
         'created_at': kwargs.get('created_at'),
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
+        'status_message': kwargs.get('status_message', None),
     }
 
     # ObjectField doesn't allow None nor dict, so if we want to simulate a
@@ -177,6 +178,7 @@ def get_test_action_plan(**kwargs):
         'updated_at': kwargs.get('updated_at'),
         'deleted_at': kwargs.get('deleted_at'),
         'hostname': kwargs.get('hostname', 'host_1'),
+        'status_message': kwargs.get('status_message', None),
     }
 
     # ObjectField doesn't allow None nor dict, so if we want to simulate a

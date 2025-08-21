@@ -70,6 +70,7 @@
       "interval": null,
       "updated_at": null,
       "state": "ONGOING",
+      "status_message": null,
       "audit_type": "ONESHOT"
     },
     "watcher_object.namespace": "watcher",

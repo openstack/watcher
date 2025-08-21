@@ -38,6 +38,7 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
 
         'state': ('action_plan', 'state'),
         'global_efficacy': ('action_plan', 'global_efficacy'),
+        'status_message': ('action_plan', 'status_message'),
 
         'created_at': ('action_plan', 'created_at'),
         'updated_at': ('action_plan', 'updated_at'),
@@ -46,7 +47,8 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
 
     # Version 1.0: Initial version
     # Version 1.1: Changed 'global_efficacy' type Dictionary to List
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
 
     fields = {
         'uuid': wfields.UUIDField(),
@@ -54,6 +56,7 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
         'global_efficacy': wfields.FlexibleListOfDictField(nullable=True),
         'audit_uuid': wfields.UUIDField(),
         'strategy_uuid': wfields.UUIDField(nullable=True),
+        'status_message': wfields.StringField(nullable=True),
 
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
@@ -74,6 +77,7 @@ class ActionPlanPayload(TerseActionPlanPayload):
 
         'state': ('action_plan', 'state'),
         'global_efficacy': ('action_plan', 'global_efficacy'),
+        'status_message': ('action_plan', 'status_message'),
 
         'created_at': ('action_plan', 'created_at'),
         'updated_at': ('action_plan', 'updated_at'),
@@ -82,7 +86,8 @@ class ActionPlanPayload(TerseActionPlanPayload):
 
     # Version 1.0: Initial version
     # Vesrsion 1.1: changed global_efficacy type
-    VERSION = '1.1'
+    # Version 1.2 : Added 'status_message' field
+    VERSION = '1.2'
 
     fields = {
         'audit': wfields.ObjectField('TerseAuditPayload'),
@@ -103,11 +108,13 @@ class ActionPlanPayload(TerseActionPlanPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionPlanStateUpdatePayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
 
     fields = {
         'old_state': wfields.StringField(nullable=True),
         'state': wfields.StringField(nullable=True),
+        'status_message': wfields.StringField(nullable=True),
     }
 
 
@@ -115,7 +122,8 @@ class ActionPlanStateUpdatePayload(notificationbase.NotificationPayloadBase):
 class ActionPlanCreatePayload(ActionPlanPayload):
     # Version 1.0: Initial version
     # Version 1.1: Changed global_efficacy_type
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
@@ -129,7 +137,8 @@ class ActionPlanCreatePayload(ActionPlanPayload):
 class ActionPlanUpdatePayload(ActionPlanPayload):
     # Version 1.0: Initial version
     # Version 1.1: Changed global_efficacy_type
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
     fields = {
         'state_update': wfields.ObjectField('ActionPlanStateUpdatePayload'),
     }
@@ -146,7 +155,8 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
 class ActionPlanActionPayload(ActionPlanPayload):
     # Version 1.0: Initial version
     # Version 1.1: Changed global_efficacy_type
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -163,7 +173,8 @@ class ActionPlanActionPayload(ActionPlanPayload):
 class ActionPlanDeletePayload(ActionPlanPayload):
     # Version 1.0: Initial version
     # Version 1.1: Changed global_efficacy_type
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
@@ -177,7 +188,8 @@ class ActionPlanDeletePayload(ActionPlanPayload):
 class ActionPlanCancelPayload(ActionPlanPayload):
     # Version 1.0: Initial version
     # Version 1.1: Changed global_efficacy_type
-    VERSION = '1.1'
+    # Version 1.2: Added 'status_message' field
+    VERSION = '1.2'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -300,7 +312,11 @@ def send_update(context, action_plan, service='infra-optim',
 
     state_update = ActionPlanStateUpdatePayload(
         old_state=old_state,
-        state=action_plan.state if old_state else None)
+        state=action_plan.state if old_state else None,
+        status_message=(
+            action_plan.status_message if old_state and
+            action_plan.status_message else None)
+        )
 
     versioned_payload = ActionPlanUpdatePayload(
         action_plan=action_plan,

@@ -70,7 +70,7 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "interval": None,
                     "next_run_time": None,
@@ -115,14 +115,16 @@ class TestAuditNotification(base.DbTestCase):
                     "created_at": "2016-10-18T09:52:05Z",
                     "state_update": {
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.0",
+                        "watcher_object.version": "1.1",
                         "watcher_object.data": {
                             "old_state": "PENDING",
-                            "state": "ONGOING"
+                            "state": "ONGOING",
+                            "status_message": None
                         },
                         "watcher_object.name": "AuditStateUpdatePayload"
                     },
-                    "audit_type": "ONESHOT"
+                    "audit_type": "ONESHOT",
+                    "status_message": None
                 },
                 "watcher_object.name": "AuditUpdatePayload"
             },
@@ -132,7 +134,8 @@ class TestAuditNotification(base.DbTestCase):
     def test_send_audit_update_without_strategy(self):
         audit = utils.get_test_audit(
             mock.Mock(), interval=None, state=objects.audit.State.ONGOING,
-            goal_id=self.goal.id, goal=self.goal)
+            goal_id=self.goal.id, goal=self.goal,
+            status_message='Fake message')
         notifications.audit.send_update(
             mock.MagicMock(), audit, host='node0',
             old_state=objects.audit.State.PENDING)
@@ -145,7 +148,7 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "interval": None,
                     "next_run_time": None,
@@ -177,14 +180,16 @@ class TestAuditNotification(base.DbTestCase):
                     "created_at": None,
                     "state_update": {
                         "watcher_object.namespace": "watcher",
-                        "watcher_object.version": "1.0",
+                        "watcher_object.version": "1.1",
                         "watcher_object.data": {
                             "old_state": "PENDING",
-                            "state": "ONGOING"
+                            "state": "ONGOING",
+                            "status_message": "Fake message"
                         },
                         "watcher_object.name": "AuditStateUpdatePayload"
                     },
-                    "audit_type": "ONESHOT"
+                    "audit_type": "ONESHOT",
+                    "status_message": "Fake message"
                 },
                 "watcher_object.name": "AuditUpdatePayload"
             },
@@ -207,7 +212,7 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "interval": None,
                     "next_run_time": None,
@@ -250,7 +255,8 @@ class TestAuditNotification(base.DbTestCase):
                     "state": "PENDING",
                     "updated_at": None,
                     "created_at": None,
-                    "audit_type": "ONESHOT"
+                    "audit_type": "ONESHOT",
+                    "status_message": None
                 },
                 "watcher_object.name": "AuditCreatePayload"
             },
@@ -273,7 +279,7 @@ class TestAuditNotification(base.DbTestCase):
         self.assertDictEqual(
             {
                 "watcher_object.namespace": "watcher",
-                "watcher_object.version": "1.1",
+                "watcher_object.version": "1.2",
                 "watcher_object.data": {
                     "interval": None,
                     "next_run_time": None,
@@ -316,7 +322,8 @@ class TestAuditNotification(base.DbTestCase):
                     "state": "DELETED",
                     "updated_at": None,
                     "created_at": "2016-10-18T09:52:05Z",
-                    "audit_type": "ONESHOT"
+                    "audit_type": "ONESHOT",
+                    "status_message": None
                 },
                 "watcher_object.name": "AuditDeletePayload"
             },
@@ -386,11 +393,12 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.version": "1.0"
                         },
                         "updated_at": None,
-                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d"
+                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                        "status_message": None
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification
@@ -473,11 +481,12 @@ class TestAuditNotification(base.DbTestCase):
                             "watcher_object.version": "1.0"
                         },
                         "updated_at": None,
-                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d"
+                        "uuid": "10a47dd1-4874-4298-91cf-eff046dbdb8d",
+                        "status_message": None
                     },
                     "watcher_object.name": "AuditActionPayload",
                     "watcher_object.namespace": "watcher",
-                    "watcher_object.version": "1.1"
+                    "watcher_object.version": "1.2"
                 }
             },
             notification

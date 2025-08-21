@@ -109,7 +109,8 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
     # Version 2.0: Removed 'first_action_id' object field
     # Version 2.1: Changed global_efficacy type
     # Version 2.2: Added 'hostname' field
-    VERSION = '2.2'
+    # Version 2.3: Added 'status_message' field
+    VERSION = '2.3'
 
     dbapi = db_api.get_instance()
 
@@ -124,6 +125,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
 
         'audit': wfields.ObjectField('Audit', nullable=True),
         'strategy': wfields.ObjectField('Strategy', nullable=True),
+        'status_message': wfields.StringField(nullable=True),
     }
 
     object_fields = {

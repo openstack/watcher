@@ -191,7 +191,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -247,7 +247,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -310,7 +310,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -406,7 +406,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -505,7 +505,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -609,7 +609,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -730,7 +730,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 
@@ -885,7 +885,7 @@ class TestActionScheduling(base.DbTestCase):
         for src, dst in edges:
             for key in ('id', 'action_plan', 'action_plan_id', 'created_at',
                         'input_parameters', 'deleted_at', 'updated_at',
-                        'state'):
+                        'state', 'status_message'):
                 del src[key]
                 del dst[key]
 

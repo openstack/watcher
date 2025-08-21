@@ -9,6 +9,7 @@
         "para1": 3.2
       },
       "state": "DELETED",
+      "status_message": null,
       "updated_at": null,
       "deleted_at": null,
       "goal_uuid": "bc830f84-8ae3-4fc6-8bc6-e3dd15e8b49a",

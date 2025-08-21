@@ -55,11 +55,13 @@
           "audit_type": "ONESHOT",
           "interval": null,
           "deleted_at": null,
-          "state": "PENDING"
+          "state": "PENDING",
+          "status_message": null
         }
       },
       "global_efficacy": [],
-      "state": "ONGOING"
+      "state": "ONGOING",
+      "status_message": null
     }
   },
   "timestamp": "2016-10-18 09:52:05.219414"

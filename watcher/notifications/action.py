@@ -43,10 +43,13 @@ class ActionPayload(notificationbase.NotificationPayloadBase):
         'created_at': ('action', 'created_at'),
         'updated_at': ('action', 'updated_at'),
         'deleted_at': ('action', 'deleted_at'),
+
+        'status_message': ('action', 'status_message'),
     }
 
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
 
     fields = {
         'uuid': wfields.UUIDField(),
@@ -56,6 +59,7 @@ class ActionPayload(notificationbase.NotificationPayloadBase):
         'parents': wfields.ListOfUUIDsField(nullable=False, default=[]),
         'action_plan_uuid': wfields.UUIDField(),
         'action_plan': wfields.ObjectField('TerseActionPlanPayload'),
+        'status_message': wfields.StringField(nullable=True),
 
         'created_at': wfields.DateTimeField(nullable=True),
         'updated_at': wfields.DateTimeField(nullable=True),
@@ -70,18 +74,21 @@ class ActionPayload(notificationbase.NotificationPayloadBase):
 @base.WatcherObjectRegistry.register_notification
 class ActionStateUpdatePayload(notificationbase.NotificationPayloadBase):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
 
     fields = {
         'old_state': wfields.StringField(nullable=True),
         'state': wfields.StringField(nullable=True),
+        'status_message': wfields.StringField(nullable=True),
     }
 
 
 @base.WatcherObjectRegistry.register_notification
 class ActionCreatePayload(ActionPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, action, action_plan):
@@ -93,7 +100,8 @@ class ActionCreatePayload(ActionPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionUpdatePayload(ActionPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
     fields = {
         'state_update': wfields.ObjectField('ActionStateUpdatePayload'),
     }
@@ -108,7 +116,8 @@ class ActionUpdatePayload(ActionPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionExecutionPayload(ActionPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -123,7 +132,8 @@ class ActionExecutionPayload(ActionPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionCancelPayload(ActionPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
     fields = {
         'fault': wfields.ObjectField('ExceptionPayload', nullable=True),
     }
@@ -138,7 +148,8 @@ class ActionCancelPayload(ActionPayload):
 @base.WatcherObjectRegistry.register_notification
 class ActionDeletePayload(ActionPayload):
     # Version 1.0: Initial version
-    VERSION = '1.0'
+    # Version 1.1: Added 'status_message' field
+    VERSION = '1.1'
     fields = {}
 
     def __init__(self, action, action_plan):
@@ -257,7 +268,11 @@ def send_update(context, action, service='infra-optim',
 
     state_update = ActionStateUpdatePayload(
         old_state=old_state,
-        state=action.state if old_state else None)
+        state=action.state if old_state else None,
+        status_message=(
+            action.status_message if old_state and
+            action.status_message else None)
+        )
 
     versioned_payload = ActionUpdatePayload(
         action=action,
