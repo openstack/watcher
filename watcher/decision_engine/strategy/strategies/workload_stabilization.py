@@ -48,9 +48,19 @@ def _set_memoize(conf):
 class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
     """Workload Stabilization control using live migration
 
-    This is workload stabilization strategy based on standard deviation
-    algorithm. The goal is to determine if there is an overload in a cluster
-    and respond to it by migrating VMs to stabilize the cluster.
+    This workload stabilization strategy is based on the standard deviation
+    algorithm, as a measure of cluster resource usage balance. The goal is to
+    determine if there is an overload in a cluster and respond to it by
+    migrating VMs to stabilize the cluster.
+
+    The standard deviation is determined using normalized CPU and/or memory
+    usage values, which are scaled to a range between 0 and 1 based on the
+    usage metrics in the data sources.
+
+    A standard deviation of 0 means that your cluster's resources are
+    perfectly balanced, with all usage values being identical. However, a
+    standard deviation of 0.5 indicates completely unbalanced resource usage,
+    where some resources are heavily utilized and others are not at all.
 
     This strategy has been tested in a small (32 nodes) cluster.
 
