@@ -35,9 +35,6 @@ from watcher.objects import fields
 
 LOG = log.getLogger(__name__)
 
-CANCEL_STATE = [objects.action_plan.State.CANCELLING,
-                objects.action_plan.State.CANCELLED]
-
 
 class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
 
@@ -159,7 +156,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             # so that taskflow does not schedule further actions.
             action_plan = objects.ActionPlan.get_by_id(
                 self.engine.context, self._db_action.action_plan_id)
-            if action_plan.state in CANCEL_STATE:
+            if action_plan.state in objects.action_plan.State.CANCEL_STATES:
                 raise exception.ActionPlanCancelled(uuid=action_plan.uuid)
             db_action = self.do_pre_execute()
             notifications.action.send_execution_notification(
@@ -215,7 +212,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 result = True
             if (action_object.state in [objects.action.State.SUCCEEDED,
                objects.action.State.FAILED] or
-               action_plan_object.state in CANCEL_STATE):
+               action_plan_object.state in
+               objects.action_plan.State.CANCEL_STATES):
                 break
             time.sleep(1)
         try:
@@ -225,7 +223,9 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             # Not all actions support abort operations, kill only those action
             # which support abort operations
             abort = self.action.check_abort()
-            if (action_plan_object.state in CANCEL_STATE and abort):
+            if (action_plan_object.state in
+                objects.action_plan.State.CANCEL_STATES and
+                    abort):
                 et.kill()
             et.wait()
             return result
@@ -261,7 +261,7 @@ class BaseTaskFlowActionContainer(flow_task.Task):
         # NOTE: check if revert cause by cancel action plan or
         # some other exception occurred during action plan execution
         # if due to some other exception keep the flow intact.
-        if action_plan.state not in CANCEL_STATE:
+        if action_plan.state not in objects.action_plan.State.CANCEL_STATES:
             self.do_revert()
             return
 
