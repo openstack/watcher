@@ -23,7 +23,7 @@ ironic_client = cfg.OptGroup(name='ironic_client',
 
 IRONIC_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
-               default=1,
+               default='1',
                help='Version of Ironic API to use in ironicclient.'),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
