@@ -384,8 +384,8 @@ following methods of the :ref:`Action <action_definition>` handler:
 
 -   **preconditions()**: this method will make sure that all conditions are met
     before executing the action (for example, it makes sure that an instance
-    still exists before trying to migrate it). If certain predefined conditions
-    are found in this phase, the Action is set to **SKIPPED** state and will
+    still exists before trying to migrate it). If action specific preconditions
+    are not met in this phase, the Action is set to **SKIPPED** state and will
     not be executed.
 -   **execute()**: this method is what triggers real commands on other
     OpenStack services (such as Nova, ...) in order to change target resource

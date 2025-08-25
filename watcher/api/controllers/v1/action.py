@@ -113,10 +113,6 @@ class ActionPatchType(types.JsonPatchType):
     def allowed_attrs():
         return ["/state", "/status_message"]
 
-    @staticmethod
-    def internal_attrs():
-        return types.JsonPatchType.internal_attrs()
-
     # We do not allow to remove any attribute via PATCH so setting all fields
     # as mandatory
     @staticmethod
@@ -422,7 +418,7 @@ class ActionsController(rest.RestController):
         ]
 
         # Validate state transitions if state is being modified
-        if hasattr(action, 'state') and action.state != action_to_update.state:
+        if action.state != action_to_update.state:
             transition = (action_to_update.state, action.state)
             if transition not in allowed_patch_transitions:
                 error_message = _("State transition not allowed: "
@@ -444,8 +440,8 @@ class ActionsController(rest.RestController):
 
         status_message = _("Action skipped by user.")
         # status_message update only allowed with status update
-        if (hasattr(action, 'status_message') and
-                action.status_message != action_to_update.status_message):
+        # NOTE(dviroel): status_message is an exposed field.
+        if action.status_message != action_to_update.status_message:
             if action.state == action_to_update.state:
                 error_message = _(
                     "status_message update only allowed with state change")

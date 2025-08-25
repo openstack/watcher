@@ -254,3 +254,27 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         expected_log = 'Revert action: %s'
         action_container.revert()
         mock_log.warning.assert_called_once_with(expected_log, action_name)
+
+    @mock.patch.object(tflow.TaskFlowActionContainer, 'do_revert')
+    def test_execute_with_rollback_skipped_action(self, mock_do_revert):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.SKIPPED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
+                              group="watcher_applier")
+
+        action_container.revert()
+
+        mock_do_revert.assert_not_called()

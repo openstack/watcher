@@ -297,15 +297,20 @@ class BaseTaskFlowActionContainer(flow_task.Task):
     def revert(self, *args, **kwargs):
         action_plan = objects.ActionPlan.get_by_id(
             self.engine.context, self._db_action.action_plan_id, eager=True)
+        action_object = objects.Action.get_by_uuid(
+            self.engine.context, self._db_action.uuid, eager=True)
+
         # NOTE: check if revert cause by cancel action plan or
         # some other exception occurred during action plan execution
         # if due to some other exception keep the flow intact.
-        if action_plan.state not in objects.action_plan.State.CANCEL_STATES:
+        # NOTE(dviroel): If the action was skipped, we should not
+        # revert it.
+        if (action_plan.state not in
+                objects.action_plan.State.CANCEL_STATES and
+                action_object.state != objects.action.State.SKIPPED):
             self.do_revert()
             return
 
-        action_object = objects.Action.get_by_uuid(
-            self.engine.context, self._db_action.uuid, eager=True)
         try:
             if action_object.state == objects.action.State.ONGOING:
                 action_object.state = objects.action.State.CANCELLING
@@ -344,4 +349,6 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 priority=fields.NotificationPriority.ERROR)
 
     def abort(self, *args, **kwargs):
+        # NOTE(dviroel): only ONGOING actions are called
+        # to abort the operation.
         return self.do_abort(*args, **kwargs)
