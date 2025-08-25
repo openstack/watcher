@@ -29,7 +29,10 @@ from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
+from watcher import conf
 from watcher.tests import base
+
+CONF = conf.CONF
 
 
 @mock.patch.object(clients.OpenStackClients, 'nova')
@@ -504,14 +507,24 @@ class TestNovaHelper(base.TestCase):
         nova_services.enable.return_value = mock.MagicMock(
             status='enabled')
 
+        CONF.set_override('api_version', '2.52', group='nova_client')
+
         result = nova_util.enable_service_nova_compute('nanjing')
         self.assertTrue(result)
+
+        nova_util.nova.services.enable.assert_called_with(
+            host='nanjing', binary='nova-compute')
 
         nova_services.enable.return_value = mock.MagicMock(
             status='disabled')
 
+        CONF.set_override('api_version', '2.56', group='nova_client')
+
         result = nova_util.enable_service_nova_compute('nanjing')
         self.assertFalse(result)
+
+        nova_util.nova.services.enable.assert_called_with(
+            service_uuid=mock.ANY)
 
     def test_disable_service_nova_compute(self, mock_glance, mock_cinder,
                                           mock_neutron, mock_nova):
@@ -520,14 +533,26 @@ class TestNovaHelper(base.TestCase):
         nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='enabled')
 
-        result = nova_util.disable_service_nova_compute('nanjing')
+        CONF.set_override('api_version', '2.52', group='nova_client')
+
+        result = nova_util.disable_service_nova_compute(
+            'nanjing', reason='test')
         self.assertFalse(result)
+
+        nova_services.disable_log_reason.assert_called_with(
+            host='nanjing', binary='nova-compute', reason='test')
 
         nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='disabled')
 
-        result = nova_util.disable_service_nova_compute('nanjing')
+        CONF.set_override('api_version', '2.56', group='nova_client')
+
+        result = nova_util.disable_service_nova_compute(
+            'nanjing', reason='test2')
         self.assertTrue(result)
+
+        nova_util.nova.services.disable_log_reason.assert_called_with(
+            service_uuid=mock.ANY, reason='test2')
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_create_instance(self, mock_glance, mock_cinder,
@@ -658,13 +683,13 @@ class TestNovaHelper(base.TestCase):
             "in-use",
             timeout=2)
 
+    @mock.patch.object(api_versions, 'APIVersion', mock.MagicMock())
     def test_check_nova_api_version(self, mock_glance, mock_cinder,
                                     mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
 
         # verify that the method will return True when the version of nova_api
         # is supported.
-        api_versions.APIVersion = mock.MagicMock()
         result = nova_util._check_nova_api_version(nova_util.nova, "2.56")
         self.assertTrue(result)
 

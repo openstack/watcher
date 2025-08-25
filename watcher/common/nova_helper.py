@@ -423,7 +423,8 @@ class NovaHelper(object):
                             "for the instance %s" % instance_id)
 
     def enable_service_nova_compute(self, hostname):
-        if float(CONF.nova_client.api_version) < 2.53:
+        if (api_versions.APIVersion(version_str=CONF.nova_client.api_version) <
+                api_versions.APIVersion(version_str='2.53')):
             status = self.nova.services.enable(
                 host=hostname, binary='nova-compute').status == 'enabled'
         else:
@@ -435,7 +436,8 @@ class NovaHelper(object):
         return status
 
     def disable_service_nova_compute(self, hostname, reason=None):
-        if float(CONF.nova_client.api_version) < 2.53:
+        if (api_versions.APIVersion(version_str=CONF.nova_client.api_version) <
+                api_versions.APIVersion(version_str='2.53')):
             status = self.nova.services.disable_log_reason(
                 host=hostname,
                 binary='nova-compute',

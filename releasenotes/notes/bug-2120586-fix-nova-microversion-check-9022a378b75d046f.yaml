@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Fixed nova client microversion comparison in enable and disable compute
+    service methods. The code was incorrectly comparing API versions, which
+    caused failures for microversions greater than 2.99. For more details,
+    see the bug report: https://bugs.launchpad.net/watcher/+bug/2120586
