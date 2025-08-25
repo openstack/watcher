@@ -38,9 +38,9 @@ for the compute API microversion history.
 """ % clients.MIN_NOVA_API_VERSION),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
-               help='Type of endpoint to use in novaclient. '
-                    'Supported values: internalURL, publicURL, adminURL. '
-                    'The default is publicURL.'),
+               choices=['public', 'internal', 'admin',
+                        'publicURL', 'internalURL', 'adminURL'],
+               help='Type of endpoint to use in novaclient.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '
                     'communication with the OpenStack service.')]

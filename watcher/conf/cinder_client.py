@@ -27,9 +27,9 @@ CINDER_CLIENT_OPTS = [
                help='Version of Cinder API to use in cinderclient.'),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
-               help='Type of endpoint to use in cinderclient. '
-                    'Supported values: internalURL, publicURL, adminURL. '
-                    'The default is publicURL.'),
+               choices=['public', 'internal', 'admin',
+                        'publicURL', 'internalURL', 'adminURL'],
+               help='Type of endpoint to use in cinderclient.'),
     cfg.StrOpt('region_name',
                help='Region in Identity service catalog to use for '
                     'communication with the OpenStack service.')]
