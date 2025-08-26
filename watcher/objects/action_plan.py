@@ -98,6 +98,8 @@ class State(object):
     SUPERSEDED = 'SUPERSEDED'
     CANCELLING = 'CANCELLING'
 
+    CANCEL_STATES = [CANCELLING, CANCELLED]
+
 
 @base.WatcherObjectRegistry.register
 class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
