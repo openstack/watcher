@@ -47,6 +47,10 @@ class Nop(base.BaseAction):
                 'message': {
                     'type': ['string', 'null']
                 },
+                'skip_pre_condition': {
+                    'type': 'boolean',
+                    'default': False
+                },
                 'fail_pre_condition': {
                     'type': 'boolean',
                     'default': False
@@ -82,6 +86,8 @@ class Nop(base.BaseAction):
         return True
 
     def pre_condition(self):
+        if self.input_parameters.get('skip_pre_condition'):
+            raise exception.ActionSkipped("Skipped in pre_condition")
         if self.input_parameters.get('fail_pre_condition'):
             raise exception.WatcherException("Failed in pre_condition")
 

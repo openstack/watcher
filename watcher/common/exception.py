@@ -278,6 +278,10 @@ class AuditReferenced(Invalid):
                 "plans")
 
 
+class ActionSkipped(WatcherException):
+    pass
+
+
 class ActionPlanNotFound(ResourceNotFound):
     msg_fmt = _("ActionPlan %(action_plan)s could not be found")
 

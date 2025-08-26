@@ -24,6 +24,7 @@ import eventlet
 from oslo_log import log
 from taskflow import task as flow_task
 
+from watcher._i18n import _
 from watcher.applier.actions import factory
 from watcher.common import clients
 from watcher.common import exception
@@ -85,10 +86,12 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
     def action_factory(self):
         return self._action_factory
 
-    def notify(self, action, state):
+    def notify(self, action, state, status_message=None):
         db_action = objects.Action.get_by_uuid(self.context, action.uuid,
                                                eager=True)
         db_action.state = state
+        if status_message:
+            db_action.status_message = status_message
         db_action.save()
         return db_action
 
@@ -161,6 +164,10 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 self.engine.context, self._db_action.action_plan_id)
             if action_plan.state in CANCEL_STATE:
                 raise exception.ActionPlanCancelled(uuid=action_plan.uuid)
+            if self._db_action.state == objects.action.State.SKIPPED:
+                LOG.debug("Action %s is skipped manually",
+                          self._db_action.uuid)
+                return
             db_action = self.do_pre_execute()
             notifications.action.send_execution_notification(
                 self.engine.context, db_action,
@@ -170,10 +177,24 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             LOG.exception(e)
             self.engine.notify_cancel_start(action_plan.uuid)
             raise
+        except exception.ActionSkipped as e:
+            LOG.info("Action %s was skipped automatically: %s",
+                     self._db_action.uuid, str(e))
+            status_message = (_(
+                "Action was skipped automatically: %s") % str(e))
+            db_action = self.engine.notify(self._db_action,
+                                           objects.action.State.SKIPPED,
+                                           status_message=status_message)
+            notifications.action.send_update(
+                self.engine.context, db_action,
+                old_state=objects.action.State.PENDING)
         except Exception as e:
             LOG.exception(e)
+            status_message = (_(
+                "Action failed in pre_condition: %s") % str(e))
             db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.FAILED)
+                                           objects.action.State.FAILED,
+                                           status_message=status_message)
             notifications.action.send_execution_notification(
                 self.engine.context, db_action,
                 fields.NotificationAction.EXECUTION,
@@ -181,6 +202,12 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 priority=fields.NotificationPriority.ERROR)
 
     def execute(self, *args, **kwargs):
+        action_object = objects.Action.get_by_uuid(
+            self.engine.context, self._db_action.uuid, eager=True)
+        if action_object.state in [objects.action.State.SKIPPED,
+                                   objects.action.State.FAILED]:
+            return True
+
         def _do_execute_action(*args, **kwargs):
             try:
                 db_action = self.do_execute(*args, **kwargs)
@@ -192,8 +219,11 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 LOG.exception(e)
                 LOG.error('The workflow engine has failed '
                           'to execute the action: %s', self.name)
+                status_message = (_(
+                    "Action failed in execute: %s") % str(e))
                 db_action = self.engine.notify(self._db_action,
-                                               objects.action.State.FAILED)
+                                               objects.action.State.FAILED,
+                                               status_message=status_message)
                 notifications.action.send_execution_notification(
                     self.engine.context, db_action,
                     fields.NotificationAction.EXECUTION,
@@ -243,12 +273,21 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             return False
 
     def post_execute(self):
+        action_object = objects.Action.get_by_uuid(
+            self.engine.context, self._db_action.uuid, eager=True)
+        if action_object.state == objects.action.State.SKIPPED:
+            return
         try:
             self.do_post_execute()
         except Exception as e:
             LOG.exception(e)
+            kwargs = {}
+            if action_object.status_message is None:
+                kwargs["status_message"] = (_(
+                    "Action failed in post_condition: %s") % str(e))
             db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.FAILED)
+                                           objects.action.State.FAILED,
+                                           **kwargs)
             notifications.action.send_execution_notification(
                 self.engine.context, db_action,
                 fields.NotificationAction.EXECUTION,

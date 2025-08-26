@@ -23,6 +23,9 @@ following:
 
 -  **PENDING** : the ``Action`` has not been executed yet by the
    ``Watcher Applier``.
+-  **SKIPPED** : the ``Action`` will not be executed because a predefined
+   skipping condition is found by ``Watcher Applier`` or is explicitly
+   skipped by the ``Administrator``.
 -  **ONGOING** : the ``Action`` is currently being processed by the
    ``Watcher Applier``.
 -  **SUCCEEDED** : the ``Action`` has been executed successfully

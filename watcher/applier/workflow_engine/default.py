@@ -137,14 +137,13 @@ class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
                                                       engine)
 
     def do_pre_execute(self):
-        db_action = self.engine.notify(self._db_action,
-                                       objects.action.State.ONGOING)
         LOG.debug("Pre-condition action: %s", self.name)
         self.action.pre_condition()
-        return db_action
+        return self._db_action
 
     def do_execute(self, *args, **kwargs):
         LOG.debug("Running action: %s", self.name)
+        self.engine.notify(self._db_action, objects.action.State.ONGOING)
 
         # NOTE:Some actions(such as migrate) will return None when exception
         #      Only when True is returned, the action state is set to SUCCEEDED

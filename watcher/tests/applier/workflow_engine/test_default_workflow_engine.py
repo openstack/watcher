@@ -21,6 +21,7 @@ from unittest import mock
 
 from watcher.applier.actions import base as abase
 from watcher.applier.actions import factory
+from watcher.applier.actions import nop
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
 from watcher.common import utils
@@ -98,6 +99,27 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
     def check_actions_state(self, actions, expected_state):
         for a in actions:
             self.check_action_state(a, expected_state)
+
+    def check_notifications_contains(self, notification_calls, action_state,
+                                     old_state=None):
+        """Check that an action notification contains the expected info.
+
+        notification_calls: list of notification calls arguments
+        action_state: expected action state (dict)
+        old_state: expected old action state (optional)
+        """
+        if old_state:
+            action_state['old_state'] = old_state
+        for call in notification_calls:
+            data_dict = call.args[1].as_dict()
+            if call.kwargs and 'old_state' in call.kwargs:
+                data_dict['old_state'] = call.kwargs['old_state']
+            try:
+                self.assertLessEqual(action_state.items(), data_dict.items())
+                return True
+            except AssertionError:
+                continue
+        return False
 
     @mock.patch('taskflow.engines.load')
     @mock.patch('taskflow.patterns.graph_flow.Flow.link')
@@ -330,6 +352,16 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         self.engine.execute(actions)
         self.check_action_state(actions[0], objects.action.State.FAILED)
+        self.assertTrue(self.check_notifications_contains(
+            m_send_update.call_args_list,
+            {
+                'state': objects.action.State.FAILED,
+                'uuid': actions[0].uuid,
+                'action_type': 'fake_action',
+                'status_message': "Action failed in execute: The action %s "
+                "execution failed." % actions[0].uuid,
+            },
+        ))
 
     @mock.patch.object(objects.ActionPlan, "get_by_uuid")
     def test_execute_with_action_plan_cancel(self, m_get_actionplan):
@@ -370,6 +402,187 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         except Exception as exc:
             self.fail(exc)
 
+    @mock.patch.object(objects.ActionPlan, "get_by_id")
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    @mock.patch.object(nop.Nop, 'debug_message')
+    def test_execute_with_automatic_skipped(self, m_nop_message,
+                                            m_send_update, m_execution,
+                                            m_get_actionplan):
+
+        obj_utils.create_test_goal(self.context)
+        strategy = obj_utils.create_test_strategy(self.context)
+        audit = obj_utils.create_test_audit(
+            self.context, strategy_id=strategy.id)
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=audit.id,
+            strategy_id=strategy.id,
+            state=objects.action_plan.State.ONGOING,
+            id=0)
+        m_get_actionplan.return_value = action_plan
+        actions = []
+
+        action = self.create_action("nop", {'message': 'action2',
+                                            'skip_pre_condition': True})
+
+        self.check_action_state(action, objects.action.State.PENDING)
+
+        actions.append(action)
+
+        self.engine.execute(actions)
+
+        # action skipped automatically in the pre_condition phase
+        self.check_action_state(action, objects.action.State.SKIPPED)
+        self.assertEqual(
+            objects.Action.get_by_uuid(
+                self.context, action.uuid).status_message,
+            "Action was skipped automatically: Skipped in pre_condition")
+        action_state_dict = {
+            'state': objects.action.State.SKIPPED,
+            'status_message': "Action was skipped automatically: "
+            "Skipped in pre_condition",
+            'uuid': action.uuid,
+            'action_type': 'nop',
+        }
+        self.assertTrue(self.check_notifications_contains(
+            m_send_update.call_args_list, action_state_dict))
+        self.assertTrue(self.check_notifications_contains(
+            m_send_update.call_args_list, action_state_dict,
+            old_state=objects.action.State.PENDING))
+
+        m_nop_message.assert_not_called()
+
+    @mock.patch.object(objects.ActionPlan, "get_by_id")
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    @mock.patch.object(nop.Nop, 'debug_message')
+    @mock.patch.object(nop.Nop, 'pre_condition')
+    def test_execute_with_manually_skipped(self, m_nop_pre_condition,
+                                           m_nop_message,
+                                           m_send_update, m_execution,
+                                           m_get_actionplan):
+        obj_utils.create_test_goal(self.context)
+        strategy = obj_utils.create_test_strategy(self.context)
+        audit = obj_utils.create_test_audit(
+            self.context, strategy_id=strategy.id)
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=audit.id,
+            strategy_id=strategy.id,
+            state=objects.action_plan.State.ONGOING,
+            id=0)
+        m_get_actionplan.return_value = action_plan
+        actions = []
+        action1 = obj_utils.create_test_action(
+            self.context,
+            action_type='nop',
+            state=objects.action.State.PENDING,
+            input_parameters={'message': 'action1'})
+        action2 = obj_utils.create_test_action(
+            self.context,
+            action_type='nop',
+            state=objects.action.State.SKIPPED,
+            uuid='bc7eee5c-4fbe-4def-9744-b539be55aa19',
+            input_parameters={'message': 'action2'})
+        self.check_action_state(action1, objects.action.State.PENDING)
+        self.check_action_state(action2, objects.action.State.SKIPPED)
+        actions.append(action1)
+        actions.append(action2)
+        self.engine.execute(actions)
+        # action skipped automatically in the pre_condition phase
+        self.check_action_state(action1, objects.action.State.SUCCEEDED)
+        self.check_action_state(action2, objects.action.State.SKIPPED)
+        # pre_condition and execute are only called for action1
+        m_nop_pre_condition.assert_called_once_with()
+        m_nop_message.assert_called_once_with('action1')
+
+    @mock.patch.object(objects.ActionPlan, "get_by_id")
+    @mock.patch.object(notifications.action, 'send_execution_notification')
+    @mock.patch.object(notifications.action, 'send_update')
+    @mock.patch.object(nop.Nop, 'debug_message')
+    def test_execute_different_action_results(self, m_nop_message,
+                                              m_send_update, m_execution,
+                                              m_get_actionplan):
+
+        obj_utils.create_test_goal(self.context)
+        strategy = obj_utils.create_test_strategy(self.context)
+        audit = obj_utils.create_test_audit(
+            self.context, strategy_id=strategy.id)
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=audit.id,
+            strategy_id=strategy.id,
+            state=objects.action_plan.State.ONGOING,
+            id=0)
+        m_get_actionplan.return_value = action_plan
+        actions = []
+
+        action1 = self.create_action("nop", {'message': 'action1'})
+        action2 = self.create_action("nop", {'message': 'action2',
+                                             'skip_pre_condition': True})
+        action3 = self.create_action("nop", {'message': 'action3',
+                                             'fail_pre_condition': True})
+        action4 = self.create_action("nop", {'message': 'action4',
+                                             'fail_execute': True})
+        action5 = self.create_action("nop", {'message': 'action5',
+                                             'fail_post_condition': True})
+        action6 = self.create_action("sleep", {'duration': 1.0})
+
+        self.check_action_state(action1, objects.action.State.PENDING)
+        self.check_action_state(action2, objects.action.State.PENDING)
+        self.check_action_state(action3, objects.action.State.PENDING)
+        self.check_action_state(action4, objects.action.State.PENDING)
+        self.check_action_state(action5, objects.action.State.PENDING)
+        self.check_action_state(action6, objects.action.State.PENDING)
+
+        actions.append(action1)
+        actions.append(action2)
+        actions.append(action3)
+        actions.append(action4)
+        actions.append(action5)
+        actions.append(action6)
+
+        self.engine.execute(actions)
+
+        # successful nop action
+        self.check_action_state(action1, objects.action.State.SUCCEEDED)
+        self.assertIsNone(
+            objects.Action.get_by_uuid(self.context, action1.uuid)
+            .status_message)
+        # action skipped automatically in the pre_condition phase
+        self.check_action_state(action2, objects.action.State.SKIPPED)
+        self.assertEqual(
+            objects.Action.get_by_uuid(
+                self.context, action2.uuid).status_message,
+            "Action was skipped automatically: Skipped in pre_condition")
+        # action failed in the pre_condition phase
+        self.check_action_state(action3, objects.action.State.FAILED)
+        self.assertEqual(
+            objects.Action.get_by_uuid(
+                self.context, action3.uuid).status_message,
+            "Action failed in pre_condition: Failed in pre_condition")
+        # action failed in the execute phase
+        self.check_action_state(action4, objects.action.State.FAILED)
+        self.assertEqual(
+            objects.Action.get_by_uuid(
+                self.context, action4.uuid).status_message,
+            "Action failed in execute: The action %s execution failed."
+            % action4.uuid)
+        # action failed in the post_condition phase
+        self.check_action_state(action5, objects.action.State.FAILED)
+        self.assertEqual(
+            objects.Action.get_by_uuid(
+                self.context, action5.uuid).status_message,
+            "Action failed in post_condition: Failed in post_condition")
+        # successful sleep action
+        self.check_action_state(action6, objects.action.State.SUCCEEDED)
+
+        # execute method should not be called for actions that are skipped of
+        # failed in the pre_condition phase
+        expected_execute_calls = [mock.call('action1'),
+                                  mock.call('action4'),
+                                  mock.call('action5')]
+        m_nop_message.assert_has_calls(expected_execute_calls, any_order=True)
+        self.assertEqual(m_nop_message.call_count, 3)
+
     def test_decider(self):
         # execution_rule is ALWAYS
         self.engine.execution_rule = 'ALWAYS'
@@ -386,3 +599,72 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         history = {'action1': False}
         self.assertTrue(self.engine.decider(history))
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_notify_with_status_message(self, m_get_actionplan):
+        """Test that notify method properly handles status_message."""
+        obj_utils.create_test_goal(self.context)
+        strategy = obj_utils.create_test_strategy(self.context)
+        audit = obj_utils.create_test_audit(
+            self.context, strategy_id=strategy.id)
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=audit.id,
+            strategy_id=strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action1 = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            action_type='nop', state=objects.action.State.ONGOING,
+            input_parameters={'message': 'hello World'})
+        m_get_actionplan.return_value = action_plan
+        actions = []
+        actions.append(action1)
+
+        # Test notify with status_message provided
+        test_status_message = "Action completed successfully"
+        result = self.engine.notify(action1, objects.action.State.FAILED,
+                                    status_message=test_status_message)
+
+        # Verify the action state was updated
+        self.assertEqual(result.state, objects.action.State.FAILED)
+
+        # Verify the status_message was set
+        self.assertEqual(result.status_message, test_status_message)
+
+        # Verify the changes were persisted to the database
+        persisted_action = objects.Action.get_by_uuid(
+            self.context, action1.uuid)
+        self.assertEqual(persisted_action.state, objects.action.State.FAILED)
+        self.assertEqual(persisted_action.status_message, test_status_message)
+
+    @mock.patch.object(objects.ActionPlan, "get_by_uuid")
+    def test_notify_without_status_message(self, m_get_actionplan):
+        """Test that notify method works without status_message parameter."""
+        obj_utils.create_test_goal(self.context)
+        strategy = obj_utils.create_test_strategy(self.context)
+        audit = obj_utils.create_test_audit(
+            self.context, strategy_id=strategy.id)
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=audit.id,
+            strategy_id=strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action1 = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            action_type='nop', state=objects.action.State.ONGOING,
+            input_parameters={'message': 'hello World'})
+        m_get_actionplan.return_value = action_plan
+        actions = []
+        actions.append(action1)
+
+        # Test notify without status_message
+        result = self.engine.notify(action1, objects.action.State.SUCCEEDED)
+        # Verify the action state was updated
+        self.assertEqual(result.state, objects.action.State.SUCCEEDED)
+
+        # Verify the status_message
+        self.assertIsNone(result.status_message)
+        # Verify the changes were persisted to the database
+        persisted_action = objects.Action.get_by_uuid(
+            self.context, action1.uuid)
+        self.assertEqual(persisted_action.state,
+                         objects.action.State.SUCCEEDED)
+        self.assertIsNone(persisted_action.status_message)
