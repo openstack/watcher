@@ -114,6 +114,7 @@ Response
     - description: action_description
     - input_parameters: action_input_parameters
     - links: links
+    - status_message: action_status_message
 
 **Example JSON representation of an Action:**
 
@@ -151,8 +152,62 @@ Response
     - description: action_description
     - input_parameters: action_input_parameters
     - links: links
+    - status_message: action_status_message
 
 **Example JSON representation of an Action:**
 
 .. literalinclude:: samples/actions-show-response.json
+   :language: javascript
+
+Skip Action
+===========
+
+.. rest_method::  PATCH /v1/actions/{action_ident}
+
+Skips an Action resource by changing its state to SKIPPED.
+
+.. note::
+    Only Actions in PENDING state can be skipped. The Action must belong to
+    an Action Plan in RECOMMENDED or PENDING state. This operation requires
+    API microversion 1.5 or later.
+
+Normal response codes: 200
+
+Error codes: 400,404,403,409
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - action_ident: action_ident
+
+**Example Action skip request:**
+
+.. literalinclude:: samples/action-skip-request.json
+   :language: javascript
+
+**Example Action skip request with custom status message:**
+
+.. literalinclude:: samples/action-skip-request-with-message.json
+   :language: javascript
+
+Response
+--------
+
+.. rest_parameters:: parameters.yaml
+
+    - uuid: uuid
+    - action_type: action_type
+    - state: action_state
+    - action_plan_uuid: action_action_plan_uuid
+    - parents: action_parents
+    - description: action_description
+    - input_parameters: action_input_parameters
+    - links: links
+    - status_message: action_status_message
+
+**Example JSON representation of a skipped Action:**
+
+.. literalinclude:: samples/action-skip-response.json
    :language: javascript

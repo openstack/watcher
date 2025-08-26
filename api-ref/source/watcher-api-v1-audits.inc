@@ -85,6 +85,7 @@ version 1:
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
     - force: audit_force
+    - status_message: audit_status_message
 
 **Example JSON representation of an Audit:**
 
@@ -184,6 +185,7 @@ Response
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
     - force: audit_force
+    - status_message: audit_status_message
 
 **Example JSON representation of an Audit:**
 
@@ -231,6 +233,7 @@ Response
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
     - force: audit_force
+    - status_message: audit_status_message
 
 **Example JSON representation of an Audit:**
 
@@ -286,6 +289,7 @@ version 1:
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
     - force: audit_force
+    - status_message: audit_status_message
 
 **Example JSON representation of an Audit:**
 
@@ -341,6 +345,7 @@ Response
     - start_time: audit_starttime_resp
     - end_time: audit_endtime_resp
     - force: audit_force
+    - status_message: audit_status_message
 
 **Example JSON representation of an Audit:**
 

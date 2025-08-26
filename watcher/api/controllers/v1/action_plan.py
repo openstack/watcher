@@ -87,7 +87,8 @@ def hide_fields_in_newer_versions(obj):
     These fields are only made available when the request's API version
     matches or exceeds the versions when these fields were introduced.
     """
-    pass
+    if not api_utils.allow_skipped_action():
+        obj.status_message = wtypes.Unset
 
 
 class ActionPlanPatchType(types.JsonPatchType):
@@ -112,7 +113,11 @@ class ActionPlanPatchType(types.JsonPatchType):
 
     @staticmethod
     def internal_attrs():
-        return types.JsonPatchType.internal_attrs()
+        # There are global internal attributes and object specific ones.
+        # /status_message is only modified internally based on state changes
+        # and is not exposed in the patch API.
+        ap_internal_attrs = ['/status_message']
+        return types.JsonPatchType.internal_attrs() + ap_internal_attrs
 
     @staticmethod
     def mandatory_attrs():
@@ -243,6 +248,9 @@ class ActionPlan(base.APIBase):
 
     hostname = wtypes.wsattr(wtypes.text, mandatory=False)
     """Hostname the actionplan is running on"""
+
+    status_message = wtypes.text
+    """Status message of the action plan"""
 
     def __init__(self, **kwargs):
         super(ActionPlan, self).__init__()

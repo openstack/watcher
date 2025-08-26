@@ -1,0 +1,20 @@
+---
+features:
+  - |
+    A new state ``SKIPPED`` has been added to the Actions. Actions can reach this state
+    in two situations:
+
+    * Watcher detects a specific pre-defined condition in the `pre_condition` phase.
+
+    * An admin sets the state to SKIPPED using a call to the new Patch API `/actions/{action_id}`
+      before the action plan is started.
+
+    An action in ``SKIPPED`` state will not be executed by Watcher as part of an ActionPlan
+    run.
+
+    Additionally, a new field ``status_message`` has been added to Audits, ActionPlans and
+    Actions which will be used to provide additional details about the state of an object.
+
+    All these changes have been introduced in a new Watcher ``API microversion 1.5``.
+
+    For additional information, see the API reference.

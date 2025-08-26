@@ -23,7 +23,8 @@ class VERSIONS(enum.Enum):
     MINOR_2_FORCE = 2  # v1.2: Add force field to audit
     MINOR_3_DATAMODEL = 3  # v1.3: Add list datamodel API
     MINOR_4_WEBHOOK_API = 4  # v1.4: Add webhook trigger API
-    MINOR_MAX_VERSION = 4
+    MINOR_5_SKIPPED_ACTION = 5  # v1.5: Add skipped action support
+    MINOR_MAX_VERSION = 5
 
 
 # This is the version 1 API

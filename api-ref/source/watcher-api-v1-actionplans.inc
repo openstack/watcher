@@ -139,6 +139,7 @@ Response
     - global_efficacy: actionplan_global_efficacy
     - links: links
     - hostname: actionplan_hostname
+    - status_message: actionplan_status_message
 
 **Example JSON representation of an Action Plan:**
 
@@ -177,6 +178,7 @@ Response
     - global_efficacy: actionplan_global_efficacy
     - links: links
     - hostname: actionplan_hostname
+    - status_message: actionplan_status_message
 
 **Example JSON representation of an Audit:**
 
@@ -233,6 +235,7 @@ version 1:
     - global_efficacy: actionplan_global_efficacy
     - links: links
     - hostname: actionplan_hostname
+    - status_message: actionplan_status_message
 
 **Example JSON representation of an Action Plan:**
 

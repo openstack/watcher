@@ -62,9 +62,11 @@ are dynamically loaded by Watcher at launch time.
 from oslo_utils import timeutils
 import pecan
 from pecan import rest
+import wsme
 from wsme import types as wtypes
 import wsmeext.pecan as wsme_pecan
 
+from watcher._i18n import _
 from watcher.api.controllers import base
 from watcher.api.controllers import link
 from watcher.api.controllers.v1 import collection
@@ -82,14 +84,44 @@ def hide_fields_in_newer_versions(obj):
     These fields are only made available when the request's API version
     matches or exceeds the versions when these fields were introduced.
     """
-    pass
+    if not api_utils.allow_skipped_action():
+        obj.status_message = wtypes.Unset
 
 
 class ActionPatchType(types.JsonPatchType):
 
     @staticmethod
+    def _validate_state(patch):
+        serialized_patch = {'path': patch.path, 'op': patch.op}
+        if patch.value is not wtypes.Unset:
+            serialized_patch['value'] = patch.value
+
+        state_value = patch.value
+        if state_value and not hasattr(objects.action.State, state_value):
+            msg = _("Invalid state: %(state)s")
+            raise exception.PatchError(
+                patch=serialized_patch, reason=msg % dict(state=state_value))
+
+    @staticmethod
+    def validate(patch):
+        if patch.path == "/state":
+            ActionPatchType._validate_state(patch)
+        return types.JsonPatchType.validate(patch)
+
+    # We only allow to patch state and status_message
+    @staticmethod
+    def allowed_attrs():
+        return ["/state", "/status_message"]
+
+    @staticmethod
+    def internal_attrs():
+        return types.JsonPatchType.internal_attrs()
+
+    # We do not allow to remove any attribute via PATCH so setting all fields
+    # as mandatory
+    @staticmethod
     def mandatory_attrs():
-        return []
+        return ["/" + item for item in objects.Action.fields.keys()]
 
 
 class Action(base.APIBase):
@@ -140,6 +172,9 @@ class Action(base.APIBase):
 
     links = wtypes.wsattr([link.Link], readonly=True)
     """A list containing a self link and associated action links"""
+
+    status_message = wtypes.text
+    """Status message"""
 
     def __init__(self, **kwargs):
         super(Action, self).__init__()
@@ -356,3 +391,85 @@ class ActionsController(rest.RestController):
         policy.enforce(context, 'action:get', action, action='action:get')
 
         return Action.convert_with_links(action)
+
+    @wsme.validate(types.uuid, [ActionPatchType])
+    @wsme_pecan.wsexpose(Action, types.uuid, body=[ActionPatchType])
+    def patch(self, action_uuid, patch):
+        """Update an existing action.
+
+        :param action_uuid: UUID of a action.
+        :param patch: a json PATCH document to apply to this action.
+        """
+        if not api_utils.allow_skipped_action():
+            raise exception.Invalid(
+                _("API microversion 1.5 or higher is required."))
+
+        context = pecan.request.context
+        action_to_update = api_utils.get_resource(
+            'Action', action_uuid, eager=True)
+        policy.enforce(context, 'action:update', action_to_update,
+                       action='action:update')
+
+        try:
+            action_dict = action_to_update.as_dict()
+            action = Action(**api_utils.apply_jsonpatch(action_dict, patch))
+        except api_utils.JSONPATCH_EXCEPTIONS as e:
+            raise exception.PatchError(patch=patch, reason=e)
+
+        # Define allowed state transitions for actions
+        allowed_patch_transitions = [
+            (objects.action.State.PENDING, objects.action.State.SKIPPED),
+        ]
+
+        # Validate state transitions if state is being modified
+        if hasattr(action, 'state') and action.state != action_to_update.state:
+            transition = (action_to_update.state, action.state)
+            if transition not in allowed_patch_transitions:
+                error_message = _("State transition not allowed: "
+                                  "(%(initial_state)s -> %(new_state)s)")
+                raise exception.Conflict(
+                    patch=patch,
+                    message=error_message % dict(
+                        initial_state=action_to_update.state,
+                        new_state=action.state))
+            action_plan = action_to_update.action_plan
+            if action_plan.state not in [objects.action_plan.State.RECOMMENDED,
+                                         objects.action_plan.State.PENDING]:
+                error_message = _("State update not allowed for actionplan "
+                                  "state: %(ap_state)s")
+                raise exception.Conflict(
+                    patch=patch,
+                    message=error_message % dict(
+                        ap_state=action_plan.state))
+
+        status_message = _("Action skipped by user.")
+        # status_message update only allowed with status update
+        if (hasattr(action, 'status_message') and
+                action.status_message != action_to_update.status_message):
+            if action.state == action_to_update.state:
+                error_message = _(
+                    "status_message update only allowed with state change")
+                raise exception.PatchError(
+                    patch=patch,
+                    reason=error_message)
+            else:
+                status_message = (_("%(status_message)s Reason: %(reason)s")
+                                  % dict(status_message=status_message,
+                                         reason=action.status_message))
+
+        action.status_message = status_message
+
+        # Update only the fields that have changed
+        for field in objects.Action.fields:
+            try:
+                patch_val = getattr(action, field)
+            except AttributeError:
+                # Ignore fields that aren't exposed in the API
+                continue
+            if patch_val == wtypes.Unset:
+                patch_val = None
+            if action_to_update[field] != patch_val:
+                action_to_update[field] = patch_val
+
+        action_to_update.save()
+        return Action.convert_with_links(action_to_update)

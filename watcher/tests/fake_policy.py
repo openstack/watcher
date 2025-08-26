@@ -22,6 +22,7 @@ policy_data = """
     "action:detail": "",
     "action:get": "",
     "action:get_all": "",
+    "action:update": "",
 
     "action_plan:delete": "",
     "action_plan:detail": "",
