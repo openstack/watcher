@@ -78,7 +78,7 @@ class DataSourceBase(object):
         """
 
         num_retries = CONF.watcher_datasources.query_max_retries
-        timeout = CONF.watcher_datasources.query_timeout
+        interval = CONF.watcher_datasources.query_interval
         ignored_exc = ignored_exc or tuple()
 
         for i in range(num_retries):
@@ -92,8 +92,8 @@ class DataSourceBase(object):
                 LOG.exception(e)
                 self.query_retry_reset(e)
                 LOG.warning("Retry %d of %d while retrieving metrics retry "
-                            "in %d seconds", i+1, num_retries, timeout)
-                time.sleep(timeout)
+                            "in %d seconds", i+1, num_retries, interval)
+                time.sleep(interval)
 
     @abc.abstractmethod
     def query_retry_reset(self, exception_instance):

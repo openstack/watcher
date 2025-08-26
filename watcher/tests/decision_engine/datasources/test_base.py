@@ -37,7 +37,7 @@ class TestBaseDatasourceHelper(base.BaseTestCase):
         CONF.set_override("query_max_retries", 2,
                           group='watcher_datasources')
         # Reduce sleep time to 0
-        CONF.set_override("query_timeout", 0,
+        CONF.set_override("query_interval", 0,
                           group='watcher_datasources')
 
         helper = datasource.DataSourceBase()
@@ -55,7 +55,7 @@ class TestBaseDatasourceHelper(base.BaseTestCase):
         CONF.set_override("query_max_retries", 2,
                           group='watcher_datasources')
         # Reduce sleep time to 0
-        CONF.set_override("query_timeout", 0,
+        CONF.set_override("query_interval", 0,
                           group='watcher_datasources')
 
         helper = datasource.DataSourceBase()

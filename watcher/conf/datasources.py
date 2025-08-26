@@ -46,14 +46,13 @@ DATASOURCES_OPTS = [
                min=1,
                default=10,
                mutable=True,
-               help='How many times Watcher is trying to query again',
-               deprecated_group="gnocchi_client"),
-    cfg.IntOpt('query_timeout',
+               help='How many times Watcher is trying to query again'),
+    cfg.IntOpt('query_interval',
                min=0,
                default=1,
                mutable=True,
                help='How many seconds Watcher should wait to do query again',
-               deprecated_group="gnocchi_client")
+               deprecated_name="query_timeout")
     ]
 
 

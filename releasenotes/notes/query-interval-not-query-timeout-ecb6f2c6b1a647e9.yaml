@@ -1,0 +1,21 @@
+---
+deprecations:
+  - |
+    The ``[collector] api_query_timeout`` option was deprecated in favor of
+    the ``[collector] api_query_interval`` option.
+
+  - |
+    The ``[collector] api_call_retries`` option was deprecated in favor of
+    the ``[collector] api_query_max_retries`` option.
+
+  - |
+    The ``[watcher_datasources] query_timeout`` option was deprecated in favor
+    of the ``[watcher_datasources] query_interval`` option.
+
+  - |
+    The following deprecated options were removed.
+
+    - ``[gnocchi_client] query_timeout`` (Use
+      ``[watcher_datsources] query_interval``)
+    - ``[gnocchi_client] query_max_retries`` (Use
+      ``[watcher_datasources] query_max_retires``)
