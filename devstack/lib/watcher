@@ -268,7 +268,7 @@ function configure_tempest_for_watcher {
     # Please make sure to update this when the microversion is updated, otherwise
     # new tests may be skipped.
     TEMPEST_WATCHER_MIN_MICROVERSION=${TEMPEST_WATCHER_MIN_MICROVERSION:-"1.0"}
-    TEMPEST_WATCHER_MAX_MICROVERSION=${TEMPEST_WATCHER_MAX_MICROVERSION:-"1.5"}
+    TEMPEST_WATCHER_MAX_MICROVERSION=${TEMPEST_WATCHER_MAX_MICROVERSION:-"1.6"}
 
     # Set microversion options in tempest.conf
     iniset $TEMPEST_CONFIG optimize min_microversion $TEMPEST_WATCHER_MIN_MICROVERSION

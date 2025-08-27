@@ -471,13 +471,22 @@ class NovaModelBuilder(base.BaseModelBuilder):
             "state": getattr(instance, "OS-EXT-STS:vm_state"),
             "metadata": instance.metadata,
             "project_id": instance.tenant_id,
-            "locked": instance.locked}
+            "locked": instance.locked,
+            # NOTE(dviroel): new attributes are updated if
+            # extended feature is enabled
+            "flavor_extra_specs": {},
+            "pinned_az": "",
+        }
 
-        # node_attributes = dict()
-        # node_attributes["layer"] = "virtual"
-        # node_attributes["category"] = "compute"
-        # node_attributes["type"] = "compute"
-        # node_attributes["attributes"] = instance_attributes
+        if self.model.extended_attributes_enabled:
+            instance_attributes.update({
+                "flavor_extra_specs": flavor["extra_specs"],
+            })
+            if self.nova_helper.is_pinned_az_available():
+                instance_attributes["pinned_az"] = (
+                    instance.pinned_availability_zone
+                )
+
         return element.Instance(**instance_attributes)
 
     def _merge_compute_scope(self, compute_scope):

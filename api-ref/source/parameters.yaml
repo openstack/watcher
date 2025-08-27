@@ -552,6 +552,13 @@ server_disk:
   in: body
   required: true
   type: integer
+server_flavor_extra_specs:
+  description: |
+    The flavor extra specs of the server.
+  in: body
+  required: true
+  type: JSON
+  min_version: 1.6
 server_locked:
   description: |
     Whether the server is locked.
@@ -576,6 +583,13 @@ server_name:
   in: body
   required: true
   type: string
+server_pinned_az:
+  description: |
+    The pinned availability zone of the server.
+  in: body
+  required: true
+  type: string
+  min_version: 1.6
 server_project_id:
   description: |
     The project ID of the server.

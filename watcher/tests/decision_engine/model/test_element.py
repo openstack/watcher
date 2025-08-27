@@ -60,6 +60,16 @@ class TestElement(base.TestCase):
                 'vcpus': 222,
                 'disk': 333,
             })),
+        ("Instance_with_extended_fields", dict(
+            cls=element.Instance,
+            data={
+                'uuid': 'FAKE_UUID',
+                'state': 'state',
+                'vcpus': 222,
+                'disk': 333,
+                'pinned_az': 'nova',
+                'flavor_extra_specs': {"spec1": "value1", "spec2": "value2"},
+            })),
     ]
 
     def test_as_xml_element(self):

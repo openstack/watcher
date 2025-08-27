@@ -24,7 +24,8 @@ class VERSIONS(enum.Enum):
     MINOR_3_DATAMODEL = 3  # v1.3: Add list datamodel API
     MINOR_4_WEBHOOK_API = 4  # v1.4: Add webhook trigger API
     MINOR_5_SKIPPED_ACTION = 5  # v1.5: Add skipped action support
-    MINOR_MAX_VERSION = 5
+    MINOR_6_EXT_COMPUTE_MODEL = 6  # v1.6: Extend compute data model API
+    MINOR_MAX_VERSION = 6
 
 
 # This is the version 1 API

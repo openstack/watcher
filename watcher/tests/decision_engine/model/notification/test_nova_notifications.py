@@ -16,6 +16,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ddt
 import os
 import os_resource_classes as orc
 from unittest import mock
@@ -110,6 +111,7 @@ class TestReceiveNovaNotifications(NotificationTestCase):
                 expected_message, self.FAKE_METADATA)
 
 
+@ddt.ddt
 class TestNovaNotifications(NotificationTestCase):
 
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
@@ -285,8 +287,10 @@ class TestNovaNotifications(NotificationTestCase):
 
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, "NovaHelper")
+    @ddt.data(False, True)
     def test_nova_instance_update_notfound_still_creates(
-            self, m_nova_helper_cls, m_placement_helper):
+            self, extended_attr_enabled, m_nova_helper_cls,
+            m_placement_helper):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
         mock_placement.get_usages_for_resource_provider.return_value = {
@@ -313,6 +317,10 @@ class TestNovaNotifications(NotificationTestCase):
             name='m_nova_helper')
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
+        # Set the extended_attributes_enabled configuration value
+        self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
+            extended_attr_enabled)
+
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
         instance0_uuid = '9966d6bd-a45c-4e1c-9d57-3054899a3ec7'
@@ -333,6 +341,10 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(1, instance0.vcpus)
         self.assertEqual(1, instance0.disk)
         self.assertEqual(512, instance0.memory)
+        # NOTE(dviroel): pinned_az is not yet available in nova notifications
+        # and flavor_extra_specs is not available in nova notifications 1.0
+        self.assertEqual({}, instance0.flavor_extra_specs)
+        self.assertEqual('', instance0.pinned_az)
 
         m_get_compute_node_by_hostname.assert_called_once_with('Node_2')
         node_2 = compute_model.get_node_by_name('Node_2')
@@ -380,7 +392,10 @@ class TestNovaNotifications(NotificationTestCase):
 
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
-    def test_nova_instance_create(self, m_nova_helper_cls,
+    @ddt.data(False, True)
+    def test_nova_instance_create(self,
+                                  extended_attr_enabled,
+                                  m_nova_helper_cls,
                                   m_placement_helper):
         mock_placement = mock.Mock(name="placement_helper")
         mock_placement.get_inventories.return_value = dict()
@@ -410,6 +425,10 @@ class TestNovaNotifications(NotificationTestCase):
 
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
+        # Set the extended_attributes_enabled configuration value
+        self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
+            extended_attr_enabled)
+
         handler = novanotification.VersionedNotification(self.fake_cdmc)
 
         instance0_uuid = 'c03c0bf9-f46e-4e4f-93f1-817568567ee2'
@@ -440,6 +459,14 @@ class TestNovaNotifications(NotificationTestCase):
         self.assertEqual(1, instance0.vcpus)
         self.assertEqual(1, instance0.disk)
         self.assertEqual(512, instance0.memory)
+        if extended_attr_enabled:
+            self.assertEqual({'hw:watchdog_action': 'disabled'},
+                             instance0.flavor_extra_specs)
+            # NOTE(dviroel): pinned_az is not available in nova notifications
+            self.assertEqual('', instance0.pinned_az)
+        else:
+            self.assertEqual({}, instance0.flavor_extra_specs)
+            self.assertEqual('', instance0.pinned_az)
 
     def test_nova_instance_delete_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -564,6 +591,34 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertFalse(instance0.locked)
 
+    @ddt.data(False, True)
+    def test_nova_instance_update_extra_specs(self, extended_attr_enabled):
+        compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
+        self.fake_cdmc.cluster_data_model = compute_model
+        self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
+            extended_attr_enabled)
+        handler = novanotification.VersionedNotification(self.fake_cdmc)
+
+        instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
+        instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
+
+        message = self.load_message('instance-update-2-1.json')
+
+        self.assertEqual({}, instance0.flavor_extra_specs)
+
+        handler.info(
+            ctxt=self.context,
+            publisher_id=message['publisher_id'],
+            event_type=message['event_type'],
+            payload=message['payload'],
+            metadata=self.FAKE_METADATA,
+        )
+        if extended_attr_enabled:
+            self.assertEqual({'hw:watchdog_action': 'disabled'},
+                             instance0.flavor_extra_specs)
+        else:
+            self.assertEqual({}, instance0.flavor_extra_specs)
+
     def test_nova_instance_pause(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
@@ -685,14 +740,22 @@ class TestNovaNotifications(NotificationTestCase):
 
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
 
-    def test_instance_resize_confirm_end(self):
+    @ddt.data(False, True)
+    def test_instance_resize_confirm_end(self, extended_attr_enabled):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
         self.fake_cdmc.cluster_data_model = compute_model
+        self.fake_cdmc.cluster_data_model.extended_attributes_enabled = (
+            extended_attr_enabled)
+
         handler = novanotification.VersionedNotification(self.fake_cdmc)
         instance0_uuid = '73b09e16-35b7-4922-804e-e8f5d9b740fc'
         instance0 = compute_model.get_instance_by_uuid(instance0_uuid)
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
+
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
+        # NOTE(dviroel): extra_specs are empty generated scenario
+        self.assertEqual({}, instance0.flavor_extra_specs)
+
         message = self.load_message(
             'instance-resize_confirm-end.json')
         handler.info(
@@ -705,6 +768,11 @@ class TestNovaNotifications(NotificationTestCase):
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         self.assertEqual(element.InstanceState.ACTIVE.value, instance0.state)
+
+        expected_extra_specs = {
+            'hw:watchdog_action': 'disabled'
+        } if extended_attr_enabled else {}
+        self.assertEqual(expected_extra_specs, instance0.flavor_extra_specs)
 
     def test_nova_instance_restore_end(self):
         compute_model = self.fake_cdmc.generate_scenario_3_with_2_nodes()
@@ -846,6 +914,7 @@ class TestNovaNotifications(NotificationTestCase):
 
     def test_fake_instance_create(self):
         self.fake_cdmc.cluster_data_model = mock.Mock()
+        self.fake_cdmc.cluster_data_model.extended_attributes_enabled = False
         handler = novanotification.VersionedNotification(self.fake_cdmc)
         message = self.load_message('instance-create-end.json')
 

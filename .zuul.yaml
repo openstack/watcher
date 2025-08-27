@@ -198,6 +198,10 @@
               period: 120
             watcher_cluster_data_model_collectors.storage:
               period: 120
+            compute_model:
+              enable_extended_attributes: true
+            nova_client:
+              api_version: "2.96"
         test-config:
           $TEMPEST_CONFIG:
             compute:
@@ -217,12 +221,14 @@
               ceilometer_polling_interval: 15
             optimize:
               datasource: prometheus
+              extended_attributes_nova_microversion: "2.96"
+              data_model_collectors_period: 120
       tempest_plugins:
         - watcher-tempest-plugin
       # All tests inside watcher_tempest_plugin.tests.scenario with tag "strategy"
-      # or test_execute_strategies file
+      # and test_execute_strategies, test_data_model files
       # excluding tests with tag "real_load"
-      tempest_test_regex: (watcher_tempest_plugin.tests.scenario)(.*\[.*\bstrategy\b.*\].*)|(watcher_tempest_plugin.tests.scenario.test_execute_strategies)
+      tempest_test_regex: (watcher_tempest_plugin.tests.scenario)(.*\[.*\bstrategy\b.*\].*)|(watcher_tempest_plugin.tests.scenario.(test_execute_strategies|test_data_model))
       tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
       tempest_concurrency: 1
       tox_envlist: all

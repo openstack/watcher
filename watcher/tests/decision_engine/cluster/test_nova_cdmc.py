@@ -16,16 +16,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import ddt
 import os_resource_classes as orc
 from unittest import mock
 
 from watcher.common import nova_helper
 from watcher.common import placement_helper
 from watcher.decision_engine.model.collector import nova
+from watcher.decision_engine.model import model_root
 from watcher.tests import base
 from watcher.tests import conf_fixture
 
 
+@ddt.ddt
 class TestNovaClusterDataModelCollector(base.TestCase):
 
     def setUp(self):
@@ -35,8 +38,17 @@ class TestNovaClusterDataModelCollector(base.TestCase):
     @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
-    def test_nova_cdmc_execute(self, m_nova_helper_cls,
+    @mock.patch.object(model_root.ModelRoot, 'extended_attributes_enabled',
+                       new_callable=mock.PropertyMock)
+    @ddt.data(False, True)
+    def test_nova_cdmc_execute(self,
+                               extended_attr_enabled,
+                               m_extended_attr_enabled,
+                               m_nova_helper_cls,
                                m_placement_helper_cls):
+        # Set the extended_attributes_enabled configuration value
+        m_extended_attr_enabled.return_value = extended_attr_enabled
+
         m_placement_helper = mock.Mock(name="placement_helper")
         m_placement_helper.get_inventories.return_value = {
             orc.VCPU: {
@@ -117,12 +129,15 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         fake_instance = mock.Mock(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
             name='fake_instance',
-            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
+            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1,
+                    'extra_specs': {'hw_rng:allowed': 'True'}},
             metadata={'hi': 'hello'},
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
+            pinned_availability_zone='nova',
         )
         setattr(fake_instance, 'OS-EXT-STS:vm_state', 'VM_STATE')
         setattr(fake_instance, 'name', 'fake_instance')
+
         # Returns the hypervisors with details (service) but no servers.
         m_nova_helper.get_compute_node_list.return_value = [fake_compute_node]
         # Returns the hypervisor with servers and details (service).
@@ -161,12 +176,21 @@ class TestNovaClusterDataModelCollector(base.TestCase):
         vcpus_total = (node.vcpus-node.vcpu_reserved)*node.vcpu_ratio
         self.assertEqual(node.vcpu_capacity, vcpus_total)
 
+        if extended_attr_enabled:
+            self.assertEqual('nova', instance.pinned_az)
+            self.assertEqual({'hw_rng:allowed': 'True'},
+                             instance.flavor_extra_specs)
+        else:
+            self.assertEqual('', instance.pinned_az)
+            self.assertEqual({}, instance.flavor_extra_specs)
+
         m_nova_helper.get_compute_node_by_name.assert_called_once_with(
             minimal_node['hypervisor_hostname'], servers=True, detailed=True)
         m_nova_helper.get_instance_list.assert_called_once_with(
             filters={'host': fake_compute_node.service['host']}, limit=1)
 
 
+@ddt.ddt
 class TestNovaModelBuilder(base.TestCase):
 
     @mock.patch.object(nova_helper, 'NovaHelper', mock.MagicMock())
@@ -180,11 +204,15 @@ class TestNovaModelBuilder(base.TestCase):
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b')
         setattr(inst1, 'OS-EXT-STS:vm_state', 'deleted')
         setattr(inst1, 'name', 'instance1')
+        setattr(inst1, 'pinned_availability_zone', 'nova')
+
         inst2 = mock.MagicMock(
             id='ef500f7e-dac8-470f-960c-169486fce722',
             tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b')
         setattr(inst2, 'OS-EXT-STS:vm_state', 'active')
         setattr(inst2, 'name', 'instance2')
+        setattr(inst2, 'pinned_availability_zone', 'nova')
+
         mock_instances = [inst1, inst2]
         model_builder.nova_helper.get_instance_list.return_value = (
             mock_instances)
@@ -202,6 +230,49 @@ class TestNovaModelBuilder(base.TestCase):
         model_builder.add_instance_node(mock_node, mock_instances)
         model_builder.nova_helper.get_instance_list.assert_called_with(
             filters={'host': mock_host}, limit=-1)
+
+    @ddt.unpack
+    # unpacks (extended_attr_enabled, pinned_az_available)
+    @ddt.data((True, True), (True, False), (False, True))
+    @mock.patch.object(nova_helper.NovaHelper, 'is_pinned_az_available')
+    def test__build_instance_node_extended_fields(self,
+                                                  extended_attr_enabled,
+                                                  pinned_az_available,
+                                                  m_is_pinned_az_available):
+        model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
+        model_builder.model = mock.MagicMock()
+        model_builder.model.extended_attributes_enabled = extended_attr_enabled
+        m_is_pinned_az_available.return_value = pinned_az_available
+
+        inst1 = mock.MagicMock(
+            id='ef500f7e-dac8-470f-960c-169486fce711',
+            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
+            flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1,
+                    'extra_specs': {'hw_rng:allowed': 'True'}},)
+        setattr(inst1, 'OS-EXT-STS:vm_state', 'active')
+        setattr(inst1, 'name', 'instance1')
+        setattr(inst1, 'pinned_availability_zone', 'nova')
+
+        fake_instance = model_builder._build_instance_node(inst1)
+
+        self.assertEqual(fake_instance.uuid,
+                         'ef500f7e-dac8-470f-960c-169486fce711')
+        self.assertEqual(fake_instance.name, 'instance1')
+        self.assertEqual(fake_instance.state, 'active')
+        self.assertEqual(fake_instance.memory, 333)
+        self.assertEqual(fake_instance.disk, 222)
+        self.assertEqual(fake_instance.vcpus, 4)
+        self.assertEqual(fake_instance.project_id,
+                         'ff560f7e-dbc8-771f-960c-164482fce21b')
+
+        if extended_attr_enabled:
+            expected_pinned_az = 'nova' if pinned_az_available else ''
+            self.assertEqual(expected_pinned_az, fake_instance.pinned_az)
+            self.assertEqual({'hw_rng:allowed': 'True'},
+                             fake_instance.flavor_extra_specs)
+        else:
+            self.assertEqual('', fake_instance.pinned_az)
+            self.assertEqual({}, fake_instance.flavor_extra_specs)
 
     def test_check_model(self):
         """Initialize collector ModelBuilder and test check model"""

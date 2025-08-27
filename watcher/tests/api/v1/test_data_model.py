@@ -13,6 +13,7 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
+import ddt
 from unittest import mock
 
 from http import HTTPStatus
@@ -30,15 +31,16 @@ class TestListDataModel(api_base.FunctionalTest):
         super(TestListDataModel, self).setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
-        self.mock_dcapi().get_data_model_info.return_value = \
-            'fake_response_value'
+        self.fake_response = {'context': [{'server_uuid': 'fake_uuid'}]}
+        self.mock_dcapi().get_data_model_info.return_value = (
+            self.fake_response)
         self.addCleanup(p_dcapi.stop)
 
     def test_get_all(self):
         response = self.get_json(
             '/data_model/?data_model_type=compute',
             headers={'OpenStack-API-Version': 'infra-optim 1.3'})
-        self.assertEqual('fake_response_value', response)
+        self.assertEqual(self.fake_response, response)
 
     def test_get_all_not_acceptable(self):
         response = self.get_json(
@@ -48,6 +50,7 @@ class TestListDataModel(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.NOT_ACCEPTABLE, response.status_int)
 
 
+@ddt.ddt
 class TestListDataModelResponse(api_base.FunctionalTest):
 
     NODE_FIELDS_1_3 = [
@@ -67,6 +70,13 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         'node_uuid'
     ]
 
+    # Map of API version to expected node fields
+    NODE_FIELDS_MAP = {
+        '1.3': NODE_FIELDS_1_3,
+        '1.6': NODE_FIELDS_1_3,
+        'latest': NODE_FIELDS_1_3,
+    }
+
     SERVER_FIELDS_1_3 = [
         'server_watcher_exclude',
         'server_name',
@@ -80,8 +90,17 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         'server_uuid'
     ]
 
-    NODE_FIELDS_LATEST = NODE_FIELDS_1_3
-    SERVER_FIELDS_LATEST = SERVER_FIELDS_1_3
+    SERVER_FIELDS_1_6 = [
+        'server_pinned_az',
+        'server_flavor_extra_specs'
+    ] + SERVER_FIELDS_1_3
+
+    # Map of API version to expected server fields
+    SERVER_FIELDS_MAP = {
+        '1.3': SERVER_FIELDS_1_3,
+        '1.6': SERVER_FIELDS_1_6,
+        'latest': SERVER_FIELDS_1_6,
+    }
 
     def setUp(self):
         super(TestListDataModelResponse, self).setUp()
@@ -89,36 +108,39 @@ class TestListDataModelResponse(api_base.FunctionalTest):
         self.mock_dcapi = p_dcapi.start()
         self.addCleanup(p_dcapi.stop)
 
-    def test_model_list_compute_no_instance(self):
+    @ddt.data("1.3", "1.6", versions.max_version_string())
+    def test_model_list_compute_no_instance(self, version):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_11_with_1_node_no_instance()
         get_model_resp = {'context': model.to_list()}
 
         self.mock_dcapi().get_data_model_info.return_value = get_model_resp
-        infra_max_version = 'infra-optim ' + versions.max_version_string()
+        infra_max_version = 'infra-optim ' + version
         response = self.get_json(
             '/data_model/?data_model_type=compute',
             headers={'OpenStack-API-Version': infra_max_version})
 
         server_info = response.get("context")[0]
-        expected_keys = self.NODE_FIELDS_LATEST
+        expected_keys = self.NODE_FIELDS_MAP[version]
 
         self.assertEqual(len(response.get("context")), 1)
         self.assertEqual(set(expected_keys), set(server_info.keys()))
 
-    def test_model_list_compute_with_instances(self):
+    @ddt.data("1.3", "1.6", versions.max_version_string())
+    def test_model_list_compute_with_instances(self, version):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_11_with_2_nodes_2_instances()
         get_model_resp = {'context': model.to_list()}
 
         self.mock_dcapi().get_data_model_info.return_value = get_model_resp
-        infra_max_version = 'infra-optim ' + versions.max_version_string()
+        infra_max_version = 'infra-optim ' + version
         response = self.get_json(
             '/data_model/?data_model_type=compute',
             headers={'OpenStack-API-Version': infra_max_version})
 
         server_info = response.get("context")[0]
-        expected_keys = self.NODE_FIELDS_LATEST + self.SERVER_FIELDS_LATEST
+        expected_keys = (self.NODE_FIELDS_MAP[version] +
+                         self.SERVER_FIELDS_MAP[version])
 
         self.assertEqual(len(response.get("context")), 2)
         self.assertEqual(set(expected_keys), set(server_info.keys()))
