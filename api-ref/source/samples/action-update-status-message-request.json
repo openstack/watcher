@@ -1,0 +1,7 @@
+[
+    {
+        "op": "replace",
+        "value": "Action skipped due to scheduled maintenance window",
+        "path": "/status_message"
+    }
+]

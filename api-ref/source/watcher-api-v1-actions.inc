@@ -211,3 +211,52 @@ Response
 
 .. literalinclude:: samples/action-skip-response.json
    :language: javascript
+
+Update Action Status Message
+============================
+
+.. rest_method::  PATCH /v1/actions/{action_ident}
+
+Updates the status_message of an Action that is already in SKIPPED state.
+
+.. note::
+    The status_message field can only be updated for Actions that are currently
+    in SKIPPED state. This allows administrators to fix typos, provide more
+    detailed explanations, or expand on reasons that were initially omitted.
+    This operation requires API microversion 1.5 or later.
+
+Normal response codes: 200
+
+Error codes: 400,404,403,409
+
+Request
+-------
+
+.. rest_parameters:: parameters.yaml
+
+   - action_ident: action_ident
+
+**Example status_message update request for a SKIPPED action:**
+
+.. literalinclude:: samples/action-update-status-message-request.json
+   :language: javascript
+
+Response
+--------
+
+.. rest_parameters:: parameters.yaml
+
+    - uuid: uuid
+    - action_type: action_type
+    - state: action_state
+    - action_plan_uuid: action_action_plan_uuid
+    - parents: action_parents
+    - description: action_description
+    - input_parameters: action_input_parameters
+    - links: links
+    - status_message: action_status_message
+
+**Example JSON representation of an Action with updated status_message:**
+
+.. literalinclude:: samples/action-update-status-message-response.json
+   :language: javascript

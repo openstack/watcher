@@ -44,4 +44,7 @@ with ``event`` type.
 ---
 Added support for SKIPPED actions status via PATCH support for Actions API.
 This feature also introduces the ``status_message`` field to audits, actions
-and action plans.
+and action plans. The ``status_message`` field can be set when transitioning
+an action to SKIPPED state, and can also be updated for actions that are
+already in SKIPPED state, allowing administrators to fix typos, provide more
+detailed explanations, or expand on reasons that were initially omitted.
