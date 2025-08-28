@@ -280,6 +280,9 @@
       - openstack/python-observabilityclient
       - openstack/aetos
     vars: &aetos_vars
+      devstack_services:
+        ceilometer-acompute: false
+        node_exporter: false
       devstack_plugins:
         ceilometer: https://opendev.org/openstack/ceilometer
         sg-core: https://github.com/openstack-k8s-operators/sg-core
@@ -300,6 +303,11 @@
           $TEMPEST_CONFIG:
             optimize:
               datasource: prometheus
+    group-vars:
+      subnode:
+        devstack_services:
+          ceilometer-acompute: false
+          node_exporter: false
 
 - job:
     name: watcher-prometheus-integration-realdata
