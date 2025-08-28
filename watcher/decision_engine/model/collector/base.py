@@ -201,15 +201,15 @@ class BaseModelBuilder(object):
 
         Attempts to access data from the external service and handles
         exceptions. The retrieval should be retried in accordance
-        to the value of api_call_retries
+        to the value of api_query_max_retries
         :param f: The method that performs the actual querying for metrics
         :param args: Array of arguments supplied to the method
         :param kwargs: The amount of arguments supplied to the method
         :return: The value as retrieved from the external service
         """
 
-        num_retries = CONF.collector.api_call_retries
-        timeout = CONF.collector.api_query_timeout
+        num_retries = CONF.collector.api_query_max_retries
+        interval = CONF.collector.api_query_interval
 
         for i in range(num_retries):
             try:
@@ -219,8 +219,8 @@ class BaseModelBuilder(object):
                 self.call_retry_reset(e)
                 LOG.warning("Retry %d of %d, error while calling service "
                             "retry in %s seconds",
-                            i+1, num_retries, timeout)
-                time.sleep(timeout)
+                            i+1, num_retries, interval)
+                time.sleep(interval)
         raise
 
     @abc.abstractmethod
