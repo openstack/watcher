@@ -476,6 +476,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
         try:
             return self._get_by_uuid(uuid)
         except exception.StorageResourceNotFound:
+            LOG.debug("Volume %(volume)s not found in the model",
+                      dict(volume=uuid))
             raise exception.VolumeNotFound(name=uuid)
 
     def _get_by_uuid(self, uuid):
@@ -520,7 +522,8 @@ class StorageModelRoot(nx.DiGraph, base.Model):
             pool = self._get_by_name(p)
             if isinstance(pool, element.Pool):
                 return pool
-        raise exception.PoolNotFound(name=volume.uuid)
+        msg = f"for volume {volume.uuid}"
+        raise exception.PoolNotFound(name=msg)
 
     @lockutils.synchronized("storage_model")
     def get_all_volumes(self):
