@@ -192,6 +192,9 @@ action_state:
 action_status_message:
   description: |
     Message with additional information about the Action state.
+    This field can be set when transitioning an action to SKIPPED state,
+    or updated for actions that are already in SKIPPED state to provide
+    more detailed explanations, fix typos, or expand on initial reasons.
   in: body
   required: false
   type: string

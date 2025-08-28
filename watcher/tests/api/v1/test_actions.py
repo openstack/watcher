@@ -656,17 +656,17 @@ class TestPatchAction(api_base.FunctionalTest):
                       response.json['error_message'])
 
     def test_patch_action_status_message_not_allowed(self):
-        """Test that status_message cannot be patched directly"""
+        """Test status_message cannot be patched directly when not SKIPPED"""
         response = self.patch_json(
             '/actions/%s' % self.action.uuid,
             [{'path': '/status_message', 'value': 'test message',
               'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
-        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        self.assertEqual(HTTPStatus.CONFLICT, response.status_int)
         self.assertEqual('application/json', response.content_type)
-        self.assertIn("status_message update only allowed with state change",
-                      response.json['error_message'])
+        self.assertIn("status_message update only allowed when action state "
+                      "is SKIPPED", response.json['error_message'])
         self.assertIsNone(self.action.status_message)
 
     def test_patch_action_one_allowed_one_not_allowed(self):
@@ -684,6 +684,32 @@ class TestPatchAction(api_base.FunctionalTest):
         self.assertIn("\'/action_plan_id\' is not an allowed attribute and "
                       "can not be updated", response.json['error_message'])
         self.assertIsNone(self.action.status_message)
+
+    def test_patch_action_status_message_allowed_when_skipped(self):
+        """Test that status_message can be updated when action is SKIPPED"""
+        # First transition to SKIPPED state
+        new_state = objects.action.State.SKIPPED
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/state', 'value': new_state, 'op': 'replace'},
+             {'path': '/status_message', 'value': 'initial message',
+              'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(HTTPStatus.OK, response.status_int)
+        self.assertEqual(new_state, response.json['state'])
+
+        # Now update status_message while in SKIPPED state
+        response = self.patch_json(
+            '/actions/%s' % self.action.uuid,
+            [{'path': '/status_message', 'value': 'updated message',
+              'op': 'replace'}],
+            headers={'OpenStack-API-Version': 'infra-optim 1.5'})
+        self.assertEqual(HTTPStatus.OK, response.status_int)
+        self.assertEqual('application/json', response.content_type)
+        self.assertEqual(new_state, response.json['state'])
+        self.assertEqual(
+            'Action skipped by user. Reason: updated message',
+            response.json['status_message'])
 
 
 class TestActionPolicyEnforcement(api_base.FunctionalTest):

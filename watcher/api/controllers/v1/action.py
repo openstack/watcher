@@ -439,15 +439,18 @@ class ActionsController(rest.RestController):
                         ap_state=action_plan.state))
 
         status_message = _("Action skipped by user.")
-        # status_message update only allowed with status update
+        # status_message update only allowed with status update or when
+        # already SKIPPED
         # NOTE(dviroel): status_message is an exposed field.
         if action.status_message != action_to_update.status_message:
-            if action.state == action_to_update.state:
+            if (action.state == action_to_update.state and
+                    action_to_update.state != objects.action.State.SKIPPED):
                 error_message = _(
-                    "status_message update only allowed with state change")
-                raise exception.PatchError(
+                    "status_message update only allowed when action state "
+                    "is SKIPPED")
+                raise exception.Conflict(
                     patch=patch,
-                    reason=error_message)
+                    message=error_message)
             else:
                 status_message = (_("%(status_message)s Reason: %(reason)s")
                                   % dict(status_message=status_message,

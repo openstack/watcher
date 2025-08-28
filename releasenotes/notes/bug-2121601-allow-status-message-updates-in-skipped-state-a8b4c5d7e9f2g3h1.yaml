@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    Fixed action status_message update restrictions to allow updates when
+    action is in SKIPPED state. Previously, users could only update the
+    status_message when initially changing the action state to SKIPPED.
+    Now users can update the status_message field at any time while the
+    action remains in SKIPPED state, enabling them to fix typos, provide
+    more detailed explanations, or expand on reasons that were initially
+    omitted. For more details, see the bug report:
+    https://bugs.launchpad.net/watcher/+bug/2121601
