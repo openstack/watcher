@@ -31,7 +31,8 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     'used for RPC calls'),
     cfg.ListOpt('notification_topics',
                 default=['nova.versioned_notifications',
-                         'watcher.watcher_notifications'],
+                         'watcher.watcher_notifications',
+                         'openstack.notifications'],
                 help='The exchange and topic names from which '
                      'notification events will be listened to. '
                      'The exchange should be specified to get '
