@@ -184,6 +184,43 @@ class CinderHelper(object):
             {'volume': volume.id, 'host': host_name})
         return True
 
+    def check_retyped(self, volume, dst_type, retry_interval=10):
+        volume = self.get_volume(volume)
+        valid_status = ('available', 'in-use')
+        # A volume retype is correct when the type is the dst_type
+        # and the status is available or in-use. Otherwise, it is
+        # in retyping status or the action failed
+        while (volume.volume_type != dst_type or
+               volume.status not in valid_status):
+            # Retype is not finished successfully, checking if the
+            # retype is still ongoing or failed. If status is not
+            # `retyping` it means something went wrong.
+            if volume.status != 'retyping':
+                LOG.error(
+                    "Volume retype failed : "
+                    "volume %(volume)s has now type '%(type)s' and "
+                    "status %(status)s",
+                    {'volume': volume.id, 'type': volume.volume_type,
+                     'status': volume.status})
+                # If migration_status is in error, a likely reason why the
+                # retype failed is some problem in the migration. Report it in
+                # the logs if migration_status is error.
+                if volume.migration_status == 'error':
+                    LOG.error("Volume migration error on volume %(volume)s.",
+                              {'volume': volume.id})
+                return False
+
+            LOG.debug('Waiting the retype of %s', volume)
+            time.sleep(retry_interval)
+            volume = self.get_volume(volume.id)
+
+        LOG.debug(
+            "Volume retype succeeded : "
+            "volume %(volume)s has now type '%(type)s'.",
+            {'volume': volume.id, 'type': dst_type})
+
+        return True
+
     def migrate(self, volume, dest_node):
         """Migrate volume to dest_node"""
         volume = self.get_volume(volume)
@@ -217,7 +254,7 @@ class CinderHelper(object):
         self.cinder.volumes.retype(
             volume, dest_type, "on-demand")
 
-        return self.check_migrated(volume)
+        return self.check_retyped(volume, dest_type)
 
     def create_volume(self, cinder, volume,
                       dest_type, retry=120, retry_interval=10):

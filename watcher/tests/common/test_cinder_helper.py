@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 
+import copy
+
 from unittest import mock
 
 from http import HTTPStatus
@@ -139,6 +141,8 @@ class TestCinderHelper(base.TestCase):
         volume.snapshot_id = kwargs.get('snapshot_id', None)
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         volume.volume_type = kwargs.get('volume_type', 'fake_type')
+        volume.migration_status = kwargs.get('migration_status')
+        volume.os_vol_host_attr_host = kwargs.get('os_vol_host_attr_host')
         return volume
 
     @mock.patch.object(time, 'sleep', mock.Mock())
@@ -186,12 +190,26 @@ class TestCinderHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_retype_success(self, mock_cinder):
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_volume')
+    def test_retype_success(self, mock_get_volume, mock_cinder):
         cinder_util = cinder_helper.CinderHelper()
 
         volume = self.fake_volume()
         setattr(volume, 'os-vol-host-attr:host', 'source_node')
         setattr(volume, 'migration_status', 'success')
+
+        def side_effect(volume, status, volume_type):
+            result_volume = copy.deepcopy(volume)
+            result_volume.status = status
+            result_volume.volume_type = volume_type
+            return result_volume
+
+        mock_get_volume.side_effect = [
+            side_effect(volume, 'in-use', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'in-use', 'notfake_type'),
+            side_effect(volume, 'in-use', 'notfake_type'),
+        ]
         cinder_util.cinder.volumes.get.return_value = volume
 
         result = cinder_util.retype(volume, 'notfake_type')
@@ -201,6 +219,7 @@ class TestCinderHelper(base.TestCase):
     def test_retype_fail(self, mock_cinder):
         cinder_util = cinder_helper.CinderHelper()
 
+        # dest_type is the actual one
         volume = self.fake_volume()
         setattr(volume, 'os-vol-host-attr:host', 'source_node')
         setattr(volume, 'migration_status', 'success')
@@ -211,9 +230,15 @@ class TestCinderHelper(base.TestCase):
             "Volume type must be different for retyping",
             cinder_util.retype, volume, 'fake_type')
 
+        # type is not the expected one
         volume = self.fake_volume()
-        setattr(volume, 'os-vol-host-attr:host', 'source_node')
-        setattr(volume, 'migration_status', 'error')
+        cinder_util.cinder.volumes.get.return_value = volume
+
+        result = cinder_util.retype(volume, 'notfake_type')
+        self.assertFalse(result)
+
+        # type is correct but status is error
+        volume = self.fake_volume(status='error')
         cinder_util.cinder.volumes.get.return_value = volume
 
         result = cinder_util.retype(volume, 'notfake_type')
@@ -428,4 +453,157 @@ class TestCinderHelper(base.TestCase):
         cinder_util.check_volume_deleted = mock.MagicMock(return_value=False)
         cinder_util.get_deleting_volume = mock.MagicMock(return_value=volume)
         result = cinder_util.check_migrated(volume, retry_interval=1)
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(cinder_helper.LOG, 'debug')
+    def test_check_retyped_success_immediate(self, mock_log_debug,
+                                             mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+
+        volume = self.fake_volume(status='in-use', volume_type='dest_type')
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=True)
+        result = cinder_util.check_retyped(volume, 'dest_type')
+        self.assertNotIn(mock.call('Waiting the retype of %s',
+                         volume), mock_log_debug.mock_calls)
+        mock_log_debug.assert_called_with(
+            "Volume retype succeeded : volume %(volume)s has now type "
+            "'%(type)s'.", {'volume': volume.id, 'type': 'dest_type'})
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_volume')
+    @mock.patch.object(cinder_helper.LOG, 'debug')
+    def test_check_retyped_success_retries(self, mock_log_debug,
+                                           mock_get_volume, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+        volume = self.fake_volume(status='in-use')
+
+        def side_effect(volume, status, volume_type):
+            result_volume = copy.deepcopy(volume)
+            result_volume.status = status
+            result_volume.volume_type = volume_type
+            return result_volume
+
+        mock_get_volume.side_effect = [
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'in-use', 'dest_type'),
+        ]
+
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=True)
+        result = cinder_util.check_retyped(volume, 'dest_type')
+        self.assertEqual(mock_get_volume.call_count, 3)
+        mock_log_debug.assert_any_call('Waiting the retype of %s', volume)
+        mock_log_debug.assert_called_with(
+            "Volume retype succeeded : volume %(volume)s has now type "
+            "'%(type)s'.", {'volume': volume.id, 'type': 'dest_type'})
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_volume')
+    @mock.patch.object(cinder_helper.LOG, 'debug')
+    def test_check_retyped_success_retries_migration(
+            self, mock_log_debug, mock_get_volume, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+        volume = self.fake_volume(status='in-use', migration_status='success',
+                                  os_vol_host_attr_host='source_node')
+
+        def side_effect(volume, status, volume_type):
+            result_volume = copy.deepcopy(volume)
+            result_volume.status = status
+            result_volume.volume_type = volume_type
+            return result_volume
+
+        mock_get_volume.side_effect = [
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'in-use', 'dest_type'),
+        ]
+
+        cinder_util.cinder.volumes.get.return_value = volume
+        cinder_util.check_volume_deleted = mock.MagicMock(return_value=True)
+        cinder_util.get_deleting_volume = mock.MagicMock(return_value=volume)
+        result = cinder_util.check_retyped(volume, 'dest_type')
+        self.assertEqual(mock_get_volume.call_count, 3)
+        mock_log_debug.assert_any_call('Waiting the retype of %s', volume)
+        mock_log_debug.assert_called_with(
+            "Volume retype succeeded : volume %(volume)s has now type "
+            "'%(type)s'.", {'volume': volume.id, 'type': 'dest_type'})
+        self.assertTrue(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_volume')
+    @mock.patch.object(cinder_helper.LOG, 'debug')
+    @mock.patch.object(cinder_helper.LOG, 'error')
+    def test_check_retyped_failed_available(
+            self, mock_log_error, mock_log_debug, mock_get_volume,
+            mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+        volume = self.fake_volume(status='available')
+
+        def side_effect(volume, status, volume_type):
+            result_volume = copy.deepcopy(volume)
+            result_volume.status = status
+            result_volume.volume_type = volume_type
+            return result_volume
+
+        mock_get_volume.side_effect = [
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'available', 'fake_type'),
+        ]
+
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.check_retyped(
+            volume, 'dest_type', retry_interval=1)
+        self.assertEqual(mock_get_volume.call_count, 3)
+        mock_log_debug.assert_any_call('Waiting the retype of %s', volume)
+        mock_log_error.assert_called_with(
+            "Volume retype failed : volume %(volume)s has now type "
+            "'%(type)s' and status %(status)s",
+            {'volume': volume.id, 'type': 'fake_type', 'status': 'available'})
+        self.assertFalse(result)
+
+    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_volume')
+    @mock.patch.object(cinder_helper.LOG, 'debug')
+    @mock.patch.object(cinder_helper.LOG, 'error')
+    def test_check_retyped_failed_inuse(self, mock_log_error, mock_log_debug,
+                                        mock_get_volume, mock_cinder):
+
+        cinder_util = cinder_helper.CinderHelper()
+        volume = self.fake_volume(status='in-use', migration_status='error')
+
+        def side_effect(volume, status, volume_type):
+            result_volume = copy.deepcopy(volume)
+            result_volume.status = status
+            result_volume.volume_type = volume_type
+            return result_volume
+
+        mock_get_volume.side_effect = [
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'retyping', 'fake_type'),
+            side_effect(volume, 'in-use', 'fake_type'),
+        ]
+
+        cinder_util.cinder.volumes.get.return_value = volume
+        result = cinder_util.check_retyped(
+            volume, 'dest_type', retry_interval=1)
+        self.assertEqual(mock_get_volume.call_count, 4)
+        mock_log_debug.assert_any_call('Waiting the retype of %s', volume)
+        mock_log_error.assert_any_call(
+            "Volume retype failed : volume %(volume)s has now type "
+            "'%(type)s' and status %(status)s",
+            {'volume': volume.id, 'type': 'fake_type', 'status': 'in-use'})
+        mock_log_error.assert_called_with(
+            "Volume migration error on volume %(volume)s.",
+            {'volume': volume.id})
         self.assertFalse(result)
