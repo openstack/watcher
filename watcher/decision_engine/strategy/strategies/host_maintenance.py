@@ -233,7 +233,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
             migration_type = 'cold'
 
         params = {'migration_type': migration_type,
-                  'source_node': src_node.uuid,
+                  'source_node': src_node.hostname,
                   'resource_name': instance.name}
         if des_node:
             params['destination_node'] = des_node.hostname
