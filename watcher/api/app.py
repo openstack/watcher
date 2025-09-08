@@ -17,6 +17,7 @@
 #    under the License.
 
 
+from oslo_middleware import cors
 from oslo_middleware import http_proxy_to_wsgi
 from oslo_middleware import request_id
 import pecan
@@ -58,6 +59,13 @@ def _wrap_app(app):
     app = request_id.RequestId(app)
 
     app = http_proxy_to_wsgi.HTTPProxyToWSGI(app)
+
+    # This should be the last middleware in the list (which results in
+    # it being the first in the middleware chain). This is to ensure
+    # that any errors thrown by other middleware, such as an auth
+    # middleware - are annotated with CORS headers, and thus accessible
+    # by the browser.
+    app = cors.CORS(app, CONF)
 
     return app
 

@@ -281,6 +281,7 @@ def prepare_service(argv=(), conf=cfg.CONF):
     config.parse_args(argv)
     cfg.set_defaults(_options.log_opts,
                      default_log_levels=_DEFAULT_LOG_LEVELS)
+    config.set_lib_defaults()
     log.setup(conf, 'python-watcher')
     conf.log_opt_values(LOG, log.DEBUG)
     objects.register_all()
