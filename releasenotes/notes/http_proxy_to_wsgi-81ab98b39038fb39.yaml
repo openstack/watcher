@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The ``http_proxy_to_wsgi`` middleware has been added to the api pipeline.
+    Now setting the ``[oslo_middleware] enable_proxy_headers_parsing`` option
+    to true enables parsing the HTTP headers set by forwarders, to detect
+    endpoint urls clients actually use.
+
