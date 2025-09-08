@@ -17,6 +17,7 @@
 #    under the License.
 
 
+from oslo_middleware import request_id
 import pecan
 
 from watcher.api import acl
@@ -42,11 +43,20 @@ def setup_app(config=None):
         app_conf.pop('root'),
         logging=getattr(config, 'logging', {}),
         debug=CONF.debug,
-        wrap_app=parsable_error.ParsableErrorMiddleware,
+        wrap_app=_wrap_app,
         **app_conf
     )
 
     return acl.install(app, CONF, config.app.acl_public_routes)
+
+
+def _wrap_app(app):
+    """Wraps wsgi app with additional middlewares."""
+    app = parsable_error.ParsableErrorMiddleware(app)
+
+    app = request_id.RequestId(app)
+
+    return app
 
 
 class VersionSelectorApplication(object):

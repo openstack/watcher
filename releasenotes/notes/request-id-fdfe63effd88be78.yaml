@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Now request id is returned by Watcher API in the `X-OpenStack-Request-ID`
+    response header.
