@@ -1,0 +1,11 @@
+---
+fixes:
+  - |
+    Fixed the errors showing in the decision engine logs when generating the
+    xml representation of the storage model when using some storage backends
+    other than lvms (like ceph or nfs). Those drivers do not report pool
+    fields like total_volumes or free_capacity_gb that the lvm driver does,
+    so assuming those fields are always reported by the cinder api calls is
+    wrong.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2121147 for more details.
