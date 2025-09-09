@@ -50,16 +50,19 @@ class Element(base.WatcherObject, base.WatcherObjectDictCompat,
 
     def as_xml_element(self):
         sorted_fieldmap = []
+        element_name = self.__class__.__name__
         for field in self.fields:
             try:
                 value = str(self[field])
                 sorted_fieldmap.append((field, value))
+            except NotImplementedError:
+                LOG.debug("Attribute %s for object %s: %s is not provided",
+                          field, element_name, self)
             except Exception as exc:
                 LOG.exception(exc)
 
         attrib = collections.OrderedDict(sorted_fieldmap)
 
-        element_name = self.__class__.__name__
         instance_el = etree.Element(element_name, attrib=attrib)
 
         return instance_el
