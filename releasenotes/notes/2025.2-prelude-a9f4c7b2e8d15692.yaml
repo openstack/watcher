@@ -1,0 +1,23 @@
+---
+prelude: |
+  The ``OpenStack 2025.2`` (``Watcher 15.0.0``) release delivers stronger security,
+  granular operational control, and comprehensive monitoring capabilities for cloud
+  optimization. This release strengthens the foundation for reliable, large-scale
+  cloud operations while giving administrators complete flexibility in
+  managing optimization workflows.
+
+  Cloud operators gain secure and reliable volume migration processes that eliminate
+  data loss scenarios and ensure tenant isolation. The Host Maintenance strategy
+  now provides granular control over migration behavior, including the ability to
+  disable live or cold migration and safely stop instances when migration
+  cannot proceed.
+
+  The new ``Aetos data source`` adds secure, role-based access to Prometheus metrics
+  through Keystone authentication. This enables multi-tenant monitoring while
+  maintaining access controls across your cloud infrastructure.
+
+  Administrators can now exercise precise control over optimization workflows by
+  manually skipping actions or allowing Watcher to automatically skip actions
+  based on detected conditions. Custom status messages document why administrators
+  or Watcher took specific actions, improving operational visibility and
+  troubleshooting.
