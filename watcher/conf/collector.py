@@ -22,7 +22,7 @@ collector = cfg.OptGroup(name='collector',
 
 COLLECTOR_OPTS = [
     cfg.ListOpt('collector_plugins',
-                default=['compute'],
+                default=['compute', 'storage'],
                 help="""
 The cluster data model plugin names.
 

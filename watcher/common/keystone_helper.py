@@ -88,3 +88,16 @@ class KeystoneHelper(object):
                     message=(_("Domain name seems ambiguous: %s") %
                              name_or_id))
             return domains[0]
+
+    def is_service_enabled_by_type(self, svc_type):
+        services = self.keystone.services.list(type=svc_type)
+        svcs_enabled = [svc for svc in services if svc.enabled]
+        if len(svcs_enabled) == 0:
+            LOG.warning(f"Service enabled not found for type: {svc_type}")
+            return False
+        elif len(svcs_enabled) > 1:
+            LOG.warning(f"Multiple services found for type: {svc_type}")
+            return False
+        # if there is only one enabled service, consider it a valid
+        # case
+        return True

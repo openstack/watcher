@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The storage model collector is now enabled by default if a cinder service exists
+    in the deployment. This is done to prevent the storage model becoming obsolete
+    when running volume migrations if new volumes are created and the model was not
+    enabled in the configuration.

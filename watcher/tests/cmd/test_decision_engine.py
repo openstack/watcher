@@ -25,6 +25,7 @@ from watcher.common import service as watcher_service
 from watcher.decision_engine.audit import continuous
 from watcher.decision_engine import sync
 from watcher.tests import base
+from watcher.tests.fixtures import watcher as watcher_fixtures
 
 
 class TestDecisionEngine(base.BaseTestCase):
@@ -49,6 +50,7 @@ class TestDecisionEngine(base.BaseTestCase):
             continuous.ContinuousAuditHandler, "start")
         self.m_continuoushandler = p_continuoushandler.start()
         self.addCleanup(p_continuoushandler.stop)
+        self.fake_keystone = self.useFixture(watcher_fixtures.KeystoneClient())
 
     def tearDown(self):
         super(TestDecisionEngine, self).tearDown()
@@ -57,5 +59,6 @@ class TestDecisionEngine(base.BaseTestCase):
     @mock.patch.object(sync.Syncer, "sync", mock.Mock())
     @mock.patch.object(service, "launch")
     def test_run_de_app(self, m_launch):
+
         decisionengine.main()
         self.assertEqual(1, m_launch.call_count)

@@ -32,6 +32,7 @@ from watcher import objects
 from watcher.tests import base
 from watcher.tests.db import base as db_base
 from watcher.tests.decision_engine.model import faker_cluster_state
+from watcher.tests.fixtures import watcher as watcher_fixtures
 from watcher.tests.objects import utils as obj_utils
 
 
@@ -79,6 +80,10 @@ class TestCancelOngoingAudits(db_base.DbTestCase):
 @mock.patch.object(objects.audit.Audit, 'save')
 @mock.patch.object(objects.audit.Audit, 'list')
 class TestDecisionEngineSchedulingService(base.TestCase):
+
+    def setUp(self):
+        super(TestDecisionEngineSchedulingService, self).setUp()
+        self.fake_keystone = self.useFixture(watcher_fixtures.KeystoneClient())
 
     @mock.patch.object(
         default_loading.ClusterDataModelCollectorLoader, 'load')
