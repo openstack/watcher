@@ -316,20 +316,44 @@ class TestZoneMigration(TestBaseStrategy):
                                           name="volume_1")
         self.m_c_helper.get_volume_list.return_value = [
             volume_on_src1,
+
             ]
         self.m_migrate_storage_pools.return_value = [
             {"src_pool": "src1@back1#pool1",
-             "src_type": "type1", "dst_type": "type1"},
+             "src_type": "type1",
+             "dst_type": "type1"},
+
             ]
         self.m_n_helper.get_instance_list.return_value = []
         solution = self.strategy.execute()
-        migration_params = solution.actions[0]['input_parameters']
-        # since we have not passed 'dst_pool' in the input, we should not have
-        # a destination_node in the generated migration action
-        # self.assertNotIn('destination_node', migration_params)
-        # temporarily make the test pass, delete and use the above assert in
-        # followup
-        self.assertIsNone(migration_params['destination_node'])
+        # check that there are no volume migrations proposed, because the input
+        # parameters do not have a dst_pool and dst_type==src_type
+        self.assertEqual(len(solution.actions), 0)
+
+    def test_execute_migrate_volume_dst_pool(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+
+            ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1",
+             "src_type": "type1",
+             "dst_pool": "back2",
+             "dst_type": "type1"},
+
+            ]
+        self.m_n_helper.get_instance_list.return_value = []
+        solution = self.strategy.execute()
+        # check that there is one volume migration proposed
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        self.assertEqual(1, migration_types.get("migrate", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume_no_compute_nodes(self):
         instance_on_src1 = self.fake_instance(
