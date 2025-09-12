@@ -47,6 +47,11 @@ class BackgroundSchedulerService(
         eventlet_helper.patch()
         super()._main_loop()
 
+    def add_job(self, *args, **kwargs):
+        executor.log_executor_stats(executors['default'].executor,
+                                    name="background-scheduler-pool")
+        return super().add_job(*args, **kwargs)
+
     def start(self):
         """Start service."""
         background.BackgroundScheduler.start(self)

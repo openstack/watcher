@@ -35,7 +35,14 @@ SERVICE_OPTS = [
                        ),
     cfg.IntOpt('service_down_time',
                default=90,
-               help=_('Maximum time since last check-in for up service.'))
+               help=_('Maximum time since last check-in for up service.')),
+    cfg.BoolOpt('print_thread_pool_stats',
+                default=False,
+                help=_('Enable logging of thread pool executor statistics '
+                       'when submitting tasks. Logs current queue length, '
+                       'number of workers (total, idle or running) and '
+                       'executor runtime statistics. Useful for diagnosing '
+                       'contention and performance issues.'))
 ]
 
 
