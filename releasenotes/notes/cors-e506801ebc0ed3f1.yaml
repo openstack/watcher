@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The `CORS middleware
+    <https://docs.openstack.org/oslo.middleware/2025.1/admin/cross-project-cors.html>`__
+    has been added to api pipeline, to support Cross-Origin Resource Sharing.

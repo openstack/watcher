@@ -16,9 +16,31 @@
 #    under the License.
 
 from oslo_config import cfg
+from oslo_middleware import cors
 
 from watcher.common import rpc
 from watcher import version
+
+
+def set_lib_defaults():
+    cors.set_defaults(
+        allow_headers=['X-Auth-Token',
+                       'X-Identity-Status',
+                       'X-Roles',
+                       'X-Service-Catalog',
+                       'X-User-Id',
+                       'X-Tenant-Id',
+                       'X-OpenStack-Request-ID'],
+        expose_headers=['X-Auth-Token',
+                        'X-Subject-Token',
+                        'X-Service-Token',
+                        'X-OpenStack-Request-ID'],
+        allow_methods=['GET',
+                       'PUT',
+                       'POST',
+                       'DELETE',
+                       'PATCH']
+    )
 
 
 def parse_args(argv, default_config_files=None, default_config_dirs=None):
