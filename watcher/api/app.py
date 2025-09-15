@@ -17,6 +17,7 @@
 #    under the License.
 
 
+from oslo_middleware import http_proxy_to_wsgi
 from oslo_middleware import request_id
 import pecan
 
@@ -55,6 +56,8 @@ def _wrap_app(app):
     app = parsable_error.ParsableErrorMiddleware(app)
 
     app = request_id.RequestId(app)
+
+    app = http_proxy_to_wsgi.HTTPProxyToWSGI(app)
 
     return app
 
