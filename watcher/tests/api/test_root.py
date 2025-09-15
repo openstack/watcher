@@ -24,6 +24,12 @@ class TestRoot(base.FunctionalTest):
         # Check fields are not empty
         [self.assertNotIn(f, ['', []]) for f in data.keys()]
 
+    # NOTE(tkajinam): Request ID should be present in any request so we verify
+    # it only at the root path.
+    def test_request_id(self):
+        resp = self.get_json('/', path_prefix='', return_json=False)
+        self.assertIn('X-OpenStack-Request-Id', resp.headers)
+
 
 class TestV1Root(base.FunctionalTest):
 
