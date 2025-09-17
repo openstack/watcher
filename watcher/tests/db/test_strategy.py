@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +31,7 @@ class TestDbStrategyFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbStrategyFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -100,8 +99,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'deleted': False})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_deleted_at_eq(self):
         self._soft_delete_strategys()
@@ -118,8 +117,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_deleted_at_lte(self):
         self._soft_delete_strategys()
@@ -128,8 +127,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_deleted_at_gt(self):
         self._soft_delete_strategys()
@@ -146,8 +145,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy1['uuid'], self.strategy2['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy1['uuid'], self.strategy2['uuid']},
+            {r.uuid for r in res})
 
     # created_at #
 
@@ -162,16 +161,16 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_created_at_lte(self):
         res = self.dbapi.get_strategy_list(
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_created_at_gt(self):
         res = self.dbapi.get_strategy_list(
@@ -184,8 +183,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy1['uuid'], self.strategy2['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy1['uuid'], self.strategy2['uuid']},
+            {r.uuid for r in res})
 
     # updated_at #
 
@@ -204,8 +203,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'updated_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_updated_at_lte(self):
         self._update_strategies()
@@ -214,8 +213,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy2['uuid'], self.strategy3['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy2['uuid'], self.strategy3['uuid']},
+            {r.uuid for r in res})
 
     def test_get_strategy_list_filter_updated_at_gt(self):
         self._update_strategies()
@@ -232,8 +231,8 @@ class TestDbStrategyFilters(base.DbTestCase):
             self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.strategy1['uuid'], self.strategy2['uuid']]),
-            set([r.uuid for r in res]))
+            {self.strategy1['uuid'], self.strategy2['uuid']},
+            {r.uuid for r in res})
 
 
 class DbStrategyTestCase(base.DbTestCase):
@@ -245,7 +244,7 @@ class DbStrategyTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name="STRATEGY_ID_%s" % i,
-                display_name='My Strategy {0}'.format(i))
+                display_name='My Strategy {}'.format(i))
             uuids.append(str(strategy['uuid']))
         strategies = self.dbapi.get_strategy_list(self.context)
         strategy_uuids = [s.uuid for s in strategies]
@@ -262,7 +261,7 @@ class DbStrategyTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name="STRATEGY_ID_%s" % i,
-                display_name='My Strategy {0}'.format(i),
+                display_name='My Strategy {}'.format(i),
                 goal_id=goal.id)
             uuids.append(str(strategy['uuid']))
         strategys = self.dbapi.get_strategy_list(self.context, eager=True)

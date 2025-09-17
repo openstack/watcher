@@ -28,7 +28,7 @@ from watcher.tests.decision_engine.model import faker_cluster_state
 class TestListDataModel(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestListDataModel, self).setUp()
+        super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
         self.fake_response = {'context': [{'server_uuid': 'fake_uuid'}]}
@@ -103,7 +103,7 @@ class TestListDataModelResponse(api_base.FunctionalTest):
     }
 
     def setUp(self):
-        super(TestListDataModelResponse, self).setUp()
+        super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
         self.addCleanup(p_dcapi.stop)
@@ -149,7 +149,7 @@ class TestListDataModelResponse(api_base.FunctionalTest):
 class TestDataModelPolicyEnforcement(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestDataModelPolicyEnforcement, self).setUp()
+        super().setUp()
         p_dcapi = mock.patch.object(deapi, 'DecisionEngineAPI')
         self.mock_dcapi = p_dcapi.start()
         self.addCleanup(p_dcapi.stop)
@@ -178,7 +178,7 @@ class TestDataModelEnforcementWithAdminContext(
         TestListDataModel, api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestDataModelEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

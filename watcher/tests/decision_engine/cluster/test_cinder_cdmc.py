@@ -23,7 +23,7 @@ from watcher.tests import conf_fixture
 class TestCinderClusterDataModelCollector(base.TestCase):
 
     def setUp(self):
-        super(TestCinderClusterDataModelCollector, self).setUp()
+        super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
 
     @mock.patch('keystoneclient.v3.client.Client', mock.Mock())

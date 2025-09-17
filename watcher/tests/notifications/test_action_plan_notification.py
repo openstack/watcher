@@ -29,7 +29,7 @@ from watcher.tests.objects import utils
 class TestActionPlanNotification(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionPlanNotification, self).setUp()
+        super().setUp()
         p_get_notifier = mock.patch.object(rpc, 'get_notifier')
         m_get_notifier = p_get_notifier.start()
         self.addCleanup(p_get_notifier.stop)

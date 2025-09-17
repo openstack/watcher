@@ -80,7 +80,7 @@ class TestListGoal(api_base.FunctionalTest):
             goal = obj_utils.create_test_goal(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(idx))
+                name='GOAL_{}'.format(idx))
             goal_list.append(goal.uuid)
         response = self.get_json('/goals')
         self.assertGreater(len(response['goals']), 2)
@@ -90,12 +90,12 @@ class TestListGoal(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             goal = obj_utils.create_test_goal(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(id_))
+                name='GOAL_{}'.format(id_))
             goal_list.append(goal.uuid)
         for id_ in [4, 5]:
             goal = obj_utils.create_test_goal(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(id_))
+                name='GOAL_{}'.format(id_))
             goal.soft_delete()
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
@@ -107,7 +107,7 @@ class TestListGoal(api_base.FunctionalTest):
             obj_utils.create_test_goal(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(idx))
+                name='GOAL_{}'.format(idx))
         response = self.get_json('/goals/?limit=2')
         self.assertEqual(2, len(response['goals']))
 
@@ -116,7 +116,7 @@ class TestListGoal(api_base.FunctionalTest):
             obj_utils.create_test_goal(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(idx))
+                name='GOAL_{}'.format(idx))
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/goals')
         self.assertEqual(3, len(response['goals']))
@@ -127,7 +127,7 @@ class TestListGoal(api_base.FunctionalTest):
             goal = obj_utils.create_test_goal(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='GOAL_{0}'.format(idx))
+                name='GOAL_{}'.format(idx))
             goal_list.append(goal.uuid)
 
         response = self.get_json('/goals/?sort_key=uuid')
@@ -180,7 +180,7 @@ class TestGoalPolicyEnforcementWithAdminContext(TestListGoal,
                                                 api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestGoalPolicyEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

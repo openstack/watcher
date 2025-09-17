@@ -29,7 +29,7 @@ CONF = cfg.CONF
 @mock.patch('keystoneauth1.session.Session.request')
 class TestPlacementHelper(base.TestCase):
     def setUp(self):
-        super(TestPlacementHelper, self).setUp()
+        super().setUp()
         _AUTH_CONF_GROUP = 'watcher_clients_auth'
         ka_loading.register_auth_conf_options(CONF, _AUTH_CONF_GROUP)
         ka_loading.register_session_conf_options(CONF, _AUTH_CONF_GROUP)

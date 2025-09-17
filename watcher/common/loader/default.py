@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +34,7 @@ class DefaultLoader(base.BaseLoader):
         :type namespace: str
         :param conf: ConfigOpts instance, defaults to cfg.CONF
         """
-        super(DefaultLoader, self).__init__()
+        super().__init__()
         self.namespace = namespace
         self.conf = conf
 

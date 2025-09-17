@@ -23,7 +23,7 @@ from watcher.tests import base
 
 class TestAetosHelper(base.BaseTestCase):
     def setUp(self):
-        super(TestAetosHelper, self).setUp()
+        super().setUp()
         with mock.patch.object(
             aetos_helper.AetosHelper, '_setup_prometheus_client'
         ):

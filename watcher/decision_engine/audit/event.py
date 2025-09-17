@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ from watcher import objects
 class EventAuditHandler(base.AuditHandler):
 
     def post_execute(self, audit, solution, request_context):
-        super(EventAuditHandler, self).post_execute(audit, solution,
-                                                    request_context)
+        super().post_execute(audit, solution,
+                             request_context)
         # change state of the audit to SUCCEEDED
         self.update_audit_state(audit, objects.audit.State.SUCCEEDED)

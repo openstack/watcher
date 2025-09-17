@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -19,7 +18,7 @@
 import abc
 
 
-class BaseSolutionComparator(object, metaclass=abc.ABCMeta):
+class BaseSolutionComparator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compare(self, sol1, sol2):
         raise NotImplementedError()

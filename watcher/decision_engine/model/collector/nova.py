@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Intel Innovation and Research Ireland Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -154,7 +153,7 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
     }
 
     def __init__(self, config, osc=None):
-        super(NovaClusterDataModelCollector, self).__init__(config, osc)
+        super().__init__(config, osc)
 
     @property
     def notification_endpoints(self):
@@ -322,8 +321,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
             self.no_model_scope_flag = True
             all_nodes = self.call_retry(
                 f=self.nova_helper.get_compute_node_list)
-            compute_nodes = set(
-                [node.hypervisor_hostname for node in all_nodes])
+            compute_nodes = {
+                node.hypervisor_hostname for node in all_nodes}
         LOG.debug("compute nodes: %s", compute_nodes)
 
         node_futures = [self.executor.submit(

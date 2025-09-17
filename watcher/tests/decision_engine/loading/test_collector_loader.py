@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ from watcher.tests.decision_engine.model import faker_cluster_state
 class TestClusterDataModelCollectorLoader(base.TestCase):
 
     def setUp(self):
-        super(TestClusterDataModelCollectorLoader, self).setUp()
+        super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
         self.collector_loader = (
             default_loading.ClusterDataModelCollectorLoader())
@@ -73,7 +72,7 @@ class TestLoadClusterDataModelCollectors(base.TestCase):
         in collector_loader.list_available().items()]
 
     def setUp(self):
-        super(TestLoadClusterDataModelCollectors, self).setUp()
+        super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
 
     @mock.patch.object(clients, 'OpenStackClients', mock.Mock())

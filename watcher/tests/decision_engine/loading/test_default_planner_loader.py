@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ from watcher.tests import base
 
 class TestDefaultPlannerLoader(base.TestCase):
     def setUp(self):
-        super(TestDefaultPlannerLoader, self).setUp()
+        super().setUp()
         self.loader = default.DefaultPlannerLoader()
 
     def test_endpoints(self):

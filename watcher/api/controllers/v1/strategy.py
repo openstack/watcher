@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -123,7 +122,7 @@ class Strategy(base.APIBase):
     """Parameters spec dict"""
 
     def __init__(self, **kwargs):
-        super(Strategy, self).__init__()
+        super().__init__()
 
         self.fields = []
         self.fields.append('uuid')
@@ -174,7 +173,7 @@ class StrategyCollection(collection.Collection):
     """A list containing strategies objects"""
 
     def __init__(self, **kwargs):
-        super(StrategyCollection, self).__init__()
+        super().__init__()
         self._type = 'strategies'
 
     @staticmethod
@@ -198,7 +197,7 @@ class StrategiesController(rest.RestController):
     """REST controller for Strategies."""
 
     def __init__(self):
-        super(StrategiesController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

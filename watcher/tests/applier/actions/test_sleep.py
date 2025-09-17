@@ -23,7 +23,7 @@ from watcher.tests import base
 
 class TestSleep(base.TestCase):
     def setUp(self):
-        super(TestSleep, self).setUp()
+        super().setUp()
         self.s = sleep.Sleep(mock.Mock())
 
     def test_parameters_duration(self):

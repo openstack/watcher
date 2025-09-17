@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
@@ -64,7 +63,7 @@ class GnocchiHelper(base.DataSourceBase):
         if not response:
             return set()
         else:
-            return set([metric['name'] for metric in response])
+            return {metric['name'] for metric in response}
 
     def statistic_aggregation(self, resource=None, resource_type=None,
                               meter_name=None, period=300, aggregate='mean',

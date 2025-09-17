@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -23,7 +22,7 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import base
 
 
-class BaseGrafanaTranslator(object):
+class BaseGrafanaTranslator:
     """Grafana translator baseclass to use with grafana for different databases
 
     Specific databasses that are proxied through grafana require some

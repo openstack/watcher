@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE
 #
 # Authors: Canwei Li <li.canwei2@zte.com.cn>
@@ -32,7 +31,7 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestStorageCapacityBalance(TestBaseStrategy):
 
     def setUp(self):
-        super(TestStorageCapacityBalance, self).setUp()
+        super().setUp()
 
         def test_fake_pool(name, free, total, allocated):
             fake_pool = mock.MagicMock()

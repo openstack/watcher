@@ -27,7 +27,7 @@ from watcher.tests.db import utils
 class TestServiceObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestServiceObject, self).setUp()
+        super().setUp()
         self.fake_service = utils.get_test_service(
             created_at=timeutils.utcnow())
 

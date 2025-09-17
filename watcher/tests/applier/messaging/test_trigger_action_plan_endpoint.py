@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -27,7 +26,7 @@ from watcher.tests import base
 
 class TestTriggerActionPlan(base.TestCase):
     def __init__(self, *args, **kwds):
-        super(TestTriggerActionPlan, self).__init__(*args, **kwds)
+        super().__init__(*args, **kwds)
         self.applier = mock.MagicMock()
         self.endpoint = trigger.TriggerActionPlan(self.applier)
 

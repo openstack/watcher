@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,7 @@ import abc
 from watcher.common import context
 
 
-class BaseScope(object, metaclass=abc.ABCMeta):
+class BaseScope(metaclass=abc.ABCMeta):
     """A base class for Scope mechanism
 
     Child of this class is called when audit launches strategy. This strategy

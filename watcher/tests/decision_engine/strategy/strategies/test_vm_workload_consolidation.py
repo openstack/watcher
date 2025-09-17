@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Authors: Vojtech CIMA <cima@zhaw.ch>
 #          Bruno GRAZIOLI <gaea@zhaw.ch>
@@ -38,7 +37,7 @@ class TestVMWorkloadConsolidation(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestVMWorkloadConsolidation, self).setUp()
+        super().setUp()
 
         # fake cluster
         self.fake_c_cluster = faker_cluster_and_metrics.FakerModelCollector()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 Intel Corp
 #
 # Authors: Zhenzan Zhou <zhenzan.zhou@intel.com>
@@ -36,7 +35,7 @@ class TestOutletTempControl(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestOutletTempControl, self).setUp()
+        super().setUp()
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 

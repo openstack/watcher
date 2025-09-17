@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Authors: Vojtech CIMA <cima@zhaw.ch>
 #          Bruno GRAZIOLI <gaea@zhaw.ch>
@@ -30,7 +29,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
     def __init__(self, config=None, osc=None, audit_scope=None):
         if config is None:
             config = mock.Mock()
-        super(FakerModelCollector, self).__init__(config)
+        super().__init__(config)
 
     @property
     def notification_endpoints(self):
@@ -80,7 +79,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         return self.load_model('scenario_4_with_metrics.xml')
 
 
-class FakeGnocchiMetrics(object):
+class FakeGnocchiMetrics:
     def __init__(self, model):
         self.model = model
 

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2016 Intel
 # All Rights Reserved.
 #
@@ -76,7 +75,7 @@ class ScoringEngine(base.APIBase):
     """A list containing a self link and associated action links"""
 
     def __init__(self, **kwargs):
-        super(ScoringEngine, self).__init__()
+        super().__init__()
 
         self.fields = []
         self.fields.append('uuid')
@@ -123,7 +122,7 @@ class ScoringEngineCollection(collection.Collection):
     """A list containing scoring engine objects"""
 
     def __init__(self, **kwargs):
-        super(ScoringEngineCollection, self).__init__()
+        super().__init__()
         self._type = 'scoring_engines'
 
     @staticmethod
@@ -147,7 +146,7 @@ class ScoringEngineController(rest.RestController):
     """REST controller for Scoring Engines."""
 
     def __init__(self):
-        super(ScoringEngineController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

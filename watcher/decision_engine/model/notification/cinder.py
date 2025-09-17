@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 NEC Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ LOG = log.getLogger(__name__)
 class CinderNotification(base.NotificationEndpoint):
 
     def __init__(self, collector):
-        super(CinderNotification, self).__init__(collector)
+        super().__init__(collector)
         self._cinder = None
 
     @property

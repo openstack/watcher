@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-
 # Copyright © 2012 New Dream Network, LLC (DreamHost)
 # All Rights Reserved.
 # Copyright (c) 2016 Intel Corp
@@ -70,7 +68,7 @@ def _wrap_app(app):
     return app
 
 
-class VersionSelectorApplication(object):
+class VersionSelectorApplication:
     def __init__(self):
         pc = get_pecan_config()
         self.v1 = setup_app(config=pc)

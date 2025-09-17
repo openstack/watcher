@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +18,7 @@ import abc
 from watcher.common import service
 
 
-class Loadable(object, metaclass=abc.ABCMeta):
+class Loadable(metaclass=abc.ABCMeta):
     """Generic interface for dynamically loading a driver/entry point.
 
     This defines the contract in order to let the loader manager inject
@@ -27,7 +26,7 @@ class Loadable(object, metaclass=abc.ABCMeta):
     """
 
     def __init__(self, config):
-        super(Loadable, self).__init__()
+        super().__init__()
         self.config = config
 
     @classmethod
@@ -45,7 +44,7 @@ LoadableSingletonMeta = type(
     "LoadableSingletonMeta", (abc.ABCMeta, service.Singleton), {})
 
 
-class LoadableSingleton(object, metaclass=LoadableSingletonMeta):
+class LoadableSingleton(metaclass=LoadableSingletonMeta):
     """Generic interface for dynamically loading a driver as a singleton.
 
     This defines the contract in order to let the loader manager inject
@@ -54,7 +53,7 @@ class LoadableSingleton(object, metaclass=LoadableSingletonMeta):
     """
 
     def __init__(self, config):
-        super(LoadableSingleton, self).__init__()
+        super().__init__()
         self.config = config
 
     @classmethod

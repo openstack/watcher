@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ CONF = cfg.CONF
 class TestGnocchiHelper(base.BaseTestCase):
 
     def setUp(self):
-        super(TestGnocchiHelper, self).setUp()
+        super().setUp()
         self.osc_mock = mock.Mock()
         self.helper = gnocchi_helper.GnocchiHelper(osc=self.osc_mock)
         stat_agg_patcher = mock.patch.object(
@@ -207,7 +206,7 @@ class TestGnocchiHelper(base.BaseTestCase):
     def test_gnocchi_list_metrics(self, mock_gnocchi):
         gnocchi = mock.MagicMock()
         metrics = [{"name": "metric1"}, {"name": "metric2"}]
-        expected_metrics = set(["metric1", "metric2"])
+        expected_metrics = {"metric1", "metric2"}
         gnocchi.metric.list.return_value = metrics
         mock_gnocchi.return_value = gnocchi
         helper = gnocchi_helper.GnocchiHelper()

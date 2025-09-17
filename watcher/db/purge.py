@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -34,7 +33,7 @@ from watcher import objects
 LOG = log.getLogger(__name__)
 
 
-class WatcherObjectsMap(object):
+class WatcherObjectsMap:
     """Wrapper to deal with watcher objects per type
 
     This wrapper object contains a list of watcher objects per type.
@@ -109,7 +108,7 @@ class WatcherObjectsMap(object):
         return table.get_string()
 
 
-class PurgeCommand(object):
+class PurgeCommand:
     """Purges the DB by removing soft deleted entries
 
     The workflow for this purge is the following:
@@ -193,7 +192,7 @@ class PurgeCommand(object):
         action_plans = objects.ActionPlan.list(self.ctx, filters=filters)
         actions = objects.Action.list(self.ctx, filters=filters)
 
-        goal_ids = set(g.id for g in goals)
+        goal_ids = {g.id for g in goals}
         orphans.strategies = [
             strategy for strategy in strategies
             if strategy.goal_id not in goal_ids]

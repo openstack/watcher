@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

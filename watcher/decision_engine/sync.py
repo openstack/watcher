@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +38,7 @@ IndicatorSpec = collections.namedtuple(
     'IndicatorSpec', ['name', 'description', 'unit', 'schema'])
 
 
-class Syncer(object):
+class Syncer:
     """Syncs all available goals and strategies with the Watcher DB"""
 
     def __init__(self):

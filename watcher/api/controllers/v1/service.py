@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,7 +108,7 @@ class Service(base.APIBase):
     """A list containing a self link."""
 
     def __init__(self, **kwargs):
-        super(Service, self).__init__()
+        super().__init__()
 
         fields = list(objects.Service.fields) + ['status']
         self.fields = []
@@ -153,7 +152,7 @@ class ServiceCollection(collection.Collection):
     """A list containing services objects"""
 
     def __init__(self, **kwargs):
-        super(ServiceCollection, self).__init__()
+        super().__init__()
         self._type = 'services'
 
     @staticmethod
@@ -177,7 +176,7 @@ class ServicesController(rest.RestController):
     """REST controller for Services."""
 
     def __init__(self):
-        super(ServicesController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

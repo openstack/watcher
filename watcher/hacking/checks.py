@@ -54,7 +54,7 @@ _all_hints = set(_all_log_levels.values())
 def _regex_for_level(level, hint):
     return r".*LOG\.%(level)s\(\s*((%(wrong_hints)s)\(|'|\")" % {
         'level': level,
-        'wrong_hints': '|'.join(_all_hints - set([hint])),
+        'wrong_hints': '|'.join(_all_hints - {hint}),
     }
 
 

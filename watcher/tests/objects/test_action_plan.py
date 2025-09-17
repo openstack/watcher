@@ -59,7 +59,7 @@ class TestActionPlanObject(base.DbTestCase):
     ]
 
     def setUp(self):
-        super(TestActionPlanObject, self).setUp()
+        super().setUp()
 
         p_action_plan_notifications = mock.patch.object(
             notifications, 'action_plan', autospec=True)
@@ -186,7 +186,7 @@ class TestActionPlanObject(base.DbTestCase):
 class TestCreateDeleteActionPlanObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestCreateDeleteActionPlanObject, self).setUp()
+        super().setUp()
 
         p_action_plan_notifications = mock.patch.object(
             notifications, 'action_plan', autospec=True)
@@ -300,7 +300,7 @@ class TestCreateDeleteActionPlanObject(base.DbTestCase):
 class TestStateManager(base.DbTestCase):
 
     def setUp(self):
-        super(TestStateManager, self).setUp()
+        super().setUp()
         self.state_manager = objects.action_plan.StateManager()
 
     def test_check_expired(self):

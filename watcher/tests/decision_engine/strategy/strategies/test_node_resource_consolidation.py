@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestNodeResourceConsolidation(TestBaseStrategy):
 
     def setUp(self):
-        super(TestNodeResourceConsolidation, self).setUp()
+        super().setUp()
         self.strategy = strategies.NodeResourceConsolidation(
             config=mock.Mock())
         self.model = self.fake_c_cluster.generate_scenario_10()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 NEC Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ from watcher.decision_engine.datasources import prometheus as prom
 LOG = log.getLogger(__name__)
 
 
-class DataSourceManager(object):
+class DataSourceManager:
 
     metric_map = OrderedDict([
         (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
@@ -188,7 +187,7 @@ class DataSourceManager(object):
     def load_metric_map(self, file_path):
         """Load metrics from the metric_map_path"""
         if file_path and os.path.exists(file_path):
-            with open(file_path, 'r') as f:
+            with open(file_path) as f:
                 try:
                     ret = yaml.safe_load(f.read())
                     # return {} if the file is empty

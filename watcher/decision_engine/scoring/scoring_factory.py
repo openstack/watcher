@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel
 #
 # Authors: Tomasz Kaczynski <tomasz.kaczynski@intel.com>

@@ -31,7 +31,7 @@ class TestDbEfficacyIndicatorFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbEfficacyIndicatorFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -418,7 +418,7 @@ class MySQLDbEfficacyIndicatorTestCase(base.MySQLDbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(MySQLDbEfficacyIndicatorTestCase, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 

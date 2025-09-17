@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +56,7 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class StrategyEndpoint(object):
+class StrategyEndpoint:
     def __init__(self, messaging):
         self._messaging = messaging
 
@@ -141,7 +140,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
         :param osc: An OpenStackClients instance
         :type osc: :py:class:`~.OpenStackClients` instance
         """
-        super(BaseStrategy, self).__init__(config)
+        super().__init__(config)
         self.ctx = context.make_context()
         self._name = self.get_name()
         self._display_name = self.get_display_name()
@@ -208,7 +207,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
                 "datasources",
                 help="Datasources to use in order to query the needed metrics."
                      " This option overrides the global preference."
-                     " options: {0}".format(datasources_ops),
+                     " options: {}".format(datasources_ops),
                 item_type=cfg.types.String(choices=datasources_ops),
                 default=None)
         ]
@@ -512,8 +511,7 @@ class ThermalOptimizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 class WorkloadStabilizationBaseStrategy(BaseStrategy, metaclass=abc.ABCMeta):
 
     def __init__(self, *args, **kwargs):
-        super(WorkloadStabilizationBaseStrategy, self
-              ).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._planner = 'workload_stabilization'
 
     @classmethod

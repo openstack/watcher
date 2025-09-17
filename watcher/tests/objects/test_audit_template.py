@@ -52,7 +52,7 @@ class TestAuditTemplateObject(base.DbTestCase):
     ]
 
     def setUp(self):
-        super(TestAuditTemplateObject, self).setUp()
+        super().setUp()
         self.fake_goal = utils.create_test_goal(**self.goal_data)
 
     def eager_load_audit_template_assert(self, audit_template, goal):
@@ -163,7 +163,7 @@ class TestAuditTemplateObject(base.DbTestCase):
 class TestCreateDeleteAuditTemplateObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestCreateDeleteAuditTemplateObject, self).setUp()
+        super().setUp()
         self.fake_audit_template = utils.get_test_audit_template(
             created_at=timeutils.utcnow())
 

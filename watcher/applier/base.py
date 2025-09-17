@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -28,7 +27,7 @@ See: :doc:`../architecture` for more details on this component.
 import abc
 
 
-class BaseApplier(object, metaclass=abc.ABCMeta):
+class BaseApplier(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def execute(self, action_plan_uuid):
         raise NotImplementedError()

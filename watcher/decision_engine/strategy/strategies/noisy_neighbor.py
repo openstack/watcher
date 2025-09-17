@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Intel Corp
 #
 # Authors: Prudhvi Rao Shedimbi <prudhvi.rao.shedimbi@intel.com>
@@ -62,7 +61,7 @@ class NoisyNeighbor(base.NoisyNeighborBaseStrategy):
     DEFAULT_WATCHER_PRIORITY = 5
 
     def __init__(self, config, osc=None):
-        super(NoisyNeighbor, self).__init__(config, osc)
+        super().__init__(config, osc)
 
         self.meter_name = 'instance_l3_cache_usage'
 

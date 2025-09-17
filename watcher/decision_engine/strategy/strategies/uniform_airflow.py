@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel Corp
 #
 # Authors: Junjie-Huang <junjie.huang@intel.com>
@@ -64,7 +63,7 @@ class UniformAirflow(base.BaseStrategy):
         :type config: dict
         :param osc: an OpenStackClients object
         """
-        super(UniformAirflow, self).__init__(config, osc)
+        super().__init__(config, osc)
         # The migration plan will be triggered when the airflow reaches
         # threshold
         self._period = self.PERIOD

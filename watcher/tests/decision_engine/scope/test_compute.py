@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ from watcher.tests.decision_engine.scope import fake_scopes
 class TestComputeScope(base.TestCase):
 
     def setUp(self):
-        super(TestComputeScope, self).setUp()
+        super().setUp()
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
@@ -38,15 +37,15 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{0}'.format(i),
-                      host={'hostname_{0}'.format(i): {}})
+            mock.Mock(zone='AZ{}'.format(i),
+                      host={'hostname_{}'.format(i): {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
-        expected_edges = [('INSTANCE_2', 'Node_1'), (u'INSTANCE_6', u'Node_3')]
+        expected_edges = [('INSTANCE_2', 'Node_1'), ('INSTANCE_6', 'Node_3')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
@@ -75,7 +74,7 @@ class TestComputeScope(base.TestCase):
     def test_collect_aggregates(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
+            mock.Mock(id=i, hosts=['Node_{}'.format(i)]) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': 1}, {'id': 2}], allowed_nodes)
@@ -85,7 +84,7 @@ class TestComputeScope(base.TestCase):
     def test_aggregates_wildcard_is_used(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=['Node_{0}'.format(i)]) for i in range(2)]
+            mock.Mock(id=i, hosts=['Node_{}'.format(i)]) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': '*'}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': '*'}], allowed_nodes)
@@ -106,7 +105,7 @@ class TestComputeScope(base.TestCase):
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_aggregates_with_names_and_ids(self, mock_aggregate):
         allowed_nodes = []
-        mock_collection = [mock.Mock(id=i, hosts=['Node_{0}'.format(i)])
+        mock_collection = [mock.Mock(id=i, hosts=['Node_{}'.format(i)])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
@@ -123,9 +122,9 @@ class TestComputeScope(base.TestCase):
     def test_collect_zones(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{}".format(i + 1),
+                      host={'Node_{}'.format(2 * i): 1,
+                            'Node_{}'.format(2 * i + 1): 2})
             for i in range(2)]
         compute.ComputeScope([{'availability_zones': [{'name': "AZ1"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -136,9 +135,9 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_is_used(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{}".format(i + 1),
+                      host={'Node_{}'.format(2 * i): 1,
+                            'Node_{}'.format(2 * i + 1): 2})
             for i in range(2)]
         compute.ComputeScope([{'availability_zones': [{'name': "*"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -150,9 +149,9 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_with_other_ids(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{0}".format(i + 1),
-                      host={'Node_{0}'.format(2 * i): 1,
-                            'Node_{0}'.format(2 * i + 1): 2})
+            mock.Mock(zone="AZ{}".format(i + 1),
+                      host={'Node_{}'.format(2 * i): 1,
+                            'Node_{}'.format(2 * i + 1): 2})
             for i in range(2)]
         scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
@@ -170,7 +169,7 @@ class TestComputeScope(base.TestCase):
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_exclude_resource(self, mock_aggregate):
-        mock_collection = [mock.Mock(id=i, hosts=['Node_{0}'.format(i)])
+        mock_collection = [mock.Mock(id=i, hosts=['Node_{}'.format(i)])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
@@ -275,7 +274,7 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_3
         mock_list.return_value = [mock.Mock(id=i,
-                                            name="HA_{0}".format(i))
+                                            name="HA_{}".format(i))
                                   for i in range(2)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
@@ -289,13 +288,13 @@ class TestComputeScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_1)
         audit_scope.extend(fake_scopes.fake_scope_2)
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{0}'.format(i),
-                      host={'hostname_{0}'.format(i): {}})
+            mock.Mock(zone='AZ{}'.format(i),
+                      host={'hostname_{}'.format(i): {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
-        expected_edges = [('INSTANCE_2', 'Node_1'), (u'INSTANCE_6', u'Node_3')]
+        expected_edges = [('INSTANCE_2', 'Node_1'), ('INSTANCE_6', 'Node_3')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))

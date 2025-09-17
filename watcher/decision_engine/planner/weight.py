@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Authors: Vincent Francoise <Vincent.FRANCOISE@b-com.com>
 #          Alexander Chadin <a.chadin@servionica.ru>
@@ -43,7 +42,7 @@ class WeightPlanner(base.BasePlanner):
     """
 
     def __init__(self, config):
-        super(WeightPlanner, self).__init__(config)
+        super().__init__(config)
 
     action_weights = {
         'nop': 70,

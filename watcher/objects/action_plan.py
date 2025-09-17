@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -87,7 +86,7 @@ from watcher.objects import fields as wfields
 CONF = conf.CONF
 
 
-class State(object):
+class State:
     RECOMMENDED = 'RECOMMENDED'
     PENDING = 'PENDING'
     ONGOING = 'ONGOING'
@@ -334,7 +333,7 @@ class ActionPlan(base.WatcherPersistentObject, base.WatcherObject,
         _notify()
 
 
-class StateManager(object):
+class StateManager:
     def check_expired(self, context):
         action_plan_expiry = (
             CONF.watcher_decision_engine.action_plan_expiry)

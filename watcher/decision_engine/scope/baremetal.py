@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2018 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ class BaremetalScope(base.BaseScope):
     """Baremetal Audit Scope Handler"""
 
     def __init__(self, scope, config, osc=None):
-        super(BaremetalScope, self).__init__(scope, config)
+        super().__init__(scope, config)
         self._osc = osc
 
     def exclude_resources(self, resources, **kwargs):

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,7 +92,7 @@ class WatcherException(Exception):
                     # at least get the core msg_fmt out if something happened
                     message = self.msg_fmt
 
-        super(WatcherException, self).__init__(message)
+        super().__init__(message)
 
     def __str__(self):
         """Encode to utf-8 then wsme api can consume it as well"""

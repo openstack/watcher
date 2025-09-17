@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
@@ -67,7 +66,7 @@ class ActionPayload(notificationbase.NotificationPayloadBase):
     }
 
     def __init__(self, action, **kwargs):
-        super(ActionPayload, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.populate_schema(action=action)
 
 
@@ -92,7 +91,7 @@ class ActionCreatePayload(ActionPayload):
     fields = {}
 
     def __init__(self, action, action_plan):
-        super(ActionCreatePayload, self).__init__(
+        super().__init__(
             action=action,
             action_plan=action_plan)
 
@@ -107,7 +106,7 @@ class ActionUpdatePayload(ActionPayload):
     }
 
     def __init__(self, action, state_update, action_plan):
-        super(ActionUpdatePayload, self).__init__(
+        super().__init__(
             action=action,
             state_update=state_update,
             action_plan=action_plan)
@@ -123,7 +122,7 @@ class ActionExecutionPayload(ActionPayload):
     }
 
     def __init__(self, action, action_plan, **kwargs):
-        super(ActionExecutionPayload, self).__init__(
+        super().__init__(
             action=action,
             action_plan=action_plan,
             **kwargs)
@@ -139,7 +138,7 @@ class ActionCancelPayload(ActionPayload):
     }
 
     def __init__(self, action, action_plan, **kwargs):
-        super(ActionCancelPayload, self).__init__(
+        super().__init__(
             action=action,
             action_plan=action_plan,
             **kwargs)
@@ -153,7 +152,7 @@ class ActionDeletePayload(ActionPayload):
     fields = {}
 
     def __init__(self, action, action_plan):
-        super(ActionDeletePayload, self).__init__(
+        super().__init__(
             action=action,
             action_plan=action_plan)
 

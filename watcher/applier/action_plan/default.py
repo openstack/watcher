@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -34,7 +33,7 @@ LOG = log.getLogger(__name__)
 class DefaultActionPlanHandler(base.BaseActionPlanHandler):
 
     def __init__(self, context, service, action_plan_uuid):
-        super(DefaultActionPlanHandler, self).__init__()
+        super().__init__()
         self.ctx = context
         self.service = service
         self.action_plan_uuid = action_plan_uuid

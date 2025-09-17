@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 NEC Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +49,7 @@ class TestReceiveCinderNotifications(NotificationTestCase):
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
-        super(TestReceiveCinderNotifications, self).setUp()
+        super().setUp()
 
         p_from_dict = mock.patch.object(context.RequestContext, 'from_dict')
         m_from_dict = p_from_dict.start()
@@ -169,7 +168,7 @@ class TestCinderNotifications(NotificationTestCase):
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
-        super(TestCinderNotifications, self).setUp()
+        super().setUp()
         # fake cluster
         self.fake_cdmc = faker_cluster_state.FakerStorageModelCollector()
 

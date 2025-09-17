@@ -72,7 +72,7 @@ class StandardLogging(fixtures.Fixture):
     """
 
     def setUp(self):
-        super(StandardLogging, self).setUp()
+        super().setUp()
 
         # set root logger to debug
         root = std_logging.getLogger()
@@ -129,7 +129,7 @@ class KeystoneClient(fixtures.Fixture):
     """
 
     def setUp(self):
-        super(KeystoneClient, self).setUp()
+        super().setUp()
         mock_osc = mock.patch.object(
             OpenStackClients, "keystone",
             return_value=mock.MagicMock(spec=ks_client.Client))

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,7 @@ from watcher.tests.decision_engine.model import gnocchi_metrics as fake
 from watcher.tests.objects import utils as obj_utils
 
 
-class SolutionFaker(object):
+class SolutionFaker:
     @staticmethod
     def build():
         metrics = fake.FakerMetricsCollector()
@@ -43,7 +42,7 @@ class SolutionFaker(object):
         return sercon.execute()
 
 
-class SolutionFakerSingleHyp(object):
+class SolutionFakerSingleHyp:
     @staticmethod
     def build():
         metrics = fake.FakerMetricsCollector()
@@ -60,7 +59,7 @@ class SolutionFakerSingleHyp(object):
 class TestActionScheduling(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionScheduling, self).setUp()
+        super().setUp()
         self.goal = db_utils.create_test_goal(name="dummy")
         self.strategy = db_utils.create_test_strategy(name="dummy")
         self.audit = db_utils.create_test_audit(
@@ -290,7 +289,7 @@ class TestActionScheduling(base.DbTestCase):
 class TestDefaultPlanner(base.DbTestCase):
 
     def setUp(self):
-        super(TestDefaultPlanner, self).setUp()
+        super().setUp()
         self.planner = pbase.WorkloadStabilizationPlanner(mock.Mock())
         self.planner.config.weights = {
             'nop': 0,
@@ -341,7 +340,7 @@ class TestActionValidator(base.DbTestCase):
     INSTANCE_UUID = "94ae2f92-b7fd-4da7-9e97-f13504ae98c4"
 
     def setUp(self):
-        super(TestActionValidator, self).setUp()
+        super().setUp()
         self.r_osc_cls = mock.Mock()
         self.r_helper_cls = mock.Mock()
         self.r_helper = mock.Mock(spec=nova_helper.NovaHelper)

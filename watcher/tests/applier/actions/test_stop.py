@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +28,7 @@ class TestStop(base.TestCase):
     INSTANCE_UUID = "45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba"
 
     def setUp(self):
-        super(TestStop, self).setUp()
+        super().setUp()
 
         self.m_helper = self.useFixture(
             fixtures.MockPatch(

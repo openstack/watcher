@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 ZTE
 # All Rights Reserved.
 #
@@ -28,7 +27,7 @@ from watcher.tests.db import utils
 class TestActionDescriptionObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionDescriptionObject, self).setUp()
+        super().setUp()
         self.fake_action_desc = utils.get_test_action_desc(
             created_at=timeutils.utcnow())
 

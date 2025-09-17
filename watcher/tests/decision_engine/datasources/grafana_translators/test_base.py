@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -39,7 +38,7 @@ class TestGrafanaTranslatorBase(base.BaseTestCase):
     """
 
     def setUp(self):
-        super(TestGrafanaTranslatorBase, self).setUp()
+        super().setUp()
 
         """Basic valid reference data"""
         self.reference_data = {
@@ -64,7 +63,7 @@ class TestBaseGrafanaTranslator(TestGrafanaTranslatorBase):
     """
 
     def setUp(self):
-        super(TestBaseGrafanaTranslator, self).setUp()
+        super().setUp()
 
     def test_validate_data(self):
         """Initialize InfluxDBGrafanaTranslator and check data validation"""

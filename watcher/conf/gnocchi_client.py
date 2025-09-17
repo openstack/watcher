@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>

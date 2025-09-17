@@ -23,7 +23,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestPost(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestPost, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit_template(self.context)

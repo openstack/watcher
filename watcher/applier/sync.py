@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class Syncer(object):
+class Syncer:
     """Syncs all available actions with the Watcher DB"""
 
     def sync(self):

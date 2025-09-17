@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -64,9 +63,9 @@ class TerseActionPlanPayload(notificationbase.NotificationPayloadBase):
     }
 
     def __init__(self, action_plan, audit=None, strategy=None, **kwargs):
-        super(TerseActionPlanPayload, self).__init__(audit=audit,
-                                                     strategy=strategy,
-                                                     **kwargs)
+        super().__init__(audit=audit,
+                         strategy=strategy,
+                         **kwargs)
         self.populate_schema(action_plan=action_plan)
 
 
@@ -101,7 +100,7 @@ class ActionPlanPayload(TerseActionPlanPayload):
         if strategy and not kwargs.get('strategy_uuid'):
             kwargs['strategy_uuid'] = strategy.uuid
 
-        super(ActionPlanPayload, self).__init__(
+        super().__init__(
             action_plan, audit=audit, strategy=strategy, **kwargs)
 
 
@@ -127,7 +126,7 @@ class ActionPlanCreatePayload(ActionPlanPayload):
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
-        super(ActionPlanCreatePayload, self).__init__(
+        super().__init__(
             action_plan=action_plan,
             audit=audit,
             strategy=strategy)
@@ -144,7 +143,7 @@ class ActionPlanUpdatePayload(ActionPlanPayload):
     }
 
     def __init__(self, action_plan, state_update, audit, strategy):
-        super(ActionPlanUpdatePayload, self).__init__(
+        super().__init__(
             action_plan=action_plan,
             state_update=state_update,
             audit=audit,
@@ -162,7 +161,7 @@ class ActionPlanActionPayload(ActionPlanPayload):
     }
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
-        super(ActionPlanActionPayload, self).__init__(
+        super().__init__(
             action_plan=action_plan,
             audit=audit,
             strategy=strategy,
@@ -178,7 +177,7 @@ class ActionPlanDeletePayload(ActionPlanPayload):
     fields = {}
 
     def __init__(self, action_plan, audit, strategy):
-        super(ActionPlanDeletePayload, self).__init__(
+        super().__init__(
             action_plan=action_plan,
             audit=audit,
             strategy=strategy)
@@ -195,7 +194,7 @@ class ActionPlanCancelPayload(ActionPlanPayload):
     }
 
     def __init__(self, action_plan, audit, strategy, **kwargs):
-        super(ActionPlanCancelPayload, self).__init__(
+        super().__init__(
             action_plan=action_plan,
             audit=audit,
             strategy=strategy,

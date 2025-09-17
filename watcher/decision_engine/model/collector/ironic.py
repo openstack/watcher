@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE Corporation
 #
 # Authors:Yumeng Bao <bao.yumeng@zte.com.cn>
@@ -34,7 +33,7 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
     """
 
     def __init__(self, config, osc=None):
-        super(BaremetalClusterDataModelCollector, self).__init__(config, osc)
+        super().__init__(config, osc)
 
     @property
     def notification_endpoints(self):

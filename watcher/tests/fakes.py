@@ -13,14 +13,14 @@
 import requests
 from unittest import mock
 
-fakeAuthTokenHeaders = {'X-User-Id': u'773a902f022949619b5c2f32cd89d419',
-                        'X-Roles': u'admin, ResellerAdmin, _member_',
-                        'X-Project-Id': u'5588aebbcdc24e17a061595f80574376',
+fakeAuthTokenHeaders = {'X-User-Id': '773a902f022949619b5c2f32cd89d419',
+                        'X-Roles': 'admin, ResellerAdmin, _member_',
+                        'X-Project-Id': '5588aebbcdc24e17a061595f80574376',
                         'X-Project-Name': 'test',
                         'X-User-Name': 'test',
-                        'X-Auth-Token': u'5588aebbcdc24e17a061595f80574376',
-                        'X-Forwarded-For': u'10.10.10.10, 11.11.11.11',
-                        'X-Service-Catalog': u'{test: 12345}',
+                        'X-Auth-Token': '5588aebbcdc24e17a061595f80574376',
+                        'X-Forwarded-For': '10.10.10.10, 11.11.11.11',
+                        'X-Service-Catalog': '{test: 12345}',
                         'X-Identity-Status': 'Confirmed',
                         'X-User-Domain-Name': 'domain',
                         'X-Project-Domain-Id': 'project_domain_id',
@@ -31,7 +31,7 @@ fakeAuthTokenHeaders = {'X-User-Id': u'773a902f022949619b5c2f32cd89d419',
 class FakePecanRequest(mock.Mock):
 
     def __init__(self, **kwargs):
-        super(FakePecanRequest, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.host_url = 'http://test_url:8080/test'
         self.context = {}
         self.body = ''
@@ -48,17 +48,17 @@ class FakePecanRequest(mock.Mock):
 class FakePecanResponse(mock.Mock):
 
     def __init__(self, **kwargs):
-        super(FakePecanResponse, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.status = None
 
 
-class FakeApp(object):
+class FakeApp:
     pass
 
 
 class FakeService(mock.Mock):
     def __init__(self, **kwargs):
-        super(FakeService, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.__tablename__ = 'service'
         self.__resource__ = 'services'
         self.user_id = 'fake user id'
@@ -86,7 +86,7 @@ class FakeService(mock.Mock):
 class FakeAuthProtocol(mock.Mock):
 
     def __init__(self, **kwargs):
-        super(FakeAuthProtocol, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.app = FakeApp()
         self.config = ''
 
@@ -105,7 +105,7 @@ class FakeResponse(requests.Response):
                         behave as expected.
         :param headers: Dict of HTTP header values to set.
         """
-        super(FakeResponse, self).__init__()
+        super().__init__()
         self.status_code = status_code
         if content:
             self._content = content

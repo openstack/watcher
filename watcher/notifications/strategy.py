@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -49,5 +48,5 @@ class StrategyPayload(notificationbase.NotificationPayloadBase):
     }
 
     def __init__(self, strategy, **kwargs):
-        super(StrategyPayload, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.populate_schema(strategy=strategy)

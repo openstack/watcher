@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -130,11 +129,11 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
 class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def __init__(self, db_action, engine):
-        self.name = "action_type:{0} uuid:{1}".format(db_action.action_type,
-                                                      db_action.uuid)
-        super(TaskFlowActionContainer, self).__init__(self.name,
-                                                      db_action,
-                                                      engine)
+        self.name = "action_type:{} uuid:{}".format(db_action.action_type,
+                                                    db_action.uuid)
+        super().__init__(self.name,
+                         db_action,
+                         engine)
 
     def do_pre_execute(self):
         LOG.debug("Pre-condition action: %s", self.name)

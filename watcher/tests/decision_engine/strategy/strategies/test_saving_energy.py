@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +28,7 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestSavingEnergy(TestBaseStrategy):
 
     def setUp(self):
-        super(TestSavingEnergy, self).setUp()
+        super().setUp()
 
         self.fake_nodes = [fake_metal_helper.get_mock_metal_node(),
                            fake_metal_helper.get_mock_metal_node()]

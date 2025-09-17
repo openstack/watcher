@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright 2013 Hewlett-Packard Development Company, L.P.
 #
@@ -111,7 +110,7 @@ class Connection(api.BaseConnection):
     }
 
     def __init__(self):
-        super(Connection, self).__init__()
+        super().__init__()
 
     def __add_simple_filter(self, query, model, fieldname, value, operator_):
         field = getattr(model, fieldname)

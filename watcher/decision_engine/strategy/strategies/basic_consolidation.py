@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -59,7 +58,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         :type config: :py:class:`~.Struct` instance
         :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(BasicConsolidation, self).__init__(config, osc)
+        super().__init__(config, osc)
 
         # set default value for the number of enabled compute nodes
         self.number_of_enabled_nodes = 0
@@ -170,7 +169,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
 
     @classmethod
     def get_config_opts(cls):
-        return super(BasicConsolidation, cls).get_config_opts() + [
+        return super().get_config_opts() + [
             cfg.BoolOpt(
                 'check_optimize_metadata',
                 help='Check optimize metadata field in instance before'

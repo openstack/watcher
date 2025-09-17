@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +25,7 @@ from watcher.tests import base
 class TestDefaultStrategyLoader(base.TestCase):
 
     def setUp(self):
-        super(TestDefaultStrategyLoader, self).setUp()
+        super().setUp()
         self.strategy_loader = default_loading.DefaultStrategyLoader()
 
     def test_load_strategy_with_empty_model(self):

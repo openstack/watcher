@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -20,7 +19,7 @@
 import abc
 
 
-class BaseActionPlanHandler(object, metaclass=abc.ABCMeta):
+class BaseActionPlanHandler(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def execute(self):
         raise NotImplementedError()

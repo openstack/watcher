@@ -56,7 +56,7 @@ class Database(fixtures.Fixture):
         db_migrate.stamp('head')
 
     def setUp(self):
-        super(Database, self).setUp()
+        super().setUp()
         with self.engine.connect() as conn:
             conn.connection.executescript(self._DB)
         self.addCleanup(self.engine.dispose)
@@ -75,7 +75,7 @@ class DbTestCase(base.TestCase):
         # To use in-memory SQLite DB
         cfg.CONF.set_override("connection", "sqlite://", group="database")
 
-        super(DbTestCase, self).setUp()
+        super().setUp()
 
         self.dbapi = dbapi.get_instance()
 

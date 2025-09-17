@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 # Copyright (c) 2016 Intel Corp
 #
@@ -28,7 +27,7 @@ from watcher.tests.decision_engine import fake_strategies
 
 class TestListOpts(base.TestCase):
     def setUp(self):
-        super(TestListOpts, self).setUp()
+        super().setUp()
         # These option groups will be registered using strings instead of
         # OptGroup objects this should be avoided if possible.
         self.none_objects = ['DEFAULT', 'watcher_clients_auth',
@@ -56,7 +55,7 @@ class TestListOpts(base.TestCase):
                 # OptGroup object for some exceptions this is not possible but
                 # new groups should use OptGroup
                 raise Exception(
-                    "Invalid option group: {0} should be of type OptGroup not "
+                    "Invalid option group: {} should be of type OptGroup not "
                     "string.".format(section_name))
 
         self.assertIn(section_name, expected_sections)

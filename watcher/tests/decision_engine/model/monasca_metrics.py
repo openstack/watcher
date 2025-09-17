@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -17,7 +16,7 @@
 # limitations under the License.
 
 
-class FakeMonascaMetrics(object):
+class FakeMonascaMetrics:
     def __init__(self):
         self.emptytype = ""
 

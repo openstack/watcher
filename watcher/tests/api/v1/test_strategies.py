@@ -26,7 +26,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestListStrategy(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestListStrategy, self).setUp()
+        super().setUp()
         self.fake_goal = obj_utils.create_test_goal(
             self.context, uuid=utils.generate_uuid())
 
@@ -113,7 +113,7 @@ class TestListStrategy(api_base.FunctionalTest):
             strategy = obj_utils.create_test_strategy(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(idx))
+                name='STRATEGY_{}'.format(idx))
             strategy_list.append(strategy.uuid)
         response = self.get_json('/strategies')
         self.assertEqual(5, len(response['strategies']))
@@ -127,12 +127,12 @@ class TestListStrategy(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             strategy = obj_utils.create_test_strategy(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(id_))
+                name='STRATEGY_{}'.format(id_))
             strategy_list.append(strategy.uuid)
         for id_ in [4, 5]:
             strategy = obj_utils.create_test_strategy(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(id_))
+                name='STRATEGY_{}'.format(id_))
             strategy.soft_delete()
         response = self.get_json('/strategies')
         self.assertEqual(3, len(response['strategies']))
@@ -144,7 +144,7 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(idx))
+                name='STRATEGY_{}'.format(idx))
         response = self.get_json('/strategies/?limit=2')
         self.assertEqual(2, len(response['strategies']))
 
@@ -153,7 +153,7 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(idx))
+                name='STRATEGY_{}'.format(idx))
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/strategies')
         self.assertEqual(3, len(response['strategies']))
@@ -228,7 +228,7 @@ class TestListStrategy(api_base.FunctionalTest):
             strategy = obj_utils.create_test_strategy(
                 self.context, id=idx,
                 uuid=utils.generate_uuid(),
-                name='STRATEGY_{0}'.format(idx))
+                name='STRATEGY_{}'.format(idx))
             goals_uuid_list.append(strategy.goal.uuid)
 
         response = self.get_json('/strategies/?sort_key=goal_uuid')
@@ -247,7 +247,7 @@ class TestListStrategy(api_base.FunctionalTest):
 class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestStrategyPolicyEnforcement, self).setUp()
+        super().setUp()
         self.fake_goal = obj_utils.create_test_goal(
             self.context, uuid=utils.generate_uuid())
 
@@ -293,7 +293,7 @@ class TestStrategyEnforcementWithAdminContext(
         TestListStrategy, api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestStrategyEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

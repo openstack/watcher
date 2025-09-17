@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Intel Corp
 #
 # Authors: Prudhvi Rao Shedimbi <prudhvi.rao.shedimbi@intel.com>
@@ -36,7 +35,7 @@ class TestNoisyNeighbor(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestNoisyNeighbor, self).setUp()
+        super().setUp()
         # fake metrics
         self.f_metrics = self.fake_datasource_cls()
 

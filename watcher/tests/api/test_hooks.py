@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -25,7 +24,7 @@ from watcher.common import context
 from watcher.tests.api import base
 
 
-class FakeRequest(object):
+class FakeRequest:
     def __init__(self, headers, context, environ):
         self.headers = headers
         self.context = context
@@ -34,7 +33,7 @@ class FakeRequest(object):
         self.host_url = 'http://127.0.0.1:6385'
 
 
-class FakeRequestState(object):
+class FakeRequestState:
     def __init__(self, headers=None, context=None, environ=None):
         self.request = FakeRequest(headers, context, environ)
         self.response = FakeRequest(headers, context, environ)
@@ -111,7 +110,7 @@ class TestNoExceptionTracebackHook(base.FunctionalTest):
     MSG_WITH_TRACE = MSG_WITHOUT_TRACE + "\n" + "\n".join(TRACE)
 
     def setUp(self):
-        super(TestNoExceptionTracebackHook, self).setUp()
+        super().setUp()
         p = mock.patch.object(root.Root, 'convert')
         self.root_convert_mock = p.start()
         self.addCleanup(p.stop)

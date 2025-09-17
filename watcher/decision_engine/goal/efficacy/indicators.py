@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ from watcher.common import exception
 LOG = log.getLogger(__name__)
 
 
-class IndicatorSpecification(object, metaclass=abc.ABCMeta):
+class IndicatorSpecification(metaclass=abc.ABCMeta):
 
     def __init__(self, name=None, description=None, unit=None, required=True):
         self.name = name
@@ -78,7 +77,7 @@ class IndicatorSpecification(object, metaclass=abc.ABCMeta):
 
 class ComputeNodesCount(IndicatorSpecification):
     def __init__(self):
-        super(ComputeNodesCount, self).__init__(
+        super().__init__(
             name="compute_nodes_count",
             description=_("The total number of enabled compute nodes."),
             unit=None,
@@ -94,7 +93,7 @@ class ComputeNodesCount(IndicatorSpecification):
 
 class ReleasedComputeNodesCount(IndicatorSpecification):
     def __init__(self):
-        super(ReleasedComputeNodesCount, self).__init__(
+        super().__init__(
             name="released_compute_nodes_count",
             description=_("The number of compute nodes to be released."),
             unit=None,
@@ -110,7 +109,7 @@ class ReleasedComputeNodesCount(IndicatorSpecification):
 
 class InstancesCount(IndicatorSpecification):
     def __init__(self):
-        super(InstancesCount, self).__init__(
+        super().__init__(
             name="instances_count",
             description=_("The total number of audited instances in "
                           "strategy."),
@@ -128,7 +127,7 @@ class InstancesCount(IndicatorSpecification):
 
 class InstanceMigrationsCount(IndicatorSpecification):
     def __init__(self):
-        super(InstanceMigrationsCount, self).__init__(
+        super().__init__(
             name="instance_migrations_count",
             description=_("The number of VM migrations to be performed."),
             unit=None,
@@ -144,7 +143,7 @@ class InstanceMigrationsCount(IndicatorSpecification):
 
 class LiveInstanceMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(LiveInstanceMigrateCount, self).__init__(
+        super().__init__(
             name="live_migrate_instance_count",
             description=_("The number of instances actually live migrated."),
             unit=None,
@@ -160,7 +159,7 @@ class LiveInstanceMigrateCount(IndicatorSpecification):
 
 class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(PlannedLiveInstanceMigrateCount, self).__init__(
+        super().__init__(
             name="planned_live_migrate_instance_count",
             description=_("The number of instances planned to live migrate."),
             unit=None,
@@ -176,7 +175,7 @@ class PlannedLiveInstanceMigrateCount(IndicatorSpecification):
 
 class ColdInstanceMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(ColdInstanceMigrateCount, self).__init__(
+        super().__init__(
             name="cold_migrate_instance_count",
             description=_("The number of instances actually cold migrated."),
             unit=None,
@@ -192,7 +191,7 @@ class ColdInstanceMigrateCount(IndicatorSpecification):
 
 class PlannedColdInstanceMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(PlannedColdInstanceMigrateCount, self).__init__(
+        super().__init__(
             name="planned_cold_migrate_instance_count",
             description=_("The number of instances planned to cold migrate."),
             unit=None,
@@ -208,7 +207,7 @@ class PlannedColdInstanceMigrateCount(IndicatorSpecification):
 
 class VolumeMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(VolumeMigrateCount, self).__init__(
+        super().__init__(
             name="volume_migrate_count",
             description=_("The number of detached volumes actually migrated."),
             unit=None,
@@ -224,7 +223,7 @@ class VolumeMigrateCount(IndicatorSpecification):
 
 class PlannedVolumeMigrateCount(IndicatorSpecification):
     def __init__(self):
-        super(PlannedVolumeMigrateCount, self).__init__(
+        super().__init__(
             name="planned_volume_migrate_count",
             description=_("The number of detached volumes planned"
                           " to migrate."),
@@ -241,7 +240,7 @@ class PlannedVolumeMigrateCount(IndicatorSpecification):
 
 class VolumeUpdateCount(IndicatorSpecification):
     def __init__(self):
-        super(VolumeUpdateCount, self).__init__(
+        super().__init__(
             name="volume_update_count",
             description=_("The number of attached volumes actually"
                           " migrated."),
@@ -258,7 +257,7 @@ class VolumeUpdateCount(IndicatorSpecification):
 
 class PlannedVolumeUpdateCount(IndicatorSpecification):
     def __init__(self):
-        super(PlannedVolumeUpdateCount, self).__init__(
+        super().__init__(
             name="planned_volume_update_count",
             description=_("The number of attached volumes planned to"
                           " migrate."),
@@ -275,7 +274,7 @@ class PlannedVolumeUpdateCount(IndicatorSpecification):
 
 class StandardDeviationValue(IndicatorSpecification):
     def __init__(self):
-        super(StandardDeviationValue, self).__init__(
+        super().__init__(
             name="standard_deviation_after_audit",
             description=_("The value of resulted standard deviation."),
             unit=None,
@@ -292,7 +291,7 @@ class StandardDeviationValue(IndicatorSpecification):
 
 class OriginalStandardDeviationValue(IndicatorSpecification):
     def __init__(self):
-        super(OriginalStandardDeviationValue, self).__init__(
+        super().__init__(
             name="standard_deviation_before_audit",
             description=_("The value of original standard deviation."),
             unit=None,

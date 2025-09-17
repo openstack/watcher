@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -125,7 +124,7 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
     STALE_MODEL = model_root.ModelRoot(stale=True)
 
     def __init__(self, config, osc=None):
-        super(BaseClusterDataModelCollector, self).__init__(config)
+        super().__init__(config)
         self.osc = osc if osc else clients.OpenStackClients()
         self.lock = threading.RLock()
         self._audit_scope_handler = None
@@ -194,7 +193,7 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
         self.cluster_data_model = self.execute()
 
 
-class BaseModelBuilder(object):
+class BaseModelBuilder:
 
     def call_retry(self, f, *args, **kwargs):
         """Attempts to call external service

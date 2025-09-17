@@ -48,4 +48,4 @@ class APSchedulerThreadPoolExecutor(pool_executor.BasePoolExecutor):
 
     def __init__(self, max_workers=10):
         pool = get_futurist_pool_executor(max_workers)
-        super(APSchedulerThreadPoolExecutor, self).__init__(pool)
+        super().__init__(pool)

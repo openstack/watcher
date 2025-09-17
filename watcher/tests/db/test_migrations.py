@@ -56,7 +56,7 @@ class MySQLDbMigrationsTestCase(test_fixtures.OpportunisticDBTestMixin,
         self.engine = enginefacade.writer.get_engine()
         self.dbapi = dbapi.get_instance()
         self.alembic_config = migration._alembic_config()
-        self.revisions_tested = set(["15f7375ca737", "7150a7d8f228"])
+        self.revisions_tested = {"15f7375ca737", "7150a7d8f228"}
 
     def _apply_migration(self, connection, revision):
         if revision not in self.revisions_tested:

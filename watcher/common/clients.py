@@ -61,7 +61,7 @@ def check_min_nova_api_version(config_version):
                                                    MIN_NOVA_API_VERSION))
 
 
-class OpenStackClients(object):
+class OpenStackClients:
     """Convenience class to create and cache client instances."""
 
     def __init__(self):

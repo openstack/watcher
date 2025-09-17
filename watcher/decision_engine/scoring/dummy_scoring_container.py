@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel
 #
 # Authors: Tomasz Kaczynski <tomasz.kaczynski@intel.com>
@@ -64,7 +63,7 @@ class SimpleFunctionScorer(base.ScoringEngine):
     """
 
     def __init__(self, name, description, aggregate_function):
-        super(SimpleFunctionScorer, self).__init__(config=None)
+        super().__init__(config=None)
         self._name = name
         self._description = description
         self._aggregate_function = aggregate_function

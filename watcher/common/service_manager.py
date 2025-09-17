@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright © 2016 Servionica
 ##
@@ -17,7 +16,7 @@
 import abc
 
 
-class ServiceManager(object, metaclass=abc.ABCMeta):
+class ServiceManager(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod

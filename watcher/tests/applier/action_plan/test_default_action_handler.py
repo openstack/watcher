@@ -34,7 +34,7 @@ class TestDefaultActionPlanHandler(base.DbTestCase):
         pass
 
     def setUp(self):
-        super(TestDefaultActionPlanHandler, self).setUp()
+        super().setUp()
 
         p_action_plan_notifications = mock.patch.object(
             notifications, 'action_plan', autospec=True)

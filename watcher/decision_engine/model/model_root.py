@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel Innovation and Research Ireland Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +36,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster."""
 
     def __init__(self, stale=False):
-        super(ModelRoot, self).__init__()
+        super().__init__()
         self.stale = stale
         self._extended_attributes_enabled = None
 
@@ -72,13 +71,13 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def add_node(self, node):
         self.assert_node(node)
-        super(ModelRoot, self).add_node(node.uuid, attr=node)
+        super().add_node(node.uuid, attr=node)
 
     @lockutils.synchronized("model_root")
     def remove_node(self, node):
         self.assert_node(node)
         try:
-            super(ModelRoot, self).remove_node(node.uuid)
+            super().remove_node(node.uuid)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node.uuid)
@@ -87,7 +86,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     def add_instance(self, instance):
         self.assert_instance(instance)
         try:
-            super(ModelRoot, self).add_node(instance.uuid, attr=instance)
+            super().add_node(instance.uuid, attr=instance)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.InstanceNotFound(name=instance.uuid)
@@ -95,7 +94,7 @@ class ModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("model_root")
     def remove_instance(self, instance):
         self.assert_instance(instance)
-        super(ModelRoot, self).remove_node(instance.uuid)
+        super().remove_node(instance.uuid)
 
     @lockutils.synchronized("model_root")
     def map_instance(self, instance, node):
@@ -320,7 +319,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster."""
 
     def __init__(self, stale=False):
-        super(StorageModelRoot, self).__init__()
+        super().__init__()
         self.stale = stale
 
     def __nonzero__(self):
@@ -349,18 +348,18 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("storage_model")
     def add_node(self, node):
         self.assert_node(node)
-        super(StorageModelRoot, self).add_node(node.host, attr=node)
+        super().add_node(node.host, attr=node)
 
     @lockutils.synchronized("storage_model")
     def add_pool(self, pool):
         self.assert_pool(pool)
-        super(StorageModelRoot, self).add_node(pool.name, attr=pool)
+        super().add_node(pool.name, attr=pool)
 
     @lockutils.synchronized("storage_model")
     def remove_node(self, node):
         self.assert_node(node)
         try:
-            super(StorageModelRoot, self).remove_node(node.host)
+            super().remove_node(node.host)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.StorageNodeNotFound(name=node.host)
@@ -369,7 +368,7 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     def remove_pool(self, pool):
         self.assert_pool(pool)
         try:
-            super(StorageModelRoot, self).remove_node(pool.name)
+            super().remove_node(pool.name)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.PoolNotFound(name=pool.name)
@@ -407,13 +406,13 @@ class StorageModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("storage_model")
     def add_volume(self, volume):
         self.assert_volume(volume)
-        super(StorageModelRoot, self).add_node(volume.uuid, attr=volume)
+        super().add_node(volume.uuid, attr=volume)
 
     @lockutils.synchronized("storage_model")
     def remove_volume(self, volume):
         self.assert_volume(volume)
         try:
-            super(StorageModelRoot, self).remove_node(volume.uuid)
+            super().remove_node(volume.uuid)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.VolumeNotFound(name=volume.uuid)
@@ -620,7 +619,7 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     """Cluster graph for an Openstack cluster: Baremetal Cluster."""
 
     def __init__(self, stale=False):
-        super(BaremetalModelRoot, self).__init__()
+        super().__init__()
         self.stale = stale
 
     def __nonzero__(self):
@@ -637,13 +636,13 @@ class BaremetalModelRoot(nx.DiGraph, base.Model):
     @lockutils.synchronized("baremetal_model")
     def add_node(self, node):
         self.assert_node(node)
-        super(BaremetalModelRoot, self).add_node(node.uuid, attr=node)
+        super().add_node(node.uuid, attr=node)
 
     @lockutils.synchronized("baremetal_model")
     def remove_node(self, node):
         self.assert_node(node)
         try:
-            super(BaremetalModelRoot, self).remove_node(node.uuid)
+            super().remove_node(node.uuid)
         except nx.NetworkXError as exc:
             LOG.exception(exc)
             raise exception.IronicNodeNotFound(uuid=node.uuid)

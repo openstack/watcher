@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +25,7 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestDummyStrategy(TestBaseStrategy):
 
     def setUp(self):
-        super(TestDummyStrategy, self).setUp()
+        super().setUp()
         self.strategy = strategies.DummyStrategy(config=mock.Mock())
 
     def test_dummy_strategy(self):

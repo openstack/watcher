@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +34,7 @@ except Exception:
 class TestBaseStrategy(base.TestCase):
 
     def setUp(self):
-        super(TestBaseStrategy, self).setUp()
+        super().setUp()
 
         # fake cluster
         self.fake_c_cluster = faker_cluster_state.FakerModelCollector()
@@ -61,7 +60,7 @@ class TestBaseStrategy(base.TestCase):
 class TestBaseStrategyDatasource(TestBaseStrategy):
 
     def setUp(self):
-        super(TestBaseStrategyDatasource, self).setUp()
+        super().setUp()
         self.strategy = strategies.DummyStrategy(
             config=mock.Mock(datasources=None))
 
@@ -135,7 +134,7 @@ class TestBaseStrategyDatasource(TestBaseStrategy):
 class TestBaseStrategyException(TestBaseStrategy):
 
     def setUp(self):
-        super(TestBaseStrategyException, self).setUp()
+        super().setUp()
 
     def test_exception_model(self):
         self.m_c_model.return_value = None

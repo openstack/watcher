@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -26,7 +25,7 @@ from watcher.tests import base
 class TestDecisionEngineThreadPool(base.TestCase):
 
     def setUp(self):
-        super(TestDecisionEngineThreadPool, self).setUp()
+        super().setUp()
 
         self.m_function = mock.Mock()
         self.m_function.return_value = None

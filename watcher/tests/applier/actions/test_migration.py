@@ -30,7 +30,7 @@ class TestMigration(base.TestCase):
     INSTANCE_UUID = "45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba"
 
     def setUp(self):
-        super(TestMigration, self).setUp()
+        super().setUp()
 
         self.m_osc_cls = mock.Mock()
         self.m_helper_cls = mock.Mock()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2018 SBCloud
 #
 # Authors: Alexander Chadin <aschadin@sbcloud.ru>
@@ -33,7 +32,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestCancelOngoingActionPlans(db_base.DbTestCase):
 
     def setUp(self):
-        super(TestCancelOngoingActionPlans, self).setUp()
+        super().setUp()
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
         self.m_audit_notifications = p_audit_notifications.start()

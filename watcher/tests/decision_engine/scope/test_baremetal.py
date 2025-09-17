@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2018 SBCloud
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +25,7 @@ from watcher.tests.decision_engine.scope import fake_scopes
 class TestBaremetalScope(base.TestCase):
 
     def setUp(self):
-        super(TestBaremetalScope, self).setUp()
+        super().setUp()
         self.fake_cluster = faker_cluster_state.FakerBaremetalModelCollector()
         self.audit_scope = fake_scopes.baremetal_scope
 

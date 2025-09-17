@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -65,7 +64,7 @@ class NotificationTestCase(base_test.TestCase):
 class TestReceiveNotifications(NotificationTestCase):
 
     def setUp(self):
-        super(TestReceiveNotifications, self).setUp()
+        super().setUp()
 
         p_from_dict = mock.patch.object(context.RequestContext, 'from_dict')
         m_from_dict = p_from_dict.start()

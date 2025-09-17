@@ -38,7 +38,7 @@ class AetosHelper(prometheus_base.PrometheusBase):
         :param osc: OpenStackClients instance for Keystone authentication
         """
         self.osc = osc if osc else clients.OpenStackClients()
-        super(AetosHelper, self).__init__()
+        super().__init__()
 
     def _get_fqdn_label(self):
         """Get the FQDN label from aetos_client config"""

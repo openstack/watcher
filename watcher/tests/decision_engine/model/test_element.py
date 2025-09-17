@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 b<>com
 #
 # Authors: Vincent FRANCOISE <Vincent.FRANCOISE@b-com.com>

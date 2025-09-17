@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017  ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +58,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
         :type config: :py:class:`~.Struct` instance
         :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(StorageCapacityBalance, self).__init__(config, osc)
+        super().__init__(config, osc)
         self._cinder = None
         self.volume_threshold = 80.0
         self.pool_type_cache = dict()
@@ -99,7 +98,7 @@ class StorageCapacityBalance(base.WorkloadStabilizationBaseStrategy):
 
     @classmethod
     def get_config_opts(cls):
-        return super(StorageCapacityBalance, cls).get_config_opts() + [
+        return super().get_config_opts() + [
             cfg.ListOpt(
                 "ex_pools",
                 help="exclude pools",

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright © 2012 eNovance <licensing@enovance.com>
 ##
@@ -109,7 +108,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
 
     def __init__(self, gconfig=None, service_name=None, **kwargs):
         gconfig = None or {}
-        super(ServiceHeartbeat, self).__init__(gconfig, **kwargs)
+        super().__init__(gconfig, **kwargs)
         ServiceHeartbeat.service_name = service_name
         self.context = context.make_context()
         self.send_beat()
@@ -140,7 +139,7 @@ class ServiceHeartbeat(scheduling.BackgroundSchedulerService):
     def start(self):
         """Start service."""
         self.add_heartbeat_job()
-        super(ServiceHeartbeat, self).start()
+        super().start()
 
     def stop(self):
         """Stop service."""
@@ -161,7 +160,7 @@ class Service(service.ServiceBase):
     API_VERSION = '1.0'
 
     def __init__(self, manager_class):
-        super(Service, self).__init__()
+        super().__init__()
         self.manager = manager_class()
 
         self.publisher_id = self.manager.publisher_id

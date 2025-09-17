@@ -30,7 +30,7 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbAuditTemplateFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -233,7 +233,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             audit_template = utils.create_test_audit_template(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name='My Audit Template {0}'.format(i))
+                name='My Audit Template {}'.format(i))
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(self.context)
         audit_template_uuids = [at.uuid for at in audit_templates]
@@ -252,7 +252,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         for i in range(1, 4):
             audit_template = utils.create_test_audit_template(
                 id=i, uuid=w_utils.generate_uuid(),
-                name='My Audit Template {0}'.format(i),
+                name='My Audit Template {}'.format(i),
                 goal_id=goal.id, strategy_id=strategy.id)
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(

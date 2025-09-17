@@ -31,7 +31,7 @@ class TestMigration(base.TestCase):
     INSTANCE_UUID = "45a37aec-85ab-4dda-a303-7d9f62c2f5bb"
 
     def setUp(self):
-        super(TestMigration, self).setUp()
+        super().setUp()
 
         self.m_osc_cls = mock.Mock()
         self.m_osc = mock.Mock(spec=clients.OpenStackClients)

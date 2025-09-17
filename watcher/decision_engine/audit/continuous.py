@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica LTD
 # Copyright (c) 2016 Intel Corp
 #
@@ -39,7 +38,7 @@ CONF = conf.CONF
 
 class ContinuousAuditHandler(base.AuditHandler):
     def __init__(self):
-        super(ContinuousAuditHandler, self).__init__()
+        super().__init__()
         # scheduler for executing audits
         self._audit_scheduler = None
         # scheduler for a periodic task to launch audit
@@ -82,7 +81,7 @@ class ContinuousAuditHandler(base.AuditHandler):
         return False
 
     def do_execute(self, audit, request_context):
-        solution = super(ContinuousAuditHandler, self)\
+        solution = super()\
             .do_execute(audit, request_context)
 
         if audit.audit_type == objects.audit.AuditType.CONTINUOUS.value:

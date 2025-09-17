@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 NEC Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -113,7 +112,7 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
     }
 
     def __init__(self, config, osc=None):
-        super(CinderClusterDataModelCollector, self).__init__(config, osc)
+        super().__init__(config, osc)
 
     @property
     def notification_endpoints(self):

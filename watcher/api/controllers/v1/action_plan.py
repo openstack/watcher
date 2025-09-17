@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -253,7 +252,7 @@ class ActionPlan(base.APIBase):
     """Status message of the action plan"""
 
     def __init__(self, **kwargs):
-        super(ActionPlan, self).__init__()
+        super().__init__()
         self.fields = []
         fields = list(objects.ActionPlan.fields)
         for field in fields:
@@ -342,7 +341,7 @@ class ActionPlansController(rest.RestController):
     """REST controller for Actions."""
 
     def __init__(self):
-        super(ActionPlansController, self).__init__()
+        super().__init__()
         self.applier_client = rpcapi.ApplierAPI()
 
     _custom_actions = {

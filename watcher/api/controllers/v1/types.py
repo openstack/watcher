@@ -218,7 +218,7 @@ class JsonPatchType(wtypes.Base):
 
     @staticmethod
     def validate(patch):
-        _path = '/{0}'.format(patch.path.split('/')[1])
+        _path = '/{}'.format(patch.path.split('/')[1])
         if len(patch.allowed_attrs()) > 0:
             if _path not in patch.allowed_attrs():
                 msg = _("'%s' is not an allowed attribute and can not be "

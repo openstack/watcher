@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +21,7 @@ from watcher.decision_engine.loading import default as loader
 LOG = log.getLogger(__name__)
 
 
-class PlannerManager(object):
+class PlannerManager:
     def __init__(self):
         self._loader = loader.DefaultPlannerLoader()
 

@@ -29,7 +29,7 @@ def get_instance():
     return IMPL
 
 
-class BaseConnection(object, metaclass=abc.ABCMeta):
+class BaseConnection(metaclass=abc.ABCMeta):
     """Base class for storage system connections."""
 
     @abc.abstractmethod

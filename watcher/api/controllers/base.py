@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,10 +34,10 @@ class APIBase(wtypes.Base):
 
     def as_dict(self):
         """Render this object as a dict of its fields."""
-        return dict((k, getattr(self, k))
-                    for k in self.fields
-                    if hasattr(self, k) and
-                    getattr(self, k) != wsme.Unset)
+        return {k: getattr(self, k)
+                for k in self.fields
+                if hasattr(self, k) and
+                getattr(self, k) != wsme.Unset}
 
     def unset_fields_except(self, except_list=None):
         """Unset fields so they don't appear in the message body.
@@ -55,7 +54,7 @@ class APIBase(wtypes.Base):
 
 
 @functools.total_ordering
-class Version(object):
+class Version:
     """API Version object."""
 
     string = 'OpenStack-API-Version'

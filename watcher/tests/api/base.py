@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright 2013 Hewlett-Packard Development Company, L.P.
 # All Rights Reserved.
@@ -49,7 +48,7 @@ class FunctionalTest(base.DbTestCase):
     SOURCE_DATA = {'test_source': {'somekey': '666'}}
 
     def setUp(self):
-        super(FunctionalTest, self).setUp()
+        super().setUp()
         cfg.CONF.set_override("auth_version", "v2.0",
                               group='keystone_authtoken')
         cfg.CONF.set_override("admin_user", "admin",
@@ -255,7 +254,7 @@ class FunctionalTest(base.DbTestCase):
 
 class AdminRoleTest(base.DbTestCase):
     def setUp(self):
-        super(AdminRoleTest, self).setUp()
+        super().setUp()
         token_info = {
             'token': {
                 'project': {

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -29,7 +28,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class AuditEndpoint(object):
+class AuditEndpoint:
 
     def __init__(self, messaging):
         self._messaging = messaging

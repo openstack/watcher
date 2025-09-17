@@ -29,7 +29,7 @@ from watcher.tests.objects import utils
 class TestActionNotification(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionNotification, self).setUp()
+        super().setUp()
         p_get_notifier = mock.patch.object(rpc, 'get_notifier')
         m_get_notifier = p_get_notifier.start()
         self.addCleanup(p_get_notifier.stop)
@@ -327,8 +327,8 @@ class TestActionNotification(base.DbTestCase):
                         'created_at': '2016-10-18T09:52:05Z',
                         'fault': {
                             'watcher_object.data': {
-                                'exception': u'WatcherException',
-                                'exception_message': u'TEST',
+                                'exception': 'WatcherException',
+                                'exception_message': 'TEST',
                                 'function_name': (
                                     'test_send_action_execution_with_error'),
                                 'module_name': (
@@ -461,8 +461,8 @@ class TestActionNotification(base.DbTestCase):
                         'created_at': '2016-10-18T09:52:05Z',
                         'fault': {
                             'watcher_object.data': {
-                                'exception': u'WatcherException',
-                                'exception_message': u'TEST',
+                                'exception': 'WatcherException',
+                                'exception_message': 'TEST',
                                 'function_name': (
                                     'test_send_action_cancel_with_error'),
                                 'module_name': (

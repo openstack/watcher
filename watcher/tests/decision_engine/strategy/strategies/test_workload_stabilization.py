@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica LLC
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
@@ -36,7 +35,7 @@ class TestWorkloadStabilization(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestWorkloadStabilization, self).setUp()
+        super().setUp()
 
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()

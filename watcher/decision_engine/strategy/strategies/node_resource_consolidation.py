@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019  ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,7 +60,7 @@ class NodeResourceConsolidation(base.ServerConsolidationBaseStrategy):
         :type config: :py:class:`~.Struct` instance
         :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(NodeResourceConsolidation, self).__init__(config, osc)
+        super().__init__(config, osc)
         self.host_choice = 'auto'
         self.audit = None
         self.compute_nodes_count = 0

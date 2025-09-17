@@ -28,7 +28,7 @@ from watcher.tests import base
 class TestChangeNovaServiceState(base.TestCase):
 
     def setUp(self):
-        super(TestChangeNovaServiceState, self).setUp()
+        super().setUp()
 
         self.m_osc_cls = mock.Mock()
         self.m_helper_cls = mock.Mock()

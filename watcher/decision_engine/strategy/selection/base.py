@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -19,7 +18,7 @@
 import abc
 
 
-class BaseSelector(object, metaclass=abc.ABCMeta):
+class BaseSelector(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def select(self):

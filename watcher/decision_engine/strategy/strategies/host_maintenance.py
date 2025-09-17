@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 chinac.com
 #
 # Authors: suzhengwei<suzhengwei@chinac.com>
@@ -61,7 +60,7 @@ class HostMaintenance(base.HostMaintenanceBaseStrategy):
     INSTANCE_STOP = "stop"
 
     def __init__(self, config, osc=None):
-        super(HostMaintenance, self).__init__(config, osc)
+        super().__init__(config, osc)
 
     @classmethod
     def get_name(cls):

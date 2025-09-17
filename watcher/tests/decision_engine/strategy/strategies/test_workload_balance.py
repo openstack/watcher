@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel Corp
 #
 # Authors: Junjie-Huang <junjie.huang@intel.com>
@@ -37,7 +36,7 @@ class TestWorkloadBalance(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestWorkloadBalance, self).setUp()
+        super().setUp()
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 

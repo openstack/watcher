@@ -48,7 +48,7 @@ class TestActionObject(base.DbTestCase):
     ]
 
     def setUp(self):
-        super(TestActionObject, self).setUp()
+        super().setUp()
 
         p_action_notifications = mock.patch.object(
             notifications, 'action_plan', autospec=True)
@@ -167,7 +167,7 @@ class TestActionObject(base.DbTestCase):
 class TestCreateDeleteActionObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestCreateDeleteActionObject, self).setUp()
+        super().setUp()
         self.fake_strategy = utils.create_test_strategy(name="DUMMY")
         self.fake_audit = utils.create_test_audit()
         self.fake_action_plan = utils.create_test_action_plan()

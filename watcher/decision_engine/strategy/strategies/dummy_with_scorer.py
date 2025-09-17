@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel
 #
 # Authors: Tomasz Kaczynski <tomasz.kaczynski@intel.com>
@@ -61,7 +60,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
         :type osc: :py:class:`~.OpenStackClients` instance
         """
 
-        super(DummyWithScorer, self).__init__(config, osc)
+        super().__init__(config, osc)
 
         # Setup Scoring Engines
         self._workload_scorer = (scoring_factory
