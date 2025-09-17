@@ -371,7 +371,7 @@ class FakerEmptyModelCollector(base.BaseClusterDataModelCollector):
     def __init__(self, config=None, osc=None):
         if config is None:
             config = mock.Mock(period=777)
-        super(FakerEmptyModelCollector, self).__init__(config)
+        super().__init__(config)
 
     @property
     def notification_endpoints(self):

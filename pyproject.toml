@@ -1,3 +1,34 @@
 [build-system]
 requires = ["pbr>=6.0.0", "setuptools>=64.0.0"]
 build-backend = "pbr.build"
+
+[tool.ruff]
+line-length = 79
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "S", "U"]
+ignore = [
+    "UP031", # Use format specifiers instead of percent format
+    "UP032", # Use f-string instead of `format` call
+    # we only use asserts for type narrowing
+    "S101",
+    # we do not use random number geneerators for crypto
+    "S311",
+    # S104 Possible binding to all interfaces
+    "S104",
+    # S105 Possible hardcoded password assigned to variable"
+    "S105",
+    # S106 Possible hardcoded password assigned to argument
+    "S106",
+    # S110 `try`-`except`-`pass` detected, consider logging the exception
+    "S110",
+    # E741 Ambiguous variable name
+    "E741",
+    # E402 Module level import not at top of file
+    "E402",
+    # # UP031 Use format specifiers instead of percent format
+    # "UP031",
+]
+[tool.ruff.lint.per-file-ignores]
+"watcher/tests/*" = ["S"]

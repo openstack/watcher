@@ -611,7 +611,7 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
-        super(TestCinderNotificationsEmptyModel, self).setUp()
+        super().setUp()
         self.fake_cdmc = faker_cluster_state.FakerEmptyModelCollector()
 
     @mock.patch.object(cnotification.CapacityNotificationEndpoint,
