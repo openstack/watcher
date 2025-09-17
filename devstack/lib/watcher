@@ -94,26 +94,6 @@ function configure_watcher {
     # Put config files in ``/etc/watcher`` for everyone to find
     sudo install -d -o $STACK_USER $WATCHER_CONF_DIR
 
-    local project=watcher
-    local project_uc
-    project_uc=$(echo watcher|tr a-z A-Z)
-    local conf_dir="${project_uc}_CONF_DIR"
-    # eval conf dir to get the variable
-    conf_dir="${!conf_dir}"
-    local project_dir="${project_uc}_DIR"
-    # eval project dir to get the variable
-    project_dir="${!project_dir}"
-    local sample_conf_dir="${project_dir}/etc/${project}"
-    local sample_policy_dir="${project_dir}/etc/${project}/policy.d"
-    local sample_policy_generator="${project_dir}/etc/${project}/oslo-policy-generator/watcher-policy-generator.conf"
-
-    # first generate policy.yaml
-    oslopolicy-sample-generator --config-file $sample_policy_generator
-    # then optionally copy over policy.d
-    if [[ -d $sample_policy_dir ]]; then
-        cp -r $sample_policy_dir $conf_dir/policy.d
-    fi
-
     # Rebuild the config file from scratch
     create_watcher_conf
 }
