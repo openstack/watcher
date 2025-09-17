@@ -80,7 +80,7 @@ class GnocchiHelper(base.DataSourceBase):
 
         resource_id = resource.uuid
         if resource_type == 'compute_node':
-            resource_id = "%s_%s" % (resource.hostname, resource.hostname)
+            resource_id = "{}_{}".format(resource.hostname, resource.hostname)
             kwargs = dict(query={"=": {"original_resource_id": resource_id}},
                           limit=1)
             resources = self.query_retry(
@@ -162,7 +162,7 @@ class GnocchiHelper(base.DataSourceBase):
 
         resource_id = resource.uuid
         if resource_type == 'compute_node':
-            resource_id = "%s_%s" % (resource.hostname, resource.hostname)
+            resource_id = "{}_{}".format(resource.hostname, resource.hostname)
             kwargs = dict(query={"=": {"original_resource_id": resource_id}},
                           limit=1)
             resources = self.query_retry(

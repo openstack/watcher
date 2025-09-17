@@ -237,7 +237,7 @@ class TestListAction(api_base.FunctionalTest):
 
         audit2 = obj_utils.create_test_audit(
             self.context, id=2, uuid=utils.generate_uuid(),
-            name='My Audit {}'.format(2))
+            name=f'My Audit {2}')
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
@@ -329,7 +329,7 @@ class TestListAction(api_base.FunctionalTest):
             self.context,
             uuid=utils.generate_uuid(),
             audit_id=self.audit.id)
-        url = '/actions?action_plan_uuid=%s&audit_uuid=%s' % (
+        url = '/actions?action_plan_uuid={}&audit_uuid={}'.format(
             action_plan.uuid, self.audit.uuid)
         response = self.get_json(url, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)

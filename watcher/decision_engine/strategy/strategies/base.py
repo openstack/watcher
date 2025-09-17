@@ -84,8 +84,8 @@ class StrategyEndpoint:
         if not datasource:
             state = "Datasource is not presented for this strategy"
         else:
-            state = "%s: %s" % (datasource.NAME,
-                                datasource.check_availability())
+            state = "{}: {}".format(datasource.NAME,
+                                    datasource.check_availability())
         return {'type': 'Datasource',
                 'state': state,
                 'mandatory': True, 'comment': ''}

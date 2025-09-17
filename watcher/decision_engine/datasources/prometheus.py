@@ -91,7 +91,7 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
                     % {'host': _host, 'port': _port, 'reason': reason})
             )
         the_client = prometheus_client.PrometheusAPIClient(
-            "%s:%s" % (_host, _port))
+            "{}:{}".format(_host, _port))
 
         # check if tls options or basic_auth options are set and use them
         prometheus_user = CONF.prometheus_client.username

@@ -77,7 +77,7 @@ class TestListOpts(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy2.get_name(),
-                entry_point="%s:%s" % (
+                entry_point="{}:{}".format(
                     fake_strategies.FakeDummy1Strategy2.__module__,
                     fake_strategies.FakeDummy1Strategy2.__name__),
                 plugin=fake_strategies.FakeDummy1Strategy2,
@@ -107,7 +107,7 @@ class TestListOpts(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point="%s:%s" % (
+                entry_point="{}:{}".format(
                     fake_strategies.FakeDummy1Strategy1.__module__,
                     fake_strategies.FakeDummy1Strategy1.__name__),
                 plugin=fake_strategies.FakeDummy1Strategy1,
@@ -142,7 +142,7 @@ class TestPlugins(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point="%s:%s" % (
+                entry_point="{}:{}".format(
                     fake_strategies.FakeDummy1Strategy1.__module__,
                     fake_strategies.FakeDummy1Strategy1.__name__),
                 plugin=fake_strategies.FakeDummy1Strategy1,

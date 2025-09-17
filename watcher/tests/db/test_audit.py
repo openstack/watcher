@@ -271,7 +271,7 @@ class DbAuditTestCase(base.DbTestCase):
         uuids = []
         for id_ in range(1, 4):
             audit = utils.create_test_audit(uuid=w_utils.generate_uuid(),
-                                            name='My Audit {}'.format(id_))
+                                            name=f'My Audit {id_}')
             uuids.append(str(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context)
         audit_uuids = [a.uuid for a in audits]
@@ -290,7 +290,7 @@ class DbAuditTestCase(base.DbTestCase):
         for i in range(1, 4):
             audit = utils.create_test_audit(
                 id=i, uuid=w_utils.generate_uuid(),
-                name='My Audit {}'.format(i),
+                name=f'My Audit {i}',
                 goal_id=goal.id, strategy_id=strategy.id)
             uuids.append(str(audit['uuid']))
         audits = self.dbapi.get_audit_list(self.context, eager=True)
@@ -307,21 +307,21 @@ class DbAuditTestCase(base.DbTestCase):
             id=1,
             audit_type=objects.audit.AuditType.ONESHOT.value,
             uuid=w_utils.generate_uuid(),
-            name='My Audit {}'.format(1),
+            name=f'My Audit {1}',
             state=objects.audit.State.ONGOING,
             goal_id=goal['id'])
         audit2 = utils.create_test_audit(
             id=2,
             audit_type=objects.audit.AuditType.CONTINUOUS.value,
             uuid=w_utils.generate_uuid(),
-            name='My Audit {}'.format(2),
+            name=f'My Audit {2}',
             state=objects.audit.State.PENDING,
             goal_id=goal['id'])
         audit3 = utils.create_test_audit(
             id=3,
             audit_type=objects.audit.AuditType.CONTINUOUS.value,
             uuid=w_utils.generate_uuid(),
-            name='My Audit {}'.format(3),
+            name=f'My Audit {3}',
             state=objects.audit.State.ONGOING,
             goal_id=goal['id'])
 

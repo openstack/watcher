@@ -161,7 +161,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
             audit_template_list.append(audit_template)
 
         response = self.get_json('/audit_templates')
@@ -177,7 +177,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         for id_ in range(1, 6):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
             audit_template_list.append(audit_template)
 
         # We soft delete the ones with ID 4 and 5
@@ -195,7 +195,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         for id_ in range(1, 6):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
             audit_template_list.append(audit_template)
 
         # We soft delete the ones with ID 4 and 5
@@ -225,7 +225,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         for id_ in range(5):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
         response = self.get_json('/audit_templates/?limit=3')
         self.assertEqual(3, len(response['audit_templates']))
 
@@ -237,7 +237,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         for id_ in range(5):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
         response = self.get_json('/audit_templates')
         self.assertEqual(3, len(response['audit_templates']))
 
@@ -250,7 +250,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 itertools.repeat(self.fake_goal2.id, 2)]), 1):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_),
+                name=f'My Audit Template {id_}',
                 goal_id=goal_id)
 
         response = self.get_json(
@@ -263,7 +263,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 itertools.repeat(self.fake_goal2.id, 2)]), 1):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_),
+                name=f'My Audit Template {id_}',
                 goal_id=goal_id)
 
         response = self.get_json(
@@ -276,7 +276,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 itertools.repeat(self.fake_strategy2.id, 2)]), 1):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_),
+                name=f'My Audit Template {id_}',
                 strategy_id=strategy_id)
 
         response = self.get_json(
@@ -289,7 +289,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 itertools.repeat(self.fake_strategy2.id, 2)]), 1):
             obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_),
+                name=f'My Audit Template {id_}',
                 strategy_id=strategy_id)
 
         response = self.get_json(
@@ -301,7 +301,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         for id_ in range(1, 6):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_))
+                name=f'My Audit Template {id_}')
             audit_template_list.append(audit_template)
 
         response = self.get_json('/audit_templates?sort_key=%s' % 'name')
@@ -319,7 +319,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 itertools.repeat(self.fake_goal2.id, 2)]), 1):
             audit_template = obj_utils.create_test_audit_template(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name='My Audit Template {}'.format(id_),
+                name=f'My Audit Template {id_}',
                 goal_id=goal_id)
             goal_names_list.append(audit_template.goal.name)
 

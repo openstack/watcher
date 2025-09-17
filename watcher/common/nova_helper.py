@@ -701,7 +701,7 @@ class NovaHelper:
             security_groups=sec_group_list,
             nics=net_list,
             block_device_mapping_v2=block_device_mapping_v2,
-            availability_zone="%s:%s" % (azone, node_id))
+            availability_zone="{}:{}".format(azone, node_id))
 
         # Poll at 5 second intervals, until the status is no longer 'BUILD'
         if instance:

@@ -52,10 +52,10 @@ _all_hints = set(_all_log_levels.values())
 
 
 def _regex_for_level(level, hint):
-    return r".*LOG\.%(level)s\(\s*((%(wrong_hints)s)\(|'|\")" % {
-        'level': level,
-        'wrong_hints': '|'.join(_all_hints - {hint}),
-    }
+    return r".*LOG\.{level}\(\s*(({wrong_hints})\(|'|\")".format(
+        level=level,
+        wrong_hints='|'.join(_all_hints - {hint}),
+    )
 
 
 log_warn = re.compile(

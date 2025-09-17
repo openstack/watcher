@@ -189,10 +189,10 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list = []
         audit1 = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
+            uuid=utils.generate_uuid(), name=f'My Audit {2}')
         audit2 = obj_utils.create_test_audit(
             self.context, id=3,
-            uuid=utils.generate_uuid(), name='My Audit {}'.format(3))
+            uuid=utils.generate_uuid(), name=f'My Audit {3}')
 
         for id_ in range(0, 2):
             action_plan = obj_utils.create_test_action_plan(
@@ -229,7 +229,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list = []
         audit = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
+            uuid=utils.generate_uuid(), name=f'My Audit {2}')
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -244,7 +244,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list1 = []
         audit1 = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
+            uuid=utils.generate_uuid(), name=f'My Audit {2}')
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -253,7 +253,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
         audit2 = obj_utils.create_test_audit(
             self.context, id=3,
-            uuid=utils.generate_uuid(), name='My Audit {}'.format(3))
+            uuid=utils.generate_uuid(), name=f'My Audit {3}')
         action_plan_list2 = []
         for id_ in [5, 6, 7]:
             action_plan = obj_utils.create_test_action_plan(
@@ -303,7 +303,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         for id_ in range(2, 5):
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit.id)
@@ -616,7 +616,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
 
     scenarios = [
         (
-            "%s -> %s" % (original_state, new_state),
+            "{} -> {}".format(original_state, new_state),
             {"original_state": original_state,
              "new_state": new_state},
         )
@@ -666,8 +666,8 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
 
     scenarios = [
         (
-            "%s -> %s" % (transition["original_state"],
-                          transition["new_state"]),
+            "{} -> {}".format(transition["original_state"],
+                              transition["new_state"]),
             transition
         )
         for transition in ALLOWED_TRANSITIONS
