@@ -228,8 +228,8 @@ class DbGoalTestCase(base.DbTestCase):
             goal = utils.create_test_goal(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name="GOAL_%s" % i,
-                display_name='My Goal %s' % i)
+                name=f"GOAL_{i}",
+                display_name=f'My Goal {i}')
             uuids.append(str(goal['uuid']))
         goals = self.dbapi.get_goal_list(self.context)
         goal_uuids = [g.uuid for g in goals]

@@ -223,8 +223,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
 
         cfg.CONF.set_override("rollback_when_actionplan_failed", False,
                               group="watcher_applier")
-        action_name = "action_type:{} uuid:{}".format(action.action_type,
-                                                      action.uuid)
+        action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
         expected_log = ('Failed actionplan rollback option is turned off, '
                         'and the following action will be skipped: %s')
         action_container.revert()
@@ -248,8 +247,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
 
         cfg.CONF.set_override("rollback_when_actionplan_failed", True,
                               group="watcher_applier")
-        action_name = "action_type:{} uuid:{}".format(action.action_type,
-                                                      action.uuid)
+        action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
         expected_log = 'Revert action: %s'
         action_container.revert()
         mock_log.warning.assert_called_once_with(expected_log, action_name)

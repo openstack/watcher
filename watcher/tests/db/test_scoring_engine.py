@@ -232,9 +232,9 @@ class DbScoringEngineTestCase(base.DbTestCase):
             scoring_engine = utils.create_test_scoring_engine(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name="SE_ID_%s" % i,
+                name=f"SE_ID_{i}",
                 description=f'My ScoringEngine {i}',
-                metainfo='a{0}=b{0}'.format(i))
+                metainfo=f'a{i}=b{i}')
             names.append(str(scoring_engine['name']))
         scoring_engines = self.dbapi.get_scoring_engine_list(self.context)
         scoring_engines_names = [se.name for se in scoring_engines]

@@ -197,7 +197,7 @@ class Connection(api.BaseConnection):
         if 'deleted' in filters:
             deleted_filter = filters.pop('deleted')
             op = 'eq' if not bool(deleted_filter) else 'neq'
-            filters['deleted__%s' % op] = 0
+            filters[f'deleted__{op}'] = 0
 
         plain_fields = tuple(
             (list(plain_fields) or []) +

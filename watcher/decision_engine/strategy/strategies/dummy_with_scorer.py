@@ -95,7 +95,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
         # Parse the result using workloads from scorer's metainfo
         result = self._workloads[jsonutils.loads(result_str)[0]]
         LOG.debug('Detected Workload: %s', result)
-        parameters = {'message': 'Detected Workload: %s' % result}
+        parameters = {'message': f'Detected Workload: {result}'}
         self.solution.add_action(action_type=self.NOP,
                                  input_parameters=parameters)
 
@@ -105,7 +105,7 @@ class DummyWithScorer(base.DummyBaseStrategy):
         LOG.debug('AVG Scorer result: %s', result_str)
         result = jsonutils.loads(result_str)[0]
         LOG.debug('AVG Scorer result (parsed): %d', result)
-        parameters = {'message': 'AVG Scorer result: %s' % result}
+        parameters = {'message': f'AVG Scorer result: {result}'}
         self.solution.add_action(action_type=self.NOP,
                                  input_parameters=parameters)
 

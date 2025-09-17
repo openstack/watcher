@@ -236,7 +236,7 @@ class DbActionDescriptionTestCase(base.DbTestCase):
         for i in range(1, 4):
             action_desc = utils.create_test_action_desc(
                 id=i,
-                action_type="action_%s" % i,
+                action_type=f"action_{i}",
                 description=f"description_{i}")
             ids.append(action_desc['id'])
         action_descs = self.dbapi.get_action_description_list(self.context)

@@ -55,8 +55,8 @@ class TestListOpts(base.TestCase):
                 # OptGroup object for some exceptions this is not possible but
                 # new groups should use OptGroup
                 raise Exception(
-                    "Invalid option group: {} should be of type OptGroup not "
-                    "string.".format(section_name))
+                    f"Invalid option group: {section_name} should be of "
+                    "type OptGroup not string.")
 
         self.assertIn(section_name, expected_sections)
         self.assertTrue(len(options))
@@ -77,9 +77,9 @@ class TestListOpts(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy2.get_name(),
-                entry_point="{}:{}".format(
-                    fake_strategies.FakeDummy1Strategy2.__module__,
-                    fake_strategies.FakeDummy1Strategy2.__name__),
+                entry_point=(
+                    f"{fake_strategies.FakeDummy1Strategy2.__module__}:"
+                    f"{fake_strategies.FakeDummy1Strategy2.__name__}"),
                 plugin=fake_strategies.FakeDummy1Strategy2,
                 obj=None,
             )],
@@ -107,9 +107,9 @@ class TestListOpts(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point="{}:{}".format(
-                    fake_strategies.FakeDummy1Strategy1.__module__,
-                    fake_strategies.FakeDummy1Strategy1.__name__),
+                entry_point=(
+                    f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
+                    f"{fake_strategies.FakeDummy1Strategy1.__name__}"),
                 plugin=fake_strategies.FakeDummy1Strategy1,
                 obj=None,
             )],
@@ -142,9 +142,9 @@ class TestPlugins(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=fake_strategies.FakeDummy1Strategy1.get_name(),
-                entry_point="{}:{}".format(
-                    fake_strategies.FakeDummy1Strategy1.__module__,
-                    fake_strategies.FakeDummy1Strategy1.__name__),
+                entry_point=(
+                    f"{fake_strategies.FakeDummy1Strategy1.__module__}:"
+                    f"{fake_strategies.FakeDummy1Strategy1.__name__}"),
                 plugin=fake_strategies.FakeDummy1Strategy1,
                 obj=None,
             )],

@@ -52,7 +52,7 @@ class TestListStrategy(api_base.FunctionalTest):
         ]
 
         mock_strategy_info.return_value = mock_state
-        response = self.get_json('/strategies/%s/state' % strategy.uuid)
+        response = self.get_json(f'/strategies/{strategy.uuid}/state')
         strategy_name = [requirement["state"] for requirement in response
                          if requirement["type"] == "Name"][0]
         self.assertEqual(strategy.name, strategy_name)
@@ -65,7 +65,7 @@ class TestListStrategy(api_base.FunctionalTest):
 
     def test_get_one_by_uuid(self):
         strategy = obj_utils.create_test_strategy(self.context)
-        response = self.get_json('/strategies/%s' % strategy.uuid)
+        response = self.get_json(f'/strategies/{strategy.uuid}')
         self.assertEqual(strategy.uuid, response["uuid"])
         self.assertEqual(strategy.name, response["name"])
         self._assert_strategy_fields(response)
@@ -73,7 +73,7 @@ class TestListStrategy(api_base.FunctionalTest):
     def test_get_one_by_name(self):
         strategy = obj_utils.create_test_strategy(self.context)
         response = self.get_json(urlparse.quote(
-            '/strategies/%s' % strategy['name']))
+            '/strategies/{}'.format(strategy['name'])))
         self.assertEqual(strategy.uuid, response['uuid'])
         self._assert_strategy_fields(response)
 
@@ -81,13 +81,13 @@ class TestListStrategy(api_base.FunctionalTest):
         strategy = obj_utils.create_test_strategy(self.context)
         strategy.soft_delete()
         response = self.get_json(
-            '/strategies/%s' % strategy['uuid'],
+            '/strategies/{}'.format(strategy['uuid']),
             headers={'X-Show-Deleted': 'True'})
         self.assertEqual(strategy.uuid, response['uuid'])
         self._assert_strategy_fields(response)
 
         response = self.get_json(
-            '/strategies/%s' % strategy['uuid'],
+            '/strategies/{}'.format(strategy['uuid']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -103,7 +103,7 @@ class TestListStrategy(api_base.FunctionalTest):
 
     def test_detail_against_single(self):
         strategy = obj_utils.create_test_strategy(self.context)
-        response = self.get_json('/strategies/%s/detail' % strategy.uuid,
+        response = self.get_json(f'/strategies/{strategy.uuid}/detail',
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -174,16 +174,16 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='Goal %s' % id_,
+                name=f'Goal {id_}',
                 goal_id=goal1['id'])
         for id_ in range(3, 5):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='Goal %s' % id_,
+                name=f'Goal {id_}',
                 goal_id=goal2['id'])
 
-        response = self.get_json('/strategies/?goal=%s' % goal1['uuid'])
+        response = self.get_json('/strategies/?goal={}'.format(goal1['uuid']))
 
         strategies = response['strategies']
         self.assertEqual(2, len(strategies))
@@ -206,16 +206,16 @@ class TestListStrategy(api_base.FunctionalTest):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='Goal %s' % id_,
+                name=f'Goal {id_}',
                 goal_id=goal1['id'])
         for id_ in range(3, 5):
             obj_utils.create_test_strategy(
                 self.context, id=id_,
                 uuid=utils.generate_uuid(),
-                name='Goal %s' % id_,
+                name=f'Goal {id_}',
                 goal_id=goal2['id'])
 
-        response = self.get_json('/strategies/?goal=%s' % goal1['name'])
+        response = self.get_json('/strategies/?goal={}'.format(goal1['name']))
 
         strategies = response['strategies']
         self.assertEqual(2, len(strategies))
@@ -239,7 +239,7 @@ class TestListStrategy(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/strategies?sort_key=%s' % 'bad_name',
+            '/strategies?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -260,7 +260,7 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -272,7 +272,7 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
         strategy = obj_utils.create_test_strategy(self.context)
         self._common_policy_check(
             "strategy:get", self.get_json,
-            '/strategies/%s' % strategy.uuid,
+            f'/strategies/{strategy.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):
@@ -285,7 +285,7 @@ class TestStrategyPolicyEnforcement(api_base.FunctionalTest):
         strategy = obj_utils.create_test_strategy(self.context)
         self._common_policy_check(
             "strategy:get", self.get_json,
-            '/strategies/%s/state' % strategy.uuid,
+            f'/strategies/{strategy.uuid}/state',
             expect_errors=True)
 
 

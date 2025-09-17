@@ -40,10 +40,9 @@ class Collection(base.APIBase):
             return wtypes.Unset
 
         resource_url = url or self._type
-        q_args = ''.join(['{}={}&'.format(key, kwargs[key]) for key in kwargs])
-        next_args = '?%(args)slimit=%(limit)d&marker=%(marker)s' % {
-            'args': q_args, 'limit': limit,
-            'marker': getattr(self.collection[-1], marker_field)}
+        q_args = ''.join([f'{key}={kwargs[key]}&' for key in kwargs])
+        marker = getattr(self.collection[-1], marker_field)
+        next_args = f'?{q_args}limit={limit:d}&marker={marker}'
 
         return link.Link.make_link('next', pecan.request.host_url,
                                    resource_url, next_args).href

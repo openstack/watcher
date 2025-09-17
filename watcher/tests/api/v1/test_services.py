@@ -34,7 +34,7 @@ class TestListService(api_base.FunctionalTest):
 
     def test_get_one_by_id(self):
         service = obj_utils.create_test_service(self.context)
-        response = self.get_json('/services/%s' % service.id)
+        response = self.get_json(f'/services/{service.id}')
         self.assertEqual(service.id, response["id"])
         self.assertEqual(service.name, response["name"])
         self._assert_service_fields(response)
@@ -42,7 +42,7 @@ class TestListService(api_base.FunctionalTest):
     def test_get_one_by_name(self):
         service = obj_utils.create_test_service(self.context)
         response = self.get_json(urlparse.quote(
-            '/services/%s' % service['name']))
+            '/services/{}'.format(service['name'])))
         self.assertEqual(service.id, response['id'])
         self._assert_service_fields(response)
 
@@ -50,13 +50,13 @@ class TestListService(api_base.FunctionalTest):
         service = obj_utils.create_test_service(self.context)
         service.soft_delete()
         response = self.get_json(
-            '/services/%s' % service['id'],
+            '/services/{}'.format(service['id']),
             headers={'X-Show-Deleted': 'True'})
         self.assertEqual(service.id, response['id'])
         self._assert_service_fields(response)
 
         response = self.get_json(
-            '/services/%s' % service['id'],
+            '/services/{}'.format(service['id']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -73,7 +73,7 @@ class TestListService(api_base.FunctionalTest):
 
     def test_detail_against_single(self):
         service = obj_utils.create_test_service(self.context)
-        response = self.get_json('/services/%s/detail' % service.id,
+        response = self.get_json(f'/services/{service.id}/detail',
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -148,7 +148,7 @@ class TestListService(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/services?sort_key=%s' % 'bad_name',
+            '/services?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -164,7 +164,7 @@ class TestServicePolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -176,7 +176,7 @@ class TestServicePolicyEnforcement(api_base.FunctionalTest):
         service = obj_utils.create_test_service(self.context)
         self._common_policy_check(
             "service:get", self.get_json,
-            '/services/%s' % service.id,
+            f'/services/{service.id}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):

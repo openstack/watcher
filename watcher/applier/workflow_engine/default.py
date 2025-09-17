@@ -129,8 +129,8 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
 class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
     def __init__(self, db_action, engine):
-        self.name = "action_type:{} uuid:{}".format(db_action.action_type,
-                                                    db_action.uuid)
+        self.name = (f"action_type:{db_action.action_type} "
+                     f"uuid:{db_action.uuid}")
         super().__init__(self.name,
                          db_action,
                          engine)

@@ -31,10 +31,8 @@ class VERSIONS(enum.Enum):
 # This is the version 1 API
 BASE_VERSION = 1
 # String representations of the minor and maximum versions
-_MIN_VERSION_STRING = '{}.{}'.format(BASE_VERSION,
-                                     VERSIONS.MINOR_0_ROCKY.value)
-_MAX_VERSION_STRING = '{}.{}'.format(BASE_VERSION,
-                                     VERSIONS.MINOR_MAX_VERSION.value)
+_MIN_VERSION_STRING = f'{BASE_VERSION}.{VERSIONS.MINOR_0_ROCKY.value}'
+_MAX_VERSION_STRING = f'{BASE_VERSION}.{VERSIONS.MINOR_MAX_VERSION.value}'
 
 
 def service_type_string():

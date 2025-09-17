@@ -98,13 +98,13 @@ def apply_jsonpatch(doc, patch):
 
 def get_patch_value(patch, key):
     for p in patch:
-        if p['op'] == 'replace' and p['path'] == '/%s' % key:
+        if p['op'] == 'replace' and p['path'] == f'/{key}':
             return p['value']
 
 
 def set_patch_value(patch, key, value):
     for p in patch:
-        if p['op'] == 'replace' and p['path'] == '/%s' % key:
+        if p['op'] == 'replace' and p['path'] == f'/{key}':
             p['value'] = value
 
 

@@ -242,21 +242,22 @@ class Controller(rest.RestController):
             headers = {}
         # ensure that major version in the URL matches the header
         if version.major != versions.BASE_VERSION:
+            min_ver = versions.min_version_string()
+            max_ver = versions.max_version_string()
             raise exc.HTTPNotAcceptable(
-                "Mutually exclusive versions requested. Version %(ver)s "
+                f"Mutually exclusive versions requested. Version {version} "
                 "requested but not supported by this service. The supported "
-                "version range is: [%(min)s, %(max)s]." %
-                {'ver': version, 'min': versions.min_version_string(),
-                 'max': versions.max_version_string()},
+                f"version range is: [{min_ver}, {max_ver}].",
                 headers=headers)
         # ensure the minor version is within the supported range
         if version < min_version() or version > max_version():
+            min_ver = versions.min_version_string()
+            max_ver = versions.max_version_string()
             raise exc.HTTPNotAcceptable(
-                "Version %(ver)s was requested but the minor version is not "
+                f"Version {version} was requested but the minor version is "
+                "not "
                 "supported by this service. The supported version range is: "
-                "[%(min)s, %(max)s]." %
-                {'ver': version, 'min': versions.min_version_string(),
-                 'max': versions.max_version_string()},
+                f"[{min_ver}, {max_ver}].",
                 headers=headers)
 
     @pecan.expose()

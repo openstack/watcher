@@ -87,7 +87,7 @@ class WatcherObjectsMap:
         out = ""
         for key, vals in zip(self.keys(), self.values()):
             ids = [val.id for val in vals]
-            out += "%(key)s: %(val)s" % (dict(key=key, val=ids))
+            out += "{key}: {val}".format(**dict(key=key, val=ids))
             out += "\n"
         return out
 

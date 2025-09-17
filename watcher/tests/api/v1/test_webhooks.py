@@ -34,7 +34,7 @@ class TestPost(api_base.FunctionalTest):
             self.context,
             audit_type=objects.audit.AuditType.EVENT.value)
         response = self.post_json(
-            '/webhooks/%s' % audit['uuid'], {},
+            '/webhooks/{}'.format(audit['uuid']), {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'})
         self.assertEqual(HTTPStatus.ACCEPTED, response.status_int)
         mock_trigger_audit.assert_called_once_with(
@@ -52,7 +52,7 @@ class TestPost(api_base.FunctionalTest):
     def test_trigger_audit_with_not_allowed_audittype(self):
         audit = obj_utils.create_test_audit(self.context)
         response = self.post_json(
-            '/webhooks/%s' % audit['uuid'], {},
+            '/webhooks/{}'.format(audit['uuid']), {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
@@ -65,7 +65,7 @@ class TestPost(api_base.FunctionalTest):
             audit_type=objects.audit.AuditType.EVENT.value,
             state=objects.audit.State.FAILED)
         response = self.post_json(
-            '/webhooks/%s' % audit['uuid'], {},
+            '/webhooks/{}'.format(audit['uuid']), {},
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)

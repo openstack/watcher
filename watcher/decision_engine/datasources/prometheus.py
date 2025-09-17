@@ -56,19 +56,18 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
         """
         def _validate_host_port(host, port):
             if len(host) > 255:
-                return (False, "hostname is too long: '%s'" % host)
+                return (False, f"hostname is too long: '{host}'")
             if host[-1] == '.':
                 host = host[:-1]
             legal_hostname = re.compile(
                 "(?!-)[a-z0-9-]{1,63}(?<!-)$", re.IGNORECASE)
             if not all(legal_hostname.match(host_part)
                        for host_part in host.split(".")):
-                return (False, "hostname '%s' failed regex match " % host)
+                return (False, f"hostname '{host}' failed regex match ")
             try:
                 assert bool(1 <= int(port) <= 65535)
             except (AssertionError, ValueError):
-                return (False, "missing or invalid port number '%s' "
-                        % port)
+                return (False, f"missing or invalid port number '{port}' ")
             return (True, "all good")
 
         _host = CONF.prometheus_client.host
@@ -91,7 +90,7 @@ class PrometheusHelper(prometheus_base.PrometheusBase):
                     % {'host': _host, 'port': _port, 'reason': reason})
             )
         the_client = prometheus_client.PrometheusAPIClient(
-            "{}:{}".format(_host, _port))
+            f"{_host}:{_port}")
 
         # check if tls options or basic_auth options are set and use them
         prometheus_user = CONF.prometheus_client.username

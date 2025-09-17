@@ -84,8 +84,7 @@ class StrategyEndpoint:
         if not datasource:
             state = "Datasource is not presented for this strategy"
         else:
-            state = "{}: {}".format(datasource.NAME,
-                                    datasource.check_availability())
+            state = f"{datasource.NAME}: {datasource.check_availability()}"
         return {'type': 'Datasource',
                 'state': state,
                 'mandatory': True, 'comment': ''}
@@ -207,7 +206,7 @@ class BaseStrategy(loadable.Loadable, metaclass=abc.ABCMeta):
                 "datasources",
                 help="Datasources to use in order to query the needed metrics."
                      " This option overrides the global preference."
-                     " options: {}".format(datasources_ops),
+                     f" options: {datasources_ops}",
                 item_type=cfg.types.String(choices=datasources_ops),
                 default=None)
         ]

@@ -78,7 +78,7 @@ class FunctionalTest(base.DbTestCase):
                     hooks.ContextHook(),
                     hooks.NoExceptionTracebackHook()
                 ],
-                'template_path': '%s/api/templates' % root_dir,
+                'template_path': f'{root_dir}/api/templates',
                 'enable_acl': enable_acl,
                 'acl_public_routes': ['/', '/v1'],
             },
@@ -105,7 +105,7 @@ class FunctionalTest(base.DbTestCase):
         """
         full_path = path_prefix + path
 
-        response = getattr(self.app, "%s_json" % method)(
+        response = getattr(self.app, f"{method}_json")(
             str(full_path),
             params=params,
             headers=headers,
@@ -219,7 +219,7 @@ class FunctionalTest(base.DbTestCase):
                         }
         for query in q:
             for name in ['field', 'op', 'value']:
-                query_params['q.%s' % name].append(query.get(name, ''))
+                query_params[f'q.{name}'].append(query.get(name, ''))
         all_params = {}
         all_params.update(params)
         if q:

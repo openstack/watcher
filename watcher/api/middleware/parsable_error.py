@@ -78,8 +78,8 @@ class ParsableErrorMiddleware:
                                 'error_message', text='\n'.join(app_iter)))]
                 except et.ElementTree.ParseError as err:
                     LOG.error('Error parsing HTTP response: %s', err)
-                    body = ['<error_message>%s'
-                            '</error_message>' % state['status_code']]
+                    body = ['<error_message>{}'
+                            '</error_message>'.format(state['status_code'])]
                 state['headers'].append(('Content-Type', 'application/xml'))
             else:
                 app_iter = [i.decode('utf-8') for i in app_iter]

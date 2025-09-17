@@ -38,9 +38,7 @@ class TestDefaultGoalLoader(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=dummy_goal_name,
-                entry_point="{}:{}".format(
-                    goals.Dummy.__module__,
-                    goals.Dummy.__name__),
+                entry_point=f"{goals.Dummy.__module__}:{goals.Dummy.__name__}",
                 plugin=goals.Dummy,
                 obj=None,
             )],

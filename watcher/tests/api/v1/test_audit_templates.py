@@ -104,14 +104,14 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
     def test_get_one_by_uuid(self):
         audit_template = obj_utils.create_test_audit_template(self.context)
         response = self.get_json(
-            '/audit_templates/%s' % audit_template['uuid'])
+            '/audit_templates/{}'.format(audit_template['uuid']))
         self.assertEqual(audit_template.uuid, response['uuid'])
         self._assert_audit_template_fields(response)
 
     def test_get_one_by_name(self):
         audit_template = obj_utils.create_test_audit_template(self.context)
         response = self.get_json(urlparse.quote(
-            '/audit_templates/%s' % audit_template['name']))
+            '/audit_templates/{}'.format(audit_template['name'])))
         self.assertEqual(audit_template.uuid, response['uuid'])
         self._assert_audit_template_fields(response)
 
@@ -119,13 +119,13 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
         audit_template = obj_utils.create_test_audit_template(self.context)
         audit_template.soft_delete()
         response = self.get_json(
-            '/audit_templates/%s' % audit_template['uuid'],
+            '/audit_templates/{}'.format(audit_template['uuid']),
             headers={'X-Show-Deleted': 'True'})
         self.assertEqual(audit_template.uuid, response['uuid'])
         self._assert_audit_template_fields(response)
 
         response = self.get_json(
-            '/audit_templates/%s' % audit_template['uuid'],
+            '/audit_templates/{}'.format(audit_template['uuid']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -151,7 +151,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
     def test_detail_against_single(self):
         audit_template = obj_utils.create_test_audit_template(self.context)
         response = self.get_json(
-            '/audit_templates/%s/detail' % audit_template['uuid'],
+            '/audit_templates/{}/detail'.format(audit_template['uuid']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -212,7 +212,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
     def test_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_audit_template(self.context, id=1, uuid=uuid)
-        response = self.get_json('/audit_templates/%s' % uuid)
+        response = self.get_json(f'/audit_templates/{uuid}')
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
         self.assertIn(uuid, response['links'][0]['href'])
@@ -254,7 +254,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 goal_id=goal_id)
 
         response = self.get_json(
-            '/audit_templates?goal=%s' % self.fake_goal2.uuid)
+            f'/audit_templates?goal={self.fake_goal2.uuid}')
         self.assertEqual(2, len(response['audit_templates']))
 
     def test_filter_by_goal_name(self):
@@ -267,7 +267,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 goal_id=goal_id)
 
         response = self.get_json(
-            '/audit_templates?goal=%s' % self.fake_goal2.name)
+            f'/audit_templates?goal={self.fake_goal2.name}')
         self.assertEqual(2, len(response['audit_templates']))
 
     def test_filter_by_strategy_uuid(self):
@@ -280,7 +280,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 strategy_id=strategy_id)
 
         response = self.get_json(
-            '/audit_templates?strategy=%s' % self.fake_strategy2.uuid)
+            f'/audit_templates?strategy={self.fake_strategy2.uuid}')
         self.assertEqual(2, len(response['audit_templates']))
 
     def test_filter_by_strategy_name(self):
@@ -293,7 +293,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 strategy_id=strategy_id)
 
         response = self.get_json(
-            '/audit_templates?strategy=%s' % self.fake_strategy2.name)
+            f'/audit_templates?strategy={self.fake_strategy2.name}')
         self.assertEqual(2, len(response['audit_templates']))
 
     def test_many_with_sort_key_name(self):
@@ -304,7 +304,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
                 name=f'My Audit Template {id_}')
             audit_template_list.append(audit_template)
 
-        response = self.get_json('/audit_templates?sort_key=%s' % 'name')
+        response = self.get_json('/audit_templates?sort_key={}'.format('name'))
 
         names = [s['name'] for s in response['audit_templates']]
 
@@ -336,7 +336,7 @@ class TestListAuditTemplate(FunctionalTestWithSetup):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/audit_templates?sort_key=%s' % 'goal_bad_name',
+            '/audit_templates?sort_key={}'.format('goal_bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -356,18 +356,18 @@ class TestPatch(FunctionalTestWithSetup):
 
         new_goal_uuid = self.fake_goal2.uuid
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertNotEqual(new_goal_uuid, response['goal_uuid'])
 
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/goal', 'value': new_goal_uuid,
               'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertEqual(new_goal_uuid, response['goal_uuid'])
         return_updated_at = timeutils.parse_isotime(
             response['updated_at']).replace(tzinfo=None)
@@ -380,18 +380,18 @@ class TestPatch(FunctionalTestWithSetup):
 
         new_goal_uuid = self.fake_goal2.uuid
         response = self.get_json(urlparse.quote(
-            '/audit_templates/%s' % self.audit_template.name))
+            f'/audit_templates/{self.audit_template.name}'))
         self.assertNotEqual(new_goal_uuid, response['goal_uuid'])
 
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.name,
+            f'/audit_templates/{self.audit_template.name}',
             [{'path': '/goal', 'value': new_goal_uuid,
               'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.name)
+            f'/audit_templates/{self.audit_template.name}')
         self.assertEqual(new_goal_uuid, response['goal_uuid'])
         return_updated_at = timeutils.parse_isotime(
             response['updated_at']).replace(tzinfo=None)
@@ -399,7 +399,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def test_replace_non_existent_audit_template(self):
         response = self.patch_json(
-            '/audit_templates/%s' % utils.generate_uuid(),
+            f'/audit_templates/{utils.generate_uuid()}',
             [{'path': '/goal', 'value': self.fake_goal1.uuid,
               'op': 'replace'}],
             expect_errors=True)
@@ -414,7 +414,7 @@ class TestPatch(FunctionalTestWithSetup):
             wraps=self.dbapi.update_audit_template
         ) as cn_mock:
             response = self.patch_json(
-                '/audit_templates/%s' % self.audit_template.uuid,
+                f'/audit_templates/{self.audit_template.uuid}',
                 [{'path': '/goal', 'value': utils.generate_uuid(),
                   'op': 'replace'}],
                 expect_errors=True)
@@ -423,7 +423,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def test_add_goal_uuid(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/goal',
               'value': self.fake_goal2.uuid,
               'op': 'add'}])
@@ -431,12 +431,12 @@ class TestPatch(FunctionalTestWithSetup):
         self.assertEqual(HTTPStatus.OK, response.status_int)
 
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertEqual(self.fake_goal2.uuid, response['goal_uuid'])
 
     def test_add_strategy_uuid(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/strategy',
               'value': self.fake_strategy1.uuid,
               'op': 'add'}])
@@ -444,12 +444,12 @@ class TestPatch(FunctionalTestWithSetup):
         self.assertEqual(HTTPStatus.OK, response.status_int)
 
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertEqual(self.fake_strategy1.uuid, response['strategy_uuid'])
 
     def test_replace_strategy_uuid(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/strategy',
               'value': self.fake_strategy2['uuid'],
               'op': 'replace'}])
@@ -457,13 +457,13 @@ class TestPatch(FunctionalTestWithSetup):
         self.assertEqual(HTTPStatus.OK, response.status_int)
 
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertEqual(
             self.fake_strategy2['uuid'], response['strategy_uuid'])
 
     def test_replace_invalid_strategy(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/strategy',
               'value': utils.generate_uuid(),  # Does not exist
               'op': 'replace'}], expect_errors=True)
@@ -473,7 +473,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def test_add_non_existent_property(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -483,26 +483,26 @@ class TestPatch(FunctionalTestWithSetup):
     def test_remove_strategy(self):
         audit_template = obj_utils.create_test_audit_template(
             self.context, uuid=utils.generate_uuid(),
-            name="AT_%s" % utils.generate_uuid(),
+            name=f"AT_{utils.generate_uuid()}",
             goal_id=self.fake_goal1.id,
             strategy_id=self.fake_strategy1.id)
         response = self.get_json(
-            '/audit_templates/%s' % audit_template.uuid)
+            f'/audit_templates/{audit_template.uuid}')
         self.assertIsNotNone(response['strategy_uuid'])
 
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/strategy', 'op': 'remove'}])
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.OK, response.status_code)
 
     def test_remove_goal(self):
         response = self.get_json(
-            '/audit_templates/%s' % self.audit_template.uuid)
+            f'/audit_templates/{self.audit_template.uuid}')
         self.assertIsNotNone(response['goal_uuid'])
 
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/goal', 'op': 'remove'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
@@ -511,7 +511,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def test_remove_uuid(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/uuid', 'op': 'remove'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
@@ -520,7 +520,7 @@ class TestPatch(FunctionalTestWithSetup):
 
     def test_remove_non_existent_property(self):
         response = self.patch_json(
-            '/audit_templates/%s' % self.audit_template.uuid,
+            f'/audit_templates/{self.audit_template.uuid}',
             [{'path': '/non-existent', 'op': 'remove'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
@@ -544,7 +544,7 @@ class TestPost(FunctionalTestWithSetup):
         # Check location header
         self.assertIsNotNone(response.location)
         expected_location = \
-            '/v1/audit_templates/%s' % response.json['uuid']
+            '/v1/audit_templates/{}'.format(response.json['uuid'])
         self.assertEqual(urlparse.urlparse(response.location).path,
                          expected_location)
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -571,7 +571,7 @@ class TestPost(FunctionalTestWithSetup):
         # Check location header
         self.assertIsNotNone(response.location)
         expected_location = \
-            '/v1/audit_templates/%s' % response.json['uuid']
+            '/v1/audit_templates/{}'.format(response.json['uuid'])
         self.assertEqual(urlparse.urlparse(response.location).path,
                          expected_location)
         self.assertTrue(utils.is_uuid_like(response.json['uuid']))
@@ -728,10 +728,10 @@ class TestDelete(api_base.FunctionalTest):
     def test_delete_audit_template_by_uuid(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
-        self.delete(urlparse.quote('/audit_templates/%s' %
-                                   self.audit_template.uuid))
+        self.delete(urlparse.quote(
+            f'/audit_templates/{self.audit_template.uuid}'))
         response = self.get_json(
-            urlparse.quote('/audit_templates/%s' % self.audit_template.uuid),
+            urlparse.quote(f'/audit_templates/{self.audit_template.uuid}'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
@@ -751,10 +751,10 @@ class TestDelete(api_base.FunctionalTest):
     def test_delete_audit_template_by_name(self, mock_utcnow):
         test_time = datetime.datetime(2000, 1, 1, 0, 0)
         mock_utcnow.return_value = test_time
-        self.delete(urlparse.quote('/audit_templates/%s' %
-                                   self.audit_template.name))
+        self.delete(urlparse.quote(
+            f'/audit_templates/{self.audit_template.name}'))
         response = self.get_json(
-            urlparse.quote('/audit_templates/%s' % self.audit_template.name),
+            urlparse.quote(f'/audit_templates/{self.audit_template.name}'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
@@ -773,7 +773,7 @@ class TestDelete(api_base.FunctionalTest):
     def test_delete_audit_template_not_found(self):
         uuid = utils.generate_uuid()
         response = self.delete(
-            '/audit_templates/%s' % uuid, expect_errors=True)
+            f'/audit_templates/{uuid}', expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -790,7 +790,7 @@ class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -803,7 +803,7 @@ class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:get", self.get_json,
-            '/audit_templates/%s' % audit_template.uuid,
+            f'/audit_templates/{audit_template.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):
@@ -817,7 +817,7 @@ class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:update", self.patch_json,
-            '/audit_templates/%s' % audit_template.uuid,
+            f'/audit_templates/{audit_template.uuid}',
             [{'path': '/state', 'value': objects.audit.State.SUCCEEDED,
               'op': 'replace'}], expect_errors=True)
 
@@ -842,7 +842,7 @@ class TestAuditTemplatePolicyEnforcement(api_base.FunctionalTest):
         audit_template = obj_utils.create_test_audit_template(self.context)
         self._common_policy_check(
             "audit_template:delete", self.delete,
-            '/audit_templates/%s' % audit_template.uuid, expect_errors=True)
+            f'/audit_templates/{audit_template.uuid}', expect_errors=True)
 
 
 class TestAuditTemplatePolicyWithAdminContext(TestListAuditTemplate,

@@ -157,9 +157,9 @@ class CinderHelper:
             time.sleep(retry_interval)
             if getattr(volume, 'migration_status') == 'error':
                 host_name = getattr(volume, 'os-vol-host-attr:host')
-                error_msg = (("Volume migration error : "
-                             "volume %(volume)s is now on host '%(host)s'.") %
-                             {'volume': volume.id, 'host': host_name})
+                error_msg = ("Volume migration error : "
+                             f"volume {volume.id} is now on host "
+                             f"'{host_name}'.")
                 LOG.error(error_msg)
                 return False
 
@@ -173,9 +173,8 @@ class CinderHelper:
                     return False
         else:
             host_name = getattr(volume, 'os-vol-host-attr:host')
-            error_msg = (("Volume migration error : "
-                         "volume %(volume)s is now on host '%(host)s'.") %
-                         {'volume': volume.id, 'host': host_name})
+            error_msg = ("Volume migration error : "
+                         f"volume {volume.id} is now on host '{host_name}'.")
             LOG.error(error_msg)
             return False
         LOG.debug(
