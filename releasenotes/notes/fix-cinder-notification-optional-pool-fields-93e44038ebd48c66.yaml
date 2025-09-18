@@ -1,0 +1,12 @@
+---
+fixes:
+  - |
+    Fixed an ``AttributeError`` raised in the decision engine when
+    processing Cinder notifications for pools whose storage driver does
+    not report all optional pool fields. Some drivers (like the nfs
+    driver) do not report fields such as total_volumes, free_capacity_gb,
+    provisioned_capacity_gb or allocated_capacity_gb that the lvm driver
+    does, so assuming those fields are always present in the notification
+    payload was wrong. These fields are now only updated when present.
+
+    See: https://bugs.launchpad.net/watcher/+bug/2125060 for more details.

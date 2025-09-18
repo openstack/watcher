@@ -24,7 +24,9 @@ from watcher.common import cinder_helper
 from watcher.common import context
 from watcher.common import exception
 from watcher.common import service as watcher_service
+from watcher.common.cinder_helper import StoragePool
 from watcher.db.sqlalchemy import api as db_api
+from watcher.decision_engine.model.element.node import Pool
 from watcher.decision_engine.model.notification import cinder as cnotification
 from watcher.tests.unit import base as base_test
 from watcher.tests.unit.db import utils
@@ -833,3 +835,228 @@ class TestCinderNotificationsEmptyModel(NotificationTestCase):
         # check that delete_volume is not called
         m_cinder_helper.assert_not_called()
         m_delete_volume.assert_not_called()
+
+
+class TestCinderNotificationMethods(base_test.TestCase):
+    @mock.patch.object(cnotification.CinderNotification, "get_or_create_node")
+    @mock.patch.object(cnotification.CinderNotification, "cluster_data_model")
+    def test_update_pool(self, mock_cluster_data_model, mock_get_create_node):
+        test_data = {
+            "name_to_id": "test@backend#pool",
+            "total": 28.5,
+            "free": 28.5,
+            "allocated": 1.0,
+            "provisioned": 1.0,
+            "virtual_free": 569.0,
+            'reported_at': '2025-10-08T14:37:06.278955',
+        }
+        expected_data = {
+            "total_capacity_gb": 28.5,
+            "free_capacity_gb": 28.5,
+            "allocated_capacity_gb": 1.0,
+            "provisioned_capacity_gb": 1.0,
+            "virtual_free": 569.0,
+        }
+
+        mock_pool = mock.MagicMock(spec=Pool)
+        mock_pool.name = "test@backend#pool"
+        mock_pool.allocated_capacity_gb = 0
+        mock_pool.free_capacity_gb = 28
+        mock_pool.provisioned_capacity_gb = 0
+        mock_pool.total_capacity_gb = 28
+        mock_pool.total_volumes = 1
+        mock_pool.uuid = ''
+        mock_pool.virtual_free = 0
+
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        notification.update_pool(mock_pool, test_data)
+        mock_pool.update.assert_called_once_with(expected_data)
+        mock_get_create_node.assert_called_once_with("test@backend")
+        mock_cluster_data_model.map_pool.assert_called_once_with(
+            mock_pool, mock_get_create_node.return_value
+        )
+
+    @mock.patch.object(cnotification.CinderNotification, "get_or_create_node")
+    @mock.patch.object(cnotification.CinderNotification, "cluster_data_model")
+    def test_update_pool_miss_optional_fields(
+        self, mock_cluster_data_model, mock_get_create_node
+    ):
+        test_data = {
+            "name_to_id": "test@backend#pool",
+            "total": 28.5,
+            "free": 28.5,
+            "virtual_free": 569.0,
+            'reported_at': '2025-10-08T14:37:06.278955',
+        }
+        expected_data = {
+            "total_capacity_gb": 28.5,
+            "free_capacity_gb": 28.5,
+            "virtual_free": 569.0,
+        }
+
+        mock_pool = mock.MagicMock(spec=Pool)
+        mock_pool.name = "test@backend#pool"
+        mock_pool.free_capacity_gb = 28
+        mock_pool.total_capacity_gb = 28
+        mock_pool.total_volumes = 1
+        mock_pool.uuid = ''
+        mock_pool.virtual_free = 0
+
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        notification.update_pool(mock_pool, test_data)
+        mock_pool.update.assert_called_once_with(expected_data)
+        mock_get_create_node.assert_called_once_with("test@backend")
+        mock_cluster_data_model.map_pool.assert_called_once_with(
+            mock_pool, mock_get_create_node.return_value
+        )
+
+    @mock.patch.object(cnotification.CinderNotification, "get_or_create_node")
+    @mock.patch.object(cnotification.CinderNotification, "cluster_data_model")
+    @mock.patch.object(cnotification.CinderNotification, "cinder")
+    def test_update_pool_by_api(
+        self, mock_cinder, mock_cluster_data_model, mock_get_create_node
+    ):
+        mock_pool = mock.MagicMock(spec=Pool)
+        mock_pool.name = "test@backend#pool"
+        mock_pool.allocated_capacity_gb = 0
+        mock_pool.free_capacity_gb = 28
+        mock_pool.provisioned_capacity_gb = 0
+        mock_pool.total_capacity_gb = 28
+        mock_pool.total_volumes = 1
+        mock_pool.uuid = ''
+        mock_pool.virtual_free = 0
+
+        expected_data = {
+            "total_capacity_gb": 28.5,
+            "free_capacity_gb": 28.5,
+            "total_volumes": 1,
+            "allocated_capacity_gb": 1.0,
+            "provisioned_capacity_gb": 1.0,
+        }
+
+        cinder_pool = StoragePool(
+            name="test@backend#pool",
+            pool_name=None,
+            total_volumes=1,
+            total_capacity_gb=28.5,
+            free_capacity_gb=28.5,
+            provisioned_capacity_gb=1.0,
+            allocated_capacity_gb=1.0,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name=None,
+            capabilities={},
+        )
+
+        mock_cinder.get_storage_pool_by_name.return_value = cinder_pool
+
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        notification.update_pool_by_api(mock_pool)
+        mock_pool.update.assert_called_once_with(expected_data)
+        mock_get_create_node.assert_called_once_with("test@backend")
+        mock_cluster_data_model.map_pool.assert_called_once_with(
+            mock_pool, mock_get_create_node.return_value
+        )
+
+    @mock.patch.object(cnotification.CinderNotification, "get_or_create_node")
+    @mock.patch.object(cnotification.CinderNotification, "cluster_data_model")
+    @mock.patch.object(cnotification.CinderNotification, "cinder")
+    def test_update_pool_by_api_missing_fields(
+        self, mock_cinder, mock_cluster_data_model, mock_get_create_node
+    ):
+        """Test that pools missing total_volumes are updated properly."""
+        mock_pool = mock.MagicMock(spec=Pool)
+        mock_pool.name = "test@backend#pool"
+        mock_pool.allocated_capacity_gb = 0
+        mock_pool.free_capacity_gb = 28
+        mock_pool.provisioned_capacity_gb = 0
+        mock_pool.total_capacity_gb = 28
+        mock_pool.uuid = ''
+        mock_pool.virtual_free = 0
+
+        expected_data = {
+            "total_capacity_gb": 28.5,
+            "free_capacity_gb": 28.5,
+            "allocated_capacity_gb": 1.0,
+            "provisioned_capacity_gb": 1.0,
+        }
+
+        # total_volumes is 0 (not reported), so it must be excluded from the
+        # pool update
+        cinder_pool = StoragePool(
+            name="test@backend#pool",
+            pool_name=None,
+            total_volumes=0,
+            total_capacity_gb=28.5,
+            free_capacity_gb=28.5,
+            provisioned_capacity_gb=1.0,
+            allocated_capacity_gb=1.0,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name=None,
+            capabilities={},
+        )
+
+        mock_cinder.get_storage_pool_by_name.return_value = cinder_pool
+
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        notification.update_pool_by_api(mock_pool)
+        mock_pool.update.assert_called_once_with(expected_data)
+        mock_get_create_node.assert_called_once_with("test@backend")
+        mock_cluster_data_model.map_pool.assert_called_once_with(
+            mock_pool, mock_get_create_node.return_value
+        )
+
+    @mock.patch.object(cnotification.CinderNotification, "cinder")
+    def test_create_pool(self, mock_cinder):
+
+        pool_name = "test-pool"
+        cinder_pool = StoragePool(
+            name=pool_name,
+            pool_name=None,
+            total_volumes=1,
+            total_capacity_gb=28,
+            free_capacity_gb=28,
+            provisioned_capacity_gb=1,
+            allocated_capacity_gb=1,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name=None,
+            capabilities={},
+        )
+
+        mock_cinder.get_storage_pool_by_name.return_value = cinder_pool
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        pool = notification.create_pool(pool_name)
+        self.assertEqual(pool.name, pool_name)
+        self.assertEqual(pool.total_capacity_gb, 28)
+        self.assertEqual(pool.free_capacity_gb, 28)
+        self.assertEqual(pool.provisioned_capacity_gb, 1)
+        self.assertEqual(pool.allocated_capacity_gb, 1)
+        self.assertEqual(pool.total_volumes, 1)
+
+    @mock.patch.object(cnotification.CinderNotification, "cinder")
+    def test_create_pool_missing_fields(self, mock_cinder):
+
+        pool_name = "test-pool"
+        # provisioned_capacity_gb is None and total_volumes is 0, so both are
+        # not reported and must be excluded from the created pool
+        cinder_pool = StoragePool(
+            name=pool_name,
+            pool_name=None,
+            total_volumes=0,
+            total_capacity_gb=28,
+            free_capacity_gb=28,
+            provisioned_capacity_gb=None,
+            allocated_capacity_gb=1,
+            max_over_subscription_ratio=1.0,
+            volume_backend_name=None,
+            capabilities={},
+        )
+
+        mock_cinder.get_storage_pool_by_name.return_value = cinder_pool
+        notification = cnotification.VolumeCreateEnd(mock.Mock())
+        pool = notification.create_pool(pool_name)
+        self.assertEqual(pool.name, pool_name)
+        self.assertEqual(pool.total_capacity_gb, 28)
+        self.assertEqual(pool.free_capacity_gb, 28)
+        self.assertEqual(pool.allocated_capacity_gb, 1)
+        self.assertNotIn("provisioned_capacity_gb", pool)
+        self.assertNotIn("total_volumes", pool)
