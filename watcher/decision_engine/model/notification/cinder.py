@@ -24,6 +24,37 @@ from watcher.decision_engine.model.notification import filtering
 
 LOG = log.getLogger(__name__)
 
+# Capacity fields that are not reported by all cinder drivers. On the
+# StoragePool dataclass they are None when the driver does not report them.
+optional_capacity_fields = [
+    'total_capacity_gb',
+    'free_capacity_gb',
+    'provisioned_capacity_gb',
+    'allocated_capacity_gb',
+]
+
+
+def _extract_optional_pool_fields(pool_obj):
+    """Extract optional pool fields from a StoragePool dataclass.
+
+    These fields are not reported by all cinder drivers, so only include
+    them when the driver actually reported a value. On the StoragePool
+    dataclass the capacity fields are None when not reported, while
+    total_volumes is an int that defaults to 0 when not reported.
+
+    :param pool_obj: StoragePool dataclass instance from the Cinder helper
+    :returns: Dictionary containing optional fields that are present
+    """
+    pool_data = {}
+    # total_volumes defaults to 0 when the driver does not report it
+    if pool_obj.total_volumes:
+        pool_data['total_volumes'] = pool_obj.total_volumes
+    for field in optional_capacity_fields:
+        value = getattr(pool_obj, field)
+        if value is not None:
+            pool_data[field] = value
+    return pool_data
+
 
 class CinderNotification(base.NotificationEndpoint):
     def __init__(self, collector):
@@ -38,15 +69,20 @@ class CinderNotification(base.NotificationEndpoint):
 
     def update_pool(self, pool, data):
         """Update the storage pool using the notification data."""
-        pool.update(
-            {
-                "total_capacity_gb": data['total'],
-                "free_capacity_gb": data['free'],
-                "provisioned_capacity_gb": data['provisioned'],
-                "allocated_capacity_gb": data['allocated'],
-                "virtual_free": data['virtual_free'],
-            }
-        )
+        pool_data = {}
+        # these fields are not reported by all cinder drivers, so only update
+        # them if they are present
+        if 'virtual_free' in data:
+            pool_data['virtual_free'] = data['virtual_free']
+        if 'total' in data:
+            pool_data['total_capacity_gb'] = data['total']
+        if 'free' in data:
+            pool_data['free_capacity_gb'] = data['free']
+        if 'provisioned' in data:
+            pool_data['provisioned_capacity_gb'] = data['provisioned']
+        if 'allocated' in data:
+            pool_data['allocated_capacity_gb'] = data['allocated']
+        pool.update(pool_data)
 
         node_name = pool.name.split("#")[0]
         node = self.get_or_create_node(node_name)
@@ -58,15 +94,9 @@ class CinderNotification(base.NotificationEndpoint):
         if not pool:
             return
         _pool = self.cinder.get_storage_pool_by_name(pool.name)
-        pool.update(
-            {
-                "total_volumes": _pool.total_volumes,
-                "total_capacity_gb": _pool.total_capacity_gb,
-                "free_capacity_gb": _pool.free_capacity_gb,
-                "provisioned_capacity_gb": _pool.provisioned_capacity_gb,
-                "allocated_capacity_gb": _pool.allocated_capacity_gb,
-            }
-        )
+        pool_data = _extract_optional_pool_fields(_pool)
+        pool.update(pool_data)
+
         node_name = pool.name.split("#")[0]
         node = self.get_or_create_node(node_name)
         self.cluster_data_model.map_pool(pool, node)
@@ -112,14 +142,8 @@ class CinderNotification(base.NotificationEndpoint):
         """Create the storage pool by querying the Cinder API."""
         try:
             _pool = self.cinder.get_storage_pool_by_name(pool_name)
-            pool = element.Pool(
-                name=_pool.name,
-                total_volumes=_pool.total_volumes,
-                total_capacity_gb=_pool.total_capacity_gb,
-                free_capacity_gb=_pool.free_capacity_gb,
-                provisioned_capacity_gb=_pool.provisioned_capacity_gb,
-                allocated_capacity_gb=_pool.allocated_capacity_gb,
-            )
+            pool_data = _extract_optional_pool_fields(_pool)
+            pool = element.Pool(name=_pool.name, **pool_data)
             return pool
         except Exception as exc:
             LOG.exception(exc)
