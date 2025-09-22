@@ -85,6 +85,8 @@
               min_microversion: 1.29
             telemetry:
               ceilometer_polling_interval: 15
+            optimize:
+              run_continuous_audit_tests: true
       devstack_plugins:
         ceilometer: https://opendev.org/openstack/ceilometer
 
@@ -233,6 +235,7 @@
               datasource: prometheus
               extended_attributes_nova_microversion: "2.96"
               data_model_collectors_period: 120
+              run_continuous_audit_tests: true
       tempest_plugins:
         - watcher-tempest-plugin
       # All tests inside watcher_tempest_plugin.tests.scenario with tag "strategy"
