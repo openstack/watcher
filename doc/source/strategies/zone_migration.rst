@@ -188,9 +188,6 @@ How to use it ?
       -p compute_nodes='[{"src_node": "s01", "dst_node": "d01"}]'
 
 .. note::
-   * Currently, the strategy will not generate both volume migration and
-     instance migrations in the same audit. If both are requested,
-     only volume migrations will be included in the action plan.
    * The Cinder model collector is not enabled by default.
      If the Cinder model collector is not enabled while deploying Watcher,
      the model will become outdated and cause errors eventually.
