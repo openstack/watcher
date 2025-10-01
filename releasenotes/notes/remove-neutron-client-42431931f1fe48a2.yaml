@@ -1,0 +1,9 @@
+---
+other:
+  - |
+    The experimental neutron client integration has been removed from Watcher.
+    The neutron client and related methods (create_instance,
+    get_security_group_id_from_name, get_network_id_from_name) became dead
+    code after the legacy workflow removal in commit 4179c3527c. This removal
+    eliminates the python-neutronclient dependency and neutron_client
+    configuration options with no user-facing impact.

@@ -37,7 +37,6 @@ from watcher.conf import keystone_client
 from watcher.conf import maas_client
 from watcher.conf import models
 from watcher.conf import monasca_client
-from watcher.conf import neutron_client
 from watcher.conf import nova_client
 from watcher.conf import paths
 from watcher.conf import placement_client
@@ -67,7 +66,6 @@ keystone_client.register_opts(CONF)
 grafana_client.register_opts(CONF)
 grafana_translators.register_opts(CONF)
 cinder_client.register_opts(CONF)
-neutron_client.register_opts(CONF)
 clients_auth.register_opts(CONF)
 ironic_client.register_opts(CONF)
 collector.register_opts(CONF)
