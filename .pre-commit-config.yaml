@@ -38,7 +38,7 @@ repos:
     rev: 1.8.3
     hooks:
       - id: bandit
-        args: ['-x', 'tests', '-s', 'B101,B311,B320']
+        args: ['-c', 'pyproject.toml']
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.1
     hooks:
