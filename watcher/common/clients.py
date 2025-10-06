@@ -15,7 +15,6 @@ from oslo_config import cfg
 import warnings
 
 from cinderclient import client as ciclient
-from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
 from ironicclient import client as irclient
 from keystoneauth1 import adapter as ka_adapter
@@ -69,7 +68,6 @@ class OpenStackClients:
         self._session = None
         self._keystone = None
         self._nova = None
-        self._glance = None
         self._gnocchi = None
         self._cinder = None
         self._monasca = None
@@ -129,28 +127,6 @@ class OpenStackClients:
                                      region_name=nova_region_name,
                                      session=self.session)
         return self._nova
-
-    @exception.wrap_keystone_exception
-    def glance(self):
-        if self._glance:
-            return self._glance
-
-        # NOTE(dviroel): This integration is classified as Experimental due to
-        # the lack of documentation and CI testing. It can be marked as
-        # supported or deprecated in future releases, based on improvements.
-        debtcollector.deprecate(
-            ("Glance is an experimental integration and may be "
-             "deprecated in future releases."),
-            version="2025.2", category=PendingDeprecationWarning)
-        glanceclient_version = self._get_client_option('glance', 'api_version')
-        glance_endpoint_type = self._get_client_option('glance',
-                                                       'endpoint_type')
-        glance_region_name = self._get_client_option('glance', 'region_name')
-        self._glance = glclient.Client(glanceclient_version,
-                                       interface=glance_endpoint_type,
-                                       region_name=glance_region_name,
-                                       session=self.session)
-        return self._glance
 
     @exception.wrap_keystone_exception
     def gnocchi(self):

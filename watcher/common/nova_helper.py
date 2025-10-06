@@ -39,7 +39,6 @@ class NovaHelper:
         self.osc = osc if osc else clients.OpenStackClients()
         self.cinder = self.osc.cinder()
         self.nova = self.osc.nova()
-        self.glance = self.osc.glance()
         self._is_pinned_az_available = None
 
     def is_pinned_az_available(self):
@@ -461,72 +460,6 @@ class NovaHelper:
                 reason=reason).status == 'disabled'
 
         return status
-
-    def create_image_from_instance(self, instance_id, image_name,
-                                   metadata={"reason": "instance_migrate"}):
-        """This method creates a new image from a given instance.
-
-        It waits for this image to be in 'active' state before returning.
-        It returns the unique UUID of the created image if successful,
-        None otherwise.
-
-        :param instance_id: the uniqueid of
-            the instance to backup as an image.
-        :param image_name: the name of the image to create.
-        :param metadata: a dictionary containing the list of
-            key-value pairs to associate to the image as metadata.
-        """
-        LOG.debug(
-            "Trying to create an image from instance %s ...", instance_id)
-
-        # Looking for the instance
-        instance = self.find_instance(instance_id)
-
-        if not instance:
-            LOG.debug("Instance not found: %s", instance_id)
-            return None
-        else:
-            host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
-            LOG.debug(
-                "Instance %(instance)s found on host '%(host)s'.",
-                {'instance': instance_id, 'host': host_name})
-
-            # We need to wait for an appropriate status
-            # of the instance before we can build an image from it
-            if self.wait_for_instance_status(instance, ('ACTIVE', 'SHUTOFF'),
-                                             5,
-                                             10):
-                image_uuid = self.nova.servers.create_image(instance_id,
-                                                            image_name,
-                                                            metadata)
-
-                image = self.glance.images.get(image_uuid)
-                if not image:
-                    return None
-
-                # Waiting for the new image to be officially in ACTIVE state
-                # in order to make sure it can be used
-                status = image.status
-                retry = 10
-                while status != 'active' and status != 'error' and retry:
-                    time.sleep(5)
-                    retry -= 1
-                    # Retrieve the instance again so the status field updates
-                    image = self.glance.images.get(image_uuid)
-                    if not image:
-                        break
-                    status = image.status
-                    LOG.debug("Current image status: %s", status)
-
-                if not image:
-                    LOG.debug("Image not found: %s", image_uuid)
-                else:
-                    LOG.debug(
-                        "Image %(image)s successfully created for "
-                        "instance %(instance)s",
-                        {'image': image_uuid, 'instance': instance_id})
-                    return image_uuid
-        return None
 
     def delete_instance(self, instance_id):
         """This method deletes a given instance.
