@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -376,7 +375,7 @@ class AuditTemplate(base.APIBase):
     """Audit Scope"""
 
     def __init__(self, **kwargs):
-        super(AuditTemplate, self).__init__()
+        super().__init__()
         self.fields = []
         fields = list(objects.AuditTemplate.fields)
 
@@ -453,7 +452,7 @@ class AuditTemplateCollection(collection.Collection):
     """A list containing audit templates objects"""
 
     def __init__(self, **kwargs):
-        super(AuditTemplateCollection, self).__init__()
+        super().__init__()
         self._type = 'audit_templates'
 
     @staticmethod
@@ -477,7 +476,7 @@ class AuditTemplatesController(rest.RestController):
     """REST controller for AuditTemplates."""
 
     def __init__(self):
-        super(AuditTemplatesController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -131,7 +130,7 @@ class GoalCollection(collection.Collection):
     """A list containing goals objects"""
 
     def __init__(self, **kwargs):
-        super(GoalCollection, self).__init__()
+        super().__init__()
         self._type = 'goals'
 
     @staticmethod
@@ -155,7 +154,7 @@ class GoalsController(rest.RestController):
     """REST controller for Goals."""
 
     def __init__(self):
-        super(GoalsController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

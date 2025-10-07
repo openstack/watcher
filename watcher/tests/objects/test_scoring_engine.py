@@ -27,7 +27,7 @@ from watcher.tests.db import utils
 class TestScoringEngineObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestScoringEngineObject, self).setUp()
+        super().setUp()
         self.fake_scoring_engine = utils.get_test_scoring_engine(
             created_at=timeutils.utcnow())
 

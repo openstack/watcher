@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -32,7 +31,7 @@ from watcher.tests import conf_fixture
 class TestNovaClusterDataModelCollector(base.TestCase):
 
     def setUp(self):
-        super(TestNovaClusterDataModelCollector, self).setUp()
+        super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
 
     @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
@@ -360,7 +359,7 @@ class TestNovaModelBuilder(base.TestCase):
         result = set()
         t_nova_cluster._collect_aggregates(m_scope, result)
 
-        self.assertEqual(set(['hostone', 'hosttwo']), result)
+        self.assertEqual({'hostone', 'hosttwo'}, result)
 
     @mock.patch.object(nova_helper, 'NovaHelper')
     def test_collect_aggregates_none(self, m_nova):
@@ -387,7 +386,7 @@ class TestNovaModelBuilder(base.TestCase):
         result = set()
         t_nova_cluster._collect_zones(m_scope, result)
 
-        self.assertEqual(set(['hostone']), result)
+        self.assertEqual({'hostone'}, result)
 
     @mock.patch.object(nova_helper, 'NovaHelper')
     def test_collect_zones_none(self, m_nova):

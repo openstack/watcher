@@ -112,7 +112,7 @@ jQuery(document).ready(function(){
             col = nodes.entry()
             row.append(col)
 
-            with open(self.SAMPLE_ROOT + sample_file, 'r') as f:
+            with open(self.SAMPLE_ROOT + sample_file) as f:
                 sample_content = f.read()
 
             event_type = sample_file[0: -5]

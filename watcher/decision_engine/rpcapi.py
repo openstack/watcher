@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 # Copyright (c) 2016 Intel Corp
 #
@@ -31,7 +30,7 @@ CONF = conf.CONF
 class DecisionEngineAPI(service.Service):
 
     def __init__(self):
-        super(DecisionEngineAPI, self).__init__(DecisionEngineAPIManager)
+        super().__init__(DecisionEngineAPIManager)
 
     def trigger_audit(self, context, audit_uuid=None):
         if not utils.is_uuid_like(audit_uuid):

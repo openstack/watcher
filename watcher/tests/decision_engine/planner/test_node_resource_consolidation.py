@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestActionScheduling(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionScheduling, self).setUp()
+        super().setUp()
         self.goal = db_utils.create_test_goal(name="server_consolidation")
         self.strategy = db_utils.create_test_strategy(
             name="node_resource_consolidation")
@@ -204,7 +203,7 @@ class TestActionScheduling(base.DbTestCase):
 class TestDefaultPlanner(base.DbTestCase):
 
     def setUp(self):
-        super(TestDefaultPlanner, self).setUp()
+        super().setUp()
         self.planner = pbase.NodeResourceConsolidationPlanner(mock.Mock())
 
         self.goal = obj_utils.create_test_goal(self.context)

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright © 2012 New Dream Network, LLC (DreamHost)
 #
@@ -26,7 +25,7 @@ from watcher.api.controllers import link
 from watcher.api.controllers import v1
 
 
-class APIStatus(object):
+class APIStatus:
     CURRENT = "CURRENT"
     SUPPORTED = "SUPPORTED"
     DEPRECATED = "DEPRECATED"
@@ -118,4 +117,5 @@ class RootController(rest.RestController):
 
         if args[0] and args[0] not in self._versions:
             args = [self._default_version] + args
-        return super(RootController, self)._route(args, request)
+
+        return super()._route(args, request)

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ LOG = log.getLogger(__name__)
 
 class DefaultStrategyContext(base.StrategyContext):
     def __init__(self):
-        super(DefaultStrategyContext, self).__init__()
+        super().__init__()
         LOG.debug("Initializing Strategy Context")
 
     @staticmethod

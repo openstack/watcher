@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ import jsonschema
 from oslo_serialization import jsonutils
 
 
-class EfficacySpecification(object, metaclass=abc.ABCMeta):
+class EfficacySpecification(metaclass=abc.ABCMeta):
 
     def __init__(self):
         self._indicators_specs = self.get_indicators_specifications()

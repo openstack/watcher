@@ -24,7 +24,7 @@ from watcher.tests.fixtures import watcher as watcher_fixtures
 
 class TestKeystoneHelper(test.TestCase):
     def setUp(self):
-        super(TestKeystoneHelper, self).setUp()
+        super().setUp()
         self.fake_keystone = self.useFixture(watcher_fixtures.KeystoneClient())
         self.keystone_svs = self.fake_keystone.m_keystone.return_value.services
 

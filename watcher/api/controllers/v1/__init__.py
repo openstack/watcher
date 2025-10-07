@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,10 +71,10 @@ class APIBase(wtypes.Base):
 
     def as_dict(self):
         """Render this object as a dict of its fields."""
-        return dict((k, getattr(self, k))
-                    for k in self.fields
-                    if hasattr(self, k) and
-                    getattr(self, k) != wsme.Unset)
+        return {k: getattr(self, k)
+                for k in self.fields
+                if hasattr(self, k) and
+                getattr(self, k) != wsme.Unset}
 
     def unset_fields_except(self, except_list=None):
         """Unset fields so they don't appear in the message body.
@@ -282,7 +281,7 @@ class Controller(rest.RestController):
             ' '.join([versions.service_type_string(), str(v)]))
         pecan.request.version = v
 
-        return super(Controller, self)._route(args, request)
+        return super()._route(args, request)
 
 
 __all__ = ("Controller", )

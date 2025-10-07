@@ -20,7 +20,7 @@ from watcher.tests import base
 
 class TestDefaultActionLoader(base.TestCase):
     def setUp(self):
-        super(TestDefaultActionLoader, self).setUp()
+        super().setUp()
         self.loader = default.DefaultActionLoader()
 
     def test_endpoints(self):

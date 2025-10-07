@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestPurgeCommand(base.DbTestCase):
 
     def setUp(self):
-        super(TestPurgeCommand, self).setUp()
+        super().setUp()
         self.cmd = purge.PurgeCommand()
         token_info = {
             'token': {
@@ -335,8 +334,8 @@ class TestPurgeCommand(base.DbTestCase):
         self.assertEqual(len(objects_map.action_plans), 3)
         self.assertEqual(len(objects_map.actions), 3)
         self.assertEqual(
-            set([self.action1.id, action4.id, action5.id]),
-            set([entry.id for entry in objects_map.actions]))
+            {self.action1.id, action4.id, action5.id},
+            {entry.id for entry in objects_map.actions})
 
     @mock.patch.object(dbapi.Connection, "destroy_action")
     @mock.patch.object(dbapi.Connection, "destroy_action_plan")

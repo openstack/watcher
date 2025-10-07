@@ -27,7 +27,7 @@ class BaseWatcherDirective(rst.Directive):
 
     def __init__(self, name, arguments, options, content, lineno,
                  content_offset, block_text, state, state_machine):
-        super(BaseWatcherDirective, self).__init__(
+        super().__init__(
             name, arguments, options, content, lineno,
             content_offset, block_text, state, state_machine)
         self.result = statemachine.ViewList()

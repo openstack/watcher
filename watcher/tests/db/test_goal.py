@@ -30,7 +30,7 @@ class TestDbGoalFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbGoalFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -84,8 +84,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'deleted': False})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_deleted_at_eq(self):
         self._soft_delete_goals()
@@ -102,8 +102,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_deleted_at_lte(self):
         self._soft_delete_goals()
@@ -112,8 +112,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_deleted_at_gt(self):
         self._soft_delete_goals()
@@ -130,8 +130,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal1.uuid, self.goal2.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal1.uuid, self.goal2.uuid},
+            {r.uuid for r in res})
 
     # created_at #
 
@@ -146,16 +146,16 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_created_at_lte(self):
         res = self.dbapi.get_goal_list(
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_created_at_gt(self):
         res = self.dbapi.get_goal_list(
@@ -168,8 +168,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal1.uuid, self.goal2.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal1.uuid, self.goal2.uuid},
+            {r.uuid for r in res})
 
     # updated_at #
 
@@ -188,8 +188,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'updated_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_updated_at_lte(self):
         self._update_goals()
@@ -198,8 +198,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal2.uuid, self.goal3.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal2.uuid, self.goal3.uuid},
+            {r.uuid for r in res})
 
     def test_get_goal_list_filter_updated_at_gt(self):
         self._update_goals()
@@ -216,8 +216,8 @@ class TestDbGoalFilters(base.DbTestCase):
             self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.goal1.uuid, self.goal2.uuid]),
-            set([r.uuid for r in res]))
+            {self.goal1.uuid, self.goal2.uuid},
+            {r.uuid for r in res})
 
 
 class DbGoalTestCase(base.DbTestCase):

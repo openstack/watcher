@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +44,7 @@ class FakeLoadableWithOpts(loadable.Loadable):
 class TestLoader(base.TestCase):
 
     def setUp(self):
-        super(TestLoader, self).setUp()
+        super().setUp()
 
         def _fake_parse(self, *args, **kw):
             return cfg.ConfigOpts._parse_cli_opts(cfg.CONF, [])

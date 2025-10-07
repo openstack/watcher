@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -82,7 +81,7 @@ class TestReceiveNovaNotifications(NotificationTestCase):
         }
 
     def setUp(self):
-        super(TestReceiveNovaNotifications, self).setUp()
+        super().setUp()
 
         p_from_dict = mock.patch.object(context.RequestContext, 'from_dict')
         m_from_dict = p_from_dict.start()
@@ -117,7 +116,7 @@ class TestNovaNotifications(NotificationTestCase):
     FAKE_METADATA = {'message_id': None, 'timestamp': None}
 
     def setUp(self):
-        super(TestNovaNotifications, self).setUp()
+        super().setUp()
         # fake cluster
         self.fake_cdmc = faker_cluster_state.FakerModelCollector()
 

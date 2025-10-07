@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -45,7 +44,7 @@ class FakeGoal(base_goal.Goal):
 
 class DummyIndicator(indicators.IndicatorSpecification):
     def __init__(self):
-        super(DummyIndicator, self).__init__(
+        super().__init__(
             name="dummy",
             description="Dummy indicator",
             unit="%",

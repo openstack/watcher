@@ -24,7 +24,7 @@ CONF = conf.CONF
 LOG = log.getLogger(__name__)
 
 
-class KeystoneHelper(object):
+class KeystoneHelper:
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""

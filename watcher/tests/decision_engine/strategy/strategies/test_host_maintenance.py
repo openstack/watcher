@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 chinac.com
 #
 # Authors: suzhengwei<suzhengwei@chinac.com>
@@ -29,7 +28,7 @@ from watcher.tests.decision_engine.strategy.strategies.test_base \
 class TestHostMaintenance(TestBaseStrategy):
 
     def setUp(self):
-        super(TestHostMaintenance, self).setUp()
+        super().setUp()
         self.strategy = strategies.HostMaintenance(config=mock.Mock())
 
     def test_get_instance_state_str(self):

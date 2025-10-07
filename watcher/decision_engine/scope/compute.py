@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ class ComputeScope(base.BaseScope):
     """Compute Audit Scope Handler"""
 
     def __init__(self, scope, config, osc=None):
-        super(ComputeScope, self).__init__(scope, config)
+        super().__init__(scope, config)
         self._osc = osc
         self.wrapper = nova_helper.NovaHelper(osc=self._osc)
 

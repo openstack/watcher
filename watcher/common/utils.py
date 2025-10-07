@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -126,10 +125,9 @@ def extend_with_default(validator_class):
             if "default" in subschema and instance is not None:
                 instance.setdefault(prop, subschema["default"])
 
-            for error in validate_properties(
+            yield from validate_properties(
                 validator, properties, instance, schema
-            ):
-                yield error
+            )
 
     return validators.extend(validator_class,
                              {"properties": set_defaults})
@@ -147,10 +145,9 @@ def extend_with_strict_schema(validator_class):
             if para not in properties.keys():
                 raise exception.AuditParameterNotAllowed(parameter=para)
 
-            for error in validate_properties(
+            yield from validate_properties(
                 validator, properties, instance, schema
-            ):
-                yield error
+            )
 
     return validators.extend(validator_class, {"properties": strict_schema})
 

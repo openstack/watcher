@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 Intel Corp
 #
 # Authors: Junjie-Huang <junjie.huang@intel.com>
@@ -86,7 +85,7 @@ class OutletTempControl(base.ThermalOptimizationBaseStrategy):
         :param osc: an OpenStackClients object, defaults to None
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
-        super(OutletTempControl, self).__init__(config, osc)
+        super().__init__(config, osc)
 
     @classmethod
     def get_name(cls):

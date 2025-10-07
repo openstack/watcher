@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -162,7 +161,7 @@ class AuditPostType(wtypes.Base):
                 'strategy': 'strategy_id',
                 'scope': 'scope',
             }
-            to_string_fields = set(['goal', 'strategy'])
+            to_string_fields = {'goal', 'strategy'}
             for k in at2a:
                 if not getattr(self, k):
                     try:
@@ -466,7 +465,7 @@ class AuditCollection(collection.Collection):
     """A list containing audits objects"""
 
     def __init__(self, **kwargs):
-        super(AuditCollection, self).__init__()
+        super().__init__()
         self._type = 'audits'
 
     @staticmethod
@@ -489,7 +488,7 @@ class AuditsController(rest.RestController):
     """REST controller for Audits."""
 
     def __init__(self):
-        super(AuditsController, self).__init__()
+        super().__init__()
         self.dc_client = rpcapi.DecisionEngineAPI()
 
     _custom_actions = {

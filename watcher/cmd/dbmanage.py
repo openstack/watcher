@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright 2013 Hewlett-Packard Development Company, L.P.
 # All Rights Reserved.
@@ -31,7 +30,7 @@ from watcher.db import purge
 CONF = conf.CONF
 
 
-class DBCommand(object):
+class DBCommand:
 
     @staticmethod
     def upgrade():
@@ -145,11 +144,11 @@ def main():
     register_sub_command_opts()
     # this is hack to work with previous usage of watcher-dbsync
     # pls change it to watcher-dbsync upgrade
-    valid_commands = set([
+    valid_commands = {
         'upgrade', 'downgrade', 'revision',
         'version', 'stamp', 'create_schema',
         'purge',
-    ])
+    }
     if not set(sys.argv).intersection(valid_commands):
         sys.argv.append('upgrade')
 

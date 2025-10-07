@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ from watcher.tests import base
 class TestApi(base.BaseTestCase):
 
     def setUp(self):
-        super(TestApi, self).setUp()
+        super().setUp()
 
         self.conf = cfg.CONF
         self._parse_cli_opts = self.conf._parse_cli_opts
@@ -42,7 +41,7 @@ class TestApi(base.BaseTestCase):
         self.conf._parse_cli_opts = _fake_parse_method
 
     def tearDown(self):
-        super(TestApi, self).tearDown()
+        super().tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
     @mock.patch.object(wsgi, "Server", mock.Mock())

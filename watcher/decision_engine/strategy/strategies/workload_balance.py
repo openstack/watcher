@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel Corp
 #
 # Authors: Junjie-Huang <junjie.huang@intel.com>
@@ -72,7 +71,7 @@ class WorkloadBalance(base.WorkloadStabilizationBaseStrategy):
         :type config: :py:class:`~.Struct` instance
         :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(WorkloadBalance, self).__init__(config, osc)
+        super().__init__(config, osc)
         # the migration plan will be triggered when the CPU or RAM
         # utilization % reaches threshold
         self._meter = None

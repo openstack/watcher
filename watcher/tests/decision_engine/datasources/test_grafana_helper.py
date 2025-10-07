@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -43,7 +42,7 @@ class TestGrafana(base.BaseTestCase):
     """
 
     def setUp(self):
-        super(TestGrafana, self).setUp()
+        super().setUp()
 
         self.p_conf = mock.patch.object(
             grafana, 'CONF',

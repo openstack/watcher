@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ from watcher.objects import base
 from watcher.objects import fields as wfields
 
 
-class ServiceStatus(object):
+class ServiceStatus:
     ACTIVE = 'ACTIVE'
     FAILED = 'FAILED'
 

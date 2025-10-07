@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -39,7 +38,7 @@ CONF = cfg.CONF
 class TestMonascaHelper(base.BaseTestCase):
 
     def setUp(self):
-        super(TestMonascaHelper, self).setUp()
+        super().setUp()
         self.osc_mock = mock.Mock()
         self.helper = monasca_helper.MonascaHelper(osc=self.osc_mock)
         stat_agg_patcher = mock.patch.object(

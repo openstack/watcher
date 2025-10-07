@@ -46,7 +46,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def __init__(self, config, osc=None):
 
-        super(ZoneMigration, self).__init__(config, osc)
+        super().__init__(config, osc)
         self._nova = None
         self._cinder = None
 
@@ -630,7 +630,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         }
 
 
-class ActionCounter(object):
+class ActionCounter:
     """Manage the number of actions in parallel"""
 
     def __init__(self, total_limit=6, per_pool_limit=2, per_node_limit=2):
@@ -710,7 +710,7 @@ class ActionCounter(object):
         return self.per_node_count[node] >= self.per_node_limit
 
 
-class BaseFilter(object):
+class BaseFilter:
     """Base class for Filter"""
 
     apply_targets = ('ALL',)
@@ -782,7 +782,7 @@ class ProjectSortFilter(SortMovingToFrontFilter):
     apply_targets = ('instance', 'volume')
 
     def __init__(self, values=[], **kwargs):
-        super(ProjectSortFilter, self).__init__(values, **kwargs)
+        super().__init__(values, **kwargs)
 
     def compare_func(self, item, sort_key):
         """Compare project id of item with sort_key
@@ -816,7 +816,7 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
     apply_targets = ('instance',)
 
     def __init__(self, values=[], **kwargs):
-        super(ComputeHostSortFilter, self).__init__(values, **kwargs)
+        super().__init__(values, **kwargs)
 
     def compare_func(self, item, sort_key):
         """Compare compute name of item with sort_key
@@ -870,7 +870,7 @@ class ComputeSpecSortFilter(BaseFilter):
     accept_keys = ['vcpu_num', 'mem_size', 'disk_size', 'created_at']
 
     def __init__(self, values=[], **kwargs):
-        super(ComputeSpecSortFilter, self).__init__(values, **kwargs)
+        super().__init__(values, **kwargs)
         self._nova = None
 
     @property

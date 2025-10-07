@@ -29,7 +29,7 @@ class TestPrometheusBase(base.BaseTestCase):
     """
 
     def setUp(self):
-        super(TestPrometheusBase, self).setUp()
+        super().setUp()
 
         with (
                 mock.patch.object(
@@ -297,10 +297,10 @@ class TestPrometheusBase(base.BaseTestCase):
 
     @mock.patch.object(prometheus_client.PrometheusAPIClient, '_get')
     def test_prometheus_list_metrics(self, mock_prometheus_get):
-        expected_metrics = set(
-            ['go_gc_duration_seconds', 'go_gc_duration_seconds_count',
-             'go_gc_duration_seconds_sum', 'go_goroutines',]
-        )
+        expected_metrics = {
+            'go_gc_duration_seconds', 'go_gc_duration_seconds_count',
+            'go_gc_duration_seconds_sum', 'go_goroutines'
+        }
         mock_prometheus_get.return_value = {
             'status': 'success', 'data': [
                 'go_gc_duration_seconds', 'go_gc_duration_seconds_count',

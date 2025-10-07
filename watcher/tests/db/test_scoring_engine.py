@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +31,7 @@ class TestDbScoringEngineFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbScoringEngineFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -89,8 +88,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'deleted': False})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_deleted_at_eq(self):
         self._soft_delete_scoring_engines()
@@ -107,8 +106,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_deleted_at_lte(self):
         self._soft_delete_scoring_engines()
@@ -117,8 +116,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_deleted_at_gt(self):
         self._soft_delete_scoring_engines()
@@ -135,8 +134,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine1['id'], self.scoring_engine2['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine1['id'], self.scoring_engine2['id']},
+            {r.id for r in res})
 
     # created_at #
 
@@ -151,16 +150,16 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_created_at_lte(self):
         res = self.dbapi.get_scoring_engine_list(
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_created_at_gt(self):
         res = self.dbapi.get_scoring_engine_list(
@@ -173,8 +172,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine1['id'], self.scoring_engine2['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine1['id'], self.scoring_engine2['id']},
+            {r.id for r in res})
 
     # updated_at #
 
@@ -193,8 +192,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'updated_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_updated_at_lte(self):
         self._update_scoring_engines()
@@ -203,8 +202,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine2['id'], self.scoring_engine3['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine2['id'], self.scoring_engine3['id']},
+            {r.id for r in res})
 
     def test_get_scoring_engine_list_filter_updated_at_gt(self):
         self._update_scoring_engines()
@@ -221,8 +220,8 @@ class TestDbScoringEngineFilters(base.DbTestCase):
             self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.scoring_engine1['id'], self.scoring_engine2['id']]),
-            set([r.id for r in res]))
+            {self.scoring_engine1['id'], self.scoring_engine2['id']},
+            {r.id for r in res})
 
 
 class DbScoringEngineTestCase(base.DbTestCase):
@@ -234,7 +233,7 @@ class DbScoringEngineTestCase(base.DbTestCase):
                 id=i,
                 uuid=w_utils.generate_uuid(),
                 name="SE_ID_%s" % i,
-                description='My ScoringEngine {0}'.format(i),
+                description='My ScoringEngine {}'.format(i),
                 metainfo='a{0}=b{0}'.format(i))
             names.append(str(scoring_engine['name']))
         scoring_engines = self.dbapi.get_scoring_engine_list(self.context)

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Intel Corp
 #
 # Authors: Junjie-Huang <junjie.huang@intel.com>
@@ -36,7 +35,7 @@ class TestUniformAirflow(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestUniformAirflow, self).setUp()
+        super().setUp()
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 

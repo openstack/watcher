@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica LLC
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
@@ -79,7 +78,7 @@ class WorkloadStabilization(base.WorkloadStabilizationBaseStrategy):
         :type config: :py:class:`~.Struct` instance
         :param osc: :py:class:`~.OpenStackClients` instance
         """
-        super(WorkloadStabilization, self).__init__(config, osc)
+        super().__init__(config, osc)
         self.weights = None
         self.metrics = None
         self.thresholds = None

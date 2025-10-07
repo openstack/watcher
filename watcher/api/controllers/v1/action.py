@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 Red Hat, Inc.
 # All Rights Reserved.
 #
@@ -173,7 +172,7 @@ class Action(base.APIBase):
     """Status message"""
 
     def __init__(self, **kwargs):
-        super(Action, self).__init__()
+        super().__init__()
 
         self.fields = []
         fields = list(objects.Action.fields)
@@ -263,7 +262,7 @@ class ActionsController(rest.RestController):
     """REST controller for Actions."""
 
     def __init__(self):
-        super(ActionsController, self).__init__()
+        super().__init__()
 
     _custom_actions = {
         'detail': ['GET'],

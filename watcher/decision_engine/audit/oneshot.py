@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +20,7 @@ from watcher import objects
 class OneShotAuditHandler(base.AuditHandler):
 
     def post_execute(self, audit, solution, request_context):
-        super(OneShotAuditHandler, self).post_execute(audit, solution,
-                                                      request_context)
+        super().post_execute(audit, solution,
+                             request_context)
         # change state of the audit to SUCCEEDED
         self.update_audit_state(audit, objects.audit.State.SUCCEEDED)

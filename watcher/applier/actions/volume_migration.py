@@ -66,7 +66,7 @@ class VolumeMigrate(base.BaseAction):
     DESTINATION_TYPE = "destination_type"
 
     def __init__(self, config, osc=None):
-        super(VolumeMigrate, self).__init__(config)
+        super().__init__(config)
         self.cinder_util = cinder_helper.CinderHelper(osc=self.osc)
         self.nova_util = nova_helper.NovaHelper(osc=self.osc)
 

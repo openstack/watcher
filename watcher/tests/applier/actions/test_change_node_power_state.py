@@ -30,7 +30,7 @@ COMPUTE_NODE = "compute-1"
 class TestChangeNodePowerState(base.TestCase):
 
     def setUp(self):
-        super(TestChangeNodePowerState, self).setUp()
+        super().setUp()
 
         p_m_factory = mock.patch.object(m_helper_factory, 'get_helper')
         m_factory = p_m_factory.start()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +32,7 @@ class TestDbServiceFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbServiceFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -91,8 +90,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'deleted': False})
 
         self.assertEqual(
-            set([self.service2['name'], self.service3['name']]),
-            set([r.name for r in res]))
+            {self.service2['name'], self.service3['name']},
+            {r.name for r in res})
 
     def test_get_service_list_filter_deleted_at_eq(self):
         self._soft_delete_services()
@@ -109,8 +108,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_deleted_at_lte(self):
         self._soft_delete_services()
@@ -119,8 +118,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_deleted_at_gt(self):
         self._soft_delete_services()
@@ -137,8 +136,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service1['id'], self.service2['id']]),
-            set([r.id for r in res]))
+            {self.service1['id'], self.service2['id']},
+            {r.id for r in res})
 
     # created_at #
 
@@ -153,16 +152,16 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_created_at_lte(self):
         res = self.dbapi.get_service_list(
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_created_at_gt(self):
         res = self.dbapi.get_service_list(
@@ -175,8 +174,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service1['id'], self.service2['id']]),
-            set([r.id for r in res]))
+            {self.service1['id'], self.service2['id']},
+            {r.id for r in res})
 
     # updated_at #
 
@@ -195,8 +194,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'updated_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_updated_at_lte(self):
         self._update_services()
@@ -205,8 +204,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service2['id'], self.service3['id']]),
-            set([r.id for r in res]))
+            {self.service2['id'], self.service3['id']},
+            {r.id for r in res})
 
     def test_get_service_list_filter_updated_at_gt(self):
         self._update_services()
@@ -223,8 +222,8 @@ class TestDbServiceFilters(base.DbTestCase):
             self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.service1['id'], self.service2['id']]),
-            set([r.id for r in res]))
+            {self.service1['id'], self.service2['id']},
+            {r.id for r in res})
 
 
 class DbServiceTestCase(base.DbTestCase):
@@ -235,7 +234,7 @@ class DbServiceTestCase(base.DbTestCase):
             service = utils.create_test_service(
                 id=i,
                 name="SERVICE_ID_%s" % i,
-                host="controller_{0}".format(i))
+                host="controller_{}".format(i))
             ids.append(service['id'])
         services = self.dbapi.get_service_list(self.context)
         service_ids = [s.id for s in services]

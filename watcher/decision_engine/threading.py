@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -29,7 +28,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class DecisionEngineThreadPool(object, metaclass=service.Singleton):
+class DecisionEngineThreadPool(metaclass=service.Singleton):
     """Singleton threadpool to submit general tasks to"""
 
     def __init__(self):

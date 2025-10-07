@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +44,7 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
             raise exception.ConfigInvalid(
                 error_msg=_('Cannot compile public API routes'))
 
-        super(AuthTokenMiddleware, self).__init__(app, conf)
+        super().__init__(app, conf)
 
     def __call__(self, env, start_response):
         path = utils.safe_rstrip(env.get('PATH_INFO'), '/')
@@ -59,4 +58,4 @@ class AuthTokenMiddleware(auth_token.AuthProtocol):
         if env['is_public_api']:
             return self._app(env, start_response)
 
-        return super(AuthTokenMiddleware, self).__call__(env, start_response)
+        return super().__call__(env, start_response)

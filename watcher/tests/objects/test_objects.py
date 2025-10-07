@@ -77,7 +77,7 @@ class MyObj(base.WatcherPersistentObject, base.WatcherObject,
         self.foo = 42
 
 
-class MyObj2(object):
+class MyObj2:
     @classmethod
     def obj_name(cls):
         return 'MyObj'
@@ -94,7 +94,7 @@ class WatcherTestSubclassedObject(MyObj):
 
 class _LocalTest(test_base.TestCase):
     def setUp(self):
-        super(_LocalTest, self).setUp()
+        super().setUp()
         # Just in case
         base.WatcherObject.indirection_api = None
 
@@ -109,7 +109,7 @@ def things_temporarily_local():
     base.WatcherObject.indirection_api = _api
 
 
-class _TestObject(object):
+class _TestObject:
     def test_hydration_type_error(self):
         primitive = {'watcher_object.name': 'MyObj',
                      'watcher_object.namespace': 'watcher',
@@ -195,11 +195,11 @@ class _TestObject(object):
     def test_changes_in_primitive(self):
         obj = MyObj(self.context)
         obj.foo = 123
-        self.assertEqual(set(['foo']), obj.obj_what_changed())
+        self.assertEqual({'foo'}, obj.obj_what_changed())
         primitive = obj.obj_to_primitive()
         self.assertIn('watcher_object.changes', primitive)
         obj2 = MyObj.obj_from_primitive(primitive)
-        self.assertEqual(set(['foo']), obj2.obj_what_changed())
+        self.assertEqual({'foo'}, obj2.obj_what_changed())
         obj2.obj_reset_changes()
         self.assertEqual(set(), obj2.obj_what_changed())
 
@@ -223,34 +223,34 @@ class _TestObject(object):
     def test_changed_1(self):
         obj = MyObj.query(self.context)
         obj.foo = 123
-        self.assertEqual(set(['foo']), obj.obj_what_changed())
+        self.assertEqual({'foo'}, obj.obj_what_changed())
         obj.update_test(self.context)
-        self.assertEqual(set(['foo', 'bar']), obj.obj_what_changed())
+        self.assertEqual({'foo', 'bar'}, obj.obj_what_changed())
         self.assertEqual(123, obj.foo)
 
     def test_changed_2(self):
         obj = MyObj.query(self.context)
         obj.foo = 123
-        self.assertEqual(set(['foo']), obj.obj_what_changed())
+        self.assertEqual({'foo'}, obj.obj_what_changed())
         obj.save()
-        self.assertEqual(set([]), obj.obj_what_changed())
+        self.assertEqual(set(), obj.obj_what_changed())
         self.assertEqual(123, obj.foo)
 
     def test_changed_3(self):
         obj = MyObj.query(self.context)
         obj.foo = 123
-        self.assertEqual(set(['foo']), obj.obj_what_changed())
+        self.assertEqual({'foo'}, obj.obj_what_changed())
         obj.refresh()
-        self.assertEqual(set([]), obj.obj_what_changed())
+        self.assertEqual(set(), obj.obj_what_changed())
         self.assertEqual(321, obj.foo)
         self.assertEqual('refreshed', obj.bar)
 
     def test_changed_4(self):
         obj = MyObj.query(self.context)
         obj.bar = 'something'
-        self.assertEqual(set(['bar']), obj.obj_what_changed())
+        self.assertEqual({'bar'}, obj.obj_what_changed())
         obj.modify_save_modify(self.context)
-        self.assertEqual(set(['foo']), obj.obj_what_changed())
+        self.assertEqual({'foo'}, obj.obj_what_changed())
         self.assertEqual(42, obj.foo)
         self.assertEqual('meow', obj.bar)
 
@@ -356,8 +356,8 @@ class _TestObject(object):
                 return 'this is bar'
 
         obj = TestObj(self.context)
-        self.assertEqual(set(['created_at', 'updated_at', 'deleted_at',
-                              'foo', 'bar']),
+        self.assertEqual({'created_at', 'updated_at', 'deleted_at',
+                          'foo', 'bar'},
                          set(obj.obj_fields))
 
     def test_refresh_object(self):
@@ -381,7 +381,7 @@ class _TestObject(object):
         obj = MyObj(self.context, foo=123, bar='abc')
         self.assertEqual(123, obj.foo)
         self.assertEqual('abc', obj.bar)
-        self.assertEqual(set(['foo', 'bar']), obj.obj_what_changed())
+        self.assertEqual({'foo', 'bar'}, obj.obj_what_changed())
 
     def test_assign_value_without_DictCompat(self):
         class TestObj(base.WatcherObject):
@@ -534,7 +534,7 @@ class TestRegistry(test_base.TestCase):
         reg = base.WatcherObjectRegistry()
         reg.registration_hook(MyObj, 0)
 
-        class MyNewerObj(object):
+        class MyNewerObj:
             VERSION = '1.123'
 
             @classmethod
@@ -551,7 +551,7 @@ class TestRegistry(test_base.TestCase):
         reg = base.WatcherObjectRegistry()
         reg.registration_hook(MyObj, 0)
 
-        class MyOlderObj(object):
+        class MyOlderObj:
             VERSION = '1.1'
 
             @classmethod

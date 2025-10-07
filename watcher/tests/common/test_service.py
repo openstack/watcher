@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,13 +26,13 @@ from watcher.tests import base
 CONF = cfg.CONF
 
 
-class DummyEndpoint(object):
+class DummyEndpoint:
 
     def __init__(self, messaging):
         self._messaging = messaging
 
 
-class DummyManager(object):
+class DummyManager:
 
     API_VERSION = '1.0'
 
@@ -77,7 +76,7 @@ class TestServiceHeartbeat(base.TestCase):
 class TestService(base.TestCase):
 
     def setUp(self):
-        super(TestService, self).setUp()
+        super().setUp()
 
     @mock.patch.object(om.rpc.server, "RPCServer")
     def _test_start(self, m_handler):

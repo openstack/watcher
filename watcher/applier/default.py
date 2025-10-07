@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -29,7 +28,7 @@ CONF = cfg.CONF
 
 class DefaultApplier(base.BaseApplier):
     def __init__(self, context, applier_manager):
-        super(DefaultApplier, self).__init__()
+        super().__init__()
         self._applier_manager = applier_manager
         self._loader = default.DefaultWorkFlowEngineLoader()
         self._engine = None

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -28,7 +27,7 @@ from watcher.decision_engine.loading import default
 LOG = log.getLogger(__name__)
 
 
-class CollectorManager(object):
+class CollectorManager:
 
     def __init__(self, osc=None):
         self.collector_loader = default.ClusterDataModelCollectorLoader()

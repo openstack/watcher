@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -42,7 +41,7 @@ CONF = conf.CONF
 class TestNovaHelper(base.TestCase):
 
     def setUp(self):
-        super(TestNovaHelper, self).setUp()
+        super().setUp()
         self.instance_uuid = "fb5311b7-37f3-457e-9cde-6494a3c59bfe"
         self.source_node = "ldev-indeedsrv005"
         self.destination_node = "ldev-indeedsrv006"

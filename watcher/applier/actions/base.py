@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -42,7 +41,7 @@ class BaseAction(loadable.Loadable, metaclass=abc.ABCMeta):
         :param osc: an OpenStackClients instance, defaults to None
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
-        super(BaseAction, self).__init__(config)
+        super().__init__(config)
         self._input_parameters = {}
         self._osc = osc
 

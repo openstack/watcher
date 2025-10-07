@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,7 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
     FAKE_TODAY = '2017-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbActionDescriptionFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 
@@ -93,9 +92,9 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'deleted': False})
 
         self.assertEqual(
-            set([self.action_desc2['action_type'],
-                self.action_desc3['action_type']]),
-            set([r.action_type for r in res]))
+            {self.action_desc2['action_type'],
+                self.action_desc3['action_type']},
+            {r.action_type for r in res})
 
     def test_get_action_desc_list_filter_deleted_at_eq(self):
         self._soft_delete_action_descs()
@@ -112,8 +111,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_deleted_at_lte(self):
         self._soft_delete_action_descs()
@@ -122,8 +121,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'deleted_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_deleted_at_gt(self):
         self._soft_delete_action_descs()
@@ -140,8 +139,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'deleted_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc1['id'], self.action_desc2['id']]),
-            set([r.id for r in res]))
+            {self.action_desc1['id'], self.action_desc2['id']},
+            {r.id for r in res})
 
     # created_at #
 
@@ -156,16 +155,16 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'created_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_created_at_lte(self):
         res = self.dbapi.get_action_description_list(
             self.context, filters={'created_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_created_at_gt(self):
         res = self.dbapi.get_action_description_list(
@@ -178,8 +177,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'created_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc1['id'], self.action_desc2['id']]),
-            set([r.id for r in res]))
+            {self.action_desc1['id'], self.action_desc2['id']},
+            {r.id for r in res})
 
     # updated_at #
 
@@ -198,8 +197,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'updated_at__lt': self.FAKE_TODAY})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_updated_at_lte(self):
         self._update_action_descs()
@@ -208,8 +207,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'updated_at__lte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc2['id'], self.action_desc3['id']]),
-            set([r.id for r in res]))
+            {self.action_desc2['id'], self.action_desc3['id']},
+            {r.id for r in res})
 
     def test_get_action_desc_list_filter_updated_at_gt(self):
         self._update_action_descs()
@@ -226,8 +225,8 @@ class TestDbActionDescriptionFilters(base.DbTestCase):
             self.context, filters={'updated_at__gte': self.FAKE_OLD_DATE})
 
         self.assertEqual(
-            set([self.action_desc1['id'], self.action_desc2['id']]),
-            set([r.id for r in res]))
+            {self.action_desc1['id'], self.action_desc2['id']},
+            {r.id for r in res})
 
 
 class DbActionDescriptionTestCase(base.DbTestCase):
@@ -238,7 +237,7 @@ class DbActionDescriptionTestCase(base.DbTestCase):
             action_desc = utils.create_test_action_desc(
                 id=i,
                 action_type="action_%s" % i,
-                description="description_{0}".format(i))
+                description="description_{}".format(i))
             ids.append(action_desc['id'])
         action_descs = self.dbapi.get_action_description_list(self.context)
         action_desc_ids = [s.id for s in action_descs]

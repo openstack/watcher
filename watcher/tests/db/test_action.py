@@ -31,7 +31,7 @@ class TestDbActionFilters(base.DbTestCase):
     FAKE_TODAY = '2016-02-24T09:52:05.219414'
 
     def setUp(self):
-        super(TestDbActionFilters, self).setUp()
+        super().setUp()
         self.context.show_deleted = True
         self._data_setup()
 

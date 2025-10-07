@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -78,7 +77,7 @@ class TerseAuditPayload(notificationbase.NotificationPayloadBase):
     }
 
     def __init__(self, audit, goal_uuid, strategy_uuid=None, **kwargs):
-        super(TerseAuditPayload, self).__init__(
+        super().__init__(
             goal_uuid=goal_uuid, strategy_uuid=strategy_uuid, **kwargs)
         self.populate_schema(audit=audit)
 
@@ -122,7 +121,7 @@ class AuditPayload(TerseAuditPayload):
         if strategy and not kwargs.get('strategy_uuid'):
             kwargs['strategy_uuid'] = strategy.uuid
 
-        super(AuditPayload, self).__init__(
+        super().__init__(
             audit=audit, goal=goal,
             strategy=strategy, **kwargs)
 
@@ -150,7 +149,7 @@ class AuditCreatePayload(AuditPayload):
     fields = {}
 
     def __init__(self, audit, goal, strategy):
-        super(AuditCreatePayload, self).__init__(
+        super().__init__(
             audit=audit,
             goal=goal,
             goal_uuid=goal.uuid,
@@ -169,7 +168,7 @@ class AuditUpdatePayload(AuditPayload):
     }
 
     def __init__(self, audit, state_update, goal, strategy):
-        super(AuditUpdatePayload, self).__init__(
+        super().__init__(
             audit=audit,
             state_update=state_update,
             goal=goal,
@@ -189,7 +188,7 @@ class AuditActionPayload(AuditPayload):
     }
 
     def __init__(self, audit, goal, strategy, **kwargs):
-        super(AuditActionPayload, self).__init__(
+        super().__init__(
             audit=audit,
             goal=goal,
             goal_uuid=goal.uuid,
@@ -207,7 +206,7 @@ class AuditDeletePayload(AuditPayload):
     fields = {}
 
     def __init__(self, audit, goal, strategy):
-        super(AuditDeletePayload, self).__init__(
+        super().__init__(
             audit=audit,
             goal=goal,
             goal_uuid=goal.uuid,

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2017 NEC Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +24,7 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-class DataSourceBase(object):
+class DataSourceBase:
     """Base Class for datasources in Watcher
 
     This base class defines the abstract methods that datasources should

@@ -80,7 +80,7 @@ class FlexibleDictField(fields.AutoTypedField):
     def _null(self, obj, attr):
         if self.nullable:
             return {}
-        super(FlexibleDictField, self)._null(obj, attr)
+        super()._null(obj, attr)
 
 
 class FlexibleListOfDict(fields.FieldType):
@@ -100,7 +100,7 @@ class FlexibleListOfDictField(fields.AutoTypedField):
     def _null(self, obj, attr):
         if self.nullable:
             return []
-        super(FlexibleListOfDictField, self)._null(obj, attr)
+        super()._null(obj, attr)
 
 
 class Json(fields.FieldType):
@@ -128,7 +128,7 @@ class BaseWatcherEnum(Enum):
     ALL = ()
 
     def __init__(self, **kwargs):
-        super(BaseWatcherEnum, self).__init__(valid_values=self.__class__.ALL)
+        super().__init__(valid_values=self.__class__.ALL)
 
 
 class NotificationPriority(BaseWatcherEnum):

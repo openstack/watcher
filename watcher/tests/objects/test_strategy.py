@@ -40,7 +40,7 @@ class TestStrategyObject(base.DbTestCase):
     ]
 
     def setUp(self):
-        super(TestStrategyObject, self).setUp()
+        super().setUp()
         self.fake_goal = utils.create_test_goal(id=self.goal_id)
 
     def eager_load_strategy_assert(self, strategy):
@@ -130,7 +130,7 @@ class TestStrategyObject(base.DbTestCase):
 class TestCreateDeleteStrategyObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestCreateDeleteStrategyObject, self).setUp()
+        super().setUp()
         self.fake_goal = utils.create_test_goal()
         self.fake_strategy = utils.get_test_strategy(goal_id=self.fake_goal.id)
 

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +26,7 @@ from watcher.tests.objects import utils as obj_utils
 
 class TestAuditEndpoint(base.DbTestCase):
     def setUp(self):
-        super(TestAuditEndpoint, self).setUp()
+        super().setUp()
         self.goal = obj_utils.create_test_goal(self.context)
         self.audit_template = obj_utils.create_test_audit_template(
             self.context)

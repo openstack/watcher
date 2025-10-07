@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -34,7 +33,7 @@ class InfluxDBGrafanaTranslator(BaseGrafanaTranslator):
     NAME = 'influxdb'
 
     def __init__(self, data):
-        super(InfluxDBGrafanaTranslator, self).__init__(data)
+        super().__init__(data)
 
     def build_params(self):
         """"""

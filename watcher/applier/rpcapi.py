@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 # Copyright (c) 2016 Intel Corp
 #
@@ -30,7 +29,7 @@ CONF = conf.CONF
 class ApplierAPI(service.Service):
 
     def __init__(self):
-        super(ApplierAPI, self).__init__(ApplierAPIManager)
+        super().__init__(ApplierAPIManager)
 
     def launch_action_plan(self, context, action_plan_uuid=None):
         if not utils.is_uuid_like(action_plan_uuid):

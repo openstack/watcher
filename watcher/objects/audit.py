@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2013 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -62,7 +61,7 @@ from watcher.objects import base
 from watcher.objects import fields as wfields
 
 
-class State(object):
+class State:
     ONGOING = 'ONGOING'
     SUCCEEDED = 'SUCCEEDED'
     FAILED = 'FAILED'
@@ -129,7 +128,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
     def __init__(self, *args, **kwargs):
         if 'force' not in kwargs:
             kwargs['force'] = False
-        super(Audit, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     # Proxified field so we can keep the previous value after an update
     _state = None
@@ -343,7 +342,7 @@ class Audit(base.WatcherPersistentObject, base.WatcherObject,
         _notify()
 
 
-class AuditStateTransitionManager(object):
+class AuditStateTransitionManager:
 
     TRANSITIONS = {
         State.PENDING: [State.ONGOING, State.CANCELLED],

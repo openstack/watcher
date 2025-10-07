@@ -41,7 +41,7 @@ class NotificationObject(base.WatcherObject):
     VERSION = '1.0'
 
     def __init__(self, **kwargs):
-        super(NotificationObject, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         # The notification objects are created on the fly when watcher emits
         # the notification. This causes that every object shows every field as
         # changed. We don't want to send this meaningless information so we
@@ -104,7 +104,7 @@ class NotificationPayloadBase(NotificationObject):
     VERSION = '1.0'
 
     def __init__(self, **kwargs):
-        super(NotificationPayloadBase, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         self.populated = not self.SCHEMA
 
     def populate_schema(self, **kwargs):

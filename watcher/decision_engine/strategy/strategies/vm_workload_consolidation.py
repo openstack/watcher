@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Authors: Vojtech CIMA <cima@zhaw.ch>
 #          Bruno GRAZIOLI <gaea@zhaw.ch>
@@ -77,7 +76,7 @@ class VMWorkloadConsolidation(base.ServerConsolidationBaseStrategy):
     CHANGE_NOVA_SERVICE_STATE = "change_nova_service_state"
 
     def __init__(self, config, osc=None):
-        super(VMWorkloadConsolidation, self).__init__(config, osc)
+        super().__init__(config, osc)
         self.number_of_migrations = 0
         self.number_of_released_nodes = 0
         self.datasource_instance_data_cache = dict()

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +25,7 @@ from watcher.tests import base
 class TestDefaultGoalLoader(base.TestCase):
 
     def setUp(self):
-        super(TestDefaultGoalLoader, self).setUp()
+        super().setUp()
         self.goal_loader = default_loading.DefaultGoalLoader()
 
     def test_load_goal_with_empty_model(self):

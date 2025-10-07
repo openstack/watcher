@@ -39,8 +39,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Infrastructure Optimization API Reference'
-copyright = u'2010-present, OpenStack Foundation'
+project = 'Infrastructure Optimization API Reference'
+copyright = '2010-present, OpenStack Foundation'
 
 # openstackdocstheme options
 openstackdocs_repo_name = 'openstack/watcher'
@@ -70,6 +70,6 @@ html_theme_options = {
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index', 'Watcher.tex', u'Infrastructure Optimization API Reference',
-     u'OpenStack Foundation', 'manual'),
+    ('index', 'Watcher.tex', 'Infrastructure Optimization API Reference',
+     'OpenStack Foundation', 'manual'),
 ]

@@ -27,7 +27,7 @@ from watcher.tests.db import utils
 class TestGoalObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestGoalObject, self).setUp()
+        super().setUp()
         self.fake_goal = utils.get_test_goal(
             created_at=timeutils.utcnow())
 

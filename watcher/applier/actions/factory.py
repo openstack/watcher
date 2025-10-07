@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +21,7 @@ from watcher.applier.loading import default
 LOG = log.getLogger(__name__)
 
 
-class ActionFactory(object):
+class ActionFactory:
     def __init__(self):
         self.action_loader = default.DefaultActionLoader()
 

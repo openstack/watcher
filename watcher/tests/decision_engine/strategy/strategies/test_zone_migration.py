@@ -29,7 +29,7 @@ volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
 class TestZoneMigration(TestBaseStrategy):
 
     def setUp(self):
-        super(TestZoneMigration, self).setUp()
+        super().setUp()
 
         # fake storage cluster
         self.fake_s_cluster = faker_cluster_state.FakerStorageModelCollector()

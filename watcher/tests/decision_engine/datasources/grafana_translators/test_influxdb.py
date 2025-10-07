@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 European Organization for Nuclear Research (CERN)
 #
 # Authors: Corne Lukken <info@dantalion.nl>
@@ -40,7 +39,7 @@ class TestInfluxDBGrafanaTranslator(test_base.TestGrafanaTranslatorBase):
     """
 
     def setUp(self):
-        super(TestInfluxDBGrafanaTranslator, self).setUp()
+        super().setUp()
 
         self.p_conf = mock.patch.object(
             influxdb, 'CONF',

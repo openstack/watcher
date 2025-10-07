@@ -82,12 +82,12 @@ class TestListService(api_base.FunctionalTest):
         for idx in range(1, 4):
             service = obj_utils.create_test_service(
                 self.context, id=idx, host='CONTROLLER1',
-                name='SERVICE_{0}'.format(idx))
+                name='SERVICE_{}'.format(idx))
             service_list.append(service.id)
         for idx in range(1, 4):
             service = obj_utils.create_test_service(
                 self.context, id=3+idx, host='CONTROLLER2',
-                name='SERVICE_{0}'.format(idx))
+                name='SERVICE_{}'.format(idx))
             service_list.append(service.id)
         response = self.get_json('/services')
         self.assertEqual(6, len(response['services']))
@@ -101,12 +101,12 @@ class TestListService(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             service = obj_utils.create_test_service(
                 self.context, id=id_, host='CONTROLLER',
-                name='SERVICE_{0}'.format(id_))
+                name='SERVICE_{}'.format(id_))
             service_list.append(service.id)
         for id_ in [4, 5]:
             service = obj_utils.create_test_service(
                 self.context, id=id_, host='CONTROLLER',
-                name='SERVICE_{0}'.format(id_))
+                name='SERVICE_{}'.format(id_))
             service.soft_delete()
         response = self.get_json('/services')
         self.assertEqual(3, len(response['services']))
@@ -118,7 +118,7 @@ class TestListService(api_base.FunctionalTest):
             obj_utils.create_test_service(
                 self.context, id=idx,
                 host='CONTROLLER',
-                name='SERVICE_{0}'.format(idx))
+                name='SERVICE_{}'.format(idx))
         response = self.get_json('/services/?limit=2')
         self.assertEqual(2, len(response['services']))
 
@@ -127,7 +127,7 @@ class TestListService(api_base.FunctionalTest):
             obj_utils.create_test_service(
                 self.context, id=idx,
                 host='CONTROLLER',
-                name='SERVICE_{0}'.format(idx))
+                name='SERVICE_{}'.format(idx))
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/services')
         self.assertEqual(3, len(response['services']))
@@ -137,7 +137,7 @@ class TestListService(api_base.FunctionalTest):
         for id_ in range(1, 4):
             service = obj_utils.create_test_service(
                 self.context, id=id_, host='CONTROLLER',
-                name='SERVICE_{0}'.format(id_))
+                name='SERVICE_{}'.format(id_))
             service_list.append(service.name)
 
         response = self.get_json('/services/?sort_key=name')
@@ -190,7 +190,7 @@ class TestServiceEnforcementWithAdminContext(TestListService,
                                              api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestServiceEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

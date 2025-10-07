@@ -29,7 +29,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestListActionPlan(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestListActionPlan, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -189,10 +189,10 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list = []
         audit1 = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
+            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
         audit2 = obj_utils.create_test_audit(
             self.context, id=3,
-            uuid=utils.generate_uuid(), name='My Audit {0}'.format(3))
+            uuid=utils.generate_uuid(), name='My Audit {}'.format(3))
 
         for id_ in range(0, 2):
             action_plan = obj_utils.create_test_action_plan(
@@ -229,7 +229,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list = []
         audit = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
+            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -244,7 +244,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan_list1 = []
         audit1 = obj_utils.create_test_audit(
             self.context, id=2,
-            uuid=utils.generate_uuid(), name='My Audit {0}'.format(2))
+            uuid=utils.generate_uuid(), name='My Audit {}'.format(2))
         for id_ in range(2, 5):
             action_plan = obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
@@ -253,7 +253,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 
         audit2 = obj_utils.create_test_audit(
             self.context, id=3,
-            uuid=utils.generate_uuid(), name='My Audit {0}'.format(3))
+            uuid=utils.generate_uuid(), name='My Audit {}'.format(3))
         action_plan_list2 = []
         for id_ in [5, 6, 7]:
             action_plan = obj_utils.create_test_action_plan(
@@ -303,7 +303,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         for id_ in range(2, 5):
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {0}'.format(id_))
+                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
             obj_utils.create_test_action_plan(
                 self.context, id=id_, uuid=utils.generate_uuid(),
                 audit_id=audit.id)
@@ -358,7 +358,7 @@ class TestListActionPlan(api_base.FunctionalTest):
 class TestDelete(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestDelete, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -426,7 +426,7 @@ class TestDelete(api_base.FunctionalTest):
 class TestStart(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestStart, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -473,7 +473,7 @@ class TestStart(api_base.FunctionalTest):
 class TestPatch(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestPatch, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -635,7 +635,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
     ]
 
     def setUp(self):
-        super(TestPatchStateTransitionDenied, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -674,7 +674,7 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
     ]
 
     def setUp(self):
-        super(TestPatchStateTransitionOk, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -702,7 +702,7 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
 class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestActionPlanPolicyEnforcement, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -758,7 +758,7 @@ class TestActionPlanPolicyEnforcementWithAdminContext(TestListActionPlan,
                                                       api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestActionPlanPolicyEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

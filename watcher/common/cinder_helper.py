@@ -27,7 +27,7 @@ CONF = conf.CONF
 LOG = log.getLogger(__name__)
 
 
-class CinderHelper(object):
+class CinderHelper:
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""

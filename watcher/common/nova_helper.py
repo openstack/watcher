@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -34,7 +33,7 @@ LOG = log.getLogger(__name__)
 CONF = conf.CONF
 
 
-class NovaHelper(object):
+class NovaHelper:
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""

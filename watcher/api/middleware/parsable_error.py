@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Copyright © 2012 New Dream Network, LLC (DreamHost)
 #
@@ -31,7 +30,7 @@ from watcher._i18n import _
 LOG = log.getLogger(__name__)
 
 
-class ParsableErrorMiddleware(object):
+class ParsableErrorMiddleware:
     """Replace error body with something the client can parse."""
 
     def __init__(self, app):

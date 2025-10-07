@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <Vincent.FRANCOISE@b-com.com>
@@ -27,7 +26,7 @@ See: :doc:`../architecture` for more details on this component.
 import abc
 
 
-class Model(object, metaclass=abc.ABCMeta):
+class Model(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def to_string(self):

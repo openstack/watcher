@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica LTD
 #
 # Authors: Alexander Chadin <a.chadin@servionica.ru>
@@ -52,8 +51,8 @@ class WatcherJobStore(sqlalchemy.SQLAlchemyJobStore):
     def __init__(self, url=None, engine=None, tablename='apscheduler_jobs',
                  metadata=None, pickle_protocol=pickle.HIGHEST_PROTOCOL,
                  tag=None):
-        super(WatcherJobStore, self).__init__(url, engine, tablename,
-                                              metadata, pickle_protocol)
+        super().__init__(url, engine, tablename,
+                         metadata, pickle_protocol)
         metadata = maybe_ref(metadata) or MetaData()
         self.jobs_t = Table(tablename, metadata, autoload_with=engine)
         service_ident = service.ServiceHeartbeat.get_service_name()

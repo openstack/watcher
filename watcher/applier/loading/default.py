@@ -16,11 +16,11 @@ from watcher.common.loader import default
 
 class DefaultWorkFlowEngineLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultWorkFlowEngineLoader, self).__init__(
+        super().__init__(
             namespace='watcher_workflow_engines')
 
 
 class DefaultActionLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultActionLoader, self).__init__(
+        super().__init__(
             namespace='watcher_actions')

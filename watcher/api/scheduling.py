@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +34,7 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
 
     def __init__(self, gconfig={}, **options):
         self.services_status = {}
-        super(APISchedulingService, self).__init__(gconfig, **options)
+        super().__init__(gconfig, **options)
 
     def get_services_status(self, context):
         services = objects.service.Service.list(context)
@@ -110,7 +109,7 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
                      trigger='interval', jobstore='default', args=[context],
                      next_run_time=datetime.datetime.now(),
                      seconds=CONF.periodic_interval)
-        super(APISchedulingService, self).start()
+        super().start()
 
     def stop(self):
         """Stop service."""

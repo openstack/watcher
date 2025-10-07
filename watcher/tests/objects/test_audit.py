@@ -55,7 +55,7 @@ class TestAuditObject(base.DbTestCase):
     ]
 
     def setUp(self):
-        super(TestAuditObject, self).setUp()
+        super().setUp()
 
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
@@ -174,7 +174,7 @@ class TestAuditObject(base.DbTestCase):
 class TestCreateDeleteAuditObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestCreateDeleteAuditObject, self).setUp()
+        super().setUp()
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
         self.m_audit_notifications = p_audit_notifications.start()
@@ -242,7 +242,7 @@ class TestCreateDeleteAuditObject(base.DbTestCase):
 class TestAuditObjectSendNotifications(base.DbTestCase):
 
     def setUp(self):
-        super(TestAuditObjectSendNotifications, self).setUp()
+        super().setUp()
         goal_id = 1
         self.fake_goal = utils.create_test_goal(id=goal_id, name="DUMMY")
         self.fake_strategy = utils.create_test_strategy(

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +16,7 @@
 import abc
 
 
-class BaseLoader(object, metaclass=abc.ABCMeta):
+class BaseLoader(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def list_available(self):

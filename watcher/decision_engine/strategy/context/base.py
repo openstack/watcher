@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -23,7 +22,7 @@ from watcher import notifications
 from watcher.objects import fields
 
 
-class StrategyContext(object, metaclass=abc.ABCMeta):
+class StrategyContext(metaclass=abc.ABCMeta):
 
     def execute_strategy(self, audit, request_context):
         """Execute the strategy for the given an audit

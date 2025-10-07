@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 Intel Corp
 #
 # Authors: Prudhvi Rao Shedimbi <prudhvi.rao.shedimbi@intel.com>

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -43,7 +42,7 @@ class Element(base.WatcherObject, base.WatcherObjectDictCompat,
             if (name not in kwargs and not field.nullable and
                     field.default != wfields.UnspecifiedDefault):
                 kwargs[name] = field.default
-        super(Element, self).__init__(context, **kwargs)
+        super().__init__(context, **kwargs)
 
     @abc.abstractmethod
     def accept(self, visitor):

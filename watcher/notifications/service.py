@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 Servionica
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,7 +39,7 @@ class ServicePayload(notificationbase.NotificationPayloadBase):
     }
 
     def __init__(self, failed_service, status_update, **kwargs):
-        super(ServicePayload, self).__init__(
+        super().__init__(
             failed_service=failed_service,
             status_update=status_update, **kwargs)
         self.populate_schema(failed_service=failed_service)
@@ -65,7 +64,7 @@ class ServiceUpdatePayload(ServicePayload):
     }
 
     def __init__(self, failed_service, status_update):
-        super(ServiceUpdatePayload, self).__init__(
+        super().__init__(
             failed_service=failed_service,
             status_update=status_update)
 

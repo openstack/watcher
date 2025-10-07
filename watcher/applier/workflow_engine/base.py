@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 #
@@ -48,7 +47,7 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
         :param osc: an OpenStackClients object, defaults to None
         :type osc: :py:class:`~.OpenStackClients` instance, optional
         """
-        super(BaseWorkFlowEngine, self).__init__(config)
+        super().__init__(config)
         self._context = context
         self._applier_manager = applier_manager
         self._action_factory = factory.ActionFactory()
@@ -111,7 +110,7 @@ class BaseWorkFlowEngine(loadable.Loadable, metaclass=abc.ABCMeta):
 class BaseTaskFlowActionContainer(flow_task.Task):
 
     def __init__(self, name, db_action, engine, **kwargs):
-        super(BaseTaskFlowActionContainer, self).__init__(name=name)
+        super().__init__(name=name)
         self._db_action = db_action
         self._engine = engine
         self.loaded_action = None

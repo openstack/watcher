@@ -96,7 +96,7 @@ class WatcherComparableObject(ovo_base.ComparableVersionedObject):
     pass
 
 
-class WatcherPersistentObject(object):
+class WatcherPersistentObject:
     """Mixin class for Persistent objects.
 
     This adds the fields that we use in common for all persistent objects.

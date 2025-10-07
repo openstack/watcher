@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +41,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestOneShotAuditHandler(base.DbTestCase):
 
     def setUp(self):
-        super(TestOneShotAuditHandler, self).setUp()
+        super().setUp()
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
         self.m_audit_notifications = p_audit_notifications.start()
@@ -168,7 +167,7 @@ class TestOneShotAuditHandler(base.DbTestCase):
 class TestAutoTriggerActionPlan(base.DbTestCase):
 
     def setUp(self):
-        super(TestAutoTriggerActionPlan, self).setUp()
+        super().setUp()
         self.goal = obj_utils.create_test_goal(
             self.context, id=1, name=dummy_strategy.DummyStrategy.get_name())
         self.strategy = obj_utils.create_test_strategy(
@@ -239,7 +238,7 @@ class TestAutoTriggerActionPlan(base.DbTestCase):
 class TestContinuousAuditHandler(base.DbTestCase):
 
     def setUp(self):
-        super(TestContinuousAuditHandler, self).setUp()
+        super().setUp()
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
         self.m_audit_notifications = p_audit_notifications.start()
@@ -253,7 +252,7 @@ class TestContinuousAuditHandler(base.DbTestCase):
             obj_utils.create_test_audit(
                 self.context,
                 id=id_,
-                name='My Audit {0}'.format(id_),
+                name='My Audit {}'.format(id_),
                 uuid=uuidutils.generate_uuid(),
                 audit_template_id=audit_template.id,
                 goal_id=self.goal.id,

@@ -26,7 +26,7 @@ from watcher.tests import base
 
 class TestApplierManager(base.TestCase):
     def setUp(self):
-        super(TestApplierManager, self).setUp()
+        super().setUp()
         p_heartbeat = mock.patch.object(
             service.ServiceHeartbeat, "send_beat")
         self.m_heartbeat = p_heartbeat.start()

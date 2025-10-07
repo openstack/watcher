@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -37,7 +36,7 @@ class DefaultSolution(base.BaseSolution):
         :param strategy: Strategy associated to this solution
         :type strategy: :py:class:`~.BaseStrategy` instance
         """
-        super(DefaultSolution, self).__init__(goal, strategy)
+        super().__init__(goal, strategy)
         self._actions = []
 
     def add_action(self, action_type, input_parameters=None, resource_id=None):

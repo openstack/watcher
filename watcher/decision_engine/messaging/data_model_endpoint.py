@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright 2019 ZTE corporation.
 # All Rights Reserved.
 #
@@ -21,7 +20,7 @@ from watcher.decision_engine.model.collector import manager
 from watcher import objects
 
 
-class DataModelEndpoint(object):
+class DataModelEndpoint:
     def __init__(self, messaging):
         self._messaging = messaging
 

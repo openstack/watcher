@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -57,7 +56,7 @@ class FakeAction(abase.BaseAction, metaclass=abc.ABCMeta):
 
 class TestDefaultWorkFlowEngine(base.DbTestCase):
     def setUp(self):
-        super(TestDefaultWorkFlowEngine, self).setUp()
+        super().setUp()
         self.engine = tflow.DefaultWorkFlowEngine(
             config=mock.Mock(),
             context=self.context,
@@ -205,24 +204,24 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
 
         expected_nodes = [
             {'uuid': 'bc7eee5c-4fbe-4def-9744-b539be55aa19',
-             'input_parameters': {u'message': u'test'},
-             'action_plan_id': 0, 'state': u'PENDING', 'parents': [],
-             'action_type': u'nop', 'id': 1},
+             'input_parameters': {'message': 'test'},
+             'action_plan_id': 0, 'state': 'PENDING', 'parents': [],
+             'action_type': 'nop', 'id': 1},
             {'uuid': '0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23',
-             'input_parameters': {u'message': u'second test'},
-             'action_plan_id': 0, 'state': u'PENDING', 'parents': [],
-             'action_type': u'nop', 'id': 2},
+             'input_parameters': {'message': 'second test'},
+             'action_plan_id': 0, 'state': 'PENDING', 'parents': [],
+             'action_type': 'nop', 'id': 2},
             {'uuid': 'be436531-0da3-4dad-a9c0-ea1d2aff6496',
-             'input_parameters': {u'duration': 0.0},
-             'action_plan_id': 0, 'state': u'PENDING',
-             'parents': [u'bc7eee5c-4fbe-4def-9744-b539be55aa19',
-                         u'0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23'],
-             'action_type': u'sleep', 'id': 3},
+             'input_parameters': {'duration': 0.0},
+             'action_plan_id': 0, 'state': 'PENDING',
+             'parents': ['bc7eee5c-4fbe-4def-9744-b539be55aa19',
+                         '0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23'],
+             'action_type': 'sleep', 'id': 3},
             {'uuid': '9eb51e14-936d-4d12-a500-6ba0f5e0bb1c',
-             'input_parameters': {u'duration': 0.0},
-             'action_plan_id': 0, 'state': u'PENDING',
-             'parents': [u'be436531-0da3-4dad-a9c0-ea1d2aff6496'],
-             'action_type': u'sleep', 'id': 4}]
+             'input_parameters': {'duration': 0.0},
+             'action_plan_id': 0, 'state': 'PENDING',
+             'parents': ['be436531-0da3-4dad-a9c0-ea1d2aff6496'],
+             'action_type': 'sleep', 'id': 4}]
 
         expected_edges = [
             ('action_type:nop uuid:0565bd5c-aa00-46e5-8d81-2cb5cc1ffa23',

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <vincent.francoise@b-com.com>
@@ -39,7 +38,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestCancelOngoingAudits(db_base.DbTestCase):
 
     def setUp(self):
-        super(TestCancelOngoingAudits, self).setUp()
+        super().setUp()
         p_audit_notifications = mock.patch.object(
             notifications, 'audit', autospec=True)
         self.m_audit_notifications = p_audit_notifications.start()
@@ -82,7 +81,7 @@ class TestCancelOngoingAudits(db_base.DbTestCase):
 class TestDecisionEngineSchedulingService(base.TestCase):
 
     def setUp(self):
-        super(TestDecisionEngineSchedulingService, self).setUp()
+        super().setUp()
         self.fake_keystone = self.useFixture(watcher_fixtures.KeystoneClient())
 
     @mock.patch.object(

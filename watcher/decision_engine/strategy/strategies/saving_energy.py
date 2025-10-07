@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE Corporation
 #
 # Authors: licanwei <li.canwei2@zte.com.cn>
@@ -82,7 +81,7 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
 
     def __init__(self, config, osc=None):
 
-        super(SavingEnergy, self).__init__(config, osc)
+        super().__init__(config, osc)
         self._metal_helper = None
         self._nova_client = None
 

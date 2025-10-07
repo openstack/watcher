@@ -49,7 +49,7 @@ class BaseTestCase(testscenarios.WithScenarios, base.BaseTestCase):
         # Ensure BaseTestCase's ConfigureLogging fixture is disabled since
         # we're using our own (StandardLogging).
         with fixtures.EnvironmentVariable('OS_LOG_CAPTURE', '0'):
-            super(BaseTestCase, self).setUp()
+            super().setUp()
         self.stdlog = self.useFixture(watcher_fixtures.StandardLogging())
         self.addCleanup(cfg.CONF.reset)
 
@@ -58,7 +58,7 @@ class TestCase(BaseTestCase):
     """Test case base class for all unit tests."""
 
     def setUp(self):
-        super(TestCase, self).setUp()
+        super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
         self.policy = self.useFixture(policy_fixture.PolicyFixture())
         self.messaging_conf = self.useFixture(conffixture.ConfFixture(CONF))

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -27,7 +26,7 @@ LOG = log.getLogger(__name__)
 CONF = cfg.CONF
 
 
-class TriggerActionPlan(object):
+class TriggerActionPlan:
     def __init__(self, applier_manager):
         self.applier_manager = applier_manager
         workers = CONF.watcher_applier.workers

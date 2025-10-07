@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -60,7 +59,7 @@ import abc
 from watcher.decision_engine.solution import efficacy
 
 
-class BaseSolution(object, metaclass=abc.ABCMeta):
+class BaseSolution(metaclass=abc.ABCMeta):
     def __init__(self, goal, strategy):
         """Base Solution constructor
 

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <Vincent.FRANCOISE@b-com.com>
@@ -19,10 +18,10 @@
 import abc
 
 
-class NotificationEndpoint(object, metaclass=abc.ABCMeta):
+class NotificationEndpoint(metaclass=abc.ABCMeta):
 
     def __init__(self, collector):
-        super(NotificationEndpoint, self).__init__()
+        super().__init__()
         self.collector = collector
         self._notifier = None
 

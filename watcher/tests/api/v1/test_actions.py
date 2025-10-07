@@ -52,7 +52,7 @@ class TestActionObject(base.TestCase):
 class TestListAction(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestListAction, self).setUp()
+        super().setUp()
         self.goal = obj_utils.create_test_goal(self.context)
         self.strategy = obj_utils.create_test_strategy(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
@@ -237,7 +237,7 @@ class TestListAction(api_base.FunctionalTest):
 
         audit2 = obj_utils.create_test_audit(
             self.context, id=2, uuid=utils.generate_uuid(),
-            name='My Audit {0}'.format(2))
+            name='My Audit {}'.format(2))
         action_plan_2 = obj_utils.create_test_action_plan(
             self.context,
             uuid=utils.generate_uuid(),
@@ -378,7 +378,7 @@ class TestListAction(api_base.FunctionalTest):
 
         for direction in ['asc', 'desc']:
             response = self.get_json(
-                '/actions?sort_key={0}&sort_dir={1}'
+                '/actions?sort_key={}&sort_dir={}'
                 .format('action_plan_uuid', direction))
 
             action_plan_uuids = \
@@ -439,9 +439,9 @@ class TestListAction(api_base.FunctionalTest):
 
         # Here are the 2 actions left
         self.assertEqual(
-            set([act.as_dict()['uuid'] for act in ap2_action_list]),
-            set([act['uuid'] for act in response['actions']
-                 if act['action_plan_uuid'] == action_plan2.uuid]))
+            {act.as_dict()['uuid'] for act in ap2_action_list},
+            {act['uuid'] for act in response['actions']
+             if act['action_plan_uuid'] == action_plan2.uuid})
 
     def test_list_with_parents(self):
         action_list = []
@@ -527,7 +527,7 @@ class TestListAction(api_base.FunctionalTest):
 class TestPatchAction(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestPatchAction, self).setUp()
+        super().setUp()
         self.goal = obj_utils.create_test_goal(self.context)
         self.strategy = obj_utils.create_test_strategy(self.context)
         self.audit = obj_utils.create_test_audit(self.context)
@@ -715,7 +715,7 @@ class TestPatchAction(api_base.FunctionalTest):
 class TestActionPolicyEnforcement(api_base.FunctionalTest):
 
     def setUp(self):
-        super(TestActionPolicyEnforcement, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context)
         obj_utils.create_test_strategy(self.context)
         obj_utils.create_test_audit(self.context)
@@ -766,7 +766,7 @@ class TestActionPolicyEnforcementWithAdminContext(TestListAction,
                                                   api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestActionPolicyEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

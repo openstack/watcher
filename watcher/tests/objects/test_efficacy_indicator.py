@@ -24,7 +24,7 @@ from watcher.tests.db import utils
 class TestEfficacyIndicatorObject(base.DbTestCase):
 
     def setUp(self):
-        super(TestEfficacyIndicatorObject, self).setUp()
+        super().setUp()
         self.fake_efficacy_indicator = utils.get_test_efficacy_indicator()
 
     def test_get_by_id(self):

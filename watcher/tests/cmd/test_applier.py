@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +27,7 @@ from watcher.tests import base
 
 class TestApplier(base.BaseTestCase):
     def setUp(self):
-        super(TestApplier, self).setUp()
+        super().setUp()
 
         self.conf = cfg.CONF
         self._parse_cli_opts = self.conf._parse_cli_opts
@@ -44,7 +43,7 @@ class TestApplier(base.BaseTestCase):
         self.addCleanup(p_heartbeat.stop)
 
     def tearDown(self):
-        super(TestApplier, self).tearDown()
+        super().tearDown()
         self.conf._parse_cli_opts = self._parse_cli_opts
 
     @mock.patch.object(sync.Syncer, "sync", mock.Mock())

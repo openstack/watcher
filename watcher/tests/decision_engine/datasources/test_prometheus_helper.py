@@ -24,7 +24,7 @@ from watcher.tests import base
 
 class TestPrometheusHelper(base.BaseTestCase):
     def setUp(self):
-        super(TestPrometheusHelper, self).setUp()
+        super().setUp()
         cfg.CONF.prometheus_client.host = "foobarbaz"
         cfg.CONF.prometheus_client.port = "1234"
 

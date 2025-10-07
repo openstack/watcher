@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,7 +44,7 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
     """
 
     def __init__(self, config):
-        super(WorkloadStabilizationPlanner, self).__init__(config)
+        super().__init__(config)
         self._osc = clients.OpenStackClients()
 
     @property
@@ -218,11 +217,11 @@ class WorkloadStabilizationPlanner(base.BasePlanner):
             raise
 
 
-class BaseActionValidator(object):
+class BaseActionValidator:
     action_name = None
 
     def __init__(self):
-        super(BaseActionValidator, self).__init__()
+        super().__init__()
         self._osc = None
 
     @property

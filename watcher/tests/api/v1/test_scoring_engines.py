@@ -71,7 +71,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         for idx in range(1, 6):
             scoring_engine = obj_utils.create_test_scoring_engine(
                 self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description='SE_{0}'.format(idx))
+                name=str(idx), description='SE_{}'.format(idx))
             scoring_engine_list.append(scoring_engine.name)
         response = self.get_json('/scoring_engines')
         self.assertEqual(5, len(response['scoring_engines']))
@@ -85,12 +85,12 @@ class TestListScoringEngine(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             scoring_engine = obj_utils.create_test_scoring_engine(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name=str(id_), description='SE_{0}'.format(id_))
+                name=str(id_), description='SE_{}'.format(id_))
             scoring_engine_list.append(scoring_engine.name)
         for id_ in [4, 5]:
             scoring_engine = obj_utils.create_test_scoring_engine(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                name=str(id_), description='SE_{0}'.format(id_))
+                name=str(id_), description='SE_{}'.format(id_))
             scoring_engine.soft_delete()
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
@@ -101,7 +101,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         for idx in range(1, 6):
             obj_utils.create_test_scoring_engine(
                 self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description='SE_{0}'.format(idx))
+                name=str(idx), description='SE_{}'.format(idx))
         response = self.get_json('/scoring_engines/?limit=2')
         self.assertEqual(2, len(response['scoring_engines']))
 
@@ -109,7 +109,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         for idx in range(1, 6):
             obj_utils.create_test_scoring_engine(
                 self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description='SE_{0}'.format(idx))
+                name=str(idx), description='SE_{}'.format(idx))
         cfg.CONF.set_override('max_limit', 3, 'api')
         response = self.get_json('/scoring_engines')
         self.assertEqual(3, len(response['scoring_engines']))
@@ -119,7 +119,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
         for idx in range(1, 6):
             scoring_engine = obj_utils.create_test_scoring_engine(
                 self.context, id=idx, uuid=utils.generate_uuid(),
-                name=str(idx), description='SE_{0}'.format(idx))
+                name=str(idx), description='SE_{}'.format(idx))
             scoring_engine_list.append(scoring_engine.uuid)
 
         response = self.get_json('/scoring_engines/?sort_key=uuid')
@@ -172,7 +172,7 @@ class TestScoringEnginePolicyEnforcementWithAdminContext(
         TestListScoringEngine, api_base.AdminRoleTest):
 
     def setUp(self):
-        super(TestScoringEnginePolicyEnforcementWithAdminContext, self).setUp()
+        super().setUp()
         self.policy.set_rules({
             "admin_api": "(role:admin or role:administrator)",
             "default": "rule:admin_api",

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ from watcher.tests.objects import utils as obj_utils
 class TestStrategyContext(base.DbTestCase):
 
     def setUp(self):
-        super(TestStrategyContext, self).setUp()
+        super().setUp()
         obj_utils.create_test_goal(self.context, id=1, name="DUMMY")
         audit_template = obj_utils.create_test_audit_template(
             self.context, uuid=utils.generate_uuid())
@@ -68,7 +67,7 @@ class TestStrategyContext(base.DbTestCase):
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2, name='My Audit {0}'.format(2),
+            id=2, name='My Audit {}'.format(2),
             goal_id=goal.id,
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
@@ -96,7 +95,7 @@ class TestStrategyContext(base.DbTestCase):
 
         audit = obj_utils.create_test_audit(
             self.context,
-            id=2, name='My Audit {0}'.format(2),
+            id=2, name='My Audit {}'.format(2),
             strategy_id=strategy.id,
             uuid=utils.generate_uuid(),
         )

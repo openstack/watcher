@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +21,7 @@ from watcher.common.loader import loadable
 class Goal(loadable.Loadable, metaclass=abc.ABCMeta):
 
     def __init__(self, config):
-        super(Goal, self).__init__(config)
+        super().__init__(config)
         self.name = self.get_name()
         self.display_name = self.get_display_name()
         self.efficacy_specification = self.get_efficacy_specification()

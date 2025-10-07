@@ -114,7 +114,7 @@ class MyRoot(wsme.WSRoot):
 class TestJsonPatchType(base.TestCase):
 
     def setUp(self):
-        super(TestJsonPatchType, self).setUp()
+        super().setUp()
         self.app = webtest.TestApp(MyRoot(['restjson']).wsgiapp())
 
     def _patch_json(self, params, expect_errors=False):
@@ -216,7 +216,7 @@ class MyAllowedRoot(wsme.WSRoot):
 class TestAllowedJsonPatchType(base.TestCase):
 
     def setUp(self):
-        super(TestAllowedJsonPatchType, self).setUp()
+        super().setUp()
         self.app = webtest.TestApp(MyAllowedRoot(['restjson']).wsgiapp())
 
     def _patch_json(self, params, expect_errors=False):

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -39,7 +38,7 @@ class BaseMetaClass(service.Singleton, abc.ABCMeta):
     pass
 
 
-class BaseAuditHandler(object, metaclass=BaseMetaClass):
+class BaseAuditHandler(metaclass=BaseMetaClass):
 
     @abc.abstractmethod
     def execute(self, audit, request_context):
@@ -61,7 +60,7 @@ class BaseAuditHandler(object, metaclass=BaseMetaClass):
 class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
 
     def __init__(self):
-        super(AuditHandler, self).__init__()
+        super().__init__()
         self._strategy_context = default_context.DefaultStrategyContext()
         self._planner_loader = loader.DefaultPlannerLoader()
         self.applier_client = rpcapi.ApplierAPI()

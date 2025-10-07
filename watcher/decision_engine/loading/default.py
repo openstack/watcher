@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -24,35 +23,35 @@ from watcher.common.loader import default
 
 class DefaultStrategyLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultStrategyLoader, self).__init__(
+        super().__init__(
             namespace='watcher_strategies')
 
 
 class DefaultGoalLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultGoalLoader, self).__init__(
+        super().__init__(
             namespace='watcher_goals')
 
 
 class DefaultPlannerLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultPlannerLoader, self).__init__(
+        super().__init__(
             namespace='watcher_planners')
 
 
 class ClusterDataModelCollectorLoader(default.DefaultLoader):
     def __init__(self):
-        super(ClusterDataModelCollectorLoader, self).__init__(
+        super().__init__(
             namespace='watcher_cluster_data_model_collectors')
 
 
 class DefaultScoringLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultScoringLoader, self).__init__(
+        super().__init__(
             namespace='watcher_scoring_engines')
 
 
 class DefaultScoringContainerLoader(default.DefaultLoader):
     def __init__(self):
-        super(DefaultScoringContainerLoader, self).__init__(
+        super().__init__(
             namespace='watcher_scoring_engine_containers')

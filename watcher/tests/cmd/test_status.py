@@ -24,7 +24,7 @@ CONF = conf.CONF
 class TestUpgradeChecks(base.TestCase):
 
     def setUp(self):
-        super(TestUpgradeChecks, self).setUp()
+        super().setUp()
         self.cmd = status.Checks()
 
     def test_minimum_nova_api_version_ok(self):

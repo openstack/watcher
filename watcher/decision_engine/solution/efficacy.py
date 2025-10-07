@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +31,7 @@ class IndicatorsMap(utils.Struct):
 class Indicator(utils.Struct):
 
     def __init__(self, name, description, unit, value):
-        super(Indicator, self).__init__()
+        super().__init__()
         self.name = name
         self.description = description
         self.unit = unit
@@ -42,7 +41,7 @@ class Indicator(utils.Struct):
         self.value = value
 
 
-class Efficacy(object):
+class Efficacy:
     """Solution efficacy"""
 
     def __init__(self, goal, strategy):

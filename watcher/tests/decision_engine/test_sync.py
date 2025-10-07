@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +30,7 @@ from watcher.tests.decision_engine import fake_strategies
 class TestSyncer(base.DbTestCase):
 
     def setUp(self):
-        super(TestSyncer, self).setUp()
+        super().setUp()
         self.ctx = context.make_context()
 
         # This mock simulates the strategies discovery done in discover()
@@ -424,10 +423,10 @@ class TestSyncer(base.DbTestCase):
 
         self.assertEqual(
             {"dummy_1", "dummy_2"},
-            set([g.name for g in after_goals]))
+            {g.name for g in after_goals})
         self.assertEqual(
             {"strategy_1", "strategy_2", "strategy_3", "strategy_4"},
-            set([s.name for s in after_strategies]))
+            {s.name for s in after_strategies})
 
         created_goals, modified_goals, unmodified_goals = (
             self._find_created_modified_unmodified_ids(
@@ -467,28 +466,28 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(2, strategy2.goal_id)
 
         self.assertNotEqual(
-            set([strategy2.id, strategy3.id, strategy4.id]),
+            {strategy2.id, strategy3.id, strategy4.id},
             set(modified_strategies))
-        self.assertEqual(set([strategy1.id]), set(unmodified_strategies))
+        self.assertEqual({strategy1.id}, set(unmodified_strategies))
 
         self.assertEqual(
-            set([audit_template2.id, audit_template3.id, audit_template4.id]),
+            {audit_template2.id, audit_template3.id, audit_template4.id},
             set(modified_audit_templates))
-        self.assertEqual(set([audit_template1.id]),
+        self.assertEqual({audit_template1.id},
                          set(unmodified_audit_templates))
 
         self.assertEqual(
-            set([audit2.id, audit3.id, audit4.id]),
+            {audit2.id, audit3.id, audit4.id},
             set(modified_audits))
-        self.assertEqual(set([audit1.id]), set(unmodified_audits))
+        self.assertEqual({audit1.id}, set(unmodified_audits))
 
         self.assertEqual(
-            set([action_plan2.id, action_plan3.id, action_plan4.id]),
+            {action_plan2.id, action_plan3.id, action_plan4.id},
             set(modified_action_plans))
         self.assertTrue(
             all(ap.state == objects.action_plan.State.CANCELLED
                 for ap in modified_action_plans.values()))
-        self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))
+        self.assertEqual({action_plan1.id}, set(unmodified_action_plans))
 
     def test_end2end_sync_goals_with_removed_goal_and_strategy(self):
         # ### Setup ### #
@@ -614,10 +613,10 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(2, len(after_action_plans))
         self.assertEqual(
             {"dummy_1"},
-            set([g.name for g in after_goals]))
+            {g.name for g in after_goals})
         self.assertEqual(
             {"strategy_1"},
-            set([s.name for s in after_strategies]))
+            {s.name for s in after_strategies})
 
         created_goals, modified_goals, unmodified_goals = (
             self._find_created_modified_unmodified_ids(
@@ -646,19 +645,19 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(0, len(created_audits))
         self.assertEqual(0, len(created_action_plans))
 
-        self.assertEqual(set([audit_template2.id]),
+        self.assertEqual({audit_template2.id},
                          set(modified_audit_templates))
-        self.assertEqual(set([audit_template1.id]),
+        self.assertEqual({audit_template1.id},
                          set(unmodified_audit_templates))
 
-        self.assertEqual(set([audit2.id]), set(modified_audits))
-        self.assertEqual(set([audit1.id]), set(unmodified_audits))
+        self.assertEqual({audit2.id}, set(modified_audits))
+        self.assertEqual({audit1.id}, set(unmodified_audits))
 
-        self.assertEqual(set([action_plan2.id]), set(modified_action_plans))
+        self.assertEqual({action_plan2.id}, set(modified_action_plans))
         self.assertTrue(
             all(ap.state == objects.action_plan.State.CANCELLED
                 for ap in modified_action_plans.values()))
-        self.assertEqual(set([action_plan1.id]), set(unmodified_action_plans))
+        self.assertEqual({action_plan1.id}, set(unmodified_action_plans))
 
     def test_sync_strategies_with_removed_goal(self):
         # ### Setup ### #
@@ -708,7 +707,7 @@ class TestSyncer(base.DbTestCase):
         self.assertEqual(4, len(after_strategies))
         self.assertEqual(
             {"dummy_1", "dummy_2"},
-            set([g.name for g in after_goals]))
+            {g.name for g in after_goals})
         self.assertEqual(
             {"strategy_1", "strategy_2", "strategy_3", "strategy_4"},
-            set([s.name for s in after_strategies]))
+            {s.name for s in after_strategies})

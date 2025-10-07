@@ -21,7 +21,7 @@ CONF = cfg.CONF
 LOG = logging.getLogger(__name__)
 
 
-class PlacementHelper(object):
+class PlacementHelper:
 
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""

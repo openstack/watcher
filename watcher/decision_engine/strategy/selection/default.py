@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +32,7 @@ class DefaultStrategySelector(base.BaseSelector):
         :param strategy_name: Name of the strategy
         :param osc: an OpenStackClients instance
         """
-        super(DefaultStrategySelector, self).__init__()
+        super().__init__()
         self.goal_name = goal_name
         self.strategy_name = strategy_name
         self.osc = osc

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -98,12 +97,12 @@ class TestModel(base.TestCase):
 
     def test_get_node_by_instance_uuid(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
         self.assertEqual(node, model.get_node_by_uuid(uuid_))
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         instance = element.Instance(id=1)
         instance.uuid = uuid_
         model.add_instance(instance)
@@ -113,7 +112,7 @@ class TestModel(base.TestCase):
 
     def test_add_node(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
@@ -121,7 +120,7 @@ class TestModel(base.TestCase):
 
     def test_delete_node(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
@@ -133,7 +132,7 @@ class TestModel(base.TestCase):
     def test_get_all_compute_nodes(self):
         model = model_root.ModelRoot()
         for id_ in range(10):
-            uuid_ = "{0}".format(uuidutils.generate_uuid())
+            uuid_ = "{}".format(uuidutils.generate_uuid())
             node = element.ComputeNode(id_)
             node.uuid = uuid_
             model.add_node(node)
@@ -144,7 +143,7 @@ class TestModel(base.TestCase):
 
     def test_set_get_state_nodes(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
@@ -157,7 +156,7 @@ class TestModel(base.TestCase):
 
     def test_get_node_by_name(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         name = 'test_node'
         node = element.ComputeNode()
         node.uuid = uuid_
@@ -170,7 +169,7 @@ class TestModel(base.TestCase):
 
     def test_node_from_name_raise(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         name = 'test_node'
         node = element.ComputeNode()
         node.uuid = uuid_
@@ -183,23 +182,23 @@ class TestModel(base.TestCase):
 
     def test_node_from_uuid_raise(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
 
-        uuid2 = "{0}".format(uuidutils.generate_uuid())
+        uuid2 = "{}".format(uuidutils.generate_uuid())
         self.assertRaises(exception.ComputeNodeNotFound,
                           model.get_node_by_uuid, uuid2)
 
     def test_remove_node_raise(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
 
-        uuid2 = "{0}".format(uuidutils.generate_uuid())
+        uuid2 = "{}".format(uuidutils.generate_uuid())
         node2 = element.ComputeNode(id=2)
         node2.uuid = uuid2
 
@@ -208,7 +207,7 @@ class TestModel(base.TestCase):
 
     def test_assert_node_raise(self):
         model = model_root.ModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         node = element.ComputeNode(id=1)
         node.uuid = uuid_
         model.add_node(node)
@@ -311,7 +310,7 @@ class TestStorageModel(base.TestCase):
 
     def test_assert_volume_raise(self):
         model = model_root.StorageModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertRaises(exception.IllegalArgumentException,
@@ -368,14 +367,14 @@ class TestStorageModel(base.TestCase):
 
     def test_add_volume(self):
         model = model_root.StorageModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
 
     def test_remove_volume(self):
         model = model_root.StorageModelRoot()
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
@@ -389,7 +388,7 @@ class TestStorageModel(base.TestCase):
         pool = element.Pool(name=pool_name)
         model.add_pool(pool)
         self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
@@ -401,7 +400,7 @@ class TestStorageModel(base.TestCase):
     def test_get_all_storage_nodes(self):
         model = model_root.StorageModelRoot()
         for i in range(10):
-            hostname = "host_{0}".format(i)
+            hostname = "host_{}".format(i)
             node = element.StorageNode(host=hostname)
             model.add_node(node)
         all_nodes = model.get_all_storage_nodes()
@@ -412,7 +411,7 @@ class TestStorageModel(base.TestCase):
     def test_get_all_volumes(self):
         model = model_root.StorageModelRoot()
         for id_ in range(10):
-            uuid_ = "{0}".format(uuidutils.generate_uuid())
+            uuid_ = "{}".format(uuidutils.generate_uuid())
             volume = element.Volume(uuid=uuid_)
             model.add_volume(volume)
         all_volumes = model.get_all_volumes()
@@ -439,7 +438,7 @@ class TestStorageModel(base.TestCase):
         pool = element.Pool(name=pool_name)
         model.add_pool(pool)
         self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))
@@ -452,7 +451,7 @@ class TestStorageModel(base.TestCase):
         pool = element.Pool(name=pool_name)
         model.add_pool(pool)
         self.assertEqual(pool, model.get_pool_by_pool_name(pool_name))
-        uuid_ = "{0}".format(uuidutils.generate_uuid())
+        uuid_ = "{}".format(uuidutils.generate_uuid())
         volume = element.Volume(uuid=uuid_)
         model.add_volume(volume)
         self.assertEqual(volume, model.get_volume_by_uuid(uuid_))

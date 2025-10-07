@@ -53,8 +53,7 @@ class TestNotificationBase(testbase.TestCase):
         }
 
         def populate_schema(self, source_field):
-            super(TestNotificationBase.TestNotificationPayload,
-                  self).populate_schema(source_field=source_field)
+            super().populate_schema(source_field=source_field)
 
     @base.WatcherObjectRegistry.register_if(False)
     class TestNotificationPayloadEmptySchema(
@@ -92,7 +91,7 @@ class TestNotificationBase(testbase.TestCase):
         'watcher_object.namespace': 'watcher'}
 
     def setUp(self):
-        super(TestNotificationBase, self).setUp()
+        super().setUp()
 
         self.my_obj = self.TestObject(field_1='test1',
                                       field_2=42,
@@ -302,7 +301,7 @@ expected_notification_fingerprints = {
 
 class TestNotificationObjectVersions(testbase.TestCase):
     def setUp(self):
-        super(TestNotificationObjectVersions, self).setUp()
+        super().setUp()
         base.WatcherObjectRegistry.register_notification_objects()
 
     def test_versions(self):

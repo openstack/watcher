@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -31,7 +30,7 @@ ADMIN_TOKEN = '4562138218392831'
 MEMBER_TOKEN = '4562138218392832'
 
 
-class FakeMemcache(object):
+class FakeMemcache:
     """Fake cache that is used for keystone tokens lookup."""
 
     _cache = {
@@ -78,9 +77,9 @@ class FakeMemcache(object):
 def remove_internal(values, internal):
     # NOTE(yuriyz): internal attributes should not be posted, except uuid
     int_attr = [attr.lstrip('/') for attr in internal if attr != '/uuid']
-    return dict(
-        (k, v) for (k, v) in values.items() if k not in int_attr
-    )
+    return {
+        k: v for (k, v) in values.items() if k not in int_attr
+    }
 
 
 def audit_post_data(**kw):

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
 #    not use this file except in compliance with the License. You may obtain
@@ -40,7 +39,7 @@ class TestSchedulingService(base.TestCase):
 class TestSchedulingServiceFunctions(db_base.DbTestCase):
 
     def setUp(self):
-        super(TestSchedulingServiceFunctions, self).setUp()
+        super().setUp()
         fake_service = utils.get_test_service(
             created_at=timeutils.utcnow())
         self.fake_service = objects.Service(**fake_service)

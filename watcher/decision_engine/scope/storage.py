@@ -21,7 +21,7 @@ class StorageScope(base.BaseScope):
     """Storage Audit Scope Handler"""
 
     def __init__(self, scope, config, osc=None):
-        super(StorageScope, self).__init__(scope, config)
+        super().__init__(scope, config)
         self._osc = osc
         self.wrapper = cinder_helper.CinderHelper(osc=self._osc)
 

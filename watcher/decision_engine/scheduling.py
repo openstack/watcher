@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +35,7 @@ class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
 
     def __init__(self, gconfig=None, **options):
         gconfig = None or {}
-        super(DecisionEngineSchedulingService, self).__init__(
+        super().__init__(
             gconfig, **options)
         self.collector_manager = manager.CollectorManager()
 
@@ -113,7 +112,7 @@ class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
         self.add_sync_jobs()
         self.add_checkstate_job()
         self.cancel_ongoing_audits()
-        super(DecisionEngineSchedulingService, self).start()
+        super().start()
 
     def stop(self):
         """Stop service."""

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +29,7 @@ from watcher.tests.decision_engine.model import gnocchi_metrics as fake
 from watcher.tests.objects import utils as obj_utils
 
 
-class SolutionFaker(object):
+class SolutionFaker:
     @staticmethod
     def build():
         metrics = fake.FakerMetricsCollector()
@@ -42,7 +41,7 @@ class SolutionFaker(object):
         return sercon.execute()
 
 
-class SolutionFakerSingleHyp(object):
+class SolutionFakerSingleHyp:
     @staticmethod
     def build():
         metrics = fake.FakerMetricsCollector()
@@ -59,7 +58,7 @@ class SolutionFakerSingleHyp(object):
 class TestActionScheduling(base.DbTestCase):
 
     def setUp(self):
-        super(TestActionScheduling, self).setUp()
+        super().setUp()
         self.goal = db_utils.create_test_goal(name="dummy")
         self.strategy = db_utils.create_test_strategy(name="dummy")
         self.audit = db_utils.create_test_audit(
@@ -897,7 +896,7 @@ class TestActionScheduling(base.DbTestCase):
 class TestWeightPlanner(base.DbTestCase):
 
     def setUp(self):
-        super(TestWeightPlanner, self).setUp()
+        super().setUp()
         self.planner = pbase.WeightPlanner(mock.Mock())
         self.planner.config.weights = {
             'nop': 0,

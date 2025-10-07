@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2019 ZTE Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +49,7 @@ class DataModelController(rest.RestController):
     """REST controller for data model"""
 
     def __init__(self):
-        super(DataModelController, self).__init__()
+        super().__init__()
 
     @wsme_pecan.wsexpose(wtypes.text, wtypes.text, types.uuid)
     def get_all(self, data_model_type='compute', audit_uuid=None):

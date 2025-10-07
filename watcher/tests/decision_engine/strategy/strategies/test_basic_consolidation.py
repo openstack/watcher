@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2015 b<>com
 #
 # Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
@@ -42,7 +41,7 @@ class TestBasicConsolidation(TestBaseStrategy):
     ]
 
     def setUp(self):
-        super(TestBasicConsolidation, self).setUp()
+        super().setUp()
         # fake metrics
         self.fake_metrics = self.fake_datasource_cls()
 

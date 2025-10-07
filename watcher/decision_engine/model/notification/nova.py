@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2016 b<>com
 #
 # Authors: Vincent FRANCOISE <Vincent.FRANCOISE@b-com.com>
@@ -34,7 +33,7 @@ LOG = log.getLogger(__name__)
 class NovaNotification(base.NotificationEndpoint):
 
     def __init__(self, collector):
-        super(NovaNotification, self).__init__(collector)
+        super().__init__(collector)
         self._nova = None
         self._placement_helper = None
 

@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 # Copyright (c) 2017 ZTE Corporation
 #
 # Authors:Yumeng Bao <bao.yumeng@zte.com.cn>
@@ -29,7 +28,7 @@ from watcher.tests import base
 class TestIronicHelper(base.TestCase):
 
     def setUp(self):
-        super(TestIronicHelper, self).setUp()
+        super().setUp()
 
         osc = clients.OpenStackClients()
         p_ironic = mock.patch.object(osc, 'ironic')
