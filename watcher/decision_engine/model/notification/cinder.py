@@ -258,6 +258,10 @@ class CapacityNotificationEndpoint(CinderNotification):
                       publisher=publisher_id,
                       metadata=metadata))
         LOG.debug(payload)
+        if not self.cluster_data_model:
+            LOG.debug('Storage CDM has not yet been built; ignoring '
+                      'notifications until an audit is performed.')
+            return
         name = payload['name_to_id']
         try:
             pool = self.get_or_create_pool(name)
@@ -289,6 +293,10 @@ class VolumeCreateEnd(VolumeNotificationEndpoint):
                       publisher=publisher_id,
                       metadata=metadata))
         LOG.debug(payload)
+        if not self.cluster_data_model:
+            LOG.debug('Storage CDM has not yet been built; ignoring '
+                      'notifications until an audit is performed.')
+            return
         volume_id = payload['volume_id']
         poolname = payload['host']
         volume = self.get_or_create_volume(volume_id, poolname)
@@ -314,6 +322,10 @@ class VolumeUpdateEnd(VolumeNotificationEndpoint):
                       publisher=publisher_id,
                       metadata=metadata))
         LOG.debug(payload)
+        if not self.cluster_data_model:
+            LOG.debug('Storage CDM has not yet been built; ignoring '
+                      'notifications until an audit is performed.')
+            return
         volume_id = payload['volume_id']
         poolname = payload['host']
         volume = self.get_or_create_volume(volume_id, poolname)
@@ -372,6 +384,10 @@ class VolumeDeleteEnd(VolumeNotificationEndpoint):
                       publisher=publisher_id,
                       metadata=metadata))
         LOG.debug(payload)
+        if not self.cluster_data_model:
+            LOG.debug('Storage CDM has not yet been built; ignoring '
+                      'notifications until an audit is performed.')
+            return
         volume_id = payload['volume_id']
         poolname = payload['host']
         volume = self.get_or_create_volume(volume_id, poolname)
