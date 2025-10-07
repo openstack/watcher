@@ -35,8 +35,8 @@ class TestStorageScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_2
         mock_zone_list.return_value = [
-            mock.Mock(zone='zone_{}'.format(i),
-                      host='host_{}@backend_{}'.format(i, i))
+            mock.Mock(zone=f'zone_{i}',
+                      host=f'host_{i}@backend_{i}')
             for i in range(2)]
         model = storage.StorageScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
@@ -57,8 +57,8 @@ class TestStorageScope(base.TestCase):
         allowed_nodes = []
         az_scope = [{'name': 'zone_1'}]
         mock_zone_list.return_value = [
-            mock.Mock(zone='zone_{}'.format(i),
-                      host='host_{}@backend_{}'.format(i, i))
+            mock.Mock(zone=f'zone_{i}',
+                      host=f'host_{i}@backend_{i}')
             for i in range(2)]
         storage.StorageScope([{'availability _zones': az_scope}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -89,8 +89,8 @@ class TestStorageScope(base.TestCase):
     def test_collect_vtype(self, mock_vt_list, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone='zone_{}'.format(i),
-                      host='host_{}@backend_{}'.format(i, i))
+            mock.Mock(zone=f'zone_{i}',
+                      host=f'host_{i}@backend_{i}')
             for i in range(2)]
 
         def side_effect(arg):
@@ -203,8 +203,8 @@ class TestStorageScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_2)
         audit_scope.extend(fake_scopes.fake_scope_1)
         mock_zone_list.return_value = [
-            mock.Mock(zone='zone_{}'.format(i),
-                      host='host_{}@backend_{}'.format(i, i))
+            mock.Mock(zone=f'zone_{i}',
+                      host=f'host_{i}@backend_{i}')
             for i in range(2)]
         model = storage.StorageScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)

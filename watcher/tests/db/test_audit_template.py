@@ -233,7 +233,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
             audit_template = utils.create_test_audit_template(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name='My Audit Template {}'.format(i))
+                name=f'My Audit Template {i}')
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(self.context)
         audit_template_uuids = [at.uuid for at in audit_templates]
@@ -252,7 +252,7 @@ class DbAuditTemplateTestCase(base.DbTestCase):
         for i in range(1, 4):
             audit_template = utils.create_test_audit_template(
                 id=i, uuid=w_utils.generate_uuid(),
-                name='My Audit Template {}'.format(i),
+                name=f'My Audit Template {i}',
                 goal_id=goal.id, strategy_id=strategy.id)
             uuids.append(str(audit_template['uuid']))
         audit_templates = self.dbapi.get_audit_template_list(

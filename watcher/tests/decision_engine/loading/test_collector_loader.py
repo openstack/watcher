@@ -43,7 +43,7 @@ class TestClusterDataModelCollectorLoader(base.TestCase):
         fake_driver_call = drivermanager.DriverManager.make_test_instance(
             extension=stevedore_extension.Extension(
                 name=fake_driver,
-                entry_point="%s:%s" % (
+                entry_point="{}:{}".format(
                     faker_cluster_state.FakerModelCollector.__module__,
                     faker_cluster_state.FakerModelCollector.__name__),
                 plugin=faker_cluster_state.FakerModelCollector,

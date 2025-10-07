@@ -283,7 +283,7 @@ class BasicConsolidation(base.ServerConsolidationBaseStrategy):
         host_avg_cpu_util = self.get_compute_node_cpu_usage(node)
 
         if host_avg_cpu_util is None:
-            resource_id = "%s_%s" % (node.uuid, node.hostname)
+            resource_id = "{}_{}".format(node.uuid, node.hostname)
             LOG.error(
                 "No values returned by %(resource_id)s "
                 "for %(metric_name)s", dict(

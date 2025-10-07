@@ -38,7 +38,7 @@ class TestDefaultStrategyLoader(base.TestCase):
         fake_extmanager_call = extension.ExtensionManager.make_test_instance(
             extensions=[extension.Extension(
                 name=dummy_strategy_name,
-                entry_point="%s:%s" % (
+                entry_point="{}:{}".format(
                     dummy_strategy.DummyStrategy.__module__,
                     dummy_strategy.DummyStrategy.__name__),
                 plugin=dummy_strategy.DummyStrategy,

@@ -79,7 +79,7 @@ class Version:
             headers, default_version, latest_version)
 
     def __repr__(self):
-        return '%s.%s' % (self.major, self.minor)
+        return '{}.{}'.format(self.major, self.minor)
 
     @staticmethod
     def parse_headers(headers, default_version, latest_version):

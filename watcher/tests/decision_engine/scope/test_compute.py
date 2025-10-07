@@ -37,8 +37,8 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_1
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{}'.format(i),
-                      host={'hostname_{}'.format(i): {}})
+            mock.Mock(zone=f'AZ{i}',
+                      host={f'hostname_{i}': {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
@@ -74,7 +74,7 @@ class TestComputeScope(base.TestCase):
     def test_collect_aggregates(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=['Node_{}'.format(i)]) for i in range(2)]
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': 1}, {'id': 2}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': 1}, {'id': 2}], allowed_nodes)
@@ -84,7 +84,7 @@ class TestComputeScope(base.TestCase):
     def test_aggregates_wildcard_is_used(self, mock_aggregate):
         allowed_nodes = []
         mock_aggregate.return_value = [
-            mock.Mock(id=i, hosts=['Node_{}'.format(i)]) for i in range(2)]
+            mock.Mock(id=i, hosts=[f'Node_{i}']) for i in range(2)]
         compute.ComputeScope([{'host_aggregates': [{'id': '*'}]}],
                              mock.Mock(), osc=mock.Mock())._collect_aggregates(
             [{'id': '*'}], allowed_nodes)
@@ -105,7 +105,7 @@ class TestComputeScope(base.TestCase):
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_aggregates_with_names_and_ids(self, mock_aggregate):
         allowed_nodes = []
-        mock_collection = [mock.Mock(id=i, hosts=['Node_{}'.format(i)])
+        mock_collection = [mock.Mock(id=i, hosts=[f'Node_{i}'])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
@@ -122,9 +122,9 @@ class TestComputeScope(base.TestCase):
     def test_collect_zones(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{}".format(i + 1),
-                      host={'Node_{}'.format(2 * i): 1,
-                            'Node_{}'.format(2 * i + 1): 2})
+            mock.Mock(zone=f"AZ{i + 1}",
+                      host={f'Node_{2 * i}': 1,
+                            f'Node_{2 * i + 1}': 2})
             for i in range(2)]
         compute.ComputeScope([{'availability_zones': [{'name': "AZ1"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -135,9 +135,9 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_is_used(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{}".format(i + 1),
-                      host={'Node_{}'.format(2 * i): 1,
-                            'Node_{}'.format(2 * i + 1): 2})
+            mock.Mock(zone=f"AZ{i + 1}",
+                      host={f'Node_{2 * i}': 1,
+                            f'Node_{2 * i + 1}': 2})
             for i in range(2)]
         compute.ComputeScope([{'availability_zones': [{'name': "*"}]}],
                              mock.Mock(), osc=mock.Mock())._collect_zones(
@@ -149,9 +149,9 @@ class TestComputeScope(base.TestCase):
     def test_zones_wildcard_with_other_ids(self, mock_zone_list):
         allowed_nodes = []
         mock_zone_list.return_value = [
-            mock.Mock(zone="AZ{}".format(i + 1),
-                      host={'Node_{}'.format(2 * i): 1,
-                            'Node_{}'.format(2 * i + 1): 2})
+            mock.Mock(zone=f"AZ{i + 1}",
+                      host={f'Node_{2 * i}': 1,
+                            f'Node_{2 * i + 1}': 2})
             for i in range(2)]
         scope_handler = compute.ComputeScope(
             [{'availability_zones': [{'name': "*"}, {'name': 'AZ1'}]}],
@@ -169,7 +169,7 @@ class TestComputeScope(base.TestCase):
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_exclude_resource(self, mock_aggregate):
-        mock_collection = [mock.Mock(id=i, hosts=['Node_{}'.format(i)])
+        mock_collection = [mock.Mock(id=i, hosts=[f'Node_{i}'])
                            for i in range(2)]
         mock_collection[0].name = 'HA_0'
         mock_collection[1].name = 'HA_1'
@@ -274,7 +274,7 @@ class TestComputeScope(base.TestCase):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_3
         mock_list.return_value = [mock.Mock(id=i,
-                                            name="HA_{}".format(i))
+                                            name=f"HA_{i}")
                                   for i in range(2)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)
@@ -288,8 +288,8 @@ class TestComputeScope(base.TestCase):
         audit_scope.extend(fake_scopes.fake_scope_1)
         audit_scope.extend(fake_scopes.fake_scope_2)
         mock_zone_list.return_value = [
-            mock.Mock(zone='AZ{}'.format(i),
-                      host={'hostname_{}'.format(i): {}})
+            mock.Mock(zone=f'AZ{i}',
+                      host={f'hostname_{i}': {}})
             for i in range(4)]
         model = compute.ComputeScope(audit_scope, mock.Mock(),
                                      osc=mock.Mock()).get_scoped_model(cluster)

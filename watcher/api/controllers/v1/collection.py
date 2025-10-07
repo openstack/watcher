@@ -40,7 +40,7 @@ class Collection(base.APIBase):
             return wtypes.Unset
 
         resource_url = url or self._type
-        q_args = ''.join(['%s=%s&' % (key, kwargs[key]) for key in kwargs])
+        q_args = ''.join(['{}={}&'.format(key, kwargs[key]) for key in kwargs])
         next_args = '?%(args)slimit=%(limit)d&marker=%(marker)s' % {
             'args': q_args, 'limit': limit,
             'marker': getattr(self.collection[-1], marker_field)}

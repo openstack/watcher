@@ -234,7 +234,7 @@ class DbServiceTestCase(base.DbTestCase):
             service = utils.create_test_service(
                 id=i,
                 name="SERVICE_ID_%s" % i,
-                host="controller_{}".format(i))
+                host=f"controller_{i}")
             ids.append(service['id'])
         services = self.dbapi.get_service_list(self.context)
         service_ids = [s.id for s in services]

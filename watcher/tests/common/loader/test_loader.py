@@ -55,8 +55,8 @@ class TestLoader(base.TestCase):
         fake_driver = drivermanager.DriverManager.make_test_instance(
             extension=stevedore_extension.Extension(
                 name="fake",
-                entry_point="%s:%s" % (FakeLoadable.__module__,
-                                       FakeLoadable.__name__),
+                entry_point="{}:{}".format(FakeLoadable.__module__,
+                                           FakeLoadable.__name__),
                 plugin=FakeLoadable,
                 obj=None),
             namespace="TESTING")
@@ -81,8 +81,8 @@ class TestLoader(base.TestCase):
         fake_driver = drivermanager.DriverManager.make_test_instance(
             extension=stevedore_extension.Extension(
                 name="fake",
-                entry_point="%s:%s" % (FakeLoadableWithOpts.__module__,
-                                       FakeLoadableWithOpts.__name__),
+                entry_point="{}:{}".format(FakeLoadableWithOpts.__module__,
+                                           FakeLoadableWithOpts.__name__),
                 plugin=FakeLoadableWithOpts,
                 obj=None),
             namespace="TESTING")

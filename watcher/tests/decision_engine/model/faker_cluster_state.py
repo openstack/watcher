@@ -74,8 +74,8 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
         instance_count = (node_count * node_instance_count)
 
         for id_ in range(0, node_count):
-            node_uuid = "Node_{}".format(id_)
-            hostname = "hostname_{}".format(id_)
+            node_uuid = f"Node_{id_}"
+            hostname = f"hostname_{id_}"
             node_attributes = {
                 "id": id_,
                 "uuid": node_uuid,
@@ -95,7 +95,7 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             model.add_node(node)
 
         for i in range(0, instance_count):
-            instance_uuid = "INSTANCE_{}".format(i)
+            instance_uuid = f"INSTANCE_{i}"
             if instance_uuid == "INSTANCE_1":
                 project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
             elif instance_uuid == "INSTANCE_2":
@@ -221,8 +221,8 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
         for i in range(0, node_count):
             host = "host_{0}@backend_{0}".format(i)
-            zone = "zone_{}".format(i)
-            volume_type = ["type_{}".format(i)]
+            zone = f"zone_{i}"
+            volume_type = [f"type_{i}"]
             node_attributes = {
                 "host": host,
                 "zone": zone,
@@ -274,7 +274,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
 
         for k in range(volume_count):
             uuid = volume_uuid_mapping[k]
-            name = "name_{}".format(k)
+            name = f"name_{k}"
             volume_attributes = {
                 "size": 40,
                 "status": "in-use",

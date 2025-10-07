@@ -177,7 +177,7 @@ class AuditTemplatePostType(wtypes.Base):
             if strategy.goal_id != goal.id:
                 available_strategies = objects.Strategy.list(
                     AuditTemplatePostType._ctx)
-                choices = ["'%s' (%s)" % (s.uuid, s.name)
+                choices = ["'{}' ({})".format(s.uuid, s.name)
                            for s in available_strategies]
                 raise exception.InvalidStrategy(
                     message=_(

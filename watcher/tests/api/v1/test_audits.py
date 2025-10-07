@@ -214,7 +214,7 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in range(5):
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             audit_list.append(audit.uuid)
         response = self.get_json('/audits')
         self.assertEqual(len(audit_list), len(response['audits']))
@@ -226,12 +226,12 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             audit.soft_delete()
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
@@ -243,12 +243,12 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in [1, 2, 3]:
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             audit_list.append(audit.uuid)
         for id_ in [4, 5]:
             audit = obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
             audit.soft_delete()
             audit_list.append(audit.uuid)
         response = self.get_json('/audits',
@@ -262,11 +262,11 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in range(5):
             goal = obj_utils.create_test_goal(
                 self.context,
-                name='gl{}'.format(id_),
+                name=f'gl{id_}',
                 uuid=utils.generate_uuid())
             obj_utils.create_test_audit(
                 self.context, id=id_, uuid=utils.generate_uuid(),
-                goal_id=goal.id, name='My Audit {}'.format(id_))
+                goal_id=goal.id, name=f'My Audit {id_}')
             goal_list.append(goal.uuid)
 
         response = self.get_json('/audits/?sort_key=goal_uuid')
@@ -285,7 +285,7 @@ class TestListAudit(api_base.FunctionalTest):
         uuid = utils.generate_uuid()
         obj_utils.create_test_audit(
             self.context, id=1, uuid=uuid,
-            name='My Audit {}'.format(1))
+            name=f'My Audit {1}')
         response = self.get_json('/audits/%s' % uuid)
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
@@ -299,7 +299,7 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in range(5):
             obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
         response = self.get_json('/audits/?limit=3')
         self.assertEqual(3, len(response['audits']))
 
@@ -311,7 +311,7 @@ class TestListAudit(api_base.FunctionalTest):
         for id_ in range(5):
             obj_utils.create_test_audit(
                 self.context, id=id_,
-                uuid=utils.generate_uuid(), name='My Audit {}'.format(id_))
+                uuid=utils.generate_uuid(), name=f'My Audit {id_}')
         response = self.get_json('/audits')
         self.assertEqual(3, len(response['audits']))
 
@@ -442,7 +442,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
 
     scenarios = [
         (
-            "%s -> %s" % (original_state, new_state),
+            "{} -> {}".format(original_state, new_state),
             {"original_state": original_state,
              "new_state": new_state},
         )
@@ -490,8 +490,8 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
 
     scenarios = [
         (
-            "%s -> %s" % (transition["original_state"],
-                          transition["new_state"]),
+            "{} -> {}".format(transition["original_state"],
+                              transition["new_state"]),
             transition
         )
         for transition in ALLOWED_TRANSITIONS
