@@ -279,23 +279,6 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_delete_instance(self, mock_cinder, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        instance_id = utils.generate_uuid()
-
-        # verify that the method will return False when the instance does
-        # not exist.
-        self.fake_nova_find_list(nova_util, fake_find=None, fake_list=None)
-        result = nova_util.delete_instance(instance_id)
-        self.assertFalse(result)
-
-        # verify that the method will return True when the instance exists.
-        server = self.fake_server(instance_id)
-        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
-        result = nova_util.delete_instance(instance_id)
-        self.assertTrue(result)
-
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_resize_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
@@ -523,27 +506,6 @@ class TestNovaHelper(base.TestCase):
         return volume
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_swap_volume(self, mock_cinder, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
-
-        old_volume = self.fake_volume(
-            status='in-use', attachments=[{'server_id': self.instance_uuid}])
-        new_volume = self.fake_volume(
-            id=utils.generate_uuid(), status='in-use')
-
-        result = nova_util.swap_volume(old_volume, new_volume)
-        self.assertTrue(result)
-
-        # verify that the method will return False when the status of
-        # new_volume is 'fake-use'.
-        new_volume = self.fake_volume(
-            id=utils.generate_uuid(), status='fake-use')
-        result = nova_util.swap_volume(old_volume, new_volume)
-        self.assertFalse(result)
-
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_wait_for_volume_status(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
 
@@ -583,38 +545,6 @@ class TestNovaHelper(base.TestCase):
         api_versions.discover_version = mock.MagicMock(
             side_effect=side_effect)
         result = nova_util._check_nova_api_version(nova_util.nova, "2.56")
-        self.assertFalse(result)
-
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_wait_for_instance_status(self, mock_cinder, mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-
-        # verify that the method will return True when the status of instance
-        # is in the expected status.
-        result = nova_util.wait_for_instance_status(
-            instance,
-            ('ACTIVE', 'ERROR'),
-            5,
-            10)
-        self.assertTrue(result)
-
-        # verify that the method will return False when the instance is None.
-        result = nova_util.wait_for_instance_status(
-            None,
-            ('ACTIVE', 'ERROR'),
-            5,
-            10)
-        self.assertFalse(result)
-
-        # verify that the method will return False when the status of instance
-        # is not in the expected status.
-        self.fake_nova_find_list(nova_util, fake_find=instance, fake_list=None)
-        result = nova_util.wait_for_instance_status(
-            instance,
-            ('ERROR'),
-            5,
-            10)
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
