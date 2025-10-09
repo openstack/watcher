@@ -143,6 +143,8 @@ class CinderNotification(base.NotificationEndpoint):
         try:
             return self.cluster_data_model.get_volume_by_uuid(volume_id)
         except exception.VolumeNotFound:
+            LOG.debug("Volume %(volume)s not found in the model, creating it",
+                      dict(volume=volume_id))
             # The volume didn't exist yet so we create a new volume object
             volume = element.Volume(uuid=volume_id)
             self.cluster_data_model.add_volume(volume)
