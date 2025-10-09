@@ -18,7 +18,7 @@
 import abc
 import time
 
-import eventlet
+from eventlet import greenlet
 
 from oslo_log import log
 from taskflow import task as flow_task
@@ -28,6 +28,7 @@ from watcher.applier.actions import factory
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common.loader import loadable
+from watcher.common import utils
 from watcher import notifications
 from watcher import objects
 from watcher.objects import fields
@@ -228,7 +229,8 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 raise
         # NOTE: spawn a new thread for action execution, so that if action plan
         # is cancelled workflow engine will not wait to finish action execution
-        et = eventlet.spawn(_do_execute_action, *args, **kwargs)
+        et = utils.thread_spawn(_do_execute_action, *args, **kwargs)
+        utils.thread_start(et)
         # NOTE: check for the state of action plan periodically,so that if
         # action is finished or action plan is cancelled we can exit from here.
         result = False
@@ -255,14 +257,18 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             if (action_plan_object.state in
                 objects.action_plan.State.CANCEL_STATES and
                     abort):
-                et.kill()
-            et.wait()
+                # NOTE(dviroel): killing green thread will raise an exception
+                # which will be caught by taskflow and revert and abort will
+                # be called. For threading mode, we will continue to wait for
+                # it to finish, and no abort will be called.
+                utils.thread_kill(et)
+            utils.thread_wait(et)
             return result
 
             # NOTE: catch the greenlet exit exception due to thread kill,
             # taskflow will call revert for the action,
             # we will redirect it to abort.
-        except eventlet.greenlet.GreenletExit:
+        except greenlet.GreenletExit:
             self.engine.notify_cancel_start(action_plan_object.uuid)
             raise exception.ActionPlanCancelled(uuid=action_plan_object.uuid)
 

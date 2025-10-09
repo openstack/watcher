@@ -15,7 +15,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import eventlet
 from unittest import mock
 
 from oslo_config import cfg
@@ -23,6 +22,7 @@ from oslo_config import cfg
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import clients
 from watcher.common import nova_helper
+from watcher.common import utils
 from watcher import objects
 from watcher.tests.db import base
 from watcher.tests.objects import utils as obj_utils
@@ -54,6 +54,7 @@ class TestTaskFlowActionContainer(base.DbTestCase):
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
+
         action_container.execute()
 
         obj_action = objects.Action.get_by_uuid(
@@ -182,28 +183,30 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             obj_action.status_message,
             "Action failed in post_condition: Failed in post_condition")
 
-    @mock.patch('eventlet.spawn')
-    def test_execute_with_cancel_action_plan(self, mock_eventlet_spawn):
+    @mock.patch.object(utils, 'thread_kill')
+    @mock.patch.object(utils, 'thread_spawn')
+    def test_execute_with_cancel_action_plan(
+            self, mock_thread_spawn, mock_thread_kill):
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,
             state=objects.action_plan.State.CANCELLING)
-
         action = obj_utils.create_test_action(
             self.context, action_plan_id=action_plan.id,
-            state=objects.action.State.ONGOING,
+            state=objects.action.State.PENDING,
             action_type='nop',
             input_parameters={'message': 'hello World'})
+
+        mock_thread_spawn.return_value = mock.Mock()
+
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
 
-        def empty_test():
-            pass
-        et = eventlet.spawn(empty_test)
-        mock_eventlet_spawn.return_value = et
         action_container.execute()
-        et.kill.assert_called_with()
+
+        mock_thread_kill.assert_called_once_with(
+            mock_thread_spawn.return_value)
 
     @mock.patch('watcher.applier.workflow_engine.default.LOG')
     def test_execute_without_rollback(self, mock_log):

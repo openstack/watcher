@@ -15,12 +15,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-import futurist
-
 from oslo_config import cfg
 from oslo_log import log
 
 from watcher.applier.action_plan import default
+from watcher.common import executor
 
 LOG = log.getLogger(__name__)
 CONF = cfg.CONF
@@ -30,7 +29,8 @@ class TriggerActionPlan:
     def __init__(self, applier_manager):
         self.applier_manager = applier_manager
         workers = CONF.watcher_applier.workers
-        self.executor = futurist.GreenThreadPoolExecutor(max_workers=workers)
+        self.executor = executor.get_futurist_pool_executor(
+            max_workers=workers)
 
     def do_launch_action_plan(self, context, action_plan_uuid):
         try:
@@ -44,6 +44,7 @@ class TriggerActionPlan:
     def launch_action_plan(self, context, action_plan_uuid):
         LOG.debug("Trigger ActionPlan %s", action_plan_uuid)
         # submit
+        executor.log_executor_stats(self.executor, name="action-plan-pool")
         self.executor.submit(self.do_launch_action_plan, context,
                              action_plan_uuid)
         return action_plan_uuid

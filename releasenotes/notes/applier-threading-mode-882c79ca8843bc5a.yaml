@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    The Applier service now supports running with ``native threading``
+    mode enabled as opposed to the use of the Eventlet library. Note that the
+    use of ``native threading`` is still ``experimental``, and is disabled by
+    default. It should not be used in production. To switch from Eventlet to
+    native threading mode, the environment variable
+    ``OS_WATCHER_DISABLE_EVENTLET_PATCHING=true`` needs to be added to the
+    applier service configuration. When running in native threading mode, the
+    default workflow engine (Taskflow) will be configured with a serial engine,
+    which will execute the actions sequentially, due to a limitation of the
+    current implementation of watcher services.
+    For more information, please check `eventlet
+    removal <https://wiki.openstack.org/wiki/Eventlet-removal>`__ documentation.

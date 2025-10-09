@@ -58,7 +58,7 @@ Concurrency modes
 Evenlet has been the main concurrency library within the OpenStack community
 for the last 10 years since the removal of twisted. Over the last few years,
 the maintenance of eventlet has decreased and the efforts to remove the GIL
-from Python (PEP 703), have fundamentally changed how concurrency is making
+from Python (PEP 703), have fundamentally changed how concurrency works, making
 eventlet no longer viable. While transitioning to a new native thread
 solution, Watcher services will be supporting both modes, with the usage of
 native threading mode initially classified as ``experimental``.
@@ -69,11 +69,6 @@ environment variable in the corresponding service configuration:
 .. code:: bash
 
    OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
-
-.. note::
-
-   The only service that supports two different concurrency modes is the
-   ``decision engine``.
 
 Decision engine concurrency
 ***************************
@@ -207,16 +202,17 @@ the underlying hardware.
 Applier concurrency
 *******************
 
-The applier does not use the futurist_ GreenThreadPoolExecutor_ directly but
-instead uses taskflow_. However, taskflow still utilizes a greenthreadpool.
-This threadpool is initialized in the workflow engine called
-:class:`~.DefaultWorkFlowEngine`. Currently Watcher supports one workflow
-engine but the base class allows contributors to develop other workflow engines
-as well. In taskflow tasks are created using different types of flows such as a
-linear, unordered or a graph flow. The linear and graph flow allow for strong
-ordering between individual tasks and it is for this reason that the workflow
-engine utilizes a graph flow. The creation of tasks, subsequently linking them
-into a graph like structure and submitting them is shown below.
+The applier does not use the futurist_ pool executors directly but instead uses
+taskflow_. Taskflow supports both green thread pools and native thread pools,
+depending on the service configuration. The threadpool is initialized in the
+workflow engine called :class:`~.DefaultWorkFlowEngine`. Currently Watcher
+supports one workflow engine but the base class allows contributors to develop
+other workflow engines as well. In taskflow tasks are created using different
+types of flows such as a linear, unordered or a graph flow. The linear and
+graph flow allow for strong ordering between individual tasks and it is for
+this reason that the workflow engine utilizes a graph flow. The creation of
+tasks, subsequently linking them into a graph like structure and submitting
+them is shown below.
 
 .. code-block:: python
 
@@ -239,6 +235,13 @@ into a graph like structure and submitting them is shown below.
     e.run()
 
     return flow
+
+.. note::
+
+   When running in native threading mode, the default workflow engine Taskflow
+   will be configure with a serial engine, which will execute the actions
+   sequentially, due to a limitation of the current implementation of watcher
+   services.
 
 In the applier tasks are contained in a :class:`~.TaskFlowActionContainer`
 which allows them to trigger events in the workflow engine. This way the

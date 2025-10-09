@@ -284,6 +284,7 @@
       devstack_localrc:
         'SYSTEMD_ENV_VARS["watcher-api"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
         'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+        'SYSTEMD_ENV_VARS["watcher-applier"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:

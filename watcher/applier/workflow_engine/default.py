@@ -25,6 +25,7 @@ from taskflow import task as flow_task
 from watcher.applier.workflow_engine import base
 from watcher.common import exception
 from watcher import conf
+from watcher import eventlet as eventlet_helper
 from watcher import objects
 
 CONF = conf.CONF
@@ -107,9 +108,20 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                     flow.link(actions_uuid[parent_id], actions_uuid[a.uuid],
                               decider=self.decider)
 
-            e = engines.load(
-                flow, executor='greenthreaded', engine='parallel',
-                max_workers=self.config.max_workers)
+            e = None
+            if eventlet_helper.is_patched():
+                executor_type = "greenthreaded"
+                engine_type = "parallel"
+                e = engines.load(
+                    flow, executor=executor_type, engine=engine_type,
+                    max_workers=self.config.max_workers)
+            else:
+                # Serial engine does not use an executor internally
+                LOG.info("Using Taskflow serial engine when running "
+                         "in native threading mode.")
+                engine_type = "serial"
+                e = engines.load(flow, engine=engine_type)
+
             e.run()
 
             return flow
