@@ -39,6 +39,11 @@ repos:
     hooks:
       - id: bandit
         args: ['-x', 'tests', '-s', 'B101,B311,B320']
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.1
+    hooks:
+      - id: ruff-check
+        args: ['--fix', '--unsafe-fixes']
   - repo: https://github.com/hhatto/autopep8
     rev: v2.3.2
     hooks:

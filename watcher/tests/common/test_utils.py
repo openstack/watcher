@@ -37,7 +37,7 @@ class TestCommonUtils(base.TestCase):
             IOError,
             utils.async_compat_call,
             self.test_coro,
-            raise_exc=IOError('fake error'))
+            raise_exc=OSError('fake error'))
 
     def test_async_compat_timeout(self):
         # Timeout not reached.
