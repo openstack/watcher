@@ -7,7 +7,7 @@ line-length = 79
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "S", "U"]
+select = ["E4", "E7", "E9", "F", "S", "U", "W", "C90"]
 ignore = [
     "UP031", # Use format specifiers instead of percent format
     "UP032", # Use f-string instead of `format` call
@@ -23,12 +23,10 @@ ignore = [
     "S106",
     # S110 `try`-`except`-`pass` detected, consider logging the exception
     "S110",
-    # E741 Ambiguous variable name
-    "E741",
-    # E402 Module level import not at top of file
-    "E402",
-    # # UP031 Use format specifiers instead of percent format
-    # "UP031",
 ]
 [tool.ruff.lint.per-file-ignores]
 "watcher/tests/*" = ["S"]
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 5.
+max-complexity = 20

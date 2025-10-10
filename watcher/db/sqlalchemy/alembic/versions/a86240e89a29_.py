@@ -6,13 +6,13 @@ Create Date: 2017-12-21 13:00:09.278587
 
 """
 
-# revision identifiers, used by Alembic.
-revision = 'a86240e89a29'
-down_revision = '3cfc94cecf4e'
-
 from alembic import op
 from sqlalchemy.orm import sessionmaker
 from watcher.db.sqlalchemy import models
+
+# revision identifiers, used by Alembic.
+revision = 'a86240e89a29'
+down_revision = '3cfc94cecf4e'
 
 
 def upgrade():
