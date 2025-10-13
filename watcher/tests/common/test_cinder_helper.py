@@ -21,6 +21,9 @@ from http import HTTPStatus
 import time
 
 from cinderclient import exceptions as cinder_exception
+from cinderclient.v3.pools import Pool as CinderPool
+from cinderclient.v3.volume_types import VolumeType as CinderVolType
+from cinderclient.v3.volumes import Volume as CinderVolume
 
 from watcher.common import cinder_helper
 from watcher.common import clients
@@ -67,8 +70,20 @@ class TestCinderHelper(base.TestCase):
 
     @staticmethod
     def fake_pool(**kwargs):
-        pool = mock.MagicMock()
+        pool = mock.MagicMock(spec=CinderPool)
         pool.name = kwargs.get('name', 'host@backend#pool')
+        host_backend = pool.name.split('#')[0]
+        default_capabilities = {
+            'volume_backend_name': host_backend.split('@')[1]
+        }
+        pool.capabilities = kwargs.get('capabilities', default_capabilities)
+
+        def _to_dict():
+            return {
+                'name': pool.name,
+                'capabilities': pool.capabilities
+            }
+        pool.to_dict = _to_dict
 
         return pool
 
@@ -98,7 +113,7 @@ class TestCinderHelper(base.TestCase):
 
     @staticmethod
     def fake_volume_type(**kwargs):
-        volume_type = mock.MagicMock()
+        volume_type = mock.MagicMock(spec=CinderVolType)
         volume_type.name = kwargs.get('name', 'fake_type')
         extra_specs = {'volume_backend_name': 'backend'}
         volume_type.extra_specs = kwargs.get('extra_specs', extra_specs)
@@ -133,7 +148,7 @@ class TestCinderHelper(base.TestCase):
 
     @staticmethod
     def fake_volume(**kwargs):
-        volume = mock.MagicMock()
+        volume = mock.MagicMock(spec=CinderVolume)
         volume.id = kwargs.get('id', '45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba')
         volume.name = kwargs.get('name', 'fakename')
         volume.size = kwargs.get('size', '1')
@@ -142,51 +157,72 @@ class TestCinderHelper(base.TestCase):
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         volume.volume_type = kwargs.get('volume_type', 'fake_type')
         volume.migration_status = kwargs.get('migration_status')
-        volume.os_vol_host_attr_host = kwargs.get('os_vol_host_attr_host')
+        setattr(
+            volume, 'os-vol-host-attr:host',
+            kwargs.get('os_vol_host_attr_host')
+        )
         return volume
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_migrate_success(self, mock_cinder):
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_storage_pool_by_name')
+    def test_migrate_success(self, mock_get_pool, mock_cinder):
 
         cinder_util = cinder_helper.CinderHelper()
 
-        volume = self.fake_volume()
-        setattr(volume, 'os-vol-host-attr:host', 'source_node')
-        setattr(volume, 'migration_status', 'success')
+        volume = self.fake_volume(
+            os_vol_host_attr_host='source_node',
+            migration_status='success'
+        )
         cinder_util.cinder.volumes.get.return_value = volume
 
         volume_type = self.fake_volume_type()
         cinder_util.cinder.volume_types.list.return_value = [volume_type]
+        mock_pool = self.fake_pool()
+        mock_get_pool.return_value = mock_pool
 
         result = cinder_util.migrate(volume, 'host@backend#pool')
+        mock_get_pool.assert_called_once_with('host@backend#pool')
         self.assertTrue(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_migrate_fail(self, mock_cinder):
+    @mock.patch.object(cinder_helper.CinderHelper, 'get_storage_pool_by_name')
+    def test_migrate_fail(self, mock_get_pool, mock_cinder):
 
         cinder_util = cinder_helper.CinderHelper()
 
         volume = self.fake_volume()
         cinder_util.cinder.volumes.get.return_value = volume
+        mock_pool = self.fake_pool()
+        mock_get_pool.return_value = mock_pool
 
-        volume_type = self.fake_volume_type()
-        volume_type.name = 'notbackend'
+        volume_type = self.fake_volume_type(
+            name='notbackend',
+            extra_specs={'volume_backend_name': 'diff_backend'}
+        )
         cinder_util.cinder.volume_types.list.return_value = [volume_type]
 
         self.assertRaisesRegex(
             exception.Invalid,
-            "Volume type must be same for migrating",
+            "Volume type 'fake_type' is not compatible with destination "
+            "pool 'host@backend#pool'",
             cinder_util.migrate, volume, 'host@backend#pool')
 
-        volume = self.fake_volume()
-        setattr(volume, 'os-vol-host-attr:host', 'source_node')
-        setattr(volume, 'migration_status', 'error')
+        volume = self.fake_volume(
+            migration_status='error',
+            os_vol_host_attr_host='source_node'
+        )
         cinder_util.cinder.volumes.get.return_value = volume
 
-        volume_type = self.fake_volume_type()
+        # check that a volume type without any volume_backend_name passes the
+        # volume type check and proceeds to the migration
+        volume_type = self.fake_volume_type(extra_specs={})
         cinder_util.cinder.volume_types.list.return_value = [volume_type]
 
         result = cinder_util.migrate(volume, 'host@backend#pool')
+        mock_get_pool.assert_called_with('host@backend#pool')
+        cinder_util.cinder.volumes.migrate_volume.assert_called_with(
+            volume, 'host@backend#pool', False, True
+        )
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
@@ -607,3 +643,91 @@ class TestCinderHelper(base.TestCase):
             "Volume migration error on volume %(volume)s.",
             {'volume': volume.id})
         self.assertFalse(result)
+
+    def test_get_volume_types_for_pool(self, mock_cinder):
+        """Test the get_volume_types_for_pool method
+
+        The test should verify the following scenarios:
+        1. A pool with a volume_backend_name, with two volume types, one
+           matching the same volume_backend_name, and one without any
+           extra_specs, both are selected
+        2. A pool with a volume_backend_name, with two volume types, one
+           without any extra_specs, one with a different
+           volume_backend_name from the pool, only the volume_type without
+           extra_specs is selected
+        3. A pool with a capability 'disk_speed', with a volume type
+           containing the same field is its extra_specs, and is selected
+        4. A pool with a capability 'disk_speed', with a volume type
+           containing the same field in its extra_specs, but with a
+           different value, the returned list is empty
+        """
+        cinder_util = cinder_helper.CinderHelper()
+
+        # Scenario 1: Pool with volume_backend_name, two volume types
+        # (one matching, one without extra_specs), both selected
+        pool1 = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={'volume_backend_name': 'backend'}
+        )
+        volume_type1 = self.fake_volume_type(
+            name='type_matching',
+            extra_specs={'volume_backend_name': 'backend'}
+        )
+        volume_type2 = self.fake_volume_type(
+            name='type_no_specs',
+            extra_specs={}
+        )
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type1, volume_type2
+        ]
+        result = cinder_util.get_volume_types_for_pool(pool1.to_dict())
+        self.assertEqual(sorted(result), ['type_matching', 'type_no_specs'])
+
+        # Scenario 2: Pool with volume_backend_name, two volume types
+        # (one without extra_specs, one with different backend),
+        # only type without extra_specs selected
+        pool2 = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={'volume_backend_name': 'backend'}
+        )
+        volume_type3 = self.fake_volume_type(
+            name='type_no_specs',
+            extra_specs={}
+        )
+        volume_type4 = self.fake_volume_type(
+            name='type_different_backend',
+            extra_specs={'volume_backend_name': 'different_backend'}
+        )
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type3, volume_type4
+        ]
+        result = cinder_util.get_volume_types_for_pool(pool2.to_dict())
+        self.assertEqual(result, ['type_no_specs'])
+
+        # Scenario 3: Pool with disk_speed capability, volume type with
+        # matching disk_speed, is selected
+        pool3 = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={'disk_speed': 'fast'}
+        )
+        volume_type5 = self.fake_volume_type(
+            name='type_fast_disk',
+            extra_specs={'disk_speed': 'fast'}
+        )
+        cinder_util.cinder.volume_types.list.return_value = [volume_type5]
+        result = cinder_util.get_volume_types_for_pool(pool3.to_dict())
+        self.assertEqual(result, ['type_fast_disk'])
+
+        # Scenario 4: Pool with disk_speed capability, volume type with
+        # different disk_speed value, empty list returned
+        pool4 = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={'disk_speed': 'fast'}
+        )
+        volume_type6 = self.fake_volume_type(
+            name='type_slow_disk',
+            extra_specs={'disk_speed': 'slow'}
+        )
+        cinder_util.cinder.volume_types.list.return_value = [volume_type6]
+        result = cinder_util.get_volume_types_for_pool(pool4.to_dict())
+        self.assertEqual([], result)
