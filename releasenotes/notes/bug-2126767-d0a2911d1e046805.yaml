@@ -1,0 +1,17 @@
+fixes:
+  - |
+    When running watcher-api as a wsgi server, the decision-engine monitor
+    service was not executed so, in a decision-engine failure scenario, the
+    continuous audits running on it are not reassigned and are not longer
+    running.
+    This patch moves the monitor service to the decision-engine so, it will
+    be executed as soon as any decision-engine is running.
+deprecations:
+  - |
+    The APISchedulingService has been removed from the Watcher API service.
+    It is replaced functionally by the ServiceMonitoringService included
+    in the watcher-decision-engine.
+features:
+  - |
+    A leader election mechanism has been added to the ServiceMonitoringService
+    so that multiple copies of the decision-engine can be executed simultaneously.

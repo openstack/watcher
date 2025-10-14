@@ -16,14 +16,15 @@ from watcher.common import service as watcher_service
 from watcher.decision_engine.audit import continuous as c_handler
 from watcher.decision_engine import manager
 from watcher.decision_engine import scheduling
+from watcher.decision_engine import service_monitor
 
 
 class DecisionEngineService(watcher_service.Service):
     """Decision Engine Service that runs on a host.
 
     The decision engine service holds a RPC server, a notification
-    listener server, a heartbeat service and starts a background scheduling
-    service to run watcher periodic jobs.
+    listener server, a heartbeat service, starts a background scheduling
+    service to run watcher periodic jobs, and a service monitoring service.
     """
 
     def __init__(self):
@@ -33,6 +34,7 @@ class DecisionEngineService(watcher_service.Service):
         # check for expired action plans
         self._bg_scheduler = None
         self._continuous_handler = None
+        self._service_monitor = None
 
     @property
     def bg_scheduler(self):
@@ -46,23 +48,33 @@ class DecisionEngineService(watcher_service.Service):
             self._continuous_handler = c_handler.ContinuousAuditHandler()
         return self._continuous_handler
 
+    @property
+    def service_monitor(self):
+        if self._service_monitor is None:
+            self._service_monitor = service_monitor.ServiceMonitoringService()
+        return self._service_monitor
+
     def start(self):
         """Start service."""
         super().start()
         self.bg_scheduler.start()
         self.continuous_handler.start()
+        self.service_monitor.start()
 
     def stop(self):
         """Stop service."""
         super().stop()
         self.bg_scheduler.stop()
+        self.service_monitor.stop()
 
     def wait(self):
         """Wait for service to complete."""
         super().wait()
         self.bg_scheduler.wait()
+        self.service_monitor.wait()
 
     def reset(self):
         """Reset service."""
         super().reset()
         self.bg_scheduler.reset()
+        self.service_monitor.reset()
