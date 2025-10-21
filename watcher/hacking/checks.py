@@ -79,7 +79,7 @@ def use_jsonutils(logical_line, filename):
     if "json." in logical_line:
         json_funcs = ['dumps(', 'dump(', 'loads(', 'load(']
         for f in json_funcs:
-            pos = logical_line.find('json.%s' % f)
+            pos = logical_line.find(f'json.{f}')
             if pos != -1:
                 yield (pos, msg % {'fun': f[:-1]})
 
@@ -97,7 +97,7 @@ def no_translate_debug_logs(logical_line, filename):
     N319
     """
     for hint in _all_hints:
-        if logical_line.startswith("LOG.debug(%s(" % hint):
+        if logical_line.startswith(f"LOG.debug({hint}("):
             yield (0, "N319 Don't translate debug level logs")
 
 
@@ -178,7 +178,7 @@ def check_assertempty(logical_line, filename):
                "assertEqual(observed, *empty*). *empty* contains "
                "{}, [], (), set(), '', \"\"")
         empties = r"(\[\s*\]|\{\s*\}|\(\s*\)|set\(\s*\)|'\s*'|\"\s*\")"
-        reg = r"assertEqual\(([^,]*,\s*)+?%s\)\s*$" % empties
+        reg = rf"assertEqual\(([^,]*,\s*)+?{empties}\)\s*$"
         if re.search(reg, logical_line):
             yield (0, msg)
 
@@ -223,14 +223,14 @@ def check_oslo_i18n_wrapper(logical_line, filename, noqa):
 
     split_line = logical_line.split()
     modulename = os.path.normpath(filename).split('/')[0]
-    bad_i18n_module = '%s.i18n' % modulename
+    bad_i18n_module = f'{modulename}.i18n'
 
     if (len(split_line) > 1 and split_line[0] in ('import', 'from')):
         if (split_line[1] == bad_i18n_module or
             modulename != 'watcher' and split_line[1] in ('watcher.i18n',
                                                           'watcher._i18n')):
-            msg = ("N340: %(found)s is found. Use %(module)s._i18n instead."
-                   % {'found': split_line[1], 'module': modulename})
+            msg = (f"N340: {split_line[1]} is found. Use "
+                   f"{modulename}._i18n instead.")
             yield (0, msg)
 
 
@@ -249,14 +249,14 @@ def check_builtins_gettext(logical_line, tokens, filename, lines, noqa):
 
     modulename = os.path.normpath(filename).split('/')[0]
 
-    if '%s/tests' % modulename in filename:
+    if f'{modulename}/tests' in filename:
         return
 
     if os.path.basename(filename) in ('i18n.py', '_i18n.py'):
         return
 
     token_values = [t[1] for t in tokens]
-    i18n_wrapper = '%s._i18n' % modulename
+    i18n_wrapper = f'{modulename}._i18n'
 
     if '_' in token_values:
         i18n_import_line_found = False
@@ -269,7 +269,7 @@ def check_builtins_gettext(logical_line, tokens, filename, lines, noqa):
                 break
         if not i18n_import_line_found:
             msg = ("N341: _ from python builtins module is used. "
-                   "Use _ from %s instead." % i18n_wrapper)
+                   f"Use _ from {i18n_wrapper} instead.")
             yield (0, msg)
 
 

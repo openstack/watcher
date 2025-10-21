@@ -56,9 +56,8 @@ def check_min_nova_api_version(config_version):
     """
     min_required = nova_api_versions.APIVersion(MIN_NOVA_API_VERSION)
     if nova_api_versions.APIVersion(config_version) < min_required:
-        raise ValueError('Invalid nova_client.api_version %s. %s or '
-                         'greater is required.' % (config_version,
-                                                   MIN_NOVA_API_VERSION))
+        raise ValueError(f'Invalid nova_client.api_version {config_version}. '
+                         f'{MIN_NOVA_API_VERSION} or greater is required.')
 
 
 class OpenStackClients:
@@ -99,7 +98,7 @@ class OpenStackClients:
         return self._session
 
     def _get_client_option(self, client, option):
-        return getattr(getattr(CONF, '%s_client' % client), option)
+        return getattr(getattr(CONF, f'{client}_client'), option)
 
     @exception.wrap_keystone_exception
     def keystone(self):

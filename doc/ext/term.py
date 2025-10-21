@@ -53,7 +53,7 @@ class BaseWatcherDirective(rst.Directive):
 
         if not obj_raw_docstring:
             # Raise a warning to make the tests fail with doc8
-            raise self.error("No docstring available for %s!" % obj)
+            raise self.error(f"No docstring available for {obj}!")
 
         obj_docstring = inspect.cleandoc(obj_raw_docstring)
         self.add_textblock(obj_docstring)
@@ -130,7 +130,7 @@ class WatcherFunc(BaseWatcherDirective):
     def run(self):
         if not self.content:
             error = self.state_machine.reporter.error(
-                'The "%s" directive is empty; content required.' % self.name,
+                f'The "{self.name}" directive is empty; content required.',
                 nodes.literal_block(self.block_text, self.block_text),
                 line=self.lineno)
             return [error]

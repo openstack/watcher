@@ -34,7 +34,7 @@ class FakeMemcache:
     """Fake cache that is used for keystone tokens lookup."""
 
     _cache = {
-        'tokens/%s' % ADMIN_TOKEN: {
+        f'tokens/{ADMIN_TOKEN}': {
             'access': {
                 'token': {'id': ADMIN_TOKEN,
                           'expires': '2100-09-11T00:00:00'},
@@ -46,7 +46,7 @@ class FakeMemcache:
                          },
             }
         },
-        'tokens/%s' % MEMBER_TOKEN: {
+        f'tokens/{MEMBER_TOKEN}': {
             'access': {
                 'token': {'id': MEMBER_TOKEN,
                           'expires': '2100-09-11T00:00:00'},

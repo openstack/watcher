@@ -357,8 +357,8 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
                 'state': objects.action.State.FAILED,
                 'uuid': actions[0].uuid,
                 'action_type': 'fake_action',
-                'status_message': "Action failed in execute: The action %s "
-                "execution failed." % actions[0].uuid,
+                'status_message': (f"Action failed in execute: The action "
+                                   f"{actions[0].uuid} execution failed."),
             },
         ))
 
@@ -563,8 +563,8 @@ class TestDefaultWorkFlowEngine(base.DbTestCase):
         self.assertEqual(
             objects.Action.get_by_uuid(
                 self.context, action4.uuid).status_message,
-            "Action failed in execute: The action %s execution failed."
-            % action4.uuid)
+            f"Action failed in execute: The action {action4.uuid} "
+            "execution failed.")
         # action failed in the post_condition phase
         self.check_action_state(action5, objects.action.State.FAILED)
         self.assertEqual(

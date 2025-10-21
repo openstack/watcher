@@ -243,7 +243,7 @@ class DbStrategyTestCase(base.DbTestCase):
             strategy = utils.create_test_strategy(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name="STRATEGY_ID_%s" % i,
+                name=f"STRATEGY_ID_{i}",
                 display_name=f'My Strategy {i}')
             uuids.append(str(strategy['uuid']))
         strategies = self.dbapi.get_strategy_list(self.context)
@@ -260,7 +260,7 @@ class DbStrategyTestCase(base.DbTestCase):
             strategy = utils.create_test_strategy(
                 id=i,
                 uuid=w_utils.generate_uuid(),
-                name="STRATEGY_ID_%s" % i,
+                name=f"STRATEGY_ID_{i}",
                 display_name=f'My Strategy {i}',
                 goal_id=goal.id)
             uuids.append(str(strategy['uuid']))

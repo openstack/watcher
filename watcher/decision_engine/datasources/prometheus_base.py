@@ -268,27 +268,25 @@ class PrometheusBase(base.DataSourceBase):
 
         if meter == 'node_cpu_seconds_total':
             query_args = (
-                "100 - (%(agg)s by (%(label)s)(rate(%(meter)s"
-                "{mode='idle',%(label)s='%(label_value)s'}[%(period)ss])) "
+                f"100 - ({aggregate} by ({self.prometheus_fqdn_label})"
+                f"(rate({meter}{{mode='idle',"
+                f"{self.prometheus_fqdn_label}='{instance_label}'}}"
+                f"[{period}s])) "
                 "* 100)"
-                % {'label': self.prometheus_fqdn_label,
-                   'label_value': instance_label, 'agg': aggregate,
-                   'meter': meter, 'period': period}
             )
         elif meter == 'node_memory_MemAvailable_bytes':
             # Prometheus metric is in B and we need to return KB
             query_args = (
-                "(node_memory_MemTotal_bytes{%(label)s='%(label_value)s'} "
-                "- %(agg)s_over_time(%(meter)s{%(label)s='%(label_value)s'}"
-                "[%(period)ss])) / 1024"
-                % {'label': self.prometheus_fqdn_label,
-                   'label_value': instance_label, 'agg': aggregate,
-                   'meter': meter, 'period': period}
+                f"(node_memory_MemTotal_bytes{{"
+                f"{self.prometheus_fqdn_label}='{instance_label}'}} "
+                f"- {aggregate}_over_time({meter}{{"
+                f"{self.prometheus_fqdn_label}='{instance_label}'}}"
+                f"[{period}s])) / 1024"
             )
         elif meter == 'ceilometer_memory_usage':
             query_args = (
-                "%s_over_time(%s{%s='%s'}[%ss])" %
-                (aggregate, meter, uuid_label_key, instance_label, period)
+                f"{aggregate}_over_time({meter}{{"
+                f"{uuid_label_key}='{instance_label}'}}[{period}s])"
             )
         elif meter == 'ceilometer_cpu':
             # We are converting the total cumulative cpu time (ns) to cpu usage
@@ -304,12 +302,9 @@ class PrometheusBase(base.DataSourceBase):
                 )
                 vcpus = 1
             query_args = (
-                "clamp_max((%(agg)s by (%(label)s)"
-                "(rate(%(meter)s{%(label)s='%(label_value)s'}[%(period)ss]))"
-                "/10e+8) *(100/%(vcpus)s), 100)"
-                % {'label': uuid_label_key, 'label_value': instance_label,
-                   'agg': aggregate, 'meter': meter, 'period': period,
-                   'vcpus': vcpus}
+                f"clamp_max(({aggregate} by ({uuid_label_key})"
+                f"(rate({meter}{{{uuid_label_key}='{instance_label}'}}"
+                f"[{period}s]))/10e+8) *(100/{vcpus}), 100)"
             )
         else:
             raise exception.InvalidParameter(

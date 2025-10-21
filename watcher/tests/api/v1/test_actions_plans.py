@@ -79,7 +79,8 @@ class TestListActionPlan(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(self.context)
         obj_utils.create_test_efficacy_indicator(
             self.context, action_plan_id=action_plan['id'])
-        response = self.get_json('/action_plans/%s' % action_plan['uuid'])
+        response = self.get_json(
+            '/action_plans/{}'.format(action_plan['uuid']))
         self.assertEqual(action_plan.uuid, response['uuid'])
         self._assert_action_plans_fields(response)
         self.assertEqual(
@@ -95,7 +96,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         obj_utils.create_test_efficacy_indicator(
             self.context, action_plan_id=action_plan['id'])
         response = self.get_json(
-            '/action_plans/%s' % action_plan['uuid'],
+            '/action_plans/{}'.format(action_plan['uuid']),
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
         self.assertEqual(action_plan.uuid, response['uuid'])
         self._assert_action_plans_fields(response)
@@ -106,7 +107,7 @@ class TestListActionPlan(api_base.FunctionalTest):
         obj_utils.create_test_efficacy_indicator(
             self.context, action_plan_id=action_plan['id'])
         response = self.get_json(
-            '/action_plans/%s' % action_plan['uuid'],
+            '/action_plans/{}'.format(action_plan['uuid']),
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
         self.assertEqual(action_plan.uuid, response['uuid'])
         self._assert_action_plans_fields(response)
@@ -115,13 +116,15 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_get_one_soft_deleted(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
         action_plan.soft_delete()
-        response = self.get_json('/action_plans/%s' % action_plan['uuid'],
-                                 headers={'X-Show-Deleted': 'True'})
+        response = self.get_json(
+            '/action_plans/{}'.format(action_plan['uuid']),
+            headers={'X-Show-Deleted': 'True'})
         self.assertEqual(action_plan.uuid, response['uuid'])
         self._assert_action_plans_fields(response)
 
-        response = self.get_json('/action_plans/%s' % action_plan['uuid'],
-                                 expect_errors=True)
+        response = self.get_json(
+            '/action_plans/{}'.format(action_plan['uuid']),
+            expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
     def test_detail(self):
@@ -170,7 +173,7 @@ class TestListActionPlan(api_base.FunctionalTest):
     def test_detail_against_single(self):
         action_plan = obj_utils.create_test_action_plan(self.context)
         response = self.get_json(
-            '/action_plan/%s/detail' % action_plan['uuid'],
+            '/action_plan/{}/detail'.format(action_plan['uuid']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -208,10 +211,10 @@ class TestListActionPlan(api_base.FunctionalTest):
 
         new_state = objects.audit.State.CANCELLED
         self.patch_json(
-            '/audits/%s' % audit1.uuid,
+            f'/audits/{audit1.uuid}',
             [{'path': '/state', 'value': new_state,
              'op': 'replace'}])
-        self.delete('/audits/%s' % audit1.uuid)
+        self.delete(f'/audits/{audit1.uuid}')
 
         response = self.get_json('/action_plans')
 
@@ -261,7 +264,7 @@ class TestListActionPlan(api_base.FunctionalTest):
                 audit_id=audit2.id)
             action_plan_list2.append(action_plan.uuid)
 
-        response = self.get_json('/action_plans?audit_uuid=%s' % audit2.uuid)
+        response = self.get_json(f'/action_plans?audit_uuid={audit2.uuid}')
         self.assertEqual(len(action_plan_list2), len(response['action_plans']))
         for action in response['action_plans']:
             self.assertEqual(audit2.uuid, action['audit_uuid'])
@@ -317,14 +320,14 @@ class TestListActionPlan(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/action_plans?sort_key=%s' % 'bad_name',
+            '/action_plans?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
     def test_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_action_plan(self.context, id=1, uuid=uuid)
-        response = self.get_json('/action_plans/%s' % uuid)
+        response = self.get_json(f'/action_plans/{uuid}')
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
         self.assertIn(uuid, response['links'][0]['href'])
@@ -375,15 +378,15 @@ class TestDelete(api_base.FunctionalTest):
         action_plan.destroy()
 
     def test_delete_action_plan_without_action(self):
-        response = self.delete('/action_plans/%s' % self.action_plan.uuid,
+        response = self.delete(f'/action_plans/{self.action_plan.uuid}',
                                expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
         self.action_plan.state = objects.action_plan.State.SUCCEEDED
         self.action_plan.save()
-        self.delete('/action_plans/%s' % self.action_plan.uuid)
-        response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
+        self.delete(f'/action_plans/{self.action_plan.uuid}')
+        response = self.get_json(f'/action_plans/{self.action_plan.uuid}',
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
@@ -395,13 +398,13 @@ class TestDelete(api_base.FunctionalTest):
 
         self.action_plan.state = objects.action_plan.State.SUCCEEDED
         self.action_plan.save()
-        self.delete('/action_plans/%s' % self.action_plan.uuid)
-        ap_response = self.get_json('/action_plans/%s' % self.action_plan.uuid,
+        self.delete(f'/action_plans/{self.action_plan.uuid}')
+        ap_response = self.get_json(f'/action_plans/{self.action_plan.uuid}',
                                     expect_errors=True)
         acts_response = self.get_json(
-            '/actions/?action_plan_uuid=%s' % self.action_plan.uuid)
+            f'/actions/?action_plan_uuid={self.action_plan.uuid}')
         act_response = self.get_json(
-            '/actions/%s' % action.uuid,
+            f'/actions/{action.uuid}',
             expect_errors=True)
 
         # The action plan does not exist anymore
@@ -417,7 +420,7 @@ class TestDelete(api_base.FunctionalTest):
 
     def test_delete_action_plan_not_found(self):
         uuid = utils.generate_uuid()
-        response = self.delete('/action_plans/%s' % uuid, expect_errors=True)
+        response = self.delete(f'/action_plans/{uuid}', expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -446,8 +449,8 @@ class TestStart(api_base.FunctionalTest):
     def test_start_action_plan_not_found(self, mock_policy):
         mock_policy.return_value = True
         uuid = utils.generate_uuid()
-        response = self.post('/v1/action_plans/%s/%s' %
-                             (uuid, 'start'), expect_errors=True)
+        response = self.post(
+            '/v1/action_plans/{}/{}'.format(uuid, 'start'), expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(response.json['error_message'])
@@ -458,12 +461,12 @@ class TestStart(api_base.FunctionalTest):
         action = obj_utils.create_test_action(
             self.context, id=1)
         self.action_plan.state = objects.action_plan.State.SUCCEEDED
-        response = self.post('/v1/action_plans/%s/%s/'
-                             % (self.action_plan.uuid, 'start'),
-                             expect_errors=True)
+        response = self.post(
+            '/v1/action_plans/{}/{}/'.format(self.action_plan.uuid, 'start'),
+            expect_errors=True)
         self.assertEqual(HTTPStatus.OK, response.status_int)
         act_response = self.get_json(
-            '/actions/%s' % action.uuid,
+            f'/actions/{action.uuid}',
             expect_errors=True)
         self.assertEqual(HTTPStatus.OK, act_response.status_int)
         self.assertEqual('PENDING', act_response.json['state'])
@@ -496,11 +499,11 @@ class TestPatch(api_base.FunctionalTest):
 
         new_state = objects.action_plan.State.DELETED
         response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
+            f'/action_plans/{self.action_plan.uuid}')
         self.assertNotEqual(new_state, response['state'])
 
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             expect_errors=True)
 
@@ -510,7 +513,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_replace_non_existent_action_plan_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % utils.generate_uuid(),
+            f'/action_plans/{utils.generate_uuid()}',
             [{'path': '/state',
               'value': objects.action_plan.State.PENDING,
               'op': 'replace'}],
@@ -521,7 +524,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_add_non_existent_property_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/foo', 'value': 'bar', 'op': 'add'}],
             expect_errors=True)
         self.assertEqual('application/json', response.content_type)
@@ -531,11 +534,11 @@ class TestPatch(api_base.FunctionalTest):
     def test_remove_denied(self):
         # We should not be able to remove the state of an action plan
         response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
+            f'/action_plans/{self.action_plan.uuid}')
         self.assertIsNotNone(response['state'])
 
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/state', 'op': 'remove'}],
             expect_errors=True)
 
@@ -545,7 +548,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_remove_uuid_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/uuid', 'op': 'remove'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
@@ -554,7 +557,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_remove_non_existent_property_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/non-existent', 'op': 'remove'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
@@ -565,10 +568,10 @@ class TestPatch(api_base.FunctionalTest):
     def test_replace_state_pending_ok(self, applier_mock):
         new_state = objects.action_plan.State.PENDING
         response = self.get_json(
-            '/action_plans/%s' % self.action_plan.uuid)
+            f'/action_plans/{self.action_plan.uuid}')
         self.assertNotEqual(new_state, response['state'])
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/state', 'value': new_state,
               'op': 'replace'}])
         self.assertEqual('application/json', response.content_type)
@@ -578,7 +581,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_replace_status_message_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/status_message', 'value': 'test', 'op': 'replace'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
@@ -587,7 +590,7 @@ class TestPatch(api_base.FunctionalTest):
 
     def test_add_status_message_denied(self):
         response = self.patch_json(
-            '/action_plans/%s' % self.action_plan.uuid,
+            f'/action_plans/{self.action_plan.uuid}',
             [{'path': '/status_message', 'value': 'test', 'op': 'add'}],
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_code)
@@ -616,7 +619,7 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
 
     scenarios = [
         (
-            "{} -> {}".format(original_state, new_state),
+            f"{original_state} -> {new_state}",
             {"original_state": original_state,
              "new_state": new_state},
         )
@@ -647,13 +650,13 @@ class TestPatchStateTransitionDenied(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(
             self.context, state=self.original_state)
 
-        initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+        initial_ap = self.get_json(f'/action_plans/{action_plan.uuid}')
         response = self.patch_json(
-            '/action_plans/%s' % action_plan.uuid,
+            f'/action_plans/{action_plan.uuid}',
             [{'path': '/state', 'value': self.new_state,
               'op': 'replace'}],
             expect_errors=True)
-        updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+        updated_ap = self.get_json(f'/action_plans/{action_plan.uuid}')
 
         self.assertNotEqual(self.new_state, initial_ap['state'])
         self.assertEqual(self.original_state, updated_ap['state'])
@@ -687,12 +690,12 @@ class TestPatchStateTransitionOk(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(
             self.context, state=self.original_state)
 
-        initial_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+        initial_ap = self.get_json(f'/action_plans/{action_plan.uuid}')
 
         response = self.patch_json(
-            '/action_plans/%s' % action_plan.uuid,
+            f'/action_plans/{action_plan.uuid}',
             [{'path': '/state', 'value': self.new_state, 'op': 'replace'}])
-        updated_ap = self.get_json('/action_plans/%s' % action_plan.uuid)
+        updated_ap = self.get_json(f'/action_plans/{action_plan.uuid}')
         self.assertNotEqual(self.new_state, initial_ap['state'])
         self.assertEqual(self.new_state, updated_ap['state'])
         self.assertEqual('application/json', response.content_type)
@@ -716,7 +719,7 @@ class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -728,7 +731,7 @@ class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(self.context)
         self._common_policy_check(
             "action_plan:get", self.get_json,
-            '/action_plans/%s' % action_plan.uuid,
+            f'/action_plans/{action_plan.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):
@@ -741,7 +744,7 @@ class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(self.context)
         self._common_policy_check(
             "action_plan:update", self.patch_json,
-            '/action_plans/%s' % action_plan.uuid,
+            f'/action_plans/{action_plan.uuid}',
             [{'path': '/state',
               'value': objects.action_plan.State.DELETED,
               'op': 'replace'}],
@@ -751,7 +754,7 @@ class TestActionPlanPolicyEnforcement(api_base.FunctionalTest):
         action_plan = obj_utils.create_test_action_plan(self.context)
         self._common_policy_check(
             "action_plan:delete", self.delete,
-            '/action_plans/%s' % action_plan.uuid, expect_errors=True)
+            f'/action_plans/{action_plan.uuid}', expect_errors=True)
 
 
 class TestActionPlanPolicyEnforcementWithAdminContext(TestListActionPlan,

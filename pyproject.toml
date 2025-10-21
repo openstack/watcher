@@ -9,8 +9,6 @@ target-version = "py310"
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "S", "U", "W", "C90"]
 ignore = [
-    "UP031", # Use format specifiers instead of percent format
-    "UP032", # Use f-string instead of `format` call
     # we only use asserts for type narrowing
     "S101",
     # we do not use random number geneerators for crypto

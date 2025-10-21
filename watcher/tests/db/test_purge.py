@@ -73,7 +73,7 @@ class TestPurgeCommand(base.DbTestCase):
             seed += 1
 
     def generate_unique_name(self, prefix):
-        return "{}{}".format(prefix, uuidutils.generate_uuid())
+        return f"{prefix}{uuidutils.generate_uuid()}"
 
     def _data_setup(self):
         # All the 1's are soft_deleted and are expired

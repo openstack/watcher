@@ -220,7 +220,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
         volume_count = 9
 
         for i in range(0, node_count):
-            host = "host_{0}@backend_{0}".format(i)
+            host = f"host_{i}@backend_{i}"
             zone = f"zone_{i}"
             volume_type = [f"type_{i}"]
             node_attributes = {
@@ -234,7 +234,7 @@ class FakerStorageModelCollector(base.BaseClusterDataModelCollector):
             model.add_node(node)
 
             for j in range(0, pool_count):
-                name = "host_{0}@backend_{0}#pool_{1}".format(i, j)
+                name = f"host_{i}@backend_{i}#pool_{j}"
                 pool_attributes = {
                     "name": name,
                     "total_volumes": 2,

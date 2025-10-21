@@ -195,8 +195,9 @@ class NovaHelper:
                 break
             time.sleep(poll_interval)
         else:
-            raise Exception("Volume %s did not reach status %s after %d s"
-                            % (volume.id, status, timeout))
+            raise Exception(
+                f"Volume {volume.id} did not reach status {status} "
+                f"after {timeout:d} s")
         return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
@@ -432,7 +433,7 @@ class NovaHelper:
 
         else:
             raise Exception("Live migration execution and abort both failed "
-                            "for the instance %s" % instance_id)
+                            f"for the instance {instance_id}")
 
     def enable_service_nova_compute(self, hostname):
         if (api_versions.APIVersion(version_str=CONF.nova_client.api_version) <
@@ -701,7 +702,7 @@ class NovaHelper:
             security_groups=sec_group_list,
             nics=net_list,
             block_device_mapping_v2=block_device_mapping_v2,
-            availability_zone="{}:{}".format(azone, node_id))
+            availability_zone=f"{azone}:{node_id}")
 
         # Poll at 5 second intervals, until the status is no longer 'BUILD'
         if instance:

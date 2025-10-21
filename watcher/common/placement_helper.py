@@ -52,7 +52,7 @@ class PlacementHelper:
         """
         url = '/resource_providers'
         if rp_name:
-            url += '?name=%s' % rp_name
+            url += f'?name={rp_name}'
         resp = self.get(url)
         if resp.status_code == HTTPStatus.OK:
             json_resp = resp.json()
@@ -76,7 +76,7 @@ class PlacementHelper:
         :param rp_uuid: UUID of the resource provider to get.
         :return: A dictionary of inventories keyed by resource classes.
         """
-        url = '/resource_providers/%s/inventories' % rp_uuid
+        url = f'/resource_providers/{rp_uuid}/inventories'
         resp = self.get(url)
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
@@ -96,7 +96,7 @@ class PlacementHelper:
         :param rp_uuid: UUID of the resource provider to grab traits for.
         :return: A list of traits.
         """
-        resp = self.get("/resource_providers/%s/traits" % rp_uuid)
+        resp = self.get(f"/resource_providers/{rp_uuid}/traits")
 
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
@@ -117,7 +117,7 @@ class PlacementHelper:
         :return: A dictionary of allocation records keyed by resource
                  provider uuid.
         """
-        url = '/allocations/%s' % consumer_uuid
+        url = f'/allocations/{consumer_uuid}'
         resp = self.get(url)
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
@@ -138,7 +138,7 @@ class PlacementHelper:
         :return: A dictionary that describes how much each class of
                  resource is being consumed on this resource provider.
         """
-        url = '/resource_providers/%s/usages' % rp_uuid
+        url = f'/resource_providers/{rp_uuid}/usages'
         resp = self.get(url)
         if resp.status_code == HTTPStatus.OK:
             json = resp.json()
@@ -163,7 +163,7 @@ class PlacementHelper:
         :returns: A dict, keyed by resource provider UUID, which can
                   provide the required resources.
         """
-        url = "/allocation_candidates?%s" % resources
+        url = f"/allocation_candidates?{resources}"
         resp = self.get(url)
         if resp.status_code == HTTPStatus.OK:
             data = resp.json()

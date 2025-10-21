@@ -116,7 +116,7 @@ class TestListAction(api_base.FunctionalTest):
 
     def test_show(self):
         action = obj_utils.create_test_action(self.context, parents=None)
-        response = self.get_json('/actions/%s' % action['uuid'])
+        response = self.get_json('/actions/{}'.format(action['uuid']))
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
         self.assertEqual(action.input_parameters, response['input_parameters'])
@@ -127,7 +127,7 @@ class TestListAction(api_base.FunctionalTest):
         action = obj_utils.create_test_action(
             self.context, parents=None, status_message='test')
         response = self.get_json(
-            '/actions/%s' % action['uuid'],
+            '/actions/{}'.format(action['uuid']),
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
@@ -139,7 +139,7 @@ class TestListAction(api_base.FunctionalTest):
         action = obj_utils.create_test_action(
             self.context, parents=None, status_message='test')
         response = self.get_json(
-            '/actions/%s' % action['uuid'],
+            '/actions/{}'.format(action['uuid']),
             headers={'OpenStack-API-Version': 'infra-optim 1.4'})
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
@@ -150,7 +150,7 @@ class TestListAction(api_base.FunctionalTest):
     def test_show_with_empty_status_message(self):
         action = obj_utils.create_test_action(self.context, parents=None)
         response = self.get_json(
-            '/actions/%s' % action['uuid'],
+            '/actions/{}'.format(action['uuid']),
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
         self.assertEqual(action.uuid, response['uuid'])
         self.assertEqual(action.action_type, response['action_type'])
@@ -161,12 +161,12 @@ class TestListAction(api_base.FunctionalTest):
     def test_show_soft_deleted(self):
         action = obj_utils.create_test_action(self.context, parents=None)
         action.soft_delete()
-        response = self.get_json('/actions/%s' % action['uuid'],
+        response = self.get_json('/actions/{}'.format(action['uuid']),
                                  headers={'X-Show-Deleted': 'True'})
         self.assertEqual(action.uuid, response['uuid'])
         self._assert_action_fields(response)
 
-        response = self.get_json('/actions/%s' % action['uuid'],
+        response = self.get_json('/actions/{}'.format(action['uuid']),
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -189,7 +189,7 @@ class TestListAction(api_base.FunctionalTest):
 
     def test_show_detail(self):
         action = obj_utils.create_test_action(self.context, parents=None)
-        response = self.get_json('/actions/%s/detail' % action['uuid'],
+        response = self.get_json('/actions/{}/detail'.format(action['uuid']),
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -249,7 +249,7 @@ class TestListAction(api_base.FunctionalTest):
                 action_plan_id=action_plan_2.id,
                 uuid=utils.generate_uuid())
 
-        response = self.get_json('/actions?audit_uuid=%s' % self.audit.uuid)
+        response = self.get_json(f'/actions?audit_uuid={self.audit.uuid}')
         self.assertEqual(len(action_list), len(response['actions']))
         for action in response['actions']:
             self.assertEqual(action_plan_1.uuid, action['action_plan_uuid'])
@@ -280,13 +280,13 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
 
         response = self.get_json(
-            '/actions?action_plan_uuid=%s' % action_plan_1.uuid)
+            f'/actions?action_plan_uuid={action_plan_1.uuid}')
         self.assertEqual(len(action_list), len(response['actions']))
         for action in response['actions']:
             self.assertEqual(action_plan_1.uuid, action['action_plan_uuid'])
 
         response = self.get_json(
-            '/actions?action_plan_uuid=%s' % action_plan_2.uuid)
+            f'/actions?action_plan_uuid={action_plan_2.uuid}')
         for action in response['actions']:
             self.assertEqual(action_plan_2.uuid, action['action_plan_uuid'])
 
@@ -303,7 +303,7 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
 
         response = self.get_json(
-            '/actions/detail?action_plan_uuid=%s' % action_plan.uuid)
+            f'/actions/detail?action_plan_uuid={action_plan.uuid}')
         for action in response['actions']:
             self.assertEqual(action_plan.uuid, action['action_plan_uuid'])
 
@@ -320,7 +320,7 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
 
         response = self.get_json(
-            '/actions/detail?audit_uuid=%s' % self.audit.uuid)
+            f'/actions/detail?audit_uuid={self.audit.uuid}')
         for action in response['actions']:
             self.assertEqual(action_plan.uuid, action['action_plan_uuid'])
 
@@ -329,8 +329,8 @@ class TestListAction(api_base.FunctionalTest):
             self.context,
             uuid=utils.generate_uuid(),
             audit_id=self.audit.id)
-        url = '/actions?action_plan_uuid={}&audit_uuid={}'.format(
-            action_plan.uuid, self.audit.uuid)
+        url = (f'/actions?action_plan_uuid={action_plan.uuid}&'
+               f'audit_uuid={self.audit.uuid}')
         response = self.get_json(url, expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -348,7 +348,7 @@ class TestListAction(api_base.FunctionalTest):
                 uuid=utils.generate_uuid())
             actions_list.append(action)
 
-        response = self.get_json('/actions?sort_key=%s' % 'uuid')
+        response = self.get_json('/actions?sort_key={}'.format('uuid'))
         names = [s['uuid'] for s in response['actions']]
 
         self.assertEqual(
@@ -387,11 +387,11 @@ class TestListAction(api_base.FunctionalTest):
             self.assertEqual(
                 sorted(action_plans_uuid_list, reverse=(direction == 'desc')),
                 action_plan_uuids,
-                message='Failed on %s direction' % direction)
+                message=f'Failed on {direction} direction')
 
     def test_list_sort_key_validation(self):
         response = self.get_json(
-            '/actions?sort_key=%s' % 'bad_name',
+            '/actions?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -426,7 +426,7 @@ class TestListAction(api_base.FunctionalTest):
 
         action_plan1.state = objects.action_plan.State.CANCELLED
         action_plan1.save()
-        self.delete('/action_plans/%s' % action_plan1.uuid)
+        self.delete(f'/action_plans/{action_plan1.uuid}')
 
         response = self.get_json('/actions')
         # We deleted the actions from the 1st action plan so we've got 2 left
@@ -496,7 +496,7 @@ class TestListAction(api_base.FunctionalTest):
     def test_show_with_links(self):
         uuid = utils.generate_uuid()
         obj_utils.create_test_action(self.context, id=1, uuid=uuid)
-        response = self.get_json('/actions/%s' % uuid)
+        response = self.get_json(f'/actions/{uuid}')
         self.assertIn('links', response.keys())
         self.assertEqual(2, len(response['links']))
         self.assertIn(uuid, response['links'][0]['href'])
@@ -549,12 +549,12 @@ class TestPatchAction(api_base.FunctionalTest):
     def test_patch_action_not_allowed_old_microversion(self):
         """Test that action patch is not allowed in older microversions"""
         new_state = objects.action.State.SKIPPED
-        response = self.get_json('/actions/%s' % self.action.uuid)
+        response = self.get_json(f'/actions/{self.action.uuid}')
         self.assertNotEqual(new_state, response['state'])
 
         # Test with API version 1.4 (should fail)
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.4'},
             expect_errors=True)
@@ -565,12 +565,12 @@ class TestPatchAction(api_base.FunctionalTest):
     def test_patch_action_allowed_new_microversion(self):
         """Test that action patch is allowed in microversion 1.5+"""
         new_state = objects.action.State.SKIPPED
-        response = self.get_json('/actions/%s' % self.action.uuid)
+        response = self.get_json(f'/actions/{self.action.uuid}')
         self.assertNotEqual(new_state, response['state'])
 
         # Test with API version 1.5 (should succeed)
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
         self.assertEqual('application/json', response.content_type)
@@ -584,7 +584,7 @@ class TestPatchAction(api_base.FunctionalTest):
         # Try to transition from PENDING to SUCCEEDED (should fail)
         new_state = objects.action.State.SUCCEEDED
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
@@ -604,7 +604,7 @@ class TestPatchAction(api_base.FunctionalTest):
         self.action_plan.save()
         new_state = objects.action.State.SKIPPED
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
@@ -618,7 +618,7 @@ class TestPatchAction(api_base.FunctionalTest):
         """Test that PENDING to SKIPPED transition is allowed"""
         new_state = objects.action.State.SKIPPED
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'},
              {'path': '/status_message', 'value': 'test message',
               'op': 'replace'}],
@@ -634,7 +634,7 @@ class TestPatchAction(api_base.FunctionalTest):
         """Test that invalid state values are rejected"""
         invalid_state = "INVALID_STATE"
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': invalid_state, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
@@ -645,7 +645,7 @@ class TestPatchAction(api_base.FunctionalTest):
     def test_patch_action_remove_status_message_not_allowed(self):
         """Test that remove fields is not allowed"""
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/status_message', 'op': 'remove'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
             expect_errors=True)
@@ -658,7 +658,7 @@ class TestPatchAction(api_base.FunctionalTest):
     def test_patch_action_status_message_not_allowed(self):
         """Test status_message cannot be patched directly when not SKIPPED"""
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/status_message', 'value': 'test message',
               'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
@@ -673,7 +673,7 @@ class TestPatchAction(api_base.FunctionalTest):
         """Test that status_message cannot be patched directly"""
         new_state = objects.action.State.SKIPPED
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'},
              {'path': '/action_plan_id', 'value': 56, 'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},
@@ -690,7 +690,7 @@ class TestPatchAction(api_base.FunctionalTest):
         # First transition to SKIPPED state
         new_state = objects.action.State.SKIPPED
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/state', 'value': new_state, 'op': 'replace'},
              {'path': '/status_message', 'value': 'initial message',
               'op': 'replace'}],
@@ -700,7 +700,7 @@ class TestPatchAction(api_base.FunctionalTest):
 
         # Now update status_message while in SKIPPED state
         response = self.patch_json(
-            '/actions/%s' % self.action.uuid,
+            f'/actions/{self.action.uuid}',
             [{'path': '/status_message', 'value': 'updated message',
               'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'})
@@ -730,7 +730,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -742,7 +742,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         action = obj_utils.create_test_action(self.context)
         self._common_policy_check(
             "action:get", self.get_json,
-            '/actions/%s' % action.uuid,
+            f'/actions/{action.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):
@@ -755,7 +755,7 @@ class TestActionPolicyEnforcement(api_base.FunctionalTest):
         action = obj_utils.create_test_action(self.context)
         self._common_policy_check(
             "action:update", self.patch_json,
-            '/actions/%s' % action.uuid,
+            f'/actions/{action.uuid}',
             [{'path': '/state', 'value': objects.action.State.SKIPPED,
               'op': 'replace'}],
             headers={'OpenStack-API-Version': 'infra-optim 1.5'},

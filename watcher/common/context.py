@@ -75,7 +75,7 @@ class RequestContext(context.RequestContext):
         return values
 
     def __str__(self):
-        return "<Context %s>" % self.to_dict()
+        return f"<Context {self.to_dict()}>"
 
 
 def make_context(*args, **kwargs):

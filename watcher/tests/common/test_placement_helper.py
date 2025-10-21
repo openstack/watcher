@@ -155,7 +155,7 @@ class TestPlacementHelper(base.TestCase):
 
         result = self.client.get_inventories(rp_uuid)
 
-        expected_url = '/resource_providers/%s/inventories' % rp_uuid
+        expected_url = f'/resource_providers/{rp_uuid}/inventories'
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
         self.assertEqual(fake_inventories, result)
 
@@ -182,7 +182,7 @@ class TestPlacementHelper(base.TestCase):
 
         result = self.client.get_provider_traits(rp_uuid)
 
-        expected_url = '/resource_providers/%s/traits' % rp_uuid
+        expected_url = f'/resource_providers/{rp_uuid}/traits'
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
         self.assertEqual(fake_traits, result)
 
@@ -224,7 +224,7 @@ class TestPlacementHelper(base.TestCase):
 
         result = self.client.get_allocations_for_consumer(c_uuid)
 
-        expected_url = '/allocations/%s' % c_uuid
+        expected_url = f'/allocations/{c_uuid}'
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
         self.assertEqual(fake_allocations, result)
 
@@ -254,7 +254,7 @@ class TestPlacementHelper(base.TestCase):
 
         result = self.client.get_usages_for_resource_provider(rp_uuid)
 
-        expected_url = '/resource_providers/%s/usages' % rp_uuid
+        expected_url = f'/resource_providers/{rp_uuid}/usages'
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
         self.assertEqual(fake_usages, result)
 
@@ -306,7 +306,7 @@ class TestPlacementHelper(base.TestCase):
 
         result = self.client.get_candidate_providers(resources)
 
-        expected_url = "/allocation_candidates?%s" % resources
+        expected_url = f"/allocation_candidates?{resources}"
         self._assert_keystone_called_once(kss_req, expected_url, 'GET')
         self.assertEqual(fake_provider_summaries, result)
 

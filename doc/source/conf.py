@@ -112,7 +112,7 @@ html_theme = 'openstackdocs'
 # html_theme_options = {}
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = '%sdoc' % project
+htmlhelp_basename = f'{project}doc'
 
 
 # openstackdocstheme options

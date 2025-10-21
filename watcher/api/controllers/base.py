@@ -79,7 +79,7 @@ class Version:
             headers, default_version, latest_version)
 
     def __repr__(self):
-        return '{}.{}'.format(self.major, self.minor)
+        return f'{self.major}.{self.minor}'
 
     @staticmethod
     def parse_headers(headers, default_version, latest_version):
@@ -121,7 +121,7 @@ class Version:
 
         if len(version) != 2:
             raise exc.HTTPNotAcceptable(
-                "Invalid value for %s header" % Version.string)
+                f"Invalid value for {Version.string} header")
         return version
 
     def __gt__(self, other):

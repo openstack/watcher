@@ -175,7 +175,7 @@ class FakeGnocchiMetrics:
         """
 
         resource = args[0]
-        uuid = "{}_{}".format(resource.uuid, resource.hostname)
+        uuid = f"{resource.uuid}_{resource.hostname}"
 
         # Normalize
         measurements = {}

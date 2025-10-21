@@ -57,10 +57,10 @@ class JsonEncodedType(TypeDecorator):
             # interface the consistent.
             value = self.type()
         elif not isinstance(value, self.type):
-            raise TypeError("%s supposes to store %s objects, but %s given"
-                            % (self.__class__.__name__,
-                               self.type.__name__,
-                               type(value).__name__))
+            raise TypeError(
+                f"{self.__class__.__name__} supposes to store "
+                f"{self.type.__name__} objects, but "
+                f"{type(value).__name__} given")
         serialized_value = jsonutils.dumps(value)
         return serialized_value
 

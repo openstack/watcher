@@ -117,10 +117,9 @@ jQuery(document).ready(function(){
 
             event_type = sample_file[0: -5]
             html_str = self.TOGGLE_SCRIPT % ((event_type, ) * 3)
-            html_str += ("<input type='button' id='%s-hideshow' "
-                         "value='hide/show sample'>" % event_type)
-            html_str += ("<div id='%s-div'><pre>%s</pre></div>"
-                         % (event_type, sample_content))
+            html_str += (f"<input type='button' id='{event_type}-hideshow' "
+                         "value='hide/show sample'>")
+            html_str += (f"<div id='{event_type}-div'><pre>{sample_content}</pre></div>")
 
             raw = nodes.raw('', html_str, format="html")
             col.append(raw)

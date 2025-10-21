@@ -177,17 +177,15 @@ class AuditPostType(wtypes.Base):
             if self.strategy:
                 strategy = _get_object_by_value(context, objects.Strategy,
                                                 self.strategy)
-                self.name = "{}-{}".format(strategy.name,
-                                           timeutils.utcnow().isoformat())
+                self.name = f"{strategy.name}-{timeutils.utcnow().isoformat()}"
             elif self.audit_template_uuid:
                 audit_template = objects.AuditTemplate.get(
                     context, self.audit_template_uuid)
-                self.name = "{}-{}".format(audit_template.name,
-                                           timeutils.utcnow().isoformat())
+                timestamp = timeutils.utcnow().isoformat()
+                self.name = f"{audit_template.name}-{timestamp}"
             else:
                 goal = _get_object_by_value(context, objects.Goal, self.goal)
-                self.name = "{}-{}".format(goal.name,
-                                           timeutils.utcnow().isoformat())
+                self.name = f"{goal.name}-{timeutils.utcnow().isoformat()}"
         # No more than 63 characters
         if len(self.name) > 63:
             LOG.warning("Audit: %s length exceeds 63 characters",

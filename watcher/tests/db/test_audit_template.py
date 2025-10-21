@@ -37,7 +37,7 @@ class TestDbAuditTemplateFilters(base.DbTestCase):
     def _data_setup(self):
 
         def gen_name():
-            return "Audit Template %s" % w_utils.generate_uuid()
+            return f"Audit Template {w_utils.generate_uuid()}"
 
         self.audit_template1_name = gen_name()
         self.audit_template2_name = gen_name()

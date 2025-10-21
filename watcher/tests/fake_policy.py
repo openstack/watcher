@@ -81,4 +81,4 @@ def get_policy_data(compat):
     elif compat == 'juno':
         return policy_data_compat_juno
     else:
-        raise Exception('Policy data for %s not available' % compat)
+        raise Exception(f'Policy data for {compat} not available')

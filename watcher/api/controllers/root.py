@@ -52,7 +52,7 @@ class Version(base.APIBase):
 
     @staticmethod
     def convert(id, status=APIStatus.CURRENT):
-        v = importlib.import_module('watcher.api.controllers.%s.versions' % id)
+        v = importlib.import_module(f'watcher.api.controllers.{id}.versions')
         version = Version()
         version.id = id
         version.status = status

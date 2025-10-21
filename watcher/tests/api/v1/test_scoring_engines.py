@@ -37,13 +37,13 @@ class TestListScoringEngine(api_base.FunctionalTest):
         scoring_engine = obj_utils.create_test_scoring_engine(self.context)
         scoring_engine.soft_delete()
         response = self.get_json(
-            '/scoring_engines/%s' % scoring_engine['name'],
+            '/scoring_engines/{}'.format(scoring_engine['name']),
             headers={'X-Show-Deleted': 'True'})
         self.assertEqual(scoring_engine.name, response['name'])
         self._assert_scoring_engine_fields(response)
 
         response = self.get_json(
-            '/scoring_engines/%s' % scoring_engine['name'],
+            '/scoring_engines/{}'.format(scoring_engine['name']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -62,7 +62,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
     def test_detail_against_single(self):
         scoring_engine = obj_utils.create_test_scoring_engine(self.context)
         response = self.get_json(
-            '/scoring_engines/%s/detail' % scoring_engine.id,
+            f'/scoring_engines/{scoring_engine.id}/detail',
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -130,7 +130,7 @@ class TestListScoringEngine(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/goals?sort_key=%s' % 'bad_name',
+            '/goals?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -146,7 +146,7 @@ class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -158,7 +158,7 @@ class TestScoringEnginePolicyEnforcement(api_base.FunctionalTest):
         se = obj_utils.create_test_scoring_engine(self.context)
         self._common_policy_check(
             "scoring_engine:get", self.get_json,
-            '/scoring_engines/%s' % se.uuid,
+            f'/scoring_engines/{se.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):

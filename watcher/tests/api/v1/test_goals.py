@@ -36,7 +36,7 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_get_one_by_uuid(self):
         goal = obj_utils.create_test_goal(self.context)
-        response = self.get_json('/goals/%s' % goal.uuid)
+        response = self.get_json(f'/goals/{goal.uuid}')
         self.assertEqual(goal.uuid, response["uuid"])
         self.assertEqual(goal.name, response["name"])
         self._assert_goal_fields(response)
@@ -44,7 +44,7 @@ class TestListGoal(api_base.FunctionalTest):
     def test_get_one_by_name(self):
         goal = obj_utils.create_test_goal(self.context)
         response = self.get_json(urlparse.quote(
-            '/goals/%s' % goal['name']))
+            '/goals/{}'.format(goal['name'])))
         self.assertEqual(goal.uuid, response['uuid'])
         self._assert_goal_fields(response)
 
@@ -52,13 +52,13 @@ class TestListGoal(api_base.FunctionalTest):
         goal = obj_utils.create_test_goal(self.context)
         goal.soft_delete()
         response = self.get_json(
-            '/goals/%s' % goal['uuid'],
+            '/goals/{}'.format(goal['uuid']),
             headers={'X-Show-Deleted': 'True'})
         self.assertEqual(goal.uuid, response['uuid'])
         self._assert_goal_fields(response)
 
         response = self.get_json(
-            '/goals/%s' % goal['uuid'],
+            '/goals/{}'.format(goal['uuid']),
             expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -70,7 +70,7 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_detail_against_single(self):
         goal = obj_utils.create_test_goal(self.context)
-        response = self.get_json('/goals/%s/detail' % goal.uuid,
+        response = self.get_json(f'/goals/{goal.uuid}/detail',
                                  expect_errors=True)
         self.assertEqual(HTTPStatus.NOT_FOUND, response.status_int)
 
@@ -138,7 +138,7 @@ class TestListGoal(api_base.FunctionalTest):
 
     def test_sort_key_validation(self):
         response = self.get_json(
-            '/goals?sort_key=%s' % 'bad_name',
+            '/goals?sort_key={}'.format('bad_name'),
             expect_errors=True)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
 
@@ -154,7 +154,7 @@ class TestGoalPolicyEnforcement(api_base.FunctionalTest):
         self.assertEqual(HTTPStatus.FORBIDDEN, response.status_int)
         self.assertEqual('application/json', response.content_type)
         self.assertTrue(
-            "Policy doesn't allow %s to be performed." % rule,
+            f"Policy doesn't allow {rule} to be performed.",
             jsonutils.loads(response.json['error_message'])['faultstring'])
 
     def test_policy_disallow_get_all(self):
@@ -166,7 +166,7 @@ class TestGoalPolicyEnforcement(api_base.FunctionalTest):
         goal = obj_utils.create_test_goal(self.context)
         self._common_policy_check(
             "goal:get", self.get_json,
-            '/goals/%s' % goal.uuid,
+            f'/goals/{goal.uuid}',
             expect_errors=True)
 
     def test_policy_disallow_detail(self):

@@ -72,9 +72,9 @@ class EventType(NotificationObject):
 
     def to_notification_event_type_field(self):
         """Serialize the object to the wire format."""
-        s = '{}.{}'.format(self.object, self.action)
+        s = f'{self.object}.{self.action}'
         if self.obj_attr_is_set('phase'):
-            s += '.%s' % self.phase
+            s += f'.{self.phase}'
         return s
 
 
@@ -192,8 +192,7 @@ class NotificationBase(NotificationObject):
         self._emit(
             context,
             event_type=self.event_type.to_notification_event_type_field(),
-            publisher_id='{}:{}'.format(self.publisher.binary,
-                                        self.publisher.host),
+            publisher_id=f'{self.publisher.binary}:{self.publisher.host}',
             payload=self.payload.obj_to_primitive())
 
 
