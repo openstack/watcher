@@ -21,7 +21,6 @@ import time
 from novaclient import api_versions
 from oslo_log import log
 
-import glanceclient.exc as glexceptions
 import novaclient.exceptions as nvexceptions
 
 from watcher.common import clients
@@ -38,7 +37,6 @@ class NovaHelper:
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
-        self.neutron = self.osc.neutron()
         self.cinder = self.osc.cinder()
         self.nova = self.osc.nova()
         self.glance = self.osc.glance()
@@ -637,111 +635,6 @@ class NovaHelper:
             retry -= 1
         LOG.debug("Current instance status: %s", instance.status)
         return instance.status in status_list
-
-    def create_instance(self, node_id, inst_name="test", image_id=None,
-                        flavor_name="m1.tiny",
-                        sec_group_list=["default"],
-                        network_names_list=["demo-net"], keypair_name="mykeys",
-                        create_new_floating_ip=True,
-                        block_device_mapping_v2=None):
-        """This method creates a new instance
-
-        It also creates, if requested, a new floating IP and associates
-        it with the new instance
-        It returns the unique id of the created instance.
-        """
-        LOG.debug(
-            "Trying to create new instance '%(inst)s' "
-            "from image '%(image)s' with flavor '%(flavor)s' ...",
-            {'inst': inst_name, 'image': image_id, 'flavor': flavor_name})
-
-        try:
-            self.nova.keypairs.findall(name=keypair_name)
-        except nvexceptions.NotFound:
-            LOG.debug("Key pair '%s' not found ", keypair_name)
-            return
-
-        try:
-            image = self.glance.images.get(image_id)
-        except glexceptions.NotFound:
-            LOG.debug("Image '%s' not found ", image_id)
-            return
-
-        try:
-            flavor = self.nova.flavors.find(name=flavor_name)
-        except nvexceptions.NotFound:
-            LOG.debug("Flavor '%s' not found ", flavor_name)
-            return
-
-        # Make sure all security groups exist
-        for sec_group_name in sec_group_list:
-            group_id = self.get_security_group_id_from_name(sec_group_name)
-
-            if not group_id:
-                LOG.debug("Security group '%s' not found ", sec_group_name)
-                return
-
-        net_list = list()
-
-        for network_name in network_names_list:
-            nic_id = self.get_network_id_from_name(network_name)
-
-            if not nic_id:
-                LOG.debug("Network '%s' not found ", network_name)
-                return
-            net_obj = {"net-id": nic_id}
-            net_list.append(net_obj)
-
-        # get availability zone of destination host
-        azone = self.nova.services.list(host=node_id,
-                                        binary='nova-compute')[0].zone
-        instance = self.nova.servers.create(
-            inst_name, image,
-            flavor=flavor,
-            key_name=keypair_name,
-            security_groups=sec_group_list,
-            nics=net_list,
-            block_device_mapping_v2=block_device_mapping_v2,
-            availability_zone=f"{azone}:{node_id}")
-
-        # Poll at 5 second intervals, until the status is no longer 'BUILD'
-        if instance:
-            if self.wait_for_instance_status(instance,
-                                             ('ACTIVE', 'ERROR'), 5, 10):
-                instance = self.nova.servers.get(instance.id)
-
-                if create_new_floating_ip and instance.status == 'ACTIVE':
-                    LOG.debug(
-                        "Creating a new floating IP"
-                        " for instance '%s'", instance.id)
-                    # Creating floating IP for the new instance
-                    floating_ip = self.nova.floating_ips.create()
-
-                    instance.add_floating_ip(floating_ip)
-
-                    LOG.debug(
-                        "Instance %(instance)s associated to "
-                        "Floating IP '%(ip)s'",
-                        {'instance': instance.id, 'ip': floating_ip.ip})
-
-        return instance
-
-    def get_security_group_id_from_name(self, group_name="default"):
-        """This method returns the security group of the provided group name"""
-        security_groups = self.neutron.list_security_groups(name=group_name)
-
-        security_group_id = security_groups['security_groups'][0]['id']
-
-        return security_group_id
-
-    def get_network_id_from_name(self, net_name="private"):
-        """This method returns the unique id of the provided network name"""
-        networks = self.neutron.list_networks(name=net_name)
-
-        # LOG.debug(networks)
-        network_id = networks['networks'][0]['id']
-
-        return network_id
 
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))

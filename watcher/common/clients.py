@@ -21,7 +21,6 @@ from ironicclient import client as irclient
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 from keystoneclient import client as keyclient
-from neutronclient.neutron import client as netclient
 from novaclient import api_versions as nova_api_versions
 from novaclient import client as nvclient
 
@@ -74,7 +73,6 @@ class OpenStackClients:
         self._gnocchi = None
         self._cinder = None
         self._monasca = None
-        self._neutron = None
         self._ironic = None
         self._maas = None
         self._placement = None
@@ -234,32 +232,6 @@ class OpenStackClients:
             monascaclient_version, endpoint, **monasca_kwargs)
 
         return self._monasca
-
-    @exception.wrap_keystone_exception
-    def neutron(self):
-        if self._neutron:
-            return self._neutron
-
-        # NOTE(dviroel): This integration is classified as Experimental due to
-        # the lack of documentation and CI testing. It can be marked as
-        # supported or deprecated in future releases, based on improvements.
-        debtcollector.deprecate(
-            ("Neutron is an experimental integration and may be "
-             "deprecated in future releases."),
-            version="2025.2", category=PendingDeprecationWarning)
-
-        neutronclient_version = self._get_client_option('neutron',
-                                                        'api_version')
-        neutron_endpoint_type = self._get_client_option('neutron',
-                                                        'endpoint_type')
-        neutron_region_name = self._get_client_option('neutron', 'region_name')
-
-        self._neutron = netclient.Client(neutronclient_version,
-                                         endpoint_type=neutron_endpoint_type,
-                                         region_name=neutron_region_name,
-                                         session=self.session)
-        self._neutron.format = 'json'
-        return self._neutron
 
     @exception.wrap_keystone_exception
     def ironic(self):

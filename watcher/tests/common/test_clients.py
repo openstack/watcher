@@ -28,8 +28,6 @@ try:
     MONASCA_INSTALLED = True
 except Exception:  # ImportError or others
     MONASCA_INSTALLED = False
-from neutronclient.neutron import client as netclient
-from neutronclient.v2_0 import client as netclient_v2
 from novaclient import client as nvclient
 
 from watcher.common import clients
@@ -268,47 +266,6 @@ class TestClients(base.TestCase):
         cinder = osc.cinder()
         cinder_cached = osc.cinder()
         self.assertEqual(cinder, cinder_cached)
-
-    @mock.patch.object(netclient, 'Client')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_neutron(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc._neutron = None
-        osc.neutron()
-        mock_call.assert_called_once_with(
-            CONF.neutron_client.api_version,
-            endpoint_type=CONF.neutron_client.endpoint_type,
-            region_name=CONF.neutron_client.region_name,
-            session=mock_session)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_neutron_diff_vers(self, mock_session):
-        '''neutronclient currently only has one version (v2)'''
-        CONF.set_override('api_version', '2.0',
-                          group='neutron_client')
-        osc = clients.OpenStackClients()
-        osc._neutron = None
-        osc.neutron()
-        self.assertEqual(netclient_v2.Client,
-                         type(osc.neutron()))
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_neutron_diff_endpoint(self, mock_session):
-        '''neutronclient currently only has one version (v2)'''
-        CONF.set_override('endpoint_type', 'internalURL',
-                          group='neutron_client')
-        osc = clients.OpenStackClients()
-        osc._neutron = None
-        osc.neutron()
-        self.assertEqual('internalURL', osc.neutron().httpclient.interface)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_neutron_cached(self, mock_session):
-        osc = clients.OpenStackClients()
-        osc._neutron = None
-        neutron = osc.neutron()
-        neutron_cached = osc.neutron()
-        self.assertEqual(neutron, neutron_cached)
 
     @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
     @mock.patch('monascaclient.client.Client')
