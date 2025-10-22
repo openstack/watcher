@@ -199,13 +199,13 @@
         PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
       devstack_local_conf:
         post-config:
-          $WATCHER_CONF:
+          $WATCHER_CONF: &watcher_conf_prom
             DEFAULT:
               print_thread_pool_stats: true
             watcher_datasources:
               datasources: prometheus
             prometheus_client:
-              host: 127.0.0.1
+              host: "{{ hostvars['controller']['nodepool']['private_ipv4'] }}"
               port: 9090
             watcher_cluster_data_model_collectors.compute:
               period: 120
@@ -255,23 +255,21 @@
         devstack_plugins:
           ceilometer: https://opendev.org/openstack/ceilometer
           devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
+          watcher: https://opendev.org/openstack/watcher
         devstack_services:
           ceilometer-acompute: true
           sg-core: false
           prometheus: false
           node_exporter: true
+          watcher-api: false
+          watcher-applier: false
+          watcher-decision-engine: true
         devstack_localrc:
           CEILOMETER_BACKEND: "none"
           CEILOMETER_BACKENDS: "none"
         devstack_local_conf:
           post-config:
-            $WATCHER_CONF:
-              watcher_cluster_data_model_collectors.compute:
-                period: 120
-              watcher_cluster_data_model_collectors.baremetal:
-                period: 120
-              watcher_cluster_data_model_collectors.storage:
-                period: 120
+            $WATCHER_CONF: *watcher_conf_prom
 
 - job:
     name: watcher-prometheus-integration
