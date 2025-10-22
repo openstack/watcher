@@ -1,0 +1,10 @@
+---
+other:
+  - |
+    The experimental glance client integration has been removed from Watcher.
+    The glance client and create_image_from_instance method became dead code
+    after the legacy workflow removal in commit 4179c3527c, which replaced
+    the snapshot-based cold migration approach with Nova's native cold
+    migration support. This removal eliminates the python-glanceclient
+    dependency and glance_client configuration options with no user-facing
+    impact.

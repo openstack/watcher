@@ -16,7 +16,6 @@ from unittest import mock
 
 from cinderclient import client as ciclient
 from cinderclient.v3 import client as ciclient_v3
-from glanceclient import client as glclient
 from gnocchiclient import client as gnclient
 from gnocchiclient.v1 import client as gnclient_v1
 from ironicclient import client as irclient
@@ -153,43 +152,6 @@ class TestClients(base.TestCase):
         nova = osc.nova()
         nova_cached = osc.nova()
         self.assertEqual(nova, nova_cached)
-
-    @mock.patch.object(glclient, 'Client')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_glance(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc._glance = None
-        osc.glance()
-        mock_call.assert_called_once_with(
-            CONF.glance_client.api_version,
-            interface=CONF.glance_client.endpoint_type,
-            region_name=CONF.glance_client.region_name,
-            session=mock_session)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_glance_diff_vers(self, mock_session):
-        CONF.set_override('api_version', '1', group='glance_client')
-        osc = clients.OpenStackClients()
-        osc._glance = None
-        osc.glance()
-        self.assertEqual(1.0, osc.glance().version)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_glance_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type',
-                          'internalURL', group='glance_client')
-        osc = clients.OpenStackClients()
-        osc._glance = None
-        osc.glance()
-        self.assertEqual('internalURL', osc.glance().http_client.interface)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_glance_cached(self, mock_session):
-        osc = clients.OpenStackClients()
-        osc._glance = None
-        glance = osc.glance()
-        glance_cached = osc.glance()
-        self.assertEqual(glance, glance_cached)
 
     @mock.patch.object(gnclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')

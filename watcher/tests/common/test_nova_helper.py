@@ -35,7 +35,6 @@ CONF = conf.CONF
 
 @mock.patch.object(clients.OpenStackClients, 'nova')
 @mock.patch.object(clients.OpenStackClients, 'cinder')
-@mock.patch.object(clients.OpenStackClients, 'glance')
 class TestNovaHelper(base.TestCase):
 
     def setUp(self):
@@ -116,7 +115,7 @@ class TestNovaHelper(base.TestCase):
         server.migrate.side_effect = side_effect
 
     def test_get_compute_node_by_hostname(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
@@ -162,7 +161,7 @@ class TestNovaHelper(base.TestCase):
             self.assertIs(nodes[index], result)
 
     def test_get_compute_node_by_uuid(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
@@ -190,7 +189,7 @@ class TestNovaHelper(base.TestCase):
             self.assertIs(result, nova_mock.servers.list.return_value)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_stop_instance(self, mock_glance, mock_cinder, mock_nova):
+    def test_stop_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
         server = self.fake_server(instance_id)
@@ -235,7 +234,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_start_instance(self, mock_glance, mock_cinder, mock_nova):
+    def test_start_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
         server = self.fake_server(instance_id)
@@ -280,7 +279,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_delete_instance(self, mock_glance, mock_cinder, mock_nova):
+    def test_delete_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
 
@@ -297,8 +296,7 @@ class TestNovaHelper(base.TestCase):
         self.assertTrue(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_resize_instance(self, mock_glance, mock_cinder,
-                             mock_nova):
+    def test_resize_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         setattr(server, 'status', 'VERIFY_RESIZE')
@@ -316,8 +314,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_live_migrate_instance(self, mock_glance, mock_cinder,
-                                   mock_nova):
+    def test_live_migrate_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         setattr(server, 'OS-EXT-SRV-ATTR:host',
@@ -360,7 +357,7 @@ class TestNovaHelper(base.TestCase):
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance_with_task_state(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         setattr(server, 'OS-EXT-SRV-ATTR:host',
@@ -384,7 +381,7 @@ class TestNovaHelper(base.TestCase):
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance_no_destination_node(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         self.destination_node = None
@@ -399,7 +396,7 @@ class TestNovaHelper(base.TestCase):
         self.assertTrue(is_success)
 
     def test_watcher_non_live_migrate_instance_not_found(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         self.fake_nova_find_list(nova_util, fake_find=None, fake_list=None)
 
@@ -410,8 +407,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(is_success)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_abort_live_migrate_instance(self, mock_glance, mock_cinder,
-                                         mock_nova):
+    def test_abort_live_migrate_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         setattr(server, 'OS-EXT-SRV-ATTR:host',
@@ -450,7 +446,7 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.source_node, self.destination_node))
 
     def test_non_live_migrate_instance_no_destination_node(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         setattr(server, 'OS-EXT-SRV-ATTR:host',
@@ -464,38 +460,7 @@ class TestNovaHelper(base.TestCase):
         )
         self.assertTrue(is_success)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_create_image_from_instance(self, mock_glance, mock_cinder,
-                                        mock_nova):
-        nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        image = mock.MagicMock()
-        setattr(instance, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        setattr(instance, 'OS-EXT-STS:vm_state', "stopped")
-        self.fake_nova_find_list(
-            nova_util,
-            fake_find=instance,
-            fake_list=instance)
-        image_uuid = 'fake-image-uuid'
-        nova_util.nova.servers.create_image.return_value = image
-
-        glance_client = mock.MagicMock()
-        mock_glance.return_value = glance_client
-
-        glance_client.images = {image_uuid: image}
-        instance = nova_util.create_image_from_instance(
-            self.instance_uuid, "Cirros"
-        )
-        self.assertIsNotNone(instance)
-
-        nova_util.glance.images.get.return_value = None
-        instance = nova_util.create_image_from_instance(
-            self.instance_uuid, "Cirros"
-        )
-        self.assertIsNone(instance)
-
-    def test_enable_service_nova_compute(self, mock_glance, mock_cinder,
-                                         mock_nova):
+    def test_enable_service_nova_compute(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         nova_services = nova_util.nova.services
         nova_services.enable.return_value = mock.MagicMock(
@@ -520,8 +485,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.nova.services.enable.assert_called_with(
             service_uuid=mock.ANY)
 
-    def test_disable_service_nova_compute(self, mock_glance, mock_cinder,
-                                          mock_nova):
+    def test_disable_service_nova_compute(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         nova_services = nova_util.nova.services
         nova_services.disable_log_reason.return_value = mock.MagicMock(
@@ -559,8 +523,7 @@ class TestNovaHelper(base.TestCase):
         return volume
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_swap_volume(self, mock_glance, mock_cinder,
-                         mock_nova):
+    def test_swap_volume(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         server = self.fake_server(self.instance_uuid)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
@@ -581,8 +544,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_wait_for_volume_status(self, mock_glance, mock_cinder,
-                                    mock_nova):
+    def test_wait_for_volume_status(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
 
         # verify that the method will return True when the status of volume
@@ -607,8 +569,7 @@ class TestNovaHelper(base.TestCase):
             timeout=2)
 
     @mock.patch.object(api_versions, 'APIVersion', mock.MagicMock())
-    def test_check_nova_api_version(self, mock_glance, mock_cinder,
-                                    mock_nova):
+    def test_check_nova_api_version(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
 
         # verify that the method will return True when the version of nova_api
@@ -625,8 +586,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_wait_for_instance_status(self, mock_glance, mock_cinder,
-                                      mock_nova):
+    def test_wait_for_instance_status(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = self.fake_server(self.instance_uuid)
 
@@ -658,8 +618,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_confirm_resize(self, mock_glance, mock_cinder,
-                            mock_nova):
+    def test_confirm_resize(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = self.fake_server(self.instance_uuid)
         self.fake_nova_find_list(nova_util, fake_find=instance, fake_list=None)
@@ -675,7 +634,7 @@ class TestNovaHelper(base.TestCase):
         self.assertFalse(result)
 
     def test_get_compute_node_list(
-            self, mock_glance, mock_cinder, mock_nova):
+            self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         hypervisor1_id = utils.generate_uuid()
         hypervisor1_name = "fake_hypervisor_1"

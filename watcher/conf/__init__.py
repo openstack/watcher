@@ -28,7 +28,6 @@ from watcher.conf import datasources
 from watcher.conf import db
 from watcher.conf import decision_engine
 from watcher.conf import exception
-from watcher.conf import glance_client
 from watcher.conf import gnocchi_client
 from watcher.conf import grafana_client
 from watcher.conf import grafana_translators
@@ -60,7 +59,6 @@ maas_client.register_opts(CONF)
 monasca_client.register_opts(CONF)
 models.register_opts(CONF)
 nova_client.register_opts(CONF)
-glance_client.register_opts(CONF)
 gnocchi_client.register_opts(CONF)
 keystone_client.register_opts(CONF)
 grafana_client.register_opts(CONF)

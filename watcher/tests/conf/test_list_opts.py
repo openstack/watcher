@@ -36,7 +36,7 @@ class TestListOpts(base.TestCase):
         self.base_sections = [
             'DEFAULT', 'api', 'database', 'watcher_decision_engine',
             'watcher_applier', 'watcher_datasources', 'watcher_planner',
-            'nova_client', 'glance_client', 'gnocchi_client', 'grafana_client',
+            'nova_client', 'gnocchi_client', 'grafana_client',
             'grafana_translators', 'cinder_client',
             'monasca_client', 'ironic_client', 'keystone_client',
             'neutron_client', 'watcher_clients_auth', 'collector',
