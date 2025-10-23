@@ -28,3 +28,7 @@ ignore = [
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 5.
 max-complexity = 20
+
+[tool.bandit]
+exclude_dirs = ['tests']
+skips = ['B101', 'B311', 'B320']
