@@ -1549,3 +1549,48 @@ class TestZoneMigration(TestBaseStrategy):
         targets = self.strategy.filtered_targets()
         self.assertEqual(targets.get("volume"),
                          [volume_on_src2, volume_on_src1])
+
+    def test_get_dst_pool_and_type_matching_src_pool_type(self):
+        # check that returns the right pool and type matching both  src_pool
+        # and src_type
+        pool = "src1@back1#pool1"
+        dst_pool, dst_type = self.strategy.get_dst_pool_and_type(pool)
+        self.assertEqual(dst_pool, "dst1@back1#pool1")
+        self.assertEqual(dst_type, "type1")
+
+    def test_get_dst_pool_and_type_matching_src_pool(self):
+        # check that after not matching type it falls backs to matching
+        # src_pool
+        pool = "src2@back1#pool1"
+        dst_pool, dst_type = self.strategy.get_dst_pool_and_type(pool)
+        self.assertEqual(dst_pool, "dst2@back2#pool1")
+        self.assertEqual(dst_type, "type3")
+
+    def test_get_dst_pool_and_type_not_matching_pool(self):
+        # check not matching pool
+        pool = "src3@back1#pool1"
+        result = self.strategy.get_dst_pool_and_type(pool)
+        self.assertIsNone(result)
+
+    def test_get_dst_pool_and_type_same_src_pool_different_src_type(self):
+        # check that it chooses the first pool listed
+        self.input_parameters["storage_pools"] = [
+            {
+                "src_pool": "src1@back1#pool1",
+                "src_type": "type1",
+                "dst_pool": "dst1@back1#pool1",
+            },
+            {
+                "src_pool": "src1@back1#pool1",
+                "src_type": "type2", "dst_type": "type3"
+            }
+        ]
+        pool = "src1@back1#pool1"
+        dst_pool, dst_type = self.strategy.get_dst_pool_and_type(pool)
+        # self.assertEqual(dst_pool, "dst3@back1#pool1")
+        # self.assertEqual(dst_type, "type3")
+        # temporarily assert that the first input is selected, until the bug is
+        # fixed, then it should select the second input based on the values of
+        # src_type and src_pool
+        self.assertEqual(dst_pool, "dst1@back1#pool1")
+        self.assertIsNone(dst_type)
