@@ -22,10 +22,12 @@ prometheus_client = cfg.OptGroup(name='prometheus_client',
                                       "details on how these options are used.")
 
 PROMETHEUS_CLIENT_OPTS = [
-    cfg.StrOpt('host',
-               help="The hostname or IP address for the prometheus server."),
-    cfg.StrOpt('port',
-               help="The port number used by the prometheus server."),
+    cfg.HostAddressOpt('host',
+                       help="The hostname or IP address for the prometheus "
+                            "server."),
+    cfg.PortOpt('port',
+                default=9090,
+                help="The port number used by the prometheus server."),
     cfg.StrOpt('fqdn_label',
                default="fqdn",
                help="The label that Prometheus uses to store the fqdn of "
