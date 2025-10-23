@@ -51,6 +51,7 @@ class AuditEndpoint:
 
     def trigger_audit(self, context, audit_uuid):
         LOG.debug("Trigger audit %s", audit_uuid)
+        executor.log_executor_stats(self.executor, name="audit-endpoint-pool")
         self.executor.submit(self.do_trigger_audit,
                              context,
                              audit_uuid)

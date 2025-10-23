@@ -36,3 +36,42 @@ class TestFuturistPoolExecutor(base.TestCase):
         pool_executor = executor.get_futurist_pool_executor(max_workers=1)
 
         self.assertIsInstance(pool_executor, futurist.ThreadPoolExecutor)
+
+
+@mock.patch.object(executor.CONF, 'print_thread_pool_stats', True)
+class TestLogExecutorStats(base.TestCase):
+
+    @mock.patch.object(executor.LOG, 'debug')
+    def test_log_executor_stats_eventlet(self, m_log_debug):
+        workers = 2
+        pool_executor = futurist.GreenThreadPoolExecutor(workers)
+
+        executor.log_executor_stats(pool_executor,
+                                    name="test-threadpool-eventlet")
+
+        m_log_debug.assert_called_once_with(
+            f"State of test-threadpool-eventlet GreenThreadPoolExecutor when "
+            f"submitting a new task: "
+            f"workers: {len(pool_executor._pool.coroutines_running):d}, "
+            f"max_workers: {workers:d}, "
+            f"work queued length: "
+            f"{pool_executor._delayed_work.unfinished_tasks:d}, "
+            f"stats: {pool_executor.statistics}")
+
+    @mock.patch.object(executor.LOG, 'debug')
+    def test_log_executor_stats_threading(self, m_log_debug):
+        workers = 3
+        pool_executor = futurist.ThreadPoolExecutor(workers)
+
+        executor.log_executor_stats(pool_executor,
+                                    name="test-threadpool-threading")
+
+        m_log_debug.assert_called_once_with(
+            f"State of test-threadpool-threading ThreadPoolExecutor when "
+            f"submitting a new task: "
+            f"max_workers: {workers:d}, "
+            f"workers: {len(pool_executor._workers):d}, "
+            f"idle workers: "
+            f"{len([w for w in pool_executor._workers if w.idle]):d}, "
+            f"queued work: {pool_executor._work_queue.qsize():d}, "
+            f"stats: {pool_executor.statistics}")

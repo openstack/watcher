@@ -45,7 +45,9 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         :return: future to monitor progress of execution
         :rtype: :py:class"`futurist.GreenFuture`
         """
-
+        # Statistics from the threadpool
+        executor.log_executor_stats(self._threadpool,
+                                    name="decision-engine-pool")
         return self._threadpool.submit(fn, *args, **kwargs)
 
     @staticmethod
