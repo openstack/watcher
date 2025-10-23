@@ -1,0 +1,14 @@
+---
+other:
+  - |
+    Seven unused methods have been removed from the NovaHelper class.
+    These methods had zero production usage and were either remnants from
+    old workflows or never integrated into production code. The removed
+    methods include delete_instance() (dead since the 2018 workflow
+    refactor in commit 4179c352), swap_volume() (removed in 2025 due to
+    security concerns), wait_for_instance_status() (unused since 2015),
+    get_availability_zone_list(), get_instance_by_name(),
+    get_instances_by_node(), and get_service(). This removal eliminates
+    approximately 139 lines of dead code and reduces maintenance burden
+    with no user-facing impact.
+

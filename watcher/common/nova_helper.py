@@ -130,31 +130,14 @@ class NovaHelper:
                 self.nova.servers.list(search_opts={"all_tenants": True,
                                                     "uuid": instance_uuid})]
 
-    def get_instance_by_name(self, instance_name):
-        return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True,
-                                                    "name": instance_name})]
-
-    def get_instances_by_node(self, host):
-        return [instance for instance in
-                self.nova.servers.list(search_opts={"all_tenants": True,
-                                                    "host": host},
-                                       limit=-1)]
-
     def get_flavor_list(self):
         return self.nova.flavors.list(**{'is_public': None})
-
-    def get_service(self, service_id):
-        return self.nova.services.find(id=service_id)
 
     def get_aggregate_list(self):
         return self.nova.aggregates.list()
 
     def get_aggregate_detail(self, aggregate_id):
         return self.nova.aggregates.get(aggregate_id)
-
-    def get_availability_zone_list(self):
-        return self.nova.availability_zones.list(detailed=True)
 
     def get_service_list(self):
         return self.nova.services.list(binary='nova-compute')
@@ -461,23 +444,6 @@ class NovaHelper:
 
         return status
 
-    def delete_instance(self, instance_id):
-        """This method deletes a given instance.
-
-        :param instance_id: the unique id of the instance to delete.
-        """
-        LOG.debug("Trying to remove instance %s ...", instance_id)
-
-        instance = self.find_instance(instance_id)
-
-        if not instance:
-            LOG.debug("Instance not found: %s", instance_id)
-            return False
-        else:
-            self.nova.servers.delete(instance_id)
-            LOG.debug("Instance %s removed.", instance_id)
-            return True
-
     def stop_instance(self, instance_id):
         """This method stops a given instance.
 
@@ -546,59 +512,11 @@ class NovaHelper:
             retry -= 1
         return getattr(server, 'OS-EXT-STS:vm_state') == state
 
-    def wait_for_instance_status(self, instance, status_list, retry, sleep):
-        """Waits for instance to be in a specific status
-
-        The status can be one of the following
-        : BUILD, ACTIVE, ERROR, VERIFY_RESIZE, SHUTOFF
-
-        :param instance: instance object.
-        :param status_list: tuple containing the list of
-            status we are waiting for
-        :param retry: how many times to retry
-        :param sleep: seconds to sleep between the retries
-        """
-        if not instance:
-            return False
-
-        while instance.status not in status_list and retry:
-            LOG.debug("Current instance status: %s", instance.status)
-            time.sleep(sleep)
-            instance = self.nova.servers.get(instance.id)
-            retry -= 1
-        LOG.debug("Current instance status: %s", instance.status)
-        return instance.status in status_list
-
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))
 
     def get_running_migration(self, instance_id):
         return self.nova.server_migrations.list(server=instance_id)
-
-    def swap_volume(self, old_volume, new_volume,
-                    retry=120, retry_interval=10):
-        """Swap old_volume for new_volume"""
-        attachments = old_volume.attachments
-        instance_id = attachments[0]['server_id']
-        # do volume update
-        self.nova.volumes.update_server_volume(
-            instance_id, old_volume.id, new_volume.id)
-        while getattr(new_volume, 'status') != 'in-use' and retry:
-            new_volume = self.cinder.volumes.get(new_volume.id)
-            LOG.debug('Waiting volume update to %s', new_volume)
-            time.sleep(retry_interval)
-            retry -= 1
-            LOG.debug("retry count: %s", retry)
-        if getattr(new_volume, 'status') != "in-use":
-            LOG.error("Volume update retry timeout or error")
-            return False
-
-        host_name = getattr(new_volume, "os-vol-host-attr:host")
-        LOG.debug(
-            "Volume update succeeded : "
-            "Volume %(volume)s is now on host '%(host)s'.",
-            {'volume': new_volume.id, 'host': host_name})
-        return True
 
     def _check_nova_api_version(self, client, version):
         api_version = api_versions.APIVersion(version_str=version)
