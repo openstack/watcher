@@ -132,7 +132,16 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                                 "type": "string"
                             }
                         },
-                        "required": ["src_pool", "dst_type"],
+                        "oneOf": [
+                            {
+                                "required": ["src_pool", "dst_pool"],
+                                "not": {"required": ["dst_type"]}
+                            },
+                            {
+                                "required": ["src_pool", "dst_type"],
+                                "not": {"required": ["dst_pool"]}
+                            }
+                        ],
                         "additionalProperties": False
                     }
                 },
