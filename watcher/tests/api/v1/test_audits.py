@@ -860,7 +860,7 @@ class TestPost(TestPostBase):
         response = self.post_json('/audits', audit_dict, expect_errors=True)
         self.assertEqual('application/json', response.content_type)
         self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_parameters_no_predefined_strategy(
@@ -879,7 +879,7 @@ class TestPost(TestPostBase):
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_parameters_no_schema(
@@ -902,7 +902,7 @@ class TestPost(TestPostBase):
                               'parameter spec in predefined strategy')
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_with_parameter_not_allowed(
@@ -925,7 +925,7 @@ class TestPost(TestPostBase):
         expected_error_msg = 'Audit parameter fake2 are not allowed'
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_with_missing_parameter(
@@ -949,7 +949,7 @@ class TestPost(TestPostBase):
             "Invalid parameters for strategy: 'fake1' is a required property")
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     @mock.patch('oslo_utils.timeutils.utcnow')
@@ -1040,7 +1040,7 @@ class TestPost(TestPostBase):
         expected_error_msg = 'Request not acceptable.'
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_with_force_false(self, mock_trigger_audit):
@@ -1094,7 +1094,7 @@ class TestPost(TestPostBase):
         expected_msg = 'A valid goal or audit_template_id must be provided'
         self.assertTrue(response.json['error_message'])
         self.assertIn(expected_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        mock_trigger_audit.assert_not_called()
 
 
 class TestDelete(api_base.FunctionalTest):
@@ -1257,6 +1257,13 @@ class TestAuditZoneMigration(TestPostBase):
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_zone_migration_without_dst_pool(self,
                                                           mock_trigger_audit):
+        """Verify zone migration audit with dst_type instead of dst_pool.
+
+        Tests that an audit can be created with storage pool parameters
+        containing src_pool, src_type, and dst_type (without dst_pool).
+        This validates the schema allows dst_type as an alternative to
+        dst_pool for specifying the destination.
+        """
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
@@ -1275,12 +1282,17 @@ class TestAuditZoneMigration(TestPostBase):
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_zone_migration_without_src_pool(self,
                                                           mock_trigger_audit):
+        """Verify zone migration audit rejects missing src_pool.
+
+        Tests that an audit creation fails with BAD_REQUEST when storage
+        pool parameters contain dst_pool and src_type but lack src_pool.
+        This validates the schema correctly enforces src_pool as required.
+        """
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
                     {"dst_pool": "dst_pool_name",
-                     "src_type": "src_type_name",
-                     "dst_type": "dst_type_name"}
+                     "src_type": "src_type_name"}
                 ]
             }
 
@@ -1288,16 +1300,26 @@ class TestAuditZoneMigration(TestPostBase):
 
         response = self.post_json('/audits', audit_input_dict,
                                   expect_errors=True)
-        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
         self.assertEqual("application/json", response.content_type)
-        expected_error_msg = ("'src_pool' is a required property")
-        self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msgs = (
+            "is not valid under any of the given schemas",
+            "Failed validating 'oneOf' in schema"
+        )
+        for expected_error_msg in expected_error_msgs:
+            self.assertIn(expected_error_msg, response.json['error_message'])
+        mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_zone_migration_without_dst_type(self,
                                                           mock_trigger_audit):
+        """Verify zone migration audit with dst_pool instead of dst_type.
+
+        Tests that an audit can be created with storage pool parameters
+        containing src_pool, src_type, and dst_pool (without dst_type).
+        This validates the schema allows dst_pool as an alternative to
+        dst_type for specifying the destination.
+        """
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
@@ -1312,21 +1334,24 @@ class TestAuditZoneMigration(TestPostBase):
         response = self.post_json('/audits', audit_input_dict,
                                   expect_errors=True)
         self.assertEqual("application/json", response.content_type)
-        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
-        expected_error_msg = ("'dst_type' is a required property")
-        self.assertTrue(response.json['error_message'])
-        self.assertIn(expected_error_msg, response.json['error_message'])
-        assert not mock_trigger_audit.called
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_zone_migration_without_src_type(self,
                                                           mock_trigger_audit):
+        """Verify zone migration audit accepts optional src_type.
+
+        Tests that an audit can be created with storage pool parameters
+        containing dst_pool and src_pool (without src_type). This validates
+        the schema allows src_type to be optional when both pool names are
+        specified.
+        """
         mock_trigger_audit.return_value = mock.ANY
         zm_params = {
             'storage_pools': [
                     {"dst_pool": "dst_pool_name",
                      "src_pool": "src_pool_name",
-                     "dst_type": "dst_type_name"}
+                     }
                 ]
             }
 
@@ -1335,3 +1360,103 @@ class TestAuditZoneMigration(TestPostBase):
         response = self.post_json('/audits', audit_input_dict)
         self.assertEqual("application/json", response.content_type)
         self.assertEqual(HTTPStatus.CREATED, response.status_int)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_with_dst_pool_dst_type(
+        self, mock_trigger_audit
+    ):
+        """Verify zone migration rejects both destination parameters at once.
+
+        Tests that an audit creation fails with BAD_REQUEST when both
+        dst_type and dst_pool are passed in the input parameters. This
+        validates the schema correctly enforces that the two destination
+        parameters are mutually exclusive.
+        """
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"dst_type": "dst_type_name",
+                     "dst_pool": "dst_pool_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict,
+                                  expect_errors=True)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msgs = (
+            "is not valid under any of the given schemas",
+            "Failed validating 'oneOf' in schema"
+        )
+        for expected_error_msg in expected_error_msgs:
+            self.assertIn(expected_error_msg, response.json['error_message'])
+        mock_trigger_audit.assert_not_called()
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_with_multiple_valid_inputs(
+        self, mock_trigger_audit
+    ):
+        """Verify zone migration audit with multiple storage pools.
+
+        Tests that an audit can be created with multiple storage pool
+        entries, each with valid parameter combinations. This validates
+        the schema correctly handles arrays of storage pool configurations
+        with varying valid parameter combinations.
+        """
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"src_pool": "src_pool_name",
+                     "src_type": "src_type_name",
+                     "dst_type": "dst_type_name"},
+                    {"src_pool": "src_pool_name",
+                     "src_type": "src_type_name2",
+                     "dst_pool": "dst_type_name"},
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.CREATED, response.status_int)
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_second_storage_pool_invalid(
+        self, mock_trigger_audit
+    ):
+        """Verify zone migration rejects invalid entry in multiple pools.
+
+        Tests that an audit creation fails with BAD_REQUEST when one of
+        the storage pool entries has an invalid parameter combination,
+        even when other entries are valid. This validates the schema
+        enforces validation on all array elements.
+        """
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"src_pool": "src_pool_name",
+                     "src_type": "src_type_name",
+                     "dst_type": "dst_type_name"},
+                    {"src_pool": "src_pool_name",
+                     "dst_type": "dst_type_name2",
+                     "dst_pool": "dst_type_name"},
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json(
+            '/audits', audit_input_dict, expect_errors=True
+        )
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msgs = (
+            "is not valid under any of the given schemas",
+            "Failed validating 'oneOf' in schema"
+        )
+        for expected_error_msg in expected_error_msgs:
+            self.assertIn(expected_error_msg, response.json['error_message'])
+        mock_trigger_audit.assert_not_called()

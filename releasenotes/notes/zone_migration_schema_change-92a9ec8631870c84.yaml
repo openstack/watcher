@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The Zone Migration Strategy now accepts audits with either 'dst_type' or
+    'dst_pool' as input, but not with both. The strategy won't support retyping
+    and migrating a volume in the same action plan, so the user should choose
+    the input according to the desired operation.
