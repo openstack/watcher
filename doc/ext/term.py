@@ -37,11 +37,22 @@ class BaseWatcherDirective(rst.Directive):
 
     def add_line(self, line, *lineno):
         """Append one line of generated reST to the output."""
-        self.result.append(line, rst.directives.unchanged, *lineno)
+        # Provide a proper source string to avoid issues with newer docutils
+        # Try to get the actual source file, fallback to class name
+        source = getattr(self.state.document, 'current_source', None)
+        if source is None:
+            source = f'<watcher-{self.__class__.__name__.lower()}>'
+
+        # Handle lineno properly - use the first arg from *lineno if provided, otherwise use self.lineno
+        actual_lineno = lineno[0] if lineno else getattr(self, "lineno", 0)
+
+        # For newer docutils, ensure source is always a string
+        self.result.append(line, source, actual_lineno)
 
     def add_textblock(self, textblock):
-        for line in textblock.splitlines():
-            self.add_line(line)
+        base_lineno = getattr(self, "lineno", 0)
+        for i, line in enumerate(textblock.splitlines()):
+            self.add_line(line, base_lineno + i)
 
     def add_object_docstring(self, obj):
         obj_raw_docstring = obj.__doc__ or ""
