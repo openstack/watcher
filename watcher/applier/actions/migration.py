@@ -199,9 +199,60 @@ class Migrate(base.BaseAction):
             raise exception.InstanceNotFound(name=self.instance_uuid)
 
     def pre_condition(self):
-        # TODO(jed): check if the instance exists / check if the instance is on
-        # the source_node
-        pass
+        """Check migration preconditions
+
+        Skipping conditions:
+        - Instance does not exist
+        - Instance is not running on the source_node
+        Failing conditions:
+        - Destination node (if specified) does not exist or is disabled
+        - Instance status is not ACTIVE for live migration
+        """
+        nova = nova_helper.NovaHelper(osc=self.osc)
+
+        # Check that the instance exists
+        try:
+            instance = nova.find_instance(self.instance_uuid)
+        except nova_helper.nvexceptions.NotFound:
+            raise exception.ActionSkipped(
+                _("Instance %s not found") % self.instance_uuid)
+
+        # Check that the instance is running on source_node
+        instance_host = getattr(instance, 'OS-EXT-SRV-ATTR:host', None)
+        if instance_host != self.source_node:
+            raise exception.ActionSkipped(
+                _("Instance %(instance)s is not running on source node "
+                  "%(source)s (currently on %(current)s)") %
+                {'instance': self.instance_uuid,
+                 'source': self.source_node,
+                 'current': instance_host})
+
+        # Check destination node if specified
+        if self.destination_node:
+            try:
+                # Find the compute node and check if service is enabled
+                dest_node = nova.get_compute_node_by_hostname(
+                    self.destination_node)
+
+                # Check if compute service is enabled
+                if dest_node.status != 'enabled':
+                    raise exception.ActionExecutionFailure(
+                        _("Destination node %s is not in enabled state") %
+                        self.destination_node)
+            except exception.ComputeNodeNotFound:
+                raise exception.ActionExecutionFailure(
+                    _("Destination node %s not found") %
+                    self.destination_node)
+
+        # Check instance status based on migration type
+        instance_status = instance.status
+        if self.migration_type == self.LIVE_MIGRATION:
+            if instance_status != 'ACTIVE':
+                raise exception.ActionExecutionFailure(
+                    _("Live migration requires instance %(instance)s to be "
+                      "in ACTIVE status (current status: %(status)s)") %
+                    {'instance': self.instance_uuid,
+                     'status': instance_status})
 
     def post_condition(self):
         # TODO(jed): check extra parameters (network response, etc.)

@@ -17,6 +17,9 @@ from unittest import mock
 
 import jsonschema
 
+from novaclient.v2 import hypervisors
+from novaclient.v2 import servers
+
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
 from watcher.common import clients
@@ -133,11 +136,163 @@ class TestMigration(base.TestCase):
         self.assertRaises(jsonschema.ValidationError,
                           self.action.validate_parameters)
 
-    def test_migration_pre_condition(self):
-        try:
-            self.action.pre_condition()
-        except Exception as exc:
-            self.fail(exc)
+    def test_migration_pre_condition_success(self):
+        """Test successful pre_condition with all checks passing"""
+        parameters = {baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+                      'migration_type': 'live',
+                      'source_node': 'compute1-hostname',
+                      'destination_node': 'compute2-hostname'}
+        self.action.input_parameters = parameters
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        compute_node_info = {
+            'id': 'compute2-hostname',
+            'status': 'enabled',
+            'hypervisor_hostname': 'compute1-hostname',
+            'service': {
+                'host': 'compute1-hostname'
+            }
+        }
+        compute_node = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_info)
+
+        self.m_helper.find_instance.return_value = instance
+        self.m_helper.get_compute_node_by_hostname.return_value = compute_node
+
+        self.action.pre_condition()
+
+    def test_pre_condition_instance_not_found(self):
+        """Test pre_condition fails when instance doesn't exist"""
+        self.m_helper.find_instance.side_effect = (
+            nova_helper.nvexceptions.NotFound('404'))
+
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Instance {self.INSTANCE_UUID} not found",
+            self.action.pre_condition)
+
+    def test_pre_condition_instance_on_wrong_host(self):
+        """Test pre_condition fails when instance is on wrong host"""
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+            'OS-EXT-SRV-ATTR:host': 'wrong-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        self.m_helper.find_instance.return_value = instance
+
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Instance {self.INSTANCE_UUID} is not running on source node "
+            r"compute1-hostname \(currently on wrong-hostname\)",
+            self.action.pre_condition)
+
+    def test_pre_condition_destination_node_not_found(self):
+        """Test pre_condition fails when destination node doesn't exist"""
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        self.m_helper.find_instance.return_value = instance
+        self.m_helper.get_compute_node_by_hostname.side_effect = (
+            exception.ComputeNodeNotFound(name='compute2-hostname'))
+
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            "Destination node compute2-hostname not found",
+            self.action.pre_condition)
+
+    def test_pre_condition_destination_node_disabled(self):
+        """Test pre_condition fails when destination node is disabled"""
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        compute_node_info = {
+            'id': 'compute2-hostname',
+            'status': 'disabled',
+            'hypervisor_hostname': 'compute2-hostname',
+            'service': {
+                'host': 'compute2-hostname'
+            }
+        }
+        compute_node = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_info)
+
+        self.m_helper.find_instance.return_value = instance
+        self.m_helper.get_compute_node_by_hostname.return_value = compute_node
+
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            "Destination node compute2-hostname is not in enabled state",
+            self.action.pre_condition)
+
+    def test_pre_condition_live_migration_wrong_status(self):
+        """Test pre_condition fails live migration with non-ACTIVE status"""
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'SHUTOFF',
+            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        compute_node_info = {
+            'id': 'compute2-hostname',
+            'status': 'enabled',
+            'hypervisor_hostname': 'compute2-hostname',
+            'service': {
+                'host': 'compute2-hostname'
+            }
+        }
+        compute_node = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_info)
+
+        self.m_helper.find_instance.return_value = instance
+        self.m_helper.get_compute_node_by_hostname.return_value = compute_node
+
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            f"Live migration requires instance {self.INSTANCE_UUID} to be in "
+            r"ACTIVE status \(current status: SHUTOFF\)",
+            self.action.pre_condition)
+
+    def test_pre_condition_no_destination_node(self):
+        """Test pre_condition with no destination node specified"""
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+        }
+        instance = servers.Server(servers.ServerManager, info=instance_info)
+
+        self.m_helper.find_instance.return_value = instance
+
+        # Create action without destination_node
+        params = {
+            "migration_type": "live",
+            "source_node": "compute1-hostname",
+            "destination_node": None,
+            baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
+        }
+        action = migration.Migrate(mock.Mock())
+        action.input_parameters = params
+
+        action.pre_condition()
+
+        # Ensure get_compute_node_by_hostname was not called
+        self.m_helper.get_compute_node_by_hostname.assert_not_called()
 
     def test_migration_post_condition(self):
         try:

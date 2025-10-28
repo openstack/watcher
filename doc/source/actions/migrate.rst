@@ -35,3 +35,17 @@ parameter                type   required description
                                          If not specified, nova-scheduler
                                          will determine the destination
 ======================== ====== ======== ===================================
+
+Skipping conditions
+--------------------
+
+Migrate actions will be automatically skipped in the pre_condition phase in
+the following cases:
+
+- The server does not exist
+- The server is not running on the source_node
+
+On other conditions the action will be FAILED in the pre_condition check:
+
+- Destination node (if specified) does not exist or is disabled
+- The server status is not ACTIVE for live migration
