@@ -15,43 +15,98 @@
 
 from oslo_config import cfg
 
-prometheus_client = cfg.OptGroup(name='prometheus_client',
-                                 title='Configuration Options for Prometheus',
-                                 help="See https://docs.openstack.org/watcher/"
-                                      "latest/datasources/prometheus.html for "
-                                      "details on how these options are used.")
+prometheus_client = cfg.OptGroup(
+    name='prometheus_client',
+    title='Configuration Options for Prometheus (DEPRECATED)',
+    help="DEPRECATED: The Prometheus datasource is deprecated in favor "
+         "of the Aetos datasource. See https://docs.openstack.org/"
+         "watcher/latest/datasources/migrate-prometheus-to-aetos.html "
+         "for migration instructions.")
 
 PROMETHEUS_CLIENT_OPTS = [
-    cfg.HostAddressOpt('host',
-                       help="The hostname or IP address for the prometheus "
-                            "server."),
-    cfg.PortOpt('port',
-                default=9090,
-                help="The port number used by the prometheus server."),
-    cfg.StrOpt('fqdn_label',
-               default="fqdn",
-               help="The label that Prometheus uses to store the fqdn of "
-                    "exporters. Defaults to 'fqdn'."),
-    cfg.StrOpt('instance_uuid_label',
-               default="resource",
-               help="The label that Prometheus uses to store the uuid of "
-                    "OpenStack instances. Defaults to 'resource'."),
-    cfg.StrOpt('username',
-               help="The basic_auth username to use to authenticate with the "
-                    "Prometheus server."),
-    cfg.StrOpt('password',
-               secret=True,
-               help="The basic_auth password to use to authenticate with the "
-                    "Prometheus server."),
-    cfg.StrOpt('cafile',
-               help="Path to the CA certificate for establishing a TLS "
-                    "connection with the Prometheus server."),
-    cfg.StrOpt('certfile',
-               help="Path to the client certificate for establishing a TLS "
-                    "connection with the Prometheus server."),
-    cfg.StrOpt('keyfile',
-               help="Path to the client key for establishing a TLS "
-                    "connection with the Prometheus server."),
+    cfg.HostAddressOpt(
+        'host',
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The hostname or IP address for the prometheus server. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.PortOpt(
+        'port',
+        default=9090,
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The port number used by the prometheus server. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.StrOpt(
+        'fqdn_label',
+        default="fqdn",
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The label that Prometheus uses to store the fqdn of "
+             "exporters. Defaults to 'fqdn'. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.StrOpt(
+        'instance_uuid_label',
+        default="resource",
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The label that Prometheus uses to store the uuid of "
+             "OpenStack instances. Defaults to 'resource'. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.StrOpt(
+        'username',
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The basic_auth username to use to authenticate with the "
+             "Prometheus server. DEPRECATED: Use Aetos datasource "
+             "instead."),
+    cfg.StrOpt(
+        'password',
+        secret=True,
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="The basic_auth password to use to authenticate with the "
+             "Prometheus server. DEPRECATED: Use Aetos datasource "
+             "instead."),
+    cfg.StrOpt(
+        'cafile',
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="Path to the CA certificate for establishing a TLS "
+             "connection with the Prometheus server. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.StrOpt(
+        'certfile',
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="Path to the client certificate for establishing a TLS "
+             "connection with the Prometheus server. "
+             "DEPRECATED: Use Aetos datasource instead."),
+    cfg.StrOpt(
+        'keyfile',
+        deprecated_for_removal=True,
+        deprecated_reason='Prometheus datasource is deprecated in favor '
+                          'of Aetos datasource',
+        deprecated_since='2026.1',
+        help="Path to the client key for establishing a TLS "
+             "connection with the Prometheus server. "
+             "DEPRECATED: Use Aetos datasource instead."),
 ]
 
 

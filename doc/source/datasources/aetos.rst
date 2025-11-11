@@ -2,6 +2,13 @@
 Aetos datasource
 ================
 
+.. note::
+   **RECOMMENDED**: Aetos is the recommended datasource for accessing
+   Prometheus metrics in Watcher. It provides all the functionality of the
+   Prometheus datasource with added multi-tenancy, Keystone authentication,
+   and role-based access control (RBAC). The direct Prometheus datasource
+   is deprecated and will be removed in a future release.
+
 Synopsis
 --------
 The Aetos datasource allows Watcher to use an Aetos reverse proxy server as the
@@ -99,9 +106,9 @@ datasources for a specific strategy if preferred eg. under the
 
 .. note::
    Having both Prometheus and Aetos datasources configured at the same time
-   is not supported and will result in a configuration error. Allowing this
-   can be investigated in the future if a need or a proper use case is
-   identified.
+   is not supported and will result in a configuration error. Furthermore,
+   the prometheus datasource is deprecated, so aetos should be the preferred
+   choice.
 
 The watcher.conf configuration file is also used to set the parameter values
 required by the Watcher Aetos data source. The configuration can be

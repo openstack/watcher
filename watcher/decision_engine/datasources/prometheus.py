@@ -13,9 +13,11 @@
 # under the License.
 #
 
+from debtcollector import removals
 from observabilityclient import prometheus_client
 from oslo_config import cfg
 from oslo_log import log
+import warnings
 
 from watcher._i18n import _
 from watcher.common import exception
@@ -24,12 +26,21 @@ from watcher.decision_engine.datasources import prometheus_base
 CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
+warnings.simplefilter("once")
 
+
+@removals.removed_class("PrometheusHelper", version="2026.1",
+                        removal_version="2027.1")
 class PrometheusHelper(prometheus_base.PrometheusBase):
     """PrometheusHelper class for retrieving metrics from Prometheus server
 
     This class implements the PrometheusBase to allow Watcher to query
     Prometheus as a data source for metrics.
+
+    .. deprecated:: 2026.1
+       The Prometheus datasource is deprecated in favor of the Aetos
+       datasource. Use Aetos for the same functionality with added
+       multi-tenancy and Keystone authentication support.
     """
 
     NAME = 'prometheus'
