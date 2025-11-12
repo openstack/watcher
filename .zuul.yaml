@@ -1,143 +1,30 @@
 - job:
-    name: watcher-tempest-actuator
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_actuator
-
-- job:
-    name: watcher-tempest-strategies
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_concurrency: 1
-      # All tests inside watcher_tempest_plugin.tests.scenario with tag "strategy"
-      # or test_execute_strategies file
-      # excluding tests with tag "real_load"
-      tempest_test_regex: (^watcher_tempest_plugin.tests.scenario)(.*\[.*\bstrategy\b.*\].*)|(^watcher_tempest_plugin.tests.scenario.test_execute_strategies)
-      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
-
-- job:
-    name: watcher-tempest-multinode
-    parent: watcher-tempest-functional
-    nodeset: openstack-two-node-noble
-    roles:
-      - zuul: openstack/tempest
-    group-vars:
-      subnode:
-        devstack_local_conf:
-          post-config:
-            $WATCHER_CONF:
-              watcher_cluster_data_model_collectors.compute:
-                period: 120
-              watcher_cluster_data_model_collectors.baremetal:
-                period: 120
-              watcher_cluster_data_model_collectors.storage:
-                period: 120
-            $CINDER_CONF:
-              # enable notifications in compute node, by default they are only
-              # configured in the controller
-              oslo_messaging_notifications:
-                driver: messagingv2
-        devstack_services:
-          watcher-api: false
-          watcher-decision-engine: true
-          watcher-applier: false
-          c-bak: false
-          ceilometer: false
-          ceilometer-acompute: false
-          ceilometer-acentral: false
-          ceilometer-anotification: false
-          watcher: false
-          gnocchi-api: false
-          gnocchi-metricd: false
-          rabbit: false
-          mysql: false
+    name: watcher-tempest-gnocchi
+    parent: watcher-tempest-base-two-node
+    description: |
+      Watcher multinode devstack tempest job with Gnocchi as datasource. This
+      job uses fake metrics injection and does not requires ceilometer-acompute
+      to be enabled.
     vars:
       devstack_localrc:
         GNOCCHI_ARCHIVE_POLICY_TEMPEST: "ceilometer-low-rate"
         CEILOMETER_PIPELINE_INTERVAL: 15
-      devstack_services:
-        ceilometer-acompute: false
-        ceilometer-acentral: true
-        ceilometer-anotification: true
-      devstack_local_conf:
-        post-config:
-          $WATCHER_CONF:
-            DEFAULT:
-              print_thread_pool_stats: true
-            watcher_cluster_data_model_collectors.compute:
-              period: 120
-            watcher_cluster_data_model_collectors.baremetal:
-              period: 120
-            watcher_cluster_data_model_collectors.storage:
-              period: 120
-          $CINDER_CONF:
-            # enable notifications in compute node, by default they are only
-            # configured in the controller
-            oslo_messaging_notifications:
-              driver: messagingv2
-        test-config:
-          $TEMPEST_CONFIG:
-            compute:
-              min_compute_nodes: 2
-              min_microversion: 2.56
-            compute-feature-enabled:
-              live_migration: true
-              block_migration_for_live_migration: true
-            placement:
-              min_microversion: 1.29
-            telemetry:
-              ceilometer_polling_interval: 15
-            optimize:
-              run_continuous_audit_tests: true
-      devstack_plugins:
-        ceilometer: https://opendev.org/openstack/ceilometer
 
 - job:
-    name: watcher-tempest-functional
+    name: watcher-tempest-base
     parent: devstack-tempest
+    description: |
+      Watcher single node devstack tempest base job template.
+    abstract: true
     timeout: 7200
-    required-projects: &base_required_projects
+    required-projects: &tempest_base_required_projects
       - openstack/ceilometer
+      - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
       - openstack/watcher-tempest-plugin
       - openstack/tempest
-    vars: &base_vars
-      devstack_plugins:
-        watcher: https://opendev.org/openstack/watcher
-      devstack_services:
-        watcher-api: true
-        watcher-decision-engine: true
-        watcher-applier: true
-        tempest: true
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
-      tempest_plugins:
-        - watcher-tempest-plugin
-      tempest_test_regex: watcher_tempest_plugin.tests.api
-      tox_envlist: all
-      zuul_copy_output:
-        /etc/hosts: logs
-
-- job:
-    name: watcher-tempest-functional-ipv6-only
-    parent: devstack-tempest-ipv6
-    description: |
-      Watcher devstack tempest tests job for IPv6-only deployment
-    required-projects: *base_required_projects
-    vars: *base_vars
-
-- job:
-    name: watcher-grenade
-    parent: grenade
-    required-projects:
-      - openstack/watcher
-      - openstack/python-watcherclient
-      - openstack/watcher-tempest-plugin
-    vars: *base_vars
-    irrelevant-files: &irrelevent_files
+    irrelevant-files: &irrelevant_files
       - ^(test-|)requirements.txt$
       - ^.*\.rst$
       - ^api-ref/.*$
@@ -148,65 +35,32 @@
       - ^setup.cfg$
       - ^tools/.*$
       - ^tox.ini$
-
-- job:
-    name: watcher-sg-core-tempest-base
-    parent: devstack-tempest
-    nodeset: openstack-two-node-noble
-    description: |
-      This job is for testing watcher and sg-core/prometheus installation
-    abstract: true
-    pre-run:
-      - playbooks/generate_prometheus_config.yml
-    irrelevant-files: *irrelevent_files
-    timeout: 7800
-    required-projects: &base_sg_required_projects
-      - openstack/aodh
-      - openstack/ceilometer
-      - openstack/tempest
-      - openstack-k8s-operators/sg-core
-      - openstack/watcher
-      - openstack/python-watcherclient
-      - openstack/watcher-tempest-plugin
-      - openstack/devstack-plugin-prometheus
-    vars:
+    vars: &tempest_base_vars
       configure_swap_size: 8192
       devstack_plugins:
         ceilometer: https://opendev.org/openstack/ceilometer
-        aodh: https://opendev.org/openstack/aodh
-        sg-core: https://github.com/openstack-k8s-operators/sg-core
         watcher: https://opendev.org/openstack/watcher
-        devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
       devstack_services:
-        ceilometer-acompute: true
         watcher-api: true
         watcher-decision-engine: true
         watcher-applier: true
         tempest: true
-        # We do not need Swift in this job so disable it for speed
-        # Swift services
         s-account: false
         s-container: false
         s-object: false
         s-proxy: false
-        # Prometheus related service
-        prometheus: true
-        node_exporter: true
+        ceilometer-acentral: true
+        ceilometer-anotification: true
+        # ceilometer-acompute disabled by default since most jobs use fake data
+        ceilometer-acompute: false
+      tempest_plugins:
+        - watcher-tempest-plugin
       devstack_localrc:
-        CEILOMETER_BACKENDS: "sg-core"
         CEILOMETER_PIPELINE_INTERVAL: 15
         CEILOMETER_ALARM_THRESHOLD: 6000000000
-        PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
       devstack_local_conf:
         post-config:
-          $WATCHER_CONF: &watcher_conf_prom
-            DEFAULT:
-              print_thread_pool_stats: true
-            watcher_datasources:
-              datasources: prometheus
-            prometheus_client:
-              host: "{{ hostvars['controller']['nodepool']['private_ipv4'] }}"
-              port: 9090
+          $WATCHER_CONF: &watcher_conf_base
             watcher_cluster_data_model_collectors.compute:
               period: 120
             watcher_cluster_data_model_collectors.baremetal:
@@ -217,91 +71,165 @@
               enable_extended_attributes: true
             nova_client:
               api_version: "2.96"
+          $CINDER_CONF:
+            oslo_messaging_notifications:
+              driver: messagingv2
         test-config:
           $TEMPEST_CONFIG:
             compute:
               min_compute_nodes: 2
               min_microversion: 2.56
+              max_microversion: 2.96
+            placement:
+              min_microversion: 1.29
+            telemetry:
+              disable_ssl_certificate_validation: true
+              ceilometer_polling_interval: 15
+      # tempest variables
+      tempest_concurrency: 1
+      # Run only API tests
+      tempest_test_regex: watcher_tempest_plugin.tests.api
+      tox_envlist: all
+      zuul_copy_output:
+        /etc/hosts: logs
+
+- job:
+    name: watcher-tempest-base-two-node
+    parent: watcher-tempest-base
+    nodeset: openstack-two-node-noble
+    abstract: true
+    description: |
+      Watcher multinode devstack tempest job base template.
+    vars:
+      devstack_local_conf:
+        test-config:
+          $TEMPEST_CONFIG:
             compute-feature-enabled:
               live_migration: true
               block_migration_for_live_migration: true
-            placement:
-              min_microversion: 1.29
+            optimize:
+              run_extended_attributes_tests: true
+              run_continuous_audit_tests: true
+      # tempest variables
+      tempest_test_regex: watcher_tempest_plugin.tests\.(api|scenario)
+      # excluding tests with tag "real_load"
+      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
+    group-vars:
+      subnode:
+        devstack_plugins:
+          ceilometer: https://opendev.org/openstack/ceilometer
+          watcher: https://opendev.org/openstack/watcher
+        devstack_services:
+          # Not needed for jobs with fake metrics injection
+          ceilometer-acompute: false
+          ceilometer-acentral: false
+          ceilometer-anotification: false
+          c-bak: false
+          gnocchi-api: false
+          gnocchi-metricd: false
+          rabbit: false
+          mysql: false
+          watcher-api: false
+          watcher-applier: false
+          watcher-decision-engine: true
+        devstack_localrc:
+          CEILOMETER_BACKENDS: "none"
+        devstack_local_conf:
+          post-config:
+            $CINDER_CONF:
+              # enable notifications in compute node, by default they are only
+              # configured in the controller
+              oslo_messaging_notifications:
+                driver: messagingv2
+            $WATCHER_CONF: *watcher_conf_base
+
+- job:
+    name: watcher-tempest-api-ipv6-only
+    parent: devstack-tempest-ipv6
+    description: |
+      Watcher single node devstack tempest job for IPv6-only deployment.
+    required-projects: *tempest_base_required_projects
+    vars: *tempest_base_vars
+    irrelevant-files: *irrelevant_files
+
+- job:
+    name: watcher-grenade
+    parent: grenade
+    required-projects: *tempest_base_required_projects
+    vars:
+      <<: *tempest_base_vars
+      devstack_plugins:
+        watcher: https://opendev.org/openstack/watcher
+    irrelevant-files: *irrelevant_files
+
+- job:
+    name: watcher-tempest-prometheus
+    parent: watcher-tempest-base-two-node
+    description: |
+      Watcher multinode devstack tempest job with Prometheus as datasource.
+      This job uses fake metrics injection and does not require ceilometer-acompute
+      and node_exporter to be enabled.
+    pre-run:
+      - playbooks/generate_prometheus_config.yml
+    required-projects:
+      - openstack/aodh
+      - openstack-k8s-operators/sg-core
+      - openstack/devstack-plugin-prometheus
+    vars:
+      devstack_plugins:
+        aodh: https://opendev.org/openstack/aodh
+        sg-core: https://github.com/openstack-k8s-operators/sg-core
+        devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
+      devstack_services:
+        prometheus: true
+        # Node exporter service is disable since job uses fake metrics injection
+        node_exporter: false
+      devstack_localrc:
+        CEILOMETER_BACKENDS: "sg-core"
+        PROMETHEUS_CONFIG_FILE: "/home/zuul/prometheus.yml"
+      devstack_local_conf:
+        post-config:
+          $WATCHER_CONF: &watcher_conf_prom
+            watcher_datasources:
+              datasources: prometheus
+            prometheus_client:
+              host: "{{ hostvars['controller']['nodepool']['private_ipv4'] }}"
+              port: 9090
+        test-config:
+          $TEMPEST_CONFIG:
             service_available:
-              sg_core: True
+              sg_core: true
             telemetry_services:
               metric_backends: prometheus
-            telemetry:
-              disable_ssl_certificate_validation: True
-              ceilometer_polling_interval: 15
             optimize:
               datasource: prometheus
-              extended_attributes_nova_microversion: "2.96"
-              data_model_collectors_period: 120
-              run_continuous_audit_tests: true
-      tempest_plugins:
-        - watcher-tempest-plugin
-      # All tests inside watcher_tempest_plugin.tests.scenario with tag "strategy"
-      # and test_execute_strategies, test_data_model files
-      # excluding tests with tag "real_load"
-      tempest_test_regex: (watcher_tempest_plugin.tests.scenario)(.*\[.*\bstrategy\b.*\].*)|(watcher_tempest_plugin.tests.scenario.(test_execute_strategies|test_data_model))
-      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
-      tempest_concurrency: 1
-      tox_envlist: all
       zuul_copy_output:
         /etc/prometheus/prometheus.yml: logs
     group-vars:
       subnode:
         devstack_plugins:
-          ceilometer: https://opendev.org/openstack/ceilometer
           devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
-          watcher: https://opendev.org/openstack/watcher
         devstack_services:
-          ceilometer-acompute: true
           sg-core: false
           prometheus: false
-          node_exporter: true
-          watcher-api: false
-          watcher-applier: false
-          watcher-decision-engine: true
-        devstack_localrc:
-          CEILOMETER_BACKEND: "none"
-          CEILOMETER_BACKENDS: "none"
+          node_exporter: false
         devstack_local_conf:
           post-config:
             $WATCHER_CONF: *watcher_conf_prom
 
 - job:
-    name: watcher-prometheus-integration
-    parent: watcher-sg-core-tempest-base
-    vars:
-      devstack_services:
-        ceilometer-acompute: false
-        node_exporter: false
-    group-vars:
-      subnode:
-        devstack_services:
-          ceilometer-acompute: false
-          node_exporter: false
-
-- job:
-    name: watcher-aetos-integration
-    parent: watcher-sg-core-tempest-base
+    name: watcher-tempest-aetos
+    parent: watcher-tempest-prometheus
     description: |
-      This job tests Watcher with Aetos reverse-proxy for Prometheus
-      using Keystone authentication instead of direct Prometheus access.
+      Watcher multinode devstack tempest job with Aetos reverse-proxy for
+      Prometheus, using Keystone authentication instead of direct Prometheus access.
+      This job uses fake metrics injection and does not require ceilometer-acompute
+      and node_exporter to be enabled.
     required-projects:
       - openstack/python-observabilityclient
       - openstack/aetos
     vars: &aetos_vars
-      devstack_services:
-        ceilometer-acompute: false
-        node_exporter: false
       devstack_plugins:
-        ceilometer: https://opendev.org/openstack/ceilometer
-        sg-core: https://github.com/openstack-k8s-operators/sg-core
-        watcher: https://opendev.org/openstack/watcher
-        devstack-plugin-prometheus: https://opendev.org/openstack/devstack-plugin-prometheus
         aetos: https://opendev.org/openstack/aetos
       devstack_local_conf:
         post-config:
@@ -313,19 +241,13 @@
               region_name: RegionOne
               fqdn_label: fqdn
               instance_uuid_label: resource
-        test-config:
-          $TEMPEST_CONFIG:
-            optimize:
-              datasource: prometheus
-    group-vars:
-      subnode:
-        devstack_services:
-          ceilometer-acompute: false
-          node_exporter: false
 
 - job:
-    name: watcher-prometheus-integration-realdata
-    parent: watcher-sg-core-tempest-base
+    name: watcher-tempest-prometheus-realdata
+    parent: watcher-tempest-prometheus
+    description: |
+      Watcher multinode devstack tempest job with Prometheus as datasource and
+      real workload data.
     vars: &realdata_vars
       devstack_services:
         ceilometer-acompute: true
@@ -350,11 +272,21 @@
           NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
 
 - job:
-    name: watcher-prometheus-integration-threading
-    parent: watcher-prometheus-integration
-    vars:
+    name: watcher-tempest-prometheus-threading
+    parent: watcher-tempest-prometheus
+    description: |
+      Watcher multinode devstack tempest job with Prometheus as datasource and
+      threading mode enabled in specific services.
+    vars: &threading_vars
       devstack_localrc:
         'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+      devstack_local_conf:
+        post-config:
+          $WATCHER_CONF:
+            DEFAULT:
+              print_thread_pool_stats: true
+    group-vars:
+      subnode: *threading_vars
 
 - job:
     name: openstack-tox-py312-threading
@@ -365,10 +297,19 @@
       tox_envlist: py3-threading
 
 - job:
-    name: watcher-aetos-integration-realdata
-    parent: watcher-aetos-integration
+    name: watcher-tempest-aetos-realdata
+    parent: watcher-tempest-aetos
+    description: |
+      Watcher multinode devstack tempest job with Aetos reverse-proxy and real
+      workload data.
     vars: *realdata_vars
     group-vars: *realdata_group_vars
+
+# TODO(dviroel): Remove this job when we update other projects that depend on
+# its definition.
+- job:
+    name: watcher-tempest-functional
+    parent: watcher-tempest-base
 
 - project:
     queue: watcher
@@ -381,26 +322,31 @@
     check:
       jobs:
         - openstack-tox-py312-threading
-        - watcher-tempest-functional
         - watcher-grenade
-        - watcher-tempest-strategies
-        - watcher-tempest-actuator
+        - watcher-tempest-api-ipv6-only
+        - watcher-tempest-gnocchi
         - python-watcherclient-functional:
-            files:
+            files: &watcherclient_functional_files
               - ^watcher/api/*
-        - watcher-tempest-functional-ipv6-only
-        - watcher-prometheus-integration
-        - watcher-prometheus-integration-threading
-        - watcher-aetos-integration
+        - watcher-tempest-prometheus
+        - watcher-tempest-prometheus-threading
+        - watcher-tempest-aetos
     gate:
       jobs:
-        - watcher-tempest-functional
-        - watcher-tempest-functional-ipv6-only
+        - openstack-tox-py312-threading
+        - watcher-grenade
+        - watcher-tempest-api-ipv6-only
+        - watcher-tempest-gnocchi
+        - python-watcherclient-functional:
+            files: *watcherclient_functional_files
+        - watcher-tempest-prometheus
+        - watcher-tempest-prometheus-threading
+        - watcher-tempest-aetos
     experimental:
       jobs:
-        - watcher-prometheus-integration-realdata
-        - watcher-aetos-integration-realdata
+        - watcher-tempest-prometheus-realdata
+        - watcher-tempest-aetos-realdata
     periodic-weekly:
       jobs:
-        - watcher-prometheus-integration-realdata
-        - watcher-aetos-integration-realdata
+        - watcher-tempest-prometheus-realdata
+        - watcher-tempest-aetos-realdata
