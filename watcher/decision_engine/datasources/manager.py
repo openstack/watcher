@@ -23,7 +23,6 @@ from watcher.common import exception
 from watcher.decision_engine.datasources import aetos
 from watcher.decision_engine.datasources import gnocchi as gnoc
 from watcher.decision_engine.datasources import grafana as graf
-from watcher.decision_engine.datasources import monasca as mon
 from watcher.decision_engine.datasources import prometheus as prom
 
 LOG = log.getLogger(__name__)
@@ -33,7 +32,6 @@ class DataSourceManager:
 
     metric_map = OrderedDict([
         (gnoc.GnocchiHelper.NAME, gnoc.GnocchiHelper.METRIC_MAP),
-        (mon.MonascaHelper.NAME, mon.MonascaHelper.METRIC_MAP),
         (graf.GrafanaHelper.NAME, graf.GrafanaHelper.METRIC_MAP),
         (prom.PrometheusHelper.NAME, prom.PrometheusHelper.METRIC_MAP),
         (aetos.AetosHelper.NAME, aetos.AetosHelper.METRIC_MAP),
@@ -45,7 +43,6 @@ class DataSourceManager:
     def __init__(self, config=None, osc=None):
         self.osc = osc
         self.config = config
-        self._monasca = None
         self._gnocchi = None
         self._grafana = None
         self._prometheus = None
@@ -65,9 +62,6 @@ class DataSourceManager:
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
         self.datasources = self.config.datasources
-        if self.datasources and 'monasca' in self.datasources:
-            LOG.warning('The monasca datasource is deprecated and will be '
-                        'removed in a future release.')
 
         self._validate_datasource_config()
 
@@ -86,16 +80,6 @@ class DataSourceManager:
                 datasource_one=prom.PrometheusHelper.NAME,
                 datasource_two=aetos.AetosHelper.NAME
             )
-
-    @property
-    def monasca(self):
-        if self._monasca is None:
-            self._monasca = mon.MonascaHelper(osc=self.osc)
-        return self._monasca
-
-    @monasca.setter
-    def monasca(self, monasca):
-        self._monasca = monasca
 
     @property
     def gnocchi(self):

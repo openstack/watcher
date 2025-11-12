@@ -70,7 +70,6 @@ class OpenStackClients:
         self._nova = None
         self._gnocchi = None
         self._cinder = None
-        self._monasca = None
         self._ironic = None
         self._maas = None
         self._placement = None
@@ -163,51 +162,6 @@ class OpenStackClients:
                                        region_name=cinder_region_name,
                                        session=self.session)
         return self._cinder
-
-    @exception.wrap_keystone_exception
-    def monasca(self):
-        if self._monasca:
-            return self._monasca
-
-        try:
-            from monascaclient import client as monclient
-        except ImportError as e:
-            message = (
-                "Monasca client is not installed. "
-                "Install 'watcher[monasca]' or "
-                "add 'python-monascaclient' to your environment."
-            )
-            raise exception.UnsupportedError(message) from e
-
-        monascaclient_version = self._get_client_option(
-            'monasca', 'api_version')
-        monascaclient_interface = self._get_client_option(
-            'monasca', 'interface')
-        monascaclient_region = self._get_client_option(
-            'monasca', 'region_name')
-        token = self.session.get_token()
-        watcher_clients_auth_config = CONF.get(_CLIENTS_AUTH_GROUP)
-        service_type = 'monitoring'
-        monasca_kwargs = {
-            'auth_url': watcher_clients_auth_config.auth_url,
-            'cert_file': watcher_clients_auth_config.certfile,
-            'insecure': watcher_clients_auth_config.insecure,
-            'key_file': watcher_clients_auth_config.keyfile,
-            'keystone_timeout': watcher_clients_auth_config.timeout,
-            'os_cacert': watcher_clients_auth_config.cafile,
-            'service_type': service_type,
-            'token': token,
-            'username': watcher_clients_auth_config.username,
-            'password': watcher_clients_auth_config.password,
-        }
-        endpoint = self.session.get_endpoint(service_type=service_type,
-                                             interface=monascaclient_interface,
-                                             region_name=monascaclient_region)
-
-        self._monasca = monclient.Client(
-            monascaclient_version, endpoint, **monasca_kwargs)
-
-        return self._monasca
 
     @exception.wrap_keystone_exception
     def ironic(self):

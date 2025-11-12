@@ -71,10 +71,10 @@ WATCHER_DECISION_ENGINE_OPTS = [
                     'are the metric names as recognized by watcher and the '
                     'value is the real name of the metric in the datasource. '
                     'For example:: \n\n'
-                    '  monasca:\n'
-                    '    instance_cpu_usage: VM_CPU\n'
                     '  gnocchi:\n'
-                    '    instance_cpu_usage: cpu_vm_util\n\n'
+                    '    instance_cpu_usage: cpu_vm_util\n'
+                    '  aetos:\n'
+                    '    instance_cpu_usage: ceilometer_cpu\n\n'
                     'This file is optional.'),
     cfg.IntOpt('continuous_audit_interval',
                default=10,

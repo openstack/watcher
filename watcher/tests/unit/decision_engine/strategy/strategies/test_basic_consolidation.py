@@ -24,7 +24,6 @@ from watcher.common import clients
 from watcher.decision_engine.model import model_root
 from watcher.decision_engine.strategy import strategies
 from watcher.tests.unit.decision_engine.model import gnocchi_metrics
-from watcher.tests.unit.decision_engine.model import monasca_metrics
 from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
     import TestBaseStrategy
 
@@ -32,9 +31,6 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
 class TestBasicConsolidation(TestBaseStrategy):
 
     scenarios = [
-        ("Monasca",
-         {"datasource": "monasca",
-          "fake_datasource_cls": monasca_metrics.FakeMonascaMetrics}),
         ("Gnocchi",
          {"datasource": "gnocchi",
           "fake_datasource_cls": gnocchi_metrics.FakeGnocchiMetrics}),
