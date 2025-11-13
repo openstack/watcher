@@ -111,7 +111,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.uuid,
+                                          'source_node': node_0.hostname,
                                           'migration_type': 'live',
                                           'resource_id': instance_0.uuid,
                                           'resource_name': instance_0.name
@@ -126,7 +126,7 @@ class TestHostMaintenance(TestBaseStrategy):
         self.strategy.instance_handle(instance_0, node_0)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
-                     'input_parameters': {'source_node': node_0.uuid,
+                     'input_parameters': {'source_node': node_0.hostname,
                                           'migration_type': 'live',
                                           'resource_id': instance_0.uuid,
                                           'resource_name': instance_0.name
@@ -144,14 +144,14 @@ class TestHostMaintenance(TestBaseStrategy):
         self.assertEqual(2, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
                      'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.uuid,
+                                          'source_node': node_0.hostname,
                                           'migration_type': 'live',
                                           'resource_id': instance_0.uuid,
                                           'resource_name': instance_0.name
                                           }},
                     {'action_type': 'migrate',
                      'input_parameters': {'destination_node': node_1.hostname,
-                                          'source_node': node_0.uuid,
+                                          'source_node': node_0.hostname,
                                           'migration_type': 'live',
                                           'resource_id': instance_1.uuid,
                                           'resource_name': instance_1.name
@@ -216,7 +216,7 @@ class TestHostMaintenance(TestBaseStrategy):
                     {'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_3.hostname,
-                         'source_node': node_2.uuid,
+                         'source_node': node_2.hostname,
                          'migration_type': 'live',
                          'resource_id': instance_4.uuid,
                          'resource_name': instance_4.name}}]
@@ -305,7 +305,7 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_1.hostname,
-                         'source_node': node_0.uuid,
+                         'source_node': node_0.hostname,
                          'migration_type': 'cold',
                          'resource_id': instance_0.uuid,
                          'resource_name': instance_0.name
@@ -332,7 +332,7 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_1.hostname,
-                         'source_node': node_0.uuid,
+                         'source_node': node_0.hostname,
                          'migration_type': 'cold',
                          'resource_id': instance_1.uuid,
                          'resource_name': instance_1.name
@@ -358,7 +358,7 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_1.hostname,
-                         'source_node': node_0.uuid,
+                         'source_node': node_0.hostname,
                          'migration_type': 'live',
                          'resource_id': instance_0.uuid,
                          'resource_name': instance_0.name
@@ -402,7 +402,7 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_1.hostname,
-                         'source_node': node_0.uuid,
+                         'source_node': node_0.hostname,
                          'migration_type': 'live',
                          'resource_id': instance_0.uuid,
                          'resource_name': instance_0.name
@@ -428,7 +428,7 @@ class TestHostMaintenance(TestBaseStrategy):
         expected = [{'action_type': 'migrate',
                      'input_parameters': {
                          'destination_node': node_1.hostname,
-                         'source_node': node_0.uuid,
+                         'source_node': node_0.hostname,
                          'migration_type': 'cold',
                          'resource_id': instance_1.uuid,
                          'resource_name': instance_1.name
@@ -485,7 +485,7 @@ class TestHostMaintenance(TestBaseStrategy):
             {'action_type': 'migrate',
              'input_parameters': {
                  'destination_node': node_1.hostname,
-                 'source_node': node_0.uuid,
+                 'source_node': node_0.hostname,
                  'migration_type': 'cold',
                  'resource_id': instance_0.uuid,
                  'resource_name': instance_0.name
@@ -493,7 +493,7 @@ class TestHostMaintenance(TestBaseStrategy):
             {'action_type': 'migrate',
              'input_parameters': {
                  'destination_node': node_1.hostname,
-                 'source_node': node_0.uuid,
+                 'source_node': node_0.hostname,
                  'migration_type': 'cold',
                  'resource_id': instance_1.uuid,
                  'resource_name': instance_1.name
@@ -644,13 +644,13 @@ class TestHostMaintenance(TestBaseStrategy):
                  'disabled_reason': 'watcher_maintaining'}},
             {'action_type': 'migrate',
              'input_parameters': {
-                 'source_node': node_0.uuid,
+                 'source_node': node_0.hostname,
                  'migration_type': 'live',
                  'resource_id': instance_0.uuid,
                  'resource_name': instance_0.name}},
             {'action_type': 'migrate',
              'input_parameters': {
-                 'source_node': node_0.uuid,
+                 'source_node': node_0.hostname,
                  'migration_type': 'live',
                  'resource_id': instance_1.uuid,
                  'resource_name': instance_1.name}}
