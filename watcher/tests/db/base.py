@@ -15,7 +15,6 @@
 
 """Watcher DB test base class."""
 
-import fixtures
 from oslo_config import cfg
 from oslo_db.sqlalchemy import enginefacade
 from oslo_db.sqlalchemy import test_fixtures
@@ -23,7 +22,6 @@ from oslo_db.sqlalchemy import test_fixtures
 
 from watcher.db import api as dbapi
 from watcher.db.sqlalchemy import migration
-from watcher.db.sqlalchemy import models
 from watcher.tests import base
 from watcher.tests.db import utils
 
@@ -32,37 +30,24 @@ CONF = cfg.CONF
 
 CONF.import_opt('enable_authentication', 'watcher.api.acl')
 
-_DB_CACHE = None
 
+class SqliteDatabaseFixture(test_fixtures.GeneratesSchema,
+                            test_fixtures.AdHocDbFixture):
+    """oslo_db-based fixture for SQLite-backed tests.
 
-class Database(fixtures.Fixture):
+    This uses oslo_db's AdHocDbFixture to provision a per-test (or per-run)
+    SQLite database and GenerateSchema to build the Watcher schema via the
+    normal migration helpers.
+    """
 
-    def __init__(self, engine, db_migrate, sql_connection):
-        self.sql_connection = sql_connection
+    def __init__(self):
+        # Use the configured database connection URL
+        # (set to sqlite:// in tests)
+        super().__init__(url=CONF.database.connection)
 
-        self.engine = engine
-        self.engine.dispose()
-
-        with self.engine.connect() as conn:
-            self.setup_sqlite(db_migrate)
-            self.post_migrations()
-            self._DB = "".join(line for line in conn.connection.iterdump())
-        self.engine.dispose()
-
-    def setup_sqlite(self, db_migrate):
-        if db_migrate.version():
-            return
-        models.Base.metadata.create_all(self.engine)
-        db_migrate.stamp('head')
-
-    def setUp(self):
-        super().setUp()
-        with self.engine.connect() as conn:
-            conn.connection.executescript(self._DB)
-        self.addCleanup(self.engine.dispose)
-
-    def post_migrations(self):
-        """Any addition steps that are needed outside of the migrations."""
+    def generate_schema_create_all(self, engine):
+        """Generate the database schema for tests using migrations helpers."""
+        migration.create_schema(engine=engine)
 
 
 class DbTestCase(base.TestCase):
@@ -77,15 +62,10 @@ class DbTestCase(base.TestCase):
 
         super().setUp()
 
+        # Provision and configure a SQLite database for this test using
+        # oslo_db's fixtures.
+        self.useFixture(SqliteDatabaseFixture())
         self.dbapi = dbapi.get_instance()
-
-        global _DB_CACHE
-        if not _DB_CACHE:
-            engine = enginefacade.writer.get_engine()
-            _DB_CACHE = Database(engine, migration,
-                                 sql_connection=CONF.database.connection)
-            engine.dispose()
-        self.useFixture(_DB_CACHE)
         self._id_gen = utils.id_generator()
 
 
