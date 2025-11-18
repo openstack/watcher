@@ -1,0 +1,280 @@
+# Copyright (c) 2015 b<>com
+#
+# Authors: Jean-Emile DARTOIS <jean-emile.dartois@b-com.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+from unittest import mock
+
+from oslo_config import cfg
+
+from watcher.applier.workflow_engine import default as tflow
+from watcher.common import clients
+from watcher.common import nova_helper
+from watcher.common import utils
+from watcher import objects
+from watcher.tests.unit.db import base
+from watcher.tests.unit.objects import utils as obj_utils
+
+
+class TestTaskFlowActionContainer(base.DbTestCase):
+    def setUp(self):
+        super().setUp()
+        self.engine = tflow.DefaultWorkFlowEngine(
+            config=mock.Mock(),
+            context=self.context,
+            applier_manager=mock.MagicMock())
+        obj_utils.create_test_goal(self.context)
+        self.strategy = obj_utils.create_test_strategy(self.context)
+        self.audit = obj_utils.create_test_audit(
+            self.context, strategy_id=self.strategy.id)
+
+    def test_execute(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.execute()
+
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
+
+    @mock.patch.object(clients.OpenStackClients, 'nova', mock.Mock())
+    def test_execute_with_failed_execute(self):
+        nova_util = nova_helper.NovaHelper()
+        instance = "31b9dd5c-b1fd-4f61-9b68-a47096326dac"
+        nova_util.nova.servers.get.return_value = instance
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='migrate',
+            input_parameters={"resource_id":
+                              instance,
+                              "migration_type": "live",
+                              "destination_node": "host2",
+                              "source_node": "host1"})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        result = action_container.execute()
+        self.assertFalse(result)
+
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(obj_action.status_message, "Action failed in execute:"
+                         " The action 10a47dd1-4874-4298-91cf-eff046dbdb8d "
+                         "execution failed.")
+
+    def test_pre_execute(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.PENDING)
+        self.assertIsNone(obj_action.status_message)
+
+    def test_pre_execute_with_failed_pre_condition(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_pre_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in pre_condition: Failed in pre_condition")
+
+    def test_pre_execute_with_skipped(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'skip_pre_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.SKIPPED)
+        self.assertEqual(obj_action.status_message,
+                         "Action was skipped automatically: "
+                         "Skipped in pre_condition")
+
+    def test_post_execute_with_failed_post_condition(self):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_post_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.post_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in post_condition: Failed in post_condition")
+
+    @mock.patch.object(utils, 'thread_kill')
+    @mock.patch.object(utils, 'thread_spawn')
+    def test_execute_with_cancel_action_plan(
+            self, mock_thread_spawn, mock_thread_kill):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.CANCELLING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+
+        mock_thread_spawn.return_value = mock.Mock()
+
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.execute()
+
+        mock_thread_kill.assert_called_once_with(
+            mock_thread_spawn.return_value)
+
+    @mock.patch('watcher.applier.workflow_engine.default.LOG')
+    def test_execute_without_rollback(self, mock_log):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.FAILED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", False,
+                              group="watcher_applier")
+        action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
+        expected_log = ('Failed actionplan rollback option is turned off, '
+                        'and the following action will be skipped: %s')
+        action_container.revert()
+        mock_log.info.assert_called_once_with(expected_log, action_name)
+
+    @mock.patch('watcher.applier.workflow_engine.default.LOG')
+    def test_execute_with_rollback(self, mock_log):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.FAILED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
+                              group="watcher_applier")
+        action_name = f"action_type:{action.action_type} uuid:{action.uuid}"
+        expected_log = 'Revert action: %s'
+        action_container.revert()
+        mock_log.warning.assert_called_once_with(expected_log, action_name)
+
+    @mock.patch.object(tflow.TaskFlowActionContainer, 'do_revert')
+    def test_execute_with_rollback_skipped_action(self, mock_do_revert):
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.SKIPPED,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        cfg.CONF.set_override("rollback_when_actionplan_failed", True,
+                              group="watcher_applier")
+
+        action_container.revert()
+
+        mock_do_revert.assert_not_called()
