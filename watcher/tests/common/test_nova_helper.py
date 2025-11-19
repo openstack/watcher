@@ -16,6 +16,8 @@
 # limitations under the License.
 #
 
+import copy
+import fixtures
 import time
 from unittest import mock
 
@@ -43,6 +45,8 @@ class TestNovaHelper(base.TestCase):
         self.source_node = "ldev-indeedsrv005"
         self.destination_node = "ldev-indeedsrv006"
         self.flavor_name = "x1"
+        self.mock_sleep = self.useFixture(
+            fixtures.MockPatchObject(time, 'sleep')).mock
 
     @staticmethod
     def fake_server(*args, **kwargs):
@@ -360,7 +364,7 @@ class TestNovaHelper(base.TestCase):
         nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
         )
-        time.sleep.assert_called_with(1)
+        time.sleep.assert_called_with(5)
 
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance_no_destination_node(
@@ -442,6 +446,229 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
         self.assertTrue(is_success)
+
+    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize')
+    def test_watcher_non_live_migrate_instance_retry_success(
+            self, mock_confirm_resize, mock_cinder, mock_nova):
+        """Test that watcher_non_live_migrate uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+
+        verify_server = copy.deepcopy(server)
+        verify_server.status = 'VERIFY_RESIZE'
+        setattr(verify_server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+
+        # This means instance will be found as VERIFY_RESIZE in second retry
+        nova_util.nova.servers.get.side_effect = (server, server, server,
+                                                  verify_server)
+
+        mock_confirm_resize.return_value = True
+
+        self.flags(migration_max_retries=20, migration_interval=4,
+                   group='nova')
+        # Migration will success as will transition from MIGRATING to
+        # VERIFY_RESIZE
+        is_success = nova_util.watcher_non_live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should succeed
+        self.assertTrue(is_success)
+        # It will sleep 2 times because it will be found as VERIFY_RESIZE in
+        # the second retry
+        self.assertEqual(2, self.mock_sleep.call_count)
+        # Verify all sleep calls used 4 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 4)
+
+    def test_watcher_non_live_migrate_instance_retry_default(
+            self, mock_cinder, mock_nova):
+        """Test that watcher_non_live_migrate uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        # Migration will timeout because status never changes
+        is_success = nova_util.watcher_non_live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With default migration_max_retries and migration_interval, should
+        # sleep 180 times for 5 seconds
+        self.assertEqual(180, self.mock_sleep.call_count)
+        # Verify sleep calls used 5 second
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_watcher_non_live_migrate_instance_retry_custom(
+            self, mock_cinder, mock_nova):
+        """Test that watcher_non_live_migrate respects explicit retry value"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+
+        # Set config to a custom values to ensure custom values are used
+        self.flags(migration_max_retries=10, migration_interval=3,
+                   group='nova')
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        is_success = nova_util.watcher_non_live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # It should sleep migration_max_retries times with migration_interval
+        # seconds
+        self.assertEqual(10, self.mock_sleep.call_count)
+        # Verify all sleep calls used migration_interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 3)
+
+    def test_live_migrate_instance_retry_default_success(
+            self, mock_cinder, mock_nova):
+        """Test that live_migrate_instance uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+
+        migrated_server = copy.deepcopy(server)
+        migrated_server.status = 'ACTIVE'
+        setattr(migrated_server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+
+        nova_util.nova.servers.get.side_effect = (
+            server, server, server, migrated_server)
+
+        # Migration will success as will transition from migrating to ACTIVE
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should succeed
+        self.assertTrue(is_success)
+        # It will sleep 2 times because it will be found as ACTIVE in
+        # the second retry
+        self.assertEqual(2, self.mock_sleep.call_count)
+        # Verify all sleep calls used 5 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_live_migrate_instance_retry_default(
+            self, mock_cinder, mock_nova):
+        """Test that live_migrate_instance uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        # Migration will timeout because host never changes
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With default migration_max_retries and migration_interval, should
+        # sleep 5 seconds 180 times
+        self.assertEqual(180, self.mock_sleep.call_count)
+        # Verify all sleep calls used 5 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_live_migrate_instance_retry_custom(
+            self, mock_cinder, mock_nova):
+        """Test that live_migrate_instance uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+
+        # Set config value
+        self.flags(migration_max_retries=20, migration_interval=1.5,
+                   group='nova')
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        # Migration will timeout because host never changes
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, self.destination_node
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With migration_max_retries and migration_interval, should sleep 20
+        # times
+        self.assertEqual(20, self.mock_sleep.call_count)
+
+        # Verify sleep calls used 1.5 second
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1.5)
+
+    def test_live_migrate_instance_no_dest_retry_default(
+            self, mock_cinder, mock_nova):
+        """Test live_migrate with no destination uses config timeout"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        server.status = 'MIGRATING'  # Never reaches ACTIVE
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        # Migration with no destination will timeout
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, None
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With default migration_max_retries and migration_interval, should
+        # sleep 180 times
+        self.assertEqual(180, self.mock_sleep.call_count)
+
+        # Verify all sleep calls used 5 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_live_migrate_instance_no_dest_retry_custom(
+            self, mock_cinder, mock_nova):
+        """Test live_migrate with no destination uses config timeout"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        server.status = 'MIGRATING'  # Never reaches ACTIVE
+
+        # Set config value
+        self.flags(migration_max_retries=10, migration_interval=3,
+                   group='nova')
+
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
+
+        # Migration with no destination will timeout
+        is_success = nova_util.live_migrate_instance(
+            self.instance_uuid, None
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With migration_max_retries and migration_interval, should sleep 10
+        # times for 3 seconds
+        self.assertEqual(10, self.mock_sleep.call_count)
+
+        # Verify sleep calls used 3 second
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 3)
 
     def test_enable_service_nova_compute(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()

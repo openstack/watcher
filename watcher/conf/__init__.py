@@ -36,6 +36,7 @@ from watcher.conf import keystone_client
 from watcher.conf import maas_client
 from watcher.conf import models
 from watcher.conf import monasca_client
+from watcher.conf import nova
 from watcher.conf import nova_client
 from watcher.conf import paths
 from watcher.conf import placement_client
@@ -69,3 +70,4 @@ ironic_client.register_opts(CONF)
 collector.register_opts(CONF)
 placement_client.register_opts(CONF)
 prometheus_client.register_opts(CONF)
+nova.register_opts(CONF)

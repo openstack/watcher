@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    New parameters `migration_max_retries` and `migration_interval` have been
+    added to the `nova` section to define the maximum retries and polling
+    interval in VM migrations. Default values are 180 and 5 seconds.
+fixes:
+  - |
+    Fixed the issue when migrate actions Failed when the migration took more that
+    120 seconds. After this patch, the default timeout is 900 seconds (15 minutes)
+    which should be a reasonable value for most OpenStack installations.
