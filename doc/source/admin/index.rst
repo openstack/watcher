@@ -9,6 +9,7 @@ Administrator Guide
    gmr
    policy
    ../strategies/index
+   ../actions/index
    ../datasources/index
    ../contributor/notifications
    ../contributor/concurrency
