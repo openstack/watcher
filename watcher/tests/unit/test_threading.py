@@ -18,6 +18,7 @@
 import futurist
 from unittest import mock
 
+from watcher.common import executor
 from watcher.decision_engine import threading
 from watcher.tests.unit import base
 
@@ -47,8 +48,11 @@ class TestDecisionEngineThreadPool(base.TestCase):
         self.m_threadpool.submit = self.m_threadpool.submit.__get__(
             self.m_threadpool, threading.DecisionEngineThreadPool)
 
-        # perform all tests synchronously
-        self.m_threadpool._threadpool = futurist.SynchronousExecutor()
+        self.m_threadpool._threadpool = executor.get_futurist_pool_executor(1)
+
+    @staticmethod
+    def noop_function(*args, **kwargs):
+        pass
 
     def test_singleton(self):
         """Ensure only one object of DecisionEngineThreadPool can be created"""
@@ -74,6 +78,7 @@ class TestDecisionEngineThreadPool(base.TestCase):
 
         # create a collection of futures from submitted m_function tasks
         futures = [self.m_threadpool.submit(self.m_function, 1, 2)]
+        futurist.waiters.wait_for_all(futures)
 
         self.m_function.assert_called_once_with(1, 2)
 
@@ -99,6 +104,7 @@ class TestDecisionEngineThreadPool(base.TestCase):
 
         # create a collection of futures from submitted m_function tasks
         futures = [self.m_threadpool.submit(self.m_function, 1, 2)]
+        futurist.waiters.wait_for_all(futures)
 
         self.m_function.assert_called_once_with(1, 2)
 
@@ -146,3 +152,19 @@ class TestDecisionEngineThreadPool(base.TestCase):
         # test that the passed do_while function has been called 10 times
         self.m_do_while_function.assert_has_calls(
             calls_do_while, any_order=True)
+
+    def test_do_while_futures_modify_timeout(self):
+        """Test the operation of the do_while_futures with a timeout"""
+
+        # create a collection of futures from submitted m_function tasks
+        futures = [self.m_threadpool.submit(
+            TestDecisionEngineThreadPool.noop_function) for i in range(3)]
+
+        self.m_threadpool.do_while_futures_modify(
+            futures, self.m_do_while_function, futures_timeout=0)
+
+        # At least one future should be running or cancelled
+        self.assertGreater(len(futures), 0)
+        for future in futures:
+            # We only expect futures that were cancelled or are still running
+            self.assertTrue(future.cancelled() or future.running())

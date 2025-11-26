@@ -1,0 +1,11 @@
+---
+upgrade:
+  - |
+    The previous collector operation timeout mechanism, which was based on the
+    `period` configuration option, has been replaced by a new configuration
+    option `compute_resources_collector_timeout`. This new configuration
+    option provides more explicit control over the timeout for resource
+    collection operations in the Compute Cluster Data Model. Operators
+    should review and adjust this new configuration according to their
+    environment's needs. Note that collectors `period` configuration didn't
+    change and continue to work as before.

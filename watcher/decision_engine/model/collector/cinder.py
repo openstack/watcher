@@ -154,7 +154,12 @@ class CinderClusterDataModelCollector(base.BaseClusterDataModelCollector):
             return
 
         builder = CinderModelBuilder(self.osc)
-        return builder.execute(self._data_model_scope)
+        try:
+            return builder.execute(self._data_model_scope)
+        except Exception as e:
+            LOG.exception(e)
+            raise exception.ClusterDataModelCollectionError(
+                cdm="storage") from e
 
 
 class CinderModelBuilder(base.BaseModelBuilder):

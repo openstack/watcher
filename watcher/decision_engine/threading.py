@@ -51,7 +51,7 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         return self._threadpool.submit(fn, *args, **kwargs)
 
     @staticmethod
-    def do_while_futures(futures, fn, *args, **kwargs):
+    def do_while_futures(futures, fn, *args, futures_timeout=None, **kwargs):
         """Do while to execute a function upon completion from a collection
 
         Will execute the specified function with its arguments when one of the
@@ -63,6 +63,7 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         :type  futures: list :py:class:`futurist.GreenFuture`
         :param fn:  function to execute upon the future finishing execution
         :param args: arguments for the function
+        :param futures_timeout: timeout in seconds for futurist wait operations
         :param kwargs: amount of arguments for the function
         """
 
@@ -72,10 +73,11 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         futures = copy.copy(futures)
 
         DecisionEngineThreadPool.do_while_futures_modify(
-            futures, fn, *args, **kwargs)
+            futures, fn, *args, futures_timeout=futures_timeout, **kwargs)
 
     @staticmethod
-    def do_while_futures_modify(futures, fn, *args, **kwargs):
+    def do_while_futures_modify(futures, fn, *args,
+                                futures_timeout=None, **kwargs):
         """Do while to execute a function upon completion from a collection
 
         Will execute the specified function with its arguments when one of the
@@ -86,13 +88,25 @@ class DecisionEngineThreadPool(metaclass=service.Singleton):
         :param futures: list, set or dictionary of futures
         :type  futures: list :py:class:`futurist.GreenFuture`
         :param fn:  function to execute upon the future finishing execution
+        :param futures_timeout: timeout in seconds for futurist wait operations
         :param args: arguments for the function
         :param kwargs: amount of arguments for the function
         """
 
-        waits = waiters.wait_for_any(futures)
+        waits = waiters.wait_for_any(futures, timeout=futures_timeout)
         while len(waits[0]) > 0 or len(waits[1]) > 0:
-            for future in waiters.wait_for_any(futures)[0]:
+            # NOTE(dviroel): if finished futures are empty, the wait_for_any
+            # has returned due to a timeout, if provided by the caller.
+            # In this scenario, we cancel the remaining pending futures and
+            # break the loop, otherwise it may stay in the loop indefinitely.
+            if not len(waits[0]):
+                LOG.warning("No futures finished during the timeout period, "
+                            "aborting remaining pending futures")
+                for future in waits[1]:
+                    future.cancel()
+                break
+            for future in waits[0]:
                 fn(future, *args, **kwargs)
                 futures.remove(future)
-            waits = waiters.wait_for_any(futures)
+
+            waits = waiters.wait_for_any(futures, timeout=futures_timeout)

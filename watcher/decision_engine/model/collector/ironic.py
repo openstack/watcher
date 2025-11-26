@@ -16,6 +16,7 @@
 
 from oslo_log import log
 
+from watcher.common import exception
 from watcher.common import ironic_helper
 from watcher.decision_engine.model.collector import base
 from watcher.decision_engine.model import element
@@ -67,7 +68,12 @@ class BaremetalClusterDataModelCollector(base.BaseClusterDataModelCollector):
             return
 
         builder = BareMetalModelBuilder(self.osc)
-        return builder.execute(self._data_model_scope)
+        try:
+            return builder.execute(self._data_model_scope)
+        except Exception as e:
+            LOG.exception(e)
+            raise exception.ClusterDataModelCollectionError(
+                cdm="baremetal") from e
 
 
 class BareMetalModelBuilder(base.BaseModelBuilder):

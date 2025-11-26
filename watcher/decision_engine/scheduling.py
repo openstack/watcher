@@ -15,11 +15,9 @@
 
 import datetime
 
-import eventlet
 from oslo_log import log
 
 from watcher.common import context
-from watcher.common import exception
 from watcher.common import scheduling
 
 from watcher.decision_engine.model.collector import manager
@@ -44,38 +42,11 @@ class DecisionEngineSchedulingService(scheduling.BackgroundSchedulerService):
         return self.collector_manager.get_collectors()
 
     def add_sync_jobs(self):
-        for name, collector in self.collectors.items():
-            timed_task = self._wrap_collector_sync_with_timeout(
-                collector, name)
-            self.add_job(timed_task,
+        for collector in self.collectors.values():
+            self.add_job(collector.synchronize,
                          trigger='interval',
                          seconds=collector.config.period,
                          next_run_time=datetime.datetime.now())
-
-    def _as_timed_sync_func(self, sync_func, name, timeout):
-        def _timed_sync():
-            with eventlet.Timeout(
-                timeout,
-                exception=exception.ClusterDataModelCollectionError(cdm=name)
-            ):
-                sync_func()
-
-        return _timed_sync
-
-    def _wrap_collector_sync_with_timeout(self, collector, name):
-        """Add an execution timeout constraint on a function"""
-        timeout = collector.config.period
-
-        def _sync():
-            try:
-                timed_sync = self._as_timed_sync_func(
-                    collector.synchronize, name, timeout)
-                timed_sync()
-            except Exception as exc:
-                LOG.exception(exc)
-                collector.set_cluster_data_model_as_stale()
-
-        return _sync
 
     def add_checkstate_job(self):
         # 30 minutes interval
