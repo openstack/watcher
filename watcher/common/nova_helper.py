@@ -241,7 +241,7 @@ class NovaHelper:
                     "cold migration for instance %s failed", instance_id)
                 return False
 
-    def resize_instance(self, instance_id, flavor, retry=120):
+    def resize_instance(self, instance_id, flavor, retry=None, interval=None):
         """This method resizes given instance with specified flavor.
 
         This method uses the Nova built-in resize()
@@ -252,11 +252,17 @@ class NovaHelper:
 
         :param instance_id: the unique id of the instance to resize.
         :param flavor: the name or ID of the flavor to resize to.
+        :param retry: maximum number of retries before giving up
+        :param interval: interval in seconds between retries
         """
         LOG.debug(
             "Trying a resize of instance %(instance)s to "
             "flavor '%(flavor)s'",
             {'instance': instance_id, 'flavor': flavor})
+
+        # Use config defaults if not provided in method parameters
+        retry = retry or CONF.nova.migration_max_retries
+        interval = interval or CONF.nova.migration_interval
 
         # Looking for the instance to resize
         instance = self.find_instance(instance_id)
@@ -291,7 +297,7 @@ class NovaHelper:
                 and retry:
             instance = self.nova.servers.get(instance.id)
             LOG.debug('Waiting the resize of %s to %s', instance, flavor_id)
-            time.sleep(1)
+            time.sleep(interval)
             retry -= 1
 
         instance_status = getattr(instance, 'status')

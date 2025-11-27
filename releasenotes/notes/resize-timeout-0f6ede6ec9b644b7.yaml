@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Timeout of vm resize operations can be configured applying the
+    `migration_max_retries` and `migration_interval` in the `nova`
+    section used for migrations. Default values are 180 and 5 seconds.
+fixes:
+  - |
+    Fixed the issue when resize actions failed when the resize took more that
+    120 seconds. After this patch, the default timeout is 900 seconds (15 minutes)
+    which should be a reasonable value for most OpenStack installations.

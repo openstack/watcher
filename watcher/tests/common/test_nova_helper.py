@@ -300,6 +300,90 @@ class TestNovaHelper(base.TestCase):
                                                self.flavor_name)
         self.assertFalse(is_success)
 
+    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize')
+    def test_watcher_resize_instance_retry_success(
+            self, mock_confirm_resize, mock_cinder, mock_nova):
+        """Test that resize_instance uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'RESIZING'
+        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
+
+        resized_server = copy.deepcopy(server)
+        resized_server.status = 'VERIFY_RESIZE'
+        setattr(resized_server, 'OS-EXT-STS:vm_state', 'resized')
+
+        # This means instance will be found as VERIFY_RESIZE in second retry
+        nova_util.nova.servers.get.side_effect = (server, server,
+                                                  resized_server)
+
+        mock_confirm_resize.return_value = True
+
+        self.flags(migration_max_retries=20, migration_interval=4,
+                   group='nova')
+        # Resize will succeed because status changes to VERIFY_RESIZE
+        is_success = nova_util.resize_instance(
+            self.instance_uuid, self.flavor_name
+        )
+
+        # Should succeed
+        self.assertTrue(is_success)
+        # It will sleep 2 times because it will be found as VERIFY_RESIZE in
+        # the second retry
+        self.assertEqual(2, self.mock_sleep.call_count)
+        # Verify all sleep calls used 4 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 4)
+
+    def test_watcher_resize_instance_retry_default(
+            self, mock_cinder, mock_nova):
+        """Test that resize_instance uses config timeout by default"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'RESIZING'
+        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
+
+        nova_util.nova.servers.get.side_effect = server
+
+        # Resize will timeout because status never changes
+        is_success = nova_util.resize_instance(
+            self.instance_uuid, self.flavor_name
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # With default migration_max_retries and migration_interval, should
+        # sleep 180 times for 5 seconds
+        self.assertEqual(180, self.mock_sleep.call_count)
+        # Verify sleep calls used 5 second
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_watcher_resize_instance_retry_custom(
+            self, mock_cinder, mock_nova):
+        """Test that watcher_non_live_migrate respects explicit retry value"""
+        nova_util = nova_helper.NovaHelper()
+        server = self.fake_server(self.instance_uuid)
+        server.status = 'RESIZING'
+        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
+
+        # Set config to a custom values to ensure custom values are used
+        self.flags(migration_max_retries=10,
+                   migration_interval=3, group='nova')
+
+        is_success = nova_util.resize_instance(
+            self.instance_uuid, self.flavor_name
+        )
+
+        # Should fail due to timeout
+        self.assertFalse(is_success)
+        # It should sleep migration_max_retries times with migration_interval
+        # seconds
+        self.assertEqual(10, self.mock_sleep.call_count)
+        # Verify all sleep calls used migration_interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 3)
+
     @mock.patch.object(time, 'sleep', mock.Mock())
     def test_live_migrate_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
