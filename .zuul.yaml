@@ -354,6 +354,7 @@
     parent: watcher-prometheus-integration
     vars:
       devstack_localrc:
+        'SYSTEMD_ENV_VARS["watcher-api"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
         'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
 
 - job:
