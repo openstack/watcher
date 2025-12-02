@@ -16,7 +16,6 @@
 # limitations under the License.
 #
 
-import copy
 import fixtures
 import time
 from unittest import mock
@@ -24,6 +23,9 @@ from unittest import mock
 from novaclient import api_versions
 
 import novaclient.exceptions as nvexceptions
+from novaclient.v2 import flavors
+from novaclient.v2 import hypervisors
+from novaclient.v2 import servers
 
 from watcher.common import clients
 from watcher.common import exception
@@ -50,22 +52,29 @@ class TestNovaHelper(base.TestCase):
 
     @staticmethod
     def fake_server(*args, **kwargs):
-        server = mock.MagicMock()
-        server.id = args[0]
-        server.status = 'ACTIVE'
+        instance_info = {
+            'id': args[0],
+            'name': 'fake_instance',
+            'status': 'ACTIVE',
+        }
+        instance_info.update(kwargs)
 
-        return server
+        return servers.Server(servers.ServerManager, info=instance_info)
 
     @staticmethod
     def fake_hypervisor(*args, **kwargs):
-        hypervisor = mock.MagicMock()
-        hypervisor.id = args[0]
-        service_dict = {"host": args[1]}
-        hypervisor.service = service_dict
-        hypervisor.hypervisor_hostname = args[1]
-        hypervisor.hypervisor_type = kwargs.pop('hypervisor_type', 'QEMU')
+        hypervisor_info = {
+            'id': args[0],
+            'hypervisor_hostname': args[1],
+            'hypervisor_type': kwargs.pop('hypervisor_type', 'QEMU'),
+            'service': {
+                'host': args[1]
+            }
+        }
+        hypervisor_info.update(kwargs)
 
-        return hypervisor
+        return hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=hypervisor_info)
 
     @staticmethod
     def fake_migration(*args, **kwargs):
@@ -76,8 +85,11 @@ class TestNovaHelper(base.TestCase):
     @staticmethod
     def fake_nova_find_list(nova_util, fake_find=None, fake_list=None):
         nova_util.nova.servers.get.return_value = fake_find
-        if list is None:
+        if fake_list is None:
             nova_util.nova.servers.list.return_value = []
+        # check if fake_list is a list and return it
+        elif isinstance(fake_list, list):
+            nova_util.nova.servers.list.return_value = fake_list
         else:
             nova_util.nova.servers.list.return_value = [fake_list]
 
@@ -88,35 +100,10 @@ class TestNovaHelper(base.TestCase):
 
     @staticmethod
     def fake_nova_migration_list(nova_util, fake_list=None):
-        if list is None:
+        if fake_list is None:
             nova_util.nova.server_migrations.list.return_value = None
         else:
             nova_util.nova.server_migration.list.return_value = [fake_list]
-
-    @staticmethod
-    def fake_live_migrate(server, *args, **kwargs):
-
-        def side_effect(*args, **kwargs):
-            setattr(server, 'OS-EXT-SRV-ATTR:host', "compute-2")
-
-        server.live_migrate.side_effect = side_effect
-
-    @staticmethod
-    def fake_confirm_resize(server, *args, **kwargs):
-
-        def side_effect(*args, **kwargs):
-            setattr(server, 'status', 'ACTIVE')
-
-        server.confirm_resize.side_effect = side_effect
-
-    @staticmethod
-    def fake_cold_migrate(server, *args, **kwargs):
-
-        def side_effect(*args, **kwargs):
-            setattr(server, 'OS-EXT-SRV-ATTR:host', "compute-2")
-            setattr(server, 'status', 'VERIFY_RESIZE')
-
-        server.migrate.side_effect = side_effect
 
     def test_get_compute_node_by_hostname(
             self, mock_cinder, mock_nova):
@@ -192,12 +179,14 @@ class TestNovaHelper(base.TestCase):
                 marker=None, limit=-1)
             self.assertIs(result, nova_mock.servers.list.return_value)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_stop_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
-        server = self.fake_server(instance_id)
-        setattr(server, 'OS-EXT-STS:vm_state', 'stopped')
+        # verify that the method will return True when stopped
+        kwargs = {
+            "OS-EXT-STS:vm_state": "stopped"
+        }
+        server = self.fake_server(instance_id, **kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -206,10 +195,11 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.stop_instance(instance_id)
         self.assertTrue(result)
 
-        setattr(server, 'OS-EXT-STS:vm_state', 'active')
-        result = nova_util.stop_instance(instance_id)
-        self.assertFalse(result)
-
+        # verify that the method will return False when active
+        kwargs = {
+            "OS-EXT-STS:vm_state": "active"
+        }
+        server = self.fake_server(instance_id, **kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
 
         result = nova_util.stop_instance(instance_id)
@@ -217,7 +207,6 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return True when the state of instance
         # is in the expected state.
-        setattr(server, 'OS-EXT-STS:vm_state', 'active')
         with mock.patch.object(
             nova_util,
             'wait_for_instance_state',
@@ -237,12 +226,14 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.stop_instance(instance_id)
         self.assertFalse(result)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_start_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
-        server = self.fake_server(instance_id)
-        setattr(server, 'OS-EXT-STS:vm_state', 'active')
+        # verify that the method will return True when active
+        kwargs = {
+            "OS-EXT-STS:vm_state": "active"
+        }
+        server = self.fake_server(instance_id, **kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -251,10 +242,11 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.start_instance(instance_id)
         self.assertTrue(result)
 
-        setattr(server, 'OS-EXT-STS:vm_state', 'stopped')
-        result = nova_util.start_instance(instance_id)
-        self.assertFalse(result)
-
+        # verify that the method will return False when stopped
+        kwargs = {
+            "OS-EXT-STS:vm_state": "stopped"
+        }
+        server = self.fake_server(instance_id, **kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
 
         result = nova_util.start_instance(instance_id)
@@ -262,7 +254,6 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return True when the state of instance
         # is in the expected state.
-        setattr(server, 'OS-EXT-STS:vm_state', 'stopped')
         with mock.patch.object(
             nova_util,
             'wait_for_instance_state',
@@ -282,36 +273,61 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.start_instance(instance_id)
         self.assertFalse(result)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_resize_instance(self, mock_cinder, mock_nova):
+    @mock.patch.object(servers.Server, 'resize', autospec=True)
+    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    def test_resize_instance(self, mock_confirm_resize, mock_resize,
+                             mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'status', 'VERIFY_RESIZE')
+        kwargs = {
+            "status": "VERIFY_RESIZE",
+            "OS-EXT-STS:vm_state": "resized"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
             fake_list=server)
+        flavor = flavors.Flavor(flavors.FlavorManager, info={
+                                'id': self.flavor_name,
+                                'name': self.flavor_name})
+        nova_util.nova.flavors.get.return_value = flavor
         is_success = nova_util.resize_instance(self.instance_uuid,
                                                self.flavor_name)
         self.assertTrue(is_success)
+        mock_resize.assert_called_once_with(server, flavor=self.flavor_name)
+        self.assertEqual(1, mock_confirm_resize.call_count)
 
-        setattr(server, 'status', 'SOMETHING_ELSE')
+    @mock.patch.object(servers.Server, 'resize', autospec=True)
+    def test_resize_instance_wrong_status(self, mock_resize,
+                                          mock_cinder, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        kwargs = {"status": "SOMETHING_ELSE",
+                  "OS-EXT-STS:vm_state": "resizing"}
+        server = self.fake_server(self.instance_uuid, **kwargs)
+        self.fake_nova_find_list(
+            nova_util,
+            fake_find=server,
+            fake_list=server)
+        flavor = flavors.Flavor(flavors.FlavorManager, info={
+                                'id': self.flavor_name,
+                                'name': self.flavor_name})
+        nova_util.nova.flavors.get.return_value = flavor
         is_success = nova_util.resize_instance(self.instance_uuid,
                                                self.flavor_name)
         self.assertFalse(is_success)
+        mock_resize.assert_called_once_with(server, flavor=self.flavor_name)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize')
+    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    @mock.patch.object(servers.Server, 'resize', autospec=True)
     def test_watcher_resize_instance_retry_success(
-            self, mock_confirm_resize, mock_cinder, mock_nova):
+            self, mock_resize, mock_confirm_resize, mock_cinder, mock_nova):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        server.status = 'RESIZING'
-        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
+        kwargs = {"status": "RESIZING", "OS-EXT-STS:vm_state": "resizing"}
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
-        resized_server = copy.deepcopy(server)
-        resized_server.status = 'VERIFY_RESIZE'
-        setattr(resized_server, 'OS-EXT-STS:vm_state', 'resized')
+        kwargs = {"status": "VERIFY_RESIZE", "OS-EXT-STS:vm_state": "resized"}
+        resized_server = self.fake_server(self.instance_uuid, **kwargs)
 
         # This means instance will be found as VERIFY_RESIZE in second retry
         nova_util.nova.servers.get.side_effect = (server, server,
@@ -335,15 +351,13 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 4)
 
+    @mock.patch.object(servers.Server, 'resize', autospec=True)
     def test_watcher_resize_instance_retry_default(
-            self, mock_cinder, mock_nova):
+            self, mock_resize, mock_cinder, mock_nova):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        server.status = 'RESIZING'
-        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
-
-        nova_util.nova.servers.get.side_effect = server
+        kwargs = {"status": "RESIZING", "OS-EXT-STS:vm_state": "resizing"}
+        self.fake_server(self.instance_uuid, **kwargs)
 
         # Resize will timeout because status never changes
         is_success = nova_util.resize_instance(
@@ -363,9 +377,11 @@ class TestNovaHelper(base.TestCase):
             self, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        server.status = 'RESIZING'
-        setattr(server, 'OS-EXT-STS:vm_state', 'resizing')
+        kwargs = {
+            "status": "RESIZING",
+            "OS-EXT-STS:vm_state": "resizing"
+        }
+        self.fake_server(self.instance_uuid, **kwargs)
 
         # Set config to a custom values to ensure custom values are used
         self.flags(migration_max_retries=10,
@@ -384,12 +400,13 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 3)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_live_migrate_instance(self, mock_cinder, mock_nova):
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    def test_live_migrate_instance(self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                        self.destination_node)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.destination_node
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -399,8 +416,11 @@ class TestNovaHelper(base.TestCase):
         )
         self.assertTrue(is_success)
 
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                        self.source_node)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": "migrating"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
@@ -409,8 +429,6 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return False when the instance does
         # not exist.
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                        self.source_node)
         self.fake_nova_find_list(nova_util, fake_find=None, fake_list=None)
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
@@ -419,51 +437,64 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return False when the instance status
         # is in other cases.
-        setattr(server, 'status', 'fake_status')
+        server.status = 'fake_status'
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, None
         )
         self.assertFalse(is_success)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_with_task_state(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                        self.source_node)
-        setattr(server, 'OS-EXT-STS:task_state', '')
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": ""
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
         )
-        time.sleep.assert_not_called()
+        self.mock_sleep.assert_not_called()
 
-        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
-        self.fake_nova_find_list(
-            nova_util,
-            fake_find=server,
-            fake_list=server)
+        kwargs["OS-EXT-STS:task_state"] = 'migrating'
+        server = self.fake_server(self.instance_uuid, **kwargs)
+        self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
         nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
         )
-        time.sleep.assert_called_with(5)
+        self.mock_sleep.assert_called_with(5)
+        mock_migrate.assert_called_with(server, host=self.destination_node)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_no_destination_node(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        self.destination_node = None
-        self.fake_nova_find_list(
-            nova_util,
-            fake_find=server,
-            fake_list=server)
-        self.fake_live_migrate(server)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "status": "MIGRATING"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
+
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.destination_node,
+            "status": "ACTIVE"
+        }
+        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
+
+        nova_util.nova.servers.get.side_effect = (
+            server, server, migrated_server)
+
+        # Migration will success as will transition from migrating to ACTIVE
         is_success = nova_util.live_migrate_instance(
-            self.instance_uuid, self.destination_node
+            self.instance_uuid, None
         )
+
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(server, host=None)
+        # Should succeed
         self.assertTrue(is_success)
 
     def test_watcher_non_live_migrate_instance_not_found(
@@ -477,13 +508,13 @@ class TestNovaHelper(base.TestCase):
 
         self.assertFalse(is_success)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_abort_live_migrate_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                        self.source_node)
-        setattr(server, 'OS-EXT-STS:task_state', None)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": None
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         migration = self.fake_migration(2)
         self.fake_nova_migration_list(nova_util, fake_list=migration)
 
@@ -495,12 +526,21 @@ class TestNovaHelper(base.TestCase):
         self.assertTrue(nova_util.abort_live_migrate(
             self.instance_uuid, self.source_node, self.destination_node))
 
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.destination_node,
+            "OS-EXT-STS:task_state": None
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
+
+        self.fake_nova_find_list(
+            nova_util,
+            fake_find=server,
+            fake_list=server)
 
         self.assertFalse(nova_util.abort_live_migrate(
             self.instance_uuid, self.source_node, self.destination_node))
 
-        setattr(server, 'status', 'ERROR')
+        server.status = 'ERROR'
         self.assertRaises(
             Exception,
             nova_util.abort_live_migrate,
@@ -508,41 +548,62 @@ class TestNovaHelper(base.TestCase):
             self.source_node,
             self.destination_node)
 
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-STS:task_state', "fake_task_state")
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+        kwargs = {
+            "OS-EXT-STS:task_state": "fake_task_state",
+            "OS-EXT-SRV-ATTR:host": self.destination_node
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         self.fake_nova_migration_list(nova_util, fake_list=None)
         self.assertFalse(nova_util.abort_live_migrate(
             self.instance_uuid, self.source_node, self.destination_node))
 
+    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize', autospec=True)
     def test_non_live_migrate_instance_no_destination_node(
-            self, mock_cinder, mock_nova):
+            self, mock_confirm_resize, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host',
-                self.source_node)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "status": "MIGRATING"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
+
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.destination_node,
+            "status": "VERIFY_RESIZE"
+        }
+        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
+
+        nova_util.nova.servers.get.side_effect = (
+            server, server, server, migrated_server)
+
         self.destination_node = None
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
-        self.fake_cold_migrate(server)
-        self.fake_confirm_resize(server)
         is_success = nova_util.watcher_non_live_migrate_instance(
-            self.instance_uuid, self.destination_node
+            self.instance_uuid, None
         )
+        mock_migrate.assert_called_once_with(server, host=None)
+        self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertTrue(is_success)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize')
+    @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize', autospec=True)
+    @mock.patch.object(servers.Server, 'migrate', autospec=True)
     def test_watcher_non_live_migrate_instance_retry_success(
-            self, mock_confirm_resize, mock_cinder, mock_nova):
+            self, mock_migrate, mock_confirm_resize, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         server.status = 'MIGRATING'  # Never reaches ACTIVE
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
 
-        verify_server = copy.deepcopy(server)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.destination_node
+        }
+        verify_server = self.fake_server(self.instance_uuid, **kwargs)
         verify_server.status = 'VERIFY_RESIZE'
-        setattr(verify_server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
 
         # This means instance will be found as VERIFY_RESIZE in second retry
         nova_util.nova.servers.get.side_effect = (server, server, server,
@@ -558,6 +619,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should succeed
         self.assertTrue(is_success)
         # It will sleep 2 times because it will be found as VERIFY_RESIZE in
@@ -567,13 +631,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 4)
 
+    @mock.patch.object(servers.Server, 'migrate', autospec=True)
     def test_watcher_non_live_migrate_instance_retry_default(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        server.status = 'MIGRATING'  # Never reaches ACTIVE
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "status": "MIGRATING"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -582,6 +649,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -591,13 +661,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
+    @mock.patch.object(servers.Server, 'migrate', autospec=True)
     def test_watcher_non_live_migrate_instance_retry_custom(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
         server.status = 'MIGRATING'  # Never reaches ACTIVE
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
 
         # Set config to a custom values to ensure custom values are used
         self.flags(migration_max_retries=10, migration_interval=3,
@@ -609,6 +682,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # It should sleep migration_max_retries times with migration_interval
@@ -618,17 +694,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 3)
 
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_retry_default_success(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": "migrating"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
-        migrated_server = copy.deepcopy(server)
-        migrated_server.status = 'ACTIVE'
-        setattr(migrated_server, 'OS-EXT-SRV-ATTR:host', self.destination_node)
+        kwargs["OS-EXT-SRV-ATTR:host"] = self.destination_node
+        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
 
         nova_util.nova.servers.get.side_effect = (
             server, server, server, migrated_server)
@@ -638,6 +716,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should succeed
         self.assertTrue(is_success)
         # It will sleep 2 times because it will be found as ACTIVE in
@@ -647,13 +728,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_retry_default(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": "migrating"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -662,6 +746,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -671,13 +758,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_retry_custom(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        setattr(server, 'OS-EXT-STS:task_state', 'migrating')
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "OS-EXT-STS:task_state": "migrating"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
         # Set config value
         self.flags(migration_max_retries=20, migration_interval=1.5,
@@ -690,6 +780,9 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.destination_node
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(
+            server, host=self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With migration_max_retries and migration_interval, should sleep 20
@@ -700,13 +793,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 1.5)
 
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_no_dest_retry_default(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "status": "MIGRATING"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -715,6 +811,8 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, None
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(server, host=None)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -725,13 +823,16 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
     def test_live_migrate_instance_no_dest_retry_custom(
-            self, mock_cinder, mock_nova):
+            self, mock_migrate, mock_cinder, mock_nova):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
-        server = self.fake_server(self.instance_uuid)
-        setattr(server, 'OS-EXT-SRV-ATTR:host', self.source_node)
-        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        kwargs = {
+            "OS-EXT-SRV-ATTR:host": self.source_node,
+            "status": "MIGRATING"
+        }
+        server = self.fake_server(self.instance_uuid, **kwargs)
 
         # Set config value
         self.flags(migration_max_retries=10, migration_interval=3,
@@ -744,6 +845,8 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, None
         )
 
+        # Should call once to migrate the instance
+        mock_migrate.assert_called_once_with(server, host=None)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With migration_max_retries and migration_interval, should sleep 10
@@ -816,7 +919,6 @@ class TestNovaHelper(base.TestCase):
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         return volume
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
     def test_wait_for_volume_status(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
 
@@ -858,8 +960,8 @@ class TestNovaHelper(base.TestCase):
         result = nova_util._check_nova_api_version(nova_util.nova, "2.56")
         self.assertFalse(result)
 
-    @mock.patch.object(time, 'sleep', mock.Mock())
-    def test_confirm_resize(self, mock_cinder, mock_nova):
+    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    def test_confirm_resize(self, mock_confirm_resize, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = self.fake_server(self.instance_uuid)
         self.fake_nova_find_list(nova_util, fake_find=instance, fake_list=None)
@@ -867,11 +969,14 @@ class TestNovaHelper(base.TestCase):
         # verify that the method will return True when the status of instance
         # is not in the expected status.
         result = nova_util.confirm_resize(instance, instance.status)
+        self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertTrue(result)
 
         # verify that the method will return False when the status of instance
         # is not in the expected status.
+        mock_confirm_resize.reset_mock()
         result = nova_util.confirm_resize(instance, "fake_status")
+        self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertFalse(result)
 
     def test_get_compute_node_list(
