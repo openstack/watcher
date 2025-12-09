@@ -1,0 +1,12 @@
+---
+fixes:
+  - |
+    Currently, the APISchedulingService does not migrate any ongoing
+    continuous audits in a failed decision-engine to an alive one when the
+    decision-engine dies while the watcher-api is not running.
+
+    This patch fixes those cases by migrating the audits found on a failed
+    decision-engine when the watcher-api is started in addition to when a
+    change in a decision-engine status is detected.
+
+    For more details: https://bugs.launchpad.net/watcher/+bug/2127777

@@ -37,18 +37,50 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
         super().__init__(gconfig, **options)
 
     def get_services_status(self, context):
+        services_states = []
         services = objects.service.Service.list(context)
+        for service in services:
+            state = self.get_service_status(context, service.id)
+            service.state = state
+            services_states.append(service)
+        return services_states
+
+    def _migrate_audits_to_new_host(self, ongoing_audits, alive_services):
+        round_robin = itertools.cycle(alive_services)
+        for audit in ongoing_audits:
+            failed_host = audit.hostname
+            audit.hostname = round_robin.__next__()
+            audit.save()
+            LOG.info('Audit %(audit)s has been migrated to '
+                     '%(host)s since %(failed_host)s is in'
+                     ' %(state)s',
+                     {'audit': audit.uuid,
+                      'host': audit.hostname,
+                      'failed_host': failed_host,
+                      'state': objects.service.ServiceStatus.FAILED})
+
+    def monitor_services_status(self, context):
         active_s = objects.service.ServiceStatus.ACTIVE
         failed_s = objects.service.ServiceStatus.FAILED
+        services = self.get_services_status(context)
+        alive_services = [
+            s.host for s in services
+            if s.state == active_s and s.name == 'watcher-decision-engine']
         for service in services:
-            result = self.get_service_status(context, service.id)
-            if service.id not in self.services_status:
+            result = service.state
+            # This covers both a service change, initial service monitor
+            # startup and adding a new service
+            if self.services_status.get(service.id) != result:
+                # Notification is sent only if the service is already monitored
+                if self.services_status.get(service.id) is not None:
+                    notifications.service.send_service_update(context, service,
+                                                              state=result)
                 self.services_status[service.id] = result
-                continue
-            if self.services_status[service.id] != result:
-                self.services_status[service.id] = result
-                notifications.service.send_service_update(context, service,
-                                                          state=result)
+                # Only execute the migration logic if there are alive
+                # services
+                if len(alive_services) == 0:
+                    LOG.warning('No alive services found for decision engine')
+                    continue
                 if (result == failed_s) and (
                         service.name == 'watcher-decision-engine'):
                     audit_filters = {
@@ -60,22 +92,8 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
                         context,
                         filters=audit_filters,
                         eager=True)
-                    alive_services = [
-                        s.host for s in services
-                        if (self.services_status[s.id] == active_s and
-                            s.name == 'watcher-decision-engine')]
-
-                    round_robin = itertools.cycle(alive_services)
-                    for audit in ongoing_audits:
-                        audit.hostname = round_robin.__next__()
-                        audit.save()
-                        LOG.info('Audit %(audit)s has been migrated to '
-                                 '%(host)s since %(failed_host)s is in'
-                                 ' %(state)s',
-                                 {'audit': audit.uuid,
-                                  'host': audit.hostname,
-                                  'failed_host': service.host,
-                                  'state': failed_s})
+                    self._migrate_audits_to_new_host(
+                        ongoing_audits, alive_services)
 
     def get_service_status(self, context, service_id):
         service = objects.Service.get(context, service_id)
@@ -105,7 +123,7 @@ class APISchedulingService(scheduling.BackgroundSchedulerService):
     def start(self):
         """Start service."""
         context = watcher_context.make_context(is_admin=True)
-        self.add_job(self.get_services_status, name='service_status',
+        self.add_job(self.monitor_services_status, name='service_status',
                      trigger='interval', jobstore='default', args=[context],
                      next_run_time=datetime.datetime.now(),
                      seconds=CONF.periodic_interval)
