@@ -8,186 +8,32 @@
       - release-notes-jobs-python3
     check:
       jobs:
-        - watcher-tempest-functional
         - watcher-grenade
-        - watcher-tempest-strategies
-        - watcher-tempest-actuator
+        - watcher-tempest-gnocchi
         - watcherclient-tempest-functional
-        - watcher-tempest-functional-ipv6-only
+        - watcher-tempest-api-ipv6-only
     gate:
       jobs:
-        - watcher-tempest-functional
-        - watcher-tempest-functional-ipv6-only
+        - watcher-grenade
+        - watcher-tempest-gnocchi
+        - watcherclient-tempest-functional
+        - watcher-tempest-api-ipv6-only
 
 - job:
-    name: watcher-tempest-dummy_optim
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_dummy_optim
-
-- job:
-    name: watcher-tempest-actuator
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_actuator
-
-- job:
-    name: watcher-tempest-basic_optim
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_basic_optim
-
-- job:
-    name: watcher-tempest-vm_workload_consolidation
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_vm_workload_consolidation
-      devstack_local_conf:
-        test-config:
-          $WATCHER_CONFIG:
-            watcher_strategies.vm_workload_consolidation:
-              datasource: ceilometer
-
-- job:
-    name: watcher-tempest-workload_balancing
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_workload_balancing
-
-- job:
-    name: watcher-tempest-zone_migration
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_zone_migration
-
-- job:
-    name: watcher-tempest-host_maintenance
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance
-
-- job:
-    name: watcher-tempest-storage_balance
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_storage_balance
-      devstack_local_conf:
-        test-config:
-          $TEMPEST_CONFIG:
-            volume:
-              backend_names: ['BACKEND_1', 'BACKEND_2']
-            volume-feature-enabled:
-              multi_backend: true
-
-- job:
-    name: watcher-tempest-strategies
-    parent: watcher-tempest-multinode
-    vars:
-      tempest_concurrency: 1
-      tempest_test_regex: watcher_tempest_plugin.tests.scenario.test_execute_strategies
-      tempest_exclude_regex: .*\[.*\breal_load\b.*\].*
-
-- job:
-    name: watcher-tempest-multinode
-    parent: watcher-tempest-functional
-    nodeset: openstack-two-node-jammy
-    roles:
-      - zuul: openstack/tempest
-    group-vars:
-      subnode:
-        devstack_local_conf:
-          post-config:
-            $WATCHER_CONF:
-              watcher_cluster_data_model_collectors.compute:
-                period: 120
-              watcher_cluster_data_model_collectors.baremetal:
-                period: 120
-              watcher_cluster_data_model_collectors.storage:
-                period: 120
-        devstack_services:
-          watcher-api: false
-          watcher-decision-engine: true
-          watcher-applier: false
-          c-bak: false
-          ceilometer: false
-          ceilometer-acompute: false
-          ceilometer-acentral: false
-          ceilometer-anotification: false
-          watcher: false
-          gnocchi-api: false
-          gnocchi-metricd: false
-          rabbit: false
-          mysql: false
-    vars:
-      devstack_local_conf:
-        post-config:
-          $WATCHER_CONF:
-            watcher_cluster_data_model_collectors.compute:
-              period: 120
-            watcher_cluster_data_model_collectors.baremetal:
-              period: 120
-            watcher_cluster_data_model_collectors.storage:
-              period: 120
-        test-config:
-          $TEMPEST_CONFIG:
-            compute:
-              min_compute_nodes: 2
-              min_microversion: 2.56
-            compute-feature-enabled:
-              live_migration: true
-              block_migration_for_live_migration: true
-            placement:
-              min_microversion: 1.29
-      devstack_plugins:
-        ceilometer: https://opendev.org/openstack/ceilometer
-
-- job:
-    name: watcher-tempest-functional
+    name: watcher-tempest-base
     parent: devstack-tempest
+    description: |
+      Watcher single node devstack tempest base job template.
+    abstract: true
     timeout: 7200
-    required-projects: &base_required_projects
+    required-projects: &tempest_base_required_projects
       - openstack/ceilometer
       - openstack/python-openstackclient
       - openstack/python-watcherclient
       - openstack/watcher
       - openstack/watcher-tempest-plugin
       - openstack/tempest
-    vars: &base_vars
-      devstack_plugins:
-        watcher: https://opendev.org/openstack/watcher
-      devstack_services:
-        watcher-api: true
-        watcher-decision-engine: true
-        watcher-applier: true
-        tempest: true
-        s-account: false
-        s-container: false
-        s-object: false
-        s-proxy: false
-      tempest_plugins:
-        - watcher-tempest-plugin
-      tempest_test_regex: watcher_tempest_plugin.tests.api
-      tox_envlist: all
-      zuul_copy_output:
-        /etc/hosts: logs
-
-- job:
-    name: watcher-tempest-functional-ipv6-only
-    parent: devstack-tempest-ipv6
-    description: |
-      Watcher devstack tempest tests job for IPv6-only deployment
-    required-projects: *base_required_projects
-    vars: *base_vars
-
-- job:
-    name: watcher-grenade
-    parent: grenade
-    required-projects:
-      - openstack/watcher
-      - openstack/python-watcherclient
-      - openstack/watcher-tempest-plugin
-    vars: *base_vars
-    irrelevant-files:
+    irrelevant-files: &irrelevant_files
       - ^(test-|)requirements.txt$
       - ^.*\.rst$
       - ^api-ref/.*$
@@ -198,12 +44,153 @@
       - ^setup.cfg$
       - ^tools/.*$
       - ^tox.ini$
+    vars: &tempest_base_vars
+      configure_swap_size: 8192
+      devstack_plugins:
+        ceilometer: https://opendev.org/openstack/ceilometer
+        watcher: https://opendev.org/openstack/watcher
+      devstack_services:
+        watcher-api: true
+        watcher-decision-engine: true
+        watcher-applier: true
+        tempest: true
+        s-account: false
+        s-container: false
+        s-object: false
+        s-proxy: false
+        ceilometer-acentral: true
+        ceilometer-anotification: true
+        # ceilometer-acompute disabled by default since most jobs use fake data
+        ceilometer-acompute: false
+      tempest_plugins:
+        - watcher-tempest-plugin
+      devstack_localrc:
+        CEILOMETER_PIPELINE_INTERVAL: 15
+        CEILOMETER_ALARM_THRESHOLD: 6000000000
+      devstack_local_conf:
+        post-config:
+          $WATCHER_CONF: &watcher_conf_base
+            watcher_cluster_data_model_collectors.compute:
+              period: 120
+            watcher_cluster_data_model_collectors.baremetal:
+              period: 120
+            watcher_cluster_data_model_collectors.storage:
+              period: 120
+            nova_client:
+              api_version: "2.96"
+          $CINDER_CONF:
+            oslo_messaging_notifications:
+              driver: messagingv2
+        test-config:
+          $TEMPEST_CONFIG:
+            compute:
+              min_compute_nodes: 2
+              min_microversion: 2.56
+              max_microversion: 2.96
+            placement:
+              min_microversion: 1.29
+            telemetry:
+              disable_ssl_certificate_validation: true
+              ceilometer_polling_interval: 15
+      # tempest variables
+      tempest_concurrency: 1
+      # Run only API tests
+      tempest_test_regex: watcher_tempest_plugin.tests.api
+      tox_envlist: all
+      zuul_copy_output:
+        /etc/hosts: logs
+
+- job:
+    name: watcher-tempest-base-two-node
+    parent: watcher-tempest-base
+    nodeset: openstack-two-node-jammy
+    abstract: true
+    description: |
+      Watcher multinode devstack tempest job base template.
+    vars:
+      devstack_local_conf:
+        test-config:
+          $TEMPEST_CONFIG:
+            compute-feature-enabled:
+              live_migration: true
+              block_migration_for_live_migration: true
+      # tempest variables
+      tempest_test_regex: watcher_tempest_plugin.tests\.(api|scenario)
+      # excluding tests with tag "real_load"
+      # excluding test test_execute_host_maintenance_strategy_backup_node
+      # until bug #2109309 fix is backported
+      tempest_exclude_regex: '(.*\[.*\breal_load\b.*\].*)|(watcher_tempest_plugin.tests.scenario.test_execute_host_maintenance.TestExecuteHostMaintenanceStrategy.test_execute_host_maintenance_strategy_backup_node)'
+    group-vars:
+      subnode:
+        devstack_plugins:
+          ceilometer: https://opendev.org/openstack/ceilometer
+          watcher: https://opendev.org/openstack/watcher
+        devstack_services:
+          # Not needed for jobs with fake metrics injection
+          ceilometer-acompute: false
+          ceilometer-acentral: false
+          ceilometer-anotification: false
+          c-bak: false
+          gnocchi-api: false
+          gnocchi-metricd: false
+          rabbit: false
+          mysql: false
+          watcher-api: false
+          watcher-applier: false
+          watcher-decision-engine: true
+        devstack_localrc:
+          CEILOMETER_BACKENDS: "none"
+        devstack_local_conf:
+          post-config:
+            $CINDER_CONF:
+              # enable notifications in compute node, by default they are only
+              # configured in the controller
+              oslo_messaging_notifications:
+                driver: messagingv2
+            $WATCHER_CONF: *watcher_conf_base
+
+- job:
+    name: watcher-tempest-gnocchi
+    parent: watcher-tempest-base-two-node
+    description: |
+      Watcher multinode devstack tempest job with Gnocchi as datasource. This
+      job uses fake metrics injection and does not requires ceilometer-acompute
+      to be enabled.
+    vars:
+      devstack_localrc:
+        GNOCCHI_ARCHIVE_POLICY_TEMPEST: "ceilometer-low-rate"
+        CEILOMETER_PIPELINE_INTERVAL: 15
+
+- job:
+    name: watcher-tempest-api-ipv6-only
+    parent: devstack-tempest-ipv6
+    description: |
+      Watcher single node devstack tempest job for IPv6-only deployment.
+    required-projects: *tempest_base_required_projects
+    vars: *tempest_base_vars
+    irrelevant-files: *irrelevant_files
+
+- job:
+    name: watcher-grenade
+    parent: grenade
+    required-projects: *tempest_base_required_projects
+    vars:
+      <<: *tempest_base_vars
+      devstack_plugins:
+        watcher: https://opendev.org/openstack/watcher
+    irrelevant-files: *irrelevant_files
 
 - job:
     # This job is used in python-watcherclient repo
     name: watcherclient-tempest-functional
-    parent: watcher-tempest-functional
+    parent: watcher-tempest-base
     timeout: 4200
     vars:
       tempest_concurrency: 1
       tempest_test_regex: watcher_tempest_plugin.tests.client_functional
+
+# TODO(dviroel): Remove this job when we update other projects that depend on
+# its definition.
+- job:
+    name: watcher-tempest-functional
+    parent: watcher-tempest-base
