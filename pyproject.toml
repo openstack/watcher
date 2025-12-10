@@ -7,7 +7,7 @@ line-length = 79
 target-version = "py310"
 
 [tool.ruff.lint]
-select = ["E4", "E7", "E9", "F", "S", "UP", "W", "C90"]
+select = ["E4", "E5", "E7", "E9", "F", "S", "UP", "W", "C90"]
 ignore = [
     # we only use asserts for type narrowing
     "S101",
@@ -24,6 +24,8 @@ ignore = [
 ]
 [tool.ruff.lint.per-file-ignores]
 "watcher/tests/*" = ["S"]
+"watcher/db/sqlalchemy/alembic/*" = ["E501"]
+"doc/*" = ["E501"]
 
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 5.
