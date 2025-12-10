@@ -75,6 +75,7 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
                                         m_plan_save, m_action_save):
         m_plan_list.return_value = [self.actionplan]
         m_action_list.return_value = [self.action]
+        cfg.CONF.set_override("host", "hostname1")
         syncer = sync.Syncer()
 
         syncer._cancel_ongoing_actionplans(self.context)
@@ -82,4 +83,14 @@ class TestCancelOngoingActionPlans(db_base.DbTestCase):
         m_action_list.assert_called()
         m_plan_save.assert_called()
         m_action_save.assert_called()
+        self.assertEqual(
+            self.actionplan.state, objects.action_plan.State.CANCELLED)
+        self.assertEqual(
+            self.actionplan.status_message,
+            "Action plan was cancelled because Applier hostname1 was stopped "
+            "while the action plan was ongoing.")
         self.assertEqual(self.action.state, objects.action.State.CANCELLED)
+        self.assertEqual(
+            self.action.status_message,
+            "Action was cancelled because Applier hostname1 was stopped "
+            "while the action plan was ongoing.")

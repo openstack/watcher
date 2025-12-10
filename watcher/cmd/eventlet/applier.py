@@ -21,7 +21,7 @@ import sys
 
 from oslo_log import log
 
-from watcher.applier import manager
+from watcher.applier import service as applier_service
 from watcher.applier import sync
 from watcher.common import service as watcher_service
 from watcher import conf
@@ -35,11 +35,11 @@ def main():
 
     LOG.info('Starting Watcher Applier service in PID %s', os.getpid())
 
-    applier_service = watcher_service.Service(manager.ApplierManager)
+    applier = applier_service.ApplierService()
 
     syncer = sync.Syncer()
     syncer.sync()
 
     # Only 1 process
-    launcher = watcher_service.launch(CONF, applier_service)
+    launcher = watcher_service.launch(CONF, applier)
     launcher.wait()
