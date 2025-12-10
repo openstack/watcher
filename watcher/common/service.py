@@ -13,6 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import abc
 import datetime
 import socket
 
@@ -266,6 +267,106 @@ class Service(service.ServiceBase):
         api_manager_version = self.conductor_client.call(
             ctx, 'check_api_version', api_version=self.api_version)
         return api_manager_version
+
+
+class ServiceMonitoringBase(scheduling.BackgroundSchedulerService,
+                            metaclass=abc.ABCMeta):
+    """Base Service to monitor the status of Watcher services.
+
+    This class is intended to be used as a base class to monitore the
+    status of a service and handle failover when the service fails.
+    """
+
+    def __init__(self, service_name, gconfig={}, **options):
+        self.service_name = service_name
+        self.services_status = {}
+        self.last_leader = None
+        super().__init__(gconfig, **options)
+
+    def get_services_status(self, context):
+        services_states = []
+        services = objects.service.Service.list(context)
+        for watcher_service in services:
+            if watcher_service.name != self.service_name:
+                continue
+            state = self.get_service_status(context, watcher_service.id)
+            watcher_service.state = state
+            services_states.append(watcher_service)
+        return services_states
+
+    def _am_i_leader(self, services):
+        active_hosts = sorted(
+            [s.host for s in services
+             if (s.state == objects.service.ServiceStatus.ACTIVE and
+                 s.name == self.service_name)])
+        if not active_hosts:
+            LOG.info("No active services found for %s", self.service_name)
+            self.last_leader = None
+            return False
+
+        leader = active_hosts[0]
+        if leader != self.last_leader:
+            LOG.info(
+                "Leader election completed for %s: %s -> %s. "
+                "Selected as leader: %s", self.service_name, self.last_leader,
+                leader, CONF.host == leader)
+            self.last_leader = leader
+        return (CONF.host == leader)
+
+    @abc.abstractmethod
+    def monitor_services_status(self, context):
+        raise NotImplementedError()
+
+    def get_service_status(self, context, service_id):
+        watcher_service = objects.Service.get(context, service_id)
+        last_heartbeat = (watcher_service.last_seen_up or
+                          watcher_service.updated_at or
+                          watcher_service.created_at)
+        if isinstance(last_heartbeat, str):
+            # NOTE(russellb) If this service came in over rpc via
+            # conductor, then the timestamp will be a string and needs to be
+            # converted back to a datetime.
+            last_heartbeat = timeutils.parse_strtime(last_heartbeat)
+        else:
+            # Objects have proper UTC timezones, but the timeutils comparison
+            # below does not (and will fail)
+            last_heartbeat = last_heartbeat.replace(tzinfo=None)
+        elapsed = timeutils.delta_seconds(last_heartbeat, timeutils.utcnow())
+        is_up = abs(elapsed) <= CONF.service_down_time
+        if not is_up:
+            LOG.warning('Seems service %(name)s on host %(host)s is down. '
+                        'Last heartbeat was %(lhb)s. Elapsed time is %(el)s',
+                        {'name': watcher_service.name,
+                         'host': watcher_service.host,
+                         'lhb': str(last_heartbeat), 'el': str(elapsed)})
+            return objects.service.ServiceStatus.FAILED
+
+        return objects.service.ServiceStatus.ACTIVE
+
+    def start(self):
+        """Start service."""
+        admin_context = context.make_context(is_admin=True)
+        LOG.info('Starting service monitoring service for %s',
+                 self.service_name)
+        self.add_job(self.monitor_services_status,
+                     name='service_status', trigger='interval',
+                     jobstore='default', args=[admin_context],
+                     next_run_time=datetime.datetime.now(),
+                     seconds=CONF.periodic_interval)
+        super().start()
+
+    def stop(self):
+        """Stop service."""
+        self.shutdown()
+
+    def wait(self):
+        """Wait for service to complete."""
+
+    def reset(self):
+        """Reset service.
+
+        Called in case service running in daemon mode receives SIGHUP.
+        """
 
 
 def launch(conf, service_, workers=1, restart_method='mutate'):

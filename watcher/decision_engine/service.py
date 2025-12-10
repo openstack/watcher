@@ -51,7 +51,7 @@ class DecisionEngineService(watcher_service.Service):
     @property
     def service_monitor(self):
         if self._service_monitor is None:
-            self._service_monitor = service_monitor.ServiceMonitoringService()
+            self._service_monitor = service_monitor.DecisionEngineMonitor()
         return self._service_monitor
 
     def start(self):
