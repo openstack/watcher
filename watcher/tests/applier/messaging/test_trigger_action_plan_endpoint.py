@@ -17,11 +17,15 @@
 #
 
 
+from oslo_config import cfg
 from unittest import mock
 
 from watcher.applier.messaging import trigger
 from watcher.common import utils
+from watcher import objects
 from watcher.tests import base
+
+CONF = cfg.CONF
 
 
 class TestTriggerActionPlan(base.TestCase):
@@ -30,8 +34,20 @@ class TestTriggerActionPlan(base.TestCase):
         self.applier = mock.MagicMock()
         self.endpoint = trigger.TriggerActionPlan(self.applier)
 
-    def test_launch_action_plan(self):
+    @mock.patch.object(objects.ActionPlan, 'get_by_uuid', autospec=True)
+    @mock.patch.object(objects.ActionPlan, 'save', autospec=True)
+    def test_launch_action_plan(self, mock_save, mock_get_by_uuid):
         action_plan_uuid = utils.generate_uuid()
+        action_plan = objects.ActionPlan(
+            context=self.context,
+            uuid=action_plan_uuid,
+            hostname=None,
+            state=objects.action_plan.State.PENDING)
+        mock_get_by_uuid.return_value = action_plan
+        CONF.set_default('host', 'applier1.example.com')
+
         expected_uuid = self.endpoint.launch_action_plan(self.context,
                                                          action_plan_uuid)
         self.assertEqual(expected_uuid, action_plan_uuid)
+        self.assertEqual(action_plan.hostname, "applier1.example.com")
+        mock_save.assert_called_once_with(action_plan)
