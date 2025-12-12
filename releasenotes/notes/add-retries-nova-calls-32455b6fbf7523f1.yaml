@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Resolve failures caused by temporary connection errors to Nova by adding
+    configurable retries to Nova API calls when connection related errors are
+    found. The retries can be configured via `[nova] http_retries` (default is
+    3 retries) and `[nova] http_retry_interval` (default is 2 seconds).

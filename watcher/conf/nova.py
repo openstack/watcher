@@ -38,6 +38,17 @@ NOVA_OPTS = [
                  help='Interval in seconds to check the status in Nova VM '
                       'migrations (value is float). Default value is 5.0 '
                       'seconds.'),
+    cfg.IntOpt('http_retries',
+               default=3,
+               min=1,
+               help='Maximum number of retries for HTTP requests to the Nova '
+                    'service when connection errors occur. Default is 3'),
+    cfg.FloatOpt('http_retry_interval',
+                 default=2.0,
+                 min=0.1,
+                 help='Interval in seconds to retry HTTP requests to the Nova '
+                      'service when connection errors occur. Default is 2 '
+                      'seconds.'),
 ]
 
 
