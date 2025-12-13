@@ -21,7 +21,6 @@ import sys
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.api import scheduling
 from watcher.common import service
 from watcher import conf
 
@@ -44,9 +43,6 @@ def main():
     else:
         LOG.info('serving on %(protocol)s://%(host)s:%(port)s',
                  dict(protocol=protocol, host=host, port=port))
-
-    api_schedule = scheduling.APISchedulingService()
-    api_schedule.start()
 
     launcher = service.launch(CONF, server, workers=server.workers)
     launcher.wait()
