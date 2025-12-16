@@ -290,10 +290,9 @@ class TestComputeScope(base.TestCase):
                 'd010ef1f-dc19-4982-9383-087498bfde03'
             ).watcher_exclude)
 
-    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
     def test_get_scoped_model_with_hostaggregate_null(
-            self, mock_list, mock_detail):
+            self, mock_list):
         cluster = self.fake_cluster.generate_scenario_1()
         audit_scope = fake_scopes.fake_scope_3
         mock_list.return_value = [mock.Mock(id=i,

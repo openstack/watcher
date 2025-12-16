@@ -614,17 +614,6 @@ class NovaHelper:
         return [Aggregate.from_openstacksdk(a) for a in aggregates]
 
     @nova_retries
-    @handle_nova_error("Aggregate")
-    def get_aggregate_detail(self, aggregate_id):
-        """Get details of a specific host aggregate.
-
-        :param aggregate_id: the ID of the aggregate to get
-        :returns: Aggregate wrapper object if found, None if not found
-        """
-        return Aggregate.from_openstacksdk(
-            self.connection.compute.get_aggregate(aggregate_id))
-
-    @nova_retries
     @handle_nova_error("Service")
     def get_service_list(self):
         """Get the list of all nova-compute services.
@@ -760,28 +749,6 @@ class NovaHelper:
             LOG.debug("confirm resize failed for the "
                       "instance %s", instance_id)
             return False
-
-    def wait_for_volume_status(self, volume, status, timeout=60,
-                               poll_interval=1):
-        """Wait until volume reaches given status.
-
-        :param volume: volume resource
-        :param status: expected status of volume
-        :param timeout: timeout in seconds
-        :param poll_interval: poll interval in seconds
-        """
-        start_time = time.time()
-        while time.time() - start_time < timeout:
-            volume = self.cinder.volumes.get(volume.id)
-            if volume.status == status:
-                break
-            time.sleep(poll_interval)
-        else:
-            raise exception.VolumeNotReachedStatus(
-                volume.id,
-                status
-            )
-        return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
                                           retry=None, interval=None):

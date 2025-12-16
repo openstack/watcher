@@ -1,0 +1,15 @@
+---
+upgrade:
+  - |
+    Three unused methods have been removed from the ``NovaHelper`` class in
+    ``watcher.common.nova_helper``:
+
+    * ``get_aggregate_detail``
+    * ``wait_for_volume_status``
+    * ``_check_nova_api_version``
+
+    These methods were only used in unit tests and provided no value to the
+    production codebase. If you have custom code or plugins that depend on
+    these methods, you will need to implement equivalent functionality
+    directly. The methods were not part of the stable public API and their
+    removal should not affect normal Watcher operations.
