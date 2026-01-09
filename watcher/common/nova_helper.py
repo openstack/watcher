@@ -16,6 +16,7 @@
 # limitations under the License.
 #
 
+import dataclasses as dc
 import functools
 import time
 
@@ -53,6 +54,252 @@ def nova_retries(call):
                         retries + 1)
                     raise
     return wrapper
+
+
+@dc.dataclass(frozen=True)
+class Server:
+    """Pure dataclass for server data.
+
+    Extracted from novaclient Server object with all extended attributes
+    resolved at construction time.
+    """
+
+    id: str
+    name: str
+    created: str
+    host: str | None
+    vm_state: str | None
+    task_state: str | None
+    power_state: int | None
+    status: str
+    flavor: dict
+    tenant_id: str
+    locked: bool
+    metadata: dict
+    availability_zone: str | None
+    pinned_availability_zone: str | None
+
+    @classmethod
+    def from_novaclient(cls, nova_server):
+        """Create a Server dataclass from a novaclient Server object.
+
+        :param nova_server: novaclient servers.Server object
+        :returns: Server dataclass instance
+        """
+        server_dict = nova_server.to_dict()
+
+        return cls(
+            id=nova_server.id,
+            name=nova_server.name,
+            created=nova_server.created,
+            host=server_dict.get('OS-EXT-SRV-ATTR:host'),
+            vm_state=server_dict.get('OS-EXT-STS:vm_state'),
+            task_state=server_dict.get('OS-EXT-STS:task_state'),
+            power_state=server_dict.get('OS-EXT-STS:power_state'),
+            status=nova_server.status,
+            flavor=nova_server.flavor,
+            tenant_id=nova_server.tenant_id,
+            locked=nova_server.locked,
+            metadata=nova_server.metadata,
+            availability_zone=server_dict.get('OS-EXT-AZ:availability_zone'),
+            pinned_availability_zone=server_dict.get(
+                'pinned_availability_zone'
+            )
+        )
+
+
+@dc.dataclass(frozen=True)
+class Hypervisor:
+    """Pure dataclass for hypervisor data.
+
+    Extracted from novaclient Hypervisor object with all extended attributes
+    resolved at construction time.
+    """
+
+    id: str
+    hypervisor_hostname: str
+    hypervisor_type: str
+    state: str
+    status: str
+    vcpus: int | None
+    vcpus_used: int | None
+    memory_mb: int | None
+    memory_mb_used: int | None
+    local_gb: int | None
+    local_gb_used: int | None
+    service_host: str | None
+    service_id: str | None
+    service_disabled_reason: str | None
+    servers: list | None
+
+    @classmethod
+    def from_novaclient(cls, nova_hypervisor):
+        """Create a Hypervisor dataclass from a novaclient Hypervisor object.
+
+        :param nova_hypervisor: novaclient hypervisors.Hypervisor object
+        :returns: Hypervisor dataclass instance
+        """
+        hypervisor_dict = nova_hypervisor.to_dict()
+        service = hypervisor_dict.get('service')
+        service_host = None
+        service_id = None
+        service_disabled_reason = None
+        if isinstance(service, dict):
+            service_host = service.get('host')
+            service_id = service.get('id')
+            service_disabled_reason = service.get('disabled_reason')
+
+        servers = hypervisor_dict.get('servers', [])
+
+        return cls(
+            id=nova_hypervisor.id,
+            hypervisor_hostname=nova_hypervisor.hypervisor_hostname,
+            hypervisor_type=nova_hypervisor.hypervisor_type,
+            state=nova_hypervisor.state,
+            status=nova_hypervisor.status,
+            vcpus=hypervisor_dict.get('vcpus'),
+            vcpus_used=hypervisor_dict.get('vcpus_used'),
+            memory_mb=hypervisor_dict.get('memory_mb'),
+            memory_mb_used=hypervisor_dict.get('memory_mb_used'),
+            local_gb=hypervisor_dict.get('local_gb'),
+            local_gb_used=hypervisor_dict.get('local_gb_used'),
+            service_host=service_host,
+            service_id=service_id,
+            service_disabled_reason=service_disabled_reason,
+            servers=servers,
+        )
+
+
+@dc.dataclass(frozen=True)
+class Flavor:
+    """Pure dataclass for flavor data.
+
+    Extracted from novaclient Flavor object with all attributes
+    resolved at construction time.
+    """
+
+    id: str
+    flavor_name: str
+    vcpus: int
+    ram: int
+    disk: int
+    ephemeral: int
+    swap: int
+    is_public: bool
+    extra_specs: dict
+
+    @classmethod
+    def from_novaclient(cls, nova_flavor):
+        """Create a Flavor dataclass from a novaclient Flavor object.
+
+        :param nova_flavor: novaclient flavors.Flavor object
+        :returns: Flavor dataclass instance
+        """
+        swap = nova_flavor.swap
+        if swap == "":
+            swap = 0
+
+        flavor_dict = nova_flavor.to_dict()
+
+        return cls(
+            id=nova_flavor.id,
+            flavor_name=nova_flavor.name,
+            vcpus=nova_flavor.vcpus,
+            ram=nova_flavor.ram,
+            disk=nova_flavor.disk,
+            ephemeral=nova_flavor.ephemeral,
+            swap=swap,
+            is_public=nova_flavor.is_public,
+            extra_specs=flavor_dict.get('extra_specs', {})
+        )
+
+
+@dc.dataclass(frozen=True)
+class Aggregate:
+    """Pure dataclass for aggregate data.
+
+    Extracted from novaclient Aggregate object with all attributes
+    resolved at construction time.
+    """
+
+    id: str
+    name: str
+    availability_zone: str | None
+    hosts: list
+    metadata: dict
+
+    @classmethod
+    def from_novaclient(cls, nova_aggregate):
+        """Create an Aggregate dataclass from a novaclient Aggregate object.
+
+        :param nova_aggregate: novaclient aggregates.Aggregate object
+        :returns: Aggregate dataclass instance
+        """
+        return cls(
+            id=nova_aggregate.id,
+            name=nova_aggregate.name,
+            availability_zone=nova_aggregate.availability_zone,
+            hosts=nova_aggregate.hosts,
+            metadata=nova_aggregate.metadata,
+        )
+
+
+@dc.dataclass(frozen=True)
+class Service:
+    """Pure dataclass for service data.
+
+    Extracted from novaclient Service object with all attributes
+    resolved at construction time.
+    """
+
+    id: str
+    binary: str
+    host: str
+    zone: str
+    status: str
+    state: str
+    updated_at: str | None
+    disabled_reason: str | None
+
+    @classmethod
+    def from_novaclient(cls, nova_service):
+        """Create a Service dataclass from a novaclient Service object.
+
+        :param nova_service: novaclient services.Service object
+        :returns: Service dataclass instance
+        """
+        return cls(
+            id=nova_service.id,
+            binary=nova_service.binary,
+            host=nova_service.host,
+            zone=nova_service.zone,
+            status=nova_service.status,
+            state=nova_service.state,
+            updated_at=nova_service.updated_at,
+            disabled_reason=nova_service.disabled_reason,
+        )
+
+
+@dc.dataclass(frozen=True)
+class ServerMigration:
+    """Pure dataclass for server migration data.
+
+    Extracted from novaclient ServerMigration object with all attributes
+    resolved at construction time.
+    """
+
+    id: str
+
+    @classmethod
+    def from_novaclient(cls, nova_migration):
+        """Create a ServerMigration from a novaclient ServerMigration.
+
+        :param nova_migration: novaclient server_migrations.ServerMigration
+        :returns: ServerMigration dataclass instance
+        """
+        return cls(
+            id=nova_migration.id,
+        )
 
 
 class NovaHelper:

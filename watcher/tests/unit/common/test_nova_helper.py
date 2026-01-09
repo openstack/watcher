@@ -1257,3 +1257,628 @@ class TestNovaRetries(base.TestCase):
         self.assertEqual(2, call_count['count'])
         # Should have slept once
         self.assertEqual(1, self.mock_sleep.call_count)
+
+
+class TestServerWrapper(base.TestCase):
+    """Test suite for the Server dataclass."""
+
+    @staticmethod
+    def create_nova_server(server_id, **kwargs):
+        """Create a real novaclient Server object.
+
+        :param server_id: server UUID
+        :param kwargs: additional server attributes
+        :returns: novaclient.v2.servers.Server object
+        """
+        server_info = {
+            'id': server_id,
+            'name': kwargs.pop('name', 'test-server'),
+            'status': kwargs.pop('status', 'ACTIVE'),
+            'created': kwargs.pop('created', '2026-01-09T12:00:00Z'),
+            'tenant_id': kwargs.pop('tenant_id', 'test-tenant-id'),
+            'locked': kwargs.pop('locked', False),
+            'metadata': kwargs.pop('metadata', {}),
+            'flavor': kwargs.pop('flavor', {'id': 'flavor-1'}),
+            'pinned_availability_zone': kwargs.pop(
+                'pinned_availability_zone', None),
+        }
+        server_info.update(kwargs)
+        return servers.Server(servers.ServerManager, info=server_info)
+
+    def test_server_basic_properties(self):
+        """Test basic Server dataclass properties."""
+        server_id = utils.generate_uuid()
+        nova_server = self.create_nova_server(
+            server_id,
+            name='my-server',
+            status='ACTIVE',
+            created='2026-01-01T00:00:00Z',
+            tenant_id='tenant-123',
+            locked=True,
+            metadata={'key': 'value'},
+            pinned_availability_zone='az1'
+        )
+
+        wrapped = nova_helper.Server.from_novaclient(nova_server)
+
+        self.assertEqual(server_id, wrapped.id)
+        self.assertEqual('my-server', wrapped.name)
+        self.assertEqual('ACTIVE', wrapped.status)
+        self.assertEqual('2026-01-01T00:00:00Z', wrapped.created)
+        self.assertEqual('tenant-123', wrapped.tenant_id)
+        self.assertTrue(wrapped.locked)
+        self.assertEqual({'key': 'value'}, wrapped.metadata)
+        self.assertEqual('az1', wrapped.pinned_availability_zone)
+
+    def test_server_extended_attributes(self):
+        """Test Server dataclass extended attributes."""
+        server_id = utils.generate_uuid()
+        nova_server = self.create_nova_server(
+            server_id,
+            **{
+                'OS-EXT-SRV-ATTR:host': 'compute-1',
+                'OS-EXT-STS:vm_state': 'active',
+                'OS-EXT-STS:task_state': None,
+                'OS-EXT-STS:power_state': 1,
+                'OS-EXT-AZ:availability_zone': 'nova',
+            }
+        )
+
+        wrapped = nova_helper.Server.from_novaclient(nova_server)
+
+        self.assertEqual('compute-1', wrapped.host)
+        self.assertEqual('active', wrapped.vm_state)
+        self.assertIsNone(wrapped.task_state)
+        self.assertEqual(1, wrapped.power_state)
+        self.assertEqual('nova', wrapped.availability_zone)
+
+    def test_server_flavor(self):
+        """Test Server dataclass flavor property."""
+        server_id = utils.generate_uuid()
+
+        nova_server = self.create_nova_server(
+            server_id,
+            flavor={'id': 'flavor-123', 'name': 'm1.small'}
+        )
+        wrapped = nova_helper.Server.from_novaclient(nova_server)
+        self.assertEqual({'id': 'flavor-123', 'name': 'm1.small'},
+                         wrapped.flavor)
+
+    def test_server_equality(self):
+        """Test Server dataclass equality comparison."""
+        server_id1 = utils.generate_uuid()
+        server_id2 = utils.generate_uuid()
+
+        server1a = nova_helper.Server.from_novaclient(
+            self.create_nova_server(server_id1)
+        )
+        server1b = nova_helper.Server.from_novaclient(
+            self.create_nova_server(server_id1)
+        )
+        server2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(server_id2)
+        )
+
+        # Same ID and attributes should be equal
+        self.assertEqual(server1a, server1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(server1a, server2)
+
+        # Compare with non-Server object
+        self.assertNotEqual(server1a, "not-a-server")
+        self.assertIsNotNone(server1a)
+
+
+class TestHypervisorWrapper(base.TestCase):
+    """Test suite for the Hypervisor dataclass."""
+
+    @staticmethod
+    def create_nova_hypervisor(hypervisor_id, hostname, **kwargs):
+        """Create a real novaclient Hypervisor object.
+
+        :param hypervisor_id: hypervisor UUID
+        :param hostname: hypervisor hostname
+        :param kwargs: additional hypervisor attributes
+        :returns: novaclient.v2.hypervisors.Hypervisor object
+        """
+        hypervisor_info = {
+            'id': hypervisor_id,
+            'hypervisor_hostname': hostname,
+            'hypervisor_type': kwargs.pop('hypervisor_type', 'QEMU'),
+            'state': kwargs.pop('state', 'up'),
+            'status': kwargs.pop('status', 'enabled'),
+            'vcpus': kwargs.pop('vcpus', 16),
+            'vcpus_used': kwargs.pop('vcpus_used', 4),
+            'memory_mb': kwargs.pop('memory_mb', 32768),
+            'memory_mb_used': kwargs.pop('memory_mb_used', 8192),
+            'local_gb': kwargs.pop('local_gb', 500),
+            'local_gb_used': kwargs.pop('local_gb_used', 100),
+            'service': kwargs.pop('service', {'host': hostname, 'id': 1}),
+            'servers': kwargs.pop('servers', None),
+        }
+        hypervisor_info.update(kwargs)
+        return hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=hypervisor_info)
+
+    def test_hypervisor_basic_properties(self):
+        """Test basic Hypervisor dataclass properties."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+        nova_hypervisor = self.create_nova_hypervisor(
+            hypervisor_id,
+            hostname,
+            hypervisor_type='QEMU',
+            state='up',
+            status='enabled',
+            vcpus=32,
+            vcpus_used=8,
+            memory_mb=65536,
+            memory_mb_used=16384,
+            local_gb=1000,
+            local_gb_used=250
+        )
+
+        wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
+
+        self.assertEqual(hypervisor_id, wrapped.id)
+        self.assertEqual(hostname, wrapped.hypervisor_hostname)
+        self.assertEqual('QEMU', wrapped.hypervisor_type)
+        self.assertEqual('up', wrapped.state)
+        self.assertEqual('enabled', wrapped.status)
+        self.assertEqual(32, wrapped.vcpus)
+        self.assertEqual(8, wrapped.vcpus_used)
+        self.assertEqual(65536, wrapped.memory_mb)
+        self.assertEqual(16384, wrapped.memory_mb_used)
+        self.assertEqual(1000, wrapped.local_gb)
+        self.assertEqual(250, wrapped.local_gb_used)
+
+    def test_hypervisor_service_properties(self):
+        """Test Hypervisor dataclass service properties."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+        nova_hypervisor = self.create_nova_hypervisor(
+            hypervisor_id,
+            hostname,
+            service={
+                'host': hostname,
+                'id': 42,
+                'disabled_reason': 'maintenance'
+            }
+        )
+
+        wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
+
+        self.assertEqual(hostname, wrapped.service_host)
+        self.assertEqual(42, wrapped.service_id)
+        self.assertEqual('maintenance', wrapped.service_disabled_reason)
+
+    def test_hypervisor_service_not_dict(self):
+        """Test Hypervisor dataclass when service is not a dict."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+        nova_hypervisor = self.create_nova_hypervisor(
+            hypervisor_id,
+            hostname,
+            service='not-a-dict'
+        )
+
+        wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
+
+        self.assertIsNone(wrapped.service_host)
+        self.assertIsNone(wrapped.service_id)
+        self.assertIsNone(wrapped.service_disabled_reason)
+
+    def test_hypervisor_servers_property(self):
+        """Test Hypervisor dataclass servers property."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+
+        # Create fake server objects with required attributes
+        server1_id = utils.generate_uuid()
+        server2_id = utils.generate_uuid()
+        server1 = {
+            'uuid': server1_id,
+            'name': 'server1',
+        }
+        server2 = {
+            'uuid': server2_id,
+            'name': 'server2'
+        }
+
+        nova_hypervisor = self.create_nova_hypervisor(
+            hypervisor_id,
+            hostname,
+            servers=[server1, server2]
+        )
+
+        wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
+
+        # Servers should be wrapped as Server dataclasses
+        result_servers = wrapped.servers
+        self.assertEqual(2, len(result_servers))
+        self.assertEqual(server1_id, result_servers[0]['uuid'])
+        self.assertEqual(server2_id, result_servers[1]['uuid'])
+
+    def test_hypervisor_servers_none(self):
+        """Test Hypervisor dataclass when servers is None."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+        nova_hypervisor = self.create_nova_hypervisor(
+            hypervisor_id,
+            hostname,
+            servers=None
+        )
+
+        wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
+        self.assertIsNone(wrapped.servers)
+
+    def test_hypervisor_equality(self):
+        """Test Hypervisor dataclass equality comparison."""
+        hypervisor_id1 = utils.generate_uuid()
+        hypervisor_id2 = utils.generate_uuid()
+
+        hyp1a = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(
+                hypervisor_id=hypervisor_id1, hostname='host1'
+            )
+        )
+        hyp1b = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(
+                hypervisor_id=hypervisor_id1, hostname='host1'
+            )
+        )
+        hyp2 = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(
+                hypervisor_id=hypervisor_id2, hostname='host2'
+            )
+        )
+
+        # Same ID and attributes should be equal
+        self.assertEqual(hyp1a, hyp1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(hyp1a, hyp2)
+
+        # Compare with non-Hypervisor object
+        self.assertNotEqual(hyp1a, "not-a-hypervisor")
+
+
+class TestFlavorWrapper(base.TestCase):
+    """Test suite for the Flavor dataclass."""
+
+    @staticmethod
+    def create_nova_flavor(flavor_id, name, **kwargs):
+        """Create a real novaclient Flavor object.
+
+        :param flavor_id: flavor ID
+        :param name: flavor name
+        :param kwargs: additional flavor attributes
+        :returns: novaclient.v2.flavors.Flavor object
+        """
+        flavor_info = {
+            'id': flavor_id,
+            'name': name,
+            'vcpus': kwargs.pop('vcpus', 2),
+            'ram': kwargs.pop('ram', 2048),
+            'disk': kwargs.pop('disk', 20),
+            'OS-FLV-EXT-DATA:ephemeral': kwargs.pop('ephemeral', 0),
+            'swap': kwargs.pop('swap', ''),
+            'os-flavor-access:is_public': kwargs.pop('is_public', True),
+        }
+        flavor_info.update(kwargs)
+        return flavors.Flavor(flavors.FlavorManager, info=flavor_info)
+
+    def test_flavor_basic_properties(self):
+        """Test basic Flavor dataclass properties."""
+        flavor_id = utils.generate_uuid()
+        nova_flavor = self.create_nova_flavor(
+            flavor_id,
+            'm1.small',
+            vcpus=2,
+            ram=2048,
+            disk=20,
+            ephemeral=10,
+            swap=512,
+            is_public=True
+        )
+
+        wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
+
+        self.assertEqual(flavor_id, wrapped.id)
+        self.assertEqual('m1.small', wrapped.flavor_name)
+        self.assertEqual(2, wrapped.vcpus)
+        self.assertEqual(2048, wrapped.ram)
+        self.assertEqual(20, wrapped.disk)
+        self.assertEqual(10, wrapped.ephemeral)
+        self.assertEqual(512, wrapped.swap)
+        self.assertTrue(wrapped.is_public)
+
+    def test_flavor_empty_swap(self):
+        """Test Flavor dataclass with empty swap string."""
+        flavor_id = utils.generate_uuid()
+        nova_flavor = self.create_nova_flavor(
+            flavor_id,
+            'm1.noswap',
+            swap=''
+        )
+
+        wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
+        self.assertEqual(0, wrapped.swap)
+
+    def test_flavor_private(self):
+        """Test Flavor dataclass with private flavor."""
+        flavor_id = utils.generate_uuid()
+        nova_flavor = self.create_nova_flavor(
+            flavor_id,
+            'm1.private',
+            is_public=False
+        )
+
+        wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
+        self.assertFalse(wrapped.is_public)
+
+    def test_flavor_with_extra_specs(self):
+        """Test Flavor dataclass with extra_specs."""
+        flavor_id = utils.generate_uuid()
+        nova_flavor = self.create_nova_flavor(
+            flavor_id,
+            'm1.compute',
+            extra_specs={'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': '2'}
+        )
+
+        wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
+
+        self.assertEqual(
+            {'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': '2'},
+            wrapped.extra_specs
+        )
+
+    def test_flavor_without_extra_specs(self):
+        """Test Flavor dataclass without extra_specs."""
+        flavor_id = utils.generate_uuid()
+        nova_flavor = self.create_nova_flavor(
+            flavor_id,
+            'm1.basic'
+        )
+
+        wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
+        self.assertEqual({}, wrapped.extra_specs)
+
+    def test_flavor_equality(self):
+        """Test Flavor dataclass equality comparison."""
+        flavor_id1 = utils.generate_uuid()
+        flavor_id2 = utils.generate_uuid()
+
+        flavor1a = nova_helper.Flavor.from_novaclient(
+            self.create_nova_flavor(flavor_id1, 'm1.small'))
+        flavor1b = nova_helper.Flavor.from_novaclient(
+            self.create_nova_flavor(flavor_id1, 'm1.small'))
+        flavor2 = nova_helper.Flavor.from_novaclient(
+            self.create_nova_flavor(flavor_id2, 'm1.large'))
+
+        # Same ID and attributes should be equal
+        self.assertEqual(flavor1a, flavor1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(flavor1a, flavor2)
+
+        # Compare with non-Flavor object
+        self.assertNotEqual(flavor1a, "not-a-flavor")
+
+
+class TestAggregateWrapper(base.TestCase):
+    """Test suite for the Aggregate dataclass."""
+
+    @staticmethod
+    def create_nova_aggregate(aggregate_id, name, **kwargs):
+        """Create a real novaclient Aggregate object.
+
+        :param aggregate_id: aggregate ID
+        :param name: aggregate name
+        :param kwargs: additional aggregate attributes
+        :returns: novaclient.v2.aggregates.Aggregate object
+        """
+        from novaclient.v2 import aggregates
+
+        aggregate_info = {
+            'id': aggregate_id,
+            'name': name,
+            'availability_zone': kwargs.pop('availability_zone', None),
+            'hosts': kwargs.pop('hosts', []),
+            'metadata': kwargs.pop('metadata', {}),
+        }
+        aggregate_info.update(kwargs)
+        return aggregates.Aggregate(
+            aggregates.AggregateManager, info=aggregate_info)
+
+    def test_aggregate_basic_properties(self):
+        """Test basic Aggregate dataclass properties."""
+        aggregate_id = utils.generate_uuid()
+        nova_aggregate = self.create_nova_aggregate(
+            aggregate_id,
+            'test-aggregate',
+            availability_zone='az1',
+            hosts=['host1', 'host2', 'host3'],
+            metadata={'ssd': 'true', 'gpu': 'nvidia'}
+        )
+
+        wrapped = nova_helper.Aggregate.from_novaclient(nova_aggregate)
+
+        self.assertEqual(aggregate_id, wrapped.id)
+        self.assertEqual('test-aggregate', wrapped.name)
+        self.assertEqual('az1', wrapped.availability_zone)
+        self.assertEqual(['host1', 'host2', 'host3'], wrapped.hosts)
+        self.assertEqual({'ssd': 'true', 'gpu': 'nvidia'}, wrapped.metadata)
+
+    def test_aggregate_no_az(self):
+        """Test Aggregate dataclass without availability zone."""
+        aggregate_id = utils.generate_uuid()
+        nova_aggregate = self.create_nova_aggregate(
+            aggregate_id,
+            'test-aggregate',
+            availability_zone=None
+        )
+
+        wrapped = nova_helper.Aggregate.from_novaclient(nova_aggregate)
+        self.assertIsNone(wrapped.availability_zone)
+
+    def test_aggregate_equality(self):
+        """Test Aggregate dataclass equality comparison."""
+        aggregate_id1 = utils.generate_uuid()
+        aggregate_id2 = utils.generate_uuid()
+
+        agg1a = nova_helper.Aggregate.from_novaclient(
+            self.create_nova_aggregate(aggregate_id1, 'agg1'))
+        agg1b = nova_helper.Aggregate.from_novaclient(
+            self.create_nova_aggregate(aggregate_id1, 'agg1'))
+        agg2 = nova_helper.Aggregate.from_novaclient(
+            self.create_nova_aggregate(aggregate_id2, 'agg2'))
+
+        # Same ID and attributes should be equal
+        self.assertEqual(agg1a, agg1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(agg1a, agg2)
+
+        # Compare with non-Aggregate object
+        self.assertNotEqual(agg1a, "not-an-aggregate")
+
+
+class TestServiceWrapper(base.TestCase):
+    """Test suite for the Service dataclass."""
+
+    @staticmethod
+    def create_nova_service(service_id, **kwargs):
+        """Create a real novaclient Service object.
+
+        :param service_id: service ID
+        :param kwargs: additional service attributes
+        :returns: novaclient.v2.services.Service object
+        """
+        from novaclient.v2 import services
+
+        service_info = {
+            'id': service_id,
+            'binary': kwargs.pop('binary', 'nova-compute'),
+            'host': kwargs.pop('host', 'compute-1'),
+            'zone': kwargs.pop('zone', 'nova'),
+            'status': kwargs.pop('status', 'enabled'),
+            'state': kwargs.pop('state', 'up'),
+            'updated_at': kwargs.pop('updated_at', '2026-01-09T12:00:00Z'),
+            'disabled_reason': kwargs.pop('disabled_reason', None),
+        }
+        service_info.update(kwargs)
+        return services.Service(services.ServiceManager, info=service_info)
+
+    def test_service_basic_properties(self):
+        """Test basic Service dataclass properties."""
+        service_id = utils.generate_uuid()
+        nova_service = self.create_nova_service(
+            service_id,
+            binary='nova-compute',
+            host='compute-node-1',
+            zone='az1',
+            status='enabled',
+            state='up',
+            updated_at='2026-01-09T12:00:00Z',
+            disabled_reason=None
+        )
+
+        wrapped = nova_helper.Service.from_novaclient(nova_service)
+
+        self.assertEqual(service_id, wrapped.id)
+        self.assertEqual('nova-compute', wrapped.binary)
+        self.assertEqual('compute-node-1', wrapped.host)
+        self.assertEqual('az1', wrapped.zone)
+        self.assertEqual('enabled', wrapped.status)
+        self.assertEqual('up', wrapped.state)
+        self.assertEqual('2026-01-09T12:00:00Z', wrapped.updated_at)
+        self.assertIsNone(wrapped.disabled_reason)
+
+    def test_service_disabled(self):
+        """Test Service dataclass with disabled service."""
+        service_id = utils.generate_uuid()
+        nova_service = self.create_nova_service(
+            service_id,
+            status='disabled',
+            state='down',
+            disabled_reason='maintenance'
+        )
+
+        wrapped = nova_helper.Service.from_novaclient(nova_service)
+
+        self.assertEqual('disabled', wrapped.status)
+        self.assertEqual('down', wrapped.state)
+        self.assertEqual('maintenance', wrapped.disabled_reason)
+
+    def test_service_equality(self):
+        """Test Service dataclass equality comparison."""
+        service_id1 = utils.generate_uuid()
+        service_id2 = utils.generate_uuid()
+
+        svc1a = nova_helper.Service.from_novaclient(
+            self.create_nova_service(service_id1))
+        svc1b = nova_helper.Service.from_novaclient(
+            self.create_nova_service(service_id1))
+        svc2 = nova_helper.Service.from_novaclient(
+            self.create_nova_service(service_id2))
+
+        # Same ID and attributes should be equal
+        self.assertEqual(svc1a, svc1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(svc1a, svc2)
+
+        # Compare with non-Service object
+        self.assertNotEqual(svc1a, "not-a-service")
+
+
+class TestServerMigrationWrapper(base.TestCase):
+    """Test suite for the ServerMigration dataclass."""
+
+    @staticmethod
+    def create_nova_migration(migration_id, **kwargs):
+        """Create a real novaclient ServerMigration object.
+
+        :param migration_id: migration ID
+        :param kwargs: additional migration attributes
+        :returns: novaclient.v2.server_migrations.ServerMigration object
+        """
+        from novaclient.v2 import server_migrations
+
+        migration_info = {
+            'id': migration_id,
+        }
+        migration_info.update(kwargs)
+        return server_migrations.ServerMigration(
+            server_migrations.ServerMigrationsManager, info=migration_info)
+
+    def test_migration_basic_properties(self):
+        """Test basic ServerMigration dataclass properties."""
+        migration_id = utils.generate_uuid()
+        nova_migration = self.create_nova_migration(migration_id)
+
+        wrapped = nova_helper.ServerMigration.from_novaclient(nova_migration)
+        self.assertEqual(migration_id, wrapped.id)
+
+    def test_migration_equality(self):
+        """Test ServerMigration dataclass equality comparison."""
+        migration_id1 = utils.generate_uuid()
+        migration_id2 = utils.generate_uuid()
+
+        mig1a = nova_helper.ServerMigration.from_novaclient(
+            self.create_nova_migration(migration_id1))
+        mig1b = nova_helper.ServerMigration.from_novaclient(
+            self.create_nova_migration(migration_id1))
+        mig2 = nova_helper.ServerMigration.from_novaclient(
+            self.create_nova_migration(migration_id2))
+
+        # Same ID and attributes should be equal
+        self.assertEqual(mig1a, mig1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(mig1a, mig2)
+
+        # Compare with non-ServerMigration object
+        self.assertNotEqual(mig1a, "not-a-migration")
