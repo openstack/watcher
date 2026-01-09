@@ -264,7 +264,7 @@ class ResizeActionValidator(BaseActionValidator):
         instance_uuid = action['input_parameters']['resource_id']
         parent_actions = resource_action_map.get(instance_uuid)
         host_of_instance = nova.get_hostname(
-            nova.get_instance_by_uuid(instance_uuid)[0])
+            nova.get_instance_by_uuid(instance_uuid))
         self._mapping(resource_action_map, host_of_instance, action['uuid'],
                       'resize')
         if parent_actions:

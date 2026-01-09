@@ -106,7 +106,10 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
         self.strategy.instance_handle(instance_0, node_0, node_1)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
@@ -122,7 +125,9 @@ class TestHostMaintenance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
         self.strategy.instance_handle(instance_0, node_0)
         self.assertEqual(1, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
@@ -138,8 +143,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         self.strategy.host_migration(node_0, node_1)
         self.assertEqual(2, len(self.strategy.solution.actions))
         expected = [{'action_type': 'migrate',
@@ -240,7 +249,9 @@ class TestHostMaintenance(TestBaseStrategy):
         """Test add_action_stop_instance method"""
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.add_action_stop_instance(instance_0)
 
@@ -254,7 +265,9 @@ class TestHostMaintenance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -274,7 +287,9 @@ class TestHostMaintenance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_1.state = "stopped"
 
         self.strategy.input_parameters = {
@@ -292,7 +307,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -318,7 +335,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_1.state = 'stopped'
 
         self.strategy.input_parameters = {
@@ -345,7 +364,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -371,7 +392,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_1.state = 'stopped'
 
         self.strategy.input_parameters = {
@@ -390,7 +413,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -415,7 +440,9 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_1.state = 'stopped'
 
         self.strategy.input_parameters = {
@@ -441,8 +468,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -469,8 +500,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
         node_1 = model.get_node_by_uuid('Node_1')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -508,8 +543,12 @@ class TestHostMaintenance(TestBaseStrategy):
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')  # maintenance node
         node_1 = model.get_node_by_uuid('Node_1')  # backup node
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -546,8 +585,12 @@ class TestHostMaintenance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         self.strategy.input_parameters = {
             'maintenance_node': 'hostname_0',
@@ -625,8 +668,12 @@ class TestHostMaintenance(TestBaseStrategy):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
         node_0 = model.get_node_by_uuid('Node_0')
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
 
         # Test without new parameters (should behave like original)
         self.strategy.input_parameters = {'maintenance_node': 'hostname_0'}

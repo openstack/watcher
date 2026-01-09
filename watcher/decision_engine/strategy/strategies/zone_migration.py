@@ -16,7 +16,6 @@ from oslo_log import log
 from oslo_utils import timeutils
 
 from cinderclient.v3.volumes import Volume
-from novaclient.v2.servers import Server
 from watcher._i18n import _
 from watcher.common import cinder_helper
 from watcher.common import nova_helper
@@ -344,14 +343,14 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             self.volume_count += 1
 
     def is_live(self, instance):
-        status = getattr(instance, 'status')
-        state = getattr(instance, 'OS-EXT-STS:vm_state')
+        status = instance.status
+        state = instance.vm_state
         return (status == status_ACTIVE and state == ACTIVE
                 ) or (status == status_PAUSED and state == PAUSED)
 
     def is_cold(self, instance):
-        status = getattr(instance, 'status')
-        state = getattr(instance, 'OS-EXT-STS:vm_state')
+        status = instance.status
+        state = instance.vm_state
         return status == status_SHUTOFF and state == STOPPED
 
     def is_available(self, volume):
@@ -393,7 +392,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                         pool.get("dst_type"))
 
     def volumes_migration(self, volumes, action_counter, instance_targets=[]):
-        instance_target_ids = {instance.id for instance in instance_targets}
+        instance_target_ids = {instance.uuid for instance in instance_targets}
         for volume in volumes:
             if action_counter.is_total_max():
                 LOG.debug('total reached limit')
@@ -437,11 +436,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     def instances_migration(self, instances, action_counter):
 
         for instance in instances:
-            if self._instance_migration_exists(instance.id):
+            if self._instance_migration_exists(instance.uuid):
                 LOG.debug("A migration action for instance %s already exist",
-                          instance.id)
+                          instance.uuid)
                 continue
-            src_node = getattr(instance, 'OS-EXT-SRV-ATTR:host')
+            src_node = instance.host
 
             if action_counter.is_total_max():
                 LOG.debug('total reached limit')
@@ -470,7 +469,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             parameters["destination_node"] = dst_node
         self.solution.add_action(
             action_type="migrate",
-            resource_id=instance.id,
+            resource_id=instance.uuid,
             input_parameters=parameters)
         self.planned_live_count += 1
 
@@ -484,7 +483,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             parameters["destination_node"] = dst_node
         self.solution.add_action(
             action_type="migrate",
-            resource_id=instance.id,
+            resource_id=instance.uuid,
             input_parameters=parameters)
         self.planned_cold_count += 1
 
@@ -548,8 +547,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             return None
 
         return [i for i in self.nova.get_instance_list()
-                if getattr(i, 'OS-EXT-SRV-ATTR:host') in src_node_list and
-                self.compute_model.has_node(i.id)]
+                if i.host in src_node_list and
+                self.compute_model.has_node(i.uuid)]
 
     def get_volumes(self):
         """Get migrate target volumes
@@ -815,7 +814,7 @@ class ProjectSortFilter(SortMovingToFrontFilter):
 
         if isinstance(item, Volume):
             return getattr(item, 'os-vol-tenant-attr:tenant_id')
-        elif isinstance(item, Server):
+        elif isinstance(item, nova_helper.Server):
             return item.tenant_id
 
 
@@ -847,7 +846,7 @@ class ComputeHostSortFilter(SortMovingToFrontFilter):
         :returns: hostname on which item is
         """
 
-        return getattr(item, 'OS-EXT-SRV-ATTR:host')
+        return item.host
 
 
 class StorageHostSortFilter(SortMovingToFrontFilter):
@@ -924,8 +923,7 @@ class ComputeSpecSortFilter(BaseFilter):
                             reverse=True)
         elif sort_key == 'created_at':
             result = sorted(items,
-                            key=lambda x: timeutils.parse_isotime(
-                                getattr(x, sort_key)),
+                            key=lambda x: timeutils.parse_isotime(x.created),
                             reverse=False)
 
         return result

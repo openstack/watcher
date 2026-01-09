@@ -30,11 +30,12 @@ from watcher.common import service as watcher_service
 from watcher.decision_engine.model import element
 from watcher.decision_engine.model.notification import nova as novanotification
 from watcher.tests.unit import base as base_test
+from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.decision_engine.model.notification import fake_managers
 
 
-class NotificationTestCase(base_test.TestCase):
+class NotificationTestCase(test_utils.NovaResourcesMixin, base_test.TestCase):
 
     @staticmethod
     def load_message(filename):
@@ -173,18 +174,22 @@ class TestNovaNotifications(NotificationTestCase):
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
-            side_effect=lambda uuid: mock.Mock(
-                name='m_get_compute_node_by_uuid',
-                id="fafac544-906b-4a6a-a9c6-c1f7a8078c73",
-                hypervisor_hostname="host2",
-                state='up',
-                status='enabled',
-                memory_mb=7777,
-                vcpus=42,
-                free_disk_gb=974,
-                local_gb=1337,
-                service={'id': 123, 'host': 'host2',
-                         'disabled_reason': ''},))
+            side_effect=lambda uuid: nova_helper.Hypervisor.from_novaclient(
+                self.create_nova_hypervisor(
+                    name='m_get_compute_node_by_uuid',
+                    id="fafac544-906b-4a6a-a9c6-c1f7a8078c73",
+                    hypervisor_hostname="host2",
+                    state='up',
+                    status='enabled',
+                    memory_mb=7777,
+                    vcpus=42,
+                    free_disk_gb=974,
+                    local_gb=1337,
+                    service={'id': 123, 'host': 'host2',
+                             'disabled_reason': ''},
+                    )
+            )
+        )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
@@ -299,18 +304,22 @@ class TestNovaNotifications(NotificationTestCase):
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
-            side_effect=lambda uuid: mock.Mock(
-                name='m_get_compute_node_by_hostname',
-                id='669966bd-a45c-4e1c-9d57-3054899a3ec7',
-                hypervisor_hostname="Node_2",
-                state='up',
-                status='enabled',
-                memory_mb=7777,
-                vcpus=42,
-                free_disk_gb=974,
-                local_gb=1337,
-                service={'id': 123, 'host': 'Node_2',
-                         'disabled_reason': ''},))
+            side_effect=lambda uuid: nova_helper.Hypervisor.from_novaclient(
+                self.create_nova_hypervisor(
+                    name='m_get_compute_node_by_hostname',
+                    id='669966bd-a45c-4e1c-9d57-3054899a3ec7',
+                    hypervisor_hostname="Node_2",
+                    state='up',
+                    status='enabled',
+                    memory_mb=7777,
+                    vcpus=42,
+                    free_disk_gb=974,
+                    local_gb=1337,
+                    service={'id': 123, 'host': 'Node_2',
+                             'disabled_reason': ''},
+                    )
+                )
+        )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')
@@ -405,19 +414,23 @@ class TestNovaNotifications(NotificationTestCase):
         }
         m_placement_helper.return_value = mock_placement
         m_get_compute_node_by_hostname = mock.Mock(
-            side_effect=lambda uuid: mock.Mock(
-                name='m_get_compute_node_by_hostname',
-                id=3,
-                hypervisor_hostname="compute",
-                state='up',
-                status='enabled',
-                uuid=uuid,
-                memory_mb=7777,
-                vcpus=42,
-                free_disk_gb=974,
-                local_gb=1337,
-                service={'id': 123, 'host': 'compute',
-                         'disabled_reason': ''},))
+            side_effect=lambda uuid: nova_helper.Hypervisor.from_novaclient(
+                self.create_nova_hypervisor(
+                    name='m_get_compute_node_by_hostname',
+                    id='d000ef1f-dc19-4982-9383-087498bfde03',
+                    hypervisor_hostname="compute",
+                    state='up',
+                    status='enabled',
+                    uuid=uuid,
+                    memory_mb=7777,
+                    vcpus=42,
+                    free_disk_gb=974,
+                    local_gb=1337,
+                    service={'id': 123, 'host': 'compute',
+                             'disabled_reason': ''},
+                    )
+                )
+        )
         m_nova_helper_cls.return_value = mock.Mock(
             get_compute_node_by_hostname=m_get_compute_node_by_hostname,
             name='m_nova_helper')

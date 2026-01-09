@@ -277,9 +277,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
                 LOG.debug("filtering out baremetal node: %s", node_info)
                 return
             self.add_compute_node(node_info)
-            # node.servers is a list of server objects
-            # New in nova version 2.53
-            instances = getattr(node_info, "servers", None)
+            instances = node_info.servers
             # Do not submit job if there are no instances on compute node
             if instances is None:
                 LOG.info("No instances on compute_node: %s", node_info)
@@ -400,9 +398,9 @@ class NovaModelBuilder(base.BaseModelBuilder):
         """Build a compute node from a Nova compute node
 
         :param node: A node hypervisor instance
-        :type node: :py:class:`~novaclient.v2.hypervisors.Hypervisor`
+        :type node: :py:class:`~watcher.common.nova_helper.Hypervisor`
         """
-        inventories = self.placement_helper.get_inventories(node.id)
+        inventories = self.placement_helper.get_inventories(node.uuid)
         if inventories and orc.VCPU in inventories:
             vcpus = inventories[orc.VCPU]['total']
             vcpu_reserved = inventories[orc.VCPU]['reserved']
@@ -436,8 +434,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
         # build up the compute node.
         node_attributes = {
             # The id of the hypervisor as a UUID from version 2.53.
-            "uuid": node.id,
-            "hostname": node.service["host"],
+            "uuid": node.uuid,
+            "hostname": node.service_host,
             "memory": memory_mb,
             "memory_ratio": memory_ratio,
             "memory_mb_reserved": memory_mb_reserved,
@@ -449,7 +447,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
             "vcpu_ratio": vcpu_ratio,
             "state": node.state,
             "status": node.status,
-            "disabled_reason": node.service["disabled_reason"]}
+            "disabled_reason": node.service_disabled_reason}
 
         compute_node = element.ComputeNode(**node_attributes)
         # compute_node = self._build_node("physical", "compute", "hypervisor",
@@ -460,8 +458,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
         if instances is None:
             LOG.info("no instances on compute_node: %s", node)
             return
-        host = node.service["host"]
-        compute_node = self.model.get_node_by_uuid(node.id)
+        host = node.service_host
+        compute_node = self.model.get_node_by_uuid(node.uuid)
         filters = {'host': host}
         limit = len(instances) if len(instances) <= 1000 else -1
         # Get all servers on this compute host.
@@ -475,7 +473,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
                                     filters=filters, limit=limit)
         for inst in instances:
             # skip deleted instance
-            if getattr(inst, "OS-EXT-STS:vm_state") == (
+            if inst.vm_state == (
                     element.InstanceState.DELETED.value):
                 continue
             # Add Node
@@ -494,12 +492,12 @@ class NovaModelBuilder(base.BaseModelBuilder):
         """
         flavor = instance.flavor
         instance_attributes = {
-            "uuid": instance.id,
+            "uuid": instance.uuid,
             "name": instance.name,
             "memory": flavor["ram"],
             "disk": flavor["disk"],
             "vcpus": flavor["vcpus"],
-            "state": getattr(instance, "OS-EXT-STS:vm_state"),
+            "state": instance.vm_state,
             "metadata": instance.metadata,
             "project_id": instance.tenant_id,
             "locked": instance.locked,

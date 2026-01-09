@@ -229,8 +229,12 @@ class TestModel(base.TestCase):
         fake_cluster = faker_cluster_state.FakerModelCollector()
         model = fake_cluster.generate_scenario_1()
         node = element.ComputeNode(uuid="Node_0")
-        instance0 = model.get_instance_by_uuid("INSTANCE_0")
-        instance1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
+        instance1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instances = model.get_node_instances(node)
 
         self.assertEqual(2, len(instances))

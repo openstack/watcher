@@ -17,6 +17,7 @@
 #
 from unittest import mock
 
+import novaclient.exceptions as nvexceptions
 from oslo_config import cfg
 
 from watcher.applier.workflow_engine import default as tflow
@@ -24,11 +25,13 @@ from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher import objects
+from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils
 
 
-class TestTaskFlowActionContainer(base.DbTestCase):
+class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
+                                  base.DbTestCase):
     def setUp(self):
         super().setUp()
         self.engine = tflow.DefaultWorkFlowEngine(
@@ -65,7 +68,10 @@ class TestTaskFlowActionContainer(base.DbTestCase):
     def test_execute_with_failed_execute(self):
         nova_util = nova_helper.NovaHelper()
         instance = "31b9dd5c-b1fd-4f61-9b68-a47096326dac"
-        nova_util.nova.servers.get.return_value = instance
+        nova_util.nova.servers.get.side_effect = [
+            self.create_nova_server(id=instance),
+            nvexceptions.NotFound("404")
+        ]
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,

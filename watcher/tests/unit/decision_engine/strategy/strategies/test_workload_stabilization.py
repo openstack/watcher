@@ -114,9 +114,11 @@ class TestWorkloadStabilization(TestBaseStrategy):
     def test_get_instance_load(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
-        instance0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_0_dict = {
-            'uuid': 'INSTANCE_0', 'vcpus': 10,
+            'uuid': 'd000ef1f-dc19-4982-9383-087498bfde03', 'vcpus': 10,
             'instance_cpu_usage': 0.07, 'instance_ram_usage': 2}
         self.assertEqual(
             instance_0_dict, self.strategy.get_instance_load(instance0))
@@ -181,7 +183,9 @@ class TestWorkloadStabilization(TestBaseStrategy):
     def test_calculate_migration_case(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
-        instance = model.get_instance_by_uuid("INSTANCE_5")
+        instance = model.get_instance_by_uuid(
+            "d050ef1f-dc19-4982-9383-087498bfde03"
+        )
         src_node = model.get_node_by_uuid("Node_2")
         dst_node = model.get_node_by_uuid("Node_1")
         result = self.strategy.calculate_migration_case(
@@ -283,13 +287,15 @@ class TestWorkloadStabilization(TestBaseStrategy):
                                     'instance_ram_usage': 0.2}
         self.strategy.simulate_migrations = mock.Mock(
             return_value=[
-                {'instance': 'INSTANCE_4', 's_host': 'Node_2',
+                {'instance': 'd040ef1f-dc19-4982-9383-087498bfde03',
+                 's_host': 'Node_2',
                  'host': 'Node_1'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migration:
             self.strategy.do_execute()
             mock_migration.assert_called_once_with(
-                'INSTANCE_4', 'Node_2', 'Node_1')
+                'd040ef1f-dc19-4982-9383-087498bfde03', 'Node_2', 'Node_1'
+            )
 
     def test_execute_multiply_migrations(self):
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
@@ -297,9 +303,11 @@ class TestWorkloadStabilization(TestBaseStrategy):
                                     'instance_ram_usage': 0.0001}
         self.strategy.simulate_migrations = mock.Mock(
             return_value=[
-                {'instance': 'INSTANCE_4', 's_host': 'Node_2',
+                {'instance': 'd040ef1f-dc19-4982-9383-087498bfde03',
+                 's_host': 'Node_2',
                  'host': 'Node_1'},
-                {'instance': 'INSTANCE_3', 's_host': 'Node_2',
+                {'instance': 'd030ef1f-dc19-4982-9383-087498bfde03',
+                 's_host': 'Node_2',
                  'host': 'Node_3'}]
         )
         with mock.patch.object(self.strategy, 'migrate') as mock_migrate:

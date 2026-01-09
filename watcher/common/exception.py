@@ -484,6 +484,10 @@ class VolumeNotFound(StorageResourceNotFound):
     msg_fmt = _("The volume '%(name)s' could not be found")
 
 
+class VolumeNotReachedStatus(StorageResourceNotFound):
+    msg_fmt = _("Volume %(name)s did not reach status %(status)s.")
+
+
 class BaremetalResourceNotFound(WatcherException):
     msg_fmt = _("The baremetal resource '%(name)s' could not be found")
 
@@ -520,3 +524,12 @@ class InvalidPoolAttributeValue(Invalid):
 class DataSourceConfigConflict(UnsupportedError):
     msg_fmt = _("Datasource %(datasource_one)s is not supported "
                 "when datasource %(datasource_two)s is also enabled.")
+
+
+class LiveMigrationFailed(WatcherException):
+    msg_fmt = _("Live migration execution and abort both failed "
+                "for the instance %(name)s.")
+
+
+class NovaClientError(WatcherException):
+    msg_fmt = _("Nova client error: %(reason)s")

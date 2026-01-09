@@ -24,8 +24,6 @@ from keystoneauth1 import exceptions as ksa_exc
 from novaclient import api_versions
 
 import novaclient.exceptions as nvexceptions
-from novaclient.v2 import flavors
-from novaclient.v2 import hypervisors
 from novaclient.v2 import servers
 
 from watcher.common import clients
@@ -34,13 +32,14 @@ from watcher.common import nova_helper
 from watcher.common import utils
 from watcher import conf
 from watcher.tests.unit import base
+from watcher.tests.unit.common import utils as test_utils
 
 CONF = conf.CONF
 
 
 @mock.patch.object(clients.OpenStackClients, 'nova')
 @mock.patch.object(clients.OpenStackClients, 'cinder')
-class TestNovaHelper(base.TestCase):
+class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -50,38 +49,6 @@ class TestNovaHelper(base.TestCase):
         self.flavor_name = "x1"
         self.mock_sleep = self.useFixture(
             fixtures.MockPatchObject(time, 'sleep')).mock
-
-    @staticmethod
-    def fake_server(*args, **kwargs):
-        instance_info = {
-            'id': args[0],
-            'name': 'fake_instance',
-            'status': 'ACTIVE',
-        }
-        instance_info.update(kwargs)
-
-        return servers.Server(servers.ServerManager, info=instance_info)
-
-    @staticmethod
-    def fake_hypervisor(*args, **kwargs):
-        hypervisor_info = {
-            'id': args[0],
-            'hypervisor_hostname': args[1],
-            'hypervisor_type': kwargs.pop('hypervisor_type', 'QEMU'),
-            'service': {
-                'host': args[1]
-            }
-        }
-        hypervisor_info.update(kwargs)
-
-        return hypervisors.Hypervisor(
-            hypervisors.HypervisorManager, info=hypervisor_info)
-
-    @staticmethod
-    def fake_migration(*args, **kwargs):
-        migration = mock.MagicMock()
-        migration.id = args[0]
-        return migration
 
     @staticmethod
     def fake_nova_find_list(nova_util, fake_find=None, fake_list=None):
@@ -102,7 +69,7 @@ class TestNovaHelper(base.TestCase):
     @staticmethod
     def fake_nova_migration_list(nova_util, fake_list=None):
         if fake_list is None:
-            nova_util.nova.server_migrations.list.return_value = None
+            nova_util.nova.server_migrations.list.return_value = []
         else:
             nova_util.nova.server_migration.list.return_value = [fake_list]
 
@@ -111,12 +78,15 @@ class TestNovaHelper(base.TestCase):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
-        hypervisor = self.fake_hypervisor(hypervisor_id, hypervisor_name)
+        hypervisor = self.create_nova_hypervisor(
+            hypervisor_id=hypervisor_id,
+            hostname=hypervisor_name
+        )
         nova_util.nova.hypervisors.search.return_value = [hypervisor]
         # verify that the compute node can be obtained normally by name
+        compute_node = nova_util.get_compute_node_by_hostname(hypervisor_name)
         self.assertEqual(
-            nova_util.get_compute_node_by_hostname(hypervisor_name),
-            hypervisor)
+            compute_node, nova_helper.Hypervisor.from_novaclient(hypervisor))
 
         # verify that getting the compute node with the wrong name
         # will throw an exception.
@@ -141,28 +111,33 @@ class TestNovaHelper(base.TestCase):
         nodes = []
         # compute1 is a substring of compute10 to trigger the fuzzy match.
         for hostname in ('compute1', 'compute10'):
-            node = mock.MagicMock()
-            node.id = utils.generate_uuid()
-            node.hypervisor_hostname = hostname
-            node.service = {'host': hostname}
+            node = self.create_nova_hypervisor(
+                hypervisor_id=utils.generate_uuid(),
+                hostname=hostname,
+                service={'host': hostname}
+            )
             nodes.append(node)
         # We should get back exact matches based on the service host.
         nova_util.nova.hypervisors.search.return_value = nodes
         for index, name in enumerate(['compute1', 'compute10']):
             result = nova_util.get_compute_node_by_hostname(name)
-            self.assertIs(nodes[index], result)
+            self.assertEqual(
+                nova_helper.Hypervisor.from_novaclient(nodes[index]), result)
 
     def test_get_compute_node_by_uuid(
             self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         hypervisor_id = utils.generate_uuid()
         hypervisor_name = "fake_hypervisor_1"
-        hypervisor = self.fake_hypervisor(hypervisor_id, hypervisor_name)
+        hypervisor = self.create_nova_hypervisor(
+            hypervisor_id=hypervisor_id,
+            hostname=hypervisor_name
+        )
         nova_util.nova.hypervisors.get.return_value = hypervisor
         # verify that the compute node can be obtained normally by id
+        compute_node = nova_util.get_compute_node_by_uuid(hypervisor_id)
         self.assertEqual(
-            nova_util.get_compute_node_by_uuid(hypervisor_id),
-            hypervisor)
+            compute_node, nova_helper.Hypervisor.from_novaclient(hypervisor))
 
     def test_get_instance_list(self, *args):
         nova_util = nova_helper.NovaHelper()
@@ -171,23 +146,24 @@ class TestNovaHelper(base.TestCase):
             result = nova_util.get_instance_list()
             nova_mock.servers.list.assert_called_once_with(
                 search_opts={'all_tenants': True}, marker=None, limit=-1)
-            self.assertIs(result, nova_mock.servers.list.return_value)
+            self.assertEqual([], result)
         # Call it again with filters.
         with mock.patch.object(nova_util, 'nova') as nova_mock:
             result = nova_util.get_instance_list(filters={'host': 'fake-host'})
             nova_mock.servers.list.assert_called_once_with(
                 search_opts={'all_tenants': True, 'host': 'fake-host'},
                 marker=None, limit=-1)
-            self.assertIs(result, nova_mock.servers.list.return_value)
+            self.assertEqual([], result)
 
     def test_stop_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance_id = utils.generate_uuid()
         # verify that the method will return True when stopped
         kwargs = {
+            "id": instance_id,
             "OS-EXT-STS:vm_state": "stopped"
         }
-        server = self.fake_server(instance_id, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -198,9 +174,10 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return False when active
         kwargs = {
+            "id": instance_id,
             "OS-EXT-STS:vm_state": "active"
         }
-        server = self.fake_server(instance_id, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
 
         result = nova_util.stop_instance(instance_id)
@@ -223,7 +200,7 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method stop_instance will return False when the
         # server is not available.
-        nova_util.nova.servers.get.return_value = None
+        nova_util.nova.servers.get.side_effect = nvexceptions.NotFound("404")
         result = nova_util.stop_instance(instance_id)
         self.assertFalse(result)
 
@@ -232,9 +209,10 @@ class TestNovaHelper(base.TestCase):
         instance_id = utils.generate_uuid()
         # verify that the method will return True when active
         kwargs = {
+            "id": instance_id,
             "OS-EXT-STS:vm_state": "active"
         }
-        server = self.fake_server(instance_id, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -245,9 +223,10 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return False when stopped
         kwargs = {
+            "id": instance_id,
             "OS-EXT-STS:vm_state": "stopped"
         }
-        server = self.fake_server(instance_id, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
 
         result = nova_util.start_instance(instance_id)
@@ -270,53 +249,67 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method start_instance will return False when the
         # server is not available.
-        nova_util.nova.servers.get.return_value = None
+        nova_util.nova.servers.get.side_effect = nvexceptions.NotFound("404")
         result = nova_util.start_instance(instance_id)
         self.assertFalse(result)
 
-    @mock.patch.object(servers.Server, 'resize', autospec=True)
-    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_resize', autospec=True
+    )
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_confirm_resize', autospec=True
+    )
     def test_resize_instance(self, mock_confirm_resize, mock_resize,
                              mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "status": "VERIFY_RESIZE",
             "OS-EXT-STS:vm_state": "resized"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
             fake_list=server)
-        flavor = flavors.Flavor(flavors.FlavorManager, info={
-                                'id': self.flavor_name,
-                                'name': self.flavor_name})
+        flavor = self.create_nova_flavor(
+            id=self.flavor_name, name=self.flavor_name
+        )
         nova_util.nova.flavors.get.return_value = flavor
         is_success = nova_util.resize_instance(self.instance_uuid,
                                                self.flavor_name)
         self.assertTrue(is_success)
-        mock_resize.assert_called_once_with(server, flavor=self.flavor_name)
+        mock_resize.assert_called_once_with(
+            nova_util, self.instance_uuid, self.flavor_name
+        )
         self.assertEqual(1, mock_confirm_resize.call_count)
 
-    @mock.patch.object(servers.Server, 'resize', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_resize', autospec=True
+    )
     def test_resize_instance_wrong_status(self, mock_resize,
                                           mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        kwargs = {"status": "SOMETHING_ELSE",
-                  "OS-EXT-STS:vm_state": "resizing"}
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        kwargs = {
+            "id": self.instance_uuid,
+            "status": "SOMETHING_ELSE",
+            "OS-EXT-STS:vm_state": "resizing"
+        }
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
             fake_list=server)
-        flavor = flavors.Flavor(flavors.FlavorManager, info={
-                                'id': self.flavor_name,
-                                'name': self.flavor_name})
+        flavor = self.create_nova_flavor(
+            id=self.flavor_name, name=self.flavor_name
+        )
         nova_util.nova.flavors.get.return_value = flavor
         is_success = nova_util.resize_instance(self.instance_uuid,
                                                self.flavor_name)
         self.assertFalse(is_success)
-        mock_resize.assert_called_once_with(server, flavor=self.flavor_name)
+        mock_resize.assert_called_once_with(
+            nova_util, self.instance_uuid, self.flavor_name
+        )
 
     @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
     @mock.patch.object(servers.Server, 'resize', autospec=True)
@@ -324,11 +317,19 @@ class TestNovaHelper(base.TestCase):
             self, mock_resize, mock_confirm_resize, mock_cinder, mock_nova):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        kwargs = {"status": "RESIZING", "OS-EXT-STS:vm_state": "resizing"}
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        kwargs = {
+            "id": self.instance_uuid,
+            "status": "RESIZING",
+            "OS-EXT-STS:vm_state": "resizing"
+        }
+        server = self.create_nova_server(**kwargs)
 
-        kwargs = {"status": "VERIFY_RESIZE", "OS-EXT-STS:vm_state": "resized"}
-        resized_server = self.fake_server(self.instance_uuid, **kwargs)
+        kwargs = {
+            "id": self.instance_uuid,
+            "status": "VERIFY_RESIZE",
+            "OS-EXT-STS:vm_state": "resized"
+        }
+        resized_server = self.create_nova_server(**kwargs)
 
         # This means instance will be found as VERIFY_RESIZE in second retry
         nova_util.nova.servers.get.side_effect = (server, server,
@@ -357,8 +358,13 @@ class TestNovaHelper(base.TestCase):
             self, mock_resize, mock_cinder, mock_nova):
         """Test that resize_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
-        kwargs = {"status": "RESIZING", "OS-EXT-STS:vm_state": "resizing"}
-        self.fake_server(self.instance_uuid, **kwargs)
+        kwargs = {
+            "id": self.instance_uuid,
+            "status": "RESIZING",
+            "OS-EXT-STS:vm_state": "resizing"
+        }
+        server = self.create_nova_server(**kwargs)
+        self.fake_nova_find_list(nova_util, fake_find=server)
 
         # Resize will timeout because status never changes
         is_success = nova_util.resize_instance(
@@ -379,10 +385,12 @@ class TestNovaHelper(base.TestCase):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "status": "RESIZING",
             "OS-EXT-STS:vm_state": "resizing"
         }
-        self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
+        self.fake_nova_find_list(nova_util, fake_find=server)
 
         # Set config to a custom values to ensure custom values are used
         self.flags(migration_max_retries=10,
@@ -405,9 +413,10 @@ class TestNovaHelper(base.TestCase):
     def test_live_migrate_instance(self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.destination_node
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(
             nova_util,
             fake_find=server,
@@ -418,10 +427,11 @@ class TestNovaHelper(base.TestCase):
         self.assertTrue(is_success)
 
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": "migrating"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
@@ -430,7 +440,7 @@ class TestNovaHelper(base.TestCase):
 
         # verify that the method will return False when the instance does
         # not exist.
-        self.fake_nova_find_list(nova_util, fake_find=None, fake_list=None)
+        nova_util.nova.servers.get.side_effect = nvexceptions.NotFound("404")
         is_success = nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
         )
@@ -445,15 +455,18 @@ class TestNovaHelper(base.TestCase):
         )
         self.assertFalse(is_success)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_with_task_state(
             self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": ""
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
@@ -461,29 +474,35 @@ class TestNovaHelper(base.TestCase):
         self.mock_sleep.assert_not_called()
 
         kwargs["OS-EXT-STS:task_state"] = 'migrating'
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
         nova_util.live_migrate_instance(
             self.instance_uuid, self.destination_node
         )
         self.mock_sleep.assert_called_with(5)
-        mock_migrate.assert_called_with(server, host=self.destination_node)
+        mock_migrate.assert_called_with(
+            nova_util, self.instance_uuid, self.destination_node
+        )
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_no_destination_node(
             self, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "status": "MIGRATING"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.destination_node,
             "status": "ACTIVE"
         }
-        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
+        migrated_server = self.create_nova_server(**kwargs)
 
         nova_util.nova.servers.get.side_effect = (
             server, server, migrated_server)
@@ -494,14 +513,16 @@ class TestNovaHelper(base.TestCase):
         )
 
         # Should call once to migrate the instance
-        mock_migrate.assert_called_once_with(server, host=None)
+        mock_migrate.assert_called_once_with(
+            nova_util, self.instance_uuid, None
+        )
         # Should succeed
         self.assertTrue(is_success)
 
     def test_watcher_non_live_migrate_instance_not_found(
             self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        self.fake_nova_find_list(nova_util, fake_find=None, fake_list=None)
+        nova_util.nova.servers.get.side_effect = nvexceptions.NotFound("404")
 
         is_success = nova_util.watcher_non_live_migrate_instance(
             self.instance_uuid,
@@ -512,11 +533,12 @@ class TestNovaHelper(base.TestCase):
     def test_abort_live_migrate_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": None
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
-        migration = self.fake_migration(2)
+        server = self.create_nova_server(**kwargs)
+        migration = self.create_nova_migration(2)
         self.fake_nova_migration_list(nova_util, fake_list=migration)
 
         self.fake_nova_find_list(
@@ -528,10 +550,11 @@ class TestNovaHelper(base.TestCase):
             self.instance_uuid, self.source_node, self.destination_node))
 
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.destination_node,
             "OS-EXT-STS:task_state": None
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         self.fake_nova_find_list(
             nova_util,
@@ -550,31 +573,36 @@ class TestNovaHelper(base.TestCase):
             self.destination_node)
 
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-STS:task_state": "fake_task_state",
             "OS-EXT-SRV-ATTR:host": self.destination_node
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=None)
         self.fake_nova_migration_list(nova_util, fake_list=None)
         self.assertFalse(nova_util.abort_live_migrate(
             self.instance_uuid, self.source_node, self.destination_node))
 
-    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_migrate', autospec=True
+    )
     @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize', autospec=True)
     def test_non_live_migrate_instance_no_destination_node(
             self, mock_confirm_resize, mock_migrate, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "status": "MIGRATING"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.destination_node,
             "status": "VERIFY_RESIZE"
         }
-        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
+        migrated_server = self.create_nova_server(**kwargs)
 
         nova_util.nova.servers.get.side_effect = (
             server, server, server, migrated_server)
@@ -584,27 +612,33 @@ class TestNovaHelper(base.TestCase):
         is_success = nova_util.watcher_non_live_migrate_instance(
             self.instance_uuid, None
         )
-        mock_migrate.assert_called_once_with(server, host=None)
+        mock_migrate.assert_called_once_with(
+            nova_util, self.instance_uuid, None
+        )
         self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertTrue(is_success)
 
     @mock.patch.object(nova_helper.NovaHelper, 'confirm_resize', autospec=True)
-    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_migrate', autospec=True
+    )
     def test_watcher_non_live_migrate_instance_retry_success(
             self, mock_migrate, mock_confirm_resize, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
+            "status": 'MIGRATING',  # Never reaches ACTIVE
             "OS-EXT-SRV-ATTR:host": self.source_node
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
-        server.status = 'MIGRATING'  # Never reaches ACTIVE
+        server = self.create_nova_server(**kwargs)
 
         kwargs = {
+            "id": self.instance_uuid,
+            "status": 'VERIFY_RESIZE',
             "OS-EXT-SRV-ATTR:host": self.destination_node
         }
-        verify_server = self.fake_server(self.instance_uuid, **kwargs)
-        verify_server.status = 'VERIFY_RESIZE'
+        verify_server = self.create_nova_server(**kwargs)
 
         # This means instance will be found as VERIFY_RESIZE in second retry
         nova_util.nova.servers.get.side_effect = (server, server, server,
@@ -622,7 +656,7 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node)
         # Should succeed
         self.assertTrue(is_success)
         # It will sleep 2 times because it will be found as VERIFY_RESIZE in
@@ -632,16 +666,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 4)
 
-    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_migrate', autospec=True
+    )
     def test_watcher_non_live_migrate_instance_retry_default(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "status": "MIGRATING"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -652,7 +689,7 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -662,15 +699,18 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
-    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_migrate', autospec=True
+    )
     def test_watcher_non_live_migrate_instance_retry_custom(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test that watcher_non_live_migrate respects explicit retry value"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
         server.status = 'MIGRATING'  # Never reaches ACTIVE
 
         # Set config to a custom values to ensure custom values are used
@@ -685,7 +725,7 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node)
         # Should fail due to timeout
         self.assertFalse(is_success)
         # It should sleep migration_max_retries times with migration_interval
@@ -695,19 +735,22 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 3)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_retry_default_success(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": "migrating"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         kwargs["OS-EXT-SRV-ATTR:host"] = self.destination_node
-        migrated_server = self.fake_server(self.instance_uuid, **kwargs)
+        migrated_server = self.create_nova_server(**kwargs)
 
         nova_util.nova.servers.get.side_effect = (
             server, server, server, migrated_server)
@@ -719,7 +762,8 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node
+        )
         # Should succeed
         self.assertTrue(is_success)
         # It will sleep 2 times because it will be found as ACTIVE in
@@ -729,16 +773,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_retry_default(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": "migrating"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -749,7 +796,8 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node
+        )
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -759,16 +807,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_retry_custom(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test that live_migrate_instance uses config timeout by default"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "OS-EXT-STS:task_state": "migrating"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         # Set config value
         self.flags(migration_max_retries=20, migration_interval=1.5,
@@ -783,7 +834,8 @@ class TestNovaHelper(base.TestCase):
 
         # Should call once to migrate the instance
         mock_migrate.assert_called_once_with(
-            server, host=self.destination_node)
+            nova_util, self.instance_uuid, self.destination_node
+        )
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With migration_max_retries and migration_interval, should sleep 20
@@ -794,16 +846,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 1.5)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_no_dest_retry_default(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "status": "MIGRATING"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         self.fake_nova_find_list(nova_util, fake_find=server, fake_list=server)
 
@@ -813,7 +868,9 @@ class TestNovaHelper(base.TestCase):
         )
 
         # Should call once to migrate the instance
-        mock_migrate.assert_called_once_with(server, host=None)
+        mock_migrate.assert_called_once_with(
+            nova_util, self.instance_uuid, None
+        )
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With default migration_max_retries and migration_interval, should
@@ -824,16 +881,19 @@ class TestNovaHelper(base.TestCase):
         for call in self.mock_sleep.call_args_list:
             self.assertEqual(call[0][0], 5)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_live_migrate', autospec=True
+    )
     def test_live_migrate_instance_no_dest_retry_custom(
             self, mock_migrate, mock_cinder, mock_nova):
         """Test live_migrate with no destination uses config timeout"""
         nova_util = nova_helper.NovaHelper()
         kwargs = {
+            "id": self.instance_uuid,
             "OS-EXT-SRV-ATTR:host": self.source_node,
             "status": "MIGRATING"
         }
-        server = self.fake_server(self.instance_uuid, **kwargs)
+        server = self.create_nova_server(**kwargs)
 
         # Set config value
         self.flags(migration_max_retries=10, migration_interval=3,
@@ -847,7 +907,9 @@ class TestNovaHelper(base.TestCase):
         )
 
         # Should call once to migrate the instance
-        mock_migrate.assert_called_once_with(server, host=None)
+        mock_migrate.assert_called_once_with(
+            nova_util, self.instance_uuid, None
+        )
         # Should fail due to timeout
         self.assertFalse(is_success)
         # With migration_max_retries and migration_interval, should sleep 10
@@ -961,24 +1023,30 @@ class TestNovaHelper(base.TestCase):
         result = nova_util._check_nova_api_version(nova_util.nova, "2.56")
         self.assertFalse(result)
 
-    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    @mock.patch.object(
+        nova_helper.NovaHelper, '_instance_confirm_resize', autospec=True
+    )
     def test_confirm_resize(self, mock_confirm_resize, mock_cinder,
                             mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=instance,
                                  fake_list=None)
 
+        server = nova_helper.Server.from_novaclient(instance)
         # verify that the method will return True when the status of instance
         # is not in the expected status.
-        result = nova_util.confirm_resize(instance, instance.status)
+        result = nova_util.confirm_resize(server, server.status)
         self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertTrue(result)
 
         # verify that the method will return False when the status of instance
         # is not in the expected status.
         mock_confirm_resize.reset_mock()
-        result = nova_util.confirm_resize(instance, "fake_status")
+        result = nova_util.confirm_resize(server, "fake_status")
         self.assertEqual(1, mock_confirm_resize.call_count)
         self.assertFalse(result)
 
@@ -987,13 +1055,17 @@ class TestNovaHelper(base.TestCase):
         nova_util = nova_helper.NovaHelper()
         hypervisor1_id = utils.generate_uuid()
         hypervisor1_name = "fake_hypervisor_1"
-        hypervisor1 = self.fake_hypervisor(
-            hypervisor1_id, hypervisor1_name, hypervisor_type="QEMU")
+        hypervisor1 = self.create_nova_hypervisor(
+            hypervisor_id=hypervisor1_id, hostname=hypervisor1_name,
+            hypervisor_type="QEMU"
+        )
 
         hypervisor2_id = utils.generate_uuid()
         hypervisor2_name = "fake_ironic"
-        hypervisor2 = self.fake_hypervisor(
-            hypervisor2_id, hypervisor2_name, hypervisor_type="ironic")
+        hypervisor2 = self.create_nova_hypervisor(
+            hypervisor_id=hypervisor2_id, hostname=hypervisor2_name,
+            hypervisor_type="ironic"
+        )
 
         nova_util.nova.hypervisors.list.return_value = [hypervisor1,
                                                         hypervisor2]
@@ -1007,19 +1079,23 @@ class TestNovaHelper(base.TestCase):
 
     def test_find_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        self.fake_nova_find_list(nova_util, fake_find=instance,
-                                 fake_list=None)
-        nova_util.nova.servers.get.return_value = instance
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
+        self.fake_nova_find_list(nova_util, fake_find=instance, fake_list=None)
 
         result = nova_util.find_instance(self.instance_uuid)
         self.assertEqual(1, nova_util.nova.servers.get.call_count)
         self.mock_sleep.assert_not_called()
-        self.assertEqual(instance, result)
+        self.assertEqual(nova_helper.Server.from_novaclient(instance), result)
 
     def test_find_instance_retries(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=instance,
                                  fake_list=None)
         nova_util.nova.servers.get.side_effect = [
@@ -1030,12 +1106,15 @@ class TestNovaHelper(base.TestCase):
         result = nova_util.find_instance(self.instance_uuid)
         self.assertEqual(2, nova_util.nova.servers.get.call_count)
         self.assertEqual(1, self.mock_sleep.call_count)
-        self.assertEqual(instance, result)
+        self.assertEqual(nova_helper.Server.from_novaclient(instance), result)
 
     def test_find_instance_retries_exhausts_retries(self, mock_cinder,
                                                     mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         self.fake_nova_find_list(nova_util, fake_find=instance,
                                  fake_list=None)
         nova_util.nova.servers.get.side_effect = ksa_exc.ConnectionError(
@@ -1048,56 +1127,78 @@ class TestNovaHelper(base.TestCase):
 
     def test_nova_start_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        nova_util.nova_start_instance(instance.id)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
+        nova_util._nova_start_instance(instance.id)
         nova_util.nova.servers.start.assert_called_once_with(instance.id)
 
     def test_nova_stop_instance(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        nova_util.nova_stop_instance(instance.id)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
+        nova_util._nova_stop_instance(instance.id)
         nova_util.nova.servers.stop.assert_called_once_with(instance.id)
 
-    @mock.patch.object(servers.Server, 'resize', autospec=True)
-    def test_instance_resize(self, mock_resize, mock_cinder, mock_nova):
+    def test_instance_resize(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         flavor_name = "m1.small"
 
-        result = nova_util.instance_resize(instance, flavor_name)
-        mock_resize.assert_called_once_with(instance, flavor=flavor_name)
+        result = nova_util._instance_resize(instance, flavor_name)
+        nova_util.nova.servers.resize.assert_called_once_with(
+            instance, flavor=flavor_name
+        )
         self.assertTrue(result)
 
-    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
-    def test_instance_confirm_resize(self, mock_confirm_resize, mock_cinder,
+    def test_instance_confirm_resize(self, mock_cinder,
                                      mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        nova_util.instance_confirm_resize(instance)
-        mock_confirm_resize.assert_called_once_with(instance)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
+        nova_util._instance_confirm_resize(instance)
+        nova_util.nova.servers.confirm_resize.assert_called_once_with(instance)
 
-    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
-    def test_instance_live_migrate(self, mock_live_migrate, mock_cinder,
+    def test_instance_live_migrate(self, mock_cinder,
                                    mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         dest_hostname = "dest_hostname"
-        nova_util.instance_live_migrate(instance, dest_hostname)
-        mock_live_migrate.assert_called_once_with(
-            instance, host="dest_hostname")
+        nova_util._instance_live_migrate(instance, dest_hostname)
+        nova_util.nova.servers.live_migrate.assert_called_once_with(
+            instance, "dest_hostname", block_migration='auto'
+        )
 
-    @mock.patch.object(servers.Server, 'migrate', autospec=True)
-    def test_instance_migrate(self, mock_migrate, mock_cinder, mock_nova):
+    def test_instance_migrate(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
         dest_hostname = "dest_hostname"
-        nova_util.instance_migrate(instance, dest_hostname)
-        mock_migrate.assert_called_once_with(instance, host="dest_hostname")
+        nova_util._instance_migrate(instance, dest_hostname)
+        nova_util.nova.servers.migrate.assert_called_once_with(
+            instance, host="dest_hostname"
+        )
 
     def test_live_migration_abort(self, mock_cinder, mock_nova):
         nova_util = nova_helper.NovaHelper()
-        instance = self.fake_server(self.instance_uuid)
-        nova_util.live_migration_abort(instance.id, 1)
+        kwargs = {
+            "id": self.instance_uuid
+        }
+        instance = self.create_nova_server(**kwargs)
+        nova_util._live_migration_abort(instance.id, 1)
         nova_util.nova.server_migrations.live_migration_abort.\
             assert_called_once_with(server=instance.id, migration=1)
 
@@ -1259,37 +1360,56 @@ class TestNovaRetries(base.TestCase):
         self.assertEqual(1, self.mock_sleep.call_count)
 
 
-class TestServerWrapper(base.TestCase):
+class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Server dataclass."""
 
-    @staticmethod
-    def create_nova_server(server_id, **kwargs):
-        """Create a real novaclient Server object.
+    def test_server_post_init_valid_uuid(self):
+        """Test Server accepts valid UUID."""
+        valid_uuid = utils.generate_uuid()
+        server = nova_helper.Server(
+            uuid=valid_uuid,
+            name='test-server',
+            created='2026-01-01T00:00:00Z',
+            host='compute-1',
+            vm_state='active',
+            task_state=None,
+            power_state=1,
+            status='ACTIVE',
+            flavor={'id': '1'},
+            tenant_id='tenant-123',
+            locked=False,
+            metadata={},
+            availability_zone='nova',
+            pinned_availability_zone=None
+        )
+        self.assertEqual(valid_uuid, server.uuid)
 
-        :param server_id: server UUID
-        :param kwargs: additional server attributes
-        :returns: novaclient.v2.servers.Server object
-        """
-        server_info = {
-            'id': server_id,
-            'name': kwargs.pop('name', 'test-server'),
-            'status': kwargs.pop('status', 'ACTIVE'),
-            'created': kwargs.pop('created', '2026-01-09T12:00:00Z'),
-            'tenant_id': kwargs.pop('tenant_id', 'test-tenant-id'),
-            'locked': kwargs.pop('locked', False),
-            'metadata': kwargs.pop('metadata', {}),
-            'flavor': kwargs.pop('flavor', {'id': 'flavor-1'}),
-            'pinned_availability_zone': kwargs.pop(
-                'pinned_availability_zone', None),
-        }
-        server_info.update(kwargs)
-        return servers.Server(servers.ServerManager, info=server_info)
+    def test_server_post_init_invalid_uuid(self):
+        """Test Server raises InvalidUUID for invalid UUID."""
+        self.assertRaises(
+            exception.InvalidUUID,
+            nova_helper.Server,
+            uuid='not-a-valid-uuid',
+            name='test-server',
+            created='2026-01-01T00:00:00Z',
+            host='compute-1',
+            vm_state='active',
+            task_state=None,
+            power_state=1,
+            status='ACTIVE',
+            flavor={'id': '1'},
+            tenant_id='tenant-123',
+            locked=False,
+            metadata={},
+            availability_zone='nova',
+            pinned_availability_zone=None
+        )
 
     def test_server_basic_properties(self):
         """Test basic Server dataclass properties."""
         server_id = utils.generate_uuid()
         nova_server = self.create_nova_server(
-            server_id,
+            id=server_id,
             name='my-server',
             status='ACTIVE',
             created='2026-01-01T00:00:00Z',
@@ -1314,7 +1434,7 @@ class TestServerWrapper(base.TestCase):
         """Test Server dataclass extended attributes."""
         server_id = utils.generate_uuid()
         nova_server = self.create_nova_server(
-            server_id,
+            id=server_id,
             **{
                 'OS-EXT-SRV-ATTR:host': 'compute-1',
                 'OS-EXT-STS:vm_state': 'active',
@@ -1337,7 +1457,7 @@ class TestServerWrapper(base.TestCase):
         server_id = utils.generate_uuid()
 
         nova_server = self.create_nova_server(
-            server_id,
+            id=server_id,
             flavor={'id': 'flavor-123', 'name': 'm1.small'}
         )
         wrapped = nova_helper.Server.from_novaclient(nova_server)
@@ -1350,13 +1470,13 @@ class TestServerWrapper(base.TestCase):
         server_id2 = utils.generate_uuid()
 
         server1a = nova_helper.Server.from_novaclient(
-            self.create_nova_server(server_id1)
+            self.create_nova_server(id=server_id1)
         )
         server1b = nova_helper.Server.from_novaclient(
-            self.create_nova_server(server_id1)
+            self.create_nova_server(id=server_id1)
         )
         server2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(server_id2)
+            self.create_nova_server(id=server_id2)
         )
 
         # Same ID and attributes should be equal
@@ -1370,44 +1490,60 @@ class TestServerWrapper(base.TestCase):
         self.assertIsNotNone(server1a)
 
 
-class TestHypervisorWrapper(base.TestCase):
+class TestHypervisorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Hypervisor dataclass."""
 
-    @staticmethod
-    def create_nova_hypervisor(hypervisor_id, hostname, **kwargs):
-        """Create a real novaclient Hypervisor object.
+    def test_hypervisor_post_init_valid_uuid(self):
+        """Test Hypervisor accepts valid UUID."""
+        valid_uuid = utils.generate_uuid()
+        hypervisor = nova_helper.Hypervisor(
+            uuid=valid_uuid,
+            hypervisor_hostname='compute-1',
+            hypervisor_type='QEMU',
+            state='up',
+            status='enabled',
+            vcpus=32,
+            vcpus_used=8,
+            memory_mb=65536,
+            memory_mb_used=16384,
+            local_gb=1000,
+            local_gb_used=250,
+            service_host='compute-1',
+            service_id='svc-123',
+            service_disabled_reason=None,
+            servers=[]
+        )
+        self.assertEqual(valid_uuid, hypervisor.uuid)
 
-        :param hypervisor_id: hypervisor UUID
-        :param hostname: hypervisor hostname
-        :param kwargs: additional hypervisor attributes
-        :returns: novaclient.v2.hypervisors.Hypervisor object
-        """
-        hypervisor_info = {
-            'id': hypervisor_id,
-            'hypervisor_hostname': hostname,
-            'hypervisor_type': kwargs.pop('hypervisor_type', 'QEMU'),
-            'state': kwargs.pop('state', 'up'),
-            'status': kwargs.pop('status', 'enabled'),
-            'vcpus': kwargs.pop('vcpus', 16),
-            'vcpus_used': kwargs.pop('vcpus_used', 4),
-            'memory_mb': kwargs.pop('memory_mb', 32768),
-            'memory_mb_used': kwargs.pop('memory_mb_used', 8192),
-            'local_gb': kwargs.pop('local_gb', 500),
-            'local_gb_used': kwargs.pop('local_gb_used', 100),
-            'service': kwargs.pop('service', {'host': hostname, 'id': 1}),
-            'servers': kwargs.pop('servers', None),
-        }
-        hypervisor_info.update(kwargs)
-        return hypervisors.Hypervisor(
-            hypervisors.HypervisorManager, info=hypervisor_info)
+    def test_hypervisor_post_init_invalid_uuid(self):
+        """Test Hypervisor raises InvalidUUID for invalid UUID."""
+        self.assertRaises(
+            exception.InvalidUUID,
+            nova_helper.Hypervisor,
+            uuid='invalid-uuid-format',
+            hypervisor_hostname='compute-1',
+            hypervisor_type='QEMU',
+            state='up',
+            status='enabled',
+            vcpus=32,
+            vcpus_used=8,
+            memory_mb=65536,
+            memory_mb_used=16384,
+            local_gb=1000,
+            local_gb_used=250,
+            service_host='compute-1',
+            service_id='svc-123',
+            service_disabled_reason=None,
+            servers=[]
+        )
 
     def test_hypervisor_basic_properties(self):
         """Test basic Hypervisor dataclass properties."""
         hypervisor_id = utils.generate_uuid()
         hostname = 'compute-node-1'
         nova_hypervisor = self.create_nova_hypervisor(
-            hypervisor_id,
-            hostname,
+            hypervisor_id=hypervisor_id,
+            hostname=hostname,
             hypervisor_type='QEMU',
             state='up',
             status='enabled',
@@ -1435,11 +1571,10 @@ class TestHypervisorWrapper(base.TestCase):
 
     def test_hypervisor_service_properties(self):
         """Test Hypervisor dataclass service properties."""
-        hypervisor_id = utils.generate_uuid()
         hostname = 'compute-node-1'
         nova_hypervisor = self.create_nova_hypervisor(
-            hypervisor_id,
-            hostname,
+            hypervisor_id=utils.generate_uuid(),
+            hostname=hostname,
             service={
                 'host': hostname,
                 'id': 42,
@@ -1455,11 +1590,9 @@ class TestHypervisorWrapper(base.TestCase):
 
     def test_hypervisor_service_not_dict(self):
         """Test Hypervisor dataclass when service is not a dict."""
-        hypervisor_id = utils.generate_uuid()
-        hostname = 'compute-node-1'
         nova_hypervisor = self.create_nova_hypervisor(
-            hypervisor_id,
-            hostname,
+            hypervisor_id=utils.generate_uuid(),
+            hostname='compute-node-1',
             service='not-a-dict'
         )
 
@@ -1487,8 +1620,8 @@ class TestHypervisorWrapper(base.TestCase):
         }
 
         nova_hypervisor = self.create_nova_hypervisor(
-            hypervisor_id,
-            hostname,
+            hypervisor_id=hypervisor_id,
+            hostname=hostname,
             servers=[server1, server2]
         )
 
@@ -1502,11 +1635,9 @@ class TestHypervisorWrapper(base.TestCase):
 
     def test_hypervisor_servers_none(self):
         """Test Hypervisor dataclass when servers is None."""
-        hypervisor_id = utils.generate_uuid()
-        hostname = 'compute-node-1'
         nova_hypervisor = self.create_nova_hypervisor(
-            hypervisor_id,
-            hostname,
+            hypervisor_id=utils.generate_uuid(),
+            hostname='compute-node-1',
             servers=None
         )
 
@@ -1544,37 +1675,15 @@ class TestHypervisorWrapper(base.TestCase):
         self.assertNotEqual(hyp1a, "not-a-hypervisor")
 
 
-class TestFlavorWrapper(base.TestCase):
+class TestFlavorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Flavor dataclass."""
-
-    @staticmethod
-    def create_nova_flavor(flavor_id, name, **kwargs):
-        """Create a real novaclient Flavor object.
-
-        :param flavor_id: flavor ID
-        :param name: flavor name
-        :param kwargs: additional flavor attributes
-        :returns: novaclient.v2.flavors.Flavor object
-        """
-        flavor_info = {
-            'id': flavor_id,
-            'name': name,
-            'vcpus': kwargs.pop('vcpus', 2),
-            'ram': kwargs.pop('ram', 2048),
-            'disk': kwargs.pop('disk', 20),
-            'OS-FLV-EXT-DATA:ephemeral': kwargs.pop('ephemeral', 0),
-            'swap': kwargs.pop('swap', ''),
-            'os-flavor-access:is_public': kwargs.pop('is_public', True),
-        }
-        flavor_info.update(kwargs)
-        return flavors.Flavor(flavors.FlavorManager, info=flavor_info)
 
     def test_flavor_basic_properties(self):
         """Test basic Flavor dataclass properties."""
         flavor_id = utils.generate_uuid()
         nova_flavor = self.create_nova_flavor(
-            flavor_id,
-            'm1.small',
+            id=flavor_id,
+            name='m1.small',
             vcpus=2,
             ram=2048,
             disk=20,
@@ -1598,8 +1707,8 @@ class TestFlavorWrapper(base.TestCase):
         """Test Flavor dataclass with empty swap string."""
         flavor_id = utils.generate_uuid()
         nova_flavor = self.create_nova_flavor(
-            flavor_id,
-            'm1.noswap',
+            id=flavor_id,
+            name='m1.noswap',
             swap=''
         )
 
@@ -1610,8 +1719,8 @@ class TestFlavorWrapper(base.TestCase):
         """Test Flavor dataclass with private flavor."""
         flavor_id = utils.generate_uuid()
         nova_flavor = self.create_nova_flavor(
-            flavor_id,
-            'm1.private',
+            id=flavor_id,
+            name='m1.private',
             is_public=False
         )
 
@@ -1622,8 +1731,8 @@ class TestFlavorWrapper(base.TestCase):
         """Test Flavor dataclass with extra_specs."""
         flavor_id = utils.generate_uuid()
         nova_flavor = self.create_nova_flavor(
-            flavor_id,
-            'm1.compute',
+            id=flavor_id,
+            name='m1.compute',
             extra_specs={'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': '2'}
         )
 
@@ -1638,8 +1747,8 @@ class TestFlavorWrapper(base.TestCase):
         """Test Flavor dataclass without extra_specs."""
         flavor_id = utils.generate_uuid()
         nova_flavor = self.create_nova_flavor(
-            flavor_id,
-            'm1.basic'
+            id=flavor_id,
+            name='m1.basic'
         )
 
         wrapped = nova_helper.Flavor.from_novaclient(nova_flavor)
@@ -1651,11 +1760,11 @@ class TestFlavorWrapper(base.TestCase):
         flavor_id2 = utils.generate_uuid()
 
         flavor1a = nova_helper.Flavor.from_novaclient(
-            self.create_nova_flavor(flavor_id1, 'm1.small'))
+            self.create_nova_flavor(id=flavor_id1, name='m1.small'))
         flavor1b = nova_helper.Flavor.from_novaclient(
-            self.create_nova_flavor(flavor_id1, 'm1.small'))
+            self.create_nova_flavor(id=flavor_id1, name='m1.small'))
         flavor2 = nova_helper.Flavor.from_novaclient(
-            self.create_nova_flavor(flavor_id2, 'm1.large'))
+            self.create_nova_flavor(id=flavor_id2, name='m1.large'))
 
         # Same ID and attributes should be equal
         self.assertEqual(flavor1a, flavor1b)
@@ -1667,37 +1776,15 @@ class TestFlavorWrapper(base.TestCase):
         self.assertNotEqual(flavor1a, "not-a-flavor")
 
 
-class TestAggregateWrapper(base.TestCase):
+class TestAggregateWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Aggregate dataclass."""
-
-    @staticmethod
-    def create_nova_aggregate(aggregate_id, name, **kwargs):
-        """Create a real novaclient Aggregate object.
-
-        :param aggregate_id: aggregate ID
-        :param name: aggregate name
-        :param kwargs: additional aggregate attributes
-        :returns: novaclient.v2.aggregates.Aggregate object
-        """
-        from novaclient.v2 import aggregates
-
-        aggregate_info = {
-            'id': aggregate_id,
-            'name': name,
-            'availability_zone': kwargs.pop('availability_zone', None),
-            'hosts': kwargs.pop('hosts', []),
-            'metadata': kwargs.pop('metadata', {}),
-        }
-        aggregate_info.update(kwargs)
-        return aggregates.Aggregate(
-            aggregates.AggregateManager, info=aggregate_info)
 
     def test_aggregate_basic_properties(self):
         """Test basic Aggregate dataclass properties."""
         aggregate_id = utils.generate_uuid()
         nova_aggregate = self.create_nova_aggregate(
-            aggregate_id,
-            'test-aggregate',
+            id=aggregate_id,
+            name='test-aggregate',
             availability_zone='az1',
             hosts=['host1', 'host2', 'host3'],
             metadata={'ssd': 'true', 'gpu': 'nvidia'}
@@ -1715,8 +1802,8 @@ class TestAggregateWrapper(base.TestCase):
         """Test Aggregate dataclass without availability zone."""
         aggregate_id = utils.generate_uuid()
         nova_aggregate = self.create_nova_aggregate(
-            aggregate_id,
-            'test-aggregate',
+            id=aggregate_id,
+            name='test-aggregate',
             availability_zone=None
         )
 
@@ -1729,11 +1816,11 @@ class TestAggregateWrapper(base.TestCase):
         aggregate_id2 = utils.generate_uuid()
 
         agg1a = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(aggregate_id1, 'agg1'))
+            self.create_nova_aggregate(id=aggregate_id1, name='agg1'))
         agg1b = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(aggregate_id1, 'agg1'))
+            self.create_nova_aggregate(id=aggregate_id1, name='agg1'))
         agg2 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(aggregate_id2, 'agg2'))
+            self.create_nova_aggregate(id=aggregate_id2, name='agg2'))
 
         # Same ID and attributes should be equal
         self.assertEqual(agg1a, agg1b)
@@ -1745,37 +1832,44 @@ class TestAggregateWrapper(base.TestCase):
         self.assertNotEqual(agg1a, "not-an-aggregate")
 
 
-class TestServiceWrapper(base.TestCase):
+class TestServiceWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Service dataclass."""
 
-    @staticmethod
-    def create_nova_service(service_id, **kwargs):
-        """Create a real novaclient Service object.
+    def test_service_post_init_valid_uuid(self):
+        """Test Service accepts valid UUID."""
+        valid_uuid = utils.generate_uuid()
+        service = nova_helper.Service(
+            uuid=valid_uuid,
+            binary='nova-compute',
+            host='compute-1',
+            zone='nova',
+            status='enabled',
+            state='up',
+            updated_at='2026-01-01T00:00:00Z',
+            disabled_reason=None
+        )
+        self.assertEqual(valid_uuid, service.uuid)
 
-        :param service_id: service ID
-        :param kwargs: additional service attributes
-        :returns: novaclient.v2.services.Service object
-        """
-        from novaclient.v2 import services
-
-        service_info = {
-            'id': service_id,
-            'binary': kwargs.pop('binary', 'nova-compute'),
-            'host': kwargs.pop('host', 'compute-1'),
-            'zone': kwargs.pop('zone', 'nova'),
-            'status': kwargs.pop('status', 'enabled'),
-            'state': kwargs.pop('state', 'up'),
-            'updated_at': kwargs.pop('updated_at', '2026-01-09T12:00:00Z'),
-            'disabled_reason': kwargs.pop('disabled_reason', None),
-        }
-        service_info.update(kwargs)
-        return services.Service(services.ServiceManager, info=service_info)
+    def test_service_post_init_invalid_uuid(self):
+        """Test Service raises InvalidUUID for invalid UUID."""
+        self.assertRaises(
+            exception.InvalidUUID,
+            nova_helper.Service,
+            uuid='bad-uuid',
+            binary='nova-compute',
+            host='compute-1',
+            zone='nova',
+            status='enabled',
+            state='up',
+            updated_at='2026-01-01T00:00:00Z',
+            disabled_reason=None
+        )
 
     def test_service_basic_properties(self):
         """Test basic Service dataclass properties."""
         service_id = utils.generate_uuid()
         nova_service = self.create_nova_service(
-            service_id,
+            id=service_id,
             binary='nova-compute',
             host='compute-node-1',
             zone='az1',
@@ -1800,7 +1894,7 @@ class TestServiceWrapper(base.TestCase):
         """Test Service dataclass with disabled service."""
         service_id = utils.generate_uuid()
         nova_service = self.create_nova_service(
-            service_id,
+            id=service_id,
             status='disabled',
             state='down',
             disabled_reason='maintenance'
@@ -1818,11 +1912,11 @@ class TestServiceWrapper(base.TestCase):
         service_id2 = utils.generate_uuid()
 
         svc1a = nova_helper.Service.from_novaclient(
-            self.create_nova_service(service_id1))
+            self.create_nova_service(id=service_id1))
         svc1b = nova_helper.Service.from_novaclient(
-            self.create_nova_service(service_id1))
+            self.create_nova_service(id=service_id1))
         svc2 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(service_id2))
+            self.create_nova_service(id=service_id2))
 
         # Same ID and attributes should be equal
         self.assertEqual(svc1a, svc1b)
@@ -1834,25 +1928,137 @@ class TestServiceWrapper(base.TestCase):
         self.assertNotEqual(svc1a, "not-a-service")
 
 
-class TestServerMigrationWrapper(base.TestCase):
+class TestHandleNovaError(base.TestCase):
+    """Test suite for the handle_nova_error decorator."""
+
+    def test_handle_nova_error_returns_result_on_success(self):
+        """Test that decorator returns result when function succeeds."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            return "success"
+
+        result = mock_function(None, "instance-123")
+        self.assertEqual("success", result)
+
+    def test_handle_nova_error_returns_none_on_not_found(self):
+        """Test that decorator raises when NotFound is raised."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            raise nvexceptions.NotFound("404")
+
+        self.assertRaisesRegex(
+            exception.ComputeResourceNotFound,
+            "instance-123 of type Instance",
+            mock_function, None, "instance-123"
+        )
+
+    @mock.patch.object(nova_helper, 'LOG', autospec=True)
+    def test_handle_nova_error_logs_debug_message(self, mock_log):
+        """Test that decorator logs debug message on NotFound."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            raise nvexceptions.NotFound("404")
+
+        self.assertRaisesRegex(
+            exception.ComputeResourceNotFound,
+            "instance-123 of type Instance",
+            mock_function, None, "instance-123"
+        )
+
+        mock_log.debug.assert_called_once_with(
+            "%s %s was not found", "Instance", "instance-123")
+
+    def test_handle_nova_error_with_custom_resource_type(self):
+        """Test that decorator uses custom resource type in log message."""
+        @nova_helper.handle_nova_error("Flavor")
+        def mock_function(self, flavor_id):
+            raise nvexceptions.NotFound("404")
+
+        with mock.patch.object(nova_helper, 'LOG', autospec=True) as mock_log:
+            self.assertRaisesRegex(
+                exception.ComputeResourceNotFound,
+                "flavor-abc of type Flavor",
+                mock_function, None, "flavor-abc"
+            )
+            mock_log.debug.assert_called_once_with(
+                "%s %s was not found", "Flavor", "flavor-abc")
+
+    def test_handle_nova_error_with_custom_id_arg_index(self):
+        """Test that decorator uses custom id_arg_index."""
+        @nova_helper.handle_nova_error("Aggregate", id_arg_index=2)
+        def mock_function(self, other_arg, aggregate_id):
+            raise nvexceptions.NotFound("404")
+
+        with mock.patch.object(nova_helper, 'LOG', autospec=True) as mock_log:
+            self.assertRaisesRegex(
+                exception.ComputeResourceNotFound,
+                "agg-123 of type Aggregate",
+                mock_function, None, "other", "agg-123"
+            )
+            mock_log.debug.assert_called_once_with(
+                "%s %s was not found", "Aggregate", "agg-123")
+
+    def test_handle_nova_error_logs_unknown_when_no_id_arg(self):
+        """Test that decorator logs 'unknown' when id arg is missing."""
+        @nova_helper.handle_nova_error("Instance", id_arg_index=5)
+        def mock_function(self, instance_id):
+            raise nvexceptions.NotFound("404")
+
+        with mock.patch.object(nova_helper, 'LOG', autospec=True) as mock_log:
+            self.assertRaisesRegex(
+                exception.ComputeResourceNotFound,
+                "unknown of type Instance",
+                mock_function, None, "instance-123"
+            )
+            mock_log.debug.assert_called_once_with(
+                "%s %s was not found", "Instance", "unknown")
+
+    def test_handle_nova_error_propagates_non_nova_exceptions(self):
+        """Test that decorator doesn't catch non-novaclient exceptions."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            raise ValueError("Some other error")
+
+        self.assertRaises(ValueError, mock_function, None, "instance-123")
+
+    def test_handle_nova_error_reraises_client_exception(self):
+        """Test that ClientException is re-raised as NovaClientError."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            raise nvexceptions.ClientException("Nova error")
+
+        self.assertRaises(
+            exception.NovaClientError, mock_function, None, "instance-123")
+
+    def test_handle_nova_error_logs_client_exception(self):
+        """Test that ClientException is logged before re-raising."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, instance_id):
+            raise nvexceptions.ClientException("Nova error")
+
+        self.assertRaises(
+            exception.NovaClientError, mock_function, None, "instance-123")
+
+    def test_handle_nova_error_preserves_function_args(self):
+        """Test that decorator preserves function arguments and return."""
+        @nova_helper.handle_nova_error("Instance")
+        def mock_function(self, arg1, kwarg1=None):
+            return f"{arg1}-{kwarg1}"
+
+        result = mock_function(None, "a", kwarg1="b")
+        self.assertEqual("a-b", result)
+
+    def test_handle_nova_error_preserves_function_name(self):
+        """Test that decorator preserves function metadata."""
+        @nova_helper.handle_nova_error("Instance")
+        def my_function(self, instance_id):
+            return "result"
+
+        self.assertEqual("my_function", my_function.__name__)
+
+
+class TestServerMigrationWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the ServerMigration dataclass."""
-
-    @staticmethod
-    def create_nova_migration(migration_id, **kwargs):
-        """Create a real novaclient ServerMigration object.
-
-        :param migration_id: migration ID
-        :param kwargs: additional migration attributes
-        :returns: novaclient.v2.server_migrations.ServerMigration object
-        """
-        from novaclient.v2 import server_migrations
-
-        migration_info = {
-            'id': migration_id,
-        }
-        migration_info.update(kwargs)
-        return server_migrations.ServerMigration(
-            server_migrations.ServerMigrationsManager, info=migration_info)
 
     def test_migration_basic_properties(self):
         """Test basic ServerMigration dataclass properties."""

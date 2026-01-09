@@ -16,9 +16,11 @@ import fixtures
 from unittest import mock
 
 import cinderclient
-import novaclient
+
+from watcher.common import nova_helper
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
+from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.decision_engine.model import faker_cluster_state
 from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
     import TestBaseStrategy
@@ -26,7 +28,7 @@ from watcher.tests.unit.decision_engine.strategy.strategies.test_base \
 volume_uuid_mapping = faker_cluster_state.volume_uuid_mapping
 
 
-class TestZoneMigration(TestBaseStrategy):
+class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def setUp(self):
         super().setUp()
@@ -85,21 +87,6 @@ class TestZoneMigration(TestBaseStrategy):
                 autospec=False)).mock.return_value
 
     @staticmethod
-    def fake_instance(**kwargs):
-        instance = mock.MagicMock(spec=novaclient.v2.servers.Server)
-        instance.id = kwargs.get('id', utils.generate_uuid())
-        instance.name = kwargs.get('name', 'fake_name')
-        instance.status = kwargs.get('status', 'ACTIVE')
-        instance.tenant_id = kwargs.get('project_id', None)
-        instance.flavor = {'id': kwargs.get('flavor_id', None)}
-        setattr(instance, 'OS-EXT-SRV-ATTR:host', kwargs.get('host'))
-        setattr(instance, 'created_at',
-                kwargs.get('created_at', '1977-01-01T00:00:00'))
-        setattr(instance, 'OS-EXT-STS:vm_state', kwargs.get('state', 'active'))
-
-        return instance
-
-    @staticmethod
     def fake_volume(**kwargs):
         volume = mock.MagicMock(spec=cinderclient.v3.volumes.Volume)
         volume.id = kwargs.get('id', utils.generate_uuid())
@@ -131,18 +118,33 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(sorted(instances), sorted(["src1", "src2"]))
 
     def test_get_instances(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src2 = self.fake_instance(
-            host="src2",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
-        instance_on_src3 = self.fake_instance(
-            host="src3",
-            id="INSTANCE_3",
-            name="INSTANCE_3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -160,9 +162,15 @@ class TestZoneMigration(TestBaseStrategy):
     def test_get_instances_with_instance_not_found(self):
         # Create a test instance without a known id
         # so we expect it to not be in the model
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            name="INSTANCE_1")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d8f0ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
 
         # Mock nova helper to return our test instance
         self.m_n_helper.get_instance_list.return_value = [instance_on_src1]
@@ -474,10 +482,15 @@ class TestZoneMigration(TestBaseStrategy):
     # execute #
 
     def test_execute_live_migrate_instance(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
         ]
@@ -494,10 +507,15 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_live_migrate_instance_no_dst_node(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
         ]
@@ -510,12 +528,16 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertNotIn('destination_node', migration_params)
 
     def test_execute_cold_migrate_instance(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        setattr(instance_on_src1, "status", "SHUTOFF")
-        setattr(instance_on_src1, "OS-EXT-STS:vm_state", "stopped")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "status": "SHUTOFF",
+            "OS-EXT-STS:vm_state": "stopped",
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
         ]
@@ -593,11 +615,16 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(100, global_efficacy_value)
 
     def test_execute_migrate_volume_no_compute_nodes(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        vol_attach = [{"server_id": instance_on_src1.id}]
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        vol_attach = [{"server_id": instance_on_src1.uuid}]
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
         ]
@@ -882,14 +909,24 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(0, len(solution.actions))
 
     def test_execute_live_migrate_instance_parallel(self):
-        instance_on_src1_1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src1_2 = self.fake_instance(
-            host="src2",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src1_2,
@@ -909,14 +946,24 @@ class TestZoneMigration(TestBaseStrategy):
     def test_execute_parallel_per_node(self):
         self.input_parameters["parallel_per_node"] = 1
 
-        instance_on_src1_1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src1_2 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src1_2,
@@ -1010,14 +1057,24 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(1, migration_types.get("migrate", 0))
 
     def test_execute_mixed_instances_volumes(self):
-        instance_on_src1_1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src2_2 = self.fake_instance(
-            host="src2",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2_2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src2_2,
@@ -1073,7 +1130,7 @@ class TestZoneMigration(TestBaseStrategy):
                  'source_node': 'src1',
                  'destination_node': 'dst1',
                  'resource_name': 'INSTANCE_1',
-                 'resource_id': 'INSTANCE_1'}}
+                 'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03'}}
         ]
         migrated_volumes = [action
                             for action in solution.actions
@@ -1101,18 +1158,33 @@ class TestZoneMigration(TestBaseStrategy):
         self.assertEqual(second_action['migration_type'], 'live')
 
     def test_execute_mixed_instances_volumes_with_attached(self):
-        instance_on_src1_1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src2_2 = self.fake_instance(
-            host="src2",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
-        instance_on_src1_3 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_3",
-            name="INSTANCE_3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2_2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1_3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
             instance_on_src2_2,
@@ -1135,8 +1207,10 @@ class TestZoneMigration(TestBaseStrategy):
         ]
 
         volume_on_src1_1.status = 'in-use'
-        volume_on_src1_1.attachments = [{"server_id": "INSTANCE_3",
-                                        "attachment_id": "attachment1"}]
+        volume_on_src1_1.attachments = [{
+            "server_id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "attachment_id": "attachment1"
+        }]
 
         self.input_parameters["compute_nodes"] = [
             {"src_node": "src1", "dst_node": "dst1"},
@@ -1175,14 +1249,14 @@ class TestZoneMigration(TestBaseStrategy):
                  'source_node': 'src1',
                  'destination_node': 'dst1',
                  'resource_name': 'INSTANCE_3',
-                 'resource_id': 'INSTANCE_3'}},
+                 'resource_id': 'd030ef1f-dc19-4982-9383-087498bfde03'}},
             {'action_type': 'migrate',
              'input_parameters':
                 {'migration_type': 'live',
                  'source_node': 'src1',
                  'destination_node': 'dst1',
                  'resource_name': 'INSTANCE_1',
-                 'resource_id': 'INSTANCE_1'}}
+                 'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03'}}
         ]
         migrated_volumes = [action
                             for action in solution.actions
@@ -1254,18 +1328,33 @@ class TestZoneMigration(TestBaseStrategy):
     # ComputeHostSortFilter #
 
     def test_filtered_targets_compute_nodes(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1",
-            id="INSTANCE_1",
-            name="INSTANCE_1")
-        instance_on_src2 = self.fake_instance(
-            host="src2",
-            id="INSTANCE_2",
-            name="INSTANCE_2")
-        instance_on_src3 = self.fake_instance(
-            host="src3",
-            id="INSTANCE_3",
-            name="INSTANCE_3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -1314,12 +1403,36 @@ class TestZoneMigration(TestBaseStrategy):
     # ProjectSortFilter #
 
     def test_filtered_targets_project(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1", id="INSTANCE_1", name='INSTANCE_1', project_id="pj2")
-        instance_on_src2 = self.fake_instance(
-            host="src2", id="INSTANCE_2", name='INSTANCE_2', project_id="pj1")
-        instance_on_src3 = self.fake_instance(
-            host="src3", id="INSTANCE_3", name='INSTANCE_3', project_id="pj3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "project_id": "pj2",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "project_id": "pj1",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "project_id": "pj3",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -1354,31 +1467,55 @@ class TestZoneMigration(TestBaseStrategy):
 
         targets = self.strategy.filtered_targets()
         self.assertEqual(targets.get('instance'),
-                         [instance_on_src2, instance_on_src1])
+                         [instance_on_src1, instance_on_src2])
         self.assertEqual(targets.get('volume'),
                          [volume_on_src2, volume_on_src1])
         self.assertEqual(targets,
-                         {"instance": [instance_on_src2, instance_on_src1],
+                         {"instance": [instance_on_src1, instance_on_src2],
                           "volume": [volume_on_src2, volume_on_src1]})
 
     # ComputeSpecSortFilter #
 
     def test_filtered_targets_instance_mem_size(self):
-        flavor_64 = self.fake_flavor(id="1", mem_size="64")
-        flavor_128 = self.fake_flavor(id="2", mem_size="128")
-        flavor_512 = self.fake_flavor(id="3", mem_size="512")
+        flavor_64 = self.create_nova_flavor(id="1", ram="64", vcpus=1, disk=1)
+        flavor_128 = self.create_nova_flavor(id="2", ram=128, vcpus=1, disk=1)
+        flavor_512 = self.create_nova_flavor(id="3", ram=512, vcpus=1, disk=1)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_64,
             flavor_128,
             flavor_512,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
-                                              id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
-                                              id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
-                                              id="INSTANCE_3", flavor_id="3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "1"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "2"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "3"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -1396,21 +1533,45 @@ class TestZoneMigration(TestBaseStrategy):
                          [instance_on_src2, instance_on_src1])
 
     def test_filtered_targets_instance_vcpu_num(self):
-        flavor_1 = self.fake_flavor(id="1", vcpu_num="1")
-        flavor_2 = self.fake_flavor(id="2", vcpu_num="2")
-        flavor_3 = self.fake_flavor(id="3", vcpu_num="3")
+        flavor_1 = self.create_nova_flavor(id="1", ram=1, vcpus=1, disk=1)
+        flavor_2 = self.create_nova_flavor(id="2", ram=1, vcpus=2, disk=1)
+        flavor_3 = self.create_nova_flavor(id="3", ram=1, vcpus=3, disk=1)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_1,
             flavor_2,
             flavor_3,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
-                                              id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
-                                              id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
-                                              id="INSTANCE_3", flavor_id="3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "1"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "2"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "3"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -1428,21 +1589,45 @@ class TestZoneMigration(TestBaseStrategy):
                          [instance_on_src2, instance_on_src1])
 
     def test_filtered_targets_instance_disk_size(self):
-        flavor_1 = self.fake_flavor(id="1", disk_size="1")
-        flavor_2 = self.fake_flavor(id="2", disk_size="2")
-        flavor_3 = self.fake_flavor(id="3", disk_size="3")
+        flavor_1 = self.create_nova_flavor(id="1", ram=1, vcpus=1, disk=1)
+        flavor_2 = self.create_nova_flavor(id="2", ram=1, vcpus=1, disk=2)
+        flavor_3 = self.create_nova_flavor(id="3", ram=1, vcpus=1, disk=3)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_1,
             flavor_2,
             flavor_3,
         ]
 
-        instance_on_src1 = self.fake_instance(host="src1", name="INSTANCE_1",
-                                              id="INSTANCE_1", flavor_id="1")
-        instance_on_src2 = self.fake_instance(host="src2", name="INSTANCE_2",
-                                              id="INSTANCE_2", flavor_id="2")
-        instance_on_src3 = self.fake_instance(host="src3", name="INSTANCE_3",
-                                              id="INSTANCE_3", flavor_id="3")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "1"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "2"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "flavor": {"id": "3"},
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,
@@ -1460,15 +1645,36 @@ class TestZoneMigration(TestBaseStrategy):
                          [instance_on_src2, instance_on_src1])
 
     def test_filtered_targets_instance_created_at(self):
-        instance_on_src1 = self.fake_instance(
-            host="src1", id="INSTANCE_1",
-            name="INSTANCE_1", created_at="2017-10-30T00:00:00")
-        instance_on_src2 = self.fake_instance(
-            host="src2", id="INSTANCE_2",
-            name="INSTANCE_2", created_at="1977-03-29T03:03:03")
-        instance_on_src3 = self.fake_instance(
-            host="src3", id="INSTANCE_3",
-            name="INSTANCE_3", created_at="1977-03-29T03:03:03")
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "created": "2017-10-30T00:00:00",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src1 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "created": "1977-03-29T03:03:03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src2 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
+        server_info = {
+            "OS-EXT-SRV-ATTR:host": "src3",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "created": "1977-03-29T03:03:03",
+            "OS-EXT-STS:vm_state": "active"
+        }
+        instance_on_src3 = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**server_info)
+        )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
             instance_on_src2,

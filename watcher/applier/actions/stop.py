@@ -66,7 +66,7 @@ class Stop(base.BaseAction):
 
         try:
             result = nova.stop_instance(instance_id=self.instance_uuid)
-        except nova_helper.nvexceptions.ClientException as e:
+        except exception.NovaClientError as e:
             LOG.debug("Nova client exception occurred while stopping "
                       "instance %(instance)s. Exception: %(exception)s",
                       {'instance': self.instance_uuid, 'exception': e})
@@ -152,7 +152,7 @@ class Stop(base.BaseAction):
         # Check that the instance exists
         try:
             instance = nova.find_instance(self.instance_uuid)
-        except nova_helper.nvexceptions.NotFound:
+        except exception.ComputeResourceNotFound:
             raise exception.ActionSkipped(
                 _("Instance %s not found") % self.instance_uuid)
 

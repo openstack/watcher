@@ -86,27 +86,37 @@ class TestBasicConsolidation(TestBaseStrategy):
     def test_basic_consolidation_score_instance(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_0_score = 0.023333333333333317
         self.assertEqual(
             instance_0_score,
             self.strategy.calculate_score_instance(instance_0))
-        instance_1 = model.get_instance_by_uuid("INSTANCE_1")
+        instance_1 = model.get_instance_by_uuid(
+            "d010ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_1_score = 0.023333333333333317
         self.assertEqual(
             instance_1_score,
             self.strategy.calculate_score_instance(instance_1))
-        instance_2 = model.get_instance_by_uuid("INSTANCE_2")
+        instance_2 = model.get_instance_by_uuid(
+            "d020ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_2_score = 0.033333333333333326
         self.assertEqual(
             instance_2_score,
             self.strategy.calculate_score_instance(instance_2))
-        instance_6 = model.get_instance_by_uuid("INSTANCE_6")
+        instance_6 = model.get_instance_by_uuid(
+            "d060ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_6_score = 0.02666666666666669
         self.assertEqual(
             instance_6_score,
             self.strategy.calculate_score_instance(instance_6))
-        instance_7 = model.get_instance_by_uuid("INSTANCE_7")
+        instance_7 = model.get_instance_by_uuid(
+            "d070ef1f-dc19-4982-9383-087498bfde03"
+        )
         instance_7_score = 0.013333333333333345
         self.assertEqual(
             instance_7_score,
@@ -124,7 +134,9 @@ class TestBasicConsolidation(TestBaseStrategy):
     def test_basic_consolidation_weight(self):
         model = self.fake_c_cluster.generate_scenario_1()
         self.m_c_model.return_value = model
-        instance_0 = model.get_instance_by_uuid("INSTANCE_0")
+        instance_0 = model.get_instance_by_uuid(
+            "d000ef1f-dc19-4982-9383-087498bfde03"
+        )
         cores = 16
         # 80 Go
         disk = 80

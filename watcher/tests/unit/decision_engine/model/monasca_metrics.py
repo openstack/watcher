@@ -99,16 +99,21 @@ class FakeMonascaMetrics:
         measurements = {}
         # node 0
         measurements['INSTANCE_0'] = 7
+        measurements['d000ef1f-dc19-4982-9383-087498bfde03'] = 7
+        measurements['d010ef1f-dc19-4982-9383-087498bfde03'] = 7
         measurements['INSTANCE_1'] = 7
         # node 1
+        measurements['d020ef1f-dc19-4982-9383-087498bfde03'] = 10
         measurements['INSTANCE_2'] = 10
         # node 2
         measurements['INSTANCE_3'] = 5
         measurements['INSTANCE_4'] = 5
         measurements['INSTANCE_5'] = 10
         # node 3
+        measurements['d060ef1f-dc19-4982-9383-087498bfde03'] = 8
         measurements['INSTANCE_6'] = 8
         # node 4
+        measurements['d070ef1f-dc19-4982-9383-087498bfde03'] = 4
         measurements['INSTANCE_7'] = 4
 
         if uuid not in measurements.keys():

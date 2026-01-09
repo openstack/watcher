@@ -95,16 +95,17 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             model.add_node(node)
 
         for i in range(0, instance_count):
-            instance_uuid = f"INSTANCE_{i}"
-            if instance_uuid == "INSTANCE_1":
+            instance_name = f"INSTANCE_{i}"
+            instance_uuid = f"d{i:02}0ef1f-dc19-4982-9383-087498bfde03"
+            if instance_name == "INSTANCE_1":
                 project_id = "26F03131-32CB-4697-9D61-9123F87A8147"
-            elif instance_uuid == "INSTANCE_2":
+            elif instance_name == "INSTANCE_2":
                 project_id = "109F7909-0607-4712-B32C-5CC6D49D2F15"
             else:
                 project_id = "91FFFE30-78A0-4152-ACD2-8310FF274DC9"
             instance_attributes = {
                 "uuid": instance_uuid,
-                "name": instance_uuid,
+                "name": instance_name,
                 "memory": 2,
                 "disk": 20,
                 "disk_capacity": 20,
@@ -119,14 +120,14 @@ class FakerModelCollector(base.BaseClusterDataModelCollector):
             model.add_instance(instance)
 
         mappings = [
-            ("INSTANCE_0", "Node_0"),
-            ("INSTANCE_1", "Node_0"),
-            ("INSTANCE_2", "Node_1"),
-            ("INSTANCE_3", "Node_2"),
-            ("INSTANCE_4", "Node_2"),
-            ("INSTANCE_5", "Node_2"),
-            ("INSTANCE_6", "Node_3"),
-            ("INSTANCE_7", "Node_4"),
+            ("d000ef1f-dc19-4982-9383-087498bfde03", "Node_0"),
+            ("d010ef1f-dc19-4982-9383-087498bfde03", "Node_0"),
+            ("d020ef1f-dc19-4982-9383-087498bfde03", "Node_1"),
+            ("d030ef1f-dc19-4982-9383-087498bfde03", "Node_2"),
+            ("d040ef1f-dc19-4982-9383-087498bfde03", "Node_2"),
+            ("d050ef1f-dc19-4982-9383-087498bfde03", "Node_2"),
+            ("d060ef1f-dc19-4982-9383-087498bfde03", "Node_3"),
+            ("d070ef1f-dc19-4982-9383-087498bfde03", "Node_4"),
         ]
         for instance_uuid, node_uuid in mappings:
             model.map_instance(

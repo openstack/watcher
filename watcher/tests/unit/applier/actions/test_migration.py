@@ -17,8 +17,6 @@ from unittest import mock
 
 import jsonschema
 
-from novaclient.v2 import hypervisors
-from novaclient.v2 import servers
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import migration
@@ -26,9 +24,10 @@ from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.tests.unit import base
+from watcher.tests.unit.common import utils as test_utils
 
 
-class TestMigration(base.TestCase):
+class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
 
     INSTANCE_UUID = "45a37aeb-95ab-4ddb-a305-7d9f62c2f5ba"
 
@@ -148,18 +147,21 @@ class TestMigration(base.TestCase):
             'status': 'ACTIVE',
             'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         compute_node_info = {
-            'id': 'compute2-hostname',
+            'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'enabled',
             'hypervisor_hostname': 'compute1-hostname',
             'service': {
                 'host': 'compute1-hostname'
             }
         }
-        compute_node = hypervisors.Hypervisor(
-            hypervisors.HypervisorManager, info=compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(**compute_node_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
         self.m_helper.get_compute_node_by_hostname.return_value = compute_node
@@ -168,8 +170,8 @@ class TestMigration(base.TestCase):
 
     def test_pre_condition_instance_not_found(self):
         """Test pre_condition fails when instance doesn't exist"""
-        self.m_helper.find_instance.side_effect = (
-            nova_helper.nvexceptions.NotFound('404'))
+        err = exception.ComputeResourceNotFound()
+        self.m_helper.find_instance.side_effect = err
 
         self.assertRaisesRegex(
             exception.ActionSkipped,
@@ -183,7 +185,9 @@ class TestMigration(base.TestCase):
             'status': 'ACTIVE',
             'OS-EXT-SRV-ATTR:host': 'wrong-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
 
@@ -200,7 +204,9 @@ class TestMigration(base.TestCase):
             'status': 'ACTIVE',
             'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
         self.m_helper.get_compute_node_by_hostname.side_effect = (
@@ -218,18 +224,21 @@ class TestMigration(base.TestCase):
             'status': 'ACTIVE',
             'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         compute_node_info = {
-            'id': 'compute2-hostname',
+            'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'disabled',
             'hypervisor_hostname': 'compute2-hostname',
             'service': {
                 'host': 'compute2-hostname'
             }
         }
-        compute_node = hypervisors.Hypervisor(
-            hypervisors.HypervisorManager, info=compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(**compute_node_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
         self.m_helper.get_compute_node_by_hostname.return_value = compute_node
@@ -246,18 +255,21 @@ class TestMigration(base.TestCase):
             'status': 'SHUTOFF',
             'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         compute_node_info = {
-            'id': 'compute2-hostname',
+            'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'enabled',
             'hypervisor_hostname': 'compute2-hostname',
             'service': {
                 'host': 'compute2-hostname'
             }
         }
-        compute_node = hypervisors.Hypervisor(
-            hypervisors.HypervisorManager, info=compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_novaclient(
+            self.create_nova_hypervisor(**compute_node_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
         self.m_helper.get_compute_node_by_hostname.return_value = compute_node
@@ -275,7 +287,9 @@ class TestMigration(base.TestCase):
             'status': 'ACTIVE',
             'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
         }
-        instance = servers.Server(servers.ServerManager, info=instance_info)
+        instance = nova_helper.Server.from_novaclient(
+            self.create_nova_server(**instance_info)
+        )
 
         self.m_helper.find_instance.return_value = instance
 
@@ -301,14 +315,18 @@ class TestMigration(base.TestCase):
             self.fail(exc)
 
     def test_execute_live_migration_invalid_instance(self):
-        self.m_helper.find_instance.return_value = None
+        self.m_helper.find_instance.side_effect = exception.InstanceNotFound(
+            name=self.INSTANCE_UUID
+        )
         exc = self.assertRaises(
             exception.InstanceNotFound, self.action.execute)
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
         self.assertEqual(self.INSTANCE_UUID, exc.kwargs["name"])
 
     def test_execute_cold_migration_invalid_instance(self):
-        self.m_helper.find_instance.return_value = None
+        self.m_helper.find_instance.side_effect = exception.InstanceNotFound(
+            name=self.INSTANCE_UUID
+        )
         exc = self.assertRaises(
             exception.InstanceNotFound, self.action_cold.execute)
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)

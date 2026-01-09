@@ -217,17 +217,18 @@ class FakeGnocchiMetrics:
         mock = {}
         # node 0
         mock['INSTANCE_0'] = 7
-        mock['INSTANCE_1'] = 7
+        mock['d000ef1f-dc19-4982-9383-087498bfde03'] = 7
+        mock['d010ef1f-dc19-4982-9383-087498bfde03'] = 7
         # node 1
-        mock['INSTANCE_2'] = 10
+        mock['d020ef1f-dc19-4982-9383-087498bfde03'] = 10
         # node 2
-        mock['INSTANCE_3'] = 5
-        mock['INSTANCE_4'] = 5
-        mock['INSTANCE_5'] = 10
+        mock['d030ef1f-dc19-4982-9383-087498bfde03'] = 5
+        mock['d040ef1f-dc19-4982-9383-087498bfde03'] = 5
+        mock['d050ef1f-dc19-4982-9383-087498bfde03'] = 10
         # node 3
-        mock['INSTANCE_6'] = 8
+        mock['d060ef1f-dc19-4982-9383-087498bfde03'] = 8
         # node 4
-        mock['INSTANCE_7'] = 4
+        mock['d070ef1f-dc19-4982-9383-087498bfde03'] = 4
 
         mock['LOST_INSTANCE'] = None
 
@@ -243,18 +244,22 @@ class FakeGnocchiMetrics:
         mock = {}
 
         # node 0
-        mock['INSTANCE_0'] = 2
-        mock['INSTANCE_1'] = 5
+        mock['d000ef1f-dc19-4982-9383-087498bfde03'] = 2
+        mock['d010ef1f-dc19-4982-9383-087498bfde03'] = 5
         # node 1
-        mock['INSTANCE_2'] = 5
+        mock['d020ef1f-dc19-4982-9383-087498bfde03'] = 5
         # node 2
-        mock['INSTANCE_3'] = 8
+        mock['d030ef1f-dc19-4982-9383-087498bfde03'] = 8
+        mock['d040ef1f-dc19-4982-9383-087498bfde03'] = 5
         mock['INSTANCE_4'] = 5
+        mock['d050ef1f-dc19-4982-9383-087498bfde03'] = 16
         mock['INSTANCE_5'] = 16
         # node 3
+        mock['d060ef1f-dc19-4982-9383-087498bfde03'] = 8
         mock['INSTANCE_6'] = 8
         # node 4
         mock['INSTANCE_7'] = 4
+        mock['d070ef1f-dc19-4982-9383-087498bfde03'] = 4
 
         return mock[str(uuid)]
 
@@ -264,7 +269,7 @@ class FakeGnocchiMetrics:
         mock = {}
 
         # node 0
-        mock['INSTANCE_0'] = 2
+        mock['d000ef1f-dc19-4982-9383-087498bfde03'] = 2
         mock['INSTANCE_1'] = 2
         # node 1
         mock['INSTANCE_2'] = 2

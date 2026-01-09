@@ -45,7 +45,10 @@ class TestComputeScope(base.TestCase):
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
-        expected_edges = [('INSTANCE_2', 'Node_1'), ('INSTANCE_6', 'Node_3')]
+        expected_edges = [
+            ('d020ef1f-dc19-4982-9383-087498bfde03', 'Node_1'),
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3')
+        ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
@@ -58,15 +61,18 @@ class TestComputeScope(base.TestCase):
     def test_remove_instance(self):
         model = self.fake_cluster.generate_scenario_1()
         compute.ComputeScope([], mock.Mock(), osc=mock.Mock()).remove_instance(
-            model, model.get_instance_by_uuid('INSTANCE_2'), 'Node_1')
+            model,
+            model.get_instance_by_uuid('d020ef1f-dc19-4982-9383-087498bfde03'),
+            'Node_1'
+        )
         expected_edges = [
-            ('INSTANCE_0', 'Node_0'),
-            ('INSTANCE_1', 'Node_0'),
-            ('INSTANCE_3', 'Node_2'),
-            ('INSTANCE_4', 'Node_2'),
-            ('INSTANCE_5', 'Node_2'),
-            ('INSTANCE_6', 'Node_3'),
-            ('INSTANCE_7', 'Node_4'),
+            ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d010ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d030ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d040ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d050ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
+            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4'),
         ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
@@ -212,8 +218,10 @@ class TestComputeScope(base.TestCase):
             [], mock.Mock(),
             osc=mock.Mock()).exclude_instances_with_given_metadata(
                 instance_metadata, cluster, instances_to_remove)
-        self.assertEqual(sorted(['INSTANCE_' + str(i) for i in range(35)]),
-                         sorted(instances_to_remove))
+        instance_uuids = sorted([
+            f'd{i:02}0ef1f-dc19-4982-9383-087498bfde03' for i in range(35)
+        ])
+        self.assertEqual(instance_uuids, sorted(instances_to_remove))
 
         instance_metadata = [{'optimize': False}]
         instances_to_remove = set()
@@ -232,8 +240,11 @@ class TestComputeScope(base.TestCase):
             [], mock.Mock(),
             osc=mock.Mock()).exclude_instances_with_given_project(
                 projects_to_exclude, cluster, instances_to_exclude)
-        self.assertEqual(['INSTANCE_1', 'INSTANCE_2'],
-                         sorted(instances_to_exclude))
+        self.assertEqual(
+            ['d010ef1f-dc19-4982-9383-087498bfde03',
+             'd020ef1f-dc19-4982-9383-087498bfde03'],
+            sorted(instances_to_exclude)
+        )
 
     def test_remove_nodes_from_model(self):
         model = self.fake_cluster.generate_scenario_1()
@@ -241,31 +252,39 @@ class TestComputeScope(base.TestCase):
                              osc=mock.Mock()).remove_nodes_from_model(
             ['hostname_1', 'hostname_2'], model)
         expected_edges = [
-            ('INSTANCE_0', 'Node_0'),
-            ('INSTANCE_1', 'Node_0'),
-            ('INSTANCE_6', 'Node_3'),
-            ('INSTANCE_7', 'Node_4')]
+            ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d010ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
+            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
 
     def test_update_exclude_instances_in_model(self):
         model = self.fake_cluster.generate_scenario_1()
-        compute.ComputeScope([], mock.Mock(),
-                             osc=mock.Mock()).update_exclude_instance_in_model(
-            ['INSTANCE_1', 'INSTANCE_2'], model)
+        compute.ComputeScope(
+            [], mock.Mock(),
+            osc=mock.Mock()
+        ).update_exclude_instance_in_model(
+            ['d010ef1f-dc19-4982-9383-087498bfde03',
+             'd020ef1f-dc19-4982-9383-087498bfde03'], model
+        )
         expected_edges = [
-            ('INSTANCE_0', 'Node_0'),
-            ('INSTANCE_1', 'Node_0'),
-            ('INSTANCE_2', 'Node_1'),
-            ('INSTANCE_3', 'Node_2'),
-            ('INSTANCE_4', 'Node_2'),
-            ('INSTANCE_5', 'Node_2'),
-            ('INSTANCE_6', 'Node_3'),
-            ('INSTANCE_7', 'Node_4')]
+            ('d000ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d010ef1f-dc19-4982-9383-087498bfde03', 'Node_0'),
+            ('d020ef1f-dc19-4982-9383-087498bfde03', 'Node_1'),
+            ('d030ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d040ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d050ef1f-dc19-4982-9383-087498bfde03', 'Node_2'),
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3'),
+            ('d070ef1f-dc19-4982-9383-087498bfde03', 'Node_4')]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))
         self.assertFalse(
-            model.get_instance_by_uuid('INSTANCE_0').watcher_exclude)
+            model.get_instance_by_uuid(
+                'd000ef1f-dc19-4982-9383-087498bfde03'
+            ).watcher_exclude)
         self.assertTrue(
-            model.get_instance_by_uuid('INSTANCE_1').watcher_exclude)
+            model.get_instance_by_uuid(
+                'd010ef1f-dc19-4982-9383-087498bfde03'
+            ).watcher_exclude)
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_detail')
     @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
@@ -296,5 +315,8 @@ class TestComputeScope(base.TestCase):
 
         # NOTE(adisky):INSTANCE_6 is not excluded from model it will be tagged
         # as 'exclude' TRUE, blueprint compute-cdm-include-all-instances
-        expected_edges = [('INSTANCE_2', 'Node_1'), ('INSTANCE_6', 'Node_3')]
+        expected_edges = [
+            ('d020ef1f-dc19-4982-9383-087498bfde03', 'Node_1'),
+            ('d060ef1f-dc19-4982-9383-087498bfde03', 'Node_3')
+        ]
         self.assertEqual(sorted(expected_edges), sorted(model.edges()))

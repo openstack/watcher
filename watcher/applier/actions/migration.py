@@ -118,7 +118,7 @@ class Migrate(base.BaseAction):
         try:
             result = nova.live_migrate_instance(instance_id=self.instance_uuid,
                                                 dest_hostname=destination)
-        except nova_helper.nvexceptions.ClientException as e:
+        except exception.NovaClientError as e:
             LOG.debug("Nova client exception occurred while live "
                       "migrating instance "
                       "%(instance)s.Exception: %(exception)s",
@@ -213,12 +213,12 @@ class Migrate(base.BaseAction):
         # Check that the instance exists
         try:
             instance = nova.find_instance(self.instance_uuid)
-        except nova_helper.nvexceptions.NotFound:
+        except exception.ComputeResourceNotFound:
             raise exception.ActionSkipped(
                 _("Instance %s not found") % self.instance_uuid)
 
         # Check that the instance is running on source_node
-        instance_host = getattr(instance, 'OS-EXT-SRV-ATTR:host', None)
+        instance_host = instance.host
         if instance_host != self.source_node:
             raise exception.ActionSkipped(
                 _("Instance %(instance)s is not running on source node "

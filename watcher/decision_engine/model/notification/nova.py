@@ -142,7 +142,7 @@ class NovaNotification(base.NotificationEndpoint):
                 _node = self.nova.get_compute_node_by_uuid(uuid_or_name)
             else:
                 _node = self.nova.get_compute_node_by_hostname(uuid_or_name)
-            inventories = self.placement_helper.get_inventories(_node.id)
+            inventories = self.placement_helper.get_inventories(_node.uuid)
             if inventories and orc.VCPU in inventories:
                 vcpus = inventories[orc.VCPU]['total']
                 vcpu_reserved = inventories[orc.VCPU]['reserved']
@@ -176,8 +176,8 @@ class NovaNotification(base.NotificationEndpoint):
             # build up the compute node.
             node_attributes = {
                 # The id of the hypervisor as a UUID from version 2.53.
-                "uuid": _node.id,
-                "hostname": _node.service["host"],
+                "uuid": _node.uuid,
+                "hostname": _node.service_host,
                 "memory": memory_mb,
                 "memory_ratio": memory_ratio,
                 "memory_mb_reserved": memory_mb_reserved,
@@ -189,7 +189,7 @@ class NovaNotification(base.NotificationEndpoint):
                 "vcpu_ratio": vcpu_ratio,
                 "state": _node.state,
                 "status": _node.status,
-                "disabled_reason": _node.service["disabled_reason"]}
+                "disabled_reason": _node.service_disabled_reason}
 
             node = element.ComputeNode(**node_attributes)
             self.cluster_data_model.add_node(node)
