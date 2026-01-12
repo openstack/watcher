@@ -1,3 +1,38 @@
+- nodeset:
+    name: openstack-three-node-noble
+    nodes:
+      - name: controller
+        label: ubuntu-noble
+      - name: compute1
+        label: ubuntu-noble
+      - name: compute2
+        label: ubuntu-noble
+    groups:
+      # Node where tests are executed and test results collected
+      - name: tempest
+        nodes:
+          - controller
+      # Nodes running the compute service
+      - name: compute
+        nodes:
+          - controller
+          - compute1
+          - compute2
+      # Nodes that are not the controller
+      - name: subnode
+        nodes:
+          - compute1
+          - compute2
+      # Switch node for multinode networking setup
+      - name: switch
+        nodes:
+          - controller
+      # Peer nodes for multinode networking setup
+      - name: peers
+        nodes:
+          - compute1
+          - compute2
+
 - job:
     name: watcher-tempest-gnocchi
     parent: watcher-tempest-base-two-node
@@ -248,21 +283,25 @@
 - job:
     name: watcher-tempest-prometheus-realdata
     parent: watcher-tempest-prometheus
+    nodeset: openstack-three-node-noble
     description: |
       Watcher multinode devstack tempest job with Prometheus as datasource and
-      real workload data.
+      real workload data. This job is executed on a three-node setup to have
+      pure controller and compute nodes and avoid resource competition.
     vars: &realdata_vars
       devstack_services:
-        ceilometer-acompute: true
-        node_exporter: true
+        ceilometer-acompute: false
+        node_exporter: false
+        n-cpu: false
       devstack_localrc:
         NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
+        CEILOMETER_PIPELINE_INTERVAL: 15
       devstack_local_conf:
         test-config:
           $TEMPEST_CONFIG:
             optimize:
               datasource: ""
-              real_workload_period: 300
+              real_workload_period: 480 # 8 minutes
       # All tests inside watcher_tempest_plugin.tests.scenario with tag "real_load"
       tempest_test_regex: (^watcher_tempest_plugin.tests.scenario)(.*\[.*\breal_load\b.*\].*)
       tempest_exclude_regex: ""
@@ -271,8 +310,9 @@
         devstack_services:
           ceilometer-acompute: true
           node_exporter: true
+          n-cpu: true
         devstack_localrc:
-          NODE_EXPORTER_COLLECTOR_EXCLUDE: ""
+          CEILOMETER_PIPELINE_INTERVAL: 15
 
 - job:
     name: watcher-tempest-prometheus-threading
@@ -304,9 +344,11 @@
 - job:
     name: watcher-tempest-aetos-realdata
     parent: watcher-tempest-aetos
+    nodeset: openstack-three-node-noble
     description: |
       Watcher multinode devstack tempest job with Aetos reverse-proxy and real
-      workload data.
+      workload data. This job is executed on a three-node setup to have
+      pure controller and compute nodes and avoid resource competition.
     vars: *realdata_vars
     group-vars: *realdata_group_vars
 
