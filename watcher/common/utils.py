@@ -31,7 +31,6 @@ from oslo_utils import strutils
 from oslo_utils import uuidutils
 
 from watcher.common import exception
-from watcher import eventlet as eventlet_helper
 
 CONF = cfg.CONF
 
@@ -192,95 +191,3 @@ def async_compat_call(f, *args, **kwargs):
             seconds=timeout,
             exception=asyncio.TimeoutError(f"Timeout: {timeout}s")):
         return tpool.execute(tpool_wrapper)
-
-
-class InlineThread:
-    """Executes function inline (synchronously), mimicking thread interface.
-
-    This class is used in non-eventlet mode to execute functions synchronously
-    in the current thread, avoiding nested threading issues while maintaining
-    compatibility with the eventlet greenthread interface.
-    """
-
-    def __init__(self, func, *args, **kwargs):
-        """Initialize InlineThread.
-
-        :param func: The function to execute.
-        :param args: Positional arguments for the function.
-        :param kwargs: Keyword arguments for the function.
-        """
-        self.func = func
-        self.args = args
-        self.kwargs = kwargs
-        self.result = None
-        self.exception = None
-
-    def start(self):
-        """Execute the function synchronously in the current thread.
-
-        Exceptions are caught and stored to be re-raised in wait(),
-        mimicking the behavior of actual threads where exceptions occur
-        in the background and are retrieved when joining/waiting.
-        """
-        try:
-            self.result = self.func(*self.args, **self.kwargs)
-            self.exception = None
-        except Exception as e:
-            self.result = None
-            self.exception = e
-
-    def wait(self):
-        """Return the result of execution.
-
-        If an exception occurred during execution, it is re-raised here,
-        mimicking the behavior of thread.join() which allows exceptions
-        from background threads to be handled by the caller.
-
-        :return: The result of the function execution.
-        :raises: Any exception that occurred during execution.
-        """
-        if self.exception is not None:
-            raise self.exception
-        return self.result
-
-
-def thread_spawn(func, *args, **kwargs):
-    """Create a synchronous thread or eventlet green thread.
-
-    :param func: The function to spawn.
-    :param args: The arguments to pass to the function.
-    :param kwargs: The keyword arguments to pass to the function.
-    :return: The spawned thread or eventlet green thread.
-    """
-    if eventlet_helper.is_patched():
-        return eventlet.spawn(func, *args, **kwargs)
-    else:
-        return InlineThread(func, *args, **kwargs)
-
-
-def thread_start(thread):
-    """Start a thread.
-
-    :param thread: The thread to start.
-    """
-    if isinstance(thread, InlineThread):
-        thread.start()
-
-
-def thread_wait(thread):
-    """Wait for a thread to finish.
-
-    :param thread: The thread to wait for.
-    :return: The result of thread execution (for InlineThread/eventlet).
-    """
-    if isinstance(thread, eventlet.greenthread.GreenThread | InlineThread):
-        return thread.wait()
-
-
-def thread_kill(thread):
-    """Kill a green thread.
-
-    :param thread: The thread to kill.
-    """
-    if isinstance(thread, eventlet.greenthread.GreenThread):
-        thread.kill()

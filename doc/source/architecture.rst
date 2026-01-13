@@ -467,7 +467,10 @@ state may be one of the following:
    not returned any more through the Watcher APIs.
 -  **CANCELLED** : the :ref:`Action Plan <action_plan_definition>` was in
    **RECOMMENDED**, **PENDING** or **ONGOING** state and was cancelled by the
-   :ref:`Administrator <administrator_definition>`
+   :ref:`Administrator <administrator_definition>`. Note that, if the action
+   plan is cancelled after it is started, only the **PENDING** actions will
+   be cancelled. The **ONGOING** actions will continue to run until they are
+   completed.
 -  **SUPERSEDED** : the :ref:`Action Plan <action_plan_definition>` was in
    RECOMMENDED state and was automatically superseded by Watcher, due to an
    expiration delay or an update of the

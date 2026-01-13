@@ -16,9 +16,6 @@
 #
 
 import abc
-import time
-
-from eventlet import greenlet
 
 from oslo_log import log
 from taskflow import task as flow_task
@@ -28,7 +25,6 @@ from watcher.applier.actions import factory
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common.loader import loadable
-from watcher.common import utils
 from watcher import notifications
 from watcher import objects
 from watcher.objects import fields
@@ -205,76 +201,32 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                                    objects.action.State.FAILED]:
             return True
 
-        def _do_execute_action(*args, **kwargs):
-            try:
-                db_action = self.do_execute(*args, **kwargs)
-                notifications.action.send_execution_notification(
-                    self.engine.context, db_action,
-                    fields.NotificationAction.EXECUTION,
-                    fields.NotificationPhase.END)
-            except Exception as e:
-                LOG.exception(e)
-                LOG.error('The workflow engine has failed '
-                          'to execute the action: %s', self.name)
-                status_message = (_(
-                    "Action failed in execute: %s") % str(e))
-                db_action = self.engine.notify(self._db_action,
-                                               objects.action.State.FAILED,
-                                               status_message=status_message)
-                notifications.action.send_execution_notification(
-                    self.engine.context, db_action,
-                    fields.NotificationAction.EXECUTION,
-                    fields.NotificationPhase.ERROR,
-                    priority=fields.NotificationPriority.ERROR)
-                raise
-        # NOTE: spawn a new thread for action execution, so that if action plan
-        # is cancelled workflow engine will not wait to finish action execution
-        et = utils.thread_spawn(_do_execute_action, *args, **kwargs)
-        utils.thread_start(et)
-        # NOTE: check for the state of action plan periodically,so that if
-        # action is finished or action plan is cancelled we can exit from here.
-        result = False
-        while True:
+        try:
+            db_action = self.do_execute(*args, **kwargs)
+            notifications.action.send_execution_notification(
+                self.engine.context, db_action,
+                fields.NotificationAction.EXECUTION,
+                fields.NotificationPhase.END)
             action_object = objects.Action.get_by_uuid(
                 self.engine.context, self._db_action.uuid, eager=True)
-            action_plan_object = objects.ActionPlan.get_by_id(
-                self.engine.context, action_object.action_plan_id)
             if action_object.state == objects.action.State.SUCCEEDED:
-                result = True
-            if (action_object.state in [objects.action.State.SUCCEEDED,
-               objects.action.State.FAILED] or
-               action_plan_object.state in
-               objects.action_plan.State.CANCEL_STATES):
-                break
-            time.sleep(1)
-        try:
-            # NOTE: kill the action execution thread, if action plan is
-            # cancelled for all other cases wait for the result from action
-            # execution thread.
-            # Not all actions support abort operations, kill only those action
-            # which support abort operations
-            abort = self.action.check_abort()
-            if (action_plan_object.state in
-                objects.action_plan.State.CANCEL_STATES and
-                    abort):
-                # NOTE(dviroel): killing green thread will raise an exception
-                # which will be caught by taskflow and revert and abort will
-                # be called. For threading mode, we will continue to wait for
-                # it to finish, and no abort will be called.
-                utils.thread_kill(et)
-            utils.thread_wait(et)
-            return result
-
-            # NOTE: catch the greenlet exit exception due to thread kill,
-            # taskflow will call revert for the action,
-            # we will redirect it to abort.
-        except greenlet.GreenletExit:
-            self.engine.notify_cancel_start(action_plan_object.uuid)
-            raise exception.ActionPlanCancelled(uuid=action_plan_object.uuid)
-
+                return True
+            else:
+                return False
         except Exception as e:
             LOG.exception(e)
-            # return False instead of raising an exception
+            LOG.error('The workflow engine has failed '
+                      'to execute the action: %s', self.name)
+            status_message = (_(
+                "Action failed in execute: %s") % str(e))
+            db_action = self.engine.notify(self._db_action,
+                                           objects.action.State.FAILED,
+                                           status_message=status_message)
+            notifications.action.send_execution_notification(
+                self.engine.context, db_action,
+                fields.NotificationAction.EXECUTION,
+                fields.NotificationPhase.ERROR,
+                priority=fields.NotificationPriority.ERROR)
             return False
 
     def post_execute(self):

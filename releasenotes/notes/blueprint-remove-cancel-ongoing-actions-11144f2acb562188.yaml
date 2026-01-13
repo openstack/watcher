@@ -1,0 +1,8 @@
+---
+other:
+  - |
+    Now, when cancelling a running action plan, only the **PENDING** actions
+    will be cancelled. The **ONGOING** actions will continue to run until they
+    finish.
+
+    For more details, see: https://blueprints.launchpad.net/watcher/+spec/remove-cancel-ongoing-actions.

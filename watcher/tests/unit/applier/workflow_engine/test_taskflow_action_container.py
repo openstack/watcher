@@ -21,8 +21,8 @@ from oslo_config import cfg
 
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import nova_helper
-from watcher.common import utils
 from watcher import objects
 from watcher.tests.unit.db import base
 from watcher.tests.unit.objects import utils as obj_utils
@@ -183,10 +183,13 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             obj_action.status_message,
             "Action failed in post_condition: Failed in post_condition")
 
-    @mock.patch.object(utils, 'thread_kill')
-    @mock.patch.object(utils, 'thread_spawn')
-    def test_execute_with_cancel_action_plan(
-            self, mock_thread_spawn, mock_thread_kill):
+    def test_pre_execute_with_cancel_action_plan(self):
+        """Test that actions are cancelled in the pre_execute method.
+
+        Actions are cancelled when the action plan is in a cancelling
+        state when entering the pre_execute method.
+        """
+
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,
             strategy_id=self.strategy.id,
@@ -197,16 +200,41 @@ class TestTaskFlowActionContainer(base.DbTestCase):
             action_type='nop',
             input_parameters={'message': 'hello World'})
 
-        mock_thread_spawn.return_value = mock.Mock()
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        self.assertRaises(exception.ActionPlanCancelled,
+                          action_container.pre_execute)
+
+    def test_execute_with_cancel_action_plan(self):
+        """Test that actions are not cancelled in the execute method.
+
+        Actions are cancelled only if the action plan is in a cancelling
+        state when entering the pre_execute method.
+        Execute will run even if the action plan is in a cancelling state.
+        """
+
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.CANCELLING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
 
         action_container = tflow.TaskFlowActionContainer(
             db_action=action,
             engine=self.engine)
 
-        action_container.execute()
+        result = action_container.execute()
+        self.assertTrue(result)
 
-        mock_thread_kill.assert_called_once_with(
-            mock_thread_spawn.return_value)
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
     @mock.patch('watcher.applier.workflow_engine.default.LOG')
     def test_execute_without_rollback(self, mock_log):
