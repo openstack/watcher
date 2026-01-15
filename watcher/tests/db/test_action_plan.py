@@ -51,7 +51,8 @@ class TestDbActionPlanFilters(base.DbTestCase):
                 audit_id=self.audit.id, id=2, uuid=None)
         with freezegun.freeze_time(self.FAKE_OLDER_DATE):
             self.action_plan3 = utils.create_test_action_plan(
-                audit_id=self.audit.id, id=3, uuid=None)
+                audit_id=self.audit.id, id=3, uuid=None,
+                hostname='test-hostname')
 
     def _soft_delete_action_plans(self):
         with freezegun.freeze_time(self.FAKE_TODAY):
@@ -225,6 +226,41 @@ class TestDbActionPlanFilters(base.DbTestCase):
         self.assertEqual(
             [self.action_plan1['id'], self.action_plan2['id']],
             [r.id for r in res])
+
+    # hostname #
+
+    def test_get_action_plan_list_filter_hostname(self):
+        res = self.dbapi.get_action_plan_list(
+            self.context, filters={'hostname': 'test-hostname'})
+
+        self.assertEqual([self.action_plan3['id']], [r.id for r in res])
+
+    def test_get_action_plan_list_filter_wrong_hostname(self):
+        res = self.dbapi.get_action_plan_list(
+            self.context, filters={'hostname': 'wrong-hostname'})
+
+        self.assertEqual([], [r.id for r in res])
+
+    def test_get_action_plan_list_filter_hostname_and_audit(self):
+        res = self.dbapi.get_action_plan_list(
+            self.context, filters={'hostname': 'test-hostname',
+                                   'audit_id': self.audit.id})
+
+        self.assertEqual([self.action_plan3['id']], [r.id for r in res])
+
+    def test_get_action_plan_list_filter_hostname_and_wrong_audit(self):
+        res = self.dbapi.get_action_plan_list(
+            self.context, filters={'hostname': 'test-hostname',
+                                   'audit_id': self.audit.id + 1})
+
+        self.assertEqual([], [r.id for r in res])
+
+    # no filter #
+
+    def test_get_action_plan_list_no_filter(self):
+        res = self.dbapi.get_action_plan_list(self.context)
+        self.assertEqual([self.action_plan1['id'], self.action_plan2['id'],
+                          self.action_plan3['id']], [r.id for r in res])
 
 
 class DbActionPlanTestCase(base.DbTestCase):
