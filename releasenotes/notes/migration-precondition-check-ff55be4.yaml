@@ -1,0 +1,17 @@
+---
+features:
+  - |
+    Added a pre-condition check to the migration action to prevent executing
+    migrations when required criteria are not met. In following conditions,
+    the action status will be set to SKIPPED:
+
+    - Instance is not found
+    - Instance is not running on source node
+
+    On other conditions the action will be FAILED in the pre_condition
+    check:
+
+    - Destination node (if specified) does not exists or is disabled
+    - Instance is not ACTIVE and migration_type is live.
+
+    This improves safety and correctness of migrations.
