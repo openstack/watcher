@@ -14,7 +14,10 @@
 #
 
 from oslo_log import log
+
+from watcher._i18n import _
 from watcher.applier.actions import base
+from watcher.common import exception
 from watcher.common import nova_helper
 
 LOG = log.getLogger(__name__)
@@ -138,27 +141,27 @@ class Stop(base.BaseAction):
         return False
 
     def pre_condition(self):
-        # Check for instance existence and its state
+        """Check stop preconditions
+
+        Skipping conditions:
+        - Instance does not exist
+        - Instance is stopped
+        """
         nova = nova_helper.NovaHelper(osc=self.osc)
+
+        # Check that the instance exists
         try:
             instance = nova.find_instance(self.instance_uuid)
-            if not instance:
-                LOG.debug(
-                    "Instance %(uuid)s not found during pre-condition check. "
-                    "Considering this acceptable for stop operation.",
-                    {'uuid': self.instance_uuid}
-                )
-                return
+        except nova_helper.nvexceptions.NotFound:
+            raise exception.ActionSkipped(
+                _("Instance %s not found") % self.instance_uuid)
 
-            # Log instance current state
-            current_state = instance.status
-            LOG.debug("Instance %s pre-condition check: state=%s",
-                      self.instance_uuid, current_state)
-
-        except Exception as exc:
-            LOG.exception("Pre-condition check failed for instance %s: %s",
-                          self.instance_uuid, str(exc))
-            raise
+        current_state = instance.status
+        LOG.debug("Instance %s pre-condition check: state=%s",
+                  self.instance_uuid, current_state)
+        if current_state == 'SHUTOFF':
+            raise exception.ActionSkipped(
+                _("Instance %s is already stopped") % self.instance_uuid)
 
     def post_condition(self):
         pass

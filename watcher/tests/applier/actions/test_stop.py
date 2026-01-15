@@ -17,9 +17,12 @@ from unittest import mock
 import fixtures
 import jsonschema
 
+from novaclient.v2 import servers
+
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import stop
 from watcher.common import exception
+from watcher.common import nova_helper
 from watcher.tests import base
 
 
@@ -38,6 +41,12 @@ class TestStop(base.TestCase):
         self.input_parameters = {
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
+        instance_info = {
+            'id': self.INSTANCE_UUID,
+            'status': 'ACTIVE',
+        }
+        self.instance = servers.Server(
+            servers.ServerManager, info=instance_info)
         self.action = stop.Stop(mock.Mock())
         self.action.input_parameters = self.input_parameters
 
@@ -68,29 +77,30 @@ class TestStop(base.TestCase):
         self.assertEqual(self.INSTANCE_UUID, self.action.instance_uuid)
 
     def test_pre_condition_instance_not_found(self):
-        self.m_helper.find_instance.return_value = None
+        self.m_helper.find_instance.side_effect = (
+            nova_helper.nvexceptions.NotFound('404'))
 
-        result = self.action.pre_condition()
+        # ActionSkipped is expected because the instance is not found
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Instance {self.INSTANCE_UUID} not found",
+            self.action.pre_condition)
 
-        # Instance not found can be considered acceptable (idempotent)
-        self.assertIsNone(result)
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
 
     def test_pre_condition_instance_already_stopped(self):
-        instance = mock.Mock()
-        instance.status = 'stopped'
-        self.m_helper.find_instance.return_value = instance
+        self.instance.status = 'SHUTOFF'
+        self.m_helper.find_instance.return_value = self.instance
 
-        result = self.action.pre_condition()
-
-        # All valid states should return None (implicit success)
-        self.assertIsNone(result)
+        # ActionSkipped is expected because the instance is already stopped
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Instance {self.INSTANCE_UUID} is already stopped",
+            self.action.pre_condition)
         self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
 
     def test_pre_condition_instance_active(self):
-        instance = mock.Mock()
-        instance.status = 'active'
-        self.m_helper.find_instance.return_value = instance
+        self.m_helper.find_instance.return_value = self.instance
 
         result = self.action.pre_condition()
 
@@ -115,8 +125,7 @@ class TestStop(base.TestCase):
 
     def test_execute_stop_failure_instance_exists(self):
         # Instance exists but stop operation fails
-        instance = mock.Mock()
-        self.m_helper.find_instance.return_value = instance
+        self.m_helper.find_instance.return_value = self.instance
         self.m_helper.stop_instance.return_value = False
 
         result = self.action.execute()
