@@ -29,11 +29,11 @@ from watcher.tests.db import base as db_base
 from watcher.tests.db import utils
 
 
-class TestServiceMonitoringService(base.TestCase):
+class TestDecisionEngineMonitor(base.TestCase):
 
     @mock.patch.object(background.BackgroundScheduler, 'start')
     def test_start_service_monitoring_service(self, m_start):
-        scheduler = service_monitor.ServiceMonitoringService()
+        scheduler = service_monitor.DecisionEngineMonitor()
         scheduler.start()
         m_start.assert_called_once_with(scheduler)
         jobs = scheduler.get_jobs()
@@ -41,22 +41,22 @@ class TestServiceMonitoringService(base.TestCase):
 
     @mock.patch.object(background.BackgroundScheduler, 'shutdown')
     def test_stop_service_monitoring_service(self, m_shutdown):
-        scheduler = service_monitor.ServiceMonitoringService()
+        scheduler = service_monitor.DecisionEngineMonitor()
         scheduler.stop()
         m_shutdown.assert_called_once_with()
 
     def test_wait_service_monitoring_service(self):
-        scheduler = service_monitor.ServiceMonitoringService()
+        scheduler = service_monitor.DecisionEngineMonitor()
         # Should not raise any exception
         scheduler.wait()
 
     def test_reset_service_monitoring_service(self):
-        scheduler = service_monitor.ServiceMonitoringService()
+        scheduler = service_monitor.DecisionEngineMonitor()
         # Should not raise any exception
         scheduler.reset()
 
 
-class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
+class TestDecisionEngineMonitorFunctions(db_base.DbTestCase):
 
     def setUp(self):
         super().setUp()
@@ -64,7 +64,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             created_at=timeutils.utcnow())
         self.fake_service = objects.Service(**fake_service)
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(service, 'send_service_update')
@@ -92,7 +92,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             objects.service.ServiceStatus.ACTIVE   # service2 second call
         ]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service the leader
         with mock.patch.object(service_monitor.CONF, 'host', 'host2'):
@@ -112,7 +112,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         m_send_notif.assert_not_called()
         m_audit_list.assert_not_called()
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(service, 'send_service_update')
@@ -139,7 +139,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             objects.service.ServiceStatus.ACTIVE   # service2 second call
         ]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service the alive and leader one
         # after service1 is marked as failed.
@@ -161,7 +161,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             self.context, fake_de_service_obj1,
             state=objects.service.ServiceStatus.FAILED)
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Audit, 'list')
@@ -200,7 +200,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         audit_obj = objects.Audit(self.context, **fake_audit)
         m_audit_list.return_value = [audit_obj]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service the leader
         with mock.patch.object(service_monitor.CONF, 'host', 'host2'):
@@ -224,7 +224,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         m_save.assert_called_once_with()
         self.assertEqual(active_de_service['host'], audit_obj.hostname)
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Audit, 'list')
@@ -255,7 +255,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         audit_obj = objects.Audit(self.context, **fake_audit)
         m_audit_list.return_value = [audit_obj]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service the leader
         with mock.patch.object(service_monitor.CONF, 'host', 'host1'):
@@ -271,7 +271,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
                 m_save.assert_not_called()
                 self.assertEqual('host1', audit_obj.hostname)
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(service, 'send_service_update')
@@ -306,7 +306,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             objects.service.ServiceStatus.ACTIVE   # service3 second call
         ]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service non-leader (host2 is the
         # leader after service1 is failed)
@@ -319,7 +319,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         m_send_notif.assert_not_called()
         m_audit_list.assert_not_called()
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     @mock.patch.object(objects.Audit, 'list')
@@ -363,7 +363,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         audit_obj = objects.Audit(self.context, **fake_audit)
         m_audit_list.return_value = [audit_obj]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Mock CONF.host to make this service non-leader (host2 is the
         # leader after service1 is failed)
@@ -386,7 +386,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         status = monitor.get_service_status(self.context,
                                             test_service.id)
 
@@ -401,7 +401,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         status = monitor.get_service_status(self.context,
                                             test_service.id)
 
@@ -417,7 +417,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         status = monitor.get_service_status(self.context,
                                             test_service.id)
 
@@ -433,7 +433,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         status = monitor.get_service_status(self.context,
                                             test_service.id)
 
@@ -448,7 +448,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         test_service = objects.Service(self.context, **fake_service)
         test_service.create()
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         status = monitor.get_service_status(self.context,
                                             test_service.id)
 
@@ -456,7 +456,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
 
     def test_services_status_tracking(self):
         """Test that services_status dict properly tracks service states."""
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Initially empty
         self.assertEqual({}, monitor.services_status)
@@ -468,23 +468,23 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             monitor.services_status
         )
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_without_services_in_list(
             self, mock_get_list, mock_service_status):
-        scheduler = service_monitor.ServiceMonitoringService()
+        scheduler = service_monitor.DecisionEngineMonitor()
         mock_get_list.return_value = []
         services_status = scheduler.get_services_status(mock.ANY)
         self.assertEqual([], services_status)
         mock_service_status.assert_not_called()
 
-    @mock.patch.object(service_monitor.ServiceMonitoringService,
+    @mock.patch.object(service_monitor.DecisionEngineMonitor,
                        'get_service_status')
     @mock.patch.object(objects.Service, 'list')
     def test_get_services_status_with_services_in_list(
             self, m_service_list, m_get_service_status):
-        """Test that get_services_status returns all the services."""
+        """get_services_status returns only the decision-engine services."""
         # Create various services
         de_service1 = utils.get_test_service(
             id=1, name='watcher-decision-engine', host='host1')
@@ -508,11 +508,11 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             objects.service.ServiceStatus.ACTIVE
         ]
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         result = monitor.get_services_status(self.context)
 
         # Should return all services
-        self.assertEqual(4, len(result))
+        self.assertEqual(2, len(result))
         for wservice in result:
             match wservice.host:
                 case 'host1':
@@ -523,19 +523,11 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
                     self.assertEqual('watcher-decision-engine', wservice.name)
                     self.assertEqual(
                         objects.service.ServiceStatus.FAILED, wservice.state)
-                case 'host3':
-                    self.assertEqual('watcher-api', wservice.name)
-                    self.assertEqual(
-                        objects.service.ServiceStatus.ACTIVE, wservice.state)
-                case 'host4':
-                    self.assertEqual('watcher-applier', wservice.name)
-                    self.assertEqual(
-                        objects.service.ServiceStatus.ACTIVE, wservice.state)
                 case _:
                     self.fail(f'Unexpected host: {wservice.host}')
 
     def test_migrate_audits_round_robin_assigns_hosts_and_saves(self):
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         # Prepare three ongoing audits with the same failed host
         uuid_prefix = common_utils.generate_uuid()[:-1]
         audits = [
@@ -563,7 +555,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
         self.assertEqual(3, m_log.info.call_count)
 
     def test_migrate_audits_logs_expected_payload(self):
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
         # Prepare audits with distinct failed hosts to validate payload
         uuid_prefix = common_utils.generate_uuid()[:-1]
         audits = [
@@ -611,7 +603,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             id=1, name='watcher-decision-engine', host='host1')
         service1.state = objects.service.ServiceStatus.ACTIVE
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Test when current host is the leader
         with mock.patch.object(service_monitor.CONF, 'host', 'host1'):
@@ -637,7 +629,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             id=3, name='watcher-decision-engine', host='host3')
         service3.state = objects.service.ServiceStatus.ACTIVE
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Leader should be host1 (alphabetically first)
         with mock.patch.object(service_monitor.CONF, 'host', 'host1'):
@@ -662,7 +654,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             id=2, name='watcher-decision-engine', host='host2')
         service2.state = objects.service.ServiceStatus.ACTIVE
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Leader should be host2 (only active service)
         with mock.patch.object(service_monitor.CONF, 'host', 'host2'):
@@ -683,7 +675,7 @@ class TestServiceMonitoringServiceFunctions(db_base.DbTestCase):
             id=2, name='watcher-decision-engine', host='host2')
         service2.state = objects.service.ServiceStatus.FAILED
 
-        monitor = service_monitor.ServiceMonitoringService()
+        monitor = service_monitor.DecisionEngineMonitor()
 
         # Should return False when no services are active
         with mock.patch.object(service_monitor.CONF, 'host', 'host1'):
