@@ -17,6 +17,7 @@
 
 from oslo_config import cfg
 
+from watcher._i18n import _
 from watcher.common import clients
 
 nova_client = cfg.OptGroup(name='nova_client',
@@ -25,6 +26,13 @@ nova_client = cfg.OptGroup(name='nova_client',
 NOVA_CLIENT_OPTS = [
     cfg.StrOpt('api_version',
                default='2.56',
+               deprecated_for_removal=True,
+               deprecated_reason=_(
+                   'To replace the frozen novaclient with the '
+                   'openstacksdk compute proxy, the options need to '
+                   'be under the [nova] group.'
+               ),
+               deprecated_since='2026.1',
                help=f"""
 Version of Nova API to use in novaclient.
 
@@ -37,10 +45,22 @@ for the compute API microversion history.
 """),
     cfg.StrOpt('endpoint_type',
                default='publicURL',
+               deprecated_for_removal=True,
+               deprecated_reason=_(
+                   'This option was replaced by the valid_interfaces '
+                   'option defined by keystoneauth.'
+               ),
+               deprecated_since='2026.1',
                choices=['public', 'internal', 'admin',
                         'publicURL', 'internalURL', 'adminURL'],
                help='Type of endpoint to use in novaclient.'),
     cfg.StrOpt('region_name',
+               deprecated_for_removal=True,
+               deprecated_reason=_(
+                   'This option was replaced by the region_name '
+                   'option defined by keystoneauth.'
+               ),
+               deprecated_since='2026.1',
                help='Region in Identity service catalog to use for '
                     'communication with the OpenStack service.')]
 

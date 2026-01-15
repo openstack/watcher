@@ -21,6 +21,12 @@ from novaclient.v2 import hypervisors
 from novaclient.v2 import server_migrations
 from novaclient.v2 import servers
 from novaclient.v2 import services
+from openstack.compute.v2 import aggregate
+from openstack.compute.v2 import flavor
+from openstack.compute.v2 import hypervisor
+from openstack.compute.v2 import server
+from openstack.compute.v2 import server_migration
+from openstack.compute.v2 import service
 
 
 class NovaResourcesMixin:
@@ -144,3 +150,123 @@ class NovaResourcesMixin:
         migration_info.update(kwargs)
         return server_migrations.ServerMigration(
             server_migrations.ServerMigrationsManager, info=migration_info)
+
+    def create_openstacksdk_server(self, **kwargs):
+        """Create a real OpenStackSDK Server object.
+
+        :param kwargs: server attributes
+        :returns: openstack.compute.v2.server.Server object
+        """
+        server_info = {
+            'id': kwargs.pop('id', 'test_id'),
+            'name': kwargs.pop('name', 'test-server'),
+            'created_at': kwargs.pop('created_at', '2026-01-09T12:00:00Z'),
+            'compute_host': kwargs.pop('compute_host', None),
+            'vm_state': kwargs.pop('vm_state', None),
+            'task_state': kwargs.pop('task_state', None),
+            'power_state': kwargs.pop('power_state', None),
+            'status': kwargs.pop('status', 'ACTIVE'),
+            'flavor': kwargs.pop('flavor', {'id': 'flavor-1'}),
+            'project_id': kwargs.pop('project_id', 'test-tenant-id'),
+            'is_locked': kwargs.pop('is_locked', False),
+            'metadata': kwargs.pop('metadata', {}),
+            'availability_zone': kwargs.pop('availability_zone', None),
+            'pinned_availability_zone': kwargs.pop(
+                'pinned_availability_zone', None),
+        }
+        server_info.update(kwargs)
+        return server.Server(**server_info)
+
+    def create_openstacksdk_hypervisor(self, **kwargs):
+        """Create a real OpenStackSDK Hypervisor object.
+
+        :param kwargs: hypervisor attributes
+        :returns: openstack.compute.v2.hypervisor.Hypervisor object
+        """
+        name = kwargs.pop('name', 'hypervisor-hostname')
+        hypervisor_info = {
+            'id': kwargs.pop('id', 'hypervisor-id'),
+            'name': name,
+            'hypervisor_type': kwargs.pop('hypervisor_type', 'QEMU'),
+            'state': kwargs.pop('state', 'up'),
+            'status': kwargs.pop('status', 'enabled'),
+            'vcpus': kwargs.pop('vcpus', 16),
+            'vcpus_used': kwargs.pop('vcpus_used', 4),
+            'memory_size': kwargs.pop('memory_size', 32768),
+            'memory_used': kwargs.pop('memory_used', 8192),
+            'local_disk_size': kwargs.pop('local_disk_size', 500),
+            'local_disk_used': kwargs.pop('local_disk_used', 100),
+            'service_details': kwargs.pop(
+                'service_details', {'host': name, 'id': 1}
+            ),
+            'servers': kwargs.pop('servers', None),
+        }
+        hypervisor_info.update(kwargs)
+        return hypervisor.Hypervisor(**hypervisor_info)
+
+    def create_openstacksdk_flavor(self, **kwargs):
+        """Create a real OpenStackSDK Flavor object.
+
+        :param kwargs: flavor attributes
+        :returns: openstack.compute.v2.flavor.Flavor object
+        """
+        flavor_info = {
+            'id': kwargs.pop('id', 'flavor-id'),
+            'name': kwargs.pop('name', 'm1.small'),
+            'vcpus': kwargs.pop('vcpus', 2),
+            'ram': kwargs.pop('ram', 2048),
+            'disk': kwargs.pop('disk', 20),
+            'ephemeral': kwargs.pop('ephemeral', 0),
+            'swap': kwargs.pop('swap', 0),
+            'is_public': kwargs.pop('is_public', True),
+            'extra_specs': kwargs.pop('extra_specs', {}),
+        }
+        flavor_info.update(kwargs)
+        return flavor.Flavor(**flavor_info)
+
+    def create_openstacksdk_aggregate(self, **kwargs):
+        """Create a real OpenStackSDK Aggregate object.
+
+        :param kwargs: aggregate attributes
+        :returns: openstack.compute.v2.aggregate.Aggregate object
+        """
+        aggregate_info = {
+            'id': kwargs.pop('id', 'aggregate-id'),
+            'name': kwargs.pop('name', 'test-aggregate'),
+            'availability_zone': kwargs.pop('availability_zone', None),
+            'hosts': kwargs.pop('hosts', []),
+            'metadata': kwargs.pop('metadata', {}),
+        }
+        aggregate_info.update(kwargs)
+        return aggregate.Aggregate(**aggregate_info)
+
+    def create_openstacksdk_service(self, **kwargs):
+        """Create a real OpenStackSDK Service object.
+
+        :param kwargs: service attributes
+        :returns: openstack.compute.v2.service.Service object
+        """
+        service_info = {
+            'id': kwargs.pop('id', 'service-id'),
+            'binary': kwargs.pop('binary', 'nova-compute'),
+            'host': kwargs.pop('host', 'compute-1'),
+            'availability_zone': kwargs.pop('availability_zone', 'nova'),
+            'status': kwargs.pop('status', 'enabled'),
+            'state': kwargs.pop('state', 'up'),
+            'updated_at': kwargs.pop('updated_at', '2026-01-09T12:00:00Z'),
+            'disabled_reason': kwargs.pop('disabled_reason', None),
+        }
+        service_info.update(kwargs)
+        return service.Service(**service_info)
+
+    def create_openstacksdk_migration(self, **kwargs):
+        """Create a real OpenStackSDK ServerMigration object.
+
+        :param kwargs: migration attributes
+        :returns: openstack.compute.v2.server_migration.ServerMigration object
+        """
+        migration_info = {
+            'id': kwargs.pop('id', 'migration-id'),
+        }
+        migration_info.update(kwargs)
+        return server_migration.ServerMigration(**migration_info)

@@ -19,10 +19,13 @@ from gnocchiclient import client as gnclient
 from ironicclient import client as irclient
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
+from keystoneauth1 import session as ka_session
 from keystoneclient import client as keyclient
 from novaclient import api_versions as nova_api_versions
 from novaclient import client as nvclient
+from openstack import connection
 
+from watcher.common import context
 from watcher.common import exception
 from watcher.common import utils
 
@@ -45,6 +48,61 @@ MIN_NOVA_API_VERSION = '2.56'
 warnings.simplefilter("once")
 
 
+def get_sdk_connection(
+        conf_group: str, session: ka_session.Session | None = None,
+        context: context.RequestContext | None = None,
+        interface: str | None = None, region_name: str | None = None
+        ) -> connection.Connection:
+    """Create and return an OpenStackSDK Connection object.
+
+    :param conf_group: String name of the conf group to get connection
+    information from.
+    :param session: Optional keystone session. If not provided, a new session
+                    will be created using the configured auth parameters.
+    :param context: Optional context object, use to get user's token.
+    :param interface: Interface to use when connecting to services.
+    :param region_name: Region name to use when connecting to services.
+    :returns: An OpenStackSDK Connection object
+    """
+
+    # NOTE(jgilaber): load the auth plugin from the config in case it's never
+    # been loaded before. The auth plugin is only used when creating a new
+    # session, but we need to ensure the auth_url config value is set to use
+    # the user token from the context object
+    auth = ka_loading.load_auth_from_conf_options(
+        CONF, conf_group
+    )
+    if context is not None:
+        if interface is None:
+            if "valid_interfaces" in CONF[conf_group]:
+                interface = CONF[conf_group].valid_interfaces[0]
+            elif "interface" in CONF[conf_group]:
+                interface = CONF[conf_group].interface
+        if region_name is None and "region_name" in CONF[conf_group]:
+            region_name = CONF[conf_group].region_name
+
+        # create a connection using the user's token if available
+        conn = connection.Connection(
+            token=context.auth_token,
+            auth_type="v3token",
+            project_id=context.project_id,
+            project_domain_id=context.project_domain_id,
+            auth_url=CONF[conf_group].auth_url,
+            region_name=region_name,
+            interface=interface
+        )
+        return conn
+
+    if session is None:
+        # if we don't have a user token nor a created session, create a new
+        # one
+        session = ka_loading.load_session_from_conf_options(
+            CONF, conf_group, auth=auth
+        )
+
+    return connection.Connection(session=session, oslo_conf=CONF)
+
+
 def check_min_nova_api_version(config_version):
     """Validates the minimum required nova API version.
 
@@ -54,7 +112,7 @@ def check_min_nova_api_version(config_version):
     """
     min_required = nova_api_versions.APIVersion(MIN_NOVA_API_VERSION)
     if nova_api_versions.APIVersion(config_version) < min_required:
-        raise ValueError(f'Invalid nova_client.api_version {config_version}. '
+        raise ValueError(f'Invalid nova.api_version {config_version}. '
                          f'{MIN_NOVA_API_VERSION} or greater is required.')
 
 
@@ -115,7 +173,7 @@ class OpenStackClients:
         if self._nova:
             return self._nova
 
-        novaclient_version = self._get_client_option('nova', 'api_version')
+        novaclient_version = CONF.nova.api_version
 
         check_min_nova_api_version(novaclient_version)
 

@@ -33,9 +33,9 @@ class Checks(upgradecheck.UpgradeCommands):
     """
 
     def _minimum_nova_api_version(self):
-        """Checks the minimum required version of nova_client.api_version"""
+        """Checks the minimum required version of nova.api_version"""
         try:
-            clients.check_min_nova_api_version(CONF.nova_client.api_version)
+            clients.check_min_nova_api_version(CONF.nova.api_version)
         except ValueError as e:
             return upgradecheck.Result(
                 upgradecheck.Code.FAILURE, str(e))

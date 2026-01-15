@@ -36,7 +36,7 @@ class TestUpgradeChecks(base.TestCase):
     def test_minimum_nova_api_version_fail(self):
         # Tests the scenario that [nova_client]/api_version is less than the
         # minimum required version.
-        CONF.set_override('api_version', '2.47', group='nova_client')
+        CONF.set_override('api_version', '2.47', group='nova')
         result = self.cmd._minimum_nova_api_version()
         self.assertEqual(Code.FAILURE, result.code)
-        self.assertIn('Invalid nova_client.api_version 2.47.', result.details)
+        self.assertIn('Invalid nova.api_version 2.47.', result.details)

@@ -926,7 +926,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_services.enable.return_value = mock.MagicMock(
             status='enabled')
 
-        CONF.set_override('api_version', '2.52', group='nova_client')
+        CONF.set_override('api_version', '2.52', group='nova')
 
         result = nova_util.enable_service_nova_compute('nanjing')
         self.assertTrue(result)
@@ -937,7 +937,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_services.enable.return_value = mock.MagicMock(
             status='disabled')
 
-        CONF.set_override('api_version', '2.56', group='nova_client')
+        CONF.set_override('api_version', '2.56', group='nova')
 
         result = nova_util.enable_service_nova_compute('nanjing')
         self.assertFalse(result)
@@ -951,7 +951,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='enabled')
 
-        CONF.set_override('api_version', '2.52', group='nova_client')
+        CONF.set_override('api_version', '2.52', group='nova')
 
         result = nova_util.disable_service_nova_compute(
             'nanjing', reason='test')
@@ -963,7 +963,7 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         nova_services.disable_log_reason.return_value = mock.MagicMock(
             status='disabled')
 
-        CONF.set_override('api_version', '2.56', group='nova_client')
+        CONF.set_override('api_version', '2.56', group='nova')
 
         result = nova_util.disable_service_nova_compute(
             'nanjing', reason='test2')
@@ -1489,6 +1489,64 @@ class TestServerWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertNotEqual(server1a, "not-a-server")
         self.assertIsNotNone(server1a)
 
+    def test_server_from_openstacksdk_basic_properties(self):
+        """Test Server.from_openstacksdk with basic properties."""
+        server_id = utils.generate_uuid()
+        sdk_server = self.create_openstacksdk_server(
+            id=server_id,
+            name='my-server',
+            status='ACTIVE',
+            created_at='2026-01-01T00:00:00Z',
+            project_id='tenant-123',
+            is_locked=True,
+            metadata={'key': 'value'},
+            pinned_availability_zone='az1'
+        )
+
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+
+        self.assertEqual(server_id, wrapped.uuid)
+        self.assertEqual('my-server', wrapped.name)
+        self.assertEqual('ACTIVE', wrapped.status)
+        self.assertEqual('2026-01-01T00:00:00Z', wrapped.created)
+        self.assertEqual('tenant-123', wrapped.tenant_id)
+        self.assertTrue(wrapped.locked)
+        self.assertEqual({'key': 'value'}, wrapped.metadata)
+        self.assertEqual('az1', wrapped.pinned_availability_zone)
+
+    def test_server_from_openstacksdk_extended_attributes(self):
+        """Test Server.from_openstacksdk with extended attributes."""
+        server_id = utils.generate_uuid()
+        sdk_server = self.create_openstacksdk_server(
+            id=server_id,
+            compute_host='compute-1',
+            vm_state='active',
+            task_state=None,
+            power_state=1,
+            availability_zone='nova'
+        )
+
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+
+        self.assertEqual('compute-1', wrapped.host)
+        self.assertEqual('active', wrapped.vm_state)
+        self.assertIsNone(wrapped.task_state)
+        self.assertEqual(1, wrapped.power_state)
+        self.assertEqual('nova', wrapped.availability_zone)
+
+    def test_server_from_openstacksdk_flavor(self):
+        """Test Server.from_openstacksdk flavor property."""
+        server_id = utils.generate_uuid()
+        sdk_server = self.create_openstacksdk_server(
+            id=server_id,
+            flavor={'id': 'flavor-123', 'name': 'm1.small'}
+        )
+
+        wrapped = nova_helper.Server.from_openstacksdk(sdk_server)
+        # OpenStackSDK converts flavor dict to Flavor object
+        self.assertEqual('flavor-123', wrapped.flavor.id)
+        self.assertEqual('m1.small', wrapped.flavor.name)
+
 
 class TestHypervisorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Hypervisor dataclass."""
@@ -1674,6 +1732,111 @@ class TestHypervisorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         # Compare with non-Hypervisor object
         self.assertNotEqual(hyp1a, "not-a-hypervisor")
 
+    def test_hypervisor_from_openstacksdk_basic_properties(self):
+        """Test Hypervisor.from_openstacksdk with basic properties."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+        sdk_hypervisor = self.create_openstacksdk_hypervisor(
+            id=hypervisor_id,
+            name=hostname,
+            hypervisor_type='QEMU',
+            state='up',
+            status='enabled',
+            vcpus=32,
+            vcpus_used=8,
+            memory_size=65536,
+            memory_used=16384,
+            local_disk_size=1000,
+            local_disk_used=250
+        )
+
+        wrapped = nova_helper.Hypervisor.from_openstacksdk(sdk_hypervisor)
+
+        self.assertEqual(hypervisor_id, wrapped.uuid)
+        self.assertEqual(hostname, wrapped.hypervisor_hostname)
+        self.assertEqual('QEMU', wrapped.hypervisor_type)
+        self.assertEqual('up', wrapped.state)
+        self.assertEqual('enabled', wrapped.status)
+        self.assertEqual(32, wrapped.vcpus)
+        self.assertEqual(8, wrapped.vcpus_used)
+        self.assertEqual(65536, wrapped.memory_mb)
+        self.assertEqual(16384, wrapped.memory_mb_used)
+        self.assertEqual(1000, wrapped.local_gb)
+        self.assertEqual(250, wrapped.local_gb_used)
+
+    def test_hypervisor_from_openstacksdk_service_properties(self):
+        """Test Hypervisor.from_openstacksdk service properties."""
+        hostname = 'compute-node-1'
+        sdk_hypervisor = self.create_openstacksdk_hypervisor(
+            id=utils.generate_uuid(),
+            name=hostname,
+            service_details={
+                'host': hostname,
+                'id': 42,
+                'disabled_reason': 'maintenance'
+            }
+        )
+
+        wrapped = nova_helper.Hypervisor.from_openstacksdk(sdk_hypervisor)
+
+        self.assertEqual(hostname, wrapped.service_host)
+        self.assertEqual(42, wrapped.service_id)
+        self.assertEqual('maintenance', wrapped.service_disabled_reason)
+
+    def test_hypervisor_from_openstacksdk_service_not_dict(self):
+        """Test Hypervisor.from_openstacksdk when service is not a dict."""
+        sdk_hypervisor = self.create_openstacksdk_hypervisor(
+            id=utils.generate_uuid(),
+            name='compute-node-1',
+            service_details='not-a-dict'
+        )
+
+        wrapped = nova_helper.Hypervisor.from_openstacksdk(sdk_hypervisor)
+
+        self.assertIsNone(wrapped.service_host)
+        self.assertIsNone(wrapped.service_id)
+        self.assertIsNone(wrapped.service_disabled_reason)
+
+    def test_hypervisor_from_openstacksdk_servers_property(self):
+        """Test Hypervisor.from_openstacksdk servers property."""
+        hypervisor_id = utils.generate_uuid()
+        hostname = 'compute-node-1'
+
+        server1_id = utils.generate_uuid()
+        server2_id = utils.generate_uuid()
+        server1 = {
+            'uuid': server1_id,
+            'name': 'server1',
+        }
+        server2 = {
+            'uuid': server2_id,
+            'name': 'server2'
+        }
+
+        sdk_hypervisor = self.create_openstacksdk_hypervisor(
+            id=hypervisor_id,
+            name=hostname,
+            servers=[server1, server2]
+        )
+
+        wrapped = nova_helper.Hypervisor.from_openstacksdk(sdk_hypervisor)
+
+        result_servers = wrapped.servers
+        self.assertEqual(2, len(result_servers))
+        self.assertEqual(server1_id, result_servers[0]['uuid'])
+        self.assertEqual(server2_id, result_servers[1]['uuid'])
+
+    def test_hypervisor_from_openstacksdk_servers_none(self):
+        """Test Hypervisor.from_openstacksdk when servers is None."""
+        sdk_hypervisor = self.create_openstacksdk_hypervisor(
+            id=utils.generate_uuid(),
+            name='compute-node-1',
+            servers=None
+        )
+
+        wrapped = nova_helper.Hypervisor.from_openstacksdk(sdk_hypervisor)
+        self.assertEqual([], wrapped.servers)
+
 
 class TestFlavorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Flavor dataclass."""
@@ -1775,6 +1938,82 @@ class TestFlavorWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         # Compare with non-Flavor object
         self.assertNotEqual(flavor1a, "not-a-flavor")
 
+    def test_flavor_from_openstacksdk_basic_properties(self):
+        """Test Flavor.from_openstacksdk with basic properties."""
+        flavor_id = utils.generate_uuid()
+        sdk_flavor = self.create_openstacksdk_flavor(
+            id=flavor_id,
+            name='m1.small',
+            vcpus=2,
+            ram=2048,
+            disk=20,
+            ephemeral=10,
+            swap=512,
+            is_public=True
+        )
+
+        wrapped = nova_helper.Flavor.from_openstacksdk(sdk_flavor)
+
+        self.assertEqual(flavor_id, wrapped.id)
+        self.assertEqual('m1.small', wrapped.flavor_name)
+        self.assertEqual(2, wrapped.vcpus)
+        self.assertEqual(2048, wrapped.ram)
+        self.assertEqual(20, wrapped.disk)
+        self.assertEqual(10, wrapped.ephemeral)
+        self.assertEqual(512, wrapped.swap)
+        self.assertTrue(wrapped.is_public)
+
+    def test_flavor_from_openstacksdk_zero_swap(self):
+        """Test Flavor.from_openstacksdk with zero swap."""
+        flavor_id = utils.generate_uuid()
+        sdk_flavor = self.create_openstacksdk_flavor(
+            id=flavor_id,
+            name='m1.noswap',
+            swap=0
+        )
+
+        wrapped = nova_helper.Flavor.from_openstacksdk(sdk_flavor)
+        self.assertEqual(0, wrapped.swap)
+
+    def test_flavor_from_openstacksdk_private(self):
+        """Test Flavor.from_openstacksdk with private flavor."""
+        flavor_id = utils.generate_uuid()
+        sdk_flavor = self.create_openstacksdk_flavor(
+            id=flavor_id,
+            name='m1.private',
+            is_public=False
+        )
+
+        wrapped = nova_helper.Flavor.from_openstacksdk(sdk_flavor)
+        self.assertFalse(wrapped.is_public)
+
+    def test_flavor_from_openstacksdk_with_extra_specs(self):
+        """Test Flavor.from_openstacksdk with extra_specs."""
+        flavor_id = utils.generate_uuid()
+        sdk_flavor = self.create_openstacksdk_flavor(
+            id=flavor_id,
+            name='m1.compute',
+            extra_specs={'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': '2'}
+        )
+
+        wrapped = nova_helper.Flavor.from_openstacksdk(sdk_flavor)
+
+        self.assertEqual(
+            {'hw:cpu_policy': 'dedicated', 'hw:numa_nodes': '2'},
+            wrapped.extra_specs
+        )
+
+    def test_flavor_from_openstacksdk_without_extra_specs(self):
+        """Test Flavor.from_openstacksdk without extra_specs."""
+        flavor_id = utils.generate_uuid()
+        sdk_flavor = self.create_openstacksdk_flavor(
+            id=flavor_id,
+            name='m1.basic'
+        )
+
+        wrapped = nova_helper.Flavor.from_openstacksdk(sdk_flavor)
+        self.assertEqual({}, wrapped.extra_specs)
+
 
 class TestAggregateWrapper(test_utils.NovaResourcesMixin, base.TestCase):
     """Test suite for the Aggregate dataclass."""
@@ -1830,6 +2069,37 @@ class TestAggregateWrapper(test_utils.NovaResourcesMixin, base.TestCase):
 
         # Compare with non-Aggregate object
         self.assertNotEqual(agg1a, "not-an-aggregate")
+
+    def test_aggregate_from_openstacksdk_basic_properties(self):
+        """Test Aggregate.from_openstacksdk with basic properties."""
+        aggregate_id = utils.generate_uuid()
+        sdk_aggregate = self.create_openstacksdk_aggregate(
+            id=aggregate_id,
+            name='test-aggregate',
+            availability_zone='az1',
+            hosts=['host1', 'host2', 'host3'],
+            metadata={'ssd': 'true', 'gpu': 'nvidia'}
+        )
+
+        wrapped = nova_helper.Aggregate.from_openstacksdk(sdk_aggregate)
+
+        self.assertEqual(aggregate_id, wrapped.id)
+        self.assertEqual('test-aggregate', wrapped.name)
+        self.assertEqual('az1', wrapped.availability_zone)
+        self.assertEqual(['host1', 'host2', 'host3'], wrapped.hosts)
+        self.assertEqual({'ssd': 'true', 'gpu': 'nvidia'}, wrapped.metadata)
+
+    def test_aggregate_from_openstacksdk_no_az(self):
+        """Test Aggregate.from_openstacksdk without availability zone."""
+        aggregate_id = utils.generate_uuid()
+        sdk_aggregate = self.create_openstacksdk_aggregate(
+            id=aggregate_id,
+            name='test-aggregate',
+            availability_zone=None
+        )
+
+        wrapped = nova_helper.Aggregate.from_openstacksdk(sdk_aggregate)
+        self.assertIsNone(wrapped.availability_zone)
 
 
 class TestServiceWrapper(test_utils.NovaResourcesMixin, base.TestCase):
@@ -1926,6 +2196,47 @@ class TestServiceWrapper(test_utils.NovaResourcesMixin, base.TestCase):
 
         # Compare with non-Service object
         self.assertNotEqual(svc1a, "not-a-service")
+
+    def test_service_from_openstacksdk_basic_properties(self):
+        """Test Service.from_openstacksdk with basic properties."""
+        service_id = utils.generate_uuid()
+        sdk_service = self.create_openstacksdk_service(
+            id=service_id,
+            binary='nova-compute',
+            host='compute-node-1',
+            availability_zone='az1',
+            status='enabled',
+            state='up',
+            updated_at='2026-01-09T12:00:00Z',
+            disabled_reason=None
+        )
+
+        wrapped = nova_helper.Service.from_openstacksdk(sdk_service)
+
+        self.assertEqual(service_id, wrapped.uuid)
+        self.assertEqual('nova-compute', wrapped.binary)
+        self.assertEqual('compute-node-1', wrapped.host)
+        self.assertEqual('az1', wrapped.zone)
+        self.assertEqual('enabled', wrapped.status)
+        self.assertEqual('up', wrapped.state)
+        self.assertEqual('2026-01-09T12:00:00Z', wrapped.updated_at)
+        self.assertIsNone(wrapped.disabled_reason)
+
+    def test_service_from_openstacksdk_disabled(self):
+        """Test Service.from_openstacksdk with disabled service."""
+        service_id = utils.generate_uuid()
+        sdk_service = self.create_openstacksdk_service(
+            id=service_id,
+            status='disabled',
+            state='down',
+            disabled_reason='maintenance'
+        )
+
+        wrapped = nova_helper.Service.from_openstacksdk(sdk_service)
+
+        self.assertEqual('disabled', wrapped.status)
+        self.assertEqual('down', wrapped.state)
+        self.assertEqual('maintenance', wrapped.disabled_reason)
 
 
 class TestHandleNovaError(base.TestCase):
@@ -2088,3 +2399,94 @@ class TestServerMigrationWrapper(test_utils.NovaResourcesMixin, base.TestCase):
 
         # Compare with non-ServerMigration object
         self.assertNotEqual(mig1a, "not-a-migration")
+
+    def test_migration_from_openstacksdk_basic_properties(self):
+        """Test ServerMigration.from_openstacksdk with basic properties."""
+        migration_id = utils.generate_uuid()
+        sdk_migration = self.create_openstacksdk_migration(
+            id=migration_id
+        )
+
+        wrapped = nova_helper.ServerMigration.from_openstacksdk(sdk_migration)
+        self.assertEqual(migration_id, wrapped.id)
+
+    def test_migration_equality_from_openstacksdk(self):
+        """Test ServerMigration dataclass equality comparison."""
+        migration_id1 = utils.generate_uuid()
+        migration_id2 = utils.generate_uuid()
+
+        mig1a = nova_helper.ServerMigration.from_openstacksdk(
+            self.create_openstacksdk_migration(id=migration_id1))
+        mig1b = nova_helper.ServerMigration.from_openstacksdk(
+            self.create_openstacksdk_migration(id=migration_id1))
+        mig2 = nova_helper.ServerMigration.from_openstacksdk(
+            self.create_openstacksdk_migration(id=migration_id2))
+
+        # Same ID and attributes should be equal
+        self.assertEqual(mig1a, mig1b)
+
+        # Different ID should not be equal
+        self.assertNotEqual(mig1a, mig2)
+
+        # Compare with non-ServerMigration object
+        self.assertNotEqual(mig1a, "not-a-migration")
+
+
+@mock.patch.object(clients.OpenStackClients, 'nova', autospec=True)
+@mock.patch.object(clients.OpenStackClients, 'cinder', autospec=True)
+class TestNovaHelperConfigOverrides(base.TestCase):
+    """Test suite for the NovaHelper config override functionality.
+
+    Tests the deprecated config migration from [nova_client] to [nova] group.
+    """
+
+    def test_endpoint_type_override_public_url(self, mock_cinder, mock_nova):
+        """Test endpoint_type publicURL is converted to public."""
+        self.flags(endpoint_type='publicURL', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['public'], CONF.nova.valid_interfaces)
+
+    def test_endpoint_type_override_internal_url(self, mock_cinder, mock_nova):
+        """Test endpoint_type internalURL is converted to internal."""
+        self.flags(endpoint_type='internalURL', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['internal'], CONF.nova.valid_interfaces)
+
+    def test_endpoint_type_override_admin_url(self, mock_cinder, mock_nova):
+        """Test endpoint_type adminURL is converted to admin."""
+        self.flags(endpoint_type='adminURL', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['admin'], CONF.nova.valid_interfaces)
+
+    def test_endpoint_type_override_without_url_suffix(
+            self, mock_cinder, mock_nova):
+        """Test endpoint_type without URL suffix is preserved."""
+        self.flags(endpoint_type='public', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['public'], CONF.nova.valid_interfaces)
+
+    def test_endpoint_type_override_internal_without_suffix(
+            self, mock_cinder, mock_nova):
+        """Test endpoint_type internal without suffix is preserved."""
+        self.flags(endpoint_type='internal', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['internal'], CONF.nova.valid_interfaces)
+
+    def test_endpoint_type_override_admin_without_suffix(
+            self, mock_cinder, mock_nova):
+        """Test endpoint_type admin without suffix is preserved."""
+        self.flags(endpoint_type='admin', group='nova_client')
+
+        nova_helper.NovaHelper()
+
+        self.assertEqual(['admin'], CONF.nova.valid_interfaces)

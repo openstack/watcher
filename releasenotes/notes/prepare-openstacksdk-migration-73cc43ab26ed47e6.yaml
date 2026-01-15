@@ -1,0 +1,13 @@
+---
+upgrade:
+  - |
+    Connection settings for Nova should be added
+    directly to the [nova] section of the configuration now, instead of [nova_client].
+deprecations:
+  - |
+    The nova_client configuration options are deprecated and will be removed
+    in a future release. Operators should migrate to the keystoneauth adapter
+    configuration options in the [nova] configuration group.
+other:
+  - |
+    Added support for openstacksdk as an alternative to novaclient.

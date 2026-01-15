@@ -24,13 +24,14 @@ from keystoneauth1 import loading as ka_loading
 from novaclient import client as nvclient
 
 from watcher.common import clients
+from watcher.common import context
 from watcher import conf
 from watcher.tests.unit import base
 
 CONF = conf.CONF
 
 
-class TestClients(base.TestCase):
+class TestBaseClients(base.TestCase):
 
     def _register_watcher_clients_auth_opts(self):
         _AUTH_CONF_GROUP = 'watcher_clients_auth'
@@ -51,6 +52,9 @@ class TestClients(base.TestCase):
             # single method, so we do this instead
             CONF.reset()
             del CONF._groups[_AUTH_CONF_GROUP]
+            # register again the auth options so the group is not empty
+            ka_loading.register_auth_conf_options(CONF, _AUTH_CONF_GROUP)
+            ka_loading.register_session_conf_options(CONF, _AUTH_CONF_GROUP)
 
         self.addCleanup(cleanup_conf_from_loading)
 
@@ -84,6 +88,9 @@ class TestClients(base.TestCase):
 
         CONF.register_opts = mock_register_opts
 
+
+class TestClients(TestBaseClients):
+
     def test_get_keystone_session(self):
         self._register_watcher_clients_auth_opts()
 
@@ -110,14 +117,14 @@ class TestClients(base.TestCase):
         osc._nova = None
         osc.nova()
         mock_call.assert_called_once_with(
-            CONF.nova_client.api_version,
+            CONF.nova.api_version,
             endpoint_type=CONF.nova_client.endpoint_type,
             region_name=CONF.nova_client.region_name,
             session=mock_session)
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_diff_vers(self, mock_session):
-        CONF.set_override('api_version', '2.60', group='nova_client')
+        CONF.set_override('api_version', '2.60', group='nova')
         osc = clients.OpenStackClients()
         osc._nova = None
         osc.nova()
@@ -125,11 +132,11 @@ class TestClients(base.TestCase):
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_bad_min_version(self, mock_session):
-        CONF.set_override('api_version', '2.47', group='nova_client')
+        CONF.set_override('api_version', '2.47', group='nova')
         osc = clients.OpenStackClients()
         osc._nova = None
         ex = self.assertRaises(ValueError, osc.nova)
-        self.assertIn('Invalid nova_client.api_version 2.47', str(ex))
+        self.assertIn('Invalid nova.api_version 2.47', str(ex))
 
     @mock.patch.object(clients.OpenStackClients, 'session')
     def test_clients_nova_diff_endpoint(self, mock_session):
@@ -287,3 +294,91 @@ class TestClients(base.TestCase):
             interface=CONF.placement_client.interface,
             region_name=CONF.placement_client.region_name,
             additional_headers=headers)
+
+
+class TestGetSDKConnection(TestBaseClients):
+    """Test cases for get_sdk_connection function."""
+
+    def setUp(self):
+        self._register_watcher_clients_auth_opts()
+        return super().setUp()
+
+    @mock.patch('openstack.connection.Connection', autospec=True)
+    def test_get_sdk_connection_with_context(
+            self, mock_connect):
+        """Test SDK connection creation with context."""
+
+        context_obj = context.RequestContext(
+            auth_token='test_token', project_id='test_project_id',
+            project_domain='test_project_domain_id'
+        )
+        mock_connection = mock.Mock()
+        mock_connect.return_value = mock_connection
+
+        result = clients.get_sdk_connection(
+            'watcher_clients_auth', context=context_obj
+        )
+
+        mock_connect.assert_called_once_with(
+            token='test_token',
+            auth_type='v3token',
+            project_id='test_project_id',
+            project_domain_id='test_project_domain_id',
+            auth_url='http://server.ip:5000',
+            interface=None,
+            region_name=None
+        )
+        self.assertEqual(mock_connection, result)
+
+    @mock.patch.object(ka_loading, 'load_auth_from_conf_options',
+                       autospec=True)
+    @mock.patch('openstack.connection.Connection', autospec=True)
+    def test_get_sdk_connection_with_session(
+            self, mock_connect, mock_load_auth):
+        """Test SDK connection creation with provided session."""
+        mock_session = mock.Mock()
+        mock_connection = mock.Mock()
+        mock_connect.return_value = mock_connection
+
+        result = clients.get_sdk_connection(
+            'watcher_clients_auth', session=mock_session
+        )
+
+        mock_connect.assert_called_once_with(
+            session=mock_session,
+            oslo_conf=CONF
+        )
+        mock_load_auth.assert_called_once_with(
+            CONF, 'watcher_clients_auth'
+        )
+        self.assertEqual(mock_connection, result)
+
+    @mock.patch.object(ka_loading, 'load_session_from_conf_options',
+                       autospec=True)
+    @mock.patch.object(ka_loading, 'load_auth_from_conf_options',
+                       autospec=True)
+    @mock.patch('openstack.connection.Connection', autospec=True)
+    def test_get_sdk_connection_no_session_no_context(
+            self, mock_connect, mock_load_auth, mock_load_session):
+        """Test SDK connection creation without session or context."""
+        mock_auth = mock.Mock()
+        mock_session = mock.Mock()
+        mock_connection = mock.Mock()
+        mock_load_auth.return_value = mock_auth
+        mock_load_session.return_value = mock_session
+        mock_connect.return_value = mock_connection
+
+        result = clients.get_sdk_connection('watcher_clients_auth')
+
+        mock_load_auth.assert_called_once_with(
+            CONF, 'watcher_clients_auth'
+        )
+        mock_load_session.assert_called_once_with(
+            CONF,
+            'watcher_clients_auth',
+            auth=mock_auth)
+        mock_connect.assert_called_once_with(
+            session=mock_session,
+            oslo_conf=CONF
+        )
+        self.assertEqual(mock_connection, result)
