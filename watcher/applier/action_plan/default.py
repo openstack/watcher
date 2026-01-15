@@ -45,7 +45,6 @@ class DefaultActionPlanHandler(base.BaseActionPlanHandler):
             if action_plan.state == objects.action_plan.State.CANCELLED:
                 self._update_action_from_pending_to_cancelled()
                 return
-            action_plan.hostname = CONF.host
             action_plan.state = objects.action_plan.State.ONGOING
             action_plan.save()
             notifications.action_plan.send_action_notification(
