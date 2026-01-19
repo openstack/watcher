@@ -146,6 +146,27 @@ This example creates a continuous audit that runs every 5 minutes indefinitely
   | Force         | False                                |
   +---------------+--------------------------------------+
 
+.. note::
+
+   If you don't enable `notification-based`_ cluster model synchronization,
+   make sure the audit interval is longer than the cluster data model
+   collector period configured in the ``watcher.conf``:
+
+   .. code-block:: ini
+
+      [watcher_cluster_data_model_collectors.baremetal]
+      period = 3600
+
+      [watcher_cluster_data_model_collectors.compute]
+      period = 3600
+
+      [watcher_cluster_data_model_collectors.storage]
+      period = 3600
+
+   Otherwise, outdated cluster model may be used during audit execution,
+   leading to suboptimal or incorrect optimization decisions.
+
+.. _`notification-based`: https://docs.openstack.org/watcher/latest/configuration/configuring.html#configure-nova-notifications
 
 Using Cron Expression
 ----------------------
