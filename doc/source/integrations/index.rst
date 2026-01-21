@@ -35,7 +35,7 @@ Integration Status Matrix
          - Minimal
          - Integration
        * - :ref:`MAAS <maas_integration>`
-         - Experimental
+         - Deprecated
          - Missing
          - Unit
        * - :ref:`Neutron <neutron_integration>`
@@ -95,8 +95,7 @@ MAAS (Metal As A Service)
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 This integration allows managing bare metal servers of a MAAS service,
 which includes Actions that manage the power state of nodes. This
-integration is classified as Experimental and may be removed in future
-releases.
+integration is deprecated and will be removed in a future release.
 
 .. _neutron_integration:
 
