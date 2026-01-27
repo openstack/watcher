@@ -10,4 +10,5 @@ deprecations:
     configuration options in the [nova] configuration group.
 other:
   - |
-    Added support for openstacksdk as an alternative to novaclient.
+    Added support for openstacksdk as an alternative to novaclient. Usage of
+    novaclient has been removed and python-novaclient has been removed as a dependency.

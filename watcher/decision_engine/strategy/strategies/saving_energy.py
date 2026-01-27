@@ -83,7 +83,6 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
 
         super().__init__(config, osc)
         self._metal_helper = None
-        self._nova_client = None
 
         self.with_vms_node_pool = []
         self.free_poweron_node_pool = []
@@ -96,12 +95,6 @@ class SavingEnergy(base.SavingEnergyBaseStrategy):
         if not self._metal_helper:
             self._metal_helper = metal_helper_factory.get_helper(self.osc)
         return self._metal_helper
-
-    @property
-    def nova_client(self):
-        if not self._nova_client:
-            self._nova_client = self.osc.nova()
-        return self._nova_client
 
     @classmethod
     def get_name(cls):

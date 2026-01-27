@@ -17,6 +17,7 @@ import abc
 
 from watcher.common import exception
 from watcher.common.metal_helper import constants as metal_constants
+from watcher.common import nova_helper
 
 
 class BaseMetalNode(abc.ABC):
@@ -69,7 +70,7 @@ class BaseMetalHelper(abc.ABC):
     @property
     def nova_client(self):
         if not getattr(self, "_nova_client", None):
-            self._nova_client = self._osc.nova()
+            self._nova_client = nova_helper.NovaHelper(self._osc)
         return self._nova_client
 
     @abc.abstractmethod

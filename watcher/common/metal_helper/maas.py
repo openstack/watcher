@@ -94,7 +94,10 @@ class MaasHelper(base.BaseMetalHelper):
             self._client.machines.list,
             timeout=CONF.maas_client.timeout)
 
-        compute_nodes = self.nova_client.hypervisors.list()
+        compute_nodes = self.nova_client.get_compute_node_list(
+            filter_ironic_nodes=False
+        )
+
         compute_node_map = dict()
         for compute_node in compute_nodes:
             compute_node_map[compute_node.hypervisor_hostname] = compute_node
@@ -111,7 +114,7 @@ class MaasHelper(base.BaseMetalHelper):
         return out_list
 
     def _get_compute_node_by_hostname(self, hostname):
-        compute_nodes = self.nova_client.hypervisors.search(
+        compute_nodes = self.nova_client.get_compute_node_by_hostname(
             hostname, detailed=True)
         for compute_node in compute_nodes:
             if compute_node.hypervisor_hostname == hostname:

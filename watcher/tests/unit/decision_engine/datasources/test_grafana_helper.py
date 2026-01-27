@@ -20,7 +20,6 @@ from unittest import mock
 from oslo_config import cfg
 from oslo_log import log
 
-from watcher.common import clients
 from watcher.common import exception
 from watcher.decision_engine.datasources import grafana
 from watcher.tests.unit import base
@@ -32,7 +31,6 @@ CONF = cfg.CONF
 LOG = log.getLogger(__name__)
 
 
-@mock.patch.object(clients.OpenStackClients, 'nova', mock.Mock())
 class TestGrafana(base.BaseTestCase):
     """Test the GrafanaHelper datasource
 

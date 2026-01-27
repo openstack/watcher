@@ -16,7 +16,6 @@
 
 from unittest import mock
 
-from watcher.common import clients
 from watcher.common.metal_helper import constants as m_constants
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
@@ -35,10 +34,6 @@ class TestSavingEnergy(TestBaseStrategy):
         self._metal_helper = mock.Mock()
         self._metal_helper.list_compute_nodes.return_value = self.fake_nodes
 
-        p_nova = mock.patch.object(clients.OpenStackClients, 'nova')
-        self.m_nova = p_nova.start()
-        self.addCleanup(p_nova.stop)
-
         self.m_c_model.return_value = self.fake_c_cluster.generate_scenario_1()
 
         self.strategy = strategies.SavingEnergy(
@@ -50,7 +45,6 @@ class TestSavingEnergy(TestBaseStrategy):
         self.strategy.free_used_percent = 10.0
         self.strategy.min_free_hosts_num = 1
         self.strategy._metal_helper = self._metal_helper
-        self.strategy._nova_client = self.m_nova
 
     def test_get_hosts_pool_with_vms_node_pool(self):
         self._metal_helper.list_compute_nodes.return_value = [

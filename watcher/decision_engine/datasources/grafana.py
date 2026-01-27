@@ -48,7 +48,6 @@ class GrafanaHelper(base.DataSourceBase):
     def __init__(self, osc=None):
         """:param osc: an OpenStackClients instance"""
         self.osc = osc if osc else clients.OpenStackClients()
-        self.nova = self.osc.nova()
         self.configured = False
         self._base_url = None
         self._headers = None

@@ -21,7 +21,6 @@ from ironicclient import client as irclient
 from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
-from novaclient import client as nvclient
 
 from watcher.common import clients
 from watcher.common import context
@@ -109,50 +108,6 @@ class TestClients(TestBaseClients):
         self.assertEqual(expected['user_domain_id'], sess.auth._user_domain_id)
         self.assertEqual(expected['project_domain_id'],
                          sess.auth._project_domain_id)
-
-    @mock.patch.object(nvclient, 'Client')
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_nova(self, mock_session, mock_call):
-        osc = clients.OpenStackClients()
-        osc._nova = None
-        osc.nova()
-        mock_call.assert_called_once_with(
-            CONF.nova.api_version,
-            endpoint_type=CONF.nova_client.endpoint_type,
-            region_name=CONF.nova_client.region_name,
-            session=mock_session)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_nova_diff_vers(self, mock_session):
-        CONF.set_override('api_version', '2.60', group='nova')
-        osc = clients.OpenStackClients()
-        osc._nova = None
-        osc.nova()
-        self.assertEqual('2.60', osc.nova().api_version.get_string())
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_nova_bad_min_version(self, mock_session):
-        CONF.set_override('api_version', '2.47', group='nova')
-        osc = clients.OpenStackClients()
-        osc._nova = None
-        ex = self.assertRaises(ValueError, osc.nova)
-        self.assertIn('Invalid nova.api_version 2.47', str(ex))
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_nova_diff_endpoint(self, mock_session):
-        CONF.set_override('endpoint_type', 'publicURL', group='nova_client')
-        osc = clients.OpenStackClients()
-        osc._nova = None
-        osc.nova()
-        self.assertEqual('publicURL', osc.nova().client.interface)
-
-    @mock.patch.object(clients.OpenStackClients, 'session')
-    def test_clients_nova_cached(self, mock_session):
-        osc = clients.OpenStackClients()
-        osc._nova = None
-        nova = osc.nova()
-        nova_cached = osc.nova()
-        self.assertEqual(nova, nova_cached)
 
     @mock.patch.object(gnclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')

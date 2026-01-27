@@ -11,6 +11,7 @@
 # under the License.
 
 import debtcollector
+import microversion_parse
 from oslo_config import cfg
 import warnings
 
@@ -21,8 +22,6 @@ from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
 from keystoneauth1 import session as ka_session
 from keystoneclient import client as keyclient
-from novaclient import api_versions as nova_api_versions
-from novaclient import client as nvclient
 from openstack import connection
 
 from watcher.common import context
@@ -110,8 +109,11 @@ def check_min_nova_api_version(config_version):
     :raises: ValueError if the configured version is less than the required
         minimum
     """
-    min_required = nova_api_versions.APIVersion(MIN_NOVA_API_VERSION)
-    if nova_api_versions.APIVersion(config_version) < min_required:
+    min_required = microversion_parse.parse_version_string(
+        MIN_NOVA_API_VERSION
+    )
+
+    if microversion_parse.parse_version_string(config_version) < min_required:
         raise ValueError(f'Invalid nova.api_version {config_version}. '
                          f'{MIN_NOVA_API_VERSION} or greater is required.')
 
@@ -125,7 +127,6 @@ class OpenStackClients:
     def reset_clients(self):
         self._session = None
         self._keystone = None
-        self._nova = None
         self._gnocchi = None
         self._cinder = None
         self._ironic = None
@@ -167,23 +168,6 @@ class OpenStackClients:
             session=self.session)
 
         return self._keystone
-
-    @exception.wrap_keystone_exception
-    def nova(self):
-        if self._nova:
-            return self._nova
-
-        novaclient_version = CONF.nova.api_version
-
-        check_min_nova_api_version(novaclient_version)
-
-        nova_endpoint_type = self._get_client_option('nova', 'endpoint_type')
-        nova_region_name = self._get_client_option('nova', 'region_name')
-        self._nova = nvclient.Client(novaclient_version,
-                                     endpoint_type=nova_endpoint_type,
-                                     region_name=nova_region_name,
-                                     session=self.session)
-        return self._nova
 
     @exception.wrap_keystone_exception
     def gnocchi(self):

@@ -223,7 +223,6 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.model = None
         self.model_scope = dict()
         self.no_model_scope_flag = False
-        self.nova = osc.nova()
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
         self.placement_helper = placement_helper.PlacementHelper(osc=self.osc)
         self.executor = threading.DecisionEngineThreadPool()
@@ -464,7 +463,7 @@ class NovaModelBuilder(base.BaseModelBuilder):
         limit = len(instances) if len(instances) <= 1000 else -1
         # Get all servers on this compute host.
         # Note that the advantage of passing the limit parameter is
-        # that it can speed up the call time of novaclient. 1000 is
+        # that it can speed up the call time of Nova API. 1000 is
         # the default maximum number of return servers provided by
         # compute API. If we need to request more than 1000 servers,
         # we can set limit=-1. For details, please see:

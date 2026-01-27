@@ -374,6 +374,7 @@ class NovaHelper:
         """
         self._config_overrides = False
         self._override_deprecated_configs()
+        clients.check_min_nova_api_version(CONF.nova.api_version)
         self.osc = osc if osc else clients.OpenStackClients()
         self.cinder = self.osc.cinder()
         self._create_sdk_connection(
@@ -434,17 +435,23 @@ class NovaHelper:
 
     @nova_retries
     @handle_nova_error("Compute node")
-    def get_compute_node_list(self):
-        """Get the list of all compute nodes (hypervisors).
+    def get_compute_node_list(self, filter_ironic_nodes=True):
+        """Get the list of compute nodes (hypervisors).
 
-        Baremetal (ironic) nodes are filtered out from the result.
-
-        :returns: list of Hypervisor wrapper objects
+        :param filter_ironic_nodes: If True, exclude baremetal (ironic) nodes
+            from the returned list. Defaults to True.
+        :returns: List of Hypervisor objects.
         """
         hypervisors = self.connection.compute.hypervisors(details=True)
         # filter out baremetal nodes from hypervisors
-        compute_nodes = [Hypervisor.from_openstacksdk(node) for node in
-                         hypervisors if node.hypervisor_type != 'ironic']
+        compute_nodes = [
+            Hypervisor.from_openstacksdk(node) for node in hypervisors
+        ]
+        if filter_ironic_nodes:
+            compute_nodes = [
+                node for node in compute_nodes
+                if node.hypervisor_type != 'ironic'
+            ]
         return compute_nodes
 
     @nova_retries

@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import fixtures
 from unittest import mock
 
 try:
@@ -77,7 +78,9 @@ class TestMaasHelper(base.TestCase):
         super().setUp()
 
         self._mock_osc = mock.Mock()
-        self._mock_nova_client = self._mock_osc.nova.return_value
+        self._mock_nova_client = self.useFixture(
+            fixtures.MockPatch("watcher.common.nova_helper.NovaHelper")
+        ).mock.return_value
         self._mock_maas_client = self._mock_osc.maas.return_value
         self._helper = maas.MaasHelper(osc=self._mock_osc)
 
@@ -97,7 +100,8 @@ class TestMaasHelper(base.TestCase):
         ]
 
         self._mock_maas_client.machines.list.return_value = mock_machines
-        self._mock_nova_client.hypervisors.list.return_value = mock_hypervisors
+        self._mock_nova_client.get_compute_node_list.return_value = \
+            mock_hypervisors
 
         out_nodes = self._helper.list_compute_nodes()
         self.assertEqual(1, len(out_nodes))
@@ -116,7 +120,7 @@ class TestMaasHelper(base.TestCase):
             mock.Mock(hypervisor_hostname="compute-0"),
             mock.Mock(hypervisor_hostname="compute-01"),
         ]
-        self._mock_nova_client.hypervisors.search.return_value = (
+        self._mock_nova_client.get_compute_node_by_hostname.return_value = (
             mock_compute_nodes)
 
         out_node = self._helper.get_node(mock.sentinel.id)

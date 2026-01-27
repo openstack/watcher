@@ -74,7 +74,9 @@ class IronicHelper(base.BaseMetalHelper):
                             'of ironic node %s', node.uuid)
                 continue
 
-            hypervisor_node = self.nova_client.hypervisors.get(hypervisor_id)
+            hypervisor_node = self.nova_client.get_compute_node_by_uuid(
+                hypervisor_id
+            )
             if hypervisor_node is None:
                 LOG.warning('Cannot find hypervisor %s', hypervisor_id)
                 continue
@@ -88,7 +90,9 @@ class IronicHelper(base.BaseMetalHelper):
         ironic_node = self._client.node.get(node_id)
         compute_node_id = ironic_node.extra.get('compute_node_id')
         if compute_node_id:
-            compute_node = self.nova_client.hypervisors.get(compute_node_id)
+            compute_node = self.nova_client.get_compute_node_by_uuid(
+                compute_node_id
+            )
         else:
             compute_node = None
         return IronicNode(ironic_node, compute_node, self._client)

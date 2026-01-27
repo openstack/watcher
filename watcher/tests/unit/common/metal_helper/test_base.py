@@ -18,6 +18,7 @@ from unittest import mock
 from watcher.common import exception
 from watcher.common.metal_helper import base as m_helper_base
 from watcher.common.metal_helper import constants as m_constants
+from watcher.common import nova_helper
 from watcher.tests.unit import base
 
 
@@ -92,5 +93,4 @@ class TestBaseMetalHelper(base.TestCase):
         self._helper = MockMetalHelper(self._osc)
 
     def test_nova_client_attr(self):
-        self.assertEqual(self._osc.nova.return_value,
-                         self._helper.nova_client)
+        self.assertIsInstance(self._helper.nova_client, nova_helper.NovaHelper)

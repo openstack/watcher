@@ -1096,6 +1096,37 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertEqual(hypervisor1_name,
                          compute_nodes[0].hypervisor_hostname)
 
+    def test_get_compute_node_list_with_ironic(self, mock_cinder):
+        nova_util = nova_helper.NovaHelper()
+        hypervisor1_id = utils.generate_uuid()
+        hypervisor1_name = "fake_hypervisor_1"
+        hypervisor1 = self.create_openstacksdk_hypervisor(
+            id=hypervisor1_id, name=hypervisor1_name,
+            hypervisor_type="QEMU"
+        )
+
+        hypervisor2_id = utils.generate_uuid()
+        hypervisor2_name = "fake_ironic"
+        hypervisor2 = self.create_openstacksdk_hypervisor(
+            id=hypervisor2_id, name=hypervisor2_name,
+            hypervisor_type="ironic"
+        )
+
+        self.mock_connection.compute.hypervisors.return_value = [
+            hypervisor1, hypervisor2
+        ]
+
+        compute_nodes = nova_util.get_compute_node_list(
+            filter_ironic_nodes=False
+        )
+
+        # baremetal node should be included
+        self.assertEqual(2, len(compute_nodes))
+        self.assertEqual(hypervisor1_name,
+                         compute_nodes[0].hypervisor_hostname)
+        self.assertEqual(hypervisor2_name,
+                         compute_nodes[1].hypervisor_hostname)
+
     def test_find_instance(self, mock_cinder):
         nova_util = nova_helper.NovaHelper()
         kwargs = {
@@ -2077,7 +2108,6 @@ class TestServerMigrationWrapper(test_utils.NovaResourcesMixin, base.TestCase):
         self.assertNotEqual(mig1a, "not-a-migration")
 
 
-@mock.patch.object(clients.OpenStackClients, 'nova', autospec=True)
 @mock.patch.object(clients.OpenStackClients, 'cinder', autospec=True)
 class TestNovaHelperConfigOverrides(base.TestCase):
     """Test suite for the NovaHelper config override functionality.
@@ -2091,7 +2121,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
             fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
         )
 
-    def test_endpoint_type_override_public_url(self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_public_url(self, mock_cinder):
         """Test endpoint_type publicURL is converted to public."""
         self.flags(endpoint_type='publicURL', group='nova_client')
 
@@ -2099,7 +2129,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['public'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_internal_url(self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_internal_url(self, mock_cinder):
         """Test endpoint_type internalURL is converted to internal."""
         self.flags(endpoint_type='internalURL', group='nova_client')
 
@@ -2107,7 +2137,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['internal'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_admin_url(self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_admin_url(self, mock_cinder):
         """Test endpoint_type adminURL is converted to admin."""
         self.flags(endpoint_type='adminURL', group='nova_client')
 
@@ -2115,8 +2145,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['admin'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_without_url_suffix(
-            self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_without_url_suffix(self, mock_cinder):
         """Test endpoint_type without URL suffix is preserved."""
         self.flags(endpoint_type='public', group='nova_client')
 
@@ -2124,8 +2153,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['public'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_internal_without_suffix(
-            self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_internal_without_suffix(self, mock_cinder):
         """Test endpoint_type internal without suffix is preserved."""
         self.flags(endpoint_type='internal', group='nova_client')
 
@@ -2133,8 +2161,7 @@ class TestNovaHelperConfigOverrides(base.TestCase):
 
         self.assertEqual(['internal'], CONF.nova.valid_interfaces)
 
-    def test_endpoint_type_override_admin_without_suffix(
-            self, mock_cinder, mock_nova):
+    def test_endpoint_type_override_admin_without_suffix(self, mock_cinder):
         """Test endpoint_type admin without suffix is preserved."""
         self.flags(endpoint_type='admin', group='nova_client')
 

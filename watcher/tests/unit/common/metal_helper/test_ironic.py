@@ -13,6 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import fixtures
 from unittest import mock
 
 from watcher.common.metal_helper import constants as m_constants
@@ -75,7 +76,9 @@ class TestIronicHelper(base.TestCase):
         super().setUp()
 
         self._mock_osc = mock.Mock()
-        self._mock_nova_client = self._mock_osc.nova.return_value
+        self._mock_nova_client = self.useFixture(
+            fixtures.MockPatch("watcher.common.nova_helper.NovaHelper")
+        ).mock.return_value
         self._mock_ironic_client = self._mock_osc.ironic.return_value
         self._helper = ironic.IronicHelper(osc=self._mock_osc)
 
@@ -92,7 +95,7 @@ class TestIronicHelper(base.TestCase):
 
         self._mock_ironic_client.node.list.return_value = mock_machines
         self._mock_ironic_client.node.get.side_effect = mock_machines
-        self._mock_nova_client.hypervisors.get.side_effect = (
+        self._mock_nova_client.get_compute_node_by_uuid.side_effect = (
             mock_hypervisor, None)
 
         out_nodes = self._helper.list_compute_nodes()
@@ -111,8 +114,8 @@ class TestIronicHelper(base.TestCase):
 
         out_node = self._helper.get_node(mock.sentinel.id)
 
-        self.assertEqual(self._mock_nova_client.hypervisors.get.return_value,
-                         out_node._nova_node)
+        self._mock_nova_client.get_compute_node_by_uuid.return_value = \
+            out_node._nova_node
         self.assertEqual(self._mock_ironic_client, out_node._ironic_client)
         self.assertEqual(mock_machine, out_node._ironic_node)
 
@@ -122,7 +125,7 @@ class TestIronicHelper(base.TestCase):
 
         out_node = self._helper.get_node(mock.sentinel.id)
 
-        self._mock_nova_client.hypervisors.get.assert_not_called()
+        self._mock_nova_client.get_compute_node_by_uuid.assert_not_called()
         self.assertIsNone(out_node._nova_node)
         self.assertEqual(self._mock_ironic_client, out_node._ironic_client)
         self.assertEqual(mock_machine, out_node._ironic_node)
