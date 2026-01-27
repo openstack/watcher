@@ -50,14 +50,18 @@ class Syncer:
                 obj_action_desc.create()
         self._cancel_ongoing_actionplans(ctx)
 
-    def _cancel_ongoing_actionplans(self, context):
+    def _cancel_ongoing_actionplans(self, context, host=None):
+        hostname = host or CONF.host
         actions_plans = objects.ActionPlan.list(
             context,
             filters={'state': objects.action_plan.State.ONGOING,
-                     'hostname': CONF.host},
+                     'hostname': hostname},
             eager=True)
         for ap in actions_plans:
             ap.state = objects.action_plan.State.CANCELLED
+            ap.status_message = ("Action plan was cancelled because Applier "
+                                 f"{hostname} was stopped while the action "
+                                 "plan was ongoing.")
             ap.save()
             filters = {'action_plan_uuid': ap.uuid,
                        'state__in': (objects.action.State.PENDING,
@@ -65,6 +69,9 @@ class Syncer:
             actions = objects.Action.list(context, filters=filters, eager=True)
             for a in actions:
                 a.state = objects.action.State.CANCELLED
+                a.status_message = ("Action was cancelled because Applier "
+                                    f"{hostname} was stopped while the "
+                                    "action plan was ongoing.")
                 a.save()
             LOG.info("Action Plan %(uuid)s along with appropriate Actions "
                      "has been cancelled because it was in %(state)s state "

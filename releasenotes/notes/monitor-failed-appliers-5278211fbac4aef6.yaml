@@ -1,0 +1,12 @@
+---
+features:
+  - |
+    A new service monitor has been added to the applier service to monitor
+    the status of the applier services and handle failover for action plans
+    when applier services fail. This monitor is executed as part of the applier
+    services and performs the following actions when an applier is detected
+    as failed:
+
+    - Cancels ONGOING action plans on the failed service.
+    - Retriggers PENDING action plans on the failed applier service so that they
+      can be picked up by any alive applier service.
