@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fixtures
+
 from watcher.applier.actions import base as abase
 from watcher.applier.loading import default
 from watcher.tests.unit import base
@@ -22,6 +24,9 @@ class TestDefaultActionLoader(base.TestCase):
     def setUp(self):
         super().setUp()
         self.loader = default.DefaultActionLoader()
+        self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        )
 
     def test_endpoints(self):
         for endpoint in self.loader.list_available():

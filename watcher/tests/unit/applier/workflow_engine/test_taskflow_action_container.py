@@ -15,15 +15,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import fixtures
 from unittest import mock
 
-import novaclient.exceptions as nvexceptions
+from openstack import exceptions as sdk_exc
 from oslo_config import cfg
 
 from watcher.applier.workflow_engine import default as tflow
-from watcher.common import clients
 from watcher.common import exception
-from watcher.common import nova_helper
 from watcher import objects
 from watcher.tests.unit.common import utils as test_utils
 from watcher.tests.unit.db import base
@@ -64,13 +63,15 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
             self.engine.context, action.uuid)
         self.assertEqual(obj_action.state, objects.action.State.SUCCEEDED)
 
-    @mock.patch.object(clients.OpenStackClients, 'nova', mock.Mock())
     def test_execute_with_failed_execute(self):
-        nova_util = nova_helper.NovaHelper()
+
+        mock_connection = self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        ).mock.return_value
         instance = "31b9dd5c-b1fd-4f61-9b68-a47096326dac"
-        nova_util.nova.servers.get.side_effect = [
-            self.create_nova_server(id=instance),
-            nvexceptions.NotFound("404")
+        mock_connection.compute.get_server.side_effect = [
+            self.create_openstacksdk_server(id=instance),
+            sdk_exc.NotFoundException()
         ]
         action_plan = obj_utils.create_test_action_plan(
             self.context, audit_id=self.audit.id,

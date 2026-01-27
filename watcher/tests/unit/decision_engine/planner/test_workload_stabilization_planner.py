@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import fixtures
 from unittest import mock
 
 from watcher.common import exception
@@ -65,6 +66,9 @@ class TestActionScheduling(base.DbTestCase):
         self.audit = db_utils.create_test_audit(
             uuid=utils.generate_uuid(), strategy_id=self.strategy.id)
         self.planner = pbase.WorkloadStabilizationPlanner(mock.Mock())
+        self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        )
         self.nova_helper = nova_helper.NovaHelper(mock.Mock())
 
     def test_schedule_actions(self):

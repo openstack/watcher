@@ -23,11 +23,9 @@ import uuid
 
 from keystoneauth1 import exceptions as ksa_exc
 from keystoneauth1 import loading as ks_loading
-from novaclient import api_versions
+import microversion_parse
+from openstack import exceptions as sdk_exc
 from oslo_log import log
-
-import novaclient.exceptions as nvexceptions
-
 from watcher.common import clients
 from watcher.common import exception
 from watcher import conf
@@ -80,7 +78,7 @@ def handle_nova_error(resource_type, id_arg_index=1):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
-            except nvexceptions.NotFound:
+            except sdk_exc.NotFoundException:
                 if len(args) > id_arg_index:
                     resource_id = args[id_arg_index]
                 else:
@@ -88,7 +86,7 @@ def handle_nova_error(resource_type, id_arg_index=1):
                 LOG.debug("%s %s was not found", resource_type, resource_id)
                 msg = f"{resource_id} of type {resource_type}"
                 raise exception.ComputeResourceNotFound(msg)
-            except nvexceptions.ClientException as e:
+            except sdk_exc.SDKException as e:
                 LOG.error("Nova client error: %s", e)
                 raise exception.NovaClientError(reason=str(e))
         return wrapper
@@ -99,7 +97,7 @@ def handle_nova_error(resource_type, id_arg_index=1):
 class Server:
     """Pure dataclass for server data.
 
-    Extracted from novaclient Server object with all extended attributes
+    Extracted from OpenStackSDK Server object with all attributes
     resolved at construction time.
     """
 
@@ -124,35 +122,6 @@ class Server:
             uuid.UUID(self.uuid)
         except ValueError:
             raise exception.InvalidUUID(uuid=self.uuid)
-
-    @classmethod
-    def from_novaclient(cls, nova_server):
-        """Create a Server dataclass from a novaclient Server object.
-
-        :param nova_server: novaclient servers.Server object
-        :returns: Server dataclass instance
-        :raises: InvalidUUID if server ID is not a valid UUID
-        """
-        server_dict = nova_server.to_dict()
-
-        return cls(
-            uuid=nova_server.id,
-            name=nova_server.name,
-            created=nova_server.created,
-            host=server_dict.get('OS-EXT-SRV-ATTR:host'),
-            vm_state=server_dict.get('OS-EXT-STS:vm_state'),
-            task_state=server_dict.get('OS-EXT-STS:task_state'),
-            power_state=server_dict.get('OS-EXT-STS:power_state'),
-            status=nova_server.status,
-            flavor=nova_server.flavor,
-            tenant_id=nova_server.tenant_id,
-            locked=nova_server.locked,
-            metadata=nova_server.metadata,
-            availability_zone=server_dict.get('OS-EXT-AZ:availability_zone'),
-            pinned_availability_zone=server_dict.get(
-                'pinned_availability_zone'
-            )
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_server):
@@ -184,7 +153,7 @@ class Server:
 class Hypervisor:
     """Pure dataclass for hypervisor data.
 
-    Extracted from novaclient Hypervisor object with all extended attributes
+    Extracted from OpenStackSDK Hypervisor object with all attributes
     resolved at construction time.
     """
 
@@ -210,44 +179,6 @@ class Hypervisor:
             uuid.UUID(self.uuid)
         except ValueError:
             raise exception.InvalidUUID(uuid=self.uuid)
-
-    @classmethod
-    def from_novaclient(cls, nova_hypervisor):
-        """Create a Hypervisor dataclass from a novaclient Hypervisor object.
-
-        :param nova_hypervisor: novaclient hypervisors.Hypervisor object
-        :returns: Hypervisor dataclass instance
-        :raises: InvalidUUID if hypervisor ID is not a valid UUID
-        """
-        hypervisor_dict = nova_hypervisor.to_dict()
-        service = hypervisor_dict.get('service')
-        service_host = None
-        service_id = None
-        service_disabled_reason = None
-        if isinstance(service, dict):
-            service_host = service.get('host')
-            service_id = service.get('id')
-            service_disabled_reason = service.get('disabled_reason')
-
-        servers = hypervisor_dict.get('servers', [])
-
-        return cls(
-            uuid=nova_hypervisor.id,
-            hypervisor_hostname=nova_hypervisor.hypervisor_hostname,
-            hypervisor_type=nova_hypervisor.hypervisor_type,
-            state=nova_hypervisor.state,
-            status=nova_hypervisor.status,
-            vcpus=hypervisor_dict.get('vcpus'),
-            vcpus_used=hypervisor_dict.get('vcpus_used'),
-            memory_mb=hypervisor_dict.get('memory_mb'),
-            memory_mb_used=hypervisor_dict.get('memory_mb_used'),
-            local_gb=hypervisor_dict.get('local_gb'),
-            local_gb_used=hypervisor_dict.get('local_gb_used'),
-            service_host=service_host,
-            service_id=service_id,
-            service_disabled_reason=service_disabled_reason,
-            servers=servers,
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_hypervisor):
@@ -293,7 +224,7 @@ class Hypervisor:
 class Flavor:
     """Pure dataclass for flavor data.
 
-    Extracted from novaclient Flavor object with all attributes
+    Extracted from OpenStackSDK Flavor object with all attributes
     resolved at construction time.
     """
 
@@ -308,31 +239,6 @@ class Flavor:
     swap: int
     is_public: bool
     extra_specs: dict
-
-    @classmethod
-    def from_novaclient(cls, nova_flavor):
-        """Create a Flavor dataclass from a novaclient Flavor object.
-
-        :param nova_flavor: novaclient flavors.Flavor object
-        :returns: Flavor dataclass instance
-        """
-        swap = nova_flavor.swap
-        if swap == "":
-            swap = 0
-
-        flavor_dict = nova_flavor.to_dict()
-
-        return cls(
-            id=nova_flavor.id,
-            flavor_name=nova_flavor.name,
-            vcpus=nova_flavor.vcpus,
-            ram=nova_flavor.ram,
-            disk=nova_flavor.disk,
-            ephemeral=nova_flavor.ephemeral,
-            swap=swap,
-            is_public=nova_flavor.is_public,
-            extra_specs=flavor_dict.get('extra_specs', {})
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_flavor):
@@ -359,7 +265,7 @@ class Flavor:
 class Aggregate:
     """Pure dataclass for aggregate data.
 
-    Extracted from novaclient Aggregate object with all attributes
+    Extracted from OpenStackSDK Aggregate object with all attributes
     resolved at construction time.
     """
 
@@ -370,21 +276,6 @@ class Aggregate:
     availability_zone: str | None
     hosts: list
     metadata: dict
-
-    @classmethod
-    def from_novaclient(cls, nova_aggregate):
-        """Create an Aggregate dataclass from a novaclient Aggregate object.
-
-        :param nova_aggregate: novaclient aggregates.Aggregate object
-        :returns: Aggregate dataclass instance
-        """
-        return cls(
-            id=nova_aggregate.id,
-            name=nova_aggregate.name,
-            availability_zone=nova_aggregate.availability_zone,
-            hosts=nova_aggregate.hosts,
-            metadata=nova_aggregate.metadata,
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_aggregate):
@@ -406,7 +297,7 @@ class Aggregate:
 class Service:
     """Pure dataclass for service data.
 
-    Extracted from novaclient Service object with all attributes
+    Extracted from OpenStackSDK Service object with all attributes
     resolved at construction time.
     """
 
@@ -425,25 +316,6 @@ class Service:
             uuid.UUID(self.uuid)
         except ValueError:
             raise exception.InvalidUUID(uuid=self.uuid)
-
-    @classmethod
-    def from_novaclient(cls, nova_service):
-        """Create a Service dataclass from a novaclient Service object.
-
-        :param nova_service: novaclient services.Service object
-        :returns: Service dataclass instance
-        :raises: InvalidUUID if service ID is not a valid UUID
-        """
-        return cls(
-            uuid=nova_service.id,
-            binary=nova_service.binary,
-            host=nova_service.host,
-            zone=nova_service.zone,
-            status=nova_service.status,
-            state=nova_service.state,
-            updated_at=nova_service.updated_at,
-            disabled_reason=nova_service.disabled_reason,
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_service):
@@ -469,24 +341,13 @@ class Service:
 class ServerMigration:
     """Pure dataclass for server migration data.
 
-    Extracted from novaclient ServerMigration object with all attributes
+    Extracted from OpenStackSDK ServerMigration object with all attributes
     resolved at construction time.
     """
 
     # as opposed to Server or Hypervisor, the ServerMigration id is not a
     # uuid, but a string containing an integer
     id: str
-
-    @classmethod
-    def from_novaclient(cls, nova_migration):
-        """Create a ServerMigration from a novaclient ServerMigration.
-
-        :param nova_migration: novaclient server_migrations.ServerMigration
-        :returns: ServerMigration dataclass instance
-        """
-        return cls(
-            id=nova_migration.id,
-        )
 
     @classmethod
     def from_openstacksdk(cls, nova_migration):
@@ -502,14 +363,22 @@ class ServerMigration:
 
 class NovaHelper:
 
-    def __init__(self, osc=None):
-        """:param osc: an OpenStackClients instance"""
+    def __init__(self, osc=None, session=None, context=None):
+        """Create and return a helper to call the nova service
+
+        :param osc: an OpenStackClients instance
+        :param session: Optional keystone session to create the openstack
+        connection.
+        :param context: Optional context object, use to get user's token to
+        create openstack connection.
+        """
         self._config_overrides = False
         self._override_deprecated_configs()
-        self._auth_group = 'nova'
         self.osc = osc if osc else clients.OpenStackClients()
         self.cinder = self.osc.cinder()
-        self.nova = self.osc.nova()
+        self._create_sdk_connection(
+            context=context, session=session
+        )
         self._is_pinned_az_available = None
 
     def _override_deprecated_configs(self):
@@ -523,13 +392,32 @@ class NovaHelper:
             endpoint_type = CONF.nova_client.endpoint_type.replace('URL', '')
             CONF.set_override('valid_interfaces', [endpoint_type], 'nova')
 
+        self._config_overrides = True
+
+    def _create_sdk_connection(self, session=None, context=None):
+        """Create and return an OpenStackSDK Connection
+
+        :param session: Optional keystone session to create the openstack
+        connection.
+        :param context: Optional context object, use to get user's token to
+        create openstack connection.
+        """
+        auth_group = 'nova'
         nova_auth = ks_loading.load_auth_from_conf_options(CONF, 'nova')
         if nova_auth is None:
             # NOTE(jgilaber): if can't configure the auth from the values in
             # [nova], use [watcher_clients_auth] as fallback
-            self._auth_group = clients_auth.WATCHER_CLIENTS_AUTH
+            LOG.debug(
+                "could not load auth plugin from [nova] section, using %s "
+                "as fallback", clients_auth.WATCHER_CLIENTS_AUTH
+            )
+            auth_group = clients_auth.WATCHER_CLIENTS_AUTH
 
-        self._config_overrides = True
+        self.connection = clients.get_sdk_connection(
+            auth_group, context=context, session=session,
+            interface=CONF.nova.valid_interfaces,
+            region_name=CONF.nova.region_name
+        )
 
     def is_pinned_az_available(self):
         """Check if pinned AZ is available in GET /servers/detail response.
@@ -537,10 +425,11 @@ class NovaHelper:
         :returns: True if is available, False otherwise.
         """
         if self._is_pinned_az_available is None:
-            self._is_pinned_az_available = (
-                api_versions.APIVersion(
-                    version_str=CONF.nova.api_version) >=
-                api_versions.APIVersion(version_str='2.96'))
+            configured_version = microversion_parse.parse_version_string(
+                CONF.nova.api_version
+            )
+            pinned_version = microversion_parse.parse_version_string('2.96')
+            self._is_pinned_az_available = configured_version >= pinned_version
         return self._is_pinned_az_available
 
     @nova_retries
@@ -552,9 +441,9 @@ class NovaHelper:
 
         :returns: list of Hypervisor wrapper objects
         """
-        hypervisors = self.nova.hypervisors.list()
+        hypervisors = self.connection.compute.hypervisors(details=True)
         # filter out baremetal nodes from hypervisors
-        compute_nodes = [Hypervisor.from_novaclient(node) for node in
+        compute_nodes = [Hypervisor.from_openstacksdk(node) for node in
                          hypervisors if node.hypervisor_type != 'ironic']
         return compute_nodes
 
@@ -572,12 +461,11 @@ class NovaHelper:
         :returns: list of Hypervisor wrapper objects or None if no hypervisor
         is found
         """
-        return [
-            Hypervisor.from_novaclient(h) for h in
-            self.nova.hypervisors.search(
-                node_name, servers=servers, detailed=detailed
-            )
-        ]
+        # SDK hypervisors() method returns all hypervisors, filter by name
+        hypervisors = self.connection.compute.hypervisors(
+            hypervisor_hostname_pattern=node_name, with_servers=servers,
+            details=detailed)
+        return [Hypervisor.from_openstacksdk(h) for h in hypervisors]
 
     def get_compute_node_by_hostname(self, node_hostname):
         """Get compute node by hostname
@@ -600,7 +488,7 @@ class NovaHelper:
             raise exception.ComputeNodeNotFound(name=node_hostname)
         except Exception as exc:
             LOG.exception(exc)
-            raise exception.ComputeNodeNotFound(name=node_hostname)
+            raise exception.ComputeNodeNotFound(name=node_hostname) from exc
 
     @nova_retries
     @handle_nova_error("Compute node")
@@ -610,7 +498,8 @@ class NovaHelper:
         :param node_uuid: hypervisor id as uuid after microversion 2.53
         :returns: Hypervisor wrapper object if found, None if not found
         """
-        return Hypervisor.from_novaclient(self.nova.hypervisors.get(node_uuid))
+        hypervisor = self.connection.compute.get_hypervisor(node_uuid)
+        return Hypervisor.from_openstacksdk(hypervisor)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -629,13 +518,21 @@ class NovaHelper:
                       https://bugs.launchpad.net/watcher/+bug/1834679
         :returns: list of Server wrapper objects
         """
-        search_opts = {'all_tenants': True}
+        query_params = {
+            'all_projects': True, 'marker': marker
+        }
+        if limit != -1:
+            query_params['limit'] = limit
         if filters:
-            search_opts.update(filters)
-        servers = self.nova.servers.list(search_opts=search_opts,
-                                         marker=marker,
-                                         limit=limit)
-        return [Server.from_novaclient(s) for s in servers]
+            if 'host' in filters:
+                # NOTE(jgilaber) openstacksdk servers module uses
+                # 'compute_host' as the name for the host query filter,
+                # passing 'host' is simply ignored
+                filters['compute_host'] = filters.pop('host')
+            query_params.update(filters)
+        servers = self.connection.compute.servers(details=True,
+                                                  **query_params)
+        return [Server.from_openstacksdk(s) for s in servers]
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -646,11 +543,11 @@ class NovaHelper:
         :returns: Server wrapper object matching the UUID
         :raises: ComputeResourceNotFound if no instance was found
         """
-        results = self.nova.servers.list(
-            search_opts={"all_tenants": True, "uuid": instance_uuid}
-        )
-        if results:
-            return Server.from_novaclient(results[0])
+        servers = self.connection.compute.servers(details=True,
+                                                  all_projects=True,
+                                                  uuid=instance_uuid)
+        if servers:
+            return Server.from_openstacksdk(servers[0])
         else:
             msg = f"{instance_uuid} of type Instance"
             raise exception.ComputeResourceNotFound(msg)
@@ -662,8 +559,8 @@ class NovaHelper:
 
         :returns: list of Flavor wrapper objects
         """
-        flavors = self.nova.flavors.list(**{'is_public': None})
-        return [Flavor.from_novaclient(f) for f in flavors]
+        flavors = self.connection.compute.flavors(is_public=None)
+        return [Flavor.from_openstacksdk(f) for f in flavors]
 
     @nova_retries
     @handle_nova_error("Flavor")
@@ -673,7 +570,9 @@ class NovaHelper:
         :param flavor: the ID or name of the flavor to get
         :returns: Flavor wrapper object if found, None if not found
         """
-        return Flavor.from_novaclient(self.nova.flavors.get(flavor))
+        return Flavor.from_openstacksdk(
+            self.connection.compute.get_flavor(flavor)
+        )
 
     @nova_retries
     @handle_nova_error("Aggregate")
@@ -682,8 +581,8 @@ class NovaHelper:
 
         :returns: list of Aggregate wrapper objects
         """
-        aggregates = self.nova.aggregates.list()
-        return [Aggregate.from_novaclient(a) for a in aggregates]
+        aggregates = self.connection.compute.aggregates()
+        return [Aggregate.from_openstacksdk(a) for a in aggregates]
 
     @nova_retries
     @handle_nova_error("Aggregate")
@@ -693,8 +592,8 @@ class NovaHelper:
         :param aggregate_id: the ID of the aggregate to get
         :returns: Aggregate wrapper object if found, None if not found
         """
-        return Aggregate.from_novaclient(self.nova.aggregates.get(
-            aggregate_id))
+        return Aggregate.from_openstacksdk(
+            self.connection.compute.get_aggregate(aggregate_id))
 
     @nova_retries
     @handle_nova_error("Service")
@@ -703,8 +602,8 @@ class NovaHelper:
 
         :returns: list of Service wrapper objects
         """
-        services = self.nova.services.list(binary='nova-compute')
-        return [Service.from_novaclient(s) for s in services]
+        services = self.connection.compute.services(binary='nova-compute')
+        return [Service.from_openstacksdk(s) for s in services]
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -714,8 +613,8 @@ class NovaHelper:
         :param instance_id: the UUID of the instance to find
         :returns: Server wrapper object if found, None if not found
         """
-        instance = self.nova.servers.get(instance_id)
-        return Server.from_novaclient(instance)
+        instance = self.connection.compute.get_server(instance_id)
+        return Server.from_openstacksdk(instance)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -724,7 +623,7 @@ class NovaHelper:
 
         :param instance_id: the UUID of the instance to start
         """
-        return self.nova.servers.start(instance_id)
+        return self.connection.compute.start_server(instance_id)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -733,7 +632,7 @@ class NovaHelper:
 
         :param instance_id: the UUID of the instance to stop
         """
-        return self.nova.servers.stop(instance_id)
+        return self.connection.compute.stop_server(instance_id)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -743,7 +642,7 @@ class NovaHelper:
         :param instance: the instance ID or Server object to resize
         :param flavor_id: the ID of the target flavor
         """
-        return self.nova.servers.resize(instance, flavor=flavor_id)
+        return self.connection.compute.resize_server(instance, flavor_id)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -752,7 +651,7 @@ class NovaHelper:
 
         :param instance: the instance ID or Server object to confirm resize
         """
-        return self.nova.servers.confirm_resize(instance)
+        return self.connection.compute.confirm_server_resize(instance)
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -765,8 +664,8 @@ class NovaHelper:
 
         # From Nova API version 2.25 (Mitaka release), the default value of
         # block_migration is None which is mapped to 'auto'.
-        return self.nova.servers.live_migrate(
-            instance, dest_hostname, block_migration='auto'
+        return self.connection.compute.live_migrate_server(
+            instance, host=dest_hostname, block_migration='auto'
         )
 
     @nova_retries
@@ -777,7 +676,9 @@ class NovaHelper:
         :param instance: the instance ID or Server object to migrate
         :param dest_hostname: the destination compute node hostname
         """
-        return self.nova.servers.migrate(instance, host=dest_hostname)
+        return self.connection.compute.migrate_server(
+            instance, host=dest_hostname
+        )
 
     @nova_retries
     @handle_nova_error("Instance")
@@ -787,8 +688,9 @@ class NovaHelper:
         :param instance_id: the UUID of the instance being migrated
         :param migration_id: the ID of the migration to abort
         """
-        return self.nova.server_migrations.live_migration_abort(
-            server=instance_id, migration=migration_id)
+        return self.connection.compute.abort_server_migration(
+            migration_id, instance_id
+        )
 
     def confirm_resize(self, instance, previous_status, retry=60):
         """Confirm a resize operation and wait for the instance status.
@@ -1170,17 +1072,17 @@ class NovaHelper:
         :param hostname: the hostname of the compute service to enable
         :returns: True if service is now enabled, False otherwise
         """
-        if (api_versions.APIVersion(version_str=CONF.nova.api_version) <
-                api_versions.APIVersion(version_str='2.53')):
-            status = self.nova.services.enable(
-                host=hostname, binary='nova-compute').status == 'enabled'
-        else:
-            service_uuid = self.nova.services.list(host=hostname,
-                                                   binary='nova-compute')[0].id
-            status = self.nova.services.enable(
-                service_uuid=service_uuid).status == 'enabled'
-
-        return status
+        services = list(
+            self.connection.compute.services(
+                host=hostname, binary='nova-compute'
+            )
+        )
+        if not services:
+            LOG.debug("No nova-compute service found at %s", hostname)
+            return False
+        service = services[0]
+        updated_service = self.connection.compute.enable_service(service.id)
+        return updated_service.status == 'enabled'
 
     @nova_retries
     @handle_nova_error("Service")
@@ -1191,20 +1093,19 @@ class NovaHelper:
         :param reason: optional reason for disabling the service
         :returns: True if service is now disabled, False otherwise
         """
-        if (api_versions.APIVersion(version_str=CONF.nova.api_version) <
-                api_versions.APIVersion(version_str='2.53')):
-            status = self.nova.services.disable_log_reason(
-                host=hostname,
-                binary='nova-compute',
-                reason=reason).status == 'disabled'
-        else:
-            service_uuid = self.nova.services.list(host=hostname,
-                                                   binary='nova-compute')[0].id
-            status = self.nova.services.disable_log_reason(
-                service_uuid=service_uuid,
-                reason=reason).status == 'disabled'
-
-        return status
+        services = list(
+            self.connection.compute.services(
+                host=hostname, binary='nova-compute'
+            )
+        )
+        if not services:
+            LOG.debug("No nova-compute service found at %s", hostname)
+            return False
+        service = services[0]
+        updated_service = self.connection.compute.disable_service(
+            service.id, disabled_reason=reason
+        )
+        return updated_service.status == 'disabled'
 
     def stop_instance(self, instance_id):
         """This method stops a given instance.
@@ -1307,20 +1208,5 @@ class NovaHelper:
         :raises: ComputeResourceNotFound if there is no instance with id
         instance_id
         """
-        migrations = self.nova.server_migrations.list(server=instance_id)
-        return [ServerMigration.from_novaclient(m) for m in migrations]
-
-    def _check_nova_api_version(self, client, version):
-        """Check if the Nova API supports a specific version.
-
-        :param client: the novaclient instance
-        :param version: the API version string to check (e.g., '2.56')
-        :returns: True if the version is supported, False otherwise
-        """
-        api_version = api_versions.APIVersion(version_str=version)
-        try:
-            api_versions.discover_version(client, api_version)
-            return True
-        except nvexceptions.UnsupportedVersion as e:
-            LOG.exception(e)
-            return False
+        migrations = self.connection.compute.server_migrations(instance_id)
+        return [ServerMigration.from_openstacksdk(m) for m in migrations]

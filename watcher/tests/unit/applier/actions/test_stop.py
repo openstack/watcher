@@ -39,7 +39,7 @@ class TestStop(test_utils.NovaResourcesMixin, base.TestCase):
         self.input_parameters = {
             baction.BaseAction.RESOURCE_ID: self.INSTANCE_UUID,
         }
-        self.instance = self.create_nova_server(
+        self.instance = self.create_openstacksdk_server(
             id=self.INSTANCE_UUID,
             status='ACTIVE'
         )

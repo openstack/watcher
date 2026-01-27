@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from novaclient import api_versions
+import microversion_parse
 import os_resource_classes as orc
 from oslo_log import log
 
@@ -73,7 +73,9 @@ class NovaNotification(base.NotificationEndpoint):
         return instance
 
     def update_instance(self, instance, data):
-        n_version = api_versions.APIVersion(data['nova_object.version'])
+        n_version = microversion_parse.parse_version_string(
+            data['nova_object.version']
+        )
         instance_data = data['nova_object.data']
         instance_flavor_data = instance_data['flavor']['nova_object.data']
 
@@ -96,12 +98,12 @@ class NovaNotification(base.NotificationEndpoint):
         })
 
         # locked was added in nova notification payload version 1.1
-        if n_version > api_versions.APIVersion(version_str='1.0'):
+        if n_version > microversion_parse.parse_version_string('1.0'):
             instance.update({'locked': instance_data['locked']})
 
         # NOTE(dviroel): extra_specs can change due to a resize operation.
         # 'extra_specs' was added in nova notification payload version 1.2
-        if (n_version > api_versions.APIVersion(version_str='1.1') and
+        if (n_version > microversion_parse.parse_version_string('1.1') and
                 self.cluster_data_model.extended_attributes_enabled):
             extra_specs = instance_flavor_data.get("extra_specs", {})
             instance.update({'flavor_extra_specs': extra_specs})

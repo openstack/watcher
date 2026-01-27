@@ -119,31 +119,31 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_get_instances(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -163,13 +163,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         # Create a test instance without a known id
         # so we expect it to not be in the model
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d8f0ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
 
         # Mock nova helper to return our test instance
@@ -483,13 +483,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_live_migrate_instance(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -508,13 +508,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_live_migrate_instance_no_dst_node(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -529,14 +529,14 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_cold_migrate_instance(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
             "status": "SHUTOFF",
-            "OS-EXT-STS:vm_state": "stopped",
+            "vm_state": "stopped",
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -616,13 +616,13 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_migrate_volume_no_compute_nodes(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         vol_attach = [{"server_id": instance_on_src1.uuid}]
         self.m_n_helper.get_instance_list.return_value = [
@@ -910,22 +910,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_live_migrate_instance_parallel(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
@@ -947,22 +947,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         self.input_parameters["parallel_per_node"] = 1
 
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
@@ -1058,22 +1058,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_mixed_instances_volumes(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2_2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
@@ -1159,31 +1159,31 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_execute_mixed_instances_volumes_with_attached(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2_2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1_3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1_3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1_1,
@@ -1329,31 +1329,31 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_filtered_targets_compute_nodes(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -1404,34 +1404,34 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_filtered_targets_project(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
             "project_id": "pj2",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
             "project_id": "pj1",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
             "project_id": "pj3",
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -1467,19 +1467,22 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
         targets = self.strategy.filtered_targets()
         self.assertEqual(targets.get('instance'),
-                         [instance_on_src1, instance_on_src2])
+                         [instance_on_src2, instance_on_src1])
         self.assertEqual(targets.get('volume'),
                          [volume_on_src2, volume_on_src1])
         self.assertEqual(targets,
-                         {"instance": [instance_on_src1, instance_on_src2],
+                         {"instance": [instance_on_src2, instance_on_src1],
                           "volume": [volume_on_src2, volume_on_src1]})
 
     # ComputeSpecSortFilter #
 
     def test_filtered_targets_instance_mem_size(self):
-        flavor_64 = self.create_nova_flavor(id="1", ram="64", vcpus=1, disk=1)
-        flavor_128 = self.create_nova_flavor(id="2", ram=128, vcpus=1, disk=1)
-        flavor_512 = self.create_nova_flavor(id="3", ram=512, vcpus=1, disk=1)
+        flavor_64 = self.create_openstacksdk_flavor(
+            id="1", ram="64", vcpus=1, disk=1)
+        flavor_128 = self.create_openstacksdk_flavor(
+            id="2", ram=128, vcpus=1, disk=1)
+        flavor_512 = self.create_openstacksdk_flavor(
+            id="3", ram=512, vcpus=1, disk=1)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_64,
             flavor_128,
@@ -1487,34 +1490,34 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
 
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "1"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "2"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "3"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -1533,9 +1536,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                          [instance_on_src2, instance_on_src1])
 
     def test_filtered_targets_instance_vcpu_num(self):
-        flavor_1 = self.create_nova_flavor(id="1", ram=1, vcpus=1, disk=1)
-        flavor_2 = self.create_nova_flavor(id="2", ram=1, vcpus=2, disk=1)
-        flavor_3 = self.create_nova_flavor(id="3", ram=1, vcpus=3, disk=1)
+        flavor_1 = self.create_openstacksdk_flavor(
+            id="1", ram=1, vcpus=1, disk=1)
+        flavor_2 = self.create_openstacksdk_flavor(
+            id="2", ram=1, vcpus=2, disk=1)
+        flavor_3 = self.create_openstacksdk_flavor(
+            id="3", ram=1, vcpus=3, disk=1)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_1,
             flavor_2,
@@ -1543,34 +1549,34 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
 
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "1"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "2"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "3"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -1589,9 +1595,12 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
                          [instance_on_src2, instance_on_src1])
 
     def test_filtered_targets_instance_disk_size(self):
-        flavor_1 = self.create_nova_flavor(id="1", ram=1, vcpus=1, disk=1)
-        flavor_2 = self.create_nova_flavor(id="2", ram=1, vcpus=1, disk=2)
-        flavor_3 = self.create_nova_flavor(id="3", ram=1, vcpus=1, disk=3)
+        flavor_1 = self.create_openstacksdk_flavor(
+            id="1", ram=1, vcpus=1, disk=1)
+        flavor_2 = self.create_openstacksdk_flavor(
+            id="2", ram=1, vcpus=1, disk=2)
+        flavor_3 = self.create_openstacksdk_flavor(
+            id="3", ram=1, vcpus=1, disk=3)
         self.m_n_helper.get_flavor_list.return_value = [
             flavor_1,
             flavor_2,
@@ -1599,34 +1608,34 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         ]
 
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "1"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "2"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
             "flavor": {"id": "3"},
-            "OS-EXT-STS:vm_state": "active"
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,
@@ -1646,34 +1655,34 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
 
     def test_filtered_targets_instance_created_at(self):
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src1",
+            "compute_host": "src1",
             "name": "INSTANCE_1",
             "id": "d010ef1f-dc19-4982-9383-087498bfde03",
-            "created": "2017-10-30T00:00:00",
-            "OS-EXT-STS:vm_state": "active"
+            "created_at": "2017-10-30T00:00:00",
+            "vm_state": "active"
         }
-        instance_on_src1 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src2",
+            "compute_host": "src2",
             "name": "INSTANCE_2",
             "id": "d020ef1f-dc19-4982-9383-087498bfde03",
-            "created": "1977-03-29T03:03:03",
-            "OS-EXT-STS:vm_state": "active"
+            "created_at": "1977-03-29T03:03:03",
+            "vm_state": "active"
         }
-        instance_on_src2 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         server_info = {
-            "OS-EXT-SRV-ATTR:host": "src3",
+            "compute_host": "src3",
             "name": "INSTANCE_3",
             "id": "d030ef1f-dc19-4982-9383-087498bfde03",
-            "created": "1977-03-29T03:03:03",
-            "OS-EXT-STS:vm_state": "active"
+            "created_at": "1977-03-29T03:03:03",
+            "vm_state": "active"
         }
-        instance_on_src3 = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**server_info)
+        instance_on_src3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
         )
         self.m_n_helper.get_instance_list.return_value = [
             instance_on_src1,

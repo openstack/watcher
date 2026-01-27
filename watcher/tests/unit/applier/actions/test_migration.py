@@ -145,22 +145,22 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'ACTIVE',
-            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+            'compute_host': 'compute1-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         compute_node_info = {
             'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'enabled',
-            'hypervisor_hostname': 'compute1-hostname',
-            'service': {
+            'name': 'compute1-hostname',
+            'service_details': {
                 'host': 'compute1-hostname'
             }
         }
-        compute_node = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor(**compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor(**compute_node_info)
         )
 
         self.m_helper.find_instance.return_value = instance
@@ -183,10 +183,10 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'ACTIVE',
-            'OS-EXT-SRV-ATTR:host': 'wrong-hostname'
+            'compute_host': 'wrong-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         self.m_helper.find_instance.return_value = instance
@@ -202,10 +202,10 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'ACTIVE',
-            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+            'compute_host': 'compute1-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         self.m_helper.find_instance.return_value = instance
@@ -222,22 +222,22 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'ACTIVE',
-            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+            'compute_host': 'compute1-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         compute_node_info = {
             'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'disabled',
-            'hypervisor_hostname': 'compute2-hostname',
-            'service': {
+            'name': 'compute2-hostname',
+            'service_details': {
                 'host': 'compute2-hostname'
             }
         }
-        compute_node = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor(**compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor(**compute_node_info)
         )
 
         self.m_helper.find_instance.return_value = instance
@@ -253,22 +253,22 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'SHUTOFF',
-            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+            'compute_host': 'compute1-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         compute_node_info = {
             'id': 'f81d4fae-7dec-11d0-a765-00a0c91e6bf6',
             'status': 'enabled',
-            'hypervisor_hostname': 'compute2-hostname',
-            'service': {
+            'name': 'compute2-hostname',
+            'service_details': {
                 'host': 'compute2-hostname'
             }
         }
-        compute_node = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor(**compute_node_info)
+        compute_node = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor(**compute_node_info)
         )
 
         self.m_helper.find_instance.return_value = instance
@@ -285,10 +285,10 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         instance_info = {
             'id': self.INSTANCE_UUID,
             'status': 'ACTIVE',
-            'OS-EXT-SRV-ATTR:host': 'compute1-hostname'
+            'compute_host': 'compute1-hostname'
         }
-        instance = nova_helper.Server.from_novaclient(
-            self.create_nova_server(**instance_info)
+        instance = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**instance_info)
         )
 
         self.m_helper.find_instance.return_value = instance

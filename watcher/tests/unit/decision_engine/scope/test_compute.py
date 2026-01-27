@@ -14,6 +14,7 @@
 # limitations under the License.
 #
 
+import fixtures
 from jsonschema import validators
 from unittest import mock
 
@@ -30,6 +31,9 @@ class TestComputeScope(base.TestCase):
 
     def setUp(self):
         super().setUp()
+        self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        )
         self.fake_cluster = faker_cluster_state.FakerModelCollector()
 
     @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')

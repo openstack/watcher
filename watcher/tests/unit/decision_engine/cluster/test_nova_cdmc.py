@@ -16,6 +16,7 @@
 # limitations under the License.
 
 import ddt
+import fixtures
 import futurist
 import os_resource_classes as orc
 import time
@@ -94,7 +95,7 @@ class TestNovaClusterDataModelCollector(test_utils.NovaResourcesMixin,
         )
         minimal_node = dict(
             id='160a0e7b-8b0b-4854-8257-9c71dff4efcc',
-            hypervisor_hostname='test_hostname',
+            name='test_hostname',
             state='TEST_STATE',
             status='TEST_STATUS',
         )
@@ -107,50 +108,50 @@ class TestNovaClusterDataModelCollector(test_utils.NovaResourcesMixin,
             ],
             **minimal_node
         )
-        fake_compute_node = self.create_nova_hypervisor(
-            service={'id': 123, 'host': 'test_hostname',
-                     'disabled_reason': ''},
-            memory_mb=333,
-            memory_mb_used=100,
+        fake_compute_node = self.create_openstacksdk_hypervisor(
+            service_details={'id': 123, 'host': 'test_hostname',
+                             'disabled_reason': ''},
+            memory_size=333,
+            memory_used=100,
             free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
+            local_disk_size=111,
+            local_disk_used=10,
             vcpus=4,
             vcpus_used=0,
             servers=None,  # Don't let the mock return a value for servers.
             **minimal_node
         )
-        fake_detailed_node = self.create_nova_hypervisor(
-            service={'id': 123, 'host': 'test_hostname',
-                     'disabled_reason': ''},
-            memory_mb=333,
-            memory_mb_used=100,
+        fake_detailed_node = self.create_openstacksdk_hypervisor(
+            service_details={'id': 123, 'host': 'test_hostname',
+                             'disabled_reason': ''},
+            memory_size=333,
+            memory_used=100,
             free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
+            local_disk_size=111,
+            local_disk_used=10,
             vcpus=4,
             vcpus_used=0,
             **minimal_node_with_servers)
-        fake_instance = self.create_nova_server(
+        fake_instance = self.create_openstacksdk_server(
             id='ef500f7e-dac8-470f-960c-169486fce71b',
             name='fake_instance',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1,
                     'extra_specs': {'hw_rng:allowed': 'True'}},
             metadata={'hi': 'hello'},
-            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
+            project_id='ff560f7e-dbc8-771f-960c-164482fce21b',
             pinned_availability_zone='nova',
-            **{'OS-EXT-STS:vm_state': 'VM_STATE'},
+            vm_state='VM_STATE',
         )
 
-        # Returns the hypervisors with details (service) but no servers.
+        # Returns the hypervisors with details (service_details) but no servers
         m_nova_helper.get_compute_node_list.return_value = [
-            nova_helper.Hypervisor.from_novaclient(fake_compute_node)]
-        # Returns the hypervisor with servers and details (service).
+            nova_helper.Hypervisor.from_openstacksdk(fake_compute_node)]
+        # Returns the hypervisor with servers and details (service_details).
         m_nova_helper.get_compute_node_by_name.return_value = [
-            nova_helper.Hypervisor.from_novaclient(fake_detailed_node)]
-        # Returns the hypervisor with details (service) but no servers.
+            nova_helper.Hypervisor.from_openstacksdk(fake_detailed_node)]
+        # Returns the hypervisor with details (service_details) but no servers.
         m_nova_helper.get_instance_list.return_value = [
-            nova_helper.Server.from_novaclient(fake_instance)]
+            nova_helper.Server.from_openstacksdk(fake_instance)]
 
         m_config = mock.Mock()
         m_osc = mock.Mock()
@@ -191,26 +192,33 @@ class TestNovaClusterDataModelCollector(test_utils.NovaResourcesMixin,
             self.assertEqual({}, instance.flavor_extra_specs)
 
         m_nova_helper.get_compute_node_by_name.assert_called_once_with(
-            minimal_node['hypervisor_hostname'], servers=True, detailed=True)
+            minimal_node['name'], servers=True, detailed=True)
         m_nova_helper.get_instance_list.assert_called_once_with(
-            filters={'host': fake_compute_node.service['host']}, limit=1)
+            filters={'host': fake_compute_node.service_details['host']},
+            limit=1
+        )
 
 
 @ddt.ddt
 class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
+    def setUp(self):
+        super().setUp()
+        self.useFixture(
+            fixtures.MockPatch("watcher.common.clients.get_sdk_connection")
+        )
 
     @mock.patch.object(nova_helper, 'NovaHelper', mock.MagicMock())
     def test_add_instance_node(self):
         model_builder = nova.NovaModelBuilder(osc=mock.MagicMock())
         model_builder.model = mock.MagicMock()
-        mock_node = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor()
+        mock_node = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor()
         )
         mock_host = mock_node.service_host
         server_info = {
             'id': 'ef500f7e-dac8-470f-960c-169486fce711',
-            'tenant_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
-            'OS-EXT-STS:vm_state': 'deleted',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'vm_state': 'deleted',
             'name': 'instance1',
             'pinned_availability_zone': 'nova',
             'flavor': {
@@ -218,12 +226,12 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                 'extra_specs': {}
             }
         }
-        inst1 = self.create_nova_server(**server_info)
+        inst1 = self.create_openstacksdk_server(**server_info)
 
         server_info = {
             'id': 'ef500f7e-dac8-470f-960c-169486fce722',
-            'tenant_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
-            'OS-EXT-STS:vm_state': 'active',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'vm_state': 'active',
             'name': 'instance2',
             'pinned_availability_zone': 'nova',
             'flavor': {
@@ -231,10 +239,10 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                 'extra_specs': {}
             }
         }
-        inst2 = self.create_nova_server(**server_info)
+        inst2 = self.create_openstacksdk_server(**server_info)
 
-        mock_instances = [nova_helper.Server.from_novaclient(
-            inst1), nova_helper.Server.from_novaclient(inst2)]
+        mock_instances = [nova_helper.Server.from_openstacksdk(
+            inst1), nova_helper.Server.from_openstacksdk(inst2)]
         model_builder.nova_helper.get_instance_list.return_value = (
             mock_instances)
         model_builder.add_instance_node(mock_node, mock_instances)
@@ -267,17 +275,17 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
 
         server_info = {
             'id': 'ef500f7e-dac8-470f-960c-169486fce711',
-            'tenant_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
+            'project_id': 'ff560f7e-dbc8-771f-960c-164482fce21b',
             'pinned_availability_zone': 'nova',
             'flavor': {'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1,
                        'extra_specs': {'hw_rng:allowed': 'True'}},
-            'OS-EXT-STS:vm_state': 'active',
+            'vm_state': 'active',
             'name': 'instance1'
         }
 
-        fake_instance = self.create_nova_server(**server_info)
+        fake_instance = self.create_openstacksdk_server(**server_info)
         fake_instance = model_builder._build_instance_node(
-            nova_helper.Server.from_novaclient(fake_instance)
+            nova_helper.Server.from_openstacksdk(fake_instance)
         )
 
         self.assertEqual(fake_instance.uuid,
@@ -373,11 +381,11 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
     def test_collect_aggregates(self, m_nova):
         """"""
 
-        agg1 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(id=1, name='example')
+        agg1 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(id=1, name='example')
         )
-        agg2 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(
+        agg2 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(
                 id=5, name='example', hosts=['hostone', 'hosttwo'])
         )
         m_nova.return_value.get_aggregate_list.return_value = [agg1, agg2]
@@ -405,11 +413,11 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
     def test_collect_zones(self, m_nova):
         """"""
 
-        svc1 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(zone='av_b')
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(zone='av_b')
         )
-        svc2 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc2 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 id='ef500f7e-dac8-470f-960c-169486fce71b',
                 zone='av_a', host='hostone'
             )
@@ -457,23 +465,23 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
         mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement.return_value = mock_placement
 
-        agg1 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(id=1, name='example')
+        agg1 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(id=1, name='example')
         )
-        agg2 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(
+        agg2 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(
                 id=5, name='example', hosts=['hostone', 'hosttwo'])
         )
         m_nova.return_value.get_aggregate_list.return_value = [agg1, agg2]
 
-        svc1 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 id='ee500f7e-dac8-470f-960c-169486fce71b',
                 zone='av_b', host='hostthree'
             )
         )
-        svc2 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc2 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 id='ef500f7e-dac8-470f-960c-169486fce71b',
                 zone='av_a', host='hostone'
             )
@@ -486,22 +494,22 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'
             }
         ]
-        compute_node_one = self.create_nova_hypervisor(
+        compute_node_one = self.create_openstacksdk_hypervisor(
             id='796fee99-65dd-4262-aabb-fd2a1143faa6',
-            hypervisor_hostname='hostone',
+            name='hostone',
             hypervisor_type='QEMU',
             state='TEST_STATE',
             status='TEST_STATUS',
-            memory_mb=333,
-            memory_mb_used=100,
+            memory_size=333,
+            memory_used=100,
             free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
+            local_disk_size=111,
+            local_disk_used=10,
             vcpus=4,
             vcpus_used=0,
             servers=servers,
-            service={'id': 123, 'host': 'hostone',
-                     'disabled_reason': ''},
+            service_details={'id': 123, 'host': 'hostone',
+                             'disabled_reason': ''},
         )
 
         servers = [
@@ -510,46 +518,46 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'
             }
         ]
-        compute_node_two = self.create_nova_hypervisor(
+        compute_node_two = self.create_openstacksdk_hypervisor(
             id='756fef99-65dd-4262-aabb-fd2a1143faa6',
-            hypervisor_hostname='hosttwo',
+            name='hosttwo',
             hypervisor_type='QEMU',
             state='TEST_STATE',
             status='TEST_STATUS',
-            memory_mb=333,
-            memory_mb_used=100,
+            memory_size=333,
+            memory_used=100,
             free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
+            local_disk_size=111,
+            local_disk_used=10,
             vcpus=4,
             vcpus_used=0,
             servers=servers,
-            service={'id': 123, 'host': 'hosttwo',
-                     'disabled_reason': ''},
+            service_details={'id': 123, 'host': 'hosttwo',
+                             'disabled_reason': ''},
         )
 
         m_nova.return_value.get_compute_node_by_name.side_effect = [
-            [nova_helper.Hypervisor.from_novaclient(compute_node_one)],
-            [nova_helper.Hypervisor.from_novaclient(compute_node_two)]
+            [nova_helper.Hypervisor.from_openstacksdk(compute_node_one)],
+            [nova_helper.Hypervisor.from_openstacksdk(compute_node_two)]
         ]
 
-        fake_instance_one = self.create_nova_server(
+        fake_instance_one = self.create_openstacksdk_server(
             id='796fee99-65dd-4262-aabb-fd2a1143faa6',
             name='fake_instance',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
             metadata={'hi': 'hello'},
-            tenant_id='ff560f7e-dbc8-771f-960c-164482fce21b',
+            project_id='ff560f7e-dbc8-771f-960c-164482fce21b',
         )
-        fake_instance_two = self.create_nova_server(
+        fake_instance_two = self.create_openstacksdk_server(
             id='ef500f7e-dac8-47f0-960c-169486fce71b',
             name='fake_instance2',
             flavor={'ram': 333, 'disk': 222, 'vcpus': 4, 'id': 1},
             metadata={'hi': 'hello'},
-            tenant_id='756fef99-65dd-4262-aa-fd2a1143faa6',
+            project_id='756fef99-65dd-4262-aa-fd2a1143faa6',
         )
         m_nova.return_value.get_instance_list.side_effect = [
-            [nova_helper.Server.from_novaclient(fake_instance_one)],
-            [nova_helper.Server.from_novaclient(fake_instance_two)]
+            [nova_helper.Server.from_openstacksdk(fake_instance_one)],
+            [nova_helper.Server.from_openstacksdk(fake_instance_two)]
         ]
 
         m_scope = [{"compute": [
@@ -588,22 +596,22 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
         mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement.return_value = mock_placement
 
-        agg1 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(id=1, name='example')
+        agg1 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(id=1, name='example')
         )
-        agg2 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(
+        agg2 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(
                 id=5, name='example', hosts=['hostone', 'hosttwo'])
         )
         m_nh_aggr.return_value = ([agg1, agg2])
 
-        svc1 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 zone='av_b', host='hostthree'
             )
         )
-        svc2 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc2 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 zone='av_a', host='hostone'
             )
         )
@@ -631,8 +639,8 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                         'disabled_reason': ''},
         }
 
-        compute_node_one = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor(**compute_node_one_info)
+        compute_node_one = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor(**compute_node_one_info)
         )
 
         compute_node_two_info = {
@@ -656,8 +664,8 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                         'disabled_reason': ''},
         }
 
-        compute_node_two = nova_helper.Hypervisor.from_novaclient(
-            self.create_nova_hypervisor(**compute_node_two_info)
+        compute_node_two = nova_helper.Hypervisor.from_openstacksdk(
+            self.create_openstacksdk_hypervisor(**compute_node_two_info)
         )
 
         # Set max general workers to 1 to ensure only one worker is used
@@ -739,23 +747,23 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
         mock_placement.get_inventories.return_value = dict()
         mock_placement.get_usages_for_resource_provider.return_value = None
         m_placement_helper.return_value = mock_placement
-        agg1 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(id=1, name='example')
+        agg1 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(id=1, name='example')
         )
-        agg2 = nova_helper.Aggregate.from_novaclient(
-            self.create_nova_aggregate(
+        agg2 = nova_helper.Aggregate.from_openstacksdk(
+            self.create_openstacksdk_aggregate(
                 id=5, name='example', hosts=['hostone', 'hosttwo'])
         )
         m_nova.return_value.get_aggregate_list.return_value = [agg1, agg2]
 
-        svc1 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 id='ee500f7e-dac8-470f-960c-169486fce71b',
                 zone='av_b', host='hostthree'
             )
         )
-        svc2 = nova_helper.Service.from_novaclient(
-            self.create_nova_service(
+        svc2 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
                 id='ef500f7e-dac8-470f-960c-169486fce71b',
                 zone='av_a', host='hostone'
             )
@@ -768,35 +776,35 @@ class TestNovaModelBuilder(test_utils.NovaResourcesMixin, base.TestCase):
                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'
             }
         ]
-        compute_node = self.create_nova_hypervisor(
+        compute_node = self.create_openstacksdk_hypervisor(
             id='796fee99-65dd-4262-aabb-fd2a1143faa6',
-            hypervisor_hostname='hostone',
+            name='hostone',
             hypervisor_type='QEMU',
             state='TEST_STATE',
             status='TEST_STATUS',
-            memory_mb=333,
-            memory_mb_used=100,
+            memory_size=333,
+            memory_used=100,
             free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
+            local_disk_size=111,
+            local_disk_used=10,
             vcpus=4,
             vcpus_used=0,
             servers=servers,
-            service={'id': 123, 'host': 'hostone',
-                     'disabled_reason': ''},
+            service_details={'id': 123, 'host': 'hostone',
+                             'disabled_reason': ''},
         )
 
-        baremetal_node = self.create_nova_hypervisor(
+        baremetal_node = self.create_openstacksdk_hypervisor(
             id='5f2d1b3d-4099-4623-b9b9-05148aefd6cb',
-            hypervisor_hostname='hosttwo',
+            name='hosttwo',
             hypervisor_type='ironic',
             state='TEST_STATE',
             status='TEST_STATUS',
         )
 
         m_nova.return_value.get_compute_node_by_name.side_effect = [
-            [nova_helper.Hypervisor.from_novaclient(compute_node)],
-            [nova_helper.Hypervisor.from_novaclient(baremetal_node)]]
+            [nova_helper.Hypervisor.from_openstacksdk(compute_node)],
+            [nova_helper.Hypervisor.from_openstacksdk(baremetal_node)]]
 
         m_scope = [{"compute": [
             {"host_aggregates": [{"id": 5}]},
