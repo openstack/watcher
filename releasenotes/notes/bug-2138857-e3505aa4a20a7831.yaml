@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Notification-based updates of the nova DataModel failed to set the
+    actual destination host as compute node after Live Migrations. The
+    Nova collector is now using the right Nova notification to update
+    the instance in the DataModel after those events.

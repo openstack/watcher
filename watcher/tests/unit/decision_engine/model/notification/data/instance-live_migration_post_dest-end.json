@@ -1,5 +1,5 @@
 {
-    "event_type": "instance.live_migration_post.end",
+    "event_type": "instance.live_migration_post_dest.end",
     "payload": {
         "nova_object.data": {
             "action_initiator_project": "6f70656e737461636b20342065766572",
@@ -49,7 +49,7 @@
                 "nova_object.namespace": "nova",
                 "nova_object.version": "1.4"
             },
-            "host": "Node_1",
+            "host": "host2",
             "host_name": "some-server",
             "image_uuid": "155d900f-4e14-4e4c-a73d-069cbf4541e6",
             "ip_addresses": [

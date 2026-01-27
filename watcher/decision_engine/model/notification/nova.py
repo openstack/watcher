@@ -340,7 +340,7 @@ class VersionedNotification(NovaNotification):
         'instance.rescue.end': instance_updated,
         'instance.update': instance_updated,
         'instance.live_migration_force_complete.end': instance_updated,
-        'instance.live_migration_post.end': instance_updated,
+        'instance.live_migration_post_dest.end': instance_updated,
         'instance.delete.end': instance_deleted,
         'instance.soft_delete.end': instance_deleted,
         'service.create': service_updated,
