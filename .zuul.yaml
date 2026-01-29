@@ -148,6 +148,8 @@
             optimize:
               run_extended_attributes_tests: true
               run_continuous_audit_tests: true
+              run_zone_migration_extra_tests: true
+              run_zone_migration_storage_tests: true
       # tempest variables
       tempest_test_regex: watcher_tempest_plugin.tests\.(api|scenario)
       # excluding tests with tag "real_load"
