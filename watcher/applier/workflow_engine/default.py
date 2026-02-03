@@ -109,18 +109,16 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
                               decider=self.decider)
 
             e = None
+            engine_type = "parallel"
             if eventlet_helper.is_patched():
                 executor_type = "greenthreaded"
-                engine_type = "parallel"
-                e = engines.load(
-                    flow, executor=executor_type, engine=engine_type,
-                    max_workers=self.config.max_workers)
             else:
-                # Serial engine does not use an executor internally
-                LOG.info("Using Taskflow serial engine when running "
+                LOG.info("Using Taskflow parallel engine when running "
                          "in native threading mode.")
-                engine_type = "serial"
-                e = engines.load(flow, engine=engine_type)
+                executor_type = "threaded"
+            e = engines.load(
+                flow, executor=executor_type, engine=engine_type,
+                max_workers=self.config.max_workers)
 
             e.run()
 
