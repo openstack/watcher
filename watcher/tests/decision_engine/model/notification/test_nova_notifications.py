@@ -72,8 +72,8 @@ class TestReceiveNovaNotifications(NotificationTestCase):
         'instance.update': 'instance-update.json',
         'instance.live_migration_force_complete.end':
         'instance-live_migration_force_complete-end.json',
-        'instance.live_migration_post.end':
-        'instance-live_migration_post-end.json',
+        'instance.live_migration_post_dest.end':
+        'instance-live_migration_post_dest-end.json',
         'instance.delete.end': 'instance-delete-end.json',
         'instance.soft_delete.end': 'instance-soft_delete-end.json',
         'service.create': 'service-create.json',
@@ -546,7 +546,7 @@ class TestNovaNotifications(NotificationTestCase):
         node = compute_model.get_node_by_instance_uuid(instance0_uuid)
         self.assertEqual('fa69c544-906b-4a6a-a9c6-c1f7a8078c73', node.uuid)
         message = self.load_message(
-            'instance-live_migration_post-end.json')
+            'instance-live_migration_post_dest-end.json')
         handler.info(
             ctxt=self.context,
             publisher_id=message['publisher_id'],
