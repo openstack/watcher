@@ -44,7 +44,7 @@ WATCHER_POLICY_YAML=$WATCHER_CONF_DIR/policy.yaml.sample
 WATCHER_DEVSTACK_DIR=$WATCHER_DIR/devstack
 WATCHER_DEVSTACK_FILES_DIR=$WATCHER_DEVSTACK_DIR/files
 
-if is_ssl_enabled_service "watcher" || is_service_enabled tls-proxy; then
+if is_service_enabled tls-proxy; then
     WATCHER_SERVICE_PROTOCOL="https"
 fi
 
@@ -173,16 +173,6 @@ function create_watcher_conf {
     setup_logging $WATCHER_CONF
 
     write_uwsgi_config "$WATCHER_UWSGI_CONF" "$WATCHER_UWSGI" "/infra-optim" "" "watcher-api"
-
-    # Register SSL certificates if provided
-    if is_ssl_enabled_service watcher; then
-        ensure_certificates WATCHER
-
-        iniset $WATCHER_CONF DEFAULT ssl_cert_file "$WATCHER_SSL_CERT"
-        iniset $WATCHER_CONF DEFAULT ssl_key_file "$WATCHER_SSL_KEY"
-
-        iniset $WATCHER_CONF DEFAULT enabled_ssl_apis "$WATCHER_ENABLED_APIS"
-    fi
 }
 
 # init_watcher() - Initialize databases, etc.
