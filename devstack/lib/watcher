@@ -163,12 +163,6 @@ function create_watcher_conf {
     configure_keystone_authtoken_middleware $WATCHER_CONF watcher
     configure_keystone_authtoken_middleware $WATCHER_CONF watcher "watcher_clients_auth"
 
-    if is_fedora; then
-        # watcher defaults to /usr/local/bin, but fedora and suse pip like to
-        # install things in /usr/bin
-        iniset $WATCHER_CONF DEFAULT bindir "/usr/bin"
-    fi
-
     if [ -n "$WATCHER_STATE_PATH" ]; then
         iniset $WATCHER_CONF DEFAULT state_path "$WATCHER_STATE_PATH"
         iniset $WATCHER_CONF oslo_concurrency lock_path "$WATCHER_STATE_PATH"
