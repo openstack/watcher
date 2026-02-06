@@ -252,6 +252,11 @@ individual actions in the database. Additionally, since taskflow uses a graph
 flow if any of the tasks would fail all children of this tasks not be executed
 while ``do_revert`` will be triggered for all parents.
 
+.. warning::
+
+    The revert of failed Actions functionality is deprecated and won't be
+    executed when using Taskflow as workflow engine.
+
 .. code-block:: python
 
     class TaskFlowActionContainer(...):

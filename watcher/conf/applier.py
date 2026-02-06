@@ -46,7 +46,11 @@ APPLIER_OPTS = [
     cfg.BoolOpt('rollback_when_actionplan_failed',
                 default=False,
                 help='If set True, the failed actionplan will rollback '
-                     'when executing. Default value is False.'),
+                     'when executing. Default value is False.',
+                deprecated_for_removal=True,
+                deprecated_since='2026.1',
+                deprecated_reason='This feature does not work and is planned '
+                                 'to be removed in future releases.'),
 ]
 
 

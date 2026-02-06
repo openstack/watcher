@@ -1,0 +1,8 @@
+---
+deprecations:
+  - |
+    The rollback of Action Plans has not been working for a long time,
+    and there is no plan to fix it in the way that was originally designed.
+    The following configuration option, associated with this functionality, is
+    now deprecated for future removal:
+    - ``rollback_when_actionplan_failed``
