@@ -1,0 +1,33 @@
+---
+prelude: |
+    The ``OpenStack 2026.1`` (``Watcher 16.0.0``) release brings significant
+    improvements to the execution of strategies, reliability, and testing
+    infrastructure. This release focuses on enhancing the robustness of
+    action plan management and expanding test coverage for critical migration
+    functionality.
+
+    The Applier service now supports experimental native threading mode,
+    completing the transition across all three core Watcher services. With API,
+    Decision Engine, and Applier all supporting native threading as an
+    alternative to Eventlet, this release marks a significant milestone in
+    eventlet removal initiative. Native threading remains disabled by default
+    and is not recommended for production use.
+
+    The codebase has been modernized through migration from novaclient to
+    openstacksdk, aligning with OpenStack's standard client library approach
+    and improving long-term maintainability.
+
+    There are updates to supported datasources.
+    The Prometheus datasource is deprecated in favor of Aetos.
+    Also, the Monasca datasource, that was deprecated in 2025.1, has been
+    fully removed from codebase.
+
+    Other key highlights include homogenized action plan cancellation behavior
+    across threading and eventlet modes, providing more consistent and
+    reliable operation. The release also enables comprehensive zone migration
+    testing, improving quality assurance for multi-zone deployments.
+
+    Additionally, critical bug fixes ensure proper migration notification
+    handling and enhanced monitoring capabilities with the addition of service
+    monitors for the Applier service, making Watcher deployments more
+    observable and maintainable.
