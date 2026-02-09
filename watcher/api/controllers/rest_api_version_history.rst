@@ -48,3 +48,11 @@ and action plans. The ``status_message`` field can be set when transitioning
 an action to SKIPPED state, and can also be updated for actions that are
 already in SKIPPED state, allowing administrators to fix typos, provide more
 detailed explanations, or expand on reasons that were initially omitted.
+
+1.6 (Maximum in 2025.2 Flamingo)
+---
+Added new server attributes, ``server_flavor_extra_specs`` and
+``server_pinned_az``, to the response of ``GET /v1/data_model`` API when
+selecting ``compute`` as the ``data_model_type`` parameter. The collection of
+these extended attributes is controlled by
+``[compute_model] enable_extended_attributes`` configuration option.
