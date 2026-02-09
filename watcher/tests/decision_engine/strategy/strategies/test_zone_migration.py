@@ -108,6 +108,13 @@ class TestZoneMigration(TestBaseStrategy):
         ]
         self.m_with_attached_volume.return_value = False
 
+        p_with_attached_volume = mock.patch.object(
+            strategies.ZoneMigration, "with_attached_volume",
+            new_callable=mock.PropertyMock)
+        self.m_with_attached_volume = p_with_attached_volume.start()
+        self.addCleanup(p_with_attached_volume.stop)
+        self.m_with_attached_volume.return_value = False
+
         self.strategy = strategies.ZoneMigration(
             config=mock.Mock())
 
@@ -986,6 +993,183 @@ class TestZoneMigration(TestBaseStrategy):
             [action.get('input_parameters')['migration_type']
              for action in solution.actions])
         self.assertEqual(1, migration_types.get("migrate", 0))
+
+    def test_execute_mixed_instances_volumes(self):
+        instance_on_src1_1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src2_2 = self.fake_instance(
+            host="src2",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1_1,
+            instance_on_src2_2,
+        ]
+
+        volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
+        volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
+        volume_on_src2_1 = self.fake_volume(host="src2@back1#pool1",
+                                            id=volume_uuid_mapping["volume_3"],
+                                            name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1_1,
+            volume_on_src1_2,
+            volume_on_src2_1,
+        ]
+
+        self.m_migrate_compute_nodes.return_value = [
+            {"src_node": "src1", "dst_node": "dst1"},
+        ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+        ]
+
+        solution = self.strategy.execute()
+
+        # Check volume migrations
+        action_types = collections.Counter(
+            [action['action_type']
+             for action in solution.actions])
+        expected_vmigrations = [
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_1',
+                 'resource_id': '74454247-a064-4b34-8f43-89337987720e'}},
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_2',
+                 'resource_id': 'a16c811e-2521-4fd3-8779-6a94ccb3be73'}}
+        ]
+        migrated_volumes = [action
+                            for action in solution.actions
+                            if action['action_type'] == 'volume_migrate']
+        self.assertEqual(2, action_types.get("volume_migrate", 0))
+        self.assertEqual(expected_vmigrations, migrated_volumes)
+        # TODO(amoralej) Next check should be creating a migrate action. Change
+        # the expected value to 1 when fixed.
+        self.assertEqual(0, action_types.get("migrate", 0))
+
+        # All the detached volumes in the pool should be migrated
+        volume_indicator = [item['value'] for item in solution.global_efficacy
+                            if item['name'] == "volume_migrate_ratio"][0]
+        self.assertEqual(100, volume_indicator)
+
+    def test_execute_mixed_instances_volumes_with_attached(self):
+        instance_on_src1_1 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_1",
+            name="INSTANCE_1")
+        instance_on_src2_2 = self.fake_instance(
+            host="src2",
+            id="INSTANCE_2",
+            name="INSTANCE_2")
+        instance_on_src1_3 = self.fake_instance(
+            host="src1",
+            id="INSTANCE_3",
+            name="INSTANCE_3")
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1_1,
+            instance_on_src2_2,
+            instance_on_src1_3
+        ]
+
+        volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
+        volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
+        volume_on_src2_1 = self.fake_volume(host="src2@back1#pool1",
+                                            id=volume_uuid_mapping["volume_3"],
+                                            name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1_1,
+            volume_on_src1_2,
+            volume_on_src2_1,
+        ]
+
+        volume_on_src1_1.status = 'in-use'
+        volume_on_src1_1.attachments = [{"server_id": "INSTANCE_3",
+                                        "attachment_id": "attachment1"}]
+
+        self.m_migrate_compute_nodes.return_value = [
+            {"src_node": "src1", "dst_node": "dst1"},
+        ]
+        self.m_migrate_storage_pools.return_value = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+        ]
+
+        self.m_with_attached_volume.return_value = True
+
+        self.m_n_helper.find_instance.return_value = instance_on_src1_3
+
+        solution = self.strategy.execute()
+        # Check migrations
+        action_types = collections.Counter(
+            [action['action_type']
+             for action in solution.actions])
+        expected_vol_igrations = [
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_1',
+                 'resource_id': '74454247-a064-4b34-8f43-89337987720e'}},
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_2',
+                 'resource_id': 'a16c811e-2521-4fd3-8779-6a94ccb3be73'}}
+        ]
+        expected_vm_migrations = [
+            {'action_type': 'migrate',
+             'input_parameters':
+                {'migration_type': 'live',
+                 'source_node': 'src1',
+                 'destination_node': 'dst1',
+                 'resource_name': 'INSTANCE_3',
+                 'resource_id': 'INSTANCE_3'}}
+        ]
+        migrated_volumes = [action
+                            for action in solution.actions
+                            if action['action_type'] == 'volume_migrate']
+        self.assertEqual(2, action_types.get("volume_migrate", 0))
+        self.assertEqual(expected_vol_igrations, migrated_volumes)
+        migrated_vms = [action
+                        for action in solution.actions
+                        if action['action_type'] == 'migrate']
+        self.assertEqual(1, action_types.get("migrate", 0))
+        self.assertEqual(expected_vm_migrations, migrated_vms)
+
+        # TODO(amoralej) This should be creating more migrate actions.
+        # Uncomment the following line when fixed.
+        # self.assertEqual(0, action_types.get("migrate", 0))
+
+        # All the detached volumes in the pool should be migrated
+        volume_mig_ind = [item['value'] for item in solution.global_efficacy
+                          if item['name'] == "volume_migrate_ratio"][0]
+        self.assertEqual(100, volume_mig_ind)
+        # All the attached volumes in the pool should be swapped
+        volume_swap_ind = [item['value'] for item in solution.global_efficacy
+                           if item['name'] == "volume_update_ratio"][0]
+        self.assertEqual(100, volume_swap_ind)
+        # TODO(amoralej) This should be 100. Change when fixed.
+        live_ind = [item['value'] for item in solution.global_efficacy
+                    if item['name'] == "live_instance_migrate_ratio"][0]
+        self.assertEqual(50, live_ind)
 
     # priority filter #
 
