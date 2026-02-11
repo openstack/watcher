@@ -106,6 +106,9 @@
               enable_extended_attributes: true
             nova_client:
               api_version: "2.96"
+            nova:
+              migration_max_retries: 120
+              migration_interval: 1
           $CINDER_CONF:
             oslo_messaging_notifications:
               driver: messagingv2

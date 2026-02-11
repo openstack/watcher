@@ -144,3 +144,15 @@ class TestCase(BaseTestCase):
             return os.path.join(root, project_file)
         else:
             return root
+
+    def flags(self, **kw):
+        """Override flag variables for a test.
+
+        Example:
+            self.flags(periodic_interval=10,
+                      group='watcher_decision_engine')
+        """
+        group = kw.pop('group', None)
+        for k, v in kw.items():
+            CONF.set_override(k, v, group)
+            self.addCleanup(CONF.clear_override, k, group)

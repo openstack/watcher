@@ -201,7 +201,7 @@ class NovaHelper(object):
         return volume.status == status
 
     def watcher_non_live_migrate_instance(self, instance_id, dest_hostname,
-                                          retry=120):
+                                          retry=None, interval=None):
         """This method migrates a given instance
 
         This method uses the Nova built-in migrate()
@@ -216,10 +216,15 @@ class NovaHelper(object):
         :param dest_hostname: the name of the destination compute node, if
                               destination_node is None, nova scheduler choose
                               the destination host
+        :param retry: maximum number of retries before giving up
+        :param interval: interval in seconds between retries
         """
         LOG.debug(
             "Trying a cold migrate of instance '%s' ", instance_id)
 
+        # Use config defaults if not provided in method parameters
+        retry = retry or CONF.nova.migration_max_retries
+        interval = interval or CONF.nova.migration_interval
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
         if not instance:
@@ -238,7 +243,7 @@ class NovaHelper(object):
             while (getattr(instance, 'status') not in
                    ["VERIFY_RESIZE", "ERROR"] and retry):
                 instance = self.nova.servers.get(instance.id)
-                time.sleep(2)
+                time.sleep(interval)
                 retry -= 1
             new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
 
@@ -320,7 +325,8 @@ class NovaHelper(object):
 
         return True
 
-    def live_migrate_instance(self, instance_id, dest_hostname, retry=120):
+    def live_migrate_instance(self, instance_id, dest_hostname, retry=None,
+                              interval=None):
         """This method does a live migration of a given instance
 
         This method uses the Nova built-in live_migrate()
@@ -333,11 +339,16 @@ class NovaHelper(object):
         :param dest_hostname: the name of the destination compute node, if
                               destination_node is None, nova scheduler choose
                               the destination host
+        :param retry: maximum number of retries before giving up
+        :param interval: interval in seconds between retries
         """
         LOG.debug(
             "Trying a live migrate instance %(instance)s ",
             {'instance': instance_id})
 
+        # Use config defaults if not provided in method parameters
+        retry = retry or CONF.nova.migration_max_retries
+        interval = interval or CONF.nova.migration_interval
         # Looking for the instance to migrate
         instance = self.find_instance(instance_id)
         if not instance:
@@ -361,7 +372,7 @@ class NovaHelper(object):
                 while (instance.status not in ['ACTIVE', 'ERROR'] and retry):
                     instance = self.nova.servers.get(instance.id)
                     LOG.debug('Waiting the migration of %s', instance.id)
-                    time.sleep(1)
+                    time.sleep(interval)
                     retry -= 1
                 new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
 
@@ -384,7 +395,7 @@ class NovaHelper(object):
                 LOG.debug('Waiting the migration of %s to %s',
                           instance,
                           getattr(instance, 'OS-EXT-SRV-ATTR:host'))
-                time.sleep(1)
+                time.sleep(interval)
                 retry -= 1
 
             host_name = getattr(instance, 'OS-EXT-SRV-ATTR:host')
