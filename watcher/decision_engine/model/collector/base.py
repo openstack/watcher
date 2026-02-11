@@ -190,7 +190,11 @@ class BaseClusterDataModelCollector(loadable.LoadableSingleton,
         Whenever called this synchronization will perform a drop-in replacement
         with the existing cluster data model
         """
-        self.cluster_data_model = self.execute()
+        try:
+            self.cluster_data_model = self.execute()
+        except Exception as e:
+            LOG.exception(e)
+            self.set_cluster_data_model_as_stale()
 
 
 class BaseModelBuilder:

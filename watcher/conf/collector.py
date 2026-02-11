@@ -46,7 +46,15 @@ Custom data model collector plugins can be defined with the
                default=1,
                help="Time before retry after failed query to "
                     "external service.",
-               deprecated_name="api_query_timeout")
+               deprecated_name="api_query_timeout"),
+    cfg.IntOpt("compute_resources_collector_timeout",
+               min=30,
+               default=600,
+               help="Timeout in seconds for collecting multiple compute "
+                    "resources from nova. Note that this timeout does not "
+                    "represent the total time for collecting all resources. "
+                    "Setting this value to 0 or small values will cause the "
+                    "collector to abort and stop the collection process."),
 ]
 
 

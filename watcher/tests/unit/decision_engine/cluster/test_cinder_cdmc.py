@@ -151,5 +151,5 @@ class TestCinderClusterDataModelCollector(base.TestCase):
             config=m_config, osc=m_osc)
 
         cinder_cdmc.get_audit_scope_handler([])
-        self.assertRaises(exception.InvalidPoolAttributeValue,
+        self.assertRaises(exception.ClusterDataModelCollectionError,
                           cinder_cdmc.execute)

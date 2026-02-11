@@ -17,7 +17,6 @@
 
 from apscheduler.schedulers import background
 from apscheduler.triggers import interval as interval_trigger
-import eventlet
 from unittest import mock
 
 from oslo_config import cfg
@@ -107,35 +106,5 @@ class TestDecisionEngineSchedulingService(base.TestCase):
 
         job = jobs[0]
         self.assertTrue(bool(fake_collector.cluster_data_model))
-
-        self.assertIsInstance(job.trigger, interval_trigger.IntervalTrigger)
-
-    @mock.patch.object(
-        default_loading.ClusterDataModelCollectorLoader, 'load')
-    @mock.patch.object(
-        default_loading.ClusterDataModelCollectorLoader, 'list_available')
-    @mock.patch.object(background.BackgroundScheduler, 'start')
-    def test_execute_sync_job_fails(self, m_start, m_list_available,
-                                    m_load, m_list, m_save):
-        fake_config = mock.Mock(period=.01)
-        fake_collector = faker_cluster_state.FakerModelCollector(
-            config=fake_config)
-        fake_collector.synchronize = mock.Mock(
-            side_effect=lambda: eventlet.sleep(.5))
-        m_list_available.return_value = {
-            'fake': faker_cluster_state.FakerModelCollector}
-        m_load.return_value = fake_collector
-
-        scheduler = scheduling.DecisionEngineSchedulingService()
-
-        scheduler.start()
-
-        m_start.assert_called_once_with(scheduler)
-        jobs = scheduler.get_jobs()
-        self.assertEqual(2, len(jobs))
-
-        job = jobs[0]
-        job.func()
-        self.assertFalse(bool(fake_collector.cluster_data_model))
 
         self.assertIsInstance(job.trigger, interval_trigger.IntervalTrigger)

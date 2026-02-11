@@ -13,10 +13,12 @@
 # limitations under the License.
 
 import os_resource_classes as orc
+from oslo_config import cfg
 from oslo_log import log
 
 from futurist import waiters
 
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import placement_helper
 from watcher.decision_engine.model.collector import base
@@ -27,6 +29,7 @@ from watcher.decision_engine.scope import compute as compute_scope
 from watcher.decision_engine import threading
 
 LOG = log.getLogger(__name__)
+CONF = cfg.CONF
 
 
 class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
@@ -189,7 +192,12 @@ class NovaClusterDataModelCollector(base.BaseClusterDataModelCollector):
             return
 
         builder = NovaModelBuilder(self.osc)
-        return builder.execute(self._data_model_scope)
+        try:
+            return builder.execute(self._data_model_scope)
+        except Exception as e:
+            LOG.exception(e)
+            raise exception.ClusterDataModelCollectionError(
+                cdm="compute") from e
 
 
 class NovaModelBuilder(base.BaseModelBuilder):
@@ -219,6 +227,8 @@ class NovaModelBuilder(base.BaseModelBuilder):
         self.nova_helper = nova_helper.NovaHelper(osc=self.osc)
         self.placement_helper = placement_helper.PlacementHelper(osc=self.osc)
         self.executor = threading.DecisionEngineThreadPool()
+        self.collector_timeout = (
+            CONF.collector.compute_resources_collector_timeout)
 
     def _collect_aggregates(self, host_aggregates, _nodes):
         if not host_aggregates:
@@ -262,7 +272,6 @@ class NovaModelBuilder(base.BaseModelBuilder):
         """
         try:
             node_info = future.result()[0]
-
             # filter out baremetal node
             if node_info.hypervisor_type == 'ironic':
                 LOG.debug("filtering out baremetal node: %s", node_info)
@@ -314,7 +323,18 @@ class NovaModelBuilder(base.BaseModelBuilder):
             self.executor.submit(
                 self._collect_zones, availability_zones, compute_nodes)
         }
-        waiters.wait_for_all(zone_aggregate_futures)
+        _done, zone_aggregate_not_done = waiters.wait_for_all(
+            zone_aggregate_futures,
+            timeout=self.collector_timeout)
+
+        if len(zone_aggregate_not_done) > 0:
+            LOG.warning("Timed out waiting to collect compute nodes "
+                        "from availability zones and host aggregates. "
+                        "Aborting collection of compute nodes information")
+            for future in zone_aggregate_not_done:
+                future.cancel()
+            # Return and don't continue with the collection
+            return
 
         # if zones and aggregates did not contain any nodes get every node.
         if not compute_nodes:
@@ -334,10 +354,22 @@ class NovaModelBuilder(base.BaseModelBuilder):
         # Futures will concurrently be added, only safe with CPython GIL
         future_instances = []
         self.executor.do_while_futures_modify(
-            node_futures, self._compute_node_future, future_instances)
+            node_futures,
+            self._compute_node_future, future_instances,
+            futures_timeout=self.collector_timeout)
 
         # Wait for all instance jobs to finish
-        waiters.wait_for_all(future_instances)
+        _done, instances_not_done = waiters.wait_for_all(
+            future_instances,
+            timeout=self.collector_timeout)
+        if len(instances_not_done) > 0:
+            LOG.warning("Timed out waiting to collect instances "
+                        "information for compute nodes. "
+                        "Aborting collection of instances information.")
+            for future in instances_not_done:
+                future.cancel()
+            # Return and don't continue with the collection
+            return
 
     def add_compute_node(self, node):
         # Build and add base node.

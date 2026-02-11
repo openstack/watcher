@@ -16,8 +16,12 @@
 # limitations under the License.
 
 import ddt
+import futurist
 import os_resource_classes as orc
+import time
 from unittest import mock
+
+from novaclient.v2 import hypervisors
 
 from watcher.common import nova_helper
 from watcher.common import placement_helper
@@ -512,6 +516,147 @@ class TestNovaModelBuilder(base.TestCase):
         self.assertEqual(
             m_nova.return_value.get_instance_list.call_count, 2)
 
+    @mock.patch.object(futurist.Future, 'cancel')
+    @mock.patch.object(placement_helper, 'PlacementHelper')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_aggregate_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_service_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_compute_node_by_name')
+    @mock.patch.object(nova.NovaModelBuilder, 'add_instance_node')
+    def test_add_physical_layer_instances_timeout(
+            self, m_add_instance_node, m_nh_compute_name,
+            m_nh_service, m_nh_aggr, m_placement, m_fut_cancel):
+        """Test add_physical_layer with timeout on collecting aggregates"""
+        mock_placement = mock.Mock(name="placement_helper")
+        mock_placement.get_inventories.return_value = dict()
+        mock_placement.get_usages_for_resource_provider.return_value = None
+        m_placement.return_value = mock_placement
+
+        m_nh_aggr.return_value = (
+            [mock.Mock(id=1, name='example'),
+             mock.Mock(id=5, name='example', hosts=['hostone', 'hosttwo'])])
+
+        m_nh_service.return_value = (
+            [mock.Mock(zone='av_b', host='hostthree'),
+             mock.Mock(zone='av_a', host='hostone')])
+
+        compute_node_one_info = {
+            'id': '796fee99-65dd-4262-aa-fd2a1143faa6',
+            'hypervisor_hostname': 'hostone',
+            'hypervisor_type': 'QEMU',
+            'state': 'TEST_STATE',
+            'status': 'TEST_STATUS',
+            'memory_mb': 333,
+            'memory_mb_used': 100,
+            'free_disk_gb': 222,
+            'local_gb': 111,
+            'local_gb_used': 10,
+            'vcpus': 4,
+            'vcpus_used': 0,
+            'servers': [
+                {'name': 'fake_instance',
+                 'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
+            ],
+            'service': {'id': 123, 'host': 'hostone',
+                        'disabled_reason': ''},
+        }
+
+        compute_node_one = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_one_info)
+
+        compute_node_two_info = {
+            'id': '796fee99-65dd-4262-aa-fd2a1143faa7',
+            'hypervisor_hostname': 'hosttwo',
+            'hypervisor_type': 'QEMU',
+            'state': 'TEST_STATE',
+            'status': 'TEST_STATUS',
+            'memory_mb': 333,
+            'memory_mb_used': 100,
+            'free_disk_gb': 222,
+            'local_gb': 111,
+            'local_gb_used': 10,
+            'vcpus': 4,
+            'vcpus_used': 0,
+            'servers': [
+                {'name': 'fake_instance2',
+                 'uuid': 'ef500f7e-dac8-47f0-960c-169486fce71b'}
+            ],
+            'service': {'id': 123, 'host': 'hosttwo',
+                        'disabled_reason': ''},
+        }
+
+        compute_node_two = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_two_info)
+
+        # Set max general workers to 1 to ensure only one worker is used
+        # and we timed out on collecting instances
+        self.flags(max_general_workers=1, group='watcher_decision_engine')
+
+        m_nh_compute_name.side_effect = [
+            [compute_node_one], [compute_node_two]
+        ]
+
+        m_scope = [{"compute": [
+            {"host_aggregates": [{"id": 5}]},
+            {"availability_zones": [{"name": "av_a"}]}
+        ]}]
+
+        def fake_collector(self, *args):
+            return time.sleep(0.5)
+
+        m_add_instance_node.side_effect = mock.Mock(
+            side_effect=fake_collector)
+
+        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        # NOTE(dviroel): ModelBuilder reads the timeout directly
+        # from the configuration and don't allow value lower than 30s
+        # Here we need to set the value to 0.1 to simulate
+        # a timeout without adding huge sleeps in the fake collector.
+        t_nova_cluster.collector_timeout = 0.1
+
+        model = t_nova_cluster.execute(m_scope)
+
+        # Assert that futures were cancelled
+        m_fut_cancel.assert_has_calls([mock.call() for _ in range(2)])
+
+        self.assertEqual(len(model.get_all_compute_nodes()), 2)
+        # Instances should not be added to the model due to timeout
+        self.assertEqual(len(model.get_all_instances()), 0)
+
+    @mock.patch.object(nova_helper.NovaHelper, 'get_compute_node_list')
+    @mock.patch.object(nova_helper.NovaHelper, 'get_compute_node_by_name')
+    @mock.patch.object(nova.NovaModelBuilder, '_collect_aggregates')
+    @mock.patch.object(nova.NovaModelBuilder, '_collect_zones')
+    def test_add_physical_layer_aggregates_timeout(
+            self, m_collect_zones, m_collect_aggregates,
+            m_nh_node_name, m_nh_node_list):
+        """Test add_physical_layer with timeout on collecting aggregates"""
+
+        self.flags(max_general_workers=1, group='watcher_decision_engine')
+
+        def fake_collector(self, *args):
+            pass
+
+        m_collect_aggregates.side_effect = mock.Mock(
+            side_effect=fake_collector)
+        m_collect_zones.side_effect = mock.Mock(
+            side_effect=fake_collector)
+
+        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+        # NOTE(dviroel): ModelBuilder reads the timeout directly
+        # from the configuration and don't allow value lower than 30s
+        # Setting timeout to 0 so waiter will return immediately
+        t_nova_cluster.collector_timeout = 0
+
+        m_scope = [{"compute": []}]
+
+        model = t_nova_cluster.execute(m_scope)
+        # Model shouldn't have any updated compute nodes
+        self.assertEqual(len(model.get_all_compute_nodes()), 0)
+
+        # Get compute node list and by name shouldn't be called
+        m_nh_node_list.assert_not_called()
+        m_nh_node_name.assert_not_called()
+
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
     def test_add_physical_layer_with_baremetal_node(self, m_nova,
@@ -529,34 +674,38 @@ class TestNovaModelBuilder(base.TestCase):
             [mock.Mock(zone='av_b', host='hostthree'),
              mock.Mock(zone='av_a', host='hostone')]
 
-        compute_node = mock.Mock(
-            id='796fee99-65dd-4262-aa-fd2a1143faa6',
-            hypervisor_hostname='hostone',
-            hypervisor_type='QEMU',
-            state='TEST_STATE',
-            status='TEST_STATUS',
-            memory_mb=333,
-            memory_mb_used=100,
-            free_disk_gb=222,
-            local_gb=111,
-            local_gb_used=10,
-            vcpus=4,
-            vcpus_used=0,
-            servers=[
+        compute_node_info = {
+            'id': '796fee99-65dd-4262-aa-fd2a1143faa6',
+            'hypervisor_hostname': 'hostone',
+            'hypervisor_type': 'QEMU',
+            'state': 'TEST_STATE',
+            'status': 'TEST_STATUS',
+            'memory_mb': 333,
+            'memory_mb_used': 100,
+            'free_disk_gb': 222,
+            'local_gb': 111,
+            'local_gb_used': 10,
+            'vcpus': 4,
+            'vcpus_used': 0,
+            'servers': [
                 {'name': 'fake_instance',
                  'uuid': 'ef500f7e-dac8-470f-960c-169486fce71b'}
             ],
-            service={'id': 123, 'host': 'hostone',
-                     'disabled_reason': ''},
-        )
+            'service': {'id': 123, 'host': 'hostone', 'disabled_reason': ''},
+        }
+        compute_node = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=compute_node_info)
 
-        baremetal_node = mock.Mock(
-            id='5f2d1b3d-4099-4623-b9-05148aefd6cb',
-            hypervisor_hostname='hosttwo',
-            hypervisor_type='ironic',
-            state='TEST_STATE',
-            status='TEST_STATUS',
-        )
+        baremetal_node_info = {
+            'id': '5f2d1b3d-4099-4623-b9-05148aefd6cb',
+            'status': 'TEST_STATUS',
+            'hypervisor_hostname': 'hosttwo',
+            'service': {
+                'host': 'hosttwo'
+            }
+        }
+        baremetal_node = hypervisors.Hypervisor(
+            hypervisors.HypervisorManager, info=baremetal_node_info)
 
         m_nova.return_value.get_compute_node_by_name.side_effect = [
             [compute_node], [baremetal_node]]
@@ -577,3 +726,13 @@ class TestNovaModelBuilder(base.TestCase):
             'hosttwo', servers=True, detailed=True)
         self.assertEqual(
             m_nova.return_value.get_compute_node_by_name.call_count, 2)
+
+    def test_nova_model_builder_timeout_configuration(self):
+        """Test that model builder timeout is configured"""
+
+        self.flags(compute_resources_collector_timeout=123,
+                   group='collector')
+
+        t_nova_cluster = nova.NovaModelBuilder(mock.Mock())
+
+        self.assertEqual(t_nova_cluster.collector_timeout, 123)
