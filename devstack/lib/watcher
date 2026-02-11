@@ -60,8 +60,6 @@ WATCHER_UWSGI_CONF=$WATCHER_CONF_DIR/watcher-uwsgi.ini
 WATCHER_WSGI_DIR=${WATCHER_WSGI_DIR:-/var/www/watcher}
 # Public facing bits
 WATCHER_SERVICE_HOST=${WATCHER_SERVICE_HOST:-$SERVICE_HOST}
-WATCHER_SERVICE_PORT=${WATCHER_SERVICE_PORT:-9322}
-WATCHER_SERVICE_PORT_INT=${WATCHER_SERVICE_PORT_INT:-19322}
 WATCHER_SERVICE_PROTOCOL=${WATCHER_SERVICE_PROTOCOL:-$SERVICE_PROTOCOL}
 
 WATCHER_API_URL="$WATCHER_SERVICE_PROTOCOL://$WATCHER_SERVICE_HOST/infra-optim"
@@ -148,13 +146,6 @@ function create_watcher_conf {
     iniset_rpc_backend watcher $WATCHER_CONF
 
     iniset $WATCHER_CONF database connection $(database_connection_url watcher)
-    iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
-
-    if is_service_enabled tls-proxy; then
-        iniset $WATCHER_CONF api host "$(ipv6_unquote $WATCHER_SERVICE_HOST)"
-        iniset $WATCHER_CONF api port "$WATCHER_SERVICE_PORT_INT"
-        # iniset $WATCHER_CONF api enable_ssl_api "True"
-    fi
 
     iniset $WATCHER_CONF oslo_policy policy_file $WATCHER_POLICY_YAML
 
@@ -228,11 +219,9 @@ function install_watcher {
 function start_watcher_api {
     # Get right service port for testing
 
-    local service_port=$WATCHER_SERVICE_PORT
     local service_protocol=$WATCHER_SERVICE_PROTOCOL
     local watcher_url
     if is_service_enabled tls-proxy; then
-        service_port=$WATCHER_SERVICE_PORT_INT
         service_protocol="http"
     fi
     run_process "watcher-api" "$(which uwsgi) --procname-prefix watcher-api --ini $WATCHER_UWSGI_CONF"
