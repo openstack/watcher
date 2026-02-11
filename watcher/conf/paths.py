@@ -26,7 +26,9 @@ PATH_OPTS = [
                help='Directory where the watcher python module is installed.'),
     cfg.StrOpt('bindir',
                default='$pybasedir/bin',
-               help='Directory where watcher binaries are installed.'),
+               help='Directory where watcher binaries are installed.',
+               deprecated_for_removal=True,
+               deprecated_reason='This option has no effect'),
     cfg.StrOpt('state_path',
                default='$pybasedir',
                help="Top-level directory for maintaining watcher's state."),
@@ -36,11 +38,6 @@ PATH_OPTS = [
 def basedir_def(*args):
     """Return an uninterpolated path relative to $pybasedir."""
     return os.path.join('$pybasedir', *args)
-
-
-def bindir_def(*args):
-    """Return an uninterpolated path relative to $bindir."""
-    return os.path.join('$bindir', *args)
 
 
 def state_path_def(*args):

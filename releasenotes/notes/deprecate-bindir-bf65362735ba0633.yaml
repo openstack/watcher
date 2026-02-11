@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    The ``[DEFAULT] bindir`` option has been deprecated. This option has had
+    no effect.
