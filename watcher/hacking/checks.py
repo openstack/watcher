@@ -283,31 +283,3 @@ def no_redundant_import_alias(logical_line):
     """
     if re.match(re_redundant_import_alias, logical_line):
         yield (0, "N342: No redundant import alias.")
-
-
-@flake8ext
-def import_stock_mock(logical_line):
-    """Use python's mock, not the mock library.
-
-    Since we `dropped support for python 2`__, we no longer need to use the
-    mock library, which existed to backport py3 functionality into py2.
-    Which must be done by saying::
-
-        from unittest import mock
-
-    ...because if you say::
-
-        import mock
-
-    ...you definitely will not be getting the standard library mock. That will
-    always import the third party mock library. This check can be removed in
-    the future (and we can start saying ``import mock`` again) if we manage to
-    purge these transitive dependencies.
-
-    .. __: https://review.opendev.org/#/c/717540
-
-    N366
-    """
-    if logical_line == 'import mock':
-        yield (0, "N366: You must explicitly import python's mock: "
-                  "``from unittest import mock``")
