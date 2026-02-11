@@ -1,0 +1,8 @@
+---
+deprecations:
+  - |
+    The MAAS (Metal as a Service) integration is now deprecated. This feature
+    was previously marked as experimental due to lack of testing, maintenance,
+    and documentation. The MAAS integration code is planned to be removed in
+    a future release, before or together with the removal of eventlet from
+    Watcher.

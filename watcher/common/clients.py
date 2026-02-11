@@ -235,13 +235,12 @@ class OpenStackClients:
         if self._maas:
             return self._maas
 
-        # NOTE(dviroel): This integration is classified as Experimental due to
-        # the lack of documentation and CI testing. It can be marked as
-        # supported or deprecated in future releases, based on improvements.
+        # NOTE(dviroel): This integration is deprecated due to the lack of
+        # maintenance and support. It has eventlet code that is required to be
+        # removed/replaced in future releases.
         debtcollector.deprecate(
-            ("MAAS is an experimental integration and may be "
-             "deprecated in future releases."),
-            version="2025.2", category=PendingDeprecationWarning)
+            ("MAAS integration is deprecated and it will be removed in a "
+             "future release."), version="2026.1", category=DeprecationWarning)
 
         if not maas_client:
             raise exception.UnsupportedError(
