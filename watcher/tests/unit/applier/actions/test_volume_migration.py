@@ -14,12 +14,14 @@
 
 from unittest import mock
 
+from cinderclient import exceptions as cinder_exception
 import jsonschema
 
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import volume_migration
 from watcher.common import cinder_helper
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import keystone_helper
 from watcher.common import nova_helper
 from watcher.tests.unit import base
@@ -110,6 +112,9 @@ class TestMigration(base.TestCase):
         volume.snapshot_id = kwargs.get('snapshot_id', None)
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         volume.attachments = kwargs.get('attachments', [])
+        volume.volume_type = kwargs.get('volume_type', 'default-type')
+        setattr(volume, 'os-vol-host-attr:host',
+                kwargs.get('host', 'current-host'))
         return volume
 
     @staticmethod
@@ -223,3 +228,111 @@ class TestMigration(base.TestCase):
             volume,
             "storage1-poolname"
         )
+
+    def test_pre_condition_volume_not_found(self):
+        self.m_c_helper.get_volume.side_effect = (
+            cinder_exception.NotFound('404'))
+
+        # ActionSkipped is expected because the volume is not found
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Volume {self.VOLUME_UUID} not found",
+            self.action_migrate.pre_condition)
+
+    def test_pre_condition_destination_type_not_found(self):
+        volume = self.fake_volume()
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock volume type list that doesn't contain the destination type
+        fake_type_1 = mock.MagicMock()
+        fake_type_1.name = "type-1"
+        fake_type_2 = mock.MagicMock()
+        fake_type_2.name = "type-2"
+        self.m_c_helper.get_volume_type_list.return_value = [
+            fake_type_1, fake_type_2]
+
+        # ActionExecutionFailure is expected because the destination type
+        # is not found
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            "Volume type storage1-typename not found",
+            self.action_retype.pre_condition)
+
+    def test_pre_condition_destination_pool_not_found(self):
+        volume = self.fake_volume()
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock get_storage_pool_by_name to raise PoolNotFound
+        self.m_c_helper.get_storage_pool_by_name.side_effect = (
+            exception.PoolNotFound(name="storage1-poolname"))
+
+        # ActionExecutionFailure is expected because the destination pool
+        # is not found
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            "Pool storage1-poolname not found",
+            self.action_migrate.pre_condition)
+
+    def test_pre_condition_success_with_type(self):
+        volume = self.fake_volume()
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock volume type list that contains the destination type
+        fake_type_1 = mock.MagicMock()
+        fake_type_1.name = "storage1-typename"
+        fake_type_2 = mock.MagicMock()
+        fake_type_2.name = "type-2"
+        self.m_c_helper.get_volume_type_list.return_value = [
+            fake_type_1, fake_type_2]
+
+        # Should not raise any exception
+        self.action_retype.pre_condition()
+        self.m_c_helper.get_volume.assert_called_once_with(self.VOLUME_UUID)
+        self.m_c_helper.get_volume_type_list.assert_called_once_with()
+
+    def test_pre_condition_success_with_pool(self):
+        volume = self.fake_volume()
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock pool
+        fake_pool = mock.MagicMock()
+        fake_pool.name = "storage1-poolname"
+        self.m_c_helper.get_storage_pool_by_name.return_value = fake_pool
+
+        # Should not raise any exception
+        self.action_migrate.pre_condition()
+        self.m_c_helper.get_volume.assert_called_once_with(self.VOLUME_UUID)
+        self.m_c_helper.get_storage_pool_by_name.assert_called_once_with(
+            "storage1-poolname")
+
+    def test_pre_condition_retype_same_type(self):
+        # Create volume with the same type as destination
+        volume = self.fake_volume(volume_type="storage1-typename")
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock volume type list that contains the destination type
+        fake_type = mock.MagicMock()
+        fake_type.name = "storage1-typename"
+        self.m_c_helper.get_volume_type_list.return_value = [fake_type]
+
+        # ActionSkipped is expected because volume already has the target type
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            "Volume type is already storage1-typename",
+            self.action_retype.pre_condition)
+
+    def test_pre_condition_migrate_same_node(self):
+        # Create volume on the same node as destination
+        volume = self.fake_volume(host="storage1-poolname")
+        self.m_c_helper.get_volume.return_value = volume
+
+        # Mock pool
+        fake_pool = mock.MagicMock()
+        fake_pool.name = "storage1-poolname"
+        self.m_c_helper.get_storage_pool_by_name.return_value = fake_pool
+
+        # ActionSkipped is expected because volume is already on target node
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            "Volume is already on node storage1-poolname",
+            self.action_migrate.pre_condition)

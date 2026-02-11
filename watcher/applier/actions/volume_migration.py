@@ -15,6 +15,7 @@
 
 import jsonschema
 
+from cinderclient import exceptions as cinder_exception
 from oslo_log import log
 
 from watcher._i18n import _
@@ -190,7 +191,53 @@ class VolumeMigrate(base.BaseAction):
         pass
 
     def pre_condition(self):
-        pass
+        """Check volumemigration preconditions
+
+        Skipping conditions:
+        - Volume does not exist
+        - Volume type is already the destination type in retype migration
+        - Volume is already on the destination node in migrate migration
+        Failing conditions:
+        - Destination node (if specified) does not exist
+        - Destination type (if specified) does not exist
+        """
+        try:
+            volume = self.cinder_util.get_volume(self.volume_id)
+        except cinder_exception.NotFound:
+            raise exception.ActionSkipped(
+                _("Volume %s not found") % self.volume_id)
+
+        # Check if destination_type exists (if specified)
+        if self.destination_type:
+            volume_types = self.cinder_util.get_volume_type_list()
+            type_names = [vt.name for vt in volume_types]
+            if self.destination_type not in type_names:
+                raise exception.ActionExecutionFailure(
+                    _("Volume type %s not found") % self.destination_type)
+
+        # Check if destination_node (pool) exists (if specified)
+        if self.destination_node:
+            try:
+                self.cinder_util.get_storage_pool_by_name(
+                    self.destination_node)
+            except exception.PoolNotFound:
+                raise exception.ActionExecutionFailure(
+                    _("Pool %s not found") % self.destination_node)
+
+        # Check if retype to same type
+        if (self.migration_type == self.RETYPE and
+                self.destination_type and
+                volume.volume_type == self.destination_type):
+            raise exception.ActionSkipped(
+                _("Volume type is already %s") % self.destination_type)
+
+        # Check if migrate to same node
+        if (self.migration_type in (self.SWAP, self.MIGRATE) and
+                self.destination_node):
+            current_host = getattr(volume, 'os-vol-host-attr:host')
+            if current_host == self.destination_node:
+                raise exception.ActionSkipped(
+                    _("Volume is already on node %s") % self.destination_node)
 
     def post_condition(self):
         pass
