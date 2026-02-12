@@ -291,10 +291,12 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         action_counter = ActionCounter(total_limit,
                                        per_pool_limit, per_node_limit)
 
+        instance_targets = filtered_targets.get(INSTANCE, [])
         if VOLUME in filtered_targets:
-            self.volumes_migration(filtered_targets[VOLUME], action_counter)
+            self.volumes_migration(filtered_targets[VOLUME], action_counter,
+                                   instance_targets)
         if INSTANCE in filtered_targets:
-            self.instances_migration(filtered_targets[INSTANCE],
+            self.instances_migration(instance_targets,
                                      action_counter)
 
         LOG.debug("action total: %s, pools: %s, nodes %s ",
@@ -381,7 +383,8 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 return (pool.get("dst_pool", None),
                         pool.get("dst_type"))
 
-    def volumes_migration(self, volumes, action_counter):
+    def volumes_migration(self, volumes, action_counter, instance_targets=[]):
+        instance_target_ids = {instance.id for instance in instance_targets}
         for volume in volumes:
             if action_counter.is_total_max():
                 LOG.debug('total reached limit')
@@ -410,10 +413,14 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             else:
                 self._volume_retype(volume, dst_type)
 
-            # if with_attached_volume is True, migrate attaching instances
+            # if with_attached_volume is True, migrate instances attached
+            # to the volumes, only if they are possible migration targets
             if self.with_attached_volume:
-                instances = [self.nova.find_instance(dic.get('server_id'))
-                             for dic in volume.attachments]
+                instances = [
+                    self.nova.find_instance(dic.get('server_id'))
+                    for dic in volume.attachments
+                    if dic.get('server_id') in instance_target_ids
+                    ]
                 self.instances_migration(instances, action_counter)
 
             action_counter.add_pool(pool)
