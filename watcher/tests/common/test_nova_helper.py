@@ -21,6 +21,7 @@ import fixtures
 import time
 from unittest import mock
 
+from keystoneauth1 import exceptions as ksa_exc
 from novaclient import api_versions
 
 import glanceclient.exc as glexceptions
@@ -1161,11 +1162,11 @@ class TestNovaHelper(base.TestCase):
 
     @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
     def test_confirm_resize(self, mock_confirm_resize, mock_glance,
-                            mock_cinder, mock_neutron,
-                            mock_nova):
+                            mock_cinder, mock_neutron, mock_nova):
         nova_util = nova_helper.NovaHelper()
         instance = self.fake_server(self.instance_uuid)
-        self.fake_nova_find_list(nova_util, fake_find=instance, fake_list=None)
+        self.fake_nova_find_list(nova_util, fake_find=instance,
+                                 fake_list=None)
 
         # verify that the method will return True when the status of instance
         # is not in the expected status.
@@ -1202,3 +1203,265 @@ class TestNovaHelper(base.TestCase):
         self.assertEqual(1, len(compute_nodes))
         self.assertEqual(hypervisor1_name,
                          compute_nodes[0].hypervisor_hostname)
+
+    def test_find_instance(self, mock_glance, mock_cinder, mock_neutron,
+                           mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        self.fake_nova_find_list(nova_util, fake_find=instance,
+                                 fake_list=None)
+        nova_util.nova.servers.get.return_value = instance
+
+        result = nova_util.find_instance(self.instance_uuid)
+        self.assertEqual(1, nova_util.nova.servers.get.call_count)
+        self.mock_sleep.assert_not_called()
+        self.assertEqual(instance, result)
+
+    def test_find_instance_retries(self, mock_glance, mock_cinder,
+                                   mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        self.fake_nova_find_list(nova_util, fake_find=instance,
+                                 fake_list=None)
+        nova_util.nova.servers.get.side_effect = [
+            ksa_exc.ConnectionError("Connection failed"),
+            instance
+        ]
+
+        result = nova_util.find_instance(self.instance_uuid)
+        self.assertEqual(2, nova_util.nova.servers.get.call_count)
+        self.assertEqual(1, self.mock_sleep.call_count)
+        self.assertEqual(instance, result)
+
+    def test_find_instance_retries_exhausts_retries(self, mock_glance,
+                                                    mock_cinder,
+                                                    mock_neutron,
+                                                    mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        self.fake_nova_find_list(nova_util, fake_find=instance,
+                                 fake_list=None)
+        nova_util.nova.servers.get.side_effect = ksa_exc.ConnectionError(
+            "Connection failed")
+
+        self.assertRaises(ksa_exc.ConnectionError,
+                          nova_util.find_instance, self.instance_uuid)
+        self.assertEqual(4, nova_util.nova.servers.get.call_count)
+        self.assertEqual(3, self.mock_sleep.call_count)
+
+    def test_nova_start_instance(self, mock_glance, mock_cinder, mock_neutron,
+                                 mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        nova_util.nova_start_instance(instance.id)
+        nova_util.nova.servers.start.assert_called_once_with(instance.id)
+
+    def test_nova_stop_instance(self, mock_glance, mock_cinder, mock_neutron,
+                                mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        nova_util.nova_stop_instance(instance.id)
+        nova_util.nova.servers.stop.assert_called_once_with(instance.id)
+
+    @mock.patch.object(servers.Server, 'resize', autospec=True)
+    def test_instance_resize(self, mock_resize, mock_glance, mock_cinder,
+                             mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        flavor_name = "m1.small"
+
+        result = nova_util.instance_resize(instance, flavor_name)
+        mock_resize.assert_called_once_with(instance, flavor=flavor_name)
+        self.assertTrue(result)
+
+    @mock.patch.object(servers.Server, 'confirm_resize', autospec=True)
+    def test_instance_confirm_resize(self, mock_confirm_resize, mock_glance,
+                                     mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        nova_util.instance_confirm_resize(instance)
+        mock_confirm_resize.assert_called_once_with(instance)
+
+    @mock.patch.object(servers.Server, 'live_migrate', autospec=True)
+    def test_instance_live_migrate(self, mock_live_migrate, mock_glance,
+                                   mock_cinder, mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        dest_hostname = "dest_hostname"
+        nova_util.instance_live_migrate(instance, dest_hostname)
+        mock_live_migrate.assert_called_once_with(
+            instance, host="dest_hostname")
+
+    @mock.patch.object(servers.Server, 'migrate', autospec=True)
+    def test_instance_migrate(self, mock_migrate, mock_glance, mock_cinder,
+                              mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        dest_hostname = "dest_hostname"
+        nova_util.instance_migrate(instance, dest_hostname)
+        mock_migrate.assert_called_once_with(instance, host="dest_hostname")
+
+    def test_live_migration_abort(self, mock_glance, mock_cinder,
+                                  mock_neutron, mock_nova):
+        nova_util = nova_helper.NovaHelper()
+        instance = self.fake_server(self.instance_uuid)
+        nova_util.live_migration_abort(instance.id, 1)
+        nova_util.nova.server_migrations.live_migration_abort.\
+            assert_called_once_with(server=instance.id, migration=1)
+
+
+class TestNovaRetries(base.TestCase):
+    """Test suite for the nova_retries decorator."""
+
+    def setUp(self):
+        super().setUp()
+        self.mock_sleep = self.useFixture(
+            fixtures.MockPatchObject(time, 'sleep')).mock
+
+    def test_nova_retries_success_on_first_attempt(self):
+        """Test that decorator returns result when function succeeds."""
+        @nova_helper.nova_retries
+        def mock_function():
+            return "success"
+
+        result = mock_function()
+        self.assertEqual("success", result)
+        self.mock_sleep.assert_not_called()
+
+    def test_nova_retries_success_after_retries(self):
+        """Test that decorator retries and succeeds after ConnectionError."""
+        self.flags(http_retries=3, http_retry_interval=2, group='nova')
+
+        call_count = {'count': 0}
+
+        @nova_helper.nova_retries
+        def mock_function():
+            call_count['count'] += 1
+            if call_count['count'] < 3:
+                raise ksa_exc.ConnectionError("Connection failed")
+            return "success"
+
+        result = mock_function()
+        self.assertEqual("success", result)
+        self.assertEqual(3, call_count['count'])
+        # Should have slept 2 times (before retry 2 and 3)
+        self.assertEqual(2, self.mock_sleep.call_count)
+        # Verify sleep was called with correct interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 2)
+
+    def test_nova_retries_exhausts_retries(self):
+        """Test that decorator re-raises after exhausting retries."""
+        self.flags(http_retries=3, http_retry_interval=1, group='nova')
+
+        call_count = {'count': 0}
+
+        @nova_helper.nova_retries
+        def mock_function():
+            call_count['count'] += 1
+            raise ksa_exc.ConnectionError("Connection failed")
+
+        self.assertRaises(ksa_exc.ConnectionError, mock_function)
+        # Should have tried 3 times
+        self.assertEqual(4, call_count['count'])
+        # Should have slept 2 times (between attempts)
+        self.assertEqual(3, self.mock_sleep.call_count)
+        # Verify sleep was called with correct interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 1)
+
+    def test_nova_retries_with_custom_retry_interval(self):
+        """Test that decorator uses configured retry interval."""
+        self.flags(http_retries=4, http_retry_interval=5, group='nova')
+
+        call_count = {'count': 0}
+
+        @nova_helper.nova_retries
+        def mock_function():
+            call_count['count'] += 1
+            raise ksa_exc.ConnectionError("Connection failed")
+
+        self.assertRaises(ksa_exc.ConnectionError, mock_function)
+        # Should have tried 4 times
+        self.assertEqual(5, call_count['count'])
+        # Should have slept 3 times (between attempts)
+        self.assertEqual(4, self.mock_sleep.call_count)
+        # Verify sleep was called with 5 second interval
+        for call in self.mock_sleep.call_args_list:
+            self.assertEqual(call[0][0], 5)
+
+    def test_nova_retries_with_function_args(self):
+        """Test that decorator preserves function arguments and return."""
+        @nova_helper.nova_retries
+        def mock_function(arg1, arg2, kwarg1=None):
+            return f"{arg1}-{arg2}-{kwarg1}"
+
+        result = mock_function("a", "b", kwarg1="c")
+        self.assertEqual("a-b-c", result)
+        self.mock_sleep.assert_not_called()
+
+    def test_nova_retries_propagates_other_exceptions(self):
+        """Test that decorator doesn't catch non-ConnectionError exception."""
+        @nova_helper.nova_retries
+        def mock_function():
+            raise ValueError("Some other error")
+
+        self.assertRaises(ValueError, mock_function)
+        self.mock_sleep.assert_not_called()
+
+    @mock.patch.object(nova_helper, 'LOG')
+    def test_nova_retries_logging_on_retry(self, mock_log):
+        """Test that decorator logs warnings during retries."""
+        self.flags(http_retries=3, http_retry_interval=1, group='nova')
+
+        call_count = {'count': 0}
+
+        @nova_helper.nova_retries
+        def mock_function():
+            call_count['count'] += 1
+            if call_count['count'] < 2:
+                raise ksa_exc.ConnectionError("Connection failed")
+            return "success"
+
+        mock_function()
+
+        # Should have logged warning about connection error
+        self.assertTrue(mock_log.warning.called)
+        # Check that retry message was logged
+        warning_calls = [call for call in mock_log.warning.call_args_list
+                         if 'Retrying connection' in str(call)]
+        self.assertEqual(1, len(warning_calls))
+
+    @mock.patch.object(nova_helper, 'LOG')
+    def test_nova_retries_logging_on_final_failure(self, mock_log):
+        """Test that decorator logs error when all retries are exhausted."""
+        self.flags(http_retries=2, http_retry_interval=1, group='nova')
+
+        @nova_helper.nova_retries
+        def mock_function():
+            raise ksa_exc.ConnectionError("Connection failed")
+
+        self.assertRaises(ksa_exc.ConnectionError, mock_function)
+
+        # Should have logged error about final failure
+        self.assertTrue(mock_log.error.called)
+        error_calls = [call for call in mock_log.error.call_args_list
+                       if 'Failed to connect' in str(call)]
+        self.assertEqual(1, len(error_calls))
+
+    def test_nova_retries_single_retry_config(self):
+        """Test decorator behavior with single retry configured."""
+        self.flags(http_retries=1, http_retry_interval=1, group='nova')
+
+        call_count = {'count': 0}
+
+        @nova_helper.nova_retries
+        def mock_function():
+            call_count['count'] += 1
+            raise ksa_exc.ConnectionError("Connection failed")
+
+        self.assertRaises(ksa_exc.ConnectionError, mock_function)
+        # Should have tried twice
+        self.assertEqual(2, call_count['count'])
+        # Should have slept once
+        self.assertEqual(1, self.mock_sleep.call_count)

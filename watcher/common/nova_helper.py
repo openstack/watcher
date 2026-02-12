@@ -17,8 +17,10 @@
 # limitations under the License.
 #
 
+import functools
 import time
 
+from keystoneauth1 import exceptions as ksa_exc
 from novaclient import api_versions
 from oslo_log import log
 
@@ -32,6 +34,27 @@ from watcher import conf
 LOG = log.getLogger(__name__)
 
 CONF = conf.CONF
+
+
+def nova_retries(call):
+    @functools.wraps(call)
+    def wrapper(*args, **kwargs):
+        retries = CONF.nova.http_retries
+        retry_interval = CONF.nova.http_retry_interval
+        for i in range(retries + 1):
+            try:
+                return call(*args, **kwargs)
+            except ksa_exc.ConnectionError as e:
+                LOG.warning('Error connecting to Nova service: %s', e)
+                if i < retries:
+                    LOG.warning('Retrying connection to Nova service')
+                    time.sleep(retry_interval)
+                else:
+                    LOG.error(
+                        'Failed to connect to Nova service after %d attempts',
+                        retries + 1)
+                    raise
+    return wrapper
 
 
 class NovaHelper(object):
@@ -57,6 +80,7 @@ class NovaHelper(object):
                 api_versions.APIVersion(version_str='2.96'))
         return self._is_pinned_az_available
 
+    @nova_retries
     def get_compute_node_list(self):
         hypervisors = self.nova.hypervisors.list()
         # filter out baremetal nodes from hypervisors
@@ -64,6 +88,7 @@ class NovaHelper(object):
                          node.hypervisor_type != 'ironic']
         return compute_nodes
 
+    @nova_retries
     def get_compute_node_by_name(self, node_name, servers=False,
                                  detailed=False):
         """Search for a hypervisor (compute node) by hypervisor_hostname
@@ -99,6 +124,7 @@ class NovaHelper(object):
             LOG.exception(exc)
             raise exception.ComputeNodeNotFound(name=node_hostname)
 
+    @nova_retries
     def get_compute_node_by_uuid(self, node_uuid):
         """Get compute node by uuid
 
@@ -107,6 +133,7 @@ class NovaHelper(object):
         """
         return self.nova.hypervisors.get(node_uuid)
 
+    @nova_retries
     def get_instance_list(self, filters=None, marker=None, limit=-1):
         """List servers for all tenants with details.
 
@@ -129,48 +156,93 @@ class NovaHelper(object):
                                       marker=marker,
                                       limit=limit)
 
+    @nova_retries
     def get_instance_by_uuid(self, instance_uuid):
         return [instance for instance in
                 self.nova.servers.list(search_opts={"all_tenants": True,
                                                     "uuid": instance_uuid})]
 
+    @nova_retries
     def get_instance_by_name(self, instance_name):
         return [instance for instance in
                 self.nova.servers.list(search_opts={"all_tenants": True,
                                                     "name": instance_name})]
 
+    @nova_retries
     def get_instances_by_node(self, host):
         return [instance for instance in
                 self.nova.servers.list(search_opts={"all_tenants": True,
                                                     "host": host},
                                        limit=-1)]
 
+    @nova_retries
     def get_flavor_list(self):
         return self.nova.flavors.list(**{'is_public': None})
 
+    @nova_retries
+    def get_flavor(self, flavor):
+        return self.nova.flavors.get(flavor)
+
+    @nova_retries
     def get_service(self, service_id):
         return self.nova.services.find(id=service_id)
 
+    @nova_retries
     def get_aggregate_list(self):
         return self.nova.aggregates.list()
 
+    @nova_retries
     def get_aggregate_detail(self, aggregate_id):
         return self.nova.aggregates.get(aggregate_id)
 
+    @nova_retries
     def get_availability_zone_list(self):
         return self.nova.availability_zones.list(detailed=True)
 
+    @nova_retries
     def get_service_list(self):
         return self.nova.services.list(binary='nova-compute')
 
+    @nova_retries
     def find_instance(self, instance_id):
         return self.nova.servers.get(instance_id)
 
+    @nova_retries
+    def nova_start_instance(self, instance_id):
+        return self.nova.servers.start(instance_id)
+
+    @nova_retries
+    def nova_stop_instance(self, instance_id):
+        return self.nova.servers.stop(instance_id)
+
+    @nova_retries
+    def instance_resize(self, instance, flavor_id):
+        return instance.resize(flavor=flavor_id)
+
+    @nova_retries
+    def instance_confirm_resize(self, instance):
+        return instance.confirm_resize()
+
+    @nova_retries
+    def instance_live_migrate(self, instance, dest_hostname):
+        # From nova api version 2.25(Mitaka release), the default value of
+        # block_migration is None which is mapped to 'auto'.
+        return instance.live_migrate(host=dest_hostname)
+
+    @nova_retries
+    def instance_migrate(self, instance, dest_hostname):
+        return instance.migrate(host=dest_hostname)
+
+    @nova_retries
+    def live_migration_abort(self, instance_id, migration_id):
+        return self.nova.server_migrations.live_migration_abort(
+            server=instance_id, migration=migration_id)
+
     def confirm_resize(self, instance, previous_status, retry=60):
-        instance.confirm_resize()
-        instance = self.nova.servers.get(instance.id)
+        self.instance_confirm_resize(instance)
+        instance = self.find_instance(instance.id)
         while instance.status != previous_status and retry:
-            instance = self.nova.servers.get(instance.id)
+            instance = self.find_instance(instance.id)
             retry -= 1
             time.sleep(1)
         if instance.status == previous_status:
@@ -237,12 +309,12 @@ class NovaHelper(object):
                 {'instance': instance_id, 'host': host_name})
 
             previous_status = getattr(instance, 'status')
-            instance.migrate(host=dest_hostname)
-            instance = self.nova.servers.get(instance_id)
+            self.instance_migrate(instance, dest_hostname)
+            instance = self.find_instance(instance_id)
 
             while (getattr(instance, 'status') not in
                    ["VERIFY_RESIZE", "ERROR"] and retry):
-                instance = self.nova.servers.get(instance.id)
+                instance = self.find_instance(instance.id)
                 time.sleep(interval)
                 retry -= 1
             new_hostname = getattr(instance, 'OS-EXT-SRV-ATTR:host')
@@ -290,9 +362,9 @@ class NovaHelper(object):
         flavor_id = None
 
         try:
-            flavor_id = self.nova.flavors.get(flavor).id
+            flavor_id = self.get_flavor(flavor).id
         except nvexceptions.NotFound:
-            flavor_id = [f.id for f in self.nova.flavors.list() if
+            flavor_id = [f.id for f in self.get_flavor_list() if
                          f.name == flavor][0]
         except nvexceptions.ClientException as e:
             LOG.debug("Nova client exception occurred while resizing "
@@ -311,11 +383,11 @@ class NovaHelper(object):
             "Instance %(id)s is in '%(status)s' status.",
             {'id': instance_id, 'status': instance_status})
 
-        instance.resize(flavor=flavor_id)
+        self.instance_resize(instance, flavor_id)
         while getattr(instance,
                       'OS-EXT-STS:vm_state') != 'resized' \
                 and retry:
-            instance = self.nova.servers.get(instance.id)
+            instance = self.find_instance(instance.id)
             LOG.debug('Waiting the resize of %s to %s', instance, flavor_id)
             time.sleep(interval)
             retry -= 1
@@ -324,7 +396,7 @@ class NovaHelper(object):
         if instance_status != 'VERIFY_RESIZE':
             return False
 
-        instance.confirm_resize()
+        self.instance_confirm_resize(instance)
 
         LOG.debug("Resizing succeeded : instance %s is now on flavor "
                   "'%s'.", instance_id, flavor_id)
@@ -366,17 +438,15 @@ class NovaHelper(object):
                 "Instance %(instance)s found on host '%(host)s'.",
                 {'instance': instance_id, 'host': host_name})
 
-            # From nova api version 2.25(Mitaka release), the default value of
-            # block_migration is None which is mapped to 'auto'.
-            instance.live_migrate(host=dest_hostname)
+            self.instance_live_migrate(instance, dest_hostname)
 
-            instance = self.nova.servers.get(instance_id)
+            instance = self.find_instance(instance_id)
 
             # NOTE: If destination host is not specified for live migration
             # let nova scheduler choose the destination host.
             if dest_hostname is None:
                 while (instance.status not in ['ACTIVE', 'ERROR'] and retry):
-                    instance = self.nova.servers.get(instance.id)
+                    instance = self.find_instance(instance.id)
                     LOG.debug('Waiting the migration of %s', instance.id)
                     time.sleep(interval)
                     retry -= 1
@@ -394,7 +464,7 @@ class NovaHelper(object):
             while getattr(instance,
                           'OS-EXT-SRV-ATTR:host') != dest_hostname \
                     and retry:
-                instance = self.nova.servers.get(instance.id)
+                instance = self.find_instance(instance.id)
                 if not getattr(instance, 'OS-EXT-STS:task_state'):
                     LOG.debug("Instance task state: %s is null", instance_id)
                     break
@@ -421,8 +491,7 @@ class NovaHelper(object):
         if migration:
             migration_id = getattr(migration[0], "id")
             try:
-                self.nova.server_migrations.live_migration_abort(
-                    server=instance_id, migration=migration_id)
+                self.live_migration_abort(instance_id, migration_id)
             except exception as e:
                 # Note: Does not return from here, as abort request can't be
                 # accepted but migration still going on.
@@ -432,7 +501,7 @@ class NovaHelper(object):
                 "No running migrations found for instance %s", instance_id)
 
         while retry:
-            instance = self.nova.servers.get(instance_id)
+            instance = self.find_instance(instance_id)
             if (getattr(instance, 'OS-EXT-STS:task_state') is None and
                getattr(instance, 'status') in ['ACTIVE', 'ERROR']):
                 break
@@ -452,6 +521,7 @@ class NovaHelper(object):
             raise Exception("Live migration execution and abort both failed "
                             "for the instance %s" % instance_id)
 
+    @nova_retries
     def enable_service_nova_compute(self, hostname):
         if (api_versions.APIVersion(version_str=CONF.nova_client.api_version) <
                 api_versions.APIVersion(version_str='2.53')):
@@ -465,6 +535,7 @@ class NovaHelper(object):
 
         return status
 
+    @nova_retries
     def disable_service_nova_compute(self, hostname, reason=None):
         if (api_versions.APIVersion(version_str=CONF.nova_client.api_version) <
                 api_versions.APIVersion(version_str='2.53')):
@@ -580,7 +651,7 @@ class NovaHelper(object):
             LOG.debug("Instance has been stopped: %s", instance_id)
             return True
         else:
-            self.nova.servers.stop(instance_id)
+            self.nova_stop_instance(instance_id)
 
             if self.wait_for_instance_state(instance, "stopped", 8, 10):
                 LOG.debug("Instance %s stopped.", instance_id)
@@ -604,7 +675,7 @@ class NovaHelper(object):
             LOG.debug("Instance has already been started: %s", instance_id)
             return True
         else:
-            self.nova.servers.start(instance_id)
+            self.nova_start_instance(instance_id)
 
             if self.wait_for_instance_state(instance, "active", 8, 10):
                 LOG.debug("Instance %s started.", instance_id)
@@ -628,7 +699,7 @@ class NovaHelper(object):
 
         while getattr(server, 'OS-EXT-STS:vm_state') != state and retry:
             time.sleep(sleep)
-            server = self.nova.servers.get(server)
+            server = self.find_instance(server)
             retry -= 1
         return getattr(server, 'OS-EXT-STS:vm_state') == state
 
@@ -763,6 +834,7 @@ class NovaHelper(object):
     def get_hostname(self, instance):
         return str(getattr(instance, 'OS-EXT-SRV-ATTR:host'))
 
+    @nova_retries
     def get_running_migration(self, instance_id):
         return self.nova.server_migrations.list(server=instance_id)
 
