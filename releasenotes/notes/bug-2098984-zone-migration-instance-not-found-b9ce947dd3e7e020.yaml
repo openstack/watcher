@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Fixes a bug in the zone migration strategy where audits would fail due to
+    an unhandled exception when trying to plan instance migration that exist
+    in Nova but not in Watcher's compute model.
+    The strategy now filters out the elements that are not found in the model,
+    allowing the audit to complete successfully. For more details, please see
+    `Bug #2098984 <https://bugs.launchpad.net/watcher/+bug/2098984>`_.
