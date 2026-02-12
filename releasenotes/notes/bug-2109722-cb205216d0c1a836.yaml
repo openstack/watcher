@@ -1,0 +1,13 @@
+---
+fixes:
+  - |
+    Previously, when an audit was created with zone_migration strategy and
+    both storage_pools and compute_nodes parameters are passed, the audit
+    did not created the required instances migration actions if any volume
+    migration action was created.
+
+    Now, in that situation the audit will create both instance and volume
+    migrations according to the expected behavior and the limits defined
+    by the parallelization parameters.
+
+    For more information: https://bugs.launchpad.net/watcher/+bug/2109722

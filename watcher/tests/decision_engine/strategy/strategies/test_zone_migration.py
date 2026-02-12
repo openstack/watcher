@@ -1051,19 +1051,35 @@ class TestZoneMigration(TestBaseStrategy):
                  'resource_name': 'volume_2',
                  'resource_id': 'a16c811e-2521-4fd3-8779-6a94ccb3be73'}}
         ]
+        expected_vm_migrations = [
+            {'action_type': 'migrate',
+             'input_parameters':
+                {'migration_type': 'live',
+                 'source_node': 'src1',
+                 'destination_node': 'dst1',
+                 'resource_name': 'INSTANCE_1',
+                 'resource_id': 'INSTANCE_1'}}
+        ]
         migrated_volumes = [action
                             for action in solution.actions
                             if action['action_type'] == 'volume_migrate']
         self.assertEqual(2, action_types.get("volume_migrate", 0))
         self.assertEqual(expected_vmigrations, migrated_volumes)
-        # TODO(amoralej) Next check should be creating a migrate action. Change
-        # the expected value to 1 when fixed.
-        self.assertEqual(0, action_types.get("migrate", 0))
+
+        self.assertEqual(1, action_types.get("migrate", 0))
+        migrated_vms = [action
+                        for action in solution.actions
+                        if action['action_type'] == 'migrate']
+        self.assertEqual(expected_vm_migrations, migrated_vms)
 
         # All the detached volumes in the pool should be migrated
         volume_indicator = [item['value'] for item in solution.global_efficacy
                             if item['name'] == "volume_migrate_ratio"][0]
         self.assertEqual(100, volume_indicator)
+        # All the instances in src1 should be migrated
+        live_ind = [item['value'] for item in solution.global_efficacy
+                    if item['name'] == "live_instance_migrate_ratio"][0]
+        self.assertEqual(100, live_ind)
 
     def test_execute_mixed_instances_volumes_with_attached(self):
         instance_on_src1_1 = self.fake_instance(
@@ -1141,7 +1157,14 @@ class TestZoneMigration(TestBaseStrategy):
                  'source_node': 'src1',
                  'destination_node': 'dst1',
                  'resource_name': 'INSTANCE_3',
-                 'resource_id': 'INSTANCE_3'}}
+                 'resource_id': 'INSTANCE_3'}},
+            {'action_type': 'migrate',
+             'input_parameters':
+                {'migration_type': 'live',
+                 'source_node': 'src1',
+                 'destination_node': 'dst1',
+                 'resource_name': 'INSTANCE_1',
+                 'resource_id': 'INSTANCE_1'}}
         ]
         migrated_volumes = [action
                             for action in solution.actions
@@ -1151,12 +1174,10 @@ class TestZoneMigration(TestBaseStrategy):
         migrated_vms = [action
                         for action in solution.actions
                         if action['action_type'] == 'migrate']
-        self.assertEqual(1, action_types.get("migrate", 0))
+        self.assertEqual(2, action_types.get("migrate", 0))
         self.assertEqual(expected_vm_migrations, migrated_vms)
 
-        # TODO(amoralej) This should be creating more migrate actions.
-        # Uncomment the following line when fixed.
-        # self.assertEqual(0, action_types.get("migrate", 0))
+        self.assertEqual(2, action_types.get("migrate", 0))
 
         # All the detached volumes in the pool should be migrated
         volume_mig_ind = [item['value'] for item in solution.global_efficacy
@@ -1166,10 +1187,29 @@ class TestZoneMigration(TestBaseStrategy):
         volume_swap_ind = [item['value'] for item in solution.global_efficacy
                            if item['name'] == "volume_update_ratio"][0]
         self.assertEqual(100, volume_swap_ind)
-        # TODO(amoralej) This should be 100. Change when fixed.
+        # All the instances in src1 should be migrated
         live_ind = [item['value'] for item in solution.global_efficacy
                     if item['name'] == "live_instance_migrate_ratio"][0]
-        self.assertEqual(50, live_ind)
+        self.assertEqual(100, live_ind)
+
+    def test_instance_migration_exists(self):
+
+        fake_actions = [
+            {'action_type': 'migrate', 'resource_id': 'instance1'},
+            {'action_type': 'some_other_action', 'resource_id': 'instance2'},
+            {'action_type': 'migrate', 'resource_id': 'instance3'}
+        ]
+
+        for action in fake_actions:
+            self.strategy.solution.add_action(
+                action['action_type'],
+                resource_id=action['resource_id'])
+        self.assertTrue(self.strategy._instance_migration_exists('instance1'))
+        self.assertTrue(self.strategy._instance_migration_exists('instance3'))
+        self.assertFalse(self.strategy._instance_migration_exists('instance2'))
+        self.assertFalse(self.strategy._instance_migration_exists('instance4'))
+        self.assertFalse(self.strategy._instance_migration_exists(None))
+        self.assertFalse(self.strategy._instance_migration_exists(''))
 
     # priority filter #
 

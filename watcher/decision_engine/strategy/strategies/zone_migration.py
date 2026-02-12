@@ -291,19 +291,11 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
         action_counter = ActionCounter(total_limit,
                                        per_pool_limit, per_node_limit)
 
-        for k, targets in iter(filtered_targets.items()):
-            if k == VOLUME:
-                self.volumes_migration(targets, action_counter)
-            elif k == INSTANCE:
-                if self.volume_count == 0 and self.volume_update_count == 0:
-                    # if with_attached_volume is true,
-                    # instance having attached volumes already migrated,
-                    # migrate instances which does not have attached volumes
-                    if self.with_attached_volume:
-                        targets = self.instances_no_attached(targets)
-                        self.instances_migration(targets, action_counter)
-                    else:
-                        self.instances_migration(targets, action_counter)
+        if VOLUME in filtered_targets:
+            self.volumes_migration(filtered_targets[VOLUME], action_counter)
+        if INSTANCE in filtered_targets:
+            self.instances_migration(filtered_targets[INSTANCE],
+                                     action_counter)
 
         LOG.debug("action total: %s, pools: %s, nodes %s ",
                   action_counter.total_count,
@@ -356,10 +348,6 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
 
     def is_in_use(self, volume):
         return getattr(volume, 'status') == IN_USE
-
-    def instances_no_attached(self, instances):
-        return [i for i in instances
-                if not getattr(i, "os-extended-volumes:volumes_attached")]
 
     def get_host_by_pool(self, pool):
         """Get host name from pool name
@@ -433,6 +421,10 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
     def instances_migration(self, instances, action_counter):
 
         for instance in instances:
+            if self._instance_migration_exists(instance.id):
+                LOG.debug("A migration action for instance %s already exist",
+                          instance.id)
+                continue
             src_node = getattr(instance, 'OS-EXT-SRV-ATTR:host')
 
             if action_counter.is_total_max():
@@ -479,6 +471,14 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             resource_id=instance.id,
             input_parameters=parameters)
         self.planned_cold_count += 1
+
+    def _instance_migration_exists(self, instance_id):
+        for action in self.solution.actions:
+            resource_id = action['input_parameters'].get('resource_id', None)
+            if (action['action_type'] == 'migrate' and
+                    resource_id == instance_id):
+                return True
+        return False
 
     def _volume_migrate(self, volume, dst_pool):
         parameters = {"migration_type": "migrate",
