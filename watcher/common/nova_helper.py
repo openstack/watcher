@@ -19,6 +19,7 @@
 import dataclasses as dc
 import functools
 import time
+import uuid
 
 from keystoneauth1 import exceptions as ksa_exc
 from novaclient import api_versions
@@ -64,7 +65,7 @@ class Server:
     resolved at construction time.
     """
 
-    id: str
+    uuid: str
     name: str
     created: str
     host: str | None
@@ -85,11 +86,17 @@ class Server:
 
         :param nova_server: novaclient servers.Server object
         :returns: Server dataclass instance
+        :raises: InvalidUUID if server ID is not a valid UUID
         """
         server_dict = nova_server.to_dict()
 
+        try:
+            uuid.UUID(nova_server.id)
+        except (ValueError, AttributeError, TypeError):
+            raise exception.InvalidUUID(uuid=nova_server.id)
+
         return cls(
-            id=nova_server.id,
+            uuid=nova_server.id,
             name=nova_server.name,
             created=nova_server.created,
             host=server_dict.get('OS-EXT-SRV-ATTR:host'),
@@ -116,7 +123,7 @@ class Hypervisor:
     resolved at construction time.
     """
 
-    id: str
+    uuid: str
     hypervisor_hostname: str
     hypervisor_type: str
     state: str
@@ -138,6 +145,7 @@ class Hypervisor:
 
         :param nova_hypervisor: novaclient hypervisors.Hypervisor object
         :returns: Hypervisor dataclass instance
+        :raises: InvalidUUID if hypervisor ID is not a valid UUID
         """
         hypervisor_dict = nova_hypervisor.to_dict()
         service = hypervisor_dict.get('service')
@@ -151,8 +159,13 @@ class Hypervisor:
 
         servers = hypervisor_dict.get('servers', [])
 
+        try:
+            uuid.UUID(nova_hypervisor.id)
+        except (ValueError, AttributeError, TypeError):
+            raise exception.InvalidUUID(uuid=nova_hypervisor.id)
+
         return cls(
-            id=nova_hypervisor.id,
+            uuid=nova_hypervisor.id,
             hypervisor_hostname=nova_hypervisor.hypervisor_hostname,
             hypervisor_type=nova_hypervisor.hypervisor_type,
             state=nova_hypervisor.state,
@@ -252,7 +265,7 @@ class Service:
     resolved at construction time.
     """
 
-    id: str
+    uuid: str
     binary: str
     host: str
     zone: str
@@ -267,9 +280,16 @@ class Service:
 
         :param nova_service: novaclient services.Service object
         :returns: Service dataclass instance
+        :raises: InvalidUUID if service ID is not a valid UUID
         """
+
+        try:
+            uuid.UUID(nova_service.id)
+        except (ValueError, AttributeError, TypeError):
+            raise exception.InvalidUUID(uuid=nova_service.id)
+
         return cls(
-            id=nova_service.id,
+            uuid=nova_service.id,
             binary=nova_service.binary,
             host=nova_service.host,
             zone=nova_service.zone,

@@ -1301,7 +1301,7 @@ class TestServerWrapper(base.TestCase):
 
         wrapped = nova_helper.Server.from_novaclient(nova_server)
 
-        self.assertEqual(server_id, wrapped.id)
+        self.assertEqual(server_id, wrapped.uuid)
         self.assertEqual('my-server', wrapped.name)
         self.assertEqual('ACTIVE', wrapped.status)
         self.assertEqual('2026-01-01T00:00:00Z', wrapped.created)
@@ -1421,7 +1421,7 @@ class TestHypervisorWrapper(base.TestCase):
 
         wrapped = nova_helper.Hypervisor.from_novaclient(nova_hypervisor)
 
-        self.assertEqual(hypervisor_id, wrapped.id)
+        self.assertEqual(hypervisor_id, wrapped.uuid)
         self.assertEqual(hostname, wrapped.hypervisor_hostname)
         self.assertEqual('QEMU', wrapped.hypervisor_type)
         self.assertEqual('up', wrapped.state)
@@ -1787,7 +1787,7 @@ class TestServiceWrapper(base.TestCase):
 
         wrapped = nova_helper.Service.from_novaclient(nova_service)
 
-        self.assertEqual(service_id, wrapped.id)
+        self.assertEqual(service_id, wrapped.uuid)
         self.assertEqual('nova-compute', wrapped.binary)
         self.assertEqual('compute-node-1', wrapped.host)
         self.assertEqual('az1', wrapped.zone)
