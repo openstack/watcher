@@ -588,6 +588,7 @@ class Connection(api.BaseConnection):
                                     self._add_audit_templates_filters,
                                     *args, **kwargs)
 
+    @oslo_db_api.retry_on_deadlock
     def create_audit_template(self, values):
         # ensure defaults are present for new audit_templates
         if not values.get('uuid'):
@@ -664,6 +665,7 @@ class Connection(api.BaseConnection):
                                     self._add_audits_filters,
                                     *args, **kwargs)
 
+    @oslo_db_api.retry_on_deadlock
     def create_audit(self, values):
         # ensure defaults are present for new audits
         if not values.get('uuid'):
@@ -709,6 +711,7 @@ class Connection(api.BaseConnection):
         return self._get_audit(
             context, fieldname="name", value=audit_name, eager=eager)
 
+    @oslo_db_api.retry_on_deadlock
     def destroy_audit(self, audit_id):
         def is_audit_referenced(session, audit_id):
             """Checks whether the audit is referenced by action_plan(s)."""
@@ -784,6 +787,7 @@ class Connection(api.BaseConnection):
         return self._get_action(
             context, fieldname="uuid", value=action_uuid, eager=eager)
 
+    @oslo_db_api.retry_on_deadlock
     def destroy_action(self, action_id):
         with _session_for_write() as session:
             query = session.query(models.Action)
@@ -792,6 +796,7 @@ class Connection(api.BaseConnection):
             if count != 1:
                 raise exception.ActionNotFound(action_id)
 
+    @oslo_db_api.retry_on_deadlock
     def update_action(self, action_id, values):
         # NOTE(dtantsur): this can lead to very strange errors
         if 'uuid' in values:
@@ -852,6 +857,7 @@ class Connection(api.BaseConnection):
         return self._get_action_plan(
             context, fieldname="uuid", value=action_plan_uuid, eager=eager)
 
+    @oslo_db_api.retry_on_deadlock
     def destroy_action_plan(self, action_plan_id):
         def is_action_plan_referenced(session, action_plan_id):
             """Checks whether the action_plan is referenced by action(s)."""
@@ -875,6 +881,7 @@ class Connection(api.BaseConnection):
 
             query.delete()
 
+    @oslo_db_api.retry_on_deadlock
     def update_action_plan(self, action_plan_id, values):
         if 'uuid' in values:
             raise exception.Invalid(
