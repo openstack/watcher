@@ -20,12 +20,14 @@ import jsonschema
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import change_nova_service_state
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
 from watcher.tests.unit import base
+from watcher.tests.unit.common import utils as test_utils
 
 
-class TestChangeNovaServiceState(base.TestCase):
+class TestChangeNovaServiceState(test_utils.NovaResourcesMixin, base.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -87,11 +89,53 @@ class TestChangeNovaServiceState(base.TestCase):
         self.assertRaises(jsonschema.ValidationError,
                           self.action.validate_parameters)
 
-    def test_change_service_state_pre_condition(self):
-        try:
-            self.action.pre_condition()
-        except Exception as exc:
-            self.fail(exc)
+    def test_change_service_state_pre_condition_enable(self):
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
+                host='compute-1',
+                status=element.ServiceState.DISABLED.value)
+        )
+        self.m_helper.get_service_list.return_value = [svc1]
+        self.action.pre_condition()
+        self.m_helper.get_service_list.assert_called_once_with()
+
+    def test_change_service_state_pre_condition_disable(self):
+        self.action.input_parameters["state"] = (
+            element.ServiceState.DISABLED.value)
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
+                host='compute-1',
+                status=element.ServiceState.ENABLED.value)
+        )
+        self.m_helper.get_service_list.return_value = [svc1]
+        self.action.pre_condition()
+        self.m_helper.get_service_list.assert_called_once_with()
+
+    def test_change_service_state_pre_condition_skipped_not_found(self):
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
+                host='compute-2',
+                status=element.ServiceState.DISABLED.value)
+        )
+        self.m_helper.get_service_list.return_value = [svc1]
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            "nova-compute service compute-1 not found",
+            self.action.pre_condition)
+        self.m_helper.get_service_list.assert_called_once_with()
+
+    def test_change_service_state_pre_condition_skipped_state(self):
+        svc1 = nova_helper.Service.from_openstacksdk(
+            self.create_openstacksdk_service(
+                host='compute-1',
+                status=element.ServiceState.ENABLED.value)
+        )
+        self.m_helper.get_service_list.return_value = [svc1]
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            "nova-compute service compute-1 is already in state enabled",
+            self.action.pre_condition)
+        self.m_helper.get_service_list.assert_called_once_with()
 
     def test_change_service_state_post_condition(self):
         try:

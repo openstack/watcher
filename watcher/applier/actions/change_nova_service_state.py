@@ -118,7 +118,22 @@ class ChangeNovaServiceState(base.BaseAction):
             return nova.disable_service_nova_compute(self.host, self.reason)
 
     def pre_condition(self):
-        pass
+        """Check change_nova_service_state preconditions
+
+        Skipping conditions:
+        - nova-compute service does not exist
+        - nova-compute service is already in the desired state
+        """
+        nova = nova_helper.NovaHelper(osc=self.osc)
+        services = nova.get_service_list()
+        service = next((s for s in services if s.host == self.host), None)
+        if service is None:
+            raise exception.ActionSkipped(
+                _("nova-compute service %s not found") % self.host)
+        if service.status == self.state:
+            raise exception.ActionSkipped(
+                _("nova-compute service %s is already in state %s") %
+                (self.host, self.state))
 
     def post_condition(self):
         pass
