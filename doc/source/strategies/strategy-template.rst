@@ -24,22 +24,17 @@ Write here the list of metrics required by your strategy algorithm (in the form
 
 Example:
 
-======================= ============ ======= =======
-metric                  service name plugins comment
-======================= ============ ======= =======
-compute.node.*          ceilometer_  none    one point every 60s
-vm.cpu.utilization_perc monasca_     none
-power                   ceilometer_  kwapi_  one point every 60s
-======================= ============ ======= =======
+======================= ============== ======= =======
+metric                  service name   plugins comment
+======================= ============== ======= =======
+compute.node.*          ceilometer_    none    one point every 60s
+instance_cpu_usage      gnocchi_       none
+power                   ceilometer_    kwapi_  one point every 60s
+======================= ============== ======= =======
 
 
 .. _ceilometer: https://docs.openstack.org/ceilometer/latest/admin/telemetry-measurements.html#openstack-compute
-.. _monasca: https://github.com/openstack/monasca-agent/blob/master/docs/Libvirt.md
-
-.. note::
-   The Monasca datasource is deprecated for removal and optional. If a strategy requires Monasca metrics,
-   ensure the Monasca optional extra is installed: ``pip install watcher[monasca]``.
-
+.. _gnocchi: https://docs.openstack.org/gnocchi/latest/
 .. _kwapi: https://kwapi.readthedocs.io/en/latest/index.html
 
 

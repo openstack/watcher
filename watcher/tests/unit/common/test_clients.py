@@ -10,7 +10,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import unittest
 
 from unittest import mock
 
@@ -22,11 +21,6 @@ from ironicclient import client as irclient
 from ironicclient.v1 import client as irclient_v1
 from keystoneauth1 import adapter as ka_adapter
 from keystoneauth1 import loading as ka_loading
-try:
-    from monascaclient.v2_0 import client as monclient_v2
-    MONASCA_INSTALLED = True
-except Exception:  # ImportError or others
-    MONASCA_INSTALLED = False
 from novaclient import client as nvclient
 
 from watcher.common import clients
@@ -228,57 +222,6 @@ class TestClients(base.TestCase):
         cinder = osc.cinder()
         cinder_cached = osc.cinder()
         self.assertEqual(cinder, cinder_cached)
-
-    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
-    @mock.patch('monascaclient.client.Client')
-    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
-    def test_clients_monasca(self, mock_session, mock_call):
-        mock_session.return_value = mock.Mock(
-            get_endpoint=mock.Mock(return_value='test_endpoint'),
-            get_token=mock.Mock(return_value='test_token'),)
-
-        self._register_watcher_clients_auth_opts()
-
-        osc = clients.OpenStackClients()
-        osc._monasca = None
-        osc.monasca()
-        mock_call.assert_called_once_with(
-            CONF.monasca_client.api_version,
-            'test_endpoint',
-            auth_url='http://server.ip:5000', cert_file=None, insecure=False,
-            key_file=None, keystone_timeout=None, os_cacert=None,
-            password='foopassword', service_type='monitoring',
-            token='test_token', username='foousername')
-
-    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
-    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
-    def test_clients_monasca_diff_vers(self, mock_session):
-        mock_session.return_value = mock.Mock(
-            get_endpoint=mock.Mock(return_value='test_endpoint'),
-            get_token=mock.Mock(return_value='test_token'),)
-
-        self._register_watcher_clients_auth_opts()
-
-        CONF.set_override('api_version', '2_0', group='monasca_client')
-        osc = clients.OpenStackClients()
-        osc._monasca = None
-        osc.monasca()
-        self.assertEqual(monclient_v2.Client, type(osc.monasca()))
-
-    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
-    @mock.patch.object(ka_loading, 'load_session_from_conf_options')
-    def test_clients_monasca_cached(self, mock_session):
-        mock_session.return_value = mock.Mock(
-            get_endpoint=mock.Mock(return_value='test_endpoint'),
-            get_token=mock.Mock(return_value='test_token'),)
-
-        self._register_watcher_clients_auth_opts()
-
-        osc = clients.OpenStackClients()
-        osc._monasca = None
-        monasca = osc.monasca()
-        monasca_cached = osc.monasca()
-        self.assertEqual(monasca, monasca_cached)
 
     @mock.patch.object(irclient, 'Client')
     @mock.patch.object(clients.OpenStackClients, 'session')

@@ -1,0 +1,7 @@
+---
+upgrade:
+  - |
+    The Monasca datasource has been removed from Watcher. This datasource
+    was deprecated in a previous release due to upstream Monasca project
+    retirement. Users should migrate to Gnocchi or Aetos
+    datasources, which provide equivalent and enhanced functionality.

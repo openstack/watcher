@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import unittest
 
 from unittest import mock
 from unittest.mock import MagicMock
@@ -24,13 +23,6 @@ from watcher.decision_engine.datasources import gnocchi
 from watcher.decision_engine.datasources import grafana
 from watcher.decision_engine.datasources import manager as ds_manager
 from watcher.decision_engine.datasources import prometheus
-try:
-    from monascaclient import client as monclient  # noqa: F401
-    # Import monasca helper only when monasca client is installed
-    from watcher.decision_engine.datasources import monasca
-    MONASCA_INSTALLED = True
-except Exception:
-    MONASCA_INSTALLED = False
 from watcher.tests.unit import base
 
 
@@ -38,8 +30,6 @@ class TestDataSourceManager(base.BaseTestCase):
 
     def _dsm_config(self, **kwargs):
         dss = ['gnocchi']
-        if MONASCA_INSTALLED:
-            dss.append('monasca')
         opts = dict(datasources=dss, metric_map_path=None)
         opts.update(kwargs)
         return MagicMock(**opts)
@@ -55,19 +45,6 @@ class TestDataSourceManager(base.BaseTestCase):
         actual = manager.metric_map
         self.assertEqual(expected, actual)
         self.assertEqual({}, manager.load_metric_map('/nope/nope/nope.yaml'))
-
-    @unittest.skipUnless(MONASCA_INSTALLED, "requires python-monascaclient")
-    def test_metric_file_metric_override(self):
-        path = 'watcher.decision_engine.datasources.manager.' \
-               'DataSourceManager.load_metric_map'
-        retval = {
-            monasca.MonascaHelper.NAME: {"host_airflow": "host_fnspid"}
-        }
-        with mock.patch(path, return_value=retval):
-            dsmcfg = self._dsm_config(datasources=['monasca'])
-            manager = self._dsm(config=dsmcfg)
-            backend = manager.get_backend(['host_airflow'])
-            self.assertEqual("host_fnspid", backend.METRIC_MAP['host_airflow'])
 
     @mock.patch.object(grafana, 'CONF')
     def test_metric_file_metric_override_grafana(self, m_config):
@@ -109,11 +86,11 @@ class TestDataSourceManager(base.BaseTestCase):
         self.assertEqual(backend, manager.gnocchi)
 
     def test_get_backend_order(self):
-        dss = ['monasca', 'gnocchi'] if MONASCA_INSTALLED else ['gnocchi']
+        dss = ['gnocchi']
         dsmcfg = self._dsm_config(datasources=dss)
         manager = self._dsm(config=dsmcfg)
         backend = manager.get_backend(['host_cpu_usage', 'instance_cpu_usage'])
-        expected = manager.monasca if MONASCA_INSTALLED else manager.gnocchi
+        expected = manager.gnocchi
         self.assertEqual(backend, expected)
 
     def test_get_backend_wrong_metric(self):
@@ -128,17 +105,11 @@ class TestDataSourceManager(base.BaseTestCase):
     def test_get_backend_error_datasource(self, m_gnocchi):
         m_gnocchi.side_effect = exception.DataSourceNotAvailable
         manager = self._dsm()
-        if MONASCA_INSTALLED:
-            backend = manager.get_backend(
-                ['host_cpu_usage', 'instance_cpu_usage']
-            )
-            self.assertEqual(backend, manager.monasca)
-        else:
-            self.assertRaises(
-                exception.MetricNotAvailable,
-                manager.get_backend,
-                ['host_cpu_usage', 'instance_cpu_usage']
-            )
+        self.assertRaises(
+            exception.MetricNotAvailable,
+            manager.get_backend,
+            ['host_cpu_usage', 'instance_cpu_usage']
+        )
 
     @mock.patch.object(grafana.GrafanaHelper, 'METRIC_MAP',
                        {'host_cpu_usage': 'test'})
@@ -230,8 +201,6 @@ class TestDataSourceManager(base.BaseTestCase):
             aetos.AetosHelper.NAME,
             gnocchi.GnocchiHelper.NAME,
         ]
-        if MONASCA_INSTALLED:
-            mixed_datasources.append(monasca.MonascaHelper.NAME)
         dsmcfg = self._dsm_config(datasources=mixed_datasources)
 
         # Should not raise any exception

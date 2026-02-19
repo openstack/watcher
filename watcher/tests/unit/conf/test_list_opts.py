@@ -38,7 +38,7 @@ class TestListOpts(base.TestCase):
             'watcher_applier', 'watcher_datasources', 'watcher_planner',
             'nova_client', 'gnocchi_client', 'grafana_client',
             'grafana_translators', 'cinder_client',
-            'monasca_client', 'ironic_client', 'keystone_client',
+            'ironic_client', 'keystone_client',
             'neutron_client', 'watcher_clients_auth', 'collector',
             'placement_client']
         self.opt_sections = list(dict(opts.list_opts()).keys())
