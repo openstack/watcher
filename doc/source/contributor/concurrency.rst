@@ -236,13 +236,6 @@ them is shown below.
 
     return flow
 
-.. note::
-
-   When running in native threading mode, the default workflow engine Taskflow
-   will be configure with a serial engine, which will execute the actions
-   sequentially, due to a limitation of the current implementation of watcher
-   services.
-
 In the applier tasks are contained in a :class:`~.TaskFlowActionContainer`
 which allows them to trigger events in the workflow engine. This way the
 workflow engine can halt or take other actions while the action plan is being
