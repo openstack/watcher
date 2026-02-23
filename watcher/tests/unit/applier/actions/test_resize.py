@@ -18,6 +18,7 @@ from unittest import mock
 from watcher.applier.actions import base as baction
 from watcher.applier.actions import resize
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.tests.unit import base
 
@@ -89,3 +90,29 @@ class TestResize(base.TestCase):
         self.action.execute()
         self.r_helper.resize_instance.assert_called_once_with(
             instance_id=self.INSTANCE_UUID, flavor='x1')
+
+    def test_pre_condition_success(self):
+        """Test pre_condition succeeds when instance and flavor exist"""
+        self.r_helper.find_instance.return_value = self.INSTANCE_UUID
+        self.r_helper.get_flavor_id.return_value = '123'
+        self.action.pre_condition()
+
+    def test_pre_condition_instance_not_found(self):
+        """Test pre_condition fails when instance doesn't exist"""
+        err = exception.ComputeResourceNotFound()
+        self.r_helper.find_instance.side_effect = err
+
+        self.assertRaisesRegex(
+            exception.ActionSkipped,
+            f"Instance {self.INSTANCE_UUID} not found",
+            self.action.pre_condition)
+
+    def test_pre_condition_flavor_not_found(self):
+        """Test pre_condition fails when flavor doesn't exist"""
+        err = exception.ComputeResourceNotFound()
+        self.r_helper.get_flavor_id.side_effect = err
+
+        self.assertRaisesRegex(
+            exception.ActionExecutionFailure,
+            "Flavor x1 not found",
+            self.action.pre_condition)

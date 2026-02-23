@@ -18,7 +18,9 @@
 
 from oslo_log import log
 
+from watcher._i18n import _
 from watcher.applier.actions import base
+from watcher.common import exception
 from watcher.common import nova_helper
 
 LOG = log.getLogger(__name__)
@@ -97,9 +99,27 @@ class Resize(base.BaseAction):
         LOG.warning("revert not supported")
 
     def pre_condition(self):
-        # TODO(jed): check if the instance exists / check if the instance is on
-        # the source_node
-        pass
+        """Check resize preconditions
+
+        Skipping conditions:
+        - Instance does not exist
+        Failing conditions:
+        - Flavor does not exist
+        """
+        nova = nova_helper.NovaHelper(osc=self.osc)
+
+        # Check that the instance exists
+        try:
+            nova.find_instance(self.instance_uuid)
+        except exception.ComputeResourceNotFound:
+            raise exception.ActionSkipped(
+                _("Instance %s not found") % self.instance_uuid)
+
+        try:
+            nova.get_flavor_id(self.flavor)
+        except exception.ComputeResourceNotFound:
+            raise exception.ActionExecutionFailure(
+                _("Flavor %s not found") % self.flavor)
 
     def post_condition(self):
         # TODO(jed): check extra parameters (network response, etc.)

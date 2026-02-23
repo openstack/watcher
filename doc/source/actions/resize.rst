@@ -23,3 +23,16 @@ parameter                type   required description
 ``flavor``               string yes      ID or Name of Flavor (Nova accepts
                                          either ID or Name)
 ======================== ====== ======== ===================================
+
+Skipping conditions
+--------------------
+
+Resize actions will be automatically skipped in the pre_condition phase in
+the following case:
+
+- The server does not exist
+
+On other condition the action will be FAILED in the pre_condition check:
+
+- Destination flavor does not exist
+

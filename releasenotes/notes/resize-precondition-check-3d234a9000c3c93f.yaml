@@ -1,0 +1,15 @@
+---
+features:
+  - |
+    Added a pre-condition check to the resize action to prevent executing
+    it when required criteria are not met. In following condition,
+    the action status will be set to SKIPPED:
+
+    - Instance is not found
+
+    On other condition the action will be FAILED in the pre_condition
+    check:
+
+    - Destination flavor does not exist
+
+    This improves safety and correctness of migrations.
