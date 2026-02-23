@@ -569,6 +569,28 @@ class NovaHelper:
         flavors = self.connection.compute.flavors(is_public=None)
         return [Flavor.from_openstacksdk(f) for f in flavors]
 
+    def get_flavor_id(self, flavor):
+        """Get the flavor id for a given flavor name or id.
+
+        :param flavor: the name or id of the flavor to get
+        :returns: the flavor id if found
+        :raises: ComputeResourceNotFound if no flavor was found
+        :raises: NovaClientError if there is any problem while calling the
+        Nova api
+        """
+
+        try:
+            flavor_obj = self._get_flavor(flavor)
+            return flavor_obj.id
+        except exception.ComputeResourceNotFound:
+            flavor_id = next((f.id for f in self.get_flavor_list() if
+                              f.flavor_name == flavor), None)
+            if flavor_id:
+                return flavor_id
+
+        msg = f"{flavor} of type Flavor"
+        raise exception.ComputeResourceNotFound(msg)
+
     @nova_retries
     @handle_nova_error("Flavor")
     def _get_flavor(self, flavor):
@@ -873,18 +895,13 @@ class NovaHelper:
         flavor_id = None
 
         try:
-            try:
-                flavor_obj = self._get_flavor(flavor)
-                flavor_id = flavor_obj.id
-            except exception.ComputeResourceNotFound:
-                flavor_id = next((f.id for f in self.get_flavor_list() if
-                                  f.flavor_name == flavor), None)
+            flavor_id = self.get_flavor_id(flavor)
+        except exception.ComputeResourceNotFound:
+            LOG.debug("Flavor not found: %s, could not resize", flavor)
+            return False
         except exception.NovaClientError as e:
             LOG.debug("Nova client exception occurred while resizing "
                       "instance %s. Exception: %s", instance_id, e)
-
-        if not flavor_id:
-            LOG.debug("Flavor not found: %s, could not resize", flavor)
             return False
 
         instance_status = instance.vm_state

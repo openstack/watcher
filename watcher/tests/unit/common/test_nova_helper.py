@@ -1308,6 +1308,135 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         # Verify that the result is cached
         self.assertIsNotNone(nova_util._is_pinned_az_available)
 
+    def test_get_flavor_id_by_id(self, mock_cinder):
+        """Test get_flavor_id returns id when flavor is found by ID."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_id = 'flavor-123'
+        flavor = self.create_openstacksdk_flavor(
+            id=flavor_id, name='m1.small'
+        )
+        self.mock_connection.compute.get_flavor.return_value = flavor
+
+        result = nova_util.get_flavor_id(flavor_id)
+
+        self.assertEqual(flavor_id, result)
+        self.mock_connection.compute.get_flavor.assert_called_once_with(
+            flavor_id
+        )
+
+    def test_get_flavor_id_by_name(self, mock_cinder):
+        """Test get_flavor_id returns id when flavor is found by name."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_name = 'm1.small'
+        flavor_id = 'flavor-123'
+        flavor = self.create_openstacksdk_flavor(
+            id=flavor_id, name=flavor_name
+        )
+
+        # First attempt to get by ID fails (NotFoundException)
+        self.mock_connection.compute.get_flavor.side_effect = (
+            sdk_exc.NotFoundException()
+        )
+        # get_flavor_list returns list with the flavor
+        self.mock_connection.compute.flavors.return_value = [flavor]
+
+        result = nova_util.get_flavor_id(flavor_name)
+
+        self.assertEqual(flavor_id, result)
+        self.mock_connection.compute.get_flavor.assert_called_once_with(
+            flavor_name
+        )
+        self.mock_connection.compute.flavors.assert_called_once_with(
+            is_public=None
+        )
+
+    def test_get_flavor_id_not_found_by_id_or_name(self, mock_cinder):
+        """Test get_flavor_id raises exception when flavor is not found."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_name = 'nonexistent-flavor'
+
+        # First attempt to get by ID fails
+        self.mock_connection.compute.get_flavor.side_effect = (
+            sdk_exc.NotFoundException()
+        )
+        # get_flavor_list returns empty list
+        self.mock_connection.compute.flavors.return_value = []
+
+        self.assertRaisesRegex(
+            exception.ComputeResourceNotFound,
+            f"{flavor_name} of type Flavor",
+            nova_util.get_flavor_id,
+            flavor_name
+        )
+
+    def test_get_flavor_id_not_found_in_list(self, mock_cinder):
+        """Test get_flavor_id when flavor name not in returned list."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_name = 'm1.small'
+
+        # First attempt to get by ID fails
+        self.mock_connection.compute.get_flavor.side_effect = (
+            sdk_exc.NotFoundException()
+        )
+        # get_flavor_list returns flavors but none match the name
+        other_flavor = self.create_openstacksdk_flavor(
+            id='other-id', name='m1.large'
+        )
+        self.mock_connection.compute.flavors.return_value = [other_flavor]
+
+        self.assertRaisesRegex(
+            exception.ComputeResourceNotFound,
+            f"{flavor_name} of type Flavor",
+            nova_util.get_flavor_id,
+            flavor_name
+        )
+
+    def test_get_flavor_id_sdk_exception(self, mock_cinder):
+        """Test get_flavor_id raises NovaClientError on SDK exception."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_id = 'flavor-123'
+
+        # SDK raises a generic exception
+        self.mock_connection.compute.get_flavor.side_effect = (
+            sdk_exc.SDKException("Connection error")
+        )
+
+        self.assertRaises(
+            exception.NovaClientError,
+            nova_util.get_flavor_id,
+            flavor_id
+        )
+
+    def test_get_flavor_id_by_name_multiple_flavors(self, mock_cinder):
+        """Test get_flavor_id finds correct flavor by name in list."""
+        nova_util = nova_helper.NovaHelper()
+        flavor_name = 'm1.medium'
+        target_id = 'flavor-456'
+
+        # Create multiple flavors
+        flavor1 = self.create_openstacksdk_flavor(
+            id='flavor-123', name='m1.small'
+        )
+        flavor2 = self.create_openstacksdk_flavor(
+            id=target_id, name=flavor_name
+        )
+        flavor3 = self.create_openstacksdk_flavor(
+            id='flavor-789', name='m1.large'
+        )
+
+        # First attempt to get by ID fails
+        self.mock_connection.compute.get_flavor.side_effect = (
+            sdk_exc.NotFoundException()
+        )
+        # get_flavor_list returns multiple flavors
+        self.mock_connection.compute.flavors.return_value = [
+            flavor1, flavor2, flavor3
+        ]
+
+        result = nova_util.get_flavor_id(flavor_name)
+
+        self.assertEqual(target_id, result)
+
 
 class TestNovaRetries(base.TestCase):
     """Test suite for the nova_retries decorator."""
