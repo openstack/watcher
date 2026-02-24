@@ -164,6 +164,31 @@ class TestOneShotAuditHandler(base.DbTestCase):
             expected_calls,
             self.m_audit_notifications.send_action_notification.call_args_list)
 
+    @mock.patch.object(oneshot.OneShotAuditHandler, "update_audit_state",
+                       autospec=True)
+    def test_pre_execute_audit_cancelled(self, m_update_audit_state):
+        audit_handler = oneshot.OneShotAuditHandler()
+        self.audit.state = objects.audit.State.CANCELLED
+        self.audit.save()
+        self.assertRaises(exception.AuditCancelled,
+                          audit_handler.pre_execute, self.audit, self.context)
+
+        m_update_audit_state.assert_not_called()
+
+    @mock.patch.object(oneshot.OneShotAuditHandler, "do_execute",
+                       autospec=True)
+    @mock.patch.object(oneshot.OneShotAuditHandler, "post_execute",
+                       autospec=True)
+    def test_cancelled_audit_is_not_executed(self, m_post_execute,
+                                             m_do_execute):
+        self.audit.state = objects.audit.State.CANCELLED
+        self.audit.save()
+        audit_handler = oneshot.OneShotAuditHandler()
+        audit_handler.execute(self.audit, self.context)
+        m_do_execute.assert_not_called()
+        m_post_execute.assert_not_called()
+        self.assertEqual(objects.audit.State.CANCELLED, self.audit.state)
+
 
 class TestAutoTriggerActionPlan(base.DbTestCase):
 
