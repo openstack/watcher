@@ -1,0 +1,10 @@
+---
+fixes:
+  - |
+    The decision-engine could move a oneshot audit to ONGOING and start
+    execution even when the audit had already been CANCELLED (e.g. before
+    it reached ONGOING). The decision-engine now checks the audit state
+    immediately before execution, so cancelled audits are no longer
+    executed or transitioned to ONGOING.
+
+    For more info see: https://bugs.launchpad.net/watcher/+bug/2134046
