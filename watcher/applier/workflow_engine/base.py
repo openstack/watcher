@@ -145,6 +145,24 @@ class BaseTaskFlowActionContainer(flow_task.Task):
     def do_abort(self, *args, **kwargs):
         raise NotImplementedError()
 
+    def _fail_action(self, phase, reason=None):
+        # Fail action and send notification to the user.
+        # If a reason is given, it will be used to set the status_message.
+        LOG.error('The workflow engine has failed '
+                  'to execute the action: %s', self._db_action.uuid)
+        kwargs = {}
+        if reason:
+            kwargs["status_message"] = (_(
+                "Action failed in %s: %s") % (phase, reason))
+        db_action = self.engine.notify(self._db_action,
+                                       objects.action.State.FAILED,
+                                       **kwargs)
+        notifications.action.send_execution_notification(
+            self.engine.context, db_action,
+            fields.NotificationAction.EXECUTION,
+            fields.NotificationPhase.ERROR,
+            priority=fields.NotificationPriority.ERROR)
+
     # NOTE(alexchadin): taskflow does 3 method calls (pre_execute, execute,
     # post_execute) independently. We want to support notifications in base
     # class, so child's methods should be named with `do_` prefix and wrapped.
@@ -181,18 +199,12 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             notifications.action.send_update(
                 self.engine.context, db_action,
                 old_state=objects.action.State.PENDING)
+        except exception.WatcherException as e:
+            LOG.exception(e)
+            self._fail_action("pre_condition", reason=str(e))
         except Exception as e:
             LOG.exception(e)
-            status_message = (_(
-                "Action failed in pre_condition: %s") % str(e))
-            db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.FAILED,
-                                           status_message=status_message)
-            notifications.action.send_execution_notification(
-                self.engine.context, db_action,
-                fields.NotificationAction.EXECUTION,
-                fields.NotificationPhase.ERROR,
-                priority=fields.NotificationPriority.ERROR)
+            self._fail_action("pre_condition", reason=type(e).__name__)
 
     def execute(self, *args, **kwargs):
         action_object = objects.Action.get_by_uuid(
@@ -213,20 +225,13 @@ class BaseTaskFlowActionContainer(flow_task.Task):
                 return True
             else:
                 return False
+        except exception.WatcherException as e:
+            LOG.exception(e)
+            self._fail_action("execute", reason=str(e))
+            return False
         except Exception as e:
             LOG.exception(e)
-            LOG.error('The workflow engine has failed '
-                      'to execute the action: %s', self.name)
-            status_message = (_(
-                "Action failed in execute: %s") % str(e))
-            db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.FAILED,
-                                           status_message=status_message)
-            notifications.action.send_execution_notification(
-                self.engine.context, db_action,
-                fields.NotificationAction.EXECUTION,
-                fields.NotificationPhase.ERROR,
-                priority=fields.NotificationPriority.ERROR)
+            self._fail_action("execute", reason=type(e).__name__)
             return False
 
     def post_execute(self):
@@ -236,20 +241,26 @@ class BaseTaskFlowActionContainer(flow_task.Task):
             return
         try:
             self.do_post_execute()
+        except exception.WatcherException as e:
+            LOG.exception(e)
+            # We only add status_message in failed post_condition if the
+            # action has no status_message yet. Do not override if one
+            # has been added in the execute method.
+            if action_object.status_message is None:
+                reason = str(e)
+            else:
+                reason = None
+            self._fail_action("post_condition", reason=reason)
         except Exception as e:
             LOG.exception(e)
-            kwargs = {}
+            # We only add status_message in failed post_condition if the
+            # action has no status_message yet. Do not override if one
+            # has been added in the execute method.
             if action_object.status_message is None:
-                kwargs["status_message"] = (_(
-                    "Action failed in post_condition: %s") % str(e))
-            db_action = self.engine.notify(self._db_action,
-                                           objects.action.State.FAILED,
-                                           **kwargs)
-            notifications.action.send_execution_notification(
-                self.engine.context, db_action,
-                fields.NotificationAction.EXECUTION,
-                fields.NotificationPhase.ERROR,
-                priority=fields.NotificationPriority.ERROR)
+                reason = type(e).__name__
+            else:
+                reason = None
+            self._fail_action("post_condition", reason=reason)
 
     def revert(self, *args, **kwargs):
         action_plan = objects.ActionPlan.get_by_id(

@@ -129,12 +129,15 @@ class DefaultWorkFlowEngine(base.BaseWorkFlowEngine):
 
         except tf_exception.WrappedFailure as e:
             if e.check("watcher.common.exception.ActionPlanCancelled"):
-                raise exception.ActionPlanCancelled
+                raise exception.ActionPlanCancelled(
+                    uuid=actions[0].action_plan_id)
             else:
-                raise exception.WorkflowExecutionException(error=e)
+                raise exception.WorkflowExecutionException(
+                    error=type(e).__name__)
 
         except Exception as e:
-            raise exception.WorkflowExecutionException(error=e)
+            raise exception.WorkflowExecutionException(
+                error=type(e).__name__)
 
 
 class TaskFlowActionContainer(base.BaseTaskFlowActionContainer):
