@@ -17,6 +17,7 @@ from unittest import mock
 
 import cinderclient
 
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.common import utils
 from watcher.decision_engine.strategy import strategies
@@ -1273,6 +1274,147 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         # check that the live migration is the second action, before other
         # volume migrations
         second_action = solution.actions[1]['input_parameters']
+        self.assertEqual(second_action['migration_type'], 'live')
+
+        # All the detached volumes in the pool should be migrated
+        volume_mig_ind = [item['value'] for item in solution.global_efficacy
+                          if item['name'] == "volume_migrate_ratio"][0]
+        self.assertEqual(100, volume_mig_ind)
+        # All the attached volumes in the pool should be swapped
+        volume_swap_ind = [item['value'] for item in solution.global_efficacy
+                           if item['name'] == "volume_update_ratio"][0]
+        self.assertEqual(100, volume_swap_ind)
+        # All the instances in src1 should be migrated
+        live_ind = [item['value'] for item in solution.global_efficacy
+                    if item['name'] == "live_instance_migrate_ratio"][0]
+        self.assertEqual(100, live_ind)
+
+    def test_execute_mixed_instances_volumes_with_attached_not_found(self):
+        """Test that the strategy handles properly an instance not found.
+
+        If a instance is missing when checking the volume attachments, the
+        strategy execution should not fail, just skip that instance. The
+        instance should still be migrated, but in the regular order, as if
+        with_attached_volume was False.
+        """
+        server_info = {
+            "compute_host": "src1",
+            "name": "INSTANCE_1",
+            "id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "vm_state": "active"
+        }
+        instance_on_src1_1 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
+        )
+        server_info = {
+            "compute_host": "src2",
+            "name": "INSTANCE_2",
+            "id": "d020ef1f-dc19-4982-9383-087498bfde03",
+            "vm_state": "active"
+        }
+        instance_on_src2_2 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
+        )
+        server_info = {
+            "compute_host": "src1",
+            "name": "INSTANCE_3",
+            "id": "d030ef1f-dc19-4982-9383-087498bfde03",
+            "vm_state": "active"
+        }
+        instance_on_src1_3 = nova_helper.Server.from_openstacksdk(
+            self.create_openstacksdk_server(**server_info)
+        )
+        self.m_n_helper.get_instance_list.return_value = [
+            instance_on_src1_1,
+            instance_on_src2_2,
+            instance_on_src1_3
+        ]
+
+        volume_on_src1_1 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_1"],
+                                            name="volume_1")
+        volume_on_src1_2 = self.fake_volume(host="src1@back1#pool1",
+                                            id=volume_uuid_mapping["volume_2"],
+                                            name="volume_2")
+        volume_on_src2_1 = self.fake_volume(host="src2@back1#pool1",
+                                            id=volume_uuid_mapping["volume_3"],
+                                            name="volume_3")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1_1,
+            volume_on_src1_2,
+            volume_on_src2_1,
+        ]
+
+        volume_on_src1_1.status = 'in-use'
+        volume_on_src1_1.attachments = [{
+            "server_id": "d010ef1f-dc19-4982-9383-087498bfde03",
+            "attachment_id": "attachment1"
+        }]
+
+        self.input_parameters["compute_nodes"] = [
+            {"src_node": "src1", "dst_node": "dst1"},
+        ]
+        self.input_parameters["storage_pools"] = [
+            {"src_pool": "src1@back1#pool1", "dst_pool": "dst1@back1#pool1",
+             "src_type": "type1", "dst_type": "type1"},
+        ]
+        self.input_parameters["with_attached_volume"] = True
+
+        uuid = "d010ef1f-dc19-4982-9383-087498bfde03"
+        self.m_n_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(uuid)
+        )
+
+        solution = self.strategy.execute()
+        # Check migrations
+        action_types = collections.Counter(
+            [action['action_type']
+             for action in solution.actions])
+        expected_vol_migrations = [
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_1',
+                 'resource_id': '74454247-a064-4b34-8f43-89337987720e'}},
+            {'action_type': 'volume_migrate',
+             'input_parameters':
+                {'migration_type': 'migrate',
+                 'destination_node': 'dst1@back1#pool1',
+                 'resource_name': 'volume_2',
+                 'resource_id': 'a16c811e-2521-4fd3-8779-6a94ccb3be73'}}
+        ]
+        expected_vm_migrations = [
+            {'action_type': 'migrate',
+             'input_parameters':
+                {'migration_type': 'live',
+                 'source_node': 'src1',
+                 'destination_node': 'dst1',
+                 'resource_name': 'INSTANCE_1',
+                 'resource_id': 'd010ef1f-dc19-4982-9383-087498bfde03'}},
+            {'action_type': 'migrate',
+             'input_parameters':
+                {'migration_type': 'live',
+                 'source_node': 'src1',
+                 'destination_node': 'dst1',
+                 'resource_name': 'INSTANCE_3',
+                 'resource_id': 'd030ef1f-dc19-4982-9383-087498bfde03'}}
+        ]
+        migrated_volumes = [action
+                            for action in solution.actions
+                            if action['action_type'] == 'volume_migrate']
+        self.assertEqual(2, action_types.get("volume_migrate", 0))
+        self.assertEqual(expected_vol_migrations, migrated_volumes)
+        migrated_vms = [action
+                        for action in solution.actions
+                        if action['action_type'] == 'migrate']
+        self.assertEqual(2, action_types.get("migrate", 0))
+        self.assertEqual(expected_vm_migrations, migrated_vms)
+
+        self.assertEqual(2, action_types.get("migrate", 0))
+        # check that the live migration is the third action, after the
+        # volume migrations
+        second_action = solution.actions[2]['input_parameters']
         self.assertEqual(second_action['migration_type'], 'live')
 
         # All the detached volumes in the pool should be migrated

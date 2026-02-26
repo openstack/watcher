@@ -79,17 +79,23 @@ class Resize(base.BaseAction):
         nova = nova_helper.NovaHelper(osc=self.osc)
         LOG.debug("Resize instance %s to %s flavor", self.instance_uuid,
                   self.flavor)
-        instance = nova.find_instance(self.instance_uuid)
+        try:
+            nova.find_instance(self.instance_uuid)
+        except exception.ComputeResourceNotFound:
+            LOG.warning("Instance %s not found, skipping resize",
+                        self.instance_uuid)
+            raise exception.InstanceNotFound(name=self.instance_uuid)
+
         result = None
-        if instance:
-            try:
-                result = nova.resize_instance(
-                    instance_id=self.instance_uuid, flavor=self.flavor)
-            except Exception as exc:
-                LOG.exception(exc)
-                LOG.critical(
-                    "Unexpected error occurred. Resizing failed for "
-                    "instance %s.", self.instance_uuid)
+        try:
+            result = nova.resize_instance(
+                instance_id=self.instance_uuid, flavor=self.flavor)
+        except Exception as exc:
+            LOG.exception(exc)
+            LOG.critical(
+                "Unexpected error occurred. Resizing failed for "
+                "instance %s.", self.instance_uuid)
+            return False
         return result
 
     def execute(self):

@@ -395,3 +395,32 @@ class TestMigration(test_utils.NovaResourcesMixin, base.TestCase):
         self.m_helper.abort_live_migrate.assert_called_once_with(
             instance_id=self.INSTANCE_UUID, source="compute1-hostname",
             destination="compute2-hostname")
+
+    def test_execute_live_migration_failure_instance_not_found(self):
+        # Live migration fails but instance doesn't exist (idempotent)
+        self.m_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(self.INSTANCE_UUID))
+        self.m_helper.live_migrate_instance.return_value = False
+
+        self.assertRaisesRegex(
+            exception.InstanceNotFound,
+            f"The instance '{self.INSTANCE_UUID}' could not be found",
+            self.action.execute
+        )
+
+        # Should check instance existence
+        self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)
+
+    def test_execute_cold_migration_failure_instance_not_found(self):
+        # Cold migration fails but instance doesn't exist (idempotent)
+        self.m_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(self.INSTANCE_UUID))
+        self.m_helper.watcher_non_live_migrate_instance.return_value = False
+
+        self.assertRaisesRegex(
+            exception.InstanceNotFound,
+            f"The instance '{self.INSTANCE_UUID}' could not be found",
+            self.action.execute
+        )
+        # Should check instance existence
+        self.m_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)

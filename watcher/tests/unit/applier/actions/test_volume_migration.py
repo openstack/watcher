@@ -20,6 +20,7 @@ from watcher.applier.actions import base as baction
 from watcher.applier.actions import volume_migration
 from watcher.common import cinder_helper
 from watcher.common import clients
+from watcher.common import exception
 from watcher.common import keystone_helper
 from watcher.common import nova_helper
 from watcher.tests.unit import base
@@ -205,6 +206,15 @@ class TestMigration(base.TestCase):
 
         instance = self.fake_instance(status='RESIZED')
         self.m_n_helper.find_instance.return_value = instance
+        result = self.action_swap._can_swap(volume)
+        self.assertFalse(result)
+
+    def test_can_swap_instance_not_found(self):
+        volume = self.fake_volume(
+            status='in-use', attachments=[
+                {'server_id': TestMigration.INSTANCE_UUID}])
+        self.m_n_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(TestMigration.INSTANCE_UUID))
         result = self.action_swap._can_swap(volume)
         self.assertFalse(result)
 

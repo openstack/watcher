@@ -142,7 +142,15 @@ class VolumeMigrate(base.BaseAction):
 
         # since it has attachments we need to validate nova's constraints
         instance_id = volume.attachments[0]['server_id']
-        instance_status = self.nova_util.find_instance(instance_id).status
+        try:
+            instance = self.nova_util.find_instance(instance_id)
+        except exception.ComputeResourceNotFound:
+            LOG.debug(
+                "Could not find instance %s, could not determine whether"
+                "it's safe to migrate", instance_id
+            )
+            return False
+        instance_status = instance.status
         LOG.debug(
             f"volume: {volume.id} is attached to instance: {instance_id} "
             f"in instance status: {instance_status}")

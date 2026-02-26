@@ -116,3 +116,19 @@ class TestResize(base.TestCase):
             exception.ActionExecutionFailure,
             "Flavor x1 not found",
             self.action.pre_condition)
+
+    def test_execute_resize_failure_instance_not_found(self):
+        # Resize fails but instance doesn't exist (idempotent)
+        self.r_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(self.INSTANCE_UUID)
+        )
+        self.r_helper.resize_instance.return_value = False
+
+        self.assertRaisesRegex(
+            exception.InstanceNotFound,
+            f"The instance '{self.INSTANCE_UUID}' could not be found",
+            self.action.execute
+        )
+
+        # Should check instance existence
+        self.r_helper.find_instance.assert_called_once_with(self.INSTANCE_UUID)

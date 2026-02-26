@@ -640,7 +640,8 @@ class NovaHelper:
         """Find an instance by its ID.
 
         :param instance_id: the UUID of the instance to find
-        :returns: Server wrapper object if found, None if not found
+        :returns: Server wrapper object if found
+        :raises: ComputeResourceNotFound if instance is not found
         """
         instance = self.connection.compute.get_server(instance_id)
         return Server.from_openstacksdk(instance)

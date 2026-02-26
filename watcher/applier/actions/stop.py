@@ -84,20 +84,21 @@ class Stop(base.BaseAction):
             return True
         else:
             # Check if failure was due to instance not found (idempotent)
-            instance = nova.find_instance(self.instance_uuid)
-            if not instance:
+            try:
+                nova.find_instance(self.instance_uuid)
+            except exception.ComputeResourceNotFound:
                 LOG.info(
                     "Instance %(uuid)s not found, "
                     "considering stop operation successful",
                     {'uuid': self.instance_uuid}
                 )
                 return True
-            else:
-                LOG.error(
-                    "Failed to stop instance %(uuid)s",
-                    {'uuid': self.instance_uuid}
-                )
-                return False
+
+            LOG.error(
+                "Failed to stop instance %(uuid)s",
+                {'uuid': self.instance_uuid}
+            )
+            return False
 
     def execute(self):
         return self.stop()
