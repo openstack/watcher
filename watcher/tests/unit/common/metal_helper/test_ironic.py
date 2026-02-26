@@ -114,8 +114,12 @@ class TestIronicHelper(base.TestCase):
 
         out_node = self._helper.get_node(mock.sentinel.id)
 
-        self._mock_nova_client.get_compute_node_by_uuid.return_value = \
+        get_compute_node = self._mock_nova_client.get_compute_node_by_uuid
+        self.assertEqual(
+            get_compute_node.return_value,
             out_node._nova_node
+        )
+        get_compute_node.assert_called_once_with(mock.sentinel.compute_node_id)
         self.assertEqual(self._mock_ironic_client, out_node._ironic_client)
         self.assertEqual(mock_machine, out_node._ironic_node)
 
