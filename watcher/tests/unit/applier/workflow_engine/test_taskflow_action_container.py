@@ -21,6 +21,7 @@ from unittest import mock
 from openstack import exceptions as sdk_exc
 from oslo_config import cfg
 
+from watcher.applier.actions import nop
 from watcher.applier.workflow_engine import default as tflow
 from watcher.common import exception
 from watcher import objects
@@ -143,6 +144,33 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         self.assertEqual(
             obj_action.status_message,
             "Action failed in pre_condition: Failed in pre_condition")
+
+    @mock.patch.object(nop.Nop, "pre_condition")
+    def test_pre_execute_with_failed_exception(self, m_pre_condition):
+        # When failed with a non-watcher exception, the status_message
+        # should only include the type of the exception.
+        m_pre_condition.side_effect = Exception("Third party exception")
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.PENDING,
+            action_type='nop',
+            input_parameters={'message': 'hello World',
+                              'fail_pre_condition': True})
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        action_container.pre_execute()
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+        self.assertEqual(
+            obj_action.status_message,
+            "Action failed in pre_condition: Exception")
 
     def test_pre_execute_with_skipped(self):
         action_plan = obj_utils.create_test_action_plan(
@@ -313,3 +341,89 @@ class TestTaskFlowActionContainer(test_utils.NovaResourcesMixin,
         action_container.revert()
 
         mock_do_revert.assert_not_called()
+
+    @mock.patch('watcher.applier.workflow_engine.base.LOG')
+    @mock.patch('watcher.notifications.action.send_execution_notification')
+    def test_fail_action_with_reason(self, mock_notification, mock_log):
+        """Test _fail_action method with phase and reason."""
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        # Call _fail_action with a phase and reason
+        phase = "execute"
+        reason = "Test error occurred"
+        action_container._fail_action(phase, reason=reason)
+
+        # Verify the action state is set to FAILED
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+
+        # Verify status_message is set correctly
+        expected_message = f"Action failed in {phase}: {reason}"
+        self.assertEqual(obj_action.status_message, expected_message)
+
+        # Verify LOG.error was called
+        mock_log.error.assert_called_once_with(
+            'The workflow engine has failed to execute the action: %s',
+            action.uuid)
+
+        # Verify notification was sent with correct parameters
+        mock_notification.assert_called_once_with(
+            self.engine.context,
+            mock.ANY,  # action object - checked separately below
+            objects.fields.NotificationAction.EXECUTION,
+            objects.fields.NotificationPhase.ERROR,
+            priority=objects.fields.NotificationPriority.ERROR
+        )
+        call_args = mock_notification.call_args
+        self.assertEqual(call_args[0][1].uuid, action.uuid)
+        self.assertEqual(call_args[0][1].state, objects.action.State.FAILED)
+
+    @mock.patch('watcher.applier.workflow_engine.base.LOG')
+    @mock.patch('watcher.notifications.action.send_execution_notification')
+    def test_fail_action_without_reason(self, mock_notification, mock_log):
+        """Test _fail_action method without a reason."""
+        action_plan = obj_utils.create_test_action_plan(
+            self.context, audit_id=self.audit.id,
+            strategy_id=self.strategy.id,
+            state=objects.action_plan.State.ONGOING)
+
+        action = obj_utils.create_test_action(
+            self.context, action_plan_id=action_plan.id,
+            state=objects.action.State.ONGOING,
+            action_type='nop',
+            input_parameters={'message': 'hello World'})
+
+        action_container = tflow.TaskFlowActionContainer(
+            db_action=action,
+            engine=self.engine)
+
+        # Call _fail_action with only phase, no reason
+        phase = "pre_condition"
+        action_container._fail_action(phase)
+
+        # Verify the action state is set to FAILED
+        obj_action = objects.Action.get_by_uuid(
+            self.engine.context, action.uuid)
+        self.assertEqual(obj_action.state, objects.action.State.FAILED)
+
+        # Verify status_message is not set when no reason is provided
+        self.assertIsNone(obj_action.status_message)
+
+        # Verify LOG.error was called
+        mock_log.error.assert_called_once_with(
+            'The workflow engine has failed to execute the action: %s',
+            action.uuid)
