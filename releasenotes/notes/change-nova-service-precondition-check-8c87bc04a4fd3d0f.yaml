@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Added a pre-condition check to the change_nova_service_state action
+    to prevent executing it when required criteria are not met. In the
+    following conditions, the action status will be set to SKIPPED:
+
+    - The specified nova-compute service is not found
+    - The specified nova-compute service is in the desired state

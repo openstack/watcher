@@ -30,3 +30,12 @@ parameter                type   required description
                                          ``watcher_disabled`` or
                                          ``watcher_maintaining``
 ======================== ====== ======== ===================================
+
+Skipping conditions
+--------------------
+
+Change nova service state actions will be automatically skipped in the
+pre_condition phase in the following cases:
+
+- nova-compute service does not exist
+- nova-compute service is already in the desired state (enabled or disabled)
