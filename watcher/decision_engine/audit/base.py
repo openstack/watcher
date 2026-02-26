@@ -127,6 +127,12 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
         # despite of ongoing actionplan
         if not audit.force:
             self.check_ongoing_action_plans(request_context)
+        # check current state of the audit right before moving to ONGOING
+        # to avoid race conditions
+        audit = objects.Audit.get_by_uuid(
+            request_context, audit.uuid, eager=True)
+        if audit.state == objects.audit.State.CANCELLED:
+            raise exception.AuditCancelled(uuid=audit.uuid)
         # Write hostname that will execute this audit.
         audit.hostname = CONF.host
         # change state of the audit to ONGOING
@@ -147,6 +153,8 @@ class AuditHandler(BaseAuditHandler, metaclass=abc.ABCMeta):
             LOG.warning(e)
             if audit.audit_type == objects.audit.AuditType.ONESHOT.value:
                 self.update_audit_state(audit, objects.audit.State.CANCELLED)
+        except exception.AuditCancelled as e:
+            LOG.info(e)
         except Exception as e:
             LOG.exception(e)
             self.update_audit_state(audit, objects.audit.State.FAILED)
