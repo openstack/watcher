@@ -40,3 +40,20 @@ parameter                type   required description
                                          Mandatory for changing a volume
                                          to a different volume type
 ======================== ====== ======== ===================================
+
+Skipping conditions
+--------------------
+
+Volume migration actions will be automatically skipped in the pre_condition
+phase in the following cases:
+
+- The volume does not exist
+- The migration_type is 'retype' and the destination_type is the same as the
+  current volume type
+- The migration_type is 'migrate' and the destination_node is the same as the
+  current volume host
+
+On other conditions the action will be FAILED in the pre_condition check:
+
+- The destination_type does not exist (if specified)
+- The destination_node (pool) does not exist (if specified)
