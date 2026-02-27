@@ -62,6 +62,9 @@ class DataSourceManager:
                 LOG.warning('Invalid Datasource: %s. Allowed: %s ', *msgargs)
 
         self.datasources = self.config.datasources
+        if self.datasources and 'prometheus' in self.datasources:
+            LOG.warning('The prometheus datasource is deprecated and will '
+                        'be removed in a future release.')
 
         self._validate_datasource_config()
 

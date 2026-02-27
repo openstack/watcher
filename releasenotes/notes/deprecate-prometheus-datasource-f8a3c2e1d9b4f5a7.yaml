@@ -1,0 +1,38 @@
+---
+deprecations:
+  - |
+    The Prometheus datasource (``prometheus``) is now deprecated in favor of
+    the Aetos datasource (``aetos``). The Aetos datasource provides the same
+    Prometheus-based metrics collection functionality with the following
+    additional benefits:
+
+    * Multi-tenancy support through Keystone authentication
+    * Role-Based Access Control (RBAC) for metric access
+    * Better integration with OpenStack security patterns
+    * All Prometheus query functionality (PromQL) is preserved
+
+    The Prometheus datasource will be removed in a later release.
+
+    Deployers using the Prometheus datasource should migrate to Aetos.
+    See the migration guide at:
+    https://docs.openstack.org/watcher/latest/admin/datasources/migrate-prometheus-to-aetos.html
+
+upgrade:
+  - |
+    If you are currently using the Prometheus datasource
+    (``datasources = prometheus`` in ``[watcher_datasources]``), you should
+    plan to migrate to the Aetos datasource.
+
+    The migration requires:
+
+    * Deploying the Aetos reverse-proxy service
+    * Updating Watcher configuration to use ``datasources = aetos``
+    * Configuring Aetos endpoint in Keystone catalog
+    * Updating the ``[aetos_client]`` configuration section
+
+    For detailed migration steps, see the migration guide.
+
+    The default value for the 'watcher_datasources' option has changed from
+    "['gnocchi', 'monasca', 'grafana', 'prometheus']" to
+    "['gnocchi', 'monasca', 'grafana', 'aetos']". See
+    https://docs.openstack.org/watcher/latest/configuration/watcher.html#watcher-datasources for more details

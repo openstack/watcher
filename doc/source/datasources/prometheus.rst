@@ -2,6 +2,14 @@
 Prometheus datasource
 =====================
 
+.. note::
+   **DEPRECATED**: The Prometheus datasource is deprecated as of the 2026.1
+   release and will be removed in a future release. Please use the Aetos
+   datasource instead, which provides the same functionality with added
+   multi-tenancy and Keystone authentication support.
+
+   See :doc:`migrate-prometheus-to-aetos` for migration instructions.
+
 Synopsis
 --------
 The Prometheus datasource allows Watcher to use a Prometheus server as the
