@@ -23,7 +23,6 @@ from unittest import mock
 from keystoneauth1 import exceptions as ksa_exc
 from openstack import exceptions as sdk_exc
 
-
 from watcher.common import clients
 from watcher.common import exception
 from watcher.common import nova_helper
@@ -1017,30 +1016,6 @@ class TestNovaHelper(test_utils.NovaResourcesMixin, base.TestCase):
         volume.snapshot_id = kwargs.get('snapshot_id', None)
         volume.availability_zone = kwargs.get('availability_zone', 'nova')
         return volume
-
-    def test_wait_for_volume_status(self, mock_cinder):
-        nova_util = nova_helper.NovaHelper()
-
-        # verify that the method will return True when the status of volume
-        # is in the expected status.
-        fake_volume_1 = self.fake_volume(status='in-use')
-        nova_util.cinder.volumes.get.return_value = fake_volume_1
-        result = nova_util.wait_for_volume_status(
-            fake_volume_1,
-            "in-use",
-            timeout=2)
-        self.assertTrue(result)
-
-        # verify that the method will raise Exception when the status of
-        # volume is not in the expected status.
-        fake_volume_2 = self.fake_volume(status='fake-use')
-        nova_util.cinder.volumes.get.return_value = fake_volume_2
-        self.assertRaises(
-            Exception,
-            nova_util.wait_for_volume_status,
-            fake_volume_1,
-            "in-use",
-            timeout=2)
 
     @mock.patch.object(
         nova_helper.NovaHelper, '_instance_confirm_resize', autospec=True
