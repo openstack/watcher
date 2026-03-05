@@ -94,18 +94,6 @@ class CinderHelper:
         except cinder_exception.NotFound:
             return self.cinder.volumes.find(name=volume)
 
-    def backendname_from_poolname(self, poolname):
-        """Get backendname from poolname"""
-        # pooolname formatted as host@backend#pool since ocata
-        # as of ocata, may as only host
-        backend = poolname.split('#')[0]
-        backendname = ""
-        try:
-            backendname = backend.split('@')[1]
-        except IndexError:
-            pass
-        return backendname
-
     def _has_snapshot(self, volume):
         """Judge volume has a snapshot"""
         volume = self.get_volume(volume)
@@ -131,6 +119,51 @@ class CinderHelper:
             return False
         else:
             return True
+
+    def _check_backend_matches_type(self, pool, volume_type):
+        """Check if a storage pool matches volume type requirements.
+
+        Verifies that all extra_specs properties defined in the volume
+        type are present in the pool's capabilities with matching values.
+
+        :param pool: Storage pool dictionary with capabilities
+        :param volume_type: Volume type object with extra_specs
+        :returns: True if pool matches all volume type requirements,
+                  False otherwise
+        """
+        for field_name, field_value in volume_type.extra_specs.items():
+            pool_value = pool.get("capabilities", {}).get(field_name)
+            if pool_value is not None and field_value != pool_value:
+                # the property associated with the volume type is
+                # not defined in the pool, so the type can't be used in the
+                # pool
+                LOG.debug(
+                    f"property {field_name} with value {field_value} "
+                    f"does not match value {pool_value} from pool "
+                    f"{pool['name']}"
+                )
+                return False
+        return True
+
+    def get_volume_types_for_pool(self, pool):
+        """Return a list of volume types that can be associated with a pool.
+
+        :param pool: Storage pool dictionary with capabilities
+        :returns: List of volume types than can be scheduled in the input pool
+        """
+        volume_type_list = self.get_volume_type_list()
+
+        pool_volume_types = []
+        for volume_type in volume_type_list:
+            if not volume_type.extra_specs:
+                # if there are no properties associated with the volume type
+                # it can be used in any pool
+                pool_volume_types.append(volume_type.name)
+                continue
+            if self._check_backend_matches_type(pool, volume_type):
+                pool_volume_types.append(volume_type.name)
+
+        return pool_volume_types
 
     def check_volume_deleted(self, volume, retry=120, retry_interval=10):
         """Check volume has been deleted"""
@@ -223,11 +256,20 @@ class CinderHelper:
     def migrate(self, volume, dest_node):
         """Migrate volume to dest_node"""
         volume = self.get_volume(volume)
-        dest_backend = self.backendname_from_poolname(dest_node)
-        dest_type = self.get_volume_type_by_backendname(dest_backend)
-        if volume.volume_type not in dest_type:
+        pool_dict = self.get_storage_pool_by_name(dest_node).to_dict()
+        dest_types = self.get_volume_types_for_pool(pool_dict)
+        if volume.volume_type not in dest_types:
             raise exception.Invalid(
-                message=(_("Volume type must be same for migrating")))
+                message=(
+                    _(
+                        "Volume type '%(volume_type)s' is not compatible with "
+                        "destination pool '%(pool_name)s'"
+                    ) % {
+                        'volume_type': volume.volume_type,
+                        'pool_name': dest_node
+                        }
+                )
+            )
 
         source_node = getattr(volume, 'os-vol-host-attr:host')
         LOG.debug("Volume %(volume)s found on host '%(host)s'.",
