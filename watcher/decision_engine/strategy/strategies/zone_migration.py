@@ -380,16 +380,36 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             if node.get("src_node") == src_node:
                 return node.get("dst_node")
 
-    def get_dst_pool_and_type(self, src_pool):
+    def get_dst_pool_and_type(self, src_pool, src_type):
         """Get destination pool and type from self.migration_storage_pools
 
         :param src_pool: storage pool name
-        :returns: set of storage pool name and volume type name
+        :param src_type: storage volume type
+        :returns: set of storage dst pool name and dst volume type name, any
+        of those values can be None if no match for it is found in the
+        input_parameters
         """
+        src_pool_type_inputs = []
+        src_pool_inputs = []
         for pool in self.migrate_storage_pools:
+            if pool.get("src_type") is None:
+                src_pool_inputs.append(pool)
+            else:
+                src_pool_type_inputs.append(pool)
+
+        pool_to_check = (src_pool, src_type)
+        # First pass: prefer exact match (both src_pool and src_type)
+        for pool in src_pool_type_inputs:
+            user_pool = (pool.get("src_pool"), pool.get("src_type"))
+            if pool_to_check == user_pool:
+                return (pool.get("dst_pool"), pool.get("dst_type"))
+
+        # Second pass: fall back to matching just src_pool
+        for pool in src_pool_inputs:
             if pool.get("src_pool") == src_pool:
-                return (pool.get("dst_pool", None),
-                        pool.get("dst_type"))
+                return (pool.get("dst_pool"), pool.get("dst_type"))
+
+        return (None, None)
 
     def volumes_migration(self, volumes, action_counter, instance_targets=[]):
         instance_target_ids = {instance.uuid for instance in instance_targets}
@@ -405,7 +425,7 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
                 continue
 
             src_type = volume.volume_type
-            dst_pool, dst_type = self.get_dst_pool_and_type(pool)
+            dst_pool, dst_type = self.get_dst_pool_and_type(pool, src_type)
             LOG.debug(src_type)
             LOG.debug("%s %s", dst_pool, dst_type)
 
