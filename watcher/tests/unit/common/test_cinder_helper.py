@@ -644,28 +644,11 @@ class TestCinderHelper(base.TestCase):
             {'volume': volume.id})
         self.assertFalse(result)
 
-    def test_get_volume_types_for_pool(self, mock_cinder):
-        """Test the get_volume_types_for_pool method
-
-        The test should verify the following scenarios:
-        1. A pool with a volume_backend_name, with two volume types, one
-           matching the same volume_backend_name, and one without any
-           extra_specs, both are selected
-        2. A pool with a volume_backend_name, with two volume types, one
-           without any extra_specs, one with a different
-           volume_backend_name from the pool, only the volume_type without
-           extra_specs is selected
-        3. A pool with a capability 'disk_speed', with a volume type
-           containing the same field is its extra_specs, and is selected
-        4. A pool with a capability 'disk_speed', with a volume type
-           containing the same field in its extra_specs, but with a
-           different value, the returned list is empty
-        """
+    def test_get_volume_types_for_pool_matching_backend(
+            self, mock_cinder):
+        """Test matching backend and no extra_specs are selected."""
         cinder_util = cinder_helper.CinderHelper()
-
-        # Scenario 1: Pool with volume_backend_name, two volume types
-        # (one matching, one without extra_specs), both selected
-        pool1 = self.fake_pool(
+        pool = self.fake_pool(
             name='host@backend#pool',
             capabilities={'volume_backend_name': 'backend'}
         )
@@ -680,54 +663,137 @@ class TestCinderHelper(base.TestCase):
         cinder_util.cinder.volume_types.list.return_value = [
             volume_type1, volume_type2
         ]
-        result = cinder_util.get_volume_types_for_pool(pool1.to_dict())
-        self.assertEqual(sorted(result), ['type_matching', 'type_no_specs'])
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
+        self.assertEqual(
+            sorted(result),
+            ['type_matching', 'type_no_specs'])
 
-        # Scenario 2: Pool with volume_backend_name, two volume types
-        # (one without extra_specs, one with different backend),
-        # only type without extra_specs selected
-        pool2 = self.fake_pool(
+    def test_get_volume_types_for_pool_different_backend(
+            self, mock_cinder):
+        """Test different backend is excluded, no specs is included."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
             name='host@backend#pool',
             capabilities={'volume_backend_name': 'backend'}
         )
-        volume_type3 = self.fake_volume_type(
+        volume_type1 = self.fake_volume_type(
             name='type_no_specs',
             extra_specs={}
         )
-        volume_type4 = self.fake_volume_type(
+        volume_type2 = self.fake_volume_type(
             name='type_different_backend',
             extra_specs={'volume_backend_name': 'different_backend'}
         )
         cinder_util.cinder.volume_types.list.return_value = [
-            volume_type3, volume_type4
+            volume_type1, volume_type2
         ]
-        result = cinder_util.get_volume_types_for_pool(pool2.to_dict())
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
         self.assertEqual(result, ['type_no_specs'])
 
-        # Scenario 3: Pool with disk_speed capability, volume type with
-        # matching disk_speed, is selected
-        pool3 = self.fake_pool(
+    def test_get_volume_types_for_pool_matching_capability(
+            self, mock_cinder):
+        """Test volume type with matching capability is selected."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
             name='host@backend#pool',
             capabilities={'disk_speed': 'fast'}
         )
-        volume_type5 = self.fake_volume_type(
+        volume_type = self.fake_volume_type(
             name='type_fast_disk',
             extra_specs={'disk_speed': 'fast'}
         )
-        cinder_util.cinder.volume_types.list.return_value = [volume_type5]
-        result = cinder_util.get_volume_types_for_pool(pool3.to_dict())
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type]
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
         self.assertEqual(result, ['type_fast_disk'])
 
-        # Scenario 4: Pool with disk_speed capability, volume type with
-        # different disk_speed value, empty list returned
-        pool4 = self.fake_pool(
+    def test_get_volume_types_for_pool_mismatched_capability(
+            self, mock_cinder):
+        """Test volume type with different capability value excluded."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
             name='host@backend#pool',
             capabilities={'disk_speed': 'fast'}
         )
-        volume_type6 = self.fake_volume_type(
+        volume_type = self.fake_volume_type(
             name='type_slow_disk',
             extra_specs={'disk_speed': 'slow'}
         )
-        cinder_util.cinder.volume_types.list.return_value = [volume_type6]
-        result = cinder_util.get_volume_types_for_pool(pool4.to_dict())
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type]
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
+        self.assertEqual([], result)
+
+    def test_get_volume_types_for_pool_no_capabilities(
+            self, mock_cinder):
+        """Test pool with no capabilities selects no-specs types."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={}
+        )
+        volume_type1 = self.fake_volume_type(
+            name='type_no_specs',
+            extra_specs={}
+        )
+        volume_type2 = self.fake_volume_type(
+            name='type_with_specs',
+            extra_specs={'volume_backend_name': 'backend'}
+        )
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type1, volume_type2
+        ]
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
+        self.assertEqual(result, ['type_no_specs', 'type_with_specs'])
+
+    def test_get_volume_types_for_pool_requirements_not_in_caps(
+            self, mock_cinder):
+        """Test volume type with requirements not in pool capabilities."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={'volume_backend_name': 'backend'}
+        )
+        volume_type = self.fake_volume_type(
+            name='type_extra_reqs',
+            extra_specs={
+                'volume_backend_name': 'backend',
+                'disk_speed': 'fast',
+            }
+        )
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type]
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
+        self.assertEqual(result, ['type_extra_reqs'])
+
+    def test_get_volume_types_for_pool_multiple_specs_partial_match(
+            self, mock_cinder):
+        """Test volume type with multiple extra_specs partial match."""
+        cinder_util = cinder_helper.CinderHelper()
+        pool = self.fake_pool(
+            name='host@backend#pool',
+            capabilities={
+                'volume_backend_name': 'backend',
+                'disk_speed': 'fast',
+                'compression': 'enabled',
+            }
+        )
+        volume_type = self.fake_volume_type(
+            name='type_partial',
+            extra_specs={
+                'volume_backend_name': 'backend',
+                'disk_speed': 'slow',
+                'compression': 'enabled',
+            }
+        )
+        cinder_util.cinder.volume_types.list.return_value = [
+            volume_type]
+        result = cinder_util.get_volume_types_for_pool(
+            pool.to_dict())
         self.assertEqual([], result)
