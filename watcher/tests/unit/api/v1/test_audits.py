@@ -1395,6 +1395,39 @@ class TestAuditZoneMigration(TestPostBase):
         mock_trigger_audit.assert_not_called()
 
     @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
+    def test_create_audit_zone_migration_no_dst_pool_dst_type(
+        self, mock_trigger_audit
+    ):
+        """Verify zone migration rejects no destination parameters.
+
+        Tests that an audit creation fails with BAD_REQUEST when neither
+        dst_type nor dst_pool are passed in the input parameters. This
+        validates the schema correctly enforces that the at least one
+        destination parameters is present.
+        """
+        mock_trigger_audit.return_value = mock.ANY
+        zm_params = {
+            'storage_pools': [
+                    {"src_type": "src_type_name",
+                     "src_pool": "src_pool_name"}
+                ]
+            }
+
+        audit_input_dict = self._prepare_audit_params(zm_params)
+
+        response = self.post_json('/audits', audit_input_dict,
+                                  expect_errors=True)
+        self.assertEqual("application/json", response.content_type)
+        self.assertEqual(HTTPStatus.BAD_REQUEST, response.status_int)
+        expected_error_msgs = (
+            "is not valid under any of the given schemas",
+            "Failed validating 'oneOf' in schema"
+        )
+        for expected_error_msg in expected_error_msgs:
+            self.assertIn(expected_error_msg, response.json['error_message'])
+        mock_trigger_audit.assert_not_called()
+
+    @mock.patch.object(deapi.DecisionEngineAPI, 'trigger_audit')
     def test_create_audit_zone_migration_with_multiple_valid_inputs(
         self, mock_trigger_audit
     ):
