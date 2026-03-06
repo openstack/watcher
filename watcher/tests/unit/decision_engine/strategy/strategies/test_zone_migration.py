@@ -591,10 +591,7 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         migration_types = collections.Counter(
             [action.get('input_parameters')['migration_type']
              for action in solution.actions])
-        # the action generated should be a migration, but due to the bug
-        # 2143543, it generates a retype action
-        # self.assertEqual(1, migration_types.get("migrate", 0))
-        self.assertEqual(1, migration_types.get("retype", 0))
+        self.assertEqual(1, migration_types.get("migrate", 0))
         global_efficacy_value = solution.global_efficacy[2].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
 
