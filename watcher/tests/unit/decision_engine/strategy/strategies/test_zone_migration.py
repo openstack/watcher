@@ -571,6 +571,33 @@ class TestZoneMigration(test_utils.NovaResourcesMixin, TestBaseStrategy):
         global_efficacy_value = solution.global_efficacy[2].get('value', 0)
         self.assertEqual(100, global_efficacy_value)
 
+    def test_execute_migrate_volume_no_dst_type(self):
+        volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
+                                          id=volume_uuid_mapping["volume_1"],
+                                          name="volume_1")
+        self.m_c_helper.get_volume_list.return_value = [
+            volume_on_src1,
+        ]
+
+        self.m_n_helper.get_instance_list.return_value = []
+
+        self.input_parameters["storage_pools"] = [
+            {"src_pool": "src1@back1#pool1",
+             "src_type": "type1", "dst_pool": "dst1@back1#pool1"},
+        ]
+
+        solution = self.strategy.execute()
+
+        migration_types = collections.Counter(
+            [action.get('input_parameters')['migration_type']
+             for action in solution.actions])
+        # the action generated should be a migration, but due to the bug
+        # 2143543, it generates a retype action
+        # self.assertEqual(1, migration_types.get("migrate", 0))
+        self.assertEqual(1, migration_types.get("retype", 0))
+        global_efficacy_value = solution.global_efficacy[2].get('value', 0)
+        self.assertEqual(100, global_efficacy_value)
+
     def test_execute_migrate_volume_no_dst_pool(self):
         volume_on_src1 = self.fake_volume(host="src1@back1#pool1",
                                           id=volume_uuid_mapping["volume_1"],
