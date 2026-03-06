@@ -196,10 +196,23 @@
     name: watcher-grenade
     parent: grenade
     required-projects: *tempest_base_required_projects
-    vars:
+    vars: &grenade_vars
       <<: *tempest_base_vars
+      tempest_test_regex: watcher_tempest_plugin.tests\.(api|scenario)
       devstack_plugins:
         watcher: https://opendev.org/openstack/watcher
+    irrelevant-files: *irrelevant_files
+
+- job:
+    name: watcher-grenade-skip-level-always
+    description: |
+      Grenade job that skips the previous release, validating that projects
+      can support upgrades from N-2 to N release. It will always upgrade
+      to the current branch. For example: If N-2 is 2025.1 release then N
+      would be 2026.1.
+    parent: grenade-skip-level-always
+    required-projects: *tempest_base_required_projects
+    vars: *grenade_vars
     irrelevant-files: *irrelevant_files
 
 - job:
@@ -372,6 +385,7 @@
       jobs:
         - openstack-tox-py312-threading
         - watcher-grenade
+        - watcher-grenade-skip-level-always
         - watcher-tempest-api-ipv6-only
         - watcher-tempest-gnocchi
         - python-watcherclient-functional:
@@ -384,6 +398,7 @@
       jobs:
         - openstack-tox-py312-threading
         - watcher-grenade
+        - watcher-grenade-skip-level-always
         - watcher-tempest-api-ipv6-only
         - watcher-tempest-gnocchi
         - python-watcherclient-functional:
