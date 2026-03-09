@@ -135,7 +135,8 @@ class TestStop(test_utils.NovaResourcesMixin, base.TestCase):
 
     def test_execute_stop_failure_instance_not_found(self):
         # Stop operation fails but instance doesn't exist (idempotent)
-        self.m_helper.find_instance.return_value = None
+        self.m_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound())
         self.m_helper.stop_instance.return_value = False
 
         result = self.action.execute()

@@ -165,19 +165,20 @@ class Migrate(base.BaseAction):
         else:
             LOG.debug("Migrate instance %s to %s", self.instance_uuid,
                       destination)
-        instance = nova.find_instance(self.instance_uuid)
-        if instance:
-            if self.migration_type == self.LIVE_MIGRATION:
-                return self._live_migrate_instance(nova, destination)
-            elif self.migration_type == self.COLD_MIGRATION:
-                return self._cold_migrate_instance(nova, destination)
-            else:
-                raise exception.Invalid(
-                    message=(_("Migration of type '%(migration_type)s' is not "
-                               "supported.") %
-                             {'migration_type': self.migration_type}))
-        else:
+        try:
+            nova.find_instance(self.instance_uuid)
+        except exception.ComputeResourceNotFound:
             raise exception.InstanceNotFound(name=self.instance_uuid)
+
+        if self.migration_type == self.LIVE_MIGRATION:
+            return self._live_migrate_instance(nova, destination)
+        elif self.migration_type == self.COLD_MIGRATION:
+            return self._cold_migrate_instance(nova, destination)
+        else:
+            raise exception.Invalid(
+                message=(_("Migration of type '%(migration_type)s' is not "
+                           "supported.") %
+                         {'migration_type': self.migration_type}))
 
     def execute(self):
         return self.migrate(destination=self.destination_node)
@@ -187,16 +188,17 @@ class Migrate(base.BaseAction):
 
     def abort(self):
         nova = nova_helper.NovaHelper(osc=self.osc)
-        instance = nova.find_instance(self.instance_uuid)
-        if instance:
-            if self.migration_type == self.COLD_MIGRATION:
-                return self._abort_cold_migrate(nova)
-            elif self.migration_type == self.LIVE_MIGRATION:
-                return self._abort_live_migrate(
-                    nova, source=self.source_node,
-                    destination=self.destination_node)
-        else:
+        try:
+            nova.find_instance(self.instance_uuid)
+        except exception.ComputeResourceNotFound:
             raise exception.InstanceNotFound(name=self.instance_uuid)
+
+        if self.migration_type == self.COLD_MIGRATION:
+            return self._abort_cold_migrate(nova)
+        elif self.migration_type == self.LIVE_MIGRATION:
+            return self._abort_live_migrate(
+                nova, source=self.source_node,
+                destination=self.destination_node)
 
     def pre_condition(self):
         """Check migration preconditions

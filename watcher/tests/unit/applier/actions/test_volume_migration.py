@@ -213,6 +213,15 @@ class TestMigration(base.TestCase):
         result = self.action_swap._can_swap(volume)
         self.assertFalse(result)
 
+    def test_can_swap_instance_not_found(self):
+        volume = self.fake_volume(
+            status='in-use', attachments=[
+                {'server_id': TestMigration.INSTANCE_UUID}])
+        self.m_n_helper.find_instance.side_effect = (
+            exception.ComputeResourceNotFound(TestMigration.INSTANCE_UUID))
+        result = self.action_swap._can_swap(volume)
+        self.assertFalse(result)
+
     def test_swap_success(self):
         volume = self.fake_volume(
             status='in-use', attachments=[

@@ -18,6 +18,7 @@ from oslo_utils import timeutils
 from cinderclient.v3.volumes import Volume
 from watcher._i18n import _
 from watcher.common import cinder_helper
+from watcher.common import exception
 from watcher.common import nova_helper
 from watcher.decision_engine.model import element
 from watcher.decision_engine.strategy.strategies import base
@@ -444,11 +445,22 @@ class ZoneMigration(base.ZoneMigrationBaseStrategy):
             # if with_attached_volume is True, migrate instances attached
             # to the volumes, only if they are possible migration targets
             if self.with_attached_volume:
-                instances = [
-                    self.nova.find_instance(dic.get('server_id'))
-                    for dic in volume.attachments
-                    if dic.get('server_id') in instance_target_ids
-                    ]
+                instances = []
+                for dic in volume.attachments:
+                    instance_id = dic.get('server_id')
+                    try:
+                        instance = self.nova.find_instance(instance_id)
+                    except exception.ComputeResourceNotFound:
+                        # if an instance can't be found, we won't consider it
+                        # for migration, but the audit should not fail because
+                        # of it
+                        LOG.debug(
+                            "Could not find instance %s it will not be "
+                            "considered for migration", instance_id
+                        )
+                        continue
+                    if instance_id in instance_target_ids:
+                        instances.append(instance)
                 self.instances_migration(instances, action_counter)
 
             action_counter.add_pool(pool)
