@@ -65,18 +65,21 @@ class TestModel(base.TestCase):
 
     @mock.patch.object(model_root.ModelRoot, 'get_all_compute_nodes')
     @mock.patch.object(model_root.ModelRoot, 'get_node_instances')
-    def test_get_model_to_list(self, mock_instances, mock_nodes):
-        fake_compute_node = mock.MagicMock(
-            uuid='fake_node_uuid',
-            fields=['uuid'])
-        fake_instance = mock.MagicMock(
-            uuid='fake_instance_uuid',
-            fields=['uuid'])
+    @mock.patch('watcher.decision_engine.model.model_root.LOG')
+    def test_get_model_to_list(self, mock_log, mock_instances, mock_nodes):
+        fake_compute_node = element.ComputeNode(
+            uuid='fake_node_uuid', hostname="hostname0")
+        fake_instance = element.Instance(
+            uuid='fake_instance_uuid')
 
         mock_nodes.return_value = {'fake_node_uuid': fake_compute_node}
         mock_instances.return_value = [fake_instance]
 
-        expected_keys = ['server_uuid', 'node_uuid']
+        expected_keys = [
+            'server_uuid', 'node_uuid', 'node_state', 'node_hostname',
+            'node_status', 'server_flavor_extra_specs', 'server_locked',
+            'server_pinned_az', 'server_state', 'server_watcher_exclude'
+        ]
 
         result = model_root.ModelRoot().to_list()
         self.assertEqual(1, len(result))
@@ -84,16 +87,45 @@ class TestModel(base.TestCase):
         result_keys = result[0].keys()
         self.assertEqual(sorted(expected_keys), sorted(result_keys))
 
+        mock_log.debug.assert_any_call(
+            'Attribute %s for Instance: %s is not provided', 'name',
+            'fake_instance_uuid'
+        )
+        mock_log.debug.assert_any_call(
+            'Attribute %s for Compute: %s is not provided', 'memory',
+            'hostname0'
+        )
+
         # test compute node has no instance
         mock_instances.return_value = []
 
-        expected_keys = ['node_uuid']
+        expected_keys = ['node_hostname', 'node_status',
+                         'node_state', 'node_uuid']
 
         result = model_root.ModelRoot().to_list()
         self.assertEqual(1, len(result))
 
         result_keys = result[0].keys()
         self.assertEqual(expected_keys, list(result_keys))
+
+    def test_model_to_list_all_fields(self):
+        struct_str = self.load_data('scenario_1.xml')
+        model = model_root.ModelRoot.from_xml(struct_str)
+        model_list = model.to_list()
+        self.assertIsInstance(model_list, list)
+        self.assertEqual(len(model_list), 8)
+        self.assertEqual(
+            model_list[0]['server_uuid'],
+            'd000ef1f-dc19-4982-9383-087498bfde03')
+
+    def test_model_to_xml_all_fields(self):
+        struct_str = self.load_data('scenario_2_with_metrics.xml')
+
+        model = model_root.ModelRoot.from_xml(struct_str)
+        model_xml = model.to_xml()
+        self.assertIsInstance(model_xml, str)
+        self.assertIn('Instance', model_xml)
+        self.assertIn('Compute', model_xml)
 
     def test_get_node_by_instance_uuid(self):
         model = model_root.ModelRoot()

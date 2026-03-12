@@ -268,7 +268,14 @@ class ModelRoot(nx.DiGraph, base.Model):
             in_dict = {}
             for field in cn.fields:
                 new_name = "node_"+str(field)
-                in_dict[new_name] = cn[field]
+                try:
+                    in_dict[new_name] = cn[field]
+                # NotImplementedError means field not assigned
+                # which is really not an issue as it can be an
+                # optional field
+                except NotImplementedError:
+                    LOG.debug("Attribute %s for Compute: %s is not provided",
+                              field, cn.hostname)
             node_instances = self.get_node_instances(cn)
             if not node_instances:
                 deep_in_dict = in_dict.copy()
@@ -277,7 +284,11 @@ class ModelRoot(nx.DiGraph, base.Model):
             for instance in sorted(node_instances, key=lambda x: x.uuid):
                 for field in instance.fields:
                     new_name = "server_"+str(field)
-                    in_dict[new_name] = instance[field]
+                    try:
+                        in_dict[new_name] = instance[field]
+                    except NotImplementedError:
+                        LOG.debug("Attribute %s for Instance: %s is not "
+                                  "provided", field, instance.uuid)
                 if in_dict != {}:
                     deep_in_dict = in_dict.copy()
                     ret_list.append(deep_in_dict)
