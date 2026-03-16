@@ -34,9 +34,13 @@ def _monkey_patch():
 
 
 def _is_patching_enabled():
-    if os.environ.get(
-        'OS_WATCHER_DISABLE_EVENTLET_PATCHING', ''
-    ).lower() not in ('1', 'true', 'yes', 'y'):
+    # NOTE(dviroel): The default is now to always disable eventlet patching
+    if os.environ.get('OS_WATCHER_DISABLE_EVENTLET_PATCHING', '').lower() in (
+        '0',
+        'false',
+        'no',
+        'n',
+    ):
         return True
     return False
 

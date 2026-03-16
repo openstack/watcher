@@ -330,31 +330,31 @@
           CEILOMETER_PIPELINE_INTERVAL: 15
 
 - job:
-    name: watcher-tempest-prometheus-threading
+    name: watcher-tempest-prometheus-eventlet
     parent: watcher-tempest-prometheus
     description: |
       Watcher multinode devstack tempest job with Prometheus as datasource and
-      threading mode enabled in specific services.
-    vars: &threading_vars
+      eventlet mode enabled in specific services.
+    vars: &eventlet_vars
       devstack_localrc:
-        'SYSTEMD_ENV_VARS["watcher-api"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
-        'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
-        'SYSTEMD_ENV_VARS["watcher-applier"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+        'SYSTEMD_ENV_VARS["watcher-api"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=false
+        'SYSTEMD_ENV_VARS["watcher-decision-engine"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=false
+        'SYSTEMD_ENV_VARS["watcher-applier"]': OS_WATCHER_DISABLE_EVENTLET_PATCHING=false
       devstack_local_conf:
         post-config:
           $WATCHER_CONF:
             DEFAULT:
               print_thread_pool_stats: true
     group-vars:
-      subnode: *threading_vars
+      subnode: *eventlet_vars
 
 - job:
-    name: openstack-tox-py312-threading
-    parent: openstack-tox-py312
+    name: openstack-tox-py313-eventlet
+    parent: openstack-tox-py313
     description: |
-      Run tox with the py3-threading environment.
+      Run tox with the py3-eventlet environment.
     vars:
-      tox_envlist: py3-threading
+      tox_envlist: py3-eventlet
 
 - job:
     name: watcher-tempest-aetos-realdata
@@ -383,7 +383,7 @@
       - release-notes-jobs-python3
     check:
       jobs:
-        - openstack-tox-py312-threading
+        - openstack-tox-py313-eventlet
         - watcher-grenade
         - watcher-grenade-skip-level-always
         - watcher-tempest-api-ipv6-only
@@ -392,11 +392,11 @@
             files: &watcherclient_functional_files
               - ^watcher/api/*
         - watcher-tempest-prometheus
-        - watcher-tempest-prometheus-threading
+        - watcher-tempest-prometheus-eventlet
         - watcher-tempest-aetos
     gate:
       jobs:
-        - openstack-tox-py312-threading
+        - openstack-tox-py313-eventlet
         - watcher-grenade
         - watcher-grenade-skip-level-always
         - watcher-tempest-api-ipv6-only
@@ -404,7 +404,7 @@
         - python-watcherclient-functional:
             files: *watcherclient_functional_files
         - watcher-tempest-prometheus
-        - watcher-tempest-prometheus-threading
+        - watcher-tempest-prometheus-eventlet
         - watcher-tempest-aetos
     experimental:
       jobs:

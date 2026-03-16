@@ -55,20 +55,22 @@ types of concurrency used in various services of Watcher.
 Concurrency modes
 #################
 
-Evenlet has been the main concurrency library within the OpenStack community
+Eventlet has been the main concurrency library within the OpenStack community
 for the last 10 years since the removal of twisted. Over the last few years,
 the maintenance of eventlet has decreased and the efforts to remove the GIL
 from Python (PEP 703), have fundamentally changed how concurrency works, making
-eventlet no longer viable. While transitioning to a new native thread
-solution, Watcher services will be supporting both modes, with the usage of
-native threading mode initially classified as ``experimental``.
+eventlet no longer viable.
 
-It is possible to enable the new native threading mode by setting the following
-environment variable in the corresponding service configuration:
+Starting from the 2026.2 release, Watcher services use native threading mode
+by default. The eventlet mode is still supported but is now deprecated and
+will be removed in a future release.
+
+To re-enable the legacy eventlet mode, set the following environment variable
+in the corresponding service configuration:
 
 .. code:: bash
 
-   OS_WATCHER_DISABLE_EVENTLET_PATCHING=true
+   OS_WATCHER_DISABLE_EVENTLET_PATCHING=false
 
 Decision engine concurrency
 ***************************

@@ -1,0 +1,13 @@
+---
+upgrade:
+  - |
+    All Watcher services (API, Decision Engine, and Applier) now run in
+    ``native threading`` mode by default. Previously, Eventlet was the default
+    concurrency library. For more information, please check `eventlet removal
+    <https://wiki.openstack.org/wiki/Eventlet-removal>`__ documentation.
+deprecations:
+  - |
+    The Eventlet concurrency mode is now deprecated and will be removed in a
+    future release. To temporarily re-enable Eventlet mode, set the environment
+    variable ``OS_WATCHER_DISABLE_EVENTLET_PATCHING=false`` in the service
+    configuration. Users are encouraged to migrate to native threading mode.
