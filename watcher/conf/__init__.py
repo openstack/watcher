@@ -32,6 +32,7 @@ from watcher.conf import gnocchi_client
 from watcher.conf import grafana_client
 from watcher.conf import grafana_translators
 from watcher.conf import ironic_client
+from watcher.conf import keystone
 from watcher.conf import keystone_client
 from watcher.conf import maas_client
 from watcher.conf import models
@@ -70,3 +71,4 @@ collector.register_opts(CONF)
 placement_client.register_opts(CONF)
 prometheus_client.register_opts(CONF)
 nova.register_opts(CONF)
+keystone.register_opts(CONF)

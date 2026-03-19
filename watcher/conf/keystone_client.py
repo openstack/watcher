@@ -15,6 +15,8 @@
 
 from oslo_config import cfg
 
+from watcher._i18n import _
+
 
 keystone_client = cfg.OptGroup(
     name='keystone_client', title='Configuration Options for Keystone'
@@ -25,10 +27,24 @@ KEYSTONE_CLIENT_OPTS = [
         'interface',
         default='public',
         choices=['internal', 'public', 'admin'],
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'To replace the frozen keystoneclient with '
+            'the openstacksdk identity proxy, the options '
+            'need to be under the [keystone] group.'
+        ),
+        deprecated_since='2026.2',
         help='Type of endpoint to use in keystoneclient.',
     ),
     cfg.StrOpt(
         'region_name',
+        deprecated_for_removal=True,
+        deprecated_reason=_(
+            'To replace the frozen keystoneclient with '
+            'the openstacksdk identity proxy, the options '
+            'need to be under the [keystone] group.'
+        ),
+        deprecated_since='2026.2',
         help='Region in Identity service catalog to use for '
         'communication with the OpenStack service.',
     ),

@@ -1,0 +1,14 @@
+---
+upgrade:
+  - |
+    Connection settings for Keystone should be added
+    directly to the [keystone] section of the configuration now, instead of
+    [keystone_client].
+deprecations:
+  - |
+    The keystone_client configuration options are deprecated and will be removed
+    in a future release. Operators should migrate to the keystoneauth adapter
+    configuration options in the [keystone] configuration group.
+other:
+  - |
+    Added support for openstacksdk as an alternative to keystoneclient.

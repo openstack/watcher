@@ -21,10 +21,10 @@ import os
 from unittest import mock
 
 import fixtures
-import keystoneclient.v3.client as ks_client
-import keystoneclient.v3.services as ks_service
 
-from watcher.common.clients import OpenStackClients
+from openstack import connection
+
+from watcher.common import clients
 
 
 class NullHandler(std_logging.Handler):
@@ -126,22 +126,18 @@ class StandardLogging(fixtures.Fixture):
 
 
 class KeystoneClient(fixtures.Fixture):
-    """Fixture to mock the keystone client.
+    """Fixture to mock the keystone proxy in openstackSDK.
 
-    Prevents the OpenStackClients from actually connecting to the
+    Prevents the openstack Connection from actually connecting to the
     keystone server.
-    Mocks the services.get and services.list methods.
     """
 
     def setUp(self):
         super().setUp()
+        self.mock_connection = mock.MagicMock(spec=connection.Connection)
         mock_osc = mock.patch.object(
-            OpenStackClients,
-            "keystone",
-            return_value=mock.MagicMock(spec=ks_client.Client),
+            clients, "get_sdk_connection", return_value=self.mock_connection
         )
-        self.m_keystone = mock_osc.start()
-        self.m_keystone.return_value.services = mock.MagicMock(
-            spec=ks_service.ServiceManager
-        )
+        mock_osc.start()
+        self.m_keystone = self.mock_connection.identity
         self.addCleanup(mock_osc.stop)

@@ -36,7 +36,7 @@ class CollectorManager:
         self.osc = osc if osc else clients.OpenStackClients()
 
     def is_cinder_enabled(self):
-        keystone = keystone_helper.KeystoneHelper(self.osc)
+        keystone = keystone_helper.KeystoneHelper()
         if keystone.is_service_enabled_by_type(svc_type='block-storage'):
             return True
         elif keystone.is_service_enabled_by_type(svc_type='volumev3'):
