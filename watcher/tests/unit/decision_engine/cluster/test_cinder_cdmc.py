@@ -25,7 +25,6 @@ class TestCinderClusterDataModelCollector(base.TestCase):
         super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
 
-    @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(cinder_helper, 'CinderHelper')
     def test_cinder_cdmc_execute(self, m_cinder_helper_cls):
         m_cinder_helper = mock.Mock(name="cinder_helper")
@@ -111,7 +110,6 @@ class TestCinderClusterDataModelCollector(base.TestCase):
         self.assertEqual(storage_pool.name, 'host@backend#pool')
         self.assertEqual(volume.uuid, '1')
 
-    @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(cinder_helper, 'CinderHelper')
     def test_cinder_cdmc_total_capacity_gb_not_integer(
         self, m_cinder_helper_cls

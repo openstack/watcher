@@ -26,7 +26,7 @@ import sys
 
 from http import HTTPStatus
 
-from keystoneclient import exceptions as keystone_exceptions
+from keystoneauth1 import exceptions as keystone_exceptions
 from oslo_config import cfg
 from oslo_log import log
 

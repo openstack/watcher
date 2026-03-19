@@ -41,7 +41,6 @@ class TestNovaClusterDataModelCollector(
         super().setUp()
         self.useFixture(conf_fixture.ConfReloadFixture())
 
-    @mock.patch('keystoneclient.v3.client.Client', mock.Mock())
     @mock.patch.object(placement_helper, 'PlacementHelper')
     @mock.patch.object(nova_helper, 'NovaHelper')
     @mock.patch.object(
