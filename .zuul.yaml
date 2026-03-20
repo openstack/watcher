@@ -386,6 +386,8 @@
       - release-notes-jobs-python3
     check:
       jobs:
+        - openstack-tox-py314:
+            voting: true
         - openstack-tox-py313-eventlet
         - watcher-grenade
         - watcher-grenade-skip-level-always
@@ -407,6 +409,8 @@
               - ^releasenotes/.*$
     gate:
       jobs:
+        - openstack-tox-py314:
+            voting: true
         - openstack-tox-py313-eventlet
         - watcher-grenade
         - watcher-grenade-skip-level-always
